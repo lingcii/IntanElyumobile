@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../session-bridge.php';
+require_once __DIR__ . '/../../laravel-api-bridge.php';
 // Check role
 if ($_SESSION['user_role'] !== 'picto') {
     header('Location: ../../login.php');
@@ -12,10 +13,7 @@ $pageTitle = 'PICTO Map View';
 $laravelBase = 'http://127.0.0.1:8000/api';
 
 // Build the Laravel session cookie header
-$cookieStr = '';
-foreach ($_COOKIE as $name => $value) {
-    $cookieStr .= $name . '=' . urlencode($value) . '; ';
-}
+$cookieStr = getLaravelApiCookieString();
 
 function laravelGet(string $url, string $cookieStr): array {
     $ch = curl_init($url);

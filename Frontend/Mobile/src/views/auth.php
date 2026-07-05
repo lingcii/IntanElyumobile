@@ -1,125 +1,125 @@
 <!-- Auth View (Login, Register & Forgot Password) -->
 
-
 <div class="auth-container animate-fade-in">
-    <div class="auth-overlay"></div>
+    <!-- Top Blue Section -->
+    <div class="auth-top stagger-1">
+        <div class="logo-container">
+            <img src="assets/img/logo.png" alt="Intan Elyu Logo">
+        </div>
+        <h1 id="auth-title">Login page</h1>
+        
+        <!-- Animated Seamless SVG Wave -->
+        <div class="wave-bottom">
+            <svg viewBox="0 0 2000 100" preserveAspectRatio="none">
+                <path class="wave-layer wave-1" fill="rgba(255,255,255,0.3)" d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 C1150,100 1350,0 1500,50 C1650,100 1850,0 2000,50 L2000,100 L0,100 Z"></path>
+                <path class="wave-layer wave-2" fill="rgba(255,255,255,0.5)" d="M0,60 C200,110 300,10 500,60 C700,110 800,10 1000,60 C1200,110 1300,10 1500,60 C1700,110 1800,10 2000,60 L2000,100 L0,100 Z"></path>
+                <path class="wave-layer wave-3" fill="#ffffff" d="M0,70 C250,120 250,20 500,70 C750,120 750,20 1000,70 C1250,120 1250,20 1500,70 C1750,120 1750,20 2000,70 L2000,100 L0,100 Z"></path>
+            </svg>
+        </div>
+    </div>
     
-    <div class="auth-content">
-        <div class="auth-header stagger-1">
-            <div class="logo-container">
-                <img src="assets/img/logo.png" alt="Intan Elyu Logo" style="width: 50px; height: auto;">
-            </div>
-            <h1 id="auth-title">Welcome.</h1>
-            <p id="auth-subtitle">Start your adventure with Intan Elyu.</p>
+    <!-- Bottom White Section -->
+    <div class="auth-bottom stagger-2">
+        <div class="auth-tabs" id="auth-tabs">
+            <div class="auth-tab active" id="tab-login" onclick="toggleAuthMode(false)">Login</div>
+            <div class="auth-tab" id="tab-register" onclick="toggleAuthMode(true)">Register</div>
         </div>
         
-        <div class="glass-panel auth-card stagger-2">
-            <div class="forms-wrapper" id="forms-wrapper">
-                
-                <!-- Panel 1: Login -->
-                <div class="form-panel login-form">
-                    <form id="form-login" onsubmit="event.preventDefault(); handleLogin(event);">
-                        <div class="input-group">
-                            <i class="fa-regular fa-envelope"></i>
-                            <input type="email" id="login-email" class="form-control auth-input" placeholder="Email Address" required>
-                        </div>
-                        <div class="input-group">
-                            <i class="fa-solid fa-lock"></i>
-                            <input type="password" id="login-password" class="form-control auth-input" placeholder="Password" required>
-                        </div>
-                        <a href="#" class="forgot-pwd" onclick="showForgotPassword(event)">Forgot Password?</a>
-                        <button type="submit" id="btn-login" class="btn-primary" style="padding:16px;">Sign In</button>
-                    </form>
+        <div class="forms-wrapper" id="forms-wrapper">
+            
+            <!-- Panel 1: Login -->
+            <div class="form-panel login-form">
+                <form id="form-login" onsubmit="handleLogin(event)">
+                    <div class="input-group">
+                        <i class="fa-solid fa-mobile-screen"></i>
+                        <input type="email" id="login-email" class="auth-input" placeholder="Email Address" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="login-password" class="auth-input" placeholder="Password" required>
+                        <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('login-password', this)"></i>
+                    </div>
+                    <a href="#" class="forgot-pwd" onclick="showForgotPassword(event)">Forgot Password?</a>
                     
-                    <div class="divider">or</div>
-                    
-                    <button class="btn-social" onclick="signInWithGoogle()">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" style="width:20px;">
-                        Continue with Google
+                    <button type="submit" id="btn-login" class="btn-circle-submit">
+                        <i class="fa-solid fa-arrow-right"></i>
                     </button>
-                    
-                    <div class="auth-links">
-                        <span style="color:#8E8E93;">New to Intan Elyu?</span> 
-                        <a href="#" onclick="toggleAuthMode(event)">Sign Up</a>
-                    </div>
-                </div>
+                </form>
                 
-                <!-- Panel 2: Register -->
-                <div class="form-panel register-form">
-                    <div style="margin-bottom:16px;">
-                        <a href="#" class="back-link" onclick="toggleAuthMode(event)">
-                            <i class="fa-solid fa-arrow-left"></i> Back
-                        </a>
+                <div class="auth-links">
+                    <div class="auth-divider"><span>OR</span></div>
+                    <button type="button" class="btn-google" onclick="signInWithGoogle()">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google">
+                        Sign in with Google
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Panel 2: Register -->
+            <div class="form-panel register-form">
+                <form id="form-register" onsubmit="handleRegister(event)">
+                    <div class="input-group">
+                        <i class="fa-regular fa-user"></i>
+                        <input type="text" id="reg-name" class="auth-input" placeholder="Full Name" required>
                     </div>
-                    <form id="form-register" onsubmit="event.preventDefault(); handleRegister(event);">
-                        <div class="input-group">
-                            <i class="fa-regular fa-user"></i>
-                            <input type="text" id="reg-name" class="form-control auth-input" placeholder="Full Name" required>
-                        </div>
-                        <div class="input-group">
-                            <i class="fa-regular fa-envelope"></i>
-                            <input type="email" id="reg-email" class="form-control auth-input" placeholder="Email Address" required>
-                        </div>
-                        <div class="input-group">
-                            <i class="fa-solid fa-lock"></i>
-                            <input type="password" id="reg-password" class="form-control auth-input" placeholder="Create Password" required>
-                        </div>
-                        <div class="input-group">
-                            <i class="fa-solid fa-lock"></i>
-                            <input type="password" id="reg-password-confirm" class="form-control auth-input" placeholder="Confirm Password" required>
-                        </div>
-                        <button type="submit" id="btn-register" class="btn-primary" style="padding:16px; margin-top:10px;">Create Account</button>
-                    </form>
+                    <div class="input-group">
+                        <i class="fa-solid fa-mobile-screen"></i>
+                        <input type="email" id="reg-email" class="auth-input" placeholder="Email Address" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="reg-password" class="auth-input" placeholder="Create Password" required>
+                        <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('reg-password', this)"></i>
+                    </div>
                     
-                    <div class="divider">or</div>
-                    
-                    <button class="btn-social" onclick="signInWithGoogle()">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" style="width:20px;">
+                    <button type="submit" id="btn-register" class="btn-circle-submit">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <div class="auth-links">
+                    <div class="auth-divider"><span>OR</span></div>
+                    <button type="button" class="btn-google" onclick="signInWithGoogle()">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google">
                         Sign up with Google
                     </button>
-                    
-                    <div class="auth-links">
-                        <span style="color:#8E8E93;">Already a member?</span> 
-                        <a href="#" onclick="toggleAuthMode(event)">Sign In</a>
-                    </div>
                 </div>
-
-                <!-- Panel 3: Forgot Password -->
-                <div class="form-panel forgot-form">
-                    <a href="#" class="back-link" onclick="hideForgotPassword(event)">
-                        <i class="fa-solid fa-arrow-left"></i> Back to Login
-                    </a>
-
-                    <!-- Form state -->
-                    <div id="fp-form-state">
-                        <h3 style="font-size:22px; font-weight:800; color:var(--text-dark); margin:0 0 8px;">Reset Password</h3>
-                        <p class="fp-hint">Enter your email and we'll send you a link to reset your password.</p>
-
-                        <form id="form-forgot" onsubmit="handleForgotPassword(event)">
-                            <div class="input-group">
-                                <i class="fa-regular fa-envelope"></i>
-                                <input type="email" id="fp-email" class="form-control auth-input" placeholder="Email Address" required>
-                            </div>
-                            <button type="submit" id="fp-btn" class="btn-primary" style="padding:16px;">
-                                Send Reset Link
-                            </button>
-                        </form>
-                    </div>
-
-                    <!-- Success state -->
-                    <div class="fp-success" id="fp-success-state">
-                        <div class="fp-success-icon">
-                            <i class="fa-solid fa-paper-plane"></i>
-                        </div>
-                        <h3>Check your email!</h3>
-                        <p>We've sent a password reset link to <strong id="fp-sent-email"></strong>. Check your inbox.</p>
-                        <button class="btn-primary" style="padding:14px; width:100%;" onclick="hideForgotPassword(event)">
-                            Back to Login
-                        </button>
-                    </div>
-                </div>
-
             </div>
+
+            <!-- Panel 3: Forgot Password -->
+            <div class="form-panel forgot-form">
+                <a href="#" class="back-link" onclick="hideForgotPassword(event)">
+                    <i class="fa-solid fa-arrow-left"></i> Back
+                </a>
+
+                <div id="fp-form-state">
+                    <div class="fp-header">
+                        <h3>Reset Password</h3>
+                        <p>Enter your email to receive a reset link.</p>
+                    </div>
+
+                    <form id="form-forgot" onsubmit="handleForgotPassword(event)">
+                        <div class="input-group">
+                            <i class="fa-solid fa-mobile-screen"></i>
+                            <input type="email" id="fp-email" class="auth-input" placeholder="Email Address" required>
+                        </div>
+                        
+                        <button type="submit" id="fp-btn" class="btn-circle-submit">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <div id="fp-success-state" style="display: none; text-align: center; padding: 20px 0;">
+                    <i class="fa-solid fa-check-circle" style="font-size: 40px; color: #1e3a8a; margin-bottom: 16px;"></i>
+                    <h3 style="margin: 0 0 10px 0; color: #333;">Email Sent!</h3>
+                    <p style="color: #888; font-size: 14px; margin-bottom: 30px;">Check your inbox for the reset link.</p>
+                    <button class="btn-circle-submit" type="button" onclick="hideForgotPassword(event)">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                </div>
+            </div>
+            
         </div>
     </div>
 </div>
@@ -127,97 +127,93 @@
 <script>
     const wrapper = document.getElementById('forms-wrapper');
     const titleEl = document.getElementById('auth-title');
-    const subtitleEl = document.getElementById('auth-subtitle');
+    const tabLogin = document.getElementById('tab-login');
+    const tabRegister = document.getElementById('tab-register');
+    const tabsContainer = document.getElementById('auth-tabs');
 
-    function setHeader(title, subtitle) {
-        titleEl.style.opacity = 0;
-        subtitleEl.style.opacity = 0;
-        setTimeout(() => {
-            titleEl.textContent = title;
-            subtitleEl.textContent = subtitle;
-            titleEl.style.opacity = 1;
-            subtitleEl.style.opacity = 1;
-        }, 300);
-    }
-
-    function toggleAuthMode(e) {
-        e.preventDefault();
-        const isRegister = wrapper.classList.contains('show-register');
-        wrapper.classList.remove('show-register', 'show-forgot');
-        if (!isRegister) {
+    function toggleAuthMode(isRegister) {
+        tabsContainer.style.display = 'flex';
+        wrapper.classList.remove('show-forgot');
+        
+        if (isRegister) {
             wrapper.classList.add('show-register');
-            setHeader('Join Us.', 'Create an account to explore.');
+            tabLogin.classList.remove('active');
+            tabRegister.classList.add('active');
+            titleEl.textContent = 'Register page';
         } else {
-            setHeader('Welcome.', 'Start your adventure with Intan Elyu.');
+            wrapper.classList.remove('show-register');
+            tabRegister.classList.remove('active');
+            tabLogin.classList.add('active');
+            titleEl.textContent = 'Login page';
         }
     }
 
     function showForgotPassword(e) {
-        e.preventDefault();
-        // Reset forgot form to default state
+        if(e) e.preventDefault();
+        
+        // Hide tabs
+        tabsContainer.style.display = 'none';
+        
+        // Reset forgot form
         document.getElementById('fp-form-state').style.display = 'block';
         document.getElementById('fp-success-state').style.display = 'none';
         document.getElementById('fp-email').value = '';
-        document.getElementById('fp-btn').textContent = 'Send Reset Link';
-        document.getElementById('fp-btn').disabled = false;
+        
+        const btn = document.getElementById('fp-btn');
+        btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
+        btn.disabled = false;
 
         wrapper.classList.remove('show-register');
         wrapper.classList.add('show-forgot');
-        setHeader('Forgot Password?', 'No worries, we got you.');
+        titleEl.textContent = 'Recovery';
     }
 
     function hideForgotPassword(e) {
-        e.preventDefault();
+        if(e) e.preventDefault();
+        // Restore tabs
+        tabsContainer.style.display = 'flex';
         wrapper.classList.remove('show-forgot', 'show-register');
-        setHeader('Welcome.', 'Start your adventure with Intan Elyu.');
+        tabRegister.classList.remove('active');
+        tabLogin.classList.add('active');
+        titleEl.textContent = 'Login page';
     }
 
-    function handleForgotPassword(e) {
-        e.preventDefault();
-        const email = document.getElementById('fp-email').value;
-        const btn = document.getElementById('fp-btn');
-        
-        // Loading state
-        btn.textContent = 'Sending...';
-        btn.disabled = true;
-
-        // Simulate API call
-        setTimeout(() => {
-            document.getElementById('fp-sent-email').textContent = email;
-            document.getElementById('fp-form-state').style.display = 'none';
-            document.getElementById('fp-success-state').style.display = 'flex';
-            setHeader('Email Sent! ✓', 'Check your inbox.');
-        }, 1500);
+    function togglePasswordVisibility(inputId, iconElement) {
+        const input = document.getElementById(inputId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            iconElement.classList.remove('fa-eye');
+            iconElement.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            iconElement.classList.remove('fa-eye-slash');
+            iconElement.classList.add('fa-eye');
+        }
     }
 
-    let backendUrl = 'https://boc-cornell-rolled-delicious.trycloudflare.com';
-
-    function signInWithGoogle() {
-        showToast('Opening Google Sign-In...');
-        setTimeout(() => {
-            window.location.href = backendUrl + '/api/auth/google/redirect';
-        }, 400);
-    }
+    let backendUrl = 'http://localhost:8000';
 
     window.handleLogin = async function(e) {
         e.preventDefault();
         const btn = document.getElementById('btn-login');
-        btn.textContent = 'Authenticating...';
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
         btn.disabled = true;
 
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
 
         try {
-            const response = await fetch(backendUrl + '/api/login', {
+            const response = await fetch(backendUrl + '/api/auth/login', {
                 method: 'POST',
+                credentials: 'include',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({ email: email, password: password })
             });
+            
             const data = await response.json();
             
             if (!response.ok) {
-                throw new Error(data.message || 'Login failed');
+                throw new Error(data.message || data.error || 'Login failed');
             }
 
             localStorage.setItem('auth_user', JSON.stringify(data.user));
@@ -228,7 +224,7 @@
         } catch (error) {
             console.error('Login Error:', error);
             if (typeof showToast === 'function') showToast(error.message);
-            btn.textContent = 'Sign In';
+            btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
             btn.disabled = false;
         }
     };
@@ -236,24 +232,18 @@
     window.handleRegister = async function(e) {
         e.preventDefault();
         const pwd = document.getElementById('reg-password').value;
-        const confirmPwd = document.getElementById('reg-password-confirm').value;
         const name = document.getElementById('reg-name').value;
         const email = document.getElementById('reg-email').value;
 
-        if (pwd !== confirmPwd) {
-            if (typeof showToast === 'function') showToast('Passwords do not match');
-            return;
-        }
-
         const btn = document.getElementById('btn-register');
-        btn.textContent = 'Creating...';
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
         btn.disabled = true;
 
         try {
-            const response = await fetch(backendUrl + '/api/register', {
+            const response = await fetch(backendUrl + '/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({ name: name, email: email, password: pwd, password_confirmation: confirmPwd })
+                body: JSON.stringify({ name: name, email: email, password: pwd, password_confirmation: pwd })
             });
             const data = await response.json();
             
@@ -269,8 +259,28 @@
         } catch (error) {
             console.error('Register Error:', error);
             if (typeof showToast === 'function') showToast(error.message);
-            btn.textContent = 'Create Account';
+            btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
             btn.disabled = false;
         }
+    };
+
+    window.handleForgotPassword = function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('fp-btn');
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+        btn.disabled = true;
+        
+        // Simulate API call
+        setTimeout(() => {
+            document.getElementById('fp-form-state').style.display = 'none';
+            document.getElementById('fp-success-state').style.display = 'block';
+        }, 1500);
+    };
+
+    function signInWithGoogle() {
+        showToast('Opening Google Sign-In...');
+        setTimeout(() => {
+            window.location.href = backendUrl + '/api/auth/google/redirect';
+        }, 400);
     }
 </script>

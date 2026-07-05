@@ -4,10 +4,6 @@ $pageTitle = 'Explore Map';
 $activeTab = 'map';
 ?>
 
-
-
-
-
 <div class="map-container animate-fade-in">
     <!-- Map Container -->
     <div id="tourist-map"></div>
@@ -30,90 +26,158 @@ $activeTab = 'map';
     </div>
 
         <!-- Layer Toggle Button -->
-    <div class="btn-layer-toggle animate-slide-up" id="btn-layer-toggle" style="position: absolute; bottom: calc(340px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: var(--bg-secondary); border: 1px solid var(--glass-border); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary-color); font-size: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1000; cursor: pointer; transition: all 0.2s;">
+    <div class="btn-layer-toggle animate-slide-up" id="btn-layer-toggle" style="position: absolute; bottom: calc(340px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: #1E3A8A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 1000; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-layer-group"></i>
     </div>
 
     <!-- 3D Mode Button -->
-    <div class="btn-3d-view animate-slide-up" id="btn-3d-view" style="position: absolute; bottom: calc(280px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: var(--bg-secondary); border: 1px solid var(--glass-border); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary-color); font-size: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1000; cursor: pointer; transition: all 0.2s;">
+    <div class="btn-3d-view animate-slide-up" id="btn-3d-view" style="position: absolute; bottom: calc(280px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: #1E3A8A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 1000; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-cube"></i>
     </div>
 
     <!-- Bottom Sheet (hidden by default) -->
     <div class="bottom-sheet" id="place-details-sheet">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-            <div style="flex:1;">
+        <!-- Header row -->
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:2px;">
+            <div style="flex:1; min-width:0;">
                 <h3 class="sheet-title" id="sheet-title">Destination Name</h3>
-                <p class="sheet-location"><i class="fa-solid fa-location-dot"></i> <span id="sheet-location">Location details</span></p>
+                <p class="sheet-location"><i class="fa-solid fa-location-dot"></i><span id="sheet-location">Location details</span></p>
             </div>
-            <button class="btn-close" onclick="window.closeSheet()" style="background:rgba(0,0,0,0.05); border:none; width:30px; height:30px; border-radius:15px; display:flex; align-items:center; justify-content:center;"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <img src="" alt="Place Image" class="sheet-img" id="sheet-img">
-        
-        <!-- Tourist Guide Details -->
-        <div id="tourist-guide-details" style="display:none; flex-direction:column; gap:8px; margin-bottom:16px; font-size:13px;">
-            <h4 style="margin:4px 0; font-size:14px; color:#8E8E93; text-transform:uppercase;">Tourist Guide Details</h4>
-            <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--glass-border);">
-                <span><i class="fa-solid fa-car" style="color:var(--primary-color); width:20px;"></i> How to go there</span>
-                <strong id="sheet-how-to-go">...</strong>
-            </div>
-            <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--glass-border);">
-                <span><i class="fa-solid fa-map-location-dot" style="color:var(--primary-color); width:20px;"></i> Distance</span>
-                <strong id="sheet-distance">Calculating...</strong>
-            </div>
-            <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--glass-border);">
-                <span><i class="fa-solid fa-van-shuttle" style="color:var(--primary-color); width:20px;"></i> Avg. Transport</span>
-                <strong id="sheet-transport">₱0</strong>
-            </div>
-            <div id="sheet-desc-container" style="margin-top:8px;">
-                <h5 style="margin:0 0 4px 0; font-size:13px; color:var(--text-dark);">About this location</h5>
-                <p id="sheet-desc" style="color:var(--text-muted); line-height:1.4; margin:0;"></p>
+            <div style="display:flex; gap: 8px;">
+                <button onclick="window.closeSheet()" style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:rgba(148,163,184,0.9); font-size:14px; cursor:pointer; flex-shrink:0; transition:background 0.2s;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
         </div>
 
-        <div style="display:flex; gap:10px; margin-top: 10px;">
-            <button class="btn-primary" style="flex:1; padding: 12px; font-size:14px;" onclick="window.addToItinerary()">Add to Itinerary</button>
-            <button id="btn-show-route" style="flex:1; padding: 12px; font-size:14px; background:transparent; color:var(--primary-color); border:2px solid var(--primary-color); border-radius:12px; font-weight:700;">Show Route</button>
+        <img src="" alt="Place Image" class="sheet-img" id="sheet-img">
+
+        <!-- About This Location & Tourist Guide Details -->
+        <div id="sheet-desc-container" style="margin-top:16px; margin-bottom:16px; display:none; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:16px;">
+            <div id="sheet-desc-animator" style="overflow:hidden;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                    <div style="width:30px; height:30px; border-radius:10px; background:rgba(56,189,248,0.15); display:flex; align-items:center; justify-content:center; border:1px solid rgba(56,189,248,0.2);">
+                        <i class="fa-solid fa-book-open" style="color:#38bdf8; font-size:13px;"></i>
+                    </div>
+                    <h5 style="margin:0; font-size:12px; font-weight:800; letter-spacing:1px; color:#f8fafc; text-transform:uppercase;">About this location</h5>
+                </div>
+            
+            <p id="sheet-desc-short" style="font-size:13px; color:rgba(248,250,252,0.8); line-height:1.6; margin:0; font-weight:400; letter-spacing:0.3px;"></p>
+            <p id="sheet-desc-full" style="font-size:13px; color:rgba(248,250,252,0.8); line-height:1.6; margin:0; display:none; font-weight:400; letter-spacing:0.3px;"></p>
+            
+            
+            <style>
+                .btn-details-active:active {
+                    transform: scale(0.97);
+                }
+            </style>
+
+            <!-- Expanded Info (hidden initially) -->
+            <div id="expanded-details" style="display:none; flex-direction:column; margin-top:16px; padding-top:16px; border-top:1px dashed rgba(255,255,255,0.1);">
+                <h4 style="margin:0 0 10px; font-size:11px; font-weight:800; letter-spacing:1px; color:rgba(148,163,184,0.7); text-transform:uppercase;">Tourist Guide</h4>
+
+                <div class="map-info-row">
+                    <span class="map-info-label">
+                        <i class="fa-solid fa-car"></i>
+                        How to get there
+                    </span>
+                    <span class="map-info-value" id="sheet-how-to-go">...</span>
+                </div>
+
+                <div class="map-info-row">
+                    <span class="map-info-label">
+                        <i class="fa-solid fa-location-arrow"></i>
+                        Distance
+                    </span>
+                    <span class="map-info-value" id="sheet-distance">Calculating...</span>
+                </div>
+
+                <div class="map-info-row">
+                    <span class="map-info-label">
+                        <i class="fa-solid fa-van-shuttle"></i>
+                        Avg. Transport
+                    </span>
+                    <span class="map-info-value" id="sheet-transport">₱0</span>
+                </div>
+
+                <div style="margin-top: 10px; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                    <h5 style="margin: 0 0 6px; font-size: 10px; color: rgba(148,163,184,0.7); text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-map" style="margin-right: 4px;"></i> Route Guide</h5>
+                    <p id="sheet-manual-guide" style="margin: 0; font-size: 13px; color: #e2e8f0; line-height: 1.5;"></p>
+                </div>
+
+                <button onclick="window.contactMTO()" style="margin-top:12px; width:100%; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.2); color:#38bdf8; padding:12px; border-radius:14px; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <i class="fa-solid fa-user-tie"></i> Contact MTO / Guide
+                </button>
+            </div>
+            </div> <!-- End sheet-desc-animator -->
+
+            <button id="btn-view-details" class="btn-details-active" onclick="window.toggleFullDetails()" style="background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.15); border-radius:12px; width:100%; color:#38bdf8; font-size:13px; font-weight:700; padding:12px 0; margin-top:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:background 0.2s, transform 0.1s;">
+                <span id="details-btn-text">View Full Details</span>
+                <i class="fa-solid fa-chevron-down" id="details-chevron" style="transition:transform 0.3s ease;"></i>
+            </button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="sheet-btn-row" style="display: flex; gap: 8px;">
+            <button class="btn-sheet-primary" onclick="window.addToItinerary()" style="flex: 1; padding: 0 10px; font-size: 13px; height: 46px;">
+                <i class="fa-solid fa-plus"></i> Add
+            </button>
+            <button id="btn-show-route" class="btn-sheet-secondary" style="flex: 1; padding: 0 10px; font-size: 13px; height: 46px;">
+                <i class="fa-solid fa-route"></i> Route
+            </button>
+            <button id="sheet-fav-btn" onclick="window.toggleMapFavorite(this)" style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); width:46px; height:46px; border-radius:14px; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.4); font-size:16px; cursor:pointer; flex-shrink:0; transition:color 0.2s, background 0.2s;">
+                <i class="fa-solid fa-heart"></i>
+            </button>
         </div>
     </div>
 
     <!-- Route Details & Fares Sheet -->
-    <div class="bottom-sheet" id="route-details-sheet" style="padding-bottom: 30px;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+    <div class="bottom-sheet" id="route-details-sheet" style="padding-bottom:30px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
             <div style="flex:1;">
-                <h3 class="sheet-title">Route & Fares</h3>
-                <p class="sheet-location" style="margin-top:4px;"><i class="fa-solid fa-route" style="color:var(--primary-color);"></i> <span id="route-distance" style="font-weight:700;">0 km</span> &nbsp;|&nbsp; <i class="fa-regular fa-clock" style="color:var(--secondary-color);"></i> <span id="route-time" style="font-weight:700;">0 min</span></p>
+                <h3 class="sheet-title">Route &amp; Fares</h3>
+                <p class="sheet-location" style="margin:4px 0 0;">
+                    <i class="fa-solid fa-route"></i>
+                    <span id="route-distance" style="font-weight:700;">0 km</span>
+                    <span style="color:rgba(255,255,255,0.2); margin:0 6px;">|</span>
+                    <i class="fa-regular fa-clock" style="color:#34d399;"></i>
+                    <span id="route-time" style="font-weight:700; color:#34d399;">0 min</span>
+                </p>
+                <div id="route-traffic-warning" style="display:none; font-size:10px; font-weight:500; margin-top:4px;"></div>
             </div>
-            <button class="btn-close" onclick="document.getElementById('route-details-sheet').classList.remove('active')" style="background:var(--glass-bg); border:none; width:30px; height:30px; border-radius:15px; display:flex; align-items:center; justify-content:center; color:var(--text-primary);"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="document.getElementById('route-details-sheet').classList.remove('active')" style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:rgba(148,163,184,0.9); font-size:14px; cursor:pointer; flex-shrink:0; margin-left:10px;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
-        
-        <h4 style="margin: 16px 0 10px 0; font-size: 14px; text-transform:uppercase; color:#8E8E93; letter-spacing:0.5px;">Estimated Transport Options</h4>
-        <div style="display:flex; flex-direction:column; gap:10px; max-height:45vh; overflow-y:auto; padding-bottom:20px; -webkit-overflow-scrolling: touch;" id="fare-list">
+        <h4>Estimated Transport Options</h4>
+        <div style="display:flex; flex-direction:column; max-height:45vh; overflow-y:auto; padding-bottom:20px; -webkit-overflow-scrolling:touch;" id="fare-list">
             <!-- Dynamic fares injected here -->
         </div>
     </div>
 
     <!-- Selected Vehicle Sheet -->
-    <div class="bottom-sheet" id="selected-vehicle-sheet" style="padding-bottom: 30px; z-index: 1005;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-            <div style="flex:1;">
-                <h3 class="sheet-title">Selected Transport</h3>
-            </div>
-            <button class="btn-close" onclick="document.getElementById('selected-vehicle-sheet').classList.remove('active')" style="background:var(--glass-bg); border:none; width:30px; height:30px; border-radius:15px; display:flex; align-items:center; justify-content:center; color:var(--text-primary);"><i class="fa-solid fa-xmark"></i></button>
+    <div class="bottom-sheet" id="selected-vehicle-sheet" style="padding-bottom:30px; z-index:1005;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <h3 class="sheet-title">Selected Transport</h3>
+            <button onclick="document.getElementById('selected-vehicle-sheet').classList.remove('active')" style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:rgba(148,163,184,0.9); font-size:14px; cursor:pointer;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
-        
-        <div style="display:flex; flex-direction:column; align-items:center; margin-top:20px; padding-bottom: 10px;">
-            <div style="width:80px; height:80px; border-radius:24px; display:flex; align-items:center; justify-content:center; font-size:40px; margin-bottom:16px; background:var(--glass-bg);">
-                <i id="vehicle-icon" class="fa-solid fa-car"></i>
+
+        <div style="display:flex; flex-direction:column; align-items:center; margin-top:16px; padding-bottom:10px;">
+            <div style="width:76px; height:76px; border-radius:22px; display:flex; align-items:center; justify-content:center; font-size:34px; margin-bottom:14px; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.2);">
+                <i id="vehicle-icon" class="fa-solid fa-car" style="color:#38bdf8;"></i>
             </div>
-            <h2 id="vehicle-name" style="margin:0 0 8px 0; font-size:24px; font-weight:800; color:var(--text-dark);">Vehicle</h2>
-            <p id="vehicle-desc" style="color:var(--text-muted); font-size:14px; text-align:center; margin:0 0 16px 0;">Description</p>
-            <div style="background:var(--glass-bg); padding:16px; border-radius:16px; width:100%; border:1px solid var(--glass-border); text-align:center;">
-                <span style="font-size:14px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Estimated Fare</span>
-                <div id="vehicle-fare" style="font-size:32px; font-weight:800; color:var(--text-dark); margin-top:4px;">₱0</div>
+            <h2 id="vehicle-name" style="margin:0 0 6px; font-size:22px; font-weight:800; color:#f8fafc;">Vehicle</h2>
+            <p id="vehicle-desc" style="color:rgba(148,163,184,0.8); font-size:13px; text-align:center; margin:0 0 18px;">Description</p>
+            <div style="background:rgba(255,255,255,0.05); padding:18px 16px; border-radius:18px; width:100%; border:1px solid rgba(255,255,255,0.08); text-align:center;">
+                <span style="font-size:11px; font-weight:700; letter-spacing:1.2px; color:rgba(148,163,184,0.7); text-transform:uppercase;">Estimated Fare</span>
+                <div id="vehicle-fare" style="font-size:36px; font-weight:800; color:#38bdf8; margin-top:6px; letter-spacing:-1px;">₱0</div>
             </div>
         </div>
-        <button class="btn-primary" style="width:100%; padding: 16px; font-size:16px; border-radius:16px; margin-top:10px;" onclick="window.confirmVehicleBooking()">Confirm Booking & Add to Itinerary</button>
+        <button class="btn-sheet-primary" style="width:100%; margin-top:14px; padding:15px;" onclick="window.confirmVehicleBooking()">
+            <i class="fa-solid fa-check-circle" style="margin-right:8px;"></i>Confirm Booking &amp; Add to Itinerary
+        </button>
     </div>
 </div>
 
@@ -138,6 +202,14 @@ $activeTab = 'map';
     window.initMap = async function() {
         const mapEl = document.getElementById('tourist-map');
         if (!mapEl) return;
+
+        // Fetch data immediately to run in parallel with MapLibre initialization
+        let backendUrl = 'http://localhost:8000';
+        const mapDataPromise = fetch(backendUrl + '/api/public/map', {
+            headers: { 'ngrok-skip-browser-warning': 'true', 'Accept': 'application/json' }
+        }).then(r => r.json()).catch(e => console.error("Map fetch error:", e));
+
+        const regionDataPromise = fetch('assets/la_union.json').then(r => r.json()).catch(e => console.error("Region fetch error:", e));
 
         const style = {
             "version": 8,
@@ -193,9 +265,8 @@ $activeTab = 'map';
             window.mapInstance.setTerrain({ "source": "terrain", "exaggeration": 1.5 });
 
             try {
-                // Use local cached JSON to eliminate the 3-second Nominatim network lag
-                const regionRes = await fetch('assets/la_union.json');
-                const regionData = await regionRes.json();
+                // Wait for the parallel region data fetch
+                const regionData = await regionDataPromise;
                 if (regionData && regionData[0] && regionData[0].geojson) {
                     const geojson = regionData[0].geojson;
                     
@@ -234,39 +305,41 @@ $activeTab = 'map';
 
             // Fetch and render markers
             try {
-                let backendUrl = 'https://boc-cornell-rolled-delicious.trycloudflare.com';
-                const response = await fetch(backendUrl + '/api/public/map', {
-                    headers: { 'ngrok-skip-browser-warning': 'true', 'Accept': 'application/json' }
-                });
-                const data = await response.json();
-                window.allMapLocations = data.destinations || [];
+                const data = await mapDataPromise;
+                if (data && data.destinations) {
+                    window.allMapLocations = data.destinations || [];
 
-                setupFilters();
-                renderMarkers(window.allMapLocations);
-                
-                setTimeout(() => {
-                    const pendingStr = localStorage.getItem('intan_elyu_pending_route');
-                    if (pendingStr) {
-                        localStorage.removeItem('intan_elyu_pending_route');
-                        const place = JSON.parse(pendingStr);
-                        window.mapInstance.flyTo({ center: [parseFloat(place.lng), parseFloat(place.lat) - 0.02], zoom: 14 });
-                        window.openSheet(place);
-                        setTimeout(() => {
-                            const routeBtn = document.getElementById('btn-show-route');
-                            if (routeBtn) routeBtn.click();
-                        }, 800);
-                    }
+                    setupFilters();
+                    renderMarkers(window.allMapLocations);
+                    
+                    setTimeout(() => {
+                        const pendingStr = localStorage.getItem('intan_elyu_pending_route');
+                        if (pendingStr) {
+                            localStorage.removeItem('intan_elyu_pending_route');
+                            const place = JSON.parse(pendingStr);
+                            if (place.lat && place.lng && !isNaN(parseFloat(place.lat)) && !isNaN(parseFloat(place.lng))) {
+                                window.mapInstance.flyTo({ center: [parseFloat(place.lng), parseFloat(place.lat) - 0.02], zoom: 14 });
+                                window.openSheet(place);
+                                setTimeout(() => {
+                                    const routeBtn = document.getElementById('btn-show-route');
+                                    if (routeBtn) routeBtn.click();
+                                }, 800);
+                            }
+                        }
 
-                    const viewStr = localStorage.getItem('intan_elyu_view_destination');
-                    if (viewStr) {
-                        localStorage.removeItem('intan_elyu_view_destination');
-                        const place = JSON.parse(viewStr);
-                        window.mapInstance.flyTo({ center: [parseFloat(place.lng), parseFloat(place.lat) - 0.02], zoom: 14 });
-                        window.openSheet(place);
-                    }
-                }, 600);
+                        const viewStr = localStorage.getItem('intan_elyu_view_destination');
+                        if (viewStr) {
+                            localStorage.removeItem('intan_elyu_view_destination');
+                            const place = JSON.parse(viewStr);
+                            if (place.lat && place.lng && !isNaN(parseFloat(place.lat)) && !isNaN(parseFloat(place.lng))) {
+                                window.mapInstance.flyTo({ center: [parseFloat(place.lng), parseFloat(place.lat) - 0.02], zoom: 14 });
+                                window.openSheet(place);
+                            }
+                        }
+                    }, 300); // Reduced delay since data is ready faster
+                }
             } catch (error) {
-                console.error("Map fetch error:", error);
+                console.error("Map data processing error:", error);
             }
         });
 
@@ -279,95 +352,74 @@ $activeTab = 'map';
         }
         window.mapMarkers = [];
 
-        const features = locations.filter(loc => loc.lat && loc.lng).map(loc => ({
-            type: 'Feature',
-            geometry: {
-                type: 'Point',
-                coordinates: [parseFloat(loc.lng), parseFloat(loc.lat)]
-            },
-            properties: {
-                id: loc.id,
-                name: loc.name,
-                category: loc.category,
-                lat: loc.lat,
-                lng: loc.lng,
-                raw_data: JSON.stringify(loc)
-            }
-        }));
+        locations.forEach(loc => {
+            if (!loc.lat || !loc.lng || isNaN(parseFloat(loc.lat)) || isNaN(parseFloat(loc.lng))) return;
+            
+            const cat = loc.category || 'Default';
+            let iconClass = 'fa-location-dot';
+            const catLower = cat.toLowerCase();
+            
+            if (catLower.includes('beach') || catLower.includes('surf')) iconClass = 'fa-umbrella-beach';
+            else if (catLower.includes('hotel') || catLower.includes('resort') || catLower.includes('stay')) iconClass = 'fa-bed';
+            else if (catLower.includes('food') || catLower.includes('restaurant') || catLower.includes('cafe') || catLower.includes('eat') || catLower.includes('dining')) iconClass = 'fa-utensils';
+            else if (catLower.includes('nature') || catLower.includes('park') || catLower.includes('mountain') || catLower.includes('trail')) iconClass = 'fa-leaf';
+            else if (catLower.includes('history') || catLower.includes('culture') || catLower.includes('church') || catLower.includes('museum')) iconClass = 'fa-monument';
+            else if (catLower.includes('water') || catLower.includes('fall') || catLower.includes('river')) iconClass = 'fa-water';
 
-        const geojsonData = {
-            type: 'FeatureCollection',
-            features: features
-        };
-
-        if (window.mapInstance.getSource('tourist-spots')) {
-            window.mapInstance.getSource('tourist-spots').setData(geojsonData);
-        } else {
-            window.mapInstance.addSource('tourist-spots', {
-                type: 'geojson',
-                data: geojsonData
-            });
-
-            // Native WebGL Circles (Zero Lag)
-            window.mapInstance.addLayer({
-                id: 'tourist-spots-circles',
-                type: 'circle',
-                source: 'tourist-spots',
-                paint: {
-                    'circle-color': '#007AFF', // var(--primary-color)
-                    'circle-radius': 10,
-                    'circle-stroke-width': 3,
-                    'circle-stroke-color': '#FFFFFF'
-                }
-            });
-
-            window.mapInstance.on('click', 'tourist-spots-circles', (e) => {
-                const props = e.features[0].properties;
-                const loc = JSON.parse(props.raw_data);
-                
+            const container = document.createElement('div');
+            
+            const el = document.createElement('div');
+            el.className = 'custom-map-marker';
+            el.style.width = '32px';
+            el.style.height = '32px';
+            el.style.backgroundColor = '#FFFFFF';
+            el.style.border = '2px solid #007AFF'; // var(--primary-color)
+            el.style.borderRadius = '50%';
+            el.style.display = 'flex';
+            el.style.alignItems = 'center';
+            el.style.justifyContent = 'center';
+            el.style.color = '#007AFF'; // var(--primary-color)
+            el.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+            el.style.cursor = 'pointer';
+            el.style.transition = 'transform 0.2s';
+            
+            el.innerHTML = `<i class="fa-solid ${iconClass}" style="font-size:14px;"></i>`;
+            
+            container.appendChild(el);
+            
+            container.addEventListener('mouseenter', () => el.style.transform = 'scale(1.2)');
+            container.addEventListener('mouseleave', () => el.style.transform = 'scale(1)');
+            
+            container.addEventListener('click', (e) => {
+                e.stopPropagation();
                 // Clear any existing active popup
-                if (window.activePopup) {
-                    window.activePopup.remove();
-                }
+                if (window.activePopup) window.activePopup.remove();
 
                 const popupContent = document.createElement('div');
                 popupContent.style.cssText = "font-weight:700; font-size:14px; color:var(--text-dark); padding: 4px 8px; cursor: pointer; display: flex; align-items: center; gap: 6px;";
                 popupContent.innerHTML = `${loc.name} <i class="fa-solid fa-chevron-right" style="font-size:12px; color:var(--primary-color);"></i>`;
                 
-                popupContent.addEventListener('click', () => {
-                    window.openSheet(loc);
-                });
+                popupContent.addEventListener('click', () => window.openSheet(loc));
 
-                // Show a smooth popup right on the marker
                 window.activePopup = new maplibregl.Popup({
-                    closeButton: false,
-                    closeOnClick: false,
-                    offset: 15,
-                    className: 'smooth-map-popup'
+                    closeButton: false, closeOnClick: false, offset: 15, className: 'smooth-map-popup'
                 })
                 .setLngLat([parseFloat(loc.lng), parseFloat(loc.lat)])
                 .setDOMContent(popupContent)
                 .addTo(window.mapInstance);
 
-                // Ensure it stays on top
                 const popupEl = window.activePopup.getElement();
                 if(popupEl) popupEl.style.zIndex = 9999;
-
-                window.mapInstance.flyTo({
-                    center: [parseFloat(loc.lng), parseFloat(loc.lat)],
-                    zoom: 14,
-                    duration: 1000
-                });
+                
+                window.mapInstance.flyTo({ center: [parseFloat(loc.lng), parseFloat(loc.lat)], zoom: 14, duration: 1000 });
             });
-
-            // Change cursor on hover
-            window.mapInstance.on('mouseenter', 'tourist-spots-circles', () => {
-                window.mapInstance.getCanvas().style.cursor = 'pointer';
-            });
-            window.mapInstance.on('mouseleave', 'tourist-spots-circles', () => {
-                window.mapInstance.getCanvas().style.cursor = '';
-            });
-        }
+            
+            const marker = new maplibregl.Marker({ element: container })
+                .setLngLat([parseFloat(loc.lng), parseFloat(loc.lat)])
+                .addTo(window.mapInstance);
+                
+            window.mapMarkers.push(marker);
+        });
     }
 
     function setupFilters() {
@@ -397,9 +449,10 @@ $activeTab = 'map';
         
         window.renderMarkers(filtered);
 
-        if (filtered.length > 0 && window.mapInstance) {
+        const validFiltered = filtered.filter(loc => loc.lat && loc.lng && !isNaN(parseFloat(loc.lat)) && !isNaN(parseFloat(loc.lng)));
+        if (validFiltered.length > 0 && window.mapInstance) {
             const bounds = new maplibregl.LngLatBounds();
-            filtered.forEach(loc => bounds.extend([parseFloat(loc.lng), parseFloat(loc.lat)]));
+            validFiltered.forEach(loc => bounds.extend([parseFloat(loc.lng), parseFloat(loc.lat)]));
             window.mapInstance.fitBounds(bounds, { padding: 50, duration: 1000, maxZoom: 15 });
         }
     };
@@ -476,8 +529,8 @@ $activeTab = 'map';
                     window.mapInstance.setLayoutProperty('satellite', 'visibility', 'visible');
                     showToast("Satellite Layer Enabled");
                 } else {
-                    btnLayer.style.background = 'var(--bg-secondary)';
-                    btnLayer.style.color = 'var(--primary-color)';
+                    btnLayer.style.background = '#1E3A8A';
+                    btnLayer.style.color = '#ffffff';
                     window.mapInstance.setLayoutProperty('satellite', 'visibility', 'none');
                     window.mapInstance.setLayoutProperty('base-map', 'visibility', 'visible');
                     showToast("Street Layer Enabled");
@@ -494,8 +547,8 @@ $activeTab = 'map';
                     window.mapInstance.easeTo({ pitch: 65, bearing: -20, duration: 1000 });
                     showToast("3D Terrain View Enabled");
                 } else {
-                    btn3d.style.background = 'var(--bg-secondary)';
-                    btn3d.style.color = 'var(--primary-color)';
+                    btn3d.style.background = '#1E3A8A';
+                    btn3d.style.color = '#ffffff';
                     window.mapInstance.easeTo({ pitch: 0, bearing: 0, duration: 1000 });
                     showToast("2D View Restored");
                 }
@@ -533,7 +586,16 @@ $activeTab = 'map';
                             'type': 'line',
                             'source': 'route',
                             'layout': { 'line-join': 'round', 'line-cap': 'round' },
-                            'paint': { 'line-color': '#007AFF', 'line-width': 5 }
+                            'paint': { 
+                                'line-color': '#007AFF', 
+                                'line-width': [
+                                    'interpolate', ['linear'], ['zoom'],
+                                    10, 3,
+                                    14, 6,
+                                    18, 12,
+                                    22, 20
+                                ]
+                            }
                         });
 
                         const bounds = geojson.coordinates.reduce((b, coord) => b.extend(coord), new maplibregl.LngLatBounds(geojson.coordinates[0], geojson.coordinates[0]));
@@ -546,30 +608,76 @@ $activeTab = 'map';
 
                         // Fare calculation
                         const distanceKm = route.distance / 1000;
-                        const durationMin = route.duration / 60;
+                        let durationMin = route.duration / 60;
+
+                        // OSRM assumes perfect driving at the speed limit.
+                        // Apply a dynamic realism multiplier:
+                        // Public transport involves waiting, passenger drop-offs, and general traffic.
+                        // We use higher multipliers to account for these inherent delays.
+                        let baseMultiplier = 1.6; // Long highway trips
+                        if (distanceKm <= 3) baseMultiplier = 2.5; // Short local trips have heavy overhead
+                        else if (distanceKm <= 7) baseMultiplier = 2.0; // Medium trips
+                        
+                        durationMin *= baseMultiplier;
+
+                        // Traffic Buffer Logic
+                        const currentHour = new Date().getHours();
+                        const isRushHour = (currentHour >= 7 && currentHour <= 9) || (currentHour >= 16 && currentHour <= 19);
+                        const warningDiv = document.getElementById('route-traffic-warning');
+
+                        if (isRushHour) {
+                            durationMin *= 1.4; // Additional penalty for rush hour (total ~2.5x)
+                            if (warningDiv) {
+                                warningDiv.style.display = 'block';
+                                warningDiv.style.color = '#FF9500';
+                                warningDiv.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Heavy traffic expected at this hour';
+                            }
+                        } else {
+                            if (warningDiv) {
+                                warningDiv.style.display = 'block';
+                                warningDiv.style.color = 'rgba(255,255,255,0.4)';
+                                warningDiv.innerHTML = 'Typical traffic conditions';
+                            }
+                        }
+
                         document.getElementById('route-distance').textContent = distanceKm.toFixed(1) + ' km';
                         document.getElementById('route-time').textContent = Math.round(durationMin) + ' mins';
                         
-                        const destName = dest.name.toLowerCase();
-                        const isHighTerrain = destName.includes('falls') || destName.includes('peak') || destName.includes('mountain') || destName.includes('ridge');
-                        
                         const createCard = (name, icon, color, desc, fare) => `
-                        <div onclick="window.openVehicleCard('${name}', '${icon}', '${color}', '${desc}', ${fare})" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; padding:12px; border:1px solid var(--glass-border); border-radius:16px; background:var(--bg-primary); transition: transform 0.1s;">
+                        <div onclick="window.openVehicleCard('${name}', '${icon}', '${color}', '${desc}', ${fare})"
+                             style="cursor:pointer; display:flex; align-items:center; justify-content:space-between;
+                                    padding:14px 16px; border:1px solid rgba(255,255,255,0.07); border-radius:18px;
+                                    background:rgba(255,255,255,0.04); margin-bottom:10px;
+                                    transition:transform 0.15s, background 0.15s;"
+                             onpointerdown="this.style.transform='scale(0.97)'; this.style.background='rgba(56,189,248,0.08)'"
+                             onpointerup="this.style.transform=''; this.style.background='rgba(255,255,255,0.04)'"
+                             onpointercancel="this.style.transform=''; this.style.background='rgba(255,255,255,0.04)'">
                             <div style="display:flex; align-items:center; gap:14px;">
-                                <div style="background:var(--glass-bg); width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; color:${color}; font-size:18px;"><i class="fa-solid ${icon}"></i></div>
-                                <div><h5 style="margin:0 0 2px 0; font-size:15px; font-weight:800; color:var(--text-dark);">${name}</h5><span style="font-size:12px; color:var(--text-muted);">${desc}</span></div>
+                                <div style="width:46px; height:46px; border-radius:14px; display:flex; align-items:center;
+                                            justify-content:center; font-size:20px;
+                                            background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.15);
+                                            color:${color}; flex-shrink:0;">
+                                    <i class="fa-solid ${icon}"></i>
+                                </div>
+                                <div>
+                                    <h5 style="margin:0 0 3px; font-size:15px; font-weight:800; color:#f8fafc; letter-spacing:-0.2px;">${name}</h5>
+                                    <span style="font-size:12px; color:rgba(148,163,184,0.75); font-weight:500;">${desc}</span>
+                                </div>
                             </div>
-                            <div style="font-weight:800; color:var(--text-dark); font-size:18px;">₱${fare}</div>
+                            <div style="background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.2);
+                                        padding:6px 12px; border-radius:10px; font-weight:800;
+                                        color:#38bdf8; font-size:15px; flex-shrink:0;">
+                                ₱${fare}
+                            </div>
                         </div>`;
 
                         let faresHtml = '';
-                        if (isHighTerrain) {
-                            faresHtml += createCard('Habal-Habal', 'fa-motorcycle', '#FF3B30', 'Primary: Best for steep mountain climbs', Math.round(50 + (distanceKm * 15)));
-                        } else if (distanceKm <= 5) {
-                            faresHtml += createCard('Tricycle', 'fa-motorcycle', 'var(--secondary-color)', 'Primary: Private & direct', Math.round(20 + (Math.max(0, distanceKm - 1) * 10)));
-                        } else {
-                            faresHtml += createCard('Jeepney', 'fa-van-shuttle', 'var(--primary-color)', 'Primary: Designated terminal route', Math.round(13 + (Math.max(0, distanceKm - 4) * 1.80)));
-                        }
+                        
+                        const ownCarFare = Math.max(10, Math.round((distanceKm / 12) * 65)); // Est. 65 per liter, 12km/L
+                        const trikeFare = Math.round(20 + (Math.max(0, distanceKm - 1) * 10));
+
+                        faresHtml += createCard('Tricycle', 'fa-motorcycle', 'var(--secondary-color)', 'Primary: Private & direct drop-off', trikeFare);
+                        faresHtml += createCard('Own Car (Fuel Est.)', 'fa-car', '#34d399', 'Alternative: Personal vehicle fuel cost', ownCarFare);
                         
                         document.getElementById('fare-list').innerHTML = faresHtml;
                         document.getElementById('route-details-sheet').classList.add('active');
@@ -580,6 +688,42 @@ $activeTab = 'map';
         }
     }
 
+    window.toggleMapFavorite = async function(element) {
+        if (!window.currentDestinationForRoute) return;
+        const destId = window.currentDestinationForRoute.id;
+        const token = localStorage.getItem('intan_elyu_token');
+        if (!token) {
+            showToast('Please login to save places');
+            return;
+        }
+        let backendUrl = 'http://localhost:8000';
+        try {
+            const res = await fetch(backendUrl + '/api/tourist/destinations/' + destId + '/favorite', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+            const data = await res.json();
+            if (data.status === 'added') {
+                element.style.color = '#ff3b30';
+                showToast('Added to Saved Places');
+                if (!window.savedPlaceIds) window.savedPlaceIds = [];
+                if (!window.savedPlaceIds.includes(destId)) window.savedPlaceIds.push(destId);
+            } else {
+                element.style.color = 'rgba(255,255,255,0.4)';
+                showToast('Removed from Saved Places');
+                if (window.savedPlaceIds) {
+                    window.savedPlaceIds = window.savedPlaceIds.filter(id => id !== destId);
+                }
+            }
+        } catch(e) {
+            showToast('Error updating favorite');
+        }
+    };
+
     window.openSheet = function(locationData) {
         if (window.activePopup) {
             window.activePopup.remove();
@@ -588,23 +732,52 @@ $activeTab = 'map';
         window.currentDestinationForRoute = locationData;
         document.getElementById('sheet-title').textContent = locationData.name;
         document.getElementById('sheet-location').textContent = locationData.location;
+
+        const favBtn = document.getElementById('sheet-fav-btn');
+        if (favBtn) {
+            if (window.savedPlaceIds && window.savedPlaceIds.includes(locationData.id)) {
+                favBtn.style.color = '#ff3b30';
+            } else {
+                favBtn.style.color = 'rgba(255,255,255,0.4)';
+            }
+            
+            const token = localStorage.getItem('intan_elyu_token');
+            if (token && !window.savedPlaceIdsFetched) {
+                fetch('http://localhost:8000/api/tourist/dashboard', {
+                    headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
+                }).then(r => r.json()).then(d => {
+                    if (d.savedPlaces) {
+                        window.savedPlaceIds = d.savedPlaces.map(p => p.id);
+                        window.savedPlaceIdsFetched = true;
+                        if (window.savedPlaceIds.includes(window.currentDestinationForRoute.id)) {
+                            favBtn.style.color = '#ff3b30';
+                        } else {
+                            favBtn.style.color = 'rgba(255,255,255,0.4)';
+                        }
+                    }
+                }).catch(e => console.error(e));
+            }
+        }
         
-        let backendUrl = 'https://boc-cornell-rolled-delicious.trycloudflare.com';
+        let backendUrl = 'http://localhost:8000';
         const imgPath = locationData.image ? (locationData.image.startsWith('http') ? locationData.image : (locationData.image.startsWith('uploads/') ? backendUrl + '/' + locationData.image : backendUrl + '/storage/' + locationData.image)) : 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
         
         const imgEl = document.getElementById('sheet-img');
         if (imgEl) {
             imgEl.src = imgPath;
-            imgEl.onerror = function() { this.src = 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'; };
+            imgEl.onerror = function() { this.onerror = null; this.src = 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'; };
         }
         
-        document.getElementById('tourist-guide-details').style.display = 'flex';
+
         
         const destName = locationData.name.toLowerCase();
-        const isHighTerrain = destName.includes('falls') || destName.includes('peak') || destName.includes('mountain') || destName.includes('ridge');
-        let howToGo = isHighTerrain ? 'Habal-Habal' : 'Tricycle / Jeepney';
-        if (!isHighTerrain && locationData.accessible_by_car) howToGo = 'Car / Tricycle / Jeepney';
+        
+        let howToGo = locationData.accessible_by_car ? 'Car / Tricycle' : 'Tricycle';
         document.getElementById('sheet-how-to-go').textContent = howToGo;
+        
+        let manualGuide = "From the town proper of " + (locationData.municipality || "La Union") + ", take a local tricycle heading to " + (locationData.location || "the barangay") + ". Ask the driver to drop you off at " + locationData.name + ".";
+        
+        document.getElementById('sheet-manual-guide').textContent = manualGuide;
         
         document.getElementById('sheet-distance').textContent = 'Calculating...';
         document.getElementById('sheet-transport').textContent = '₱' + (locationData.avg_transport_cost || 0);
@@ -633,16 +806,133 @@ $activeTab = 'map';
         }
         if (locationData.description) {
             document.getElementById('sheet-desc-container').style.display = 'block';
-            document.getElementById('sheet-desc').textContent = locationData.description;
+            
+            const words = locationData.description.split(' ');
+            if (words.length > 40) {
+                document.getElementById('sheet-desc-short').textContent = words.slice(0, 40).join(' ') + '...';
+                document.getElementById('sheet-desc-full').textContent = locationData.description;
+                document.getElementById('btn-view-details').style.display = 'flex';
+                document.getElementById('sheet-desc-short').style.display = 'block';
+                document.getElementById('sheet-desc-full').style.display = 'none';
+            } else {
+                document.getElementById('sheet-desc-short').textContent = locationData.description;
+                document.getElementById('sheet-desc-full').textContent = '';
+                // Since it's short, maybe still allow expanding to see the Tourist Guide info
+                document.getElementById('btn-view-details').style.display = 'flex';
+                document.getElementById('sheet-desc-short').style.display = 'block';
+                document.getElementById('sheet-desc-full').style.display = 'none';
+            }
         } else {
-            document.getElementById('sheet-desc-container').style.display = 'none';
+            document.getElementById('sheet-desc-short').textContent = 'No description available.';
+            document.getElementById('sheet-desc-full').textContent = '';
+            document.getElementById('btn-view-details').style.display = 'flex';
+            document.getElementById('sheet-desc-short').style.display = 'block';
+            document.getElementById('sheet-desc-full').style.display = 'none';
+            document.getElementById('sheet-desc-container').style.display = 'block';
         }
+        
+        // Reset toggle state every time we open a sheet
+        document.getElementById('expanded-details').style.display = 'none';
+        document.getElementById('details-chevron').style.transform = 'rotate(0deg)';
+        const btnText = document.getElementById('details-btn-text');
+        if (btnText) btnText.textContent = 'View Full Details';
 
         document.getElementById('place-details-sheet').classList.add('active');
     };
 
     window.closeSheet = function() {
         document.getElementById('place-details-sheet').classList.remove('active');
+    };
+
+    window.toggleFullDetails = function() {
+        const animator = document.getElementById('sheet-desc-animator');
+        const expanded = document.getElementById('expanded-details');
+        const shortDesc = document.getElementById('sheet-desc-short');
+        const fullDesc = document.getElementById('sheet-desc-full');
+        const btnText = document.getElementById('details-btn-text');
+        const chevron = document.getElementById('details-chevron');
+        
+        if (!animator || !expanded) return;
+
+        const startHeight = animator.offsetHeight;
+        animator.style.height = startHeight + 'px';
+        animator.style.transition = 'none';
+        void animator.offsetHeight;
+
+        if (expanded.style.display === 'none') {
+            // -- EXPANDING --
+            expanded.style.display = 'flex';
+            if (fullDesc && shortDesc && fullDesc.textContent.trim() !== '') {
+                shortDesc.style.display = 'none';
+                fullDesc.style.display = 'block';
+                fullDesc.style.opacity = '0';
+            }
+            if (btnText) btnText.textContent = 'Show Less';
+            if (chevron) chevron.style.transform = 'rotate(180deg)';
+            
+            animator.style.transition = 'height 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            animator.style.height = animator.scrollHeight + 'px';
+            
+            expanded.style.opacity = '0';
+            setTimeout(() => {
+                expanded.style.transition = 'opacity 0.3s ease';
+                expanded.style.opacity = '1';
+                if (fullDesc && fullDesc.style.display !== 'none') {
+                    fullDesc.style.transition = 'opacity 0.3s ease';
+                    fullDesc.style.opacity = '1';
+                }
+            }, 10);
+            
+            setTimeout(() => {
+                animator.style.height = 'auto';
+            }, 400);
+
+        } else {
+            // -- COLLAPSING --
+            expanded.style.display = 'none';
+            if (fullDesc && shortDesc && fullDesc.textContent.trim() !== '') {
+                shortDesc.style.display = 'block';
+                fullDesc.style.display = 'none';
+            }
+            
+            animator.style.height = 'auto';
+            const targetHeight = animator.scrollHeight;
+            
+            animator.style.height = startHeight + 'px';
+            expanded.style.display = 'flex';
+            
+            // Swap immediately to avoid the 'cut frame' void
+            if (fullDesc && shortDesc && fullDesc.textContent.trim() !== '') {
+                shortDesc.style.display = 'block';
+                fullDesc.style.display = 'none';
+            }
+            
+            void animator.offsetHeight;
+            
+            animator.style.transition = 'height 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            animator.style.height = targetHeight + 'px';
+            
+            expanded.style.transition = 'opacity 0.2s ease';
+            expanded.style.opacity = '0';
+            
+            if (btnText) btnText.textContent = 'View Full Details';
+            if (chevron) chevron.style.transform = 'rotate(0deg)';
+            
+            setTimeout(() => {
+                expanded.style.display = 'none';
+                animator.style.transition = 'none';
+                animator.style.height = 'auto';
+            }, 320);
+        }
+    };
+
+    window.contactMTO = function() {
+        showToast('Connecting you to Municipal Tourism Office...');
+        // In a real app, this would open a phone dialer or chat:
+        // window.location.href = 'tel:+639123456789';
+        setTimeout(() => {
+            alert("MTO Contact Info:\\nPhone: +63 912 345 6789\\nEmail: tourism@elyu.gov.ph\\n\\nThey can arrange a local guide or habal-habal for your trip!");
+        }, 500);
     };
 
     window.openVehicleCard = function(name, icon, color, desc, fare) {
@@ -688,11 +978,3 @@ $activeTab = 'map';
     setTimeout(window.initMap, 50);
 })();
 </script>
-
-
-
-
-
-
-
-

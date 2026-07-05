@@ -4,7 +4,7 @@
   "webDir": "public",
   "bundledWebRuntime": false,
   "server": {
-    "url": "https://gracious-pavilion-maturity.ngrok-free.dev/mobile/index.php",
+    "url": "https://december-kinsman-improve.ngrok-free.dev/mobile/index.php",
     "cleartext": true
   }
 }

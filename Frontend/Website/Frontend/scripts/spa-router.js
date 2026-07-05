@@ -154,10 +154,9 @@
         }
     }
     
-    // Call immediately and also poll a bit in case Leaflet loads dynamically
+    // Call once at startup. If Leaflet isn't loaded yet it will be patched
+    // after the first tab that uses it finishes loading (see loadTab).
     patchLeaflet();
-    const patchInterval = setInterval(patchLeaflet, 500);
-    setTimeout(() => clearInterval(patchInterval), 10000);
 
     // Helper: Execute script tags sequentially
     function executeScripts(container) {
@@ -375,11 +374,19 @@
         loadTab(pageName);
     }
 
-    // Load tab from server
+    // Load tab from server (with sessionStorage cache fallback)
     function loadTab(pageName) {
-        // Spin the refresh button icon for subtle loading feedback
         const icon = document.getElementById('spaRefreshIcon');
         if (icon) icon.classList.add('fa-spin');
+
+        // Check for cached HTML in sessionStorage (skip if we want fresh data)
+        const cacheKey = STORAGE_PREFIX + 'html_' + pageName;
+        const cachedHtml = sessionStorage.getItem(cacheKey);
+
+        if (cachedHtml) {
+            injectTabHtml(pageName, cachedHtml, icon);
+            return;
+        }
 
         fetch(pageName, {
             headers: {
@@ -392,76 +399,80 @@
             return response.text();
         })
         .then(html => {
-            let tabWrapper = loadedTabs[pageName];
-            if (!tabWrapper) {
-                tabWrapper = document.createElement('div');
-                tabWrapper.id = `spa-tab-${pageName}`;
-                tabWrapper.className = 'spa-tab-content';
-                const spaContainer = document.getElementById('spa-tab-container');
-                if (spaContainer) {
-                    spaContainer.appendChild(tabWrapper);
-                }
-                loadedTabs[pageName] = tabWrapper;
-            }
-
-            // Insert HTML
-            tabWrapper.innerHTML = html;
-
-            // Swap views
-            tabWrapper.style.display = 'block';
-            tabWrapper.classList.add('active-tab');
-
-            // Intercept addEventListener DOMContentLoaded while executing scripts
-            const queuedListeners = [];
-            const originalAddEventListener = document.addEventListener;
-            document.addEventListener = function(type, listener, options) {
-                if (type === 'DOMContentLoaded') {
-                    queuedListeners.push(listener);
-                } else {
-                    originalAddEventListener.call(document, type, listener, options);
-                }
-            };
-
-            // Execute scripts inside the fetched HTML
-            executeScripts(tabWrapper).then(() => {
-                // Restore addEventListener
-                document.addEventListener = originalAddEventListener;
-
-                // Run captured DOMContentLoaded listeners
-                queuedListeners.forEach(listener => {
-                    try {
-                        listener();
-                    } catch (e) {
-                        console.error('Error in deferred DOMContentLoaded listener:', e);
-                    }
-                });
-
-                // Restore state if any
-                restoreTabUIState(pageName);
-
-                // Start auto-refresh for dashboard if switching to it
-                if (pageName === 'dashboard.php' && typeof window.startAutoRefresh === 'function') {
-                    window.startAutoRefresh();
-                }
-
-                // Invalidate Leaflet map sizes
-                const maps = tabWrapper.querySelectorAll('.leaflet-container, [id*="map"]');
-                maps.forEach(mEl => {
-                    if (mEl._leaflet_map) {
-                        mEl._leaflet_map.invalidateSize();
-                    }
-                });
-
-                // Dispatch event and trigger window resize
-                tabWrapper.dispatchEvent(new CustomEvent('tabshow', { bubbles: true }));
-                window.dispatchEvent(new Event('resize'));
-
-                // Stop spinning
-                if (icon) icon.classList.remove('fa-spin');
-            });
+            try {
+                sessionStorage.setItem(cacheKey, html);
+            } catch (e) {}
+            injectTabHtml(pageName, html, icon);
         })
         .catch(error => {
             console.error('Failed to load tab:', error);
+            if (icon) icon.classList.remove('fa-spin');
+        });
+    }
+
+    function injectTabHtml(pageName, html, icon) {
+        let tabWrapper = loadedTabs[pageName];
+        if (!tabWrapper) {
+            tabWrapper = document.createElement('div');
+            tabWrapper.id = `spa-tab-${pageName}`;
+            tabWrapper.className = 'spa-tab-content';
+            const spaContainer = document.getElementById('spa-tab-container');
+            if (spaContainer) {
+                spaContainer.appendChild(tabWrapper);
+            }
+            loadedTabs[pageName] = tabWrapper;
+        }
+
+        tabWrapper.innerHTML = html;
+
+        tabWrapper.style.display = 'block';
+        tabWrapper.classList.add('active-tab');
+
+        const activeTab = loadedTabs[activeTabName];
+        if (activeTab && activeTab !== tabWrapper) {
+            activeTab.classList.remove('active-tab');
+            activeTab.style.display = 'none';
+        }
+
+        const queuedListeners = [];
+        const originalAddEventListener = document.addEventListener;
+        document.addEventListener = function(type, listener, options) {
+            if (type === 'DOMContentLoaded') {
+                queuedListeners.push(listener);
+            } else {
+                originalAddEventListener.call(document, type, listener, options);
+            }
+        };
+
+        executeScripts(tabWrapper).then(() => {
+            document.addEventListener = originalAddEventListener;
+
+            queuedListeners.forEach(listener => {
+                try {
+                    listener();
+                } catch (e) {
+                    console.error('Error in deferred DOMContentLoaded listener:', e);
+                }
+            });
+
+            restoreTabUIState(pageName);
+
+            if (pageName === 'dashboard.php' && typeof window.startAutoRefresh === 'function') {
+                window.startAutoRefresh();
+            }
+
+            patchLeaflet();
+
+            const maps = tabWrapper.querySelectorAll('.leaflet-container, [id*="map"]');
+            maps.forEach(mEl => {
+                if (mEl._leaflet_map) {
+                    mEl._leaflet_map.invalidateSize();
+                }
+            });
+
+            tabWrapper.dispatchEvent(new CustomEvent('tabshow', { bubbles: true }));
+            window.dispatchEvent(new Event('resize'));
+
             if (icon) icon.classList.remove('fa-spin');
         });
     }
@@ -476,7 +487,21 @@
             window.MAP_CACHE.clear();
         }
 
-        let customRefreshed = false;
+        // Soft refresh: for dashboards, only re-fetch API data without reloading the page
+        if (activeTabName === 'dashboard.php' && typeof window.softRefreshDashboard === 'function') {
+            window.softRefreshDashboard().finally(() => {
+                if (icon) icon.classList.remove('fa-spin');
+            });
+            return;
+        }
+
+        // Soft refresh: for tourist spots, re-fetch spots + municipalities and re-render
+        if (activeTabName === 'tourist-spots.php' && typeof window.softRefreshTouristSpots === 'function') {
+            window.softRefreshTouristSpots().finally(() => {
+                if (icon) icon.classList.remove('fa-spin');
+            });
+            return;
+        }
 
         // User Management custom reload
         if (activeTabName === 'user-management.php' && typeof window.refreshTable === 'function') {
@@ -485,16 +510,19 @@
             }).catch(() => {
                 if (icon) icon.classList.remove('fa-spin');
             });
-            customRefreshed = true;
+            return;
         }
 
-        if (!customRefreshed) {
-            // General reload: fetch page content again and re-evaluate
-            loadTab(activeTabName);
-            setTimeout(() => {
-                if (icon) icon.classList.remove('fa-spin');
-            }, 1000);
-        }
+        // Clear cached HTML for this tab so we get a fresh copy
+        try {
+            sessionStorage.removeItem(STORAGE_PREFIX + 'html_' + activeTabName);
+        } catch (e) {}
+
+        // General reload: fetch page content again and re-evaluate
+        loadTab(activeTabName);
+        setTimeout(() => {
+            if (icon) icon.classList.remove('fa-spin');
+        }, 1000);
     }
 
     // Listen to visibilitychange to save state and pause auto-refreshes

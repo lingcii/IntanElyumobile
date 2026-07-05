@@ -1,82 +1,10 @@
 // ════════════════════════════════════════════════════════════════════════════════
-// LUPTO TOURIST SPOTS - FIXED API & UTILITIES
-// Comprehensive fixes for database connectivity and form submission
+// LUPTO TOURIST SPOTS - API & UTILITIES
 // ════════════════════════════════════════════════════════════════════════════════
 
-// ── API Configuration: ensure getCsrfToken is always available
-// api-config.js is loaded as a classic script at the bottom of <body> via sections.php.
-// This module runs after DOM-ready (all modules are deferred), so api-config.js has
-// already executed by the time this code runs — but we still patch getCsrfToken in case
-// an older version of api-config.js is cached without it.
-if (!window.API_CONFIG) {
-    window.API_CONFIG = {
-        LUPTO: 'http://' + (window.location.hostname || '127.0.0.1') + ':8000/api/lupto',
-
-        async get(url) {
-            const response = await fetch(url, {
-                method: 'GET',
-                credentials: 'include',
-                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
-            });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return response.json();
-        },
-
-        async post(url, data) {
-            const response = await fetch(url, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': this.getCsrfToken()
-                },
-                body: JSON.stringify(data)
-            });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return response.json();
-        },
-
-        async put(url, data) {
-            const response = await fetch(url, {
-                method: 'PUT',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': this.getCsrfToken()
-                },
-                body: JSON.stringify(data)
-            });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return response.json();
-        },
-
-        async delete(url) {
-            const response = await fetch(url, {
-                method: 'DELETE',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': this.getCsrfToken()
-                }
-            });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return response.json();
-        },
-
-        getCsrfToken() {
-            const match = document.cookie.split(';').find(c => c.trim().startsWith('XSRF-TOKEN='));
-            if (match) return decodeURIComponent(match.trim().split('=').slice(1).join('='));
-            return document.querySelector('meta[name="csrf-token"]')?.content || '';
-        }
-    };
-}
-
-// Always patch getCsrfToken onto whatever API_CONFIG object exists (handles cached api-config.js
-// that was loaded before this fix was deployed).
-if (typeof window.API_CONFIG.getCsrfToken !== 'function') {
+// Minimal guard: api-config.js is always loaded before this file.
+// Only patch getCsrfToken in case an older cached version is missing it.
+if (window.API_CONFIG && typeof window.API_CONFIG.getCsrfToken !== 'function') {
     window.API_CONFIG.getCsrfToken = function () {
         const match = document.cookie.split(';').find(c => c.trim().startsWith('XSRF-TOKEN='));
         if (match) return decodeURIComponent(match.trim().split('=').slice(1).join('='));
@@ -84,7 +12,23 @@ if (typeof window.API_CONFIG.getCsrfToken !== 'function') {
     };
 }
 
-const API_BASE = 'http://' + (window.location.hostname || '127.0.0.1') + ':8000/api/tourist-spots';
+const API_BASE = `${window.API_CONFIG?.BASE_URL || ('http://' + (window.location.hostname || '127.0.0.1') + ':8000')}/api/tourist-spots`;
+
+function getSpotImageUploadUrl() {
+    if (window.TOURIST_SPOT_UPLOAD_URL) {
+        return window.TOURIST_SPOT_UPLOAD_URL;
+    }
+    return new URL('../../api/upload-spot-image.php', window.location.href).href;
+}
+
+function withTimeout(promise, ms, label = 'Operation') {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => {
+            setTimeout(() => reject(new Error(`${label} timed out after ${Math.round(ms / 1000)}s`)), ms);
+        })
+    ]);
+}
 
 // ── Map Global Variables
 let map, markerCluster;
@@ -104,9 +48,19 @@ const mapLayers = {
 let uploadedImages = [];
 let pendingSaveData = null;
 
-// ════════════════════════════════════════════════════════════════════════════════
+// Generate a preview URL for a file
+function getFilePreviewUrl(file) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+    });
+}
+
+
 // API CALLS - PROPERLY MAPPED TO LARAVEL ENDPOINTS
-// ════════════════════════════════════════════════════════════════════════════════
+
 
 export const getSpots = async () => {
     return await window.API_CONFIG.get(`${API_BASE}`);
@@ -135,78 +89,116 @@ window.createSpot = createSpot;
 window.updateSpot = updateSpot;
 window.deleteSpot = deleteSpot;
 
-export const uploadImage = async (file) => {
-    const formData = new FormData();
-    formData.append('image', file);
+// Compress/resize image before upload (huge speedup!)
+const compressImage = async (file, maxWidth = 1280, maxHeight = 720, quality = 0.7) => {
+    return new Promise((resolve, reject) => {
+        if (!file.type.startsWith('image/')) {
+            resolve(file);
+            return;
+        }
 
-    console.log('🖼️  Uploading image:', {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        maxSize: '5MB'
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                let { width, height } = img;
+
+                // Calculate new dimensions while maintaining aspect ratio
+                if (width > maxWidth) {
+                    height = (height * maxWidth) / width;
+                    width = maxWidth;
+                }
+                if (height > maxHeight) {
+                    width = (width * maxHeight) / height;
+                    height = maxHeight;
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob((blob) => {
+                    if (!blob) {
+                        resolve(file);
+                        return;
+                    }
+                    const compressedFile = new File([blob], file.name, {
+                        type: 'image/jpeg',
+                        lastModified: Date.now()
+                    });
+                    resolve(compressedFile);
+                }, 'image/jpeg', quality);
+            };
+            img.onerror = () => resolve(file);
+            img.src = e.target.result;
+        };
+        reader.onerror = () => resolve(file);
+        reader.readAsDataURL(file);
     });
+};
+
+export const uploadImage = async (file) => {
+    let processedFile = file;
+    try {
+        processedFile = await withTimeout(compressImage(file), 12000, 'Image processing');
+    } catch (err) {
+        console.warn('[upload] Compression skipped:', err.message);
+        processedFile = file;
+    }
+
+    const formData = new FormData();
+    formData.append('image', processedFile);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 45000);
 
     try {
-        const csrfToken = window.API_CONFIG.getCsrfToken();
-        console.log('CSRF Token present:', !!csrfToken);
-
-        const response = await fetch(`${API_BASE}/upload-image`, {
+        const response = await fetch(getSpotImageUploadUrl(), {
             method: 'POST',
-            credentials: 'include',
-            headers: {
-                'X-CSRF-Token': csrfToken,
-                'Accept': 'application/json'
-                // ❌ DO NOT set Content-Type for FormData - browser will set it with boundary
-            },
-            body: formData
+            credentials: 'same-origin',
+            headers: { 'Accept': 'application/json' },
+            body: formData,
+            signal: controller.signal
         });
 
-        console.log('📡 Upload response status:', response.status, response.statusText);
-
-        // Always read response as text first for debugging
-        const responseText = await response.text();
-        console.log('📄 Raw response:', responseText);
-
-        if (!response.ok) {
-            console.error('❌ Upload failed:', {
-                status: response.status,
-                statusText: response.statusText,
-                body: responseText
-            });
-            throw new Error(`Upload failed: HTTP ${response.status} - ${responseText}`);
-        }
-
-        // Parse JSON safely
+        const text = await response.text();
         let data;
         try {
-            data = JSON.parse(responseText);
-        } catch (parseError) {
-            console.error('❌ Failed to parse response as JSON:', parseError);
-            console.log('Response was:', responseText);
-            throw new Error('Server returned invalid JSON response');
+            data = JSON.parse(text);
+        } catch {
+            throw new Error(`Invalid server response (HTTP ${response.status})`);
         }
 
-        // Validate response structure
-        if (!data.success && !data.photo_url) {
-            console.error('❌ Invalid response structure:', data);
-            throw new Error('Invalid response from server: ' + JSON.stringify(data));
+        if (!response.ok) {
+            throw new Error(data.error || data.message || `Upload failed: HTTP ${response.status}`);
         }
 
-        console.log('✅ Upload successful:', data);
+        if (!data.success || !data.photo_url) {
+            throw new Error(data.error || 'Upload failed');
+        }
+
         return data;
-    } catch (error) {
-        console.error('❌ Image upload error:', {
-            message: error.message,
-            name: file.name,
-            stack: error.stack
-        });
-        throw error;
+    } catch (err) {
+        if (err.name === 'AbortError') {
+            throw new Error('Upload timed out. Check that Laravel is running on port 8000.');
+        }
+        throw err;
+    } finally {
+        clearTimeout(timeoutId);
     }
 };
 
-// ════════════════════════════════════════════════════════════════════════════════
+// Upload multiple images in parallel
+const uploadMultipleImages = async (files) => {
+    return Promise.all(files.map(file => uploadImage(file)));
+};
+
+
 // STATUS AND CLASSIFICATION HELPERS
-// ════════════════════════════════════════════════════════════════════════════════
+
 
 // Database stores: EXIST, EMERGE, POTENTIAL
 // Form displays: EXISTING, EMERGING, POTENTIAL
@@ -240,9 +232,7 @@ export function getClassificationBadgeHTML(status) {
     return `<span class="tag" style="background:${style.bg};color:${style.text};">${style.label}</span>`;
 }
 
-// ════════════════════════════════════════════════════════════════════════════════
 // TOAST NOTIFICATIONS
-// ════════════════════════════════════════════════════════════════════════════════
 
 export function showToast(msg, type = 'success') {
     const colors = {
@@ -402,9 +392,9 @@ export function initMap(spotsData, municipalData) {
     // Function to render spot markers for a specific municipality
     function showMunicipalitySpots(muniName) {
         markerCluster.clearLayers();
-        const spots = spotsData.filter(s => 
-            s.latitude && s.longitude && 
-            s.municipality_name && 
+        const spots = spotsData.filter(s =>
+            s.latitude && s.longitude &&
+            s.municipality_name &&
             s.municipality_name.toLowerCase().trim() === muniName.toLowerCase().trim()
         );
 
@@ -456,14 +446,14 @@ export function initMap(spotsData, municipalData) {
     if (!map.resetControlAdded) {
         const ResetControl = L.Control.extend({
             options: { position: 'topleft' },
-            onAdd: function() {
+            onAdd: function () {
                 const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-custom-control');
                 container.innerHTML = `
                     <button title="Reset to La Union Province" style="background: white; border: none; width: 34px; height: 34px; border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 5px rgba(0,0,0,0.4); transition: background-color 0.2s;">
                         <i class="fas fa-globe-asia" style="color: #3B82F6; font-size: 16px;"></i>
                     </button>
                 `;
-                container.onclick = function(e) {
+                container.onclick = function (e) {
                     e.stopPropagation();
                     map.fitBounds(bounds);
                     if (markerCluster) {
@@ -610,9 +600,8 @@ export function setupDropdownListeners() {
     });
 }
 
-// ════════════════════════════════════════════════════════════════════════════════
 // MODAL FUNCTIONS
-// ════════════════════════════════════════════════════════════════════════════════
+
 
 window.openSpotModal = async function openSpotModal(spotId) {
     const modal = document.getElementById('spotModal');
@@ -748,16 +737,34 @@ export function escapeHtml(text) {
 // IMAGE HANDLING
 // ════════════════════════════════════════════════════════════════════════════════
 
+function getUploadAreaEl() {
+    return document.getElementById('imageUploadArea');
+}
+
+function isValidImageFile(file) {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (allowedTypes.includes(file.type)) return true;
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    return ['jpg', 'jpeg', 'png'].includes(ext);
+}
+
 window.handleImageSelect = async function (e) {
     console.log('Image select triggered, files:', e.target.files.length);
     const files = Array.from(e.target.files);
+    e.stopPropagation();
+    // Clear input to allow selecting the same files again
+    e.target.value = '';
     await processImageFiles(files);
 };
 
 window.handleImageDrop = async function (e) {
     e.preventDefault();
-    e.target.style.borderColor = '#D1D5DB';
-    e.target.style.background = '#F9FAFB';
+    e.stopPropagation();
+    const area = getUploadAreaEl();
+    if (area) {
+        area.style.borderColor = '#D1D5DB';
+        area.style.background = '#F9FAFB';
+    }
     const files = Array.from(e.dataTransfer.files);
     console.log('Files dropped:', files.length);
     await processImageFiles(files);
@@ -765,46 +772,105 @@ window.handleImageDrop = async function (e) {
 
 window.handleDragOver = function (e) {
     e.preventDefault();
-    e.target.style.borderColor = '#2563EB';
-    e.target.style.background = '#EEF2FF';
+    e.stopPropagation();
+    const area = getUploadAreaEl();
+    if (area) {
+        area.style.borderColor = '#2563EB';
+        area.style.background = '#EEF2FF';
+    }
 };
 
 window.handleDragLeave = function (e) {
-    e.target.style.borderColor = '#D1D5DB';
-    e.target.style.background = '#F9FAFB';
+    e.preventDefault();
+    e.stopPropagation();
+    const area = getUploadAreaEl();
+    if (area) {
+        area.style.borderColor = '#D1D5DB';
+        area.style.background = '#F9FAFB';
+    }
 };
 
 async function processImageFiles(files) {
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-
+    // Filter valid files first
+    const validFiles = [];
     for (const file of files) {
-        console.log('Processing file:', file.name);
-
-        if (!allowedTypes.includes(file.type)) {
+        if (!isValidImageFile(file)) {
             showToast(`Invalid file type: ${file.name}. Allowed: JPEG, PNG`, 'danger');
             continue;
         }
-        if (file.size > 5 * 1024 * 1024) {
-            showToast(`File too large: ${file.name} (max 5MB)`, 'danger');
+        if (file.size > 10 * 1024 * 1024) { // Increased limit since we compress
+            showToast(`File too large: ${file.name} (max 10MB)`, 'danger');
             continue;
         }
+        validFiles.push(file);
+    }
 
-        showToast(`Uploading ${file.name}...`, 'info');
+    if (validFiles.length === 0) return;
 
-        try {
-            const result = await uploadImage(file);
-            console.log('File uploaded, result:', result);
+    showToast(`Uploading ${validFiles.length} image(s)...`, 'info');
 
-            uploadedImages.push({
-                photo_url: result.photo_url,
-                filename: result.filename
-            });
+    const pendingUploads = [];
 
+    // Add files immediately with preview and loading state
+    for (const file of validFiles) {
+        const previewUrl = await getFilePreviewUrl(file);
+        const tempId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        uploadedImages.push({
+            photo_url: previewUrl,
+            filename: file.name,
+            isLoading: true,
+            id: tempId
+        });
+        pendingUploads.push({ file, tempId });
+    }
+    renderImagePreviews();
+
+    try {
+        // Upload all images in parallel
+        const results = await Promise.allSettled(
+            pendingUploads.map(async ({ file, tempId }) => {
+                try {
+                    const result = await uploadImage(file);
+                    return { file, result, tempId, success: true };
+                } catch (err) {
+                    console.error('[upload] Failed:', file.name, err);
+                    return { file, error: err, tempId, success: false };
+                }
+            })
+        );
+
+        // Process results
+        let successCount = 0;
+        for (const settled of results) {
+            if (settled.status !== 'fulfilled') continue;
+            const item = settled.value;
+            const index = uploadedImages.findIndex(img => img.id === item.tempId);
+            if (index === -1) continue;
+
+            if (item.success) {
+                uploadedImages[index] = {
+                    photo_url: item.result.photo_url,
+                    filename: item.result.filename || item.file.name
+                };
+                successCount++;
+            } else {
+                uploadedImages.splice(index, 1);
+                const filename = item.file?.name || 'file';
+                showToast(`Failed to upload ${filename}: ${item.error?.message || 'Unknown error'}`, 'danger');
+            }
+        }
+
+        renderImagePreviews();
+        if (successCount > 0) {
+            showToast(`${successCount} image(s) uploaded successfully`, 'success');
+        }
+    } finally {
+        // Safety net: remove any previews stuck in loading state
+        const stuckCount = uploadedImages.filter(img => img.isLoading).length;
+        if (stuckCount > 0) {
+            uploadedImages = uploadedImages.filter(img => !img.isLoading);
             renderImagePreviews();
-            showToast(`✅ ${file.name} uploaded successfully`, 'success');
-        } catch (err) {
-            console.error('Upload failed for:', file.name, err);
-            showToast(`❌ Failed to upload ${file.name}: ${err.message}`, 'danger');
+            showToast('Some uploads did not complete. Please try again.', 'danger');
         }
     }
 }
@@ -815,8 +881,13 @@ function renderImagePreviews() {
 
     container.innerHTML = uploadedImages.map((img, index) => `
         <div style="position:relative;border-radius:8px;overflow:hidden;width:100px;height:100px;border: 2px solid #E5E7EB;">
-            <img src="${img.photo_url}" alt="Preview" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#F3F4F6;color:#9CA3AF;flex-direction:column;\\'><i class=\\'fas fa-exclamation\\'></i><span style=\\'font-size:10px;\\'> Error</span></div>'">
-            <button type="button" onclick="removeImage(${index})" style="position:absolute;top:4px;right:4px;background:#DC2626;color:white;border:none;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;padding:0;">
+            <img src="${img.photo_url}" alt="Preview" style="width:100%;height:100%;object-fit:cover;${img.isLoading ? 'filter: brightness(0.7);' : ''}" onerror="this.parentElement.innerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#F3F4F6;color:#9CA3AF;flex-direction:column;\\'><i class=\\'fas fa-exclamation\\'></i><span style=\\'font-size:10px;\\'> Error</span></div>'">
+            ${img.isLoading ? `
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);z-index:10;">
+                    <i class="fas fa-spinner fa-spin" style="font-size:32px;color:white;"></i>
+                </div>
+            ` : ''}
+            <button type="button" onclick="removeImage(${index})" style="position:absolute;top:4px;right:4px;background:#DC2626;color:white;border:none;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;padding:0;${img.isLoading ? 'display:none;' : ''}">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -905,15 +976,15 @@ window.onMunicipalityChange = function (muniId) {
 window.onBarangayChange = function (barangayName) {
     const select = document.getElementById('spotBarangay');
     const selectedOption = select.options[select.selectedIndex];
-    
+
     if (selectedOption && selectedOption.value) {
         const lat = parseFloat(selectedOption.dataset.lat);
         const lng = parseFloat(selectedOption.dataset.lng);
-        
+
         if (!isNaN(lat) && !isNaN(lng)) {
             document.getElementById('spotLatitude').value = lat.toFixed(6);
             document.getElementById('spotLongitude').value = lng.toFixed(6);
-            
+
             // Wait for modal map to be initialized first!
             const tryPlaceMarker = () => {
                 if (typeof placeOrMoveDraggableMarker === 'function' && modalMap) {
@@ -1034,10 +1105,10 @@ window.openCreateForm = function () {
     document.getElementById('spotClosingTime').value = '';
     document.getElementById('spotIsMaintenance').checked = false;
     document.getElementById('imagePreviews').innerHTML = '';
-    
+
     // Hide under maintenance field in add mode
     document.getElementById('maintenance-field').style.display = 'none';
-    
+
     document.getElementById('spotFormModal').classList.add('active');
     setTimeout(initModalMap, 200);
 };
@@ -1083,10 +1154,10 @@ window.editSpot = async function (spotId) {
         document.getElementById('spotOpeningTime').value = spot.opening_time || '';
         document.getElementById('spotClosingTime').value = spot.closing_time || '';
         document.getElementById('spotIsMaintenance').checked = spot.is_maintenance ? true : false;
-        
+
         // Show under maintenance field in edit mode
         document.getElementById('maintenance-field').style.display = 'block';
-        
+
         renderImagePreviews();
         document.getElementById('spotFormModal').classList.add('active');
         setTimeout(initModalMap, 200);
@@ -1149,7 +1220,7 @@ function initModalMap() {
 
 window.placeOrMoveDraggableMarker = function placeOrMoveDraggableMarker(lat, lng) {
     if (!modalMap) return;
-    
+
     const icon = L.divIcon({
         html: `<div style="background:#2563EB;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;border:3px solid white;box-shadow:0 3px 10px rgba(37,99,235,.45);cursor:grab;"><i class="fas fa-map-marker-alt" style="font-size:14px;"></i></div>`,
         iconSize: [32, 32],
@@ -1225,17 +1296,51 @@ window.closeFormModal = function () {
 window.submitSpotForm = async function (e) {
     e.preventDefault();
 
+    // ── Loading state on Save Spot button
+    const saveBtn = document.getElementById('saveSpotBtn');
+    const saveIcon = document.getElementById('saveSpotIcon');
+    const saveSpinner = document.getElementById('saveSpotSpinner');
+    const saveLabel = document.getElementById('saveSpotLabel');
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        if (saveIcon)    saveIcon.style.display    = 'none';
+        if (saveSpinner) saveSpinner.style.display  = 'inline-block';
+        if (saveLabel)   saveLabel.textContent       = 'Validating...';
+    }
+
+    const resetSaveBtn = () => {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            if (saveIcon)    saveIcon.style.display    = 'inline-block';
+            if (saveSpinner) saveSpinner.style.display  = 'none';
+            if (saveLabel)   saveLabel.textContent       = 'Save Spot';
+        }
+    };
+
     const categoryValue = document.getElementById('spotCategory').value;
     if (!categoryValue) {
         showToast('Please select at least one category', 'danger');
+        resetSaveBtn();
         return;
     }
 
     const classificationValue = document.getElementById('spotClassification').value;
     if (!classificationValue) {
         showToast('Please select a classification status', 'danger');
+        resetSaveBtn();
         return;
     }
+
+    const stillUploading = uploadedImages.some(img => img.isLoading);
+    if (stillUploading) {
+        showToast('Please wait for all images to finish uploading before saving', 'danger');
+        resetSaveBtn();
+        return;
+    }
+
+    const cleanImages = uploadedImages
+        .filter(img => !img.isLoading && img.photo_url && !img.photo_url.startsWith('blob:'))
+        .map(img => ({ photo_url: img.photo_url, filename: img.filename || '' }));
 
     const spotIdValue = document.getElementById('spotId').value;
 
@@ -1253,15 +1358,16 @@ window.submitSpotForm = async function (e) {
         barangay: document.getElementById('spotBarangay').value || null,
         description: document.getElementById('spotDescription').value,
         municipality_id: parseInt(document.getElementById('spotMunicipality').value),
-        images: uploadedImages,
+        images: cleanImages,
         opening_time: document.getElementById('spotOpeningTime').value || null,
         closing_time: document.getElementById('spotClosingTime').value || null,
         is_maintenance: document.getElementById('spotIsMaintenance').checked ? 1 : 0
     };
 
     console.log('📋 Form data prepared:', pendingSaveData);
-    console.log('📸 Images to save:', uploadedImages.length);
+    console.log('📸 Images to save:', cleanImages.length);
 
+    resetSaveBtn();
     document.getElementById('saveConfirmModal').classList.add('active');
 };
 
@@ -1277,8 +1383,36 @@ window.confirmSaveSpot = async function () {
         return;
     }
 
+    // ── Loading state on the confirm button
+    const confirmBtn     = document.getElementById('saveConfirmBtn');
+    const confirmIcon    = document.getElementById('confirmBtnIcon');
+    const confirmSpinner = document.getElementById('confirmBtnSpinner');
+    const confirmLabel   = document.getElementById('confirmBtnLabel');
+    const cancelBtn      = document.querySelector('[data-action="close-save-confirm"]');
+
+    const setConfirmLoading = (loading, isEdit = false) => {
+        if (!confirmBtn) return;
+        confirmBtn.disabled = loading;
+        if (cancelBtn) cancelBtn.disabled = loading;
+        if (loading) {
+            if (confirmIcon)    confirmIcon.style.display    = 'none';
+            if (confirmSpinner) confirmSpinner.style.display = 'inline-block';
+            if (confirmLabel)   confirmLabel.textContent     = isEdit ? 'Updating...' : 'Saving...';
+            confirmBtn.style.opacity = '0.85';
+            confirmBtn.style.cursor  = 'not-allowed';
+        } else {
+            if (confirmIcon)    confirmIcon.style.display    = 'inline-block';
+            if (confirmSpinner) confirmSpinner.style.display = 'none';
+            if (confirmLabel)   confirmLabel.textContent     = 'Yes, Save';
+            confirmBtn.style.opacity = '';
+            confirmBtn.style.cursor  = '';
+        }
+    };
+
+    const isEdit = pendingSaveData.id;
+    setConfirmLoading(true, !!isEdit);
+
     try {
-        const isEdit = pendingSaveData.id;
         let res;
 
         console.log(isEdit ? 'Updating spot...' : 'Creating new spot...');
@@ -1292,13 +1426,13 @@ window.confirmSaveSpot = async function () {
         console.log('✅ Server response:', res);
 
         if (res && (res.success || res.message)) {
-            sessionStorage.setItem('save_success_toast', isEdit ? '✅ Spot updated successfully!' : '✅ Spot created successfully!');
             closeSaveConfirmModal();
             closeFormModal();
-            if (window.refreshActiveTab) {
+            // Show success toast inline — no page reload needed
+            showToast(isEdit ? '✅ Spot updated successfully!' : '✅ Spot created successfully!', 'success');
+            // Refresh only the data in the active SPA tab (no full page reload)
+            if (typeof window.refreshActiveTab === 'function') {
                 window.refreshActiveTab();
-            } else {
-                location.reload();
             }
         } else {
             throw new Error(res.message || 'Unknown error');
@@ -1307,6 +1441,8 @@ window.confirmSaveSpot = async function () {
         console.error('❌ Save error:', err);
         const errorMsg = err.message || 'Failed to save spot';
         showToast(`❌ Error: ${errorMsg}`, 'danger');
+        setConfirmLoading(false);
+        closeSaveConfirmModal();
     }
 };
 
@@ -1314,16 +1450,43 @@ window.confirmSaveSpot = async function () {
 // INITIALIZE ALL EVENT LISTENERS
 // ════════════════════════════════════════════════════════════════════════════════
 
-export function initializeAll(spotsData, municipalData) {
-    // Store data on window for global access
+export async function initializeAll(spotsData, municipalData) {
+    loadCachedKpis();
+
+    // If data not provided, fetch from API (lightweight shell pattern)
+    if (!spotsData || !spotsData.length || !municipalData || !municipalData.length) {
+        try {
+            const baseUrl = window.API_CONFIG?.BASE_URL || (`http://${window.location.hostname || '127.0.0.1'}:8000`);
+            const [spotsRes, muniRes] = await Promise.all([
+                window.API_CONFIG.get(`${baseUrl}/api/tourist-spots`),
+                window.API_CONFIG.get(`${baseUrl}/api/municipalities`)
+            ]);
+            spotsData = spotsRes.data || spotsRes || [];
+            municipalData = muniRes.municipalities || muniRes.data || muniRes || [];
+        } catch (err) {
+            console.error('Failed to fetch tourist spots:', err);
+            spotsData = [];
+            municipalData = [];
+        }
+    }
+
+    window.touristSpotsData = spotsData;
+    window.municipalitiesData = municipalData;
     window.touristSpotsAll = spotsData;
     window.municipalitiesAll = municipalData;
 
-    console.log('🚀 Initializing tourist spots module...');
-    console.log('📍 Total spots:', spotsData.length);
-    console.log('🏢 Total municipalities:', municipalData.length);
+    // Render cards and table from JS data
+    renderCardsGrid(spotsData);
+    renderTableRows(spotsData);
+    populateMuniDropdowns(municipalData);
 
-    // Check if there is a pending success toast
+    // Update KPIs
+    updateKpiCards(spotsData, municipalData);
+
+    console.log('Initializing tourist spots module...');
+    console.log('Total spots:', spotsData.length);
+    console.log('Total municipalities:', municipalData.length);
+
     const pendingToast = sessionStorage.getItem('save_success_toast');
     if (pendingToast) {
         showToast(pendingToast, 'success');
@@ -1334,7 +1497,7 @@ export function initializeAll(spotsData, municipalData) {
         initMap(spotsData, municipalData);
         setupMapLayerToggle();
     } catch (e) {
-        console.error('⚠️ Leaflet Map initialization failed:', e);
+        console.error('Leaflet Map initialization failed:', e);
     }
     try { setupViewToggle(); } catch (e) { console.error('setupViewToggle failed:', e); }
     try { setupFilterListeners(); } catch (e) { console.error('setupFilterListeners failed:', e); }
@@ -1416,20 +1579,221 @@ export function initializeAll(spotsData, municipalData) {
     const uploadArea = document.getElementById('imageUploadArea');
     const fileInput = document.getElementById('spotImages');
     if (uploadArea) {
-        uploadArea.addEventListener('click', () => {
-            console.log('Upload area clicked');
-            fileInput.click();
-        });
         uploadArea.addEventListener('dragover', handleDragOver);
         uploadArea.addEventListener('dragleave', handleDragLeave);
         uploadArea.addEventListener('drop', handleImageDrop);
     }
     if (fileInput) {
-        fileInput.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent click from bubbling to uploadArea and reopening dialog
-        });
         fileInput.addEventListener('change', handleImageSelect);
     }
 
-    console.log('✅ Initialization complete!');
+    console.log('Initialization complete!');
+
+    startKpiAutoRefresh();
+
+    // Re-initialize map with fresh data (map was created empty by map-view-api.js)
+    setTimeout(() => {
+        if (typeof initMapView === 'function') {
+            const mapEl = document.getElementById('lupto-map');
+            if (mapEl && mapEl._leaflet_map) {
+                mapEl._leaflet_map.remove();
+                delete mapEl._leaflet_map;
+            }
+            initMapView();
+        }
+    }, 300);
 }
+
+let kpiRefreshTimer = null;
+
+function startKpiAutoRefresh() {
+    stopKpiAutoRefresh();
+    kpiRefreshTimer = setInterval(() => {
+        softRefreshSpots();
+    }, 30000);
+}
+
+function stopKpiAutoRefresh() {
+    if (kpiRefreshTimer) {
+        clearInterval(kpiRefreshTimer);
+        kpiRefreshTimer = null;
+    }
+}
+
+window.startKpiAutoRefresh = startKpiAutoRefresh;
+window.stopKpiAutoRefresh = stopKpiAutoRefresh;
+
+function populateMuniDropdowns(municipalData) {
+    const filterSelect = document.getElementById('filterMunicipality');
+    const formSelect = document.getElementById('spotMunicipality');
+    municipalData.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.name;
+        opt.textContent = m.name;
+        if (filterSelect) filterSelect.appendChild(opt.cloneNode(true));
+        if (formSelect) {
+            const fOpt = document.createElement('option');
+            fOpt.value = m.id;
+            fOpt.textContent = m.name;
+            formSelect.appendChild(fOpt);
+        }
+    });
+}
+
+function updateKpiCards(spotsData, municipalData) {
+    const kpiEls = document.querySelectorAll('.lupto-kpi-card .lupto-kpi-value');
+    const vals = {
+        municipalities: municipalData.length,
+        total: spotsData.length,
+        open: spotsData.filter(s => (s.status || '') === 'approved').length,
+        closed: spotsData.filter(s => (s.status || '') !== 'approved' && (s.status || '') !== '').length,
+    };
+    if (kpiEls[0]) kpiEls[0].textContent = vals.municipalities;
+    if (kpiEls[1]) kpiEls[1].textContent = vals.total;
+    if (kpiEls[2]) kpiEls[2].textContent = vals.open;
+    if (kpiEls[3]) kpiEls[3].textContent = vals.closed;
+    const spotCount = document.getElementById('spotCount');
+    if (spotCount) spotCount.textContent = vals.total;
+    try { sessionStorage.setItem('ts_kpis_lupto', JSON.stringify(vals)); } catch (e) {}
+}
+
+function loadCachedKpis() {
+    try {
+        const raw = sessionStorage.getItem('ts_kpis_lupto');
+        if (!raw) return;
+        const v = JSON.parse(raw);
+        const kpiEls = document.querySelectorAll('.lupto-kpi-card .lupto-kpi-value');
+        if (kpiEls[0] && kpiEls[0].textContent.trim() === '') return; // already populated
+        if (kpiEls[0]) { kpiEls[0].textContent = v.municipalities; kpiEls[0].style.color = '#1E293B'; }
+        if (kpiEls[1]) { kpiEls[1].textContent = v.total; kpiEls[1].style.color = '#1E293B'; }
+        if (kpiEls[2]) { kpiEls[2].textContent = v.open; kpiEls[2].style.color = '#1E293B'; }
+        if (kpiEls[3]) { kpiEls[3].textContent = v.closed; kpiEls[3].style.color = '#1E293B'; }
+        const spotCount = document.getElementById('spotCount');
+        if (spotCount) spotCount.textContent = v.total;
+    } catch (e) {}
+}
+
+function renderCardsGrid(spotsData) {
+    const grid = document.getElementById('cardsView');
+    if (!grid) return;
+    let html = '';
+    spotsData.forEach(spot => {
+        const desc = (spot.description || '').substring(0, 100);
+        const status = spot.classification_status || '';
+        const statusClass = status === 'EXIST' ? 'EXISTING' : status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL';
+        const statusBg = status === 'EXIST' ? '#10B981' : status === 'EMERGE' ? '#8B5CF6' : status === 'POTENTIAL' ? '#F59E0B' : '#9CA3AF';
+        const statusColor = status === 'POTENTIAL' ? '#1E293B' : '#FFFFFF';
+        const munName = spot.municipality_name || (spot.municipality && spot.municipality.name) || '';
+        const cats = (spot.category || 'Other').split(',').map(c => c.trim()).filter(Boolean);
+        const catTags = cats.map(c => `<span class="tag" style="background:#DBEAFE;color:#2563EB;">${c}</span>`).join('');
+        const photoUrl = spot.photo_url || '';
+        html += `<div class="spot-card" data-spot-id="${spot.id}" data-municipality="${munName}" data-category="${spot.category || ''}" data-status="${statusClass}" data-name="${(spot.name || '').toLowerCase()}">`;
+        html += `<div class="spot-image">`;
+        if (photoUrl) {
+            html += `<img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(spot.name || '')}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="var p=this.parentElement;this.style.display='none';var ph=p.querySelector('.spot-image-placeholder');if(ph)ph.style.display='flex';">`;
+            html += `<div class="spot-image-placeholder" style="display:none;"><i class="fas fa-image"></i><span>Image unavailable</span></div>`;
+        } else {
+            html += `<div class="spot-image-placeholder"><i class="fas fa-image"></i><span>No image yet</span></div>`;
+        }
+        html += `</div>`;
+        html += `<div class="card-actions-dropdown">`;
+        html += `<button class="dropdown-toggle" id="card-dropdown-${spot.id}"><i class="fas fa-ellipsis-v"></i></button>`;
+        html += `<div class="dropdown-menu" id="card-menu-${spot.id}">`;
+        html += `<button class="dropdown-item" data-action="view-spot" data-spot-id="${spot.id}"><i class="fas fa-eye" style="color:#3B82F6;"></i> View All Fields</button>`;
+        html += `</div></div>`;
+        html += `<div class="spot-body">`;
+        html += `<h3>${spot.name || ''}</h3>`;
+        html += `<div class="muni"><i class="fas fa-map-marker-alt"></i> ${munName}, La Union</div>`;
+        html += `<div class="tags">`;
+        html += catTags;
+        const fee = Number(spot.entrance_fee || 0).toLocaleString(undefined, {minimumFractionDigits: 0});
+        html += `<span class="tag" style="background:#F8FAFC;color:#4B5563;">₱${fee} per person</span>`;
+        if (status) {
+            html += `<span class="tag" style="background:${statusBg};color:${statusColor};">${statusClass}</span>`;
+        }
+        html += `</div>`;
+        html += `<p>${desc}${(spot.description || '').length > 100 ? '...' : ''}</p>`;
+        html += `</div></div>`;
+    });
+    grid.innerHTML = html;
+    document.getElementById('spotCount').textContent = spotsData.length;
+}
+
+function renderTableRows(spotsData) {
+    const tbody = document.querySelector('#tableView tbody');
+    if (!tbody) return;
+    let html = '';
+    spotsData.forEach(spot => {
+        const munName = spot.municipality_name || (spot.municipality && spot.municipality.name) || '';
+        const status = spot.classification_status || '';
+        const statusClass = status === 'EXIST' ? 'EXISTING' : status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL';
+        const statusBg = status === 'EXIST' ? '#10B981' : status === 'EMERGE' ? '#8B5CF6' : status === 'POTENTIAL' ? '#F59E0B' : '#9CA3AF';
+        const statusColor = status === 'POTENTIAL' ? '#1E293B' : '#FFFFFF';
+        const cats = (spot.category || 'Other').split(',').map(c => c.trim()).filter(Boolean);
+        const catTags = cats.map(c => `<span class="tag" style="background:#DBEAFE;color:#2563EB;font-size:11px;">${c}</span>`).join(' ');
+        const date = spot.created_at ? new Date(spot.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+        const fee = Number(spot.entrance_fee || 0).toLocaleString(undefined, {minimumFractionDigits: 0});
+        const spotId = String(spot.id).padStart(4, '0');
+        html += `<tr data-spot-id="${spot.id}" data-municipality="${munName}" data-category="${spot.category || ''}" data-status="${statusClass}" data-name="${(spot.name || '').toLowerCase()}">`;
+        html += `<td style="font-family:'Courier New',monospace;color:#6B7280;">TS-${spotId}</td>`;
+        html += `<td><strong>${spot.name || ''}</strong></td>`;
+        html += `<td>${munName}</td>`;
+        html += `<td>${catTags}</td>`;
+        html += `<td>${status ? `<span class="tag" style="background:${statusBg};color:${statusColor};">${statusClass}</span>` : ''}</td>`;
+        html += `<td>₱${fee}</td>`;
+        html += `<td>${date}</td>`;
+        html += `<td style="text-align:right;"><div class="table-actions-dropdown">`;
+        html += `<button class="dropdown-toggle" id="tbl-dropdown-${spot.id}"><i class="fas fa-ellipsis-v"></i></button>`;
+        html += `<div class="dropdown-menu" id="tbl-menu-${spot.id}">`;
+        html += `<button class="dropdown-item" data-action="view-spot" data-spot-id="${spot.id}"><i class="fas fa-eye" style="color:#3B82F6;"></i> View All Fields</button>`;
+        html += `</div></div></td></tr>`;
+    });
+    tbody.innerHTML = html;
+}
+
+async function softRefreshSpots() {
+    loadCachedKpis();
+    const baseUrl = window.API_CONFIG?.BASE_URL || (`http://${window.location.hostname || '127.0.0.1'}:8000`);
+    try {
+        const [spotsRes, muniRes] = await Promise.all([
+            window.API_CONFIG.get(`${baseUrl}/api/tourist-spots`),
+            window.API_CONFIG.get(`${baseUrl}/api/municipalities`)
+        ]);
+        const freshSpots = spotsRes.data || spotsRes || [];
+        const freshMunis = muniRes.municipalities || muniRes.data || muniRes || [];
+        window.touristSpotsData = freshSpots;
+        window.municipalitiesData = freshMunis;
+        window.touristSpotsAll = freshSpots;
+        window.municipalitiesAll = freshMunis;
+        renderCardsGrid(freshSpots);
+        renderTableRows(freshSpots);
+        updateKpiCards(freshSpots, freshMunis);
+        setupDropdownListeners();
+        document.querySelectorAll('[data-action="view-spot"]').forEach(btn => {
+            btn.addEventListener('click', () => openSpotModal(btn.dataset.spotId));
+        });
+        const mapEl = document.getElementById('lupto-map');
+        if (mapEl && mapEl._leaflet_map) {
+            const map = mapEl._leaflet_map;
+            map.eachLayer(layer => {
+                if (layer instanceof L.Marker || (layer instanceof L.MarkerClusterGroup) || (layer._markers)) {
+                    map.removeLayer(layer);
+                }
+            });
+            freshSpots.forEach(spot => {
+                const lat = parseFloat(spot.latitude) || 0;
+                const lng = parseFloat(spot.longitude) || 0;
+                if (!lat || !lng) return;
+                const marker = L.marker([lat, lng]);
+                const munName = spot.municipality_name || (spot.municipality?.name) || '';
+                marker.bindPopup(`<strong>${spot.name}</strong><br>${munName}<br>${spot.category || ''}`);
+                marker.addTo(map);
+            });
+        }
+        console.log('✅ Tourist spots refreshed:', freshSpots.length, 'spots');
+    } catch (err) {
+        console.error('❌ Soft refresh failed:', err);
+    }
+}
+
+window.softRefreshTouristSpots = softRefreshSpots;

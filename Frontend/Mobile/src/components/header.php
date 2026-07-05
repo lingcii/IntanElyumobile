@@ -39,9 +39,7 @@
 </style>
 
 <div class="mobile-header">
-    <div class="header-icon" onclick="toggleSidebar()">
-        <i class="fa-solid fa-bars"></i>
-    </div>
+    <div style="width: 36px;"></div> <!-- Placeholder to keep title centered -->
     <h1 class="header-title"><?php echo isset($pageTitle) ? $pageTitle : 'Intan Elyu'; ?></h1>
     <div class="header-icon" onclick="toggleNotifications()">
         <i class="fa-regular fa-bell"></i>

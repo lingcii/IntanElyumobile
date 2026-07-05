@@ -13,6 +13,7 @@ $currentDir = basename(dirname($_SERVER['PHP_SELF']));
 $sidebarConfig = [
     // LUPTO Role
     'lupto' => [
+        'logo' => 'images/LUPTO.png',
         'brand' => 'LUPTO',
         'brand_sub' => 'San Fernando City, La Union',
         'items' => [
@@ -27,6 +28,7 @@ $sidebarConfig = [
     ],
     // PICTO Role
     'picto' => [
+        'logo' => 'images/PICTO.jpg',
         'brand' => 'PICTO',
         'brand_sub' => 'San Fernando City, La Union',
         'items' => [
@@ -42,6 +44,7 @@ $sidebarConfig = [
     ],
     // Municipal/LGU Roles (fallback for all municipal roles)
     'municipal' => [
+        'logo' => 'images/SAN-FERNANDO.png',
         'brand' => 'MTO',
         'brand_sub' => 'San Fernando City, La Union',
         'items' => [
@@ -55,6 +58,7 @@ $sidebarConfig = [
     ],
     // Specific municipal roles with custom brand names
     'san_juan_mto' => [
+        'logo' => 'images/SAN-JUAN.png',
         'brand' => 'San Juan MTO',
         'brand_sub' => 'San Juan, La Union',
         'items' => [
@@ -67,6 +71,7 @@ $sidebarConfig = [
         ]
     ],
     'san_fernando_mto' => [
+        'logo' => 'images/SAN-FERNANDO.png',
         'brand' => 'San Fernando MTO',
         'brand_sub' => 'San Fernando City, La Union',
         'items' => [
@@ -79,6 +84,7 @@ $sidebarConfig = [
         ]
     ],
     'bauang_mto' => [
+        'logo' => 'images/BAUANG.png',
         'brand' => 'Bauang MTO',
         'brand_sub' => 'Bauang, La Union',
         'items' => [
@@ -91,6 +97,7 @@ $sidebarConfig = [
         ]
     ],
     'agoo_mto' => [
+        'logo' => 'images/AGOO.png',
         'brand' => 'Agoo MTO',
         'brand_sub' => 'Agoo, La Union',
         'items' => [
@@ -103,6 +110,7 @@ $sidebarConfig = [
         ]
     ],
     'luna_mto' => [
+        'logo' => 'images/LUNA.png',
         'brand' => 'Luna MTO',
         'brand_sub' => 'Luna, La Union',
         'items' => [
@@ -115,6 +123,7 @@ $sidebarConfig = [
         ]
     ],
     'san_gabriel_mto' => [
+        'logo' => 'images/SAN-GABRIEL.png',
         'brand' => 'San Gabriel MTO',
         'brand_sub' => 'San Gabriel, La Union',
         'items' => [
@@ -127,6 +136,7 @@ $sidebarConfig = [
         ]
     ],
     'balaoan_mto' => [
+        'logo' => 'images/BALAOAN.png',
         'brand' => 'Balaoan MTO',
         'brand_sub' => 'Balaoan, La Union',
         'items' => [
@@ -139,6 +149,7 @@ $sidebarConfig = [
         ]
     ],
     'aringay_mto' => [
+        'logo' => 'images/ARINGAY.png',
         'brand' => 'Aringay MTO',
         'brand_sub' => 'Aringay, La Union',
         'items' => [
@@ -151,6 +162,7 @@ $sidebarConfig = [
         ]
     ],
     'rosario_mto' => [
+        'logo' => 'images/ROSARIO.png',
         'brand' => 'Rosario MTO',
         'brand_sub' => 'Rosario, La Union',
         'items' => [
@@ -163,6 +175,7 @@ $sidebarConfig = [
         ]
     ],
     'bacnotan_mto' => [
+        'logo' => 'images/BACNOTAN.png',
         'brand' => 'Bacnotan MTO',
         'brand_sub' => 'Bacnotan, La Union',
         'items' => [
@@ -175,6 +188,7 @@ $sidebarConfig = [
         ]
     ],
     'naguilian_mto' => [
+        'logo' => 'images/NAGUILIAN.png',
         'brand' => 'Naguilian MTO',
         'brand_sub' => 'Naguilian, La Union',
         'items' => [
@@ -187,6 +201,7 @@ $sidebarConfig = [
         ]
     ],
     'tubao_mto' => [
+        'logo' => 'images/TUBAO.png',
         'brand' => 'Tubao MTO',
         'brand_sub' => 'Tubao, La Union',
         'items' => [
@@ -199,6 +214,7 @@ $sidebarConfig = [
         ]
     ],
     'pugo_mto' => [
+        'logo' => 'images/PUGO.png',
         'brand' => 'Pugo MTO',
         'brand_sub' => 'Pugo, La Union',
         'items' => [
@@ -211,6 +227,7 @@ $sidebarConfig = [
         ]
     ],
     'caba_mto' => [
+        'logo' => 'images/CABA.png',
         'brand' => 'Caba MTO',
         'brand_sub' => 'Caba, La Union',
         'items' => [
@@ -223,6 +240,7 @@ $sidebarConfig = [
         ]
     ],
     'santo_tomas_mto' => [
+        'logo' => 'images/SANTO-TOMAS.png',
         'brand' => 'Santo Tomas MTO',
         'brand_sub' => 'Santo Tomas, La Union',
         'items' => [
@@ -235,6 +253,7 @@ $sidebarConfig = [
         ]
     ],
     'bangar_mto' => [
+        'logo' => 'images/BANGAR.png',
         'brand' => 'Bangar MTO',
         'brand_sub' => 'Bangar, La Union',
         'items' => [
@@ -247,6 +266,7 @@ $sidebarConfig = [
         ]
     ],
     'burgos_mto' => [
+        'logo' => 'images/BURGOS.png',
         'brand' => 'Burgos MTO',
         'brand_sub' => 'Burgos, La Union',
         'items' => [
@@ -259,6 +279,7 @@ $sidebarConfig = [
         ]
     ],
     'bagulin_mto' => [
+        'logo' => 'images/BAGULIN.png',
         'brand' => 'Bagulin MTO',
         'brand_sub' => 'Bagulin, La Union',
         'items' => [
@@ -271,6 +292,7 @@ $sidebarConfig = [
         ]
     ],
     'santol_mto' => [
+        'logo' => 'images/SANTOL.png',
         'brand' => 'Santol MTO',
         'brand_sub' => 'Santol, La Union',
         'items' => [
@@ -283,6 +305,7 @@ $sidebarConfig = [
         ]
     ],
     'sudipen_mto' => [
+        'logo' => 'images/SUDIPEN.png',
         'brand' => 'Sudipen MTO',
         'brand_sub' => 'Sudipen, La Union',
         'items' => [
@@ -318,13 +341,14 @@ if ($userRole && isset($sidebarConfig[$userRole])) {
 $navItems = $config['items'];
 $brandName = $config['brand'];
 $brandSub = $config['brand_sub'];
+$brandLogo = $config['logo'] ?? 'images/LOGO.png';
 ?>
 
 <aside class="sidebar" id="sidebar">
     <!-- Logo / Brand -->
     <div class="sidebar-brand">
         <div class="brand-logo">
-            <img src="<?= $basePath ?>images/san-fernando-seal.png" alt="San Fernando City Seal">
+            <img src="<?= $basePath . $brandLogo ?>" alt="<?= htmlspecialchars($brandName) ?>">
         </div>
         <div class="brand-info">
             <span class="brand-name"><?= htmlspecialchars($brandName) ?></span>

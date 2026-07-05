@@ -70,7 +70,7 @@ $activeTab = 'profile';
 
 
 <script>
-    const backendUrl = "https://boc-cornell-rolled-delicious.trycloudflare.com";
+    const backendUrl = "http://localhost:8000";
 
     async function fetchProfileData() {
         try {

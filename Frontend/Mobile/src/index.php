@@ -47,7 +47,6 @@ if ($isAjax) {
     <link rel="stylesheet" href="assets/css/style.css?v=<?= time() ?>">
     <!-- Component Styles -->
     <link rel="stylesheet" href="assets/css/components/header.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="assets/css/components/sidebar.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/components/bottom_nav.css?v=<?= time() ?>">
     <!-- View Styles -->
     <link rel="stylesheet" href="assets/css/views/dashboard.css?v=<?= time() ?>">
@@ -79,7 +78,7 @@ if ($isAjax) {
             ?>
         </main>
         
-        <?php include __DIR__ . '/components/sidebar.php'; ?>
+        <!-- Sidebar has been removed -->
         <?php include __DIR__ . '/components/bottom_nav.php'; ?>
     </div>
     <script src="assets/js/main.js?v=<?= time() ?>"></script>

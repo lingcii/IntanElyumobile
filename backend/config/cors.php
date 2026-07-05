@@ -6,13 +6,11 @@ return [
     | CORS Configuration
     |--------------------------------------------------------------------------
     |
-    | Allows the PHP frontend (http://localhost:8080) and the React dev server
-    | (http://localhost:5173) to call the Laravel API (http://127.0.0.1:8000).
+    | Allows the PHP frontend (http://localhost:8080) to call the Laravel API (http://127.0.0.1:8000).
     |
     | Both frontends run as separate processes in the non-XAMPP setup:
     |   - PHP built-in server:  php -S localhost:8080   (Frontend)
     |   - Laravel:              php artisan serve        (Backend, port 8000)
-    |   - Vite dev server:      npm run dev              (React, port 5173)
     |
     */
 
@@ -24,10 +22,9 @@ return [
         // PHP built-in dev server (Frontend)
         'http://localhost:8080',
         'http://127.0.0.1:8080',
+        'http://localhost:8081',
+        'http://[IP_ADDRESS]',
 
-        // React + Vite dev server
-        'http://localhost:5173',
-        'http://127.0.0.1:5173',
 
         // Laravel itself (for same-origin requests / Artisan serve)
         'http://localhost:8000',

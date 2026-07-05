@@ -204,7 +204,7 @@ function renderTable(users) {
             ? `<span class="um-status-badge um-status-active"><span class="um-status-dot"></span>Active</span>`
             : `<span class="um-status-badge um-status-inactive"><span class="um-status-dot"></span>Inactive</span>`;
 
-        const muniName = u.municipality_name || '—';
+        const muniName = u.municipality?.name || '—';
         const created  = formatDate(u.created_at);
         const lastLogin = formatDate(u.last_activity);
 

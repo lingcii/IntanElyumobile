@@ -25,6 +25,16 @@
     let currentOperatingStatus = 'open';
     let currentMaintenanceStatus = false;
     let deleteSpotId = null;
+    
+    // Generate a preview URL for a file
+    function getFilePreviewUrl(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(file);
+        });
+    }
 
     const mapLayers = {
         satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
@@ -435,6 +445,9 @@
         if (document.getElementById('spotIsMaintenance')) document.getElementById('spotIsMaintenance').checked = false;
         if (window.setOperatingStatus) window.setOperatingStatus('open');
         if (window.setMaintenanceStatus) window.setMaintenanceStatus(false);
+        // Hide Under Maintenance — not applicable when adding a new spot
+        const maintenanceField = document.getElementById('maintenance-field');
+        if (maintenanceField) maintenanceField.style.display = 'none';
         document.getElementById('spotFormModal').classList.add('active');
         setTimeout(initModalMap, 150);
     };
@@ -443,6 +456,9 @@
         try {
             const spot = await getSpot(spotId);
             document.getElementById('formModalTitle').textContent = 'Edit Spot';
+            // Show Under Maintenance when editing an existing spot
+            const maintenanceField = document.getElementById('maintenance-field');
+            if (maintenanceField) maintenanceField.style.display = '';
             document.getElementById('spotId').value = spot.id;
             document.getElementById('spotName').value = spot.name;
             document.getElementById('nameCharCount').textContent = spot.name.length;
@@ -559,30 +575,39 @@
     // ========== Image Upload Functions ==========
     window.handleDragOver = function (e) {
         e.preventDefault();
+        e.stopPropagation();
         document.getElementById('imageUploadArea').style.borderColor = '#2563EB';
         document.getElementById('imageUploadArea').style.backgroundColor = '#DBEAFE';
     };
 
     window.handleDragLeave = function (e) {
         e.preventDefault();
+        e.stopPropagation();
         document.getElementById('imageUploadArea').style.borderColor = '#D1D5DB';
         document.getElementById('imageUploadArea').style.backgroundColor = '#F9FAFB';
     };
 
     window.handleImageDrop = function (e) {
         e.preventDefault();
+        e.stopPropagation();
         document.getElementById('imageUploadArea').style.borderColor = '#D1D5DB';
         document.getElementById('imageUploadArea').style.backgroundColor = '#F9FAFB';
         processFiles(e.dataTransfer.files);
     };
 
     window.handleImageSelect = function (e) {
-        processFiles(e.target.files);
+        e.preventDefault();
+        e.stopPropagation();
+        const files = Array.from(e.target.files);
+        // Clear input to allow selecting the same files again
+        e.target.value = '';
+        processFiles(files);
     };
 
     async function processFiles(files) {
+        const validFiles = [];
         for (const file of files) {
-            if (uploadedImages.length >= 3) {
+            if (uploadedImages.length + validFiles.length >= 3) {
                 alert('Maximum 3 images allowed');
                 break;
             }
@@ -590,18 +615,55 @@
                 alert('Only JPEG/PNG files are allowed');
                 continue;
             }
-            if (file.size > 5 * 1024 * 1024) {
-                alert('File size must be less than 5MB');
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File size must be less than 10MB');
                 continue;
             }
-            try {
-                const url = await uploadSpotImage(file);
-                uploadedImages.push(url);
-                renderImagePreviews();
-            } catch (err) {
-                alert('Failed to upload image');
+            validFiles.push(file);
+        }
+        
+        if (validFiles.length === 0) return;
+        
+        // Add files immediately with preview and loading state
+        for (const file of validFiles) {
+            const previewUrl = await getFilePreviewUrl(file);
+            uploadedImages.push({
+                photo_url: previewUrl,
+                filename: file.name,
+                isLoading: true,
+                id: Date.now() + Math.random() // Temporary unique ID
+            });
+        }
+        renderImagePreviews();
+        
+        // Upload all images in parallel
+        const results = await Promise.allSettled(
+            validFiles.map(async (file, idx) => {
+                const tempId = uploadedImages[uploadedImages.length - validFiles.length + idx].id;
+                try {
+                    const result = await uploadSpotImage(file);
+                    return { file, result, tempId, success: true };
+                } catch (err) {
+                    return { file, error: err, tempId, success: false };
+                }
+            })
+        );
+        
+        // Process results
+        for (const item of results) {
+            const index = uploadedImages.findIndex(img => img.id === item.tempId);
+            if (index !== -1) {
+                if (item.success) {
+                    uploadedImages[index] = item.result;
+                } else {
+                    uploadedImages.splice(index, 1);
+                    const filename = item.file?.name || 'file';
+                    alert(`Failed to upload ${filename}`);
+                }
             }
         }
+        
+        renderImagePreviews();
     }
 
     function renderImagePreviews() {
@@ -611,24 +673,34 @@
         container.style.gap = '10px';
         container.style.flexWrap = 'wrap';
 
-        uploadedImages.forEach((url, index) => {
+        uploadedImages.forEach((img, index) => {
             const div = document.createElement('div');
             div.style.cssText = 'position: relative; border-radius: 8px; overflow: hidden; height: 80px; width: 80px;';
 
-            const img = document.createElement('img');
-            img.src = url;
-            img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+            const imgElement = document.createElement('img');
+            imgElement.src = typeof img === 'string' ? img : img.photo_url;
+            imgElement.style.cssText = `width: 100%; height: 100%; object-fit: cover; ${img.isLoading ? 'filter: brightness(0.7);' : ''}`;
+            
+            if (img.isLoading) {
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); z-index: 10;';
+                overlay.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:24px;color:white;"></i>';
+                div.appendChild(overlay);
+            }
 
             const removeBtn = document.createElement('button');
             removeBtn.innerHTML = '<i class="fas fa-times"></i>';
             removeBtn.style.cssText = 'position: absolute; top: 4px; right: 4px; background: rgba(220, 38, 38, 0.9); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center;';
+            if (img.isLoading) {
+                removeBtn.style.display = 'none';
+            }
             removeBtn.onclick = (e) => {
                 e.stopPropagation();
                 uploadedImages.splice(index, 1);
                 renderImagePreviews();
             };
 
-            div.appendChild(img);
+            div.appendChild(imgElement);
             div.appendChild(removeBtn);
             container.appendChild(div);
         });
@@ -808,6 +880,12 @@
     window.submitSpotForm = async function (e) {
         e.preventDefault();
 
+        const stillUploading = uploadedImages.some(img => img.isLoading);
+        if (stillUploading) {
+            showToast('Please wait for all images to finish uploading before saving', 'danger');
+            return;
+        }
+
         const spotId = document.getElementById('spotId').value;
         const name = document.getElementById('spotName').value.trim();
         // Multi-category: get from hidden input populated by chips
@@ -818,7 +896,12 @@
         const lng = document.getElementById('spotLongitude').value || null;
         const barangay = document.getElementById('spotBarangay') ? (document.getElementById('spotBarangay').value || null) : null;
         const desc = document.getElementById('spotDescription').value.trim();
-        const images = uploadedImages.map(url => ({ photo_url: url }));
+        const images = uploadedImages
+            .filter(img => !img.isLoading && (typeof img === 'string' ? !img.startsWith('blob:') : img.photo_url && !img.photo_url.startsWith('blob:')))
+            .map(img => {
+            const url = typeof img === 'string' ? img : img.photo_url;
+            return { photo_url: url };
+        });
         const openingTime = document.getElementById('spotOpeningTime').value || null;
         const closingTime = document.getElementById('spotClosingTime').value || null;
         const isMaintenance = document.getElementById('spotIsMaintenance') ? (document.getElementById('spotIsMaintenance').checked ? 1 : 0) : currentMaintenanceStatus;
@@ -883,13 +966,14 @@
             }
             window.closeSaveConfirmModal();
             window.closeFormModal();
-            if (window.refreshActiveTab) {
+            // Show success toast inline — no page reload needed
+            showToast(spotData.id ? '✅ Spot updated successfully!' : '✅ Spot created successfully!', 'success');
+            // Refresh only the active SPA tab data (no full page reload)
+            if (typeof window.refreshActiveTab === 'function') {
                 window.refreshActiveTab();
-            } else {
-                location.reload();
             }
         } catch (err) {
-            alert('Failed to save spot: ' + (err.message || 'Unknown error'));
+            showToast('❌ Failed to save spot: ' + (err.message || 'Unknown error'), 'danger');
             window.closeSaveConfirmModal();
         }
     };
@@ -911,15 +995,15 @@
         if (!deleteSpotId) return;
         try {
             await deleteSpot(deleteSpotId);
-            sessionStorage.setItem('save_success_toast', '✅ Spot deleted successfully!');
             window.closeDeleteModal();
-            if (window.refreshActiveTab) {
+            // Show success toast inline — no page reload needed
+            showToast('✅ Spot deleted successfully!', 'success');
+            // Refresh only the active SPA tab data (no full page reload)
+            if (typeof window.refreshActiveTab === 'function') {
                 window.refreshActiveTab();
-            } else {
-                location.reload();
             }
         } catch (err) {
-            alert('Failed to delete spot');
+            showToast('❌ Failed to delete spot: ' + (err.message || 'Unknown error'), 'danger');
         }
     };
 
@@ -1128,13 +1212,22 @@
         // ── Image upload area: click + drag-and-drop
         const uploadArea = document.getElementById('imageUploadArea');
         if (uploadArea) {
-            uploadArea.addEventListener('click', () => document.getElementById('spotImages').click());
+            uploadArea.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                document.getElementById('spotImages').click();
+            });
             uploadArea.addEventListener('dragover', window.handleDragOver);
             uploadArea.addEventListener('dragleave', window.handleDragLeave);
             uploadArea.addEventListener('drop', window.handleImageDrop);
         }
-        document.getElementById('spotImages')
-            ?.addEventListener('change', window.handleImageSelect);
+        const fileInput = document.getElementById('spotImages');
+        if (fileInput) {
+            fileInput.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent click from bubbling to uploadArea and reopening dialog
+            });
+            fileInput.addEventListener('change', window.handleImageSelect);
+        }
 
         // ── Save confirm modal buttons
         document.getElementById('saveConfirmNoBtn')

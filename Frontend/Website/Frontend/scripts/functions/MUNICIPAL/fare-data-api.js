@@ -1,8 +1,8 @@
 /**
  * MUNICIPAL Fare Data API
  * Role: *_mto (Municipal Tourism Offices)
- * Permissions: View all, Upload, Activate own guides
- * No delete permission
+ * Permissions: View, Upload, Activate own Tricycle guides only
+ * No delete permission. Other vehicle types (PUB, PUJ, Van) managed by PICTO.
  */
 
 const API_BASE = window.API_CONFIG?.MUNICIPAL ? (window.API_CONFIG.MUNICIPAL + '/fare-data') : 'http://' + (window.location.hostname || '127.0.0.1') + ':8000/api/municipal/fare-data';
@@ -38,19 +38,20 @@ function initUploadArea() {
 
     uploadArea.addEventListener('dragover', function (e) {
         e.preventDefault();
-        uploadArea.style.background  = 'rgba(0, 113, 197, 0.1)';
-        uploadArea.style.borderColor = 'var(--lupto-primary)';
+        uploadArea.classList.add('dragover');
     });
     uploadArea.addEventListener('dragleave', function (e) {
         e.preventDefault();
-        uploadArea.style.background  = '';
-        uploadArea.style.borderColor = '';
+        uploadArea.classList.remove('dragover');
     });
     uploadArea.addEventListener('drop', function (e) {
         e.preventDefault();
-        uploadArea.style.background  = '';
-        uploadArea.style.borderColor = '';
+        uploadArea.classList.remove('dragover');
         if (e.dataTransfer.files.length > 0) handleFileUpload(e.dataTransfer.files[0]);
+    });
+    uploadArea.addEventListener('click', function (e) {
+        if (e.target.closest('.fd-btn-browse')) return;
+        fileInput.click();
     });
     fileInput.addEventListener('change', function (e) {
         if (e.target.files.length > 0) handleFileUpload(e.target.files[0]);
@@ -78,15 +79,15 @@ async function handleFileUpload(file) {
 
         if (result.success) {
             let html = `
-                <div style="background:#d4edda;color:#155724;padding:16px;border-radius:8px;">
-                    <h4 style="margin:0 0 8px;"><i class="fas fa-check-circle"></i> Upload Successful!</h4>
-                    <p style="margin:0 0 8px;">Total Records: ${result.total_records}</p>
-                    <p style="margin:0 0 8px;">Valid Records: ${result.valid_records}</p>
+                <div class="fd-result-success">
+                    <h4><i class="fas fa-check-circle"></i> Upload Successful!</h4>
+                    <p>Total Records: ${result.total_records}</p>
+                    <p>Valid Records: ${result.valid_records}</p>
             `;
             if (result.errors && result.errors.length > 0) {
-                html += `<p style="margin:8px 0 0;color:#856404;">
-                    <i class="fas fa-exclamation-triangle"></i> ${result.errors.length} validation error(s).
-                    <button class="btn-gov btn-gov-secondary" style="margin-left:8px;padding:4px 8px;font-size:12px;" onclick="showValidationErrors(${result.upload_id})">View Errors</button>
+                html += `<p style="margin:8px 0 0;">
+                    <i class="fas fa-exclamation-triangle"></i> ${result.errors.length} validation warning(s).
+                    <button class="fd-btn-refresh" style="margin-left:10px;padding:4px 10px;font-size:11px;" onclick="showValidationErrors(${result.upload_id})">View Details</button>
                 </p>`;
             }
             html += `</div>`;
@@ -120,12 +121,12 @@ function showResult(type, message) {
     const resultDiv = document.getElementById('uploadResult');
     resultDiv.style.display = 'block';
     if (type === 'success') {
-        resultDiv.innerHTML = message;
+        resultDiv.innerHTML = `<div class="fd-result-success">${message}</div>`;
     } else {
         resultDiv.innerHTML = `
-            <div style="background:#f8d7da;color:#721c24;padding:16px;border-radius:8px;">
-                <h4 style="margin:0 0 8px;"><i class="fas fa-exclamation-circle"></i> Error</h4>
-                <p style="margin:0;">${escapeHtml(message)}</p>
+            <div class="fd-result-error">
+                <h4><i class="fas fa-exclamation-circle"></i> Upload Failed</h4>
+                <p>${escapeHtml(message)}</p>
             </div>`;
     }
 }
@@ -139,44 +140,38 @@ async function loadFareGuides() {
         const tbody    = document.getElementById('fareGuidesBody');
 
         if (!result.fare_guides || result.fare_guides.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted);">
-                <i class="fas fa-inbox" style="font-size:24px;margin-bottom:8px;display:block;"></i>
-                No fare guides yet.
+            tbody.innerHTML = `<tr class="fd-empty-row"><td colspan="7">
+                <i class="fas fa-inbox"></i>No fare guides yet.
             </td></tr>`;
             return;
         }
 
         tbody.innerHTML = result.fare_guides.map(guide => {
-            const statusStyle = guide.status === 'active'   ? 'background:#d4edda;color:#155724;' :
-                                guide.status === 'archived' ? 'background:#e2e3e5;color:#383d41;' :
-                                                              'background:#fff3cd;color:#856404;';
-            // Show Activate only for guides this municipality uploaded (owns)
+            const statusClass = 'fd-status-' + (guide.status || 'draft');
             const canActivate = guide.status !== 'active';
 
             return `
                 <tr>
-                    <td>${escapeHtml(guide.title)}</td>
+                    <td><strong>${escapeHtml(guide.title)}</strong></td>
                     <td>${escapeHtml(guide.vehicle_type.replace(/_/g, ' '))}</td>
                     <td>${escapeHtml(guide.region)}</td>
                     <td>${formatDate(guide.effective_date)}</td>
-                    <td><span style="padding:4px 8px;border-radius:4px;font-size:12px;${statusStyle}">${escapeHtml(guide.status)}</span></td>
+                    <td><span class="fd-status-badge ${statusClass}">${escapeHtml(guide.status)}</span></td>
                     <td>${escapeHtml(guide.created_by_name)}</td>
-                    <td style="position:relative;overflow:visible;">
-                        <div class="dropdown" style="position:relative;display:inline-block;">
-                            <button class="btn-gov btn-gov-secondary" style="padding:4px 8px;" onclick="toggleDropdown(event,${guide.id})">
+                    <td>
+                        <div class="fd-dropdown">
+                            <button class="fd-dropdown-toggle" onclick="toggleDropdown(event,${guide.id})">
                                 <i class="fas fa-ellipsis-v"></i>
                             </button>
-                            <div class="dropdown-menu" id="dropdown-${guide.id}" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;background:white;border:1px solid #e0e0e0;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.25);min-width:180px;z-index:9999;padding:4px 0;">
-                                <button class="dropdown-item" style="width:100%;text-align:left;padding:10px 16px;border:none;background:none;cursor:pointer;display:flex;align-items:center;gap:8px;"
-                                    onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='transparent'"
+                            <div class="fd-dropdown-menu" id="dropdown-${guide.id}">
+                                <button class="fd-dropdown-item"
                                     onclick="viewFareMatrix(${guide.id}, true);closeAllDropdowns();">
                                     <i class="fas fa-eye"></i> View Fare Matrix
                                 </button>
                                 ${canActivate ? `
-                                <button class="dropdown-item" style="width:100%;text-align:left;padding:10px 16px;border:none;background:none;cursor:pointer;display:flex;align-items:center;gap:8px;"
-                                    onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='transparent'"
+                                <button class="fd-dropdown-item"
                                     onclick="syncFareGuide(${guide.id},'active');closeAllDropdowns();">
-                                    <i class="fas fa-check-circle"></i> Activate
+                                    <i class="fas fa-check-circle" style="color:#10b981;"></i> Activate
                                 </button>` : ''}
                             </div>
                         </div>
@@ -207,17 +202,24 @@ async function viewFareMatrix(guideId, shouldScroll = false) {
         const tbody    = document.getElementById('fareMatrixBody');
 
         if (!result.fare_matrices || result.fare_matrices.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:32px;color:var(--text-muted);">No fare data available</td></tr>`;
+            tbody.innerHTML = `<tr class="fd-empty-row"><td colspan="4">No fare data available</td></tr>`;
         } else {
-            tbody.innerHTML = result.fare_matrices.map(m => `
+            tbody.innerHTML = result.fare_matrices.map(m => {
+                const dist = parseFloat(m.distance_km);
+                const regular = parseFloat(m.regular_fare);
+                const discounted = parseFloat(m.discounted_fare);
+                const savings = regular - discounted;
+                return `
                 <tr>
-                    <td>${m.distance_km} km</td>
-                    <td>₱${parseFloat(m.regular_fare).toFixed(2)}</td>
-                    <td>₱${parseFloat(m.discounted_fare).toFixed(2)}</td>
-                </tr>`).join('');
+                    <td><strong>${dist.toFixed(1)} km</strong></td>
+                    <td style="color:#2563eb;font-weight:700;">₱${regular.toFixed(2)}</td>
+                    <td style="color:#059669;">₱${discounted.toFixed(2)}</td>
+                    <td style="color:#059669;font-weight:600;">${savings > 0 ? 'Save ₱' + savings.toFixed(2) : '—'}</td>
+                </tr>`;
+            }).join('');
         }
 
-        section.style.display = 'block';
+        section.classList.add('active');
         if (shouldScroll) {
             section.scrollIntoView({ behavior: 'smooth' });
         }
@@ -235,28 +237,26 @@ async function loadUploadHistory() {
         const tbody    = document.getElementById('uploadHistoryBody');
 
         if (!result.uploads || result.uploads.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted);">
-                <i class="fas fa-inbox" style="font-size:24px;margin-bottom:8px;display:block;"></i>No upload history yet
+            tbody.innerHTML = `<tr class="fd-empty-row"><td colspan="6">
+                <i class="fas fa-inbox"></i>No upload history yet
             </td></tr>`;
             return;
         }
 
         tbody.innerHTML = result.uploads.map(upload => {
-            const statusStyle = upload.status === 'completed' ? 'background:#d4edda;color:#155724;' :
-                                upload.status === 'failed'    ? 'background:#f8d7da;color:#721c24;' :
-                                                               'background:#fff3cd;color:#856404;';
+            const statusClass = 'fd-status-' + (upload.status || 'pending');
             return `
                 <tr>
                     <td>${escapeHtml(upload.file_name)}</td>
                     <td>${escapeHtml(upload.uploaded_by_name)}</td>
                     <td>${formatDate(upload.created_at)}</td>
-                    <td><span style="padding:4px 8px;border-radius:4px;font-size:12px;${statusStyle}">${escapeHtml(upload.status)}</span></td>
+                    <td><span class="fd-status-badge ${statusClass}">${escapeHtml(upload.status)}</span></td>
                     <td>${upload.total_records} total / ${upload.valid_records} valid</td>
                     <td>
-                        <button class="btn-gov btn-gov-secondary" style="padding:4px 8px;font-size:11px;" onclick="showImportLogs(${upload.id})">
+                        <button class="fd-btn-refresh" style="padding:4px 10px;font-size:11px;" onclick="showImportLogs(${upload.id})">
                             <i class="fas fa-list"></i> Logs
                         </button>
-                        <button class="btn-gov btn-gov-secondary" style="padding:4px 8px;font-size:11px;margin-left:4px;" onclick="showValidationErrors(${upload.id})">
+                        <button class="fd-btn-refresh" style="padding:4px 10px;font-size:11px;margin-left:4px;" onclick="showValidationErrors(${upload.id})">
                             <i class="fas fa-exclamation-triangle"></i> Errors
                         </button>
                     </td>
@@ -277,17 +277,18 @@ function syncFareGuide(guideId, status) {
     _syncStatus  = status;
     closeAllDropdowns();
 
-    document.getElementById('modalTitle').textContent = 'Update Fare Guide';
+    document.getElementById('modalTitle').textContent = 'Activate Fare Guide';
     document.getElementById('modalBody').innerHTML = `
-        <div style="text-align:center;padding:20px;">
-            <i class="fas fa-info-circle" style="font-size:48px;color:#007bff;margin-bottom:16px;"></i>
-            <p style="margin:0 0 24px;font-size:18px;">Are you sure you want to <strong>activate</strong> this fare guide?</p>
-            <div style="display:flex;gap:12px;justify-content:center;">
-                <button class="btn-gov btn-gov-secondary" onclick="cancelSync()"><i class="fas fa-times"></i> Cancel</button>
-                <button class="btn-gov" onclick="confirmSync()"><i class="fas fa-check"></i> Confirm</button>
+        <div style="text-align:center;padding:16px;">
+            <i class="fas fa-info-circle" style="font-size:44px;color:#2563eb;margin-bottom:14px;"></i>
+            <p style="margin:0 0 20px;font-size:15px;line-height:1.5;">Are you sure you want to <strong>activate</strong> this fare guide?</p>
+            <p style="margin:0 0 24px;font-size:12px;color:#64748b;">This will auto-archive any other active Tricycle guide for the same region.</p>
+            <div style="display:flex;gap:10px;justify-content:center;">
+                <button class="fd-btn-refresh" onclick="cancelSync()"><i class="fas fa-times"></i> Cancel</button>
+                <button class="fd-btn-browse" onclick="confirmSync()"><i class="fas fa-check"></i> Confirm</button>
             </div>
         </div>`;
-    document.getElementById('detailsModal').style.display = 'flex';
+    document.getElementById('detailsModal').classList.add('active');
 }
 
 async function confirmSync() {
@@ -301,8 +302,8 @@ async function confirmSync() {
         });
         const result = await response.json();
         if (result.success) {
-            document.getElementById('detailsModal').style.display = 'none';
-            showSuccessMessage('Fare guide updated successfully!');
+            document.getElementById('detailsModal').classList.remove('active');
+            showSuccessMessage('Fare guide activated successfully!');
             loadFareGuides();
         } else {
             showErrorMessage('Failed to update: ' + (result.error || 'Unknown error'));
@@ -314,7 +315,7 @@ async function confirmSync() {
 }
 
 function cancelSync() {
-    document.getElementById('detailsModal').style.display = 'none';
+    document.getElementById('detailsModal').classList.remove('active');
     _guideToSync = null; _syncStatus = null;
 }
 
@@ -326,16 +327,19 @@ async function showImportLogs(uploadId) {
         const result   = await response.json();
         let content = '';
         if (!result.import_logs || result.import_logs.length === 0) {
-            content = '<p style="color:var(--text-muted);text-align:center;padding:20px;">No logs available</p>';
+            content = '<p style="text-align:center;padding:20px;color:#9ca3af;">No logs available</p>';
         } else {
             content = result.import_logs.map(log => {
-                const icon  = log.severity === 'error' ? 'exclamation-circle' : log.severity === 'warning' ? 'exclamation-triangle' : 'info-circle';
-                const color = log.severity === 'error' ? '#721c24' : log.severity === 'warning' ? '#856404' : '#004085';
-                return `<div style="padding:8px;border-bottom:1px solid var(--border);color:${color};">
+                const msg = log.message || log.action || '';
+                const isError = msg.toLowerCase().includes('error') || msg.toLowerCase().includes('failed');
+                const isWarn  = msg.toLowerCase().includes('warning');
+                const icon  = isError ? 'exclamation-circle' : isWarn ? 'exclamation-triangle' : 'info-circle';
+                const color = isError ? '#991b1b' : isWarn ? '#92400e' : '#1e40af';
+                return `<div style="padding:10px 14px;border-bottom:1px solid #f1f5f9;color:${color};">
                     <i class="fas fa-${icon}"></i>
                     <strong>${escapeHtml(log.action)}</strong>
-                    <span style="margin-left:8px;font-size:12px;color:var(--text-muted);">${formatDate(log.created_at)}</span>
-                    <div style="margin-top:4px;font-size:14px;">${escapeHtml(log.details)}</div>
+                    <span style="margin-left:8px;font-size:11px;color:#9ca3af;">${formatDate(log.created_at)}</span>
+                    <div style="margin-top:4px;font-size:13px;">${escapeHtml(log.details || '')}</div>
                 </div>`;
             }).join('');
         }
@@ -354,18 +358,16 @@ async function showValidationErrors(uploadId) {
             content = '<p style="color:var(--text-muted);text-align:center;padding:20px;">No validation errors found</p>';
         } else {
             content = `<table style="width:100%;border-collapse:collapse;">
-                <thead><tr style="background:var(--border);">
-                    <th style="padding:8px;text-align:left;">Row</th>
-                    <th style="padding:8px;text-align:left;">Field</th>
-                    <th style="padding:8px;text-align:left;">Error</th>
-                    <th style="padding:8px;text-align:left;">Value</th>
+                <thead><tr style="background:#f8fafc;">
+                    <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:700;color:#64748b;">Row</th>
+                    <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:700;color:#64748b;">Field</th>
+                    <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:700;color:#64748b;">Error</th>
                 </tr></thead>
                 <tbody>${result.validation_errors.map(err => `
-                    <tr style="border-bottom:1px solid var(--border);">
-                        <td style="padding:8px;">${err.row_number || '-'}</td>
-                        <td style="padding:8px;">${escapeHtml(err.field_name || '-')}</td>
-                        <td style="padding:8px;">${escapeHtml(err.error_message)}</td>
-                        <td style="padding:8px;font-family:monospace;">${escapeHtml(err.invalid_value || '-')}</td>
+                    <tr style="border-bottom:1px solid #f1f5f9;">
+                        <td style="padding:8px 12px;">${err.row_number || '-'}</td>
+                        <td style="padding:8px 12px;font-weight:600;">${escapeHtml(err.field_name || err.field || '-')}</td>
+                        <td style="padding:8px 12px;color:#991b1b;">${escapeHtml(err.error_message || err.error)}</td>
                     </tr>`).join('')}
                 </tbody></table>`;
         }
@@ -381,11 +383,14 @@ function toggleDropdown(event, guideId) {
     event.stopPropagation();
     closeAllDropdowns();
     const dropdown = document.getElementById(`dropdown-${guideId}`);
-    if (dropdown) dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    if (dropdown) {
+        const isOpen = dropdown.style.display === 'block';
+        dropdown.style.display = isOpen ? 'none' : 'block';
+    }
 }
 
 function closeAllDropdowns() {
-    document.querySelectorAll('.dropdown-menu').forEach(d => { d.style.display = 'none'; });
+    document.querySelectorAll('.fd-dropdown-menu, .dropdown-menu').forEach(d => { d.style.display = 'none'; });
 }
 
 document.addEventListener('click', closeAllDropdowns);
@@ -395,24 +400,24 @@ document.addEventListener('click', closeAllDropdowns);
 function showModal(title, content) {
     document.getElementById('modalTitle').textContent = title;
     document.getElementById('modalBody').innerHTML    = content;
-    document.getElementById('detailsModal').style.display = 'flex';
+    document.getElementById('detailsModal').classList.add('active');
 }
 
 function showSuccessMessage(message) {
     showModal('Success', `
-        <div style="text-align:center;padding:30px;">
-            <i class="fas fa-check-circle" style="font-size:64px;color:#28a745;margin-bottom:20px;"></i>
-            <p style="margin:0;font-size:18px;color:#333;">${escapeHtml(message)}</p>
-            <button class="btn-gov" style="margin-top:24px;" onclick="document.getElementById('detailsModal').style.display='none'">OK</button>
+        <div style="text-align:center;padding:24px;">
+            <i class="fas fa-check-circle" style="font-size:48px;color:#10b981;margin-bottom:14px;"></i>
+            <p style="margin:0;font-size:15px;color:#1e293b;">${escapeHtml(message)}</p>
+            <button class="fd-btn-browse" style="margin-top:20px;" onclick="document.getElementById('detailsModal').classList.remove('active')">OK</button>
         </div>`);
 }
 
 function showErrorMessage(message) {
     showModal('Error', `
-        <div style="text-align:center;padding:30px;">
-            <i class="fas fa-times-circle" style="font-size:64px;color:#dc3545;margin-bottom:20px;"></i>
-            <p style="margin:0;font-size:18px;color:#333;">${escapeHtml(message)}</p>
-            <button class="btn-gov" style="margin-top:24px;" onclick="document.getElementById('detailsModal').style.display='none'">OK</button>
+        <div style="text-align:center;padding:24px;">
+            <i class="fas fa-times-circle" style="font-size:48px;color:#dc2626;margin-bottom:14px;"></i>
+            <p style="margin:0;font-size:15px;color:#1e293b;">${escapeHtml(message)}</p>
+            <button class="fd-btn-browse" style="margin-top:20px;" onclick="document.getElementById('detailsModal').classList.remove('active')">OK</button>
         </div>`);
 }
 

@@ -21,8 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Alias for role-based access
         $middleware->alias([
-            'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'role'         => \App\Http\Middleware\RoleMiddleware::class,
             'auth.session' => \App\Http\Middleware\AuthenticateSession::class,
+            'tourist.auth' => \App\Http\Middleware\TouristAuthenticate::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

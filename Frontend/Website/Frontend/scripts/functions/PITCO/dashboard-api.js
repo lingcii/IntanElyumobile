@@ -125,6 +125,23 @@
         }
     }
 
+    async function softRefreshDashboard() {
+        showKpiLoading();
+        try {
+            await fetchDashboardData();
+        } catch (err) {
+            console.error('[Dashboard] Soft refresh failed:', err);
+            showKpiError();
+            return;
+        }
+        loadKpis();
+        initVisitorTrendsChart();
+        initCategoryChart();
+        initTopMunicipalitiesChart();
+        initApprovalStatusChart();
+        loadMunicipalitiesData();
+    }
+
     // ── Load KPIs from Cached Payload ───────────────────────────────────────────────────
     function loadKpis() {
         const kpiElements = document.querySelectorAll('.lupto-kpi-card');
@@ -625,6 +642,27 @@
     // Expose control functions globally for the SPA router
     window.startAutoRefresh = startAutoRefresh;
     window.stopAutoRefresh = stopAutoRefresh;
+    window.softRefreshDashboard = softRefreshDashboard;
+
+    function preWarmTouristSpotsKpis() {
+        const baseUrl = window.API_CONFIG?.BASE_URL || (`http://${window.location.hostname || '127.0.0.1'}:8000`);
+        Promise.all([
+            window.API_CONFIG.get(`${baseUrl}/api/tourist-spots`),
+            window.API_CONFIG.get(`${baseUrl}/api/municipalities`)
+        ]).then(([spotsRes, muniRes]) => {
+            const spots = spotsRes.data || spotsRes || [];
+            const munis = muniRes.municipalities || muniRes.data || muniRes || [];
+            const vals = {
+                municipalities: munis.length,
+                total: spots.length,
+                open: spots.filter(s => (s.operation_status || s.status || '') === 'open').length,
+                closed: spots.filter(s => (s.operation_status || s.status || '') === 'closed').length,
+            };
+            try { sessionStorage.setItem('ts_kpis_lupto', JSON.stringify(vals)); } catch (e) {}
+        }).catch(() => {});
+    }
+
+    setTimeout(() => { if (typeof window.softRefreshDashboard === 'function') preWarmTouristSpotsKpis(); }, 1500);
 
     // ── On DOM Ready ──────────────────────────────────────────────────────────────
     if (document.readyState === 'loading') {

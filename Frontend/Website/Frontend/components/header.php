@@ -208,6 +208,86 @@ function timeAgo($datetime) {
     </div>
 </header>
 
+<!-- Logout Confirmation Modal Styles (inline for global availability) -->
+<style>
+#logoutConfirmModal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10002;
+  overflow-y: auto;
+  padding: 24px;
+  backdrop-filter: blur(2px);
+}
+#logoutConfirmModal.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+#logoutConfirmModal .modal-content {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+#logoutConfirmModal .btn {
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  border: 2px solid #E5E7EB;
+  background: white;
+  color: #4B5563;
+}
+#logoutConfirmModal .btn:hover {
+  background: #F9FAFB;
+}
+#logoutConfirmModal .btn.btn-outline {
+  border: 2px solid #E5E7EB;
+}
+#logoutConfirmModal .btn.btn-danger {
+  border: none;
+  color: white;
+}
+</style>
+
+<!-- Logout Confirmation Modal -->
+<div class="modal" id="logoutConfirmModal">
+    <div class="modal-content" style="max-width: 420px; border-radius: 16px; overflow: hidden;">
+        <div style="background: #FEE2E2; padding: 28px 28px 16px 28px; text-align: center;">
+            <div style="width: 56px; height: 56px; background: #DC2626; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                <i class="fas fa-right-from-bracket" style="color: white; font-size: 22px;"></i>
+            </div>
+            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #991B1B;">Logout</h3>
+        </div>
+        <div style="padding: 20px 28px 28px 28px;">
+            <p style="text-align: center; color: #4B5563; margin: 0 0 24px 0; font-size: 14px;">Are you sure you want to logout?</p>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-outline" id="cancelLogoutBtn" style="flex: 1; justify-content: center;">
+                    <i class="fas fa-times" style="margin-right: 6px;"></i> No
+                </button>
+                <button class="btn btn-danger" id="confirmLogoutBtn" style="flex: 1; justify-content: center; background: #DC2626; border-color: #DC2626;">
+                    <i class="fas fa-check" style="margin-right: 6px;"></i> Yes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 // Load notifications from Laravel API after page load
 (function loadNotifications() {

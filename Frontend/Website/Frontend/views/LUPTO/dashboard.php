@@ -13,9 +13,9 @@ ob_start();
 ?>
     <!-- LUPTO Dashboard CSS -->
     <link rel="stylesheet" href="../../css/LUPTO/dashboard.css">
-    
-   
-   
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
 <?php
 $extraHeadContent = ob_get_clean();
 
@@ -69,37 +69,6 @@ ob_start();
        
     </div>
 
-    <!-- Smart Insights Cards -->
-    <!-- <div class="lupto-insights-grid">
-        <div class="lupto-insight-card success">
-            <div class="lupto-insight-icon"><i class="fas fa-trophy"></i></div>
-            <div class="lupto-insight-content">
-                <h4>Top Performer</h4>
-                <p>Bauang Beach - 5,200 visitors this month</p>
-            </div>
-        </div>
-        <div class="lupto-insight-card warning">
-            <div class="lupto-insight-icon"><i class="fas fa-exclamation-triangle"></i></div>
-            <div class="lupto-insight-content">
-                <h4>Needs Attention</h4>
-                <p>15 spots pending approval</p>
-            </div>
-        </div>
-        <div class="lupto-insight-card info">
-            <div class="lupto-insight-icon"><i class="fas fa-chart-line"></i></div>
-            <div class="lupto-insight-content">
-                <h4>Trend Alert</h4>
-                <p>Visitor growth +12% from last month</p>
-            </div>
-        </div>
-        <div class="lupto-insight-card danger">
-            <div class="lupto-insight-icon"><i class="fas fa-star-half-alt"></i></div>
-            <div class="lupto-insight-content">
-                <h4>Quality Alert</h4>
-                <p>3 attractions below 4-star rating</p>
-            </div>
-        </div>
-    </div> -->
 
     <!-- Map & Activities -->
 
@@ -195,15 +164,13 @@ ob_start();
         </div> -->
     </div>
 
-    <!-- Leaflet Map Script -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <!-- Leaflet Map -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Dashboard Scripts -->
-    <script src="../../scripts/api-config.js"></script>
     <script src="../../scripts/functions/LUPTO/dashboard-api.js"></script>
 <?php
 $pageContent = ob_get_clean();

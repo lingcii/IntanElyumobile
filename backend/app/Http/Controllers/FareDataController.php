@@ -62,6 +62,11 @@ class FareDataController extends Controller
                 $query->where('status', '!=', 'archived');
             }
 
+            // Municipal users only see Tricycle fare guides
+            if (in_array($role, \App\Models\User::$MUNICIPAL_ROLES)) {
+                $query->where('vehicle_type', 'Tricycle');
+            }
+
             return $query->latest()->get()->map(function ($guide) {
                 $guideArray = $guide->toArray();
                 $guideArray['created_by_name'] = $guide->creator?->name ?? '—';
@@ -141,8 +146,10 @@ class FareDataController extends Controller
         }
         $file->move(dirname($filePath), $fileName);
 
+        $allowedVehicleType = in_array($role, User::$MUNICIPAL_ROLES) ? 'Tricycle' : null;
+
         $processor = new FareDataProcessor((int) $request->session()->get('user_id'));
-        $result    = $processor->processUpload($filePath, $originalName, $fileSize, $mimeType);
+        $result    = $processor->processUpload($filePath, $originalName, $fileSize, $mimeType, $allowedVehicleType);
 
         $this->clearFareDataCaches();
 
@@ -163,13 +170,14 @@ class FareDataController extends Controller
         $role    = $request->session()->get('user_role');
         $municipalityId = (int) $request->session()->get('user_municipality_id', 0);
 
-        // Municipal can only manage guides from their own municipality
+        // Municipal can only manage Tricycle guides from their own municipality
         if (in_array($role, User::$MUNICIPAL_ROLES) && $municipalityId) {
             $exists = FareGuide::where('id', $guideId)
+                ->where('vehicle_type', 'Tricycle')
                 ->whereHas('creator', fn($q) => $q->where('municipality_id', $municipalityId))
                 ->exists();
             if (!$exists) {
-                return response()->json(['error' => 'Forbidden: You can only manage fare guides from your municipality.'], 403);
+                return response()->json(['error' => 'Forbidden: You can only manage Tricycle fare guides from your municipality.'], 403);
             }
         }
 
@@ -220,8 +228,9 @@ class FareDataController extends Controller
     {
         \Illuminate\Support\Facades\Cache::forget('fare-data:stats');
         \Illuminate\Support\Facades\Cache::forget('fare-data:guides:lupto');
-        \Illuminate\Support\Facades\Cache::forget('fare-data:guides:picto');
-        \Illuminate\Support\Facades\Cache::forget('fare-data:guides:municipal');
-        \Illuminate\Support\Facades\Cache::flush();
+        \Illuminate\Support\Facades\Cache::forget('fare-data:guides:pitco');
+        foreach (User::$MUNICIPAL_ROLES as $role) {
+            \Illuminate\Support\Facades\Cache::forget("fare-data:guides:{$role}");
+        }
     }
 }

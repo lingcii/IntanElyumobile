@@ -42,19 +42,24 @@ class LoginController extends Controller
         $request->session()->put('user_municipality_id', $user->municipality_id);
         $request->session()->regenerate();
 
-        // Update last_activity using query builder (faster than Eloquent save)
+        // Generate an API token for mobile (Bearer token auth)
+        $token = \Illuminate\Support\Str::random(60);
         \Illuminate\Support\Facades\DB::table('users')
             ->where('id', $user->id)
-            ->update(['last_activity' => now()]);
+            ->update(['last_activity' => now(), 'api_token' => $token]);
 
         return response()->json([
             'success' => true,
+            'token'   => $token,
             'user'    => [
                 'id'              => $user->id,
                 'name'            => $user->name,
                 'email'           => $user->email,
                 'role'            => $user->role,
                 'municipality_id' => $user->municipality_id,
+                'xp'              => $user->xp ?? 0,
+                'level'           => $user->level ?? 1,
+                'avatar'          => $user->avatar,
             ],
         ]);
     }

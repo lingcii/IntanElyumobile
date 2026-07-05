@@ -258,17 +258,7 @@ function buildNavPath(cx) {
     return { fullPath, topEdge };
 }
 
-/**
- * Sidebar Navigation Logic
- */
-function toggleSidebar() {
-    const overlay = document.getElementById('sidebar-overlay');
-    const drawer = document.getElementById('sidebar-drawer');
-    if (overlay && drawer) {
-        overlay.classList.toggle('active');
-        drawer.classList.toggle('active');
-    }
-}
+
 
 /**
  * Handle Logout
@@ -279,9 +269,9 @@ async function handleLogout(e) {
     
     try {
         const token = localStorage.getItem('intan_elyu_token');
-        const backendUrl = 'https://boc-cornell-rolled-delicious.trycloudflare.com';
+        const backendUrl = 'http://localhost:8000';
         if (token) {
-            await fetch(backendUrl + '/api/logout', {
+            await fetch(backendUrl + '/api/auth/logout', {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',

@@ -18,7 +18,7 @@ class FareDataProcessor
         $this->userId = $userId;
     }
 
-    public function processUpload(string $filePath, string $originalFileName, int $fileSize, string $fileType): array
+    public function processUpload(string $filePath, string $originalFileName, int $fileSize, string $fileType, ?string $allowedVehicleType = null): array
     {
         try {
             $this->uploadId = $this->createUploadRecord($originalFileName, $filePath, $fileSize, $fileType);
@@ -36,6 +36,20 @@ class FareDataProcessor
 
             if (!$validationResult['is_valid']) {
                 $this->log('warning', 'Validation errors found', 'Count: ' . count($validationResult['errors']));
+            }
+
+            if ($allowedVehicleType !== null && !empty($data['vehicle_type']) && $data['vehicle_type'] !== $allowedVehicleType) {
+                $this->updateUploadStatus('failed', "Vehicle type '{$data['vehicle_type']}' is not allowed. Only '{$allowedVehicleType}' is permitted for your role.");
+                $this->log('error', 'Vehicle type rejected', "Expected '{$allowedVehicleType}', got '{$data['vehicle_type']}'");
+                return [
+                    'success'       => false,
+                    'upload_id'     => $this->uploadId,
+                    'fare_guide_id' => null,
+                    'total_records' => count($data['fares']),
+                    'valid_records' => $validationResult['valid_count'],
+                    'errors'        => $validationResult['errors'],
+                    'error'         => "Only '{$allowedVehicleType}' vehicle type is allowed. The uploaded PDF contains '{$data['vehicle_type']}'.",
+                ];
             }
 
             $fareGuideId = null;
@@ -69,7 +83,7 @@ class FareDataProcessor
             'file_name'   => $fileName,
             'file_path'   => $filePath,
             'file_size'   => $fileSize,
-            'file_type'   => $fileType,
+            'mime_type'   => $fileType,
             'uploaded_by' => $this->userId,
             'status'      => 'pending',
         ]);
@@ -106,7 +120,6 @@ class FareDataProcessor
             'vehicle_type'   => $data['vehicle_type'],
             'region'         => $data['region'],
             'effective_date' => $data['effective_date'],
-            'plate_number'   => $data['plate_number'] ?? null,
             'status'         => 'active',
             'created_by'     => $this->userId,
         ]);
@@ -135,8 +148,8 @@ class FareDataProcessor
             ImportLog::create([
                 'fare_upload_id' => $this->uploadId,
                 'action'         => $action,
+                'message'        => "[{$severity}] {$action}",
                 'details'        => $details,
-                'severity'       => $severity,
             ]);
         } catch (Exception) {}
     }

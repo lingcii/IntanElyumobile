@@ -26,14 +26,15 @@ if (isset($_SESSION['user_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>INTAN ELYU</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.onload=null;this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     <link rel="stylesheet" href="css/components/login.css">
 </head>
 <body>
     <div class="login-container">
         <div class="login-header">
             <div class="logo">
-                <img src="images/logo.png" alt="LOGO">
+                <img src="images/LOGO.png" alt="LOGO">
             </div>
             <h1>INTAN ELYU </h1>
             <p>San Fernando, La Union</p>

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class TouristSpot extends Model
 {
     protected $table = 'tourist_spots';
+    public $timestamps = false;
 
     protected $fillable = [
         'name',

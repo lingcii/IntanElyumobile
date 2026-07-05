@@ -338,14 +338,7 @@ p, span, div {
 /* ==========================================================================
    7. THEME OVERRIDES FOR LEGACY CLASSES (Dark Mode Enforced)
    ========================================================================== */
-.bottom-sheet,
-.map-categories .category-pill,
-.btn-locate-me,
-.btn-3d-view {
-    background: rgba(28, 28, 30, 0.95);
-    color: #FFFFFF;
-    border-color: #2C2C2E;
-}
+/* Removed conflicting map element overrides */
 
 .btn-3d-view.active {
     background: var(--nav-home);

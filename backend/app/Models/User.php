@@ -20,11 +20,16 @@ class User extends Authenticatable
         'status',
         'municipality_id',
         'last_activity',
+        'api_token',
+        'xp',
+        'level',
+        'avatar',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+        'api_token',
     ];
 
     protected $casts = [
@@ -68,5 +73,15 @@ class User extends Authenticatable
     public function isMunicipal(): bool
     {
         return in_array($this->role, self::$MUNICIPAL_ROLES);
+    }
+
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
+    public function itineraries()
+    {
+        return $this->hasMany(Itinerary::class);
     }
 }

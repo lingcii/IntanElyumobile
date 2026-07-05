@@ -503,17 +503,23 @@ async function fd_showLogs(uploadId, type) {
                 </tr></thead>
                 <tbody>${items.map(e => `<tr style="border-bottom:1px solid var(--border);">
                     <td style="padding:8px 12px;">${e.row_number||'—'}</td>
-                    <td style="padding:8px 12px;">${fd_escHtml(e.field_name||'—')}</td>
-                    <td style="padding:8px 12px;color:#dc2626;">${fd_escHtml(e.error_message)}</td>
+                    <td style="padding:8px 12px;">${fd_escHtml(e.field_name||e.field||'—')}</td>
+                    <td style="padding:8px 12px;color:#dc2626;">${fd_escHtml(e.error_message||e.error)}</td>
                     <td style="padding:8px 12px;font-family:monospace;font-size:12px;">${fd_escHtml(e.invalid_value||'—')}</td>
                 </tr>`).join('')}</tbody></table>`;
         } else {
             const sev = { error:'#dc2626', warning:'#b45309', info:'#1d4ed8' };
-            body.innerHTML = items.map(l => `<div style="padding:10px 16px;border-bottom:1px solid var(--border);color:${sev[l.severity]||'#475569'};">
+            body.innerHTML = items.map(l => {
+                const msg = l.message || l.action || '';
+                const isErr = msg.toLowerCase().includes('error') || msg.toLowerCase().includes('failed');
+                const isWarn = msg.toLowerCase().includes('warning');
+                const color = isErr ? '#dc2626' : isWarn ? '#b45309' : sev[l.severity] || '#475569';
+                return `<div style="padding:10px 16px;border-bottom:1px solid var(--border);color:${color};">
                 <strong style="font-size:13px;">${fd_escHtml(l.action)}</strong>
                 <span style="font-size:11px;color:var(--text-muted);margin-left:8px;">${fd_fmtDate(l.created_at)}</span>
                 <div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">${fd_escHtml(l.details)}</div>
-            </div>`).join('');
+            </div>`;
+            }).join('');
         }
     } catch (e) {
         if (body) body.innerHTML = `<div style="padding:24px;text-align:center;color:#dc2626;">${fd_escHtml(e.message)}</div>`;

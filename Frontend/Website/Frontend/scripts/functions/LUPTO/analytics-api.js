@@ -17,7 +17,7 @@
 
 'use strict';
 
-const LA_API = window.API_CONFIG?.LUPTO + '/analytics' || 'http://localhost:8000/api/lupto/analytics';
+const LA_API = window.API_CONFIG?.LUPTO || 'http://localhost:8000/api/lupto';
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let _muniSort = 'total_visits';
@@ -29,24 +29,35 @@ let refreshTimer = null;
 document.addEventListener('DOMContentLoaded', () => {
     loadFilterOptions();
     refreshAll();
+    startAutoRefresh();
+});
 
-    // Real-time auto-refresh every 30 seconds
+function startAutoRefresh() {
     if (refreshTimer) clearInterval(refreshTimer);
     refreshTimer = setInterval(refreshAll, 30000);
-});
+}
+function stopAutoRefresh() {
+    if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+}
+function toggleAutoRefresh() {
+    const toggle = document.getElementById('autoRefreshToggle');
+    if (toggle && toggle.checked) startAutoRefresh();
+    else stopAutoRefresh();
+}
 
 // ── Core fetch ────────────────────────────────────────────────────────────────
 async function apiFetch(action, params = {}) {
     // Map old ?action=x params to Laravel route paths
     const actionRouteMap = {
-        'get_summary':           `${LA_API}/summary`,
-        'get_top_municipalities':`${LA_API}/top-municipalities`,
-        'get_top_spots':         `${LA_API}/top-spots`,
-        'get_chart_data':        `${LA_API}/chart-data`,
-        'get_monthly_trend':     `${LA_API}/monthly-trend`,
-        'get_filter_options':    `${LA_API}/filter-options`,
+        'get_summary':           `${LA_API}/analytics/summary`,
+        'get_top_municipalities':`${LA_API}/analytics/top-municipalities`,
+        'get_top_spots':         `${LA_API}/analytics/top-spots`,
+        'get_chart_data':        `${LA_API}/analytics/chart-data`,
+        'get_monthly_trend':     `${LA_API}/analytics/monthly-trend`,
+        'get_filter_options':    `${LA_API}/analytics/filter-options`,
+        'export':                `${LA_API}/analytics/export`,
     };
-    const base = actionRouteMap[action] || `${LA_API}/${action.replace(/_/g, '-')}`;
+    const base = actionRouteMap[action] || `${LA_API}/analytics/${action.replace(/_/g, '-')}`;
     const qs   = Object.keys(params).length ? '?' + new URLSearchParams(params).toString() : '';
     const url  = base + qs;
 
@@ -532,6 +543,29 @@ async function loadTrendChart() {
     } catch (err) {
         console.error('[LA] loadTrendChart:', err);
     }
+}
+
+// ── Export ────────────────────────────────────────────────────────────────────
+function closeExportModal() {
+    const modal = document.getElementById('exportModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function exportData(format) {
+    const modal = document.getElementById('exportModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.setAttribute('data-format', format);
+    } else {
+        triggerExport(format, 'full');
+    }
+}
+
+function triggerExport(format, type) {
+    closeExportModal();
+    const year = document.getElementById('filterYear')?.value || new Date().getFullYear();
+    const url = `${LA_API}/analytics/export?format=${format}&type=${type}&year=${year}`;
+    window.open(url, '_blank');
 }
 
 // ── Utilities ─────────────────────────────────────────────────────────────────

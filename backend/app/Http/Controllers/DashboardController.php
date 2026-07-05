@@ -27,7 +27,7 @@ class DashboardController extends Controller
 
         $cacheKey = "dashboard:data:{$role}:{$municipalityId}";
 
-        $payload = Cache::remember($cacheKey, 10, function () use ($isMuni, $municipalityId) {
+        $payload = Cache::remember($cacheKey, 120, function () use ($isMuni, $municipalityId) {
             if ($isMuni) {
                 // Specific municipality
                 $totalMunicipalities = 1;
@@ -149,7 +149,7 @@ class DashboardController extends Controller
                 ->get()
                 ->toArray();
 
-            // Consolidated Analytics: Top 5 Municipalities
+            // Consolidated Analytics: Top 5 Municipalities (province-wide only)
             $topMunis = [];
             if (!$isMuni) {
                 $topMunis = Municipality::leftJoin('tourist_spots as ts', 'ts.municipality_id', '=', 'municipalities.id')
@@ -161,6 +161,14 @@ class DashboardController extends Controller
                     ->toArray();
             }
 
+            // Top 5 Spots by Visits (scoped)
+            $topSpotsQuery = TouristSpot::where('status', 'approved')
+                ->select('id', 'name', 'visits');
+            if ($isMuni) {
+                $topSpotsQuery->where('municipality_id', $municipalityId);
+            }
+            $topSpots = $topSpotsQuery->orderByDesc('visits')->limit(5)->get()->toArray();
+
             return [
                 'kpis'                 => $kpis,
                 'municipalities'       => $municipalities->toArray(),
@@ -170,19 +178,20 @@ class DashboardController extends Controller
                 'visitorTrends'        => $visitorTrends,
                 'categoryDistribution' => $catDist,
                 'topMunicipalities'    => $topMunis,
+                'topSpots'             => $topSpots,
             ];
         });
 
-        $etag = '"' . md5(json_encode($payload['kpis']) . count($payload['municipalities']) . count($payload['touristSpots'])) . '"';
+        $etag = '"' . md5(json_encode($payload['kpis']) . count($payload['municipalities']) . count($payload['touristSpots']) . count($payload['topSpots'])) . '"';
 
         if ($request->hasHeader('If-None-Match') && $request->header('If-None-Match') === $etag) {
             return response()->json(null, 304)
-                ->header('Cache-Control', 'private, max-age=10')
+                ->header('Cache-Control', 'private, max-age=120')
                 ->header('ETag', $etag);
         }
 
         return response()->json($payload)
-            ->header('Cache-Control', 'private, max-age=10')
+            ->header('Cache-Control', 'private, max-age=60')
             ->header('ETag', $etag);
     }
 
@@ -214,8 +223,8 @@ class DashboardController extends Controller
                 ->increment('attraction_count');
         });
 
-        // Clear all relevant caches
-        Cache::flush();
+        // Invalidate only the dashboard caches that changed — never flush everything
+        $this->forgetDashboardCaches($spot->municipality_id);
 
         return response()->json(['success' => true, 'message' => 'Tourist spot approved.']);
     }
@@ -226,34 +235,74 @@ class DashboardController extends Controller
     public function rejectSpot(Request $request): JsonResponse
     {
         $request->validate(['id' => 'required|integer']);
-        TouristSpot::findOrFail($request->id)->update(['status' => 'rejected']);
+        $spot = TouristSpot::findOrFail($request->id);
+        $spot->update(['status' => 'rejected']);
 
-        // Clear all relevant caches
-        Cache::flush();
+        // Invalidate only the dashboard caches that changed
+        $this->forgetDashboardCaches($spot->municipality_id);
 
         return response()->json(['success' => true, 'message' => 'Tourist spot rejected.']);
     }
 
     /**
      * POST /api/{role}/dashboard/batch-approve-spots
+     * Fixed: was N+1 (one SELECT + one UPDATE per spot).
+     * Now: one UPDATE IN (...) + grouped municipality increments.
      */
     public function batchApproveSpots(Request $request): JsonResponse
     {
         $request->validate(['ids' => 'required|array', 'ids.*' => 'integer']);
 
-        DB::transaction(function () use ($request) {
-            foreach ($request->ids as $id) {
-                $spot = TouristSpot::where('id', $id)->where('status', 'pending')->first();
-                if ($spot) {
-                    $spot->update(['status' => 'approved']);
-                    Municipality::where('id', $spot->municipality_id)->increment('attraction_count');
-                }
+        $ids = $request->ids;
+
+        DB::transaction(function () use ($ids) {
+            // Fetch only pending spots in one query
+            $spots = TouristSpot::whereIn('id', $ids)
+                ->where('status', 'pending')
+                ->get(['id', 'municipality_id']);
+
+            if ($spots->isEmpty()) return;
+
+            // Single UPDATE for all matching spots
+            TouristSpot::whereIn('id', $spots->pluck('id'))
+                ->update(['status' => 'approved']);
+
+            // Group by municipality and increment attraction_count once per municipality
+            $countByMunicipality = $spots->groupBy('municipality_id')->map->count();
+            foreach ($countByMunicipality as $municipalityId => $count) {
+                Municipality::where('id', $municipalityId)->increment('attraction_count', $count);
             }
         });
 
-        // Clear all relevant caches
-        Cache::flush();
+        // Invalidate only the dashboard caches — never flush all caches
+        $this->forgetDashboardCaches();
 
         return response()->json(['success' => true, 'message' => 'Selected spots approved.']);
+    }
+
+    /**
+     * Forget only the dashboard-specific cache keys.
+     * Pass $municipalityId to also clear that municipality's scoped cache.
+     * This is far safer than Cache::flush() which destroys analytics/leaderboard/fare caches.
+     */
+    private function forgetDashboardCaches(?int $municipalityId = null): void
+    {
+        // Province-wide dashboard caches (LUPTO/PICTO roles)
+        foreach (['lupto', 'picto'] as $role) {
+            Cache::forget("dashboard:data:{$role}:0");
+        }
+
+        // Municipality-scoped dashboard cache
+        if ($municipalityId) {
+            Cache::forget("dashboard:data:municipal:{$municipalityId}");
+            // Flush all known municipal role variants for this municipality
+            $municipalRoles = \App\Models\User::$MUNICIPAL_ROLES;
+            foreach ($municipalRoles as $role) {
+                Cache::forget("dashboard:data:{$role}:{$municipalityId}");
+            }
+        }
+
+        // Public map cache (approved spots changed)
+        Cache::forget('map:public:spots');
     }
 }

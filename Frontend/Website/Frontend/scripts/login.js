@@ -6,13 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorModalText = document.getElementById('errorModalText');
     const closeErrorModal = document.getElementById('closeErrorModal');
 
-    // Close error modal handlers
     if (closeErrorModal && errorModal) {
         closeErrorModal.addEventListener('click', () => {
             errorModal.classList.remove('active');
         });
-
-        // Close on background click
         errorModal.addEventListener('click', (e) => {
             if (e.target === errorModal) {
                 errorModal.classList.remove('active');
@@ -22,17 +19,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        console.log('Login form submitted');
-        
+
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
         const submitBtn = loginForm.querySelector('.btn-login');
-        
+
         const email = emailInput.value.trim();
         const password = passwordInput.value;
-        console.log('Email:', email);
 
-        // UI Loading State
+        if (!email || !password) {
+            showError('Please fill in all fields.');
+            return;
+        }
+
         emailInput.disabled = true;
         passwordInput.disabled = true;
         submitBtn.disabled = true;
@@ -40,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Signing In...';
 
         try {
-            console.log('Calling login API...');
             const params = new URLSearchParams();
             params.append('email', email);
             params.append('password', password);
@@ -60,70 +58,55 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 return res.json();
             });
-            console.log('Login API response:', response);
 
             if (response.success && response.user) {
-                console.log('Login successful! Syncing session...');
-                // Send user data directly to sync-session.php
-                const syncResponse = await fetch('sync-session.php', {
+                if (errorMessage) errorMessage.style.display = 'none';
+                sessionStorage.clear();
+
+                let redirectUrl = 'views/LUPTO/dashboard.php';
+                const role = response.user.role;
+                if (role === 'picto' || role === 'pitco') {
+                    redirectUrl = 'views/PICTO/dashboard.php';
+                } else if (role === 'lupto') {
+                    redirectUrl = 'views/LUPTO/dashboard.php';
+                } else if (role === 'municipal' || role.endsWith('_mto')) {
+                    redirectUrl = 'views/MUNICIPAL/dashboard.php';
+                }
+
+                if (successModal) {
+                    successModal.classList.add('active');
+                }
+
+                // Sync PHP session — must await so browser doesn't cancel it on redirect
+                await fetch('sync-session.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'same-origin',
                     body: JSON.stringify({ user: response.user })
                 });
-                console.log('Sync-session response status:', syncResponse.status);
-                const syncData = await syncResponse.json();
-                console.log('Sync-session data:', syncData);
-                
-                if (syncData.success) {
-                    // Hide any active error message
-                    if (errorMessage) errorMessage.style.display = 'none';
 
-                    // Clear previous session storage states so they start fresh on the dashboard
-                    sessionStorage.clear();
-                    
-                    // Determine redirect URL based on role
-                    let redirectUrl = 'views/LUPTO/dashboard.php';
-                    const role = response.user.role;
-                    if (role === 'picto' || role === 'pitco') {
-                        redirectUrl = 'views/PICTO/dashboard.php';
-                    } else if (role === 'lupto') {
-                        redirectUrl = 'views/LUPTO/dashboard.php';
-                    } else if (role === 'municipal' || role.endsWith('_mto')) {
-                        redirectUrl = 'views/MUNICIPAL/dashboard.php';
-                    }
-
-                    // Show success modal
-                    if (successModal) {
-                        successModal.classList.add('active');
-                    }
-
-                    // Wait 1.5 seconds before redirecting to let the user see the modal
-                    await new Promise(resolve => setTimeout(resolve, 1500));
-
-                    // Redirect immediately
+                // Brief modal display then redirect
+                setTimeout(() => {
                     window.location.href = redirectUrl;
-                } else {
-                    throw new Error('Failed to sync session');
-                }
+                }, 300);
             }
         } catch (err) {
             console.error('Login error:', err);
-            
-            // Show error popup modal
-            if (errorModal && errorModalText) {
-                errorModalText.textContent = err.message || 'Invalid email or password.';
-                errorModal.classList.add('active');
-            } else if (errorMessage) {
-                errorMessage.textContent = err.message || 'An error occurred. Please try again.';
-                errorMessage.style.display = 'block';
-            }
-            
-            // Revert UI Loading State
+            showError(err.message || 'Invalid email or password.');
             emailInput.disabled = false;
             passwordInput.disabled = false;
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnHtml;
         }
     });
+
+    function showError(msg) {
+        if (errorModal && errorModalText) {
+            errorModalText.textContent = msg;
+            errorModal.classList.add('active');
+        } else if (errorMessage) {
+            errorMessage.textContent = msg;
+            errorMessage.style.display = 'block';
+        }
+    }
 });

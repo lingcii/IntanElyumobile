@@ -1871,6 +1871,9 @@ h4 {
 }
 
 /* ── Photo Upload */
+label.sfm-upload-area {
+    display: block;
+}
 .sfm-upload-area {
     border: 2px dashed #cbd5e1;
     border-radius: 12px;

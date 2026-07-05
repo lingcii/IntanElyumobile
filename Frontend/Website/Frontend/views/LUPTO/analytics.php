@@ -20,6 +20,18 @@ ob_start();
 <div class="pa-page-header">
     <h2><i class="fas fa-chart-line"></i> Tourism Analytics Dashboard</h2>
     <div class="pa-header-actions">
+        <label class="la-auto-refresh">
+            <input type="checkbox" id="autoRefreshToggle" onchange="toggleAutoRefresh()" checked>
+            <span><i class="fas fa-sync-alt"></i> Auto-refresh 30s</span>
+        </label>
+        <div class="la-export-group">
+            <button class="btn-gov btn-gov-secondary" onclick="exportData('csv')" title="Export as CSV">
+                <i class="fas fa-file-csv"></i> CSV
+            </button>
+            <button class="btn-gov btn-gov-secondary" onclick="exportData('pdf')" title="Export as PDF">
+                <i class="fas fa-file-pdf"></i> PDF
+            </button>
+        </div>
         <button class="btn-gov btn-gov-secondary" onclick="refreshAll()" title="Refresh all data">
             <i class="fas fa-sync-alt" id="refreshIcon"></i> Refresh
         </button>
@@ -232,6 +244,40 @@ ob_start();
         </div>
     </div>
 </div>
+
+<!-- Export Modal -->
+<div id="exportModal" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width:480px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-file-export"></i> Export Analytics Data</h3>
+            <button class="modal-close" onclick="closeExportModal()">&times;</button>
+        </div>
+        <div class="modal-body" style="padding:20px;">
+            <p style="margin-bottom:16px;">Select the data you want to export:</p>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <button class="btn-gov" onclick="triggerExport('csv','summary')"><i class="fas fa-file-csv"></i> Export Summary as CSV</button>
+                <button class="btn-gov" onclick="triggerExport('csv','municipalities')"><i class="fas fa-file-csv"></i> Export Municipalities as CSV</button>
+                <button class="btn-gov" onclick="triggerExport('csv','spots')"><i class="fas fa-file-csv"></i> Export Spots as CSV</button>
+                <button class="btn-gov" onclick="triggerExport('csv','trends')"><i class="fas fa-file-csv"></i> Export Trends as CSV</button>
+                <button class="btn-gov" onclick="triggerExport('csv','full')"><i class="fas fa-file-csv"></i> Export All Data as CSV</button>
+                <button class="btn-gov btn-gov-secondary" onclick="triggerExport('pdf','full')"><i class="fas fa-file-pdf"></i> Export Full Report as PDF</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" onclick="closeExportModal()"></div>
+</div>
+
+<style>
+.la-auto-refresh { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-secondary); cursor:pointer; user-select:none; margin-right:8px; }
+.la-auto-refresh input { accent-color:var(--lupto-primary); }
+.la-export-group { display:flex; gap:4px; }
+.modal { position:fixed; top:0; left:0; right:0; bottom:0; z-index:9999; display:flex; align-items:center; justify-content:center; }
+.modal-content { background:#fff; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,0.2); z-index:1; width:100%; }
+.modal-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); }
+.modal-header h3 { margin:0; font-size:16px; display:flex; align-items:center; gap:8px; }
+.modal-close { background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-muted); }
+.modal-backdrop { position:absolute; inset:0; background:rgba(0,0,0,0.4); }
+</style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="../../scripts/functions/LUPTO/analytics-api.js"></script>

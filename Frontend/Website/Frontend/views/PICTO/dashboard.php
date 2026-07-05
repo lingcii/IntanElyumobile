@@ -13,7 +13,9 @@ ob_start();
 ?>
     <!-- PITCO Dashboard CSS -->
     <link rel="stylesheet" href="../../css/LUPTO/dashboard.css">
-    
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
 <?php
 $extraHeadContent = ob_get_clean();
 
@@ -181,15 +183,13 @@ ob_start();
         
     </div>
 
-    <!-- Leaflet Map Script -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <!-- Leaflet Map -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Dashboard Scripts -->
-    <script src="../../scripts/api-config.js"></script>
     <script src="../../scripts/functions/PITCO/dashboard-api.js"></script>
 <?php
 $pageContent = ob_get_clean();

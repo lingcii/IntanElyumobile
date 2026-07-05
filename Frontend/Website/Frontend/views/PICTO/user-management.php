@@ -68,7 +68,7 @@ ob_start();
         </div>
         <select class="um-filter-select" id="roleFilter" onchange="applyFilters()" aria-label="Filter by role">
             <option value="">All Roles</option>
-            <option value="picto">PICTO</option>
+            <option value="pitco">PICTO</option>
             <option value="lupto">LUPTO</option>
             <option value="tourist">Tourist</option>
             <optgroup label="Municipal Tourism Offices">
@@ -180,7 +180,7 @@ ob_start();
                         <label class="um-form-label" for="formRole">Role <span class="required">*</span></label>
                         <select id="formRole" class="um-form-control" required onchange="onRoleChange()">
                             <option value="">— Select Role —</option>
-                            <option value="picto">PICTO</option>
+                            <option value="pitco">PICTO</option>
                             <option value="lupto">LUPTO</option>
                             <option value="tourist">Tourist</option>
                             <optgroup label="Municipal Tourism Offices">

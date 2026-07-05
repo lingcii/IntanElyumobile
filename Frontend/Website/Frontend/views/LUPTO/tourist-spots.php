@@ -1,51 +1,12 @@
 <?php
 require_once __DIR__ . '/../../session-bridge.php';
-// Check role
+require_once __DIR__ . '/../../laravel-api-bridge.php';
 if ($_SESSION['user_role'] !== 'lupto') {
     header('Location: ../../login.php');
     exit;
 }
 
 $pageTitle = 'LUPTO Tourist Spots';
-
-// ── Pull data from Laravel API ─────────────────────────────────────────────
-$laravelBase = 'http://127.0.0.1:8000/api';
-$cookieStr   = '';
-foreach ($_COOKIE as $name => $value) {
-    $cookieStr .= $name . '=' . urlencode($value) . '; ';
-}
-
-function lutoApiGet(string $url, string $cookieStr): array {
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER     => ['Accept: application/json', 'Cookie: ' . $cookieStr],
-        CURLOPT_TIMEOUT        => 10,
-        CURLOPT_SSL_VERIFYPEER => false,
-    ]);
-    $body = curl_exec($ch);
-    curl_close($ch);
-    if (!$body) return [];
-    $decoded = json_decode($body, true);
-    return is_array($decoded) ? $decoded : [];
-}
-
-$spotsResponse  = lutoApiGet("{$laravelBase}/tourist-spots", $cookieStr);
-$spots          = $spotsResponse['data'] ?? (isset($spotsResponse[0]) ? $spotsResponse : []);
-
-$muniResponse   = lutoApiGet("{$laravelBase}/municipalities", $cookieStr);
-$municipalities = $muniResponse['municipalities'] ?? $muniResponse['data'] ?? (isset($muniResponse[0]) ? $muniResponse : []);
-
-// Build spot counts per municipality for the map markers
-$muniSpotCounts = [];
-foreach ($spots as $s) {
-    $mName = $s['municipality_name'] ?? $s['municipality']['name'] ?? '';
-    if ($mName) $muniSpotCounts[$mName] = ($muniSpotCounts[$mName] ?? 0) + 1;
-}
-foreach ($municipalities as &$m) {
-    $m['spots'] = $muniSpotCounts[$m['name']] ?? 0;
-}
-unset($m);
 
 ob_start();
 ?>
@@ -55,7 +16,6 @@ ob_start();
 <link rel="stylesheet" href="../../css/LUPTO/tourist-spots.css">
 <link rel="stylesheet" href="../../css/LUPTO/dashboard.css">
 <link rel="stylesheet" href="../../css/LUPTO/map-view.css">
-
 
 <?php
 $extraHeadContent = ob_get_clean();
@@ -67,7 +27,7 @@ ob_start();
         <div class="lupto-kpi-card" data-kpi="total-municipalities">
             <div class="lupto-kpi-info">
                 <h4>Total Municipalities</h4>
-                <span class="lupto-kpi-value">20</span>
+                <span class="lupto-kpi-value"><i class="fas fa-spinner fa-spin" style="font-size:16px;color:#9CA3AF;"></i></span>
                 <span class="lupto-kpi-trend trend-neutral"><i class="fas fa-minus"></i> No Change</span>
             </div>
             <div class="lupto-kpi-icon bg-blue"><i class="fas fa-city"></i></div>
@@ -75,7 +35,7 @@ ob_start();
         <div class="lupto-kpi-card" data-kpi="total-spots">
             <div class="lupto-kpi-info">
                 <h4>Total Tourist Spots</h4>
-                <span class="lupto-kpi-value"><?= count($spots) ?></span>
+                <span class="lupto-kpi-value"><i class="fas fa-spinner fa-spin" style="font-size:16px;color:#9CA3AF;"></i></span>
                 <span class="lupto-kpi-trend trend-up"><i class="fas fa-arrow-up"></i> +2 this week</span>
             </div>
             <div class="lupto-kpi-icon bg-green"><i class="fas fa-compass"></i></div>
@@ -83,7 +43,7 @@ ob_start();
         <div class="lupto-kpi-card" data-kpi="approved-spots">
             <div class="lupto-kpi-info">
                 <h4>Total Open Tourist Spots</h4>
-                <span class="lupto-kpi-value"><?= count(array_filter($spots, fn($s) => ($s['operation_status'] ?? $s['status'] ?? '') === 'open')) ?></span>
+                <span class="lupto-kpi-value"><i class="fas fa-spinner fa-spin" style="font-size:16px;color:#9CA3AF;"></i></span>
                 <span class="lupto-kpi-trend trend-up"><i class="fas fa-arrow-up"></i> +1 today</span>
             </div>
             <div class="lupto-kpi-icon bg-green"><i class="fas fa-check-circle"></i></div>
@@ -91,7 +51,7 @@ ob_start();
         <div class="lupto-kpi-card" data-kpi="pending-spots">
             <div class="lupto-kpi-info">
                 <h4>Total Closed Tourist Spots</h4>
-                <span class="lupto-kpi-value"><?= count(array_filter($spots, fn($s) => ($s['operation_status'] ?? $s['status'] ?? '') === 'closed')) ?></span>
+                <span class="lupto-kpi-value"><i class="fas fa-spinner fa-spin" style="font-size:16px;color:#9CA3AF;"></i></span>
                 <span class="lupto-kpi-trend trend-down"><i class="fas fa-arrow-down"></i> -3 this week</span>
             </div>
             <div class="lupto-kpi-icon bg-orange"><i class="fas fa-hourglass-half"></i></div>
@@ -122,10 +82,8 @@ ob_start();
         <div class="map-wrapper">
             <div id="lupto-map" class="lupto-dedicated-map"></div>
             
-            <!-- Overlay -->
             <div class="sidebar-overlay" id="sidebarOverlay"></div>
             
-            <!-- Sidebar -->
             <div class="sidebar-container" id="sidebarContainer" role="dialog" aria-labelledby="sidebarTitle">
                 <div class="sidebar-header">
                     <div class="sidebar-header-left">
@@ -139,7 +97,6 @@ ob_start();
                     </button>
                 </div>
                 <div class="sidebar-content" id="sidebarContent">
-                    <!-- Content will be dynamically populated -->
                 </div>
             </div>
         </div>
@@ -147,9 +104,7 @@ ob_start();
 
 <!-- -- Filter Bar -->
 <div class="filter-bar">
-    <!-- Left: filter fields -->
     <div class="filter-bar-inner">
-        <!-- Search -->
         <div class="filter-field filter-field-search">
             <label class="filter-label"><i class="fas fa-search"></i> Search</label>
             <div class="filter-input-wrap">
@@ -158,19 +113,13 @@ ob_start();
             </div>
         </div>
     </div>
-    <!-- Right: Municipality, Category, Status, count + view toggle -->
     <div class="filter-bar-right">
-        <!-- Municipality -->
         <div class="filter-field">
             <label class="filter-label"><i class="fas fa-map-marker-alt"></i> Municipality</label>
             <select id="filterMunicipality" class="filter-select">
                 <option value="">All Municipalities</option>
-                <?php foreach ($municipalities as $muni): ?>
-                    <option value="<?= htmlspecialchars($muni['name']); ?>"><?= htmlspecialchars($muni['name']); ?></option>
-                <?php endforeach; ?>
             </select>
         </div>
-        <!-- Category Multi-Select Dropdown -->
         <div class="filter-field" style="position:relative;">
             <label class="filter-label"><i class="fas fa-tag"></i> Category</label>
             <div id="catFilterBtn" class="filter-select" style="cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:140px;" onclick="toggleCatDropdown(event)">
@@ -189,7 +138,6 @@ ob_start();
                 <button onclick="clearCatFilter()" style="width:100%;background:none;border:none;padding:7px 14px;text-align:left;font-size:12px;color:#6B7280;cursor:pointer;" onmouseenter="this.style.color='#2563EB'" onmouseleave="this.style.color='#6B7280'"><i class="fas fa-times-circle"></i> Clear selection</button>
             </div>
         </div>
-        <!-- Status -->
         <div class="filter-field">
             <label class="filter-label"><i class="fas fa-circle-dot"></i> Status</label>
             <select id="filterStatus" class="filter-select">
@@ -199,7 +147,7 @@ ob_start();
                 <option value="EMERGING">EMERGING</option>
             </select>
         </div>
-        <span class="filter-count"><span id="spotCount"><?= count($spots); ?></span> tourist spot(s)</span>
+        <span class="filter-count"><span id="spotCount">0</span> tourist spot(s)</span>
         <div class="view-toggle">
             <button class="active" id="viewCards" title="Card View"><i class="fas fa-th"></i></button>
             <button id="viewTable" title="Table View"><i class="fas fa-list"></i></button>
@@ -225,7 +173,6 @@ ob_start();
 <!-- Add / Edit Spot Modal -->
 <div class="modal" id="spotFormModal">
     <div class="modal-content spot-form-modal-content">
-        <!-- Modal Header -->
         <div class="sfm-header">
             <div class="sfm-header-left">
                 <div class="sfm-header-icon"><i class="fas fa-map-marked-alt"></i></div>
@@ -244,27 +191,24 @@ ob_start();
                 <input type="hidden" id="spotId" value="">
                 <input type="hidden" id="municipalityId" value="">
 
-                <!-- ── SECTION: Media -->
                 <div class="sfm-section">
                     <div class="sfm-section-label">
                         <i class="fas fa-images"></i> Photo Upload
                     </div>
-                    <div id="imageUploadArea" class="sfm-upload-area">
+                    <label id="imageUploadArea" class="sfm-upload-area">
                         <div class="sfm-upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
                         <p class="sfm-upload-title">Click or drag to upload</p>
                         <p class="sfm-upload-sub">JPEG / PNG &middot; Max 5MB per file</p>
-                        <input type="file" id="spotImages" accept="image/jpeg,image/png" multiple style="display:none;">
-                    </div>
+                        <input type="file" id="spotImages" accept="image/jpeg,image/png,image/jpg,.jpg,.jpeg,.png" multiple hidden>
+                    </label>
                     <div id="imagePreviews" class="sfm-image-previews"></div>
                 </div>
 
-                <!-- ── SECTION: Basic Info -->
                 <div class="sfm-section">
                     <div class="sfm-section-label">
                         <i class="fas fa-info-circle"></i> Basic Information
                     </div>
 
-                    <!-- Title -->
                     <div class="sfm-field">
                         <label class="sfm-label" for="spotName">
                             Spot Name <span class="sfm-required">*</span>
@@ -274,7 +218,6 @@ ob_start();
                         <div class="sfm-char-count"><span id="nameCharCount">0</span>/100</div>
                     </div>
 
-                    <!-- Category Multi-Select Dropdown in Form -->
                     <div class="sfm-field">
                         <label class="sfm-label">
                             Categories <span class="sfm-required">*</span>
@@ -340,7 +283,6 @@ ob_start();
                         </div>
                     </div>
 
-                    <!-- Status -->
                     <div class="sfm-field">
                         <label class="sfm-label" for="spotClassification">
                             Classification Status <span class="sfm-required">*</span>
@@ -354,13 +296,11 @@ ob_start();
                     </div>
                 </div>
 
-                <!-- ── SECTION: Details -->
                 <div class="sfm-section">
                     <div class="sfm-section-label">
                         <i class="fas fa-align-left"></i> Spot Details
                     </div>
 
-                    <!-- Entrance Fee -->
                     <div class="sfm-field">
                         <label class="sfm-label">
                             Entrance Fee <span class="sfm-required">*</span>
@@ -378,7 +318,6 @@ ob_start();
                         </div>
                     </div>
 
-                    <!-- Opening + Closing Time -->
                     <div class="sfm-two-col">
                         <div class="sfm-field">
                             <label class="sfm-label" for="spotOpeningTime">
@@ -394,7 +333,6 @@ ob_start();
                         </div>
                     </div>
 
-                    <!-- Under Maintenance -->
                     <div class="sfm-field" id="maintenance-field">
                         <label class="sfm-maintenance-toggle">
                             <input type="checkbox" id="spotIsMaintenance">
@@ -404,7 +342,6 @@ ob_start();
                         </label>
                     </div>
 
-                    <!-- Description -->
                     <div class="sfm-field">
                         <label class="sfm-label" for="spotDescription">
                             Description <span class="sfm-required">*</span>
@@ -416,13 +353,11 @@ ob_start();
                     </div>
                 </div>
 
-                <!-- ── SECTION: Location -->
                 <div class="sfm-section">
                     <div class="sfm-section-label">
                         <i class="fas fa-map-marker-alt"></i> Location
                     </div>
                   
-                    <!-- Mini Leaflet Map -->
                     <div class="sfm-map-container">
                         <div id="modalMap" style="height:100%;width:100%;"></div>
                         <div class="sfm-map-hint">
@@ -430,20 +365,15 @@ ob_start();
                         </div>
                     </div>
 
-                       <!-- Municipality -->
                     <div class="sfm-field">
                         <label class="sfm-label" for="spotMunicipality">
                             Municipality <span class="sfm-required">*</span>
                         </label>
                         <select id="spotMunicipality" class="sfm-select" required>
                             <option value="">— Select Municipality —</option>
-                            <?php foreach ($municipalities as $muni): ?>
-                                <option value="<?= $muni['id'] ?>"><?= htmlspecialchars($muni['name']) ?></option>
-                            <?php endforeach; ?>
                         </select>
                     </div>
 
-                    <!-- Barangay + Lat + Lng inline row -->
                     <div class="sfm-location-row">
                         <div class="sfm-location-barangay">
                             <label class="sfm-label" for="spotBarangay">Barangay</label>
@@ -469,15 +399,14 @@ ob_start();
                     
                 </div>
 
-                
-
-                <!-- Footer Actions -->
                 <div class="sfm-footer">
                     <button type="button" class="sfm-btn-cancel" data-action="close-form-modal">
                         <i class="fas fa-times"></i> Cancel
                     </button>
-                    <button type="submit" class="sfm-btn-save">
-                        <i class="fas fa-check-circle"></i> Save Spot
+                    <button type="submit" class="sfm-btn-save" id="saveSpotBtn">
+                        <i class="fas fa-check-circle" id="saveSpotIcon"></i>
+                        <i class="fas fa-circle-notch fa-spin" id="saveSpotSpinner" style="display:none;"></i>
+                        <span id="saveSpotLabel">Save Spot</span>
                     </button>
                 </div>
             </form>
@@ -485,78 +414,12 @@ ob_start();
     </div>
 </div>
 
-<!-- -- Cards Grid-->
+<!-- -- Cards Grid (populated by JS) -->
 <div class="cards-grid" id="cardsView">
-<?php 
-foreach ($spots as $spot):
-    $desc = substr($spot['description'] ?? '', 0, 100);
-    $status = htmlspecialchars($spot['classification_status'] ?? '');
-?>
-    <div class="spot-card" 
-         data-spot-id="<?= $spot['id']; ?>" 
-         data-municipality="<?= htmlspecialchars($spot['municipality_name']); ?>" 
-         data-category="<?= htmlspecialchars($spot['category']); ?>" 
-         data-status="<?= $status; ?>" 
-         data-name="<?= htmlspecialchars(strtolower($spot['name'])); ?>">
-        <div class="spot-image">
-            <?php if (!empty($spot['photo_url'])): ?>
-                <img src="<?= htmlspecialchars($spot['photo_url']); ?>"
-                     alt="<?= htmlspecialchars($spot['name']); ?>"
-                     style="width:100%;height:100%;object-fit:cover;display:block;"
-                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-                <div class="spot-image-placeholder" style="display:none;">
-                    <i class="fas fa-image"></i><span>Image unavailable</span>
-                </div>
-            <?php else: ?>
-                <div class="spot-image-placeholder">
-                    <i class="fas fa-image"></i><span>No image yet</span>
-                </div>
-            <?php endif; ?>
-        </div>
-        <div class="card-actions-dropdown">
-            <button class="dropdown-toggle" id="card-dropdown-<?= $spot['id']; ?>">
-                <i class="fas fa-ellipsis-v"></i>
-            </button>
-            <div class="dropdown-menu" id="card-menu-<?= $spot['id']; ?>">
-                <button class="dropdown-item" data-action="view-spot" data-spot-id="<?= $spot['id']; ?>">
-                    <i class="fas fa-eye" style="color:#3B82F6;"></i> View All Fields
-                </button>
-                <button class="dropdown-item" data-action="edit-spot" data-spot-id="<?= $spot['id']; ?>">
-                    <i class="fas fa-edit" style="color:#F59E0B;"></i> Edit
-                </button>
-            </div>
-        </div>
-        <div class="spot-body">
-            <h3><?= htmlspecialchars($spot['name']); ?></h3>
-            <div class="muni"><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($spot['municipality_name']); ?>, La Union</div>
-            <div class="tags">
-                <?php foreach (array_filter(array_map('trim', explode(',', $spot['category'] ?? 'Other'))) as $cat): ?>
-                    <span class="tag" style="background:#DBEAFE;color:#2563EB;"><?= htmlspecialchars($cat); ?></span>
-                <?php endforeach; ?>
-                <span class="tag" style="background:#F8FAFC;color:#4B5563;">&#x20B1;<?= number_format($spot['entrance_fee']); ?> per person</span>
-                <?php if ($spot['classification_status'] ?? null): ?>
-                    <span class="tag" style="background:<?php
-                        echo match($spot['classification_status']) {
-                            'EXIST' => '#10B981',
-                            'POTENTIAL' => '#F59E0B',
-                            'EMERGE' => '#8B5CF6',
-                            default => '#9CA3AF'
-                        };
-                    ?>;color:<?php
-                        echo match($spot['classification_status']) {
-                            'POTENTIAL' => '#1E293B',
-                            default => '#FFFFFF'
-                        };
-                    ?>;"><?php 
-                        $statusMap = ['EXIST' => 'EXISTING', 'EMERGE' => 'EMERGING', 'POTENTIAL' => 'POTENTIAL'];
-                        echo htmlspecialchars($statusMap[$spot['classification_status']] ?? $spot['classification_status']); 
-                    ?></span>
-                <?php endif; ?>
-            </div>
-            <p><?= htmlspecialchars($desc); ?><?= strlen($spot['description'] ?? '') > 100 ? '...' : ''; ?></p>
-        </div>
+    <div style="text-align:center;padding:40px;color:#9CA3AF;grid-column:1/-1;">
+        <i class="fas fa-spinner fa-spin" style="font-size:24px;"></i>
+        <p style="margin-top:12px;">Loading tourist spots...</p>
     </div>
-<?php endforeach; ?>
 </div>
 
 <!-- -- Table View -->
@@ -574,58 +437,7 @@ foreach ($spots as $spot):
                 <th style="text-align:right;">Actions</th>
             </tr>
         </thead>
-        <tbody>
-        <?php foreach ($spots as $spot): ?>
-            <tr data-spot-id="<?= $spot['id']; ?>" 
-                data-municipality="<?= htmlspecialchars($spot['municipality_name']); ?>" 
-                data-category="<?= htmlspecialchars($spot['category']); ?>" 
-                data-status="<?= htmlspecialchars($spot['classification_status'] ?? ''); ?>" 
-                data-name="<?= htmlspecialchars(strtolower($spot['name'])); ?>">
-                <td style="font-family:'Courier New',monospace;color:#6B7280;">TS-<?= str_pad($spot['id'], 4, '0', STR_PAD_LEFT); ?></td>
-                <td><strong><?= htmlspecialchars($spot['name']); ?></strong></td>
-                <td><?= htmlspecialchars($spot['municipality_name']); ?></td>
-                <td><?php
-                    $cats = array_filter(array_map('trim', explode(',', $spot['category'] ?? 'Other')));
-                    echo implode(' ', array_map(fn($c) => '<span class="tag" style="background:#DBEAFE;color:#2563EB;font-size:11px;">' . htmlspecialchars($c) . '</span>', $cats));
-                ?></td>
-                <td><?php if ($spot['classification_status'] ?? null): ?>
-                    <span class="tag" style="background:<?php
-                        echo match($spot['classification_status']) {
-                            'EXIST' => '#10B981',
-                            'POTENTIAL' => '#F59E0B',
-                            'EMERGE' => '#8B5CF6',
-                            default => '#9CA3AF'
-                        };
-                    ?>;color:<?php
-                        echo match($spot['classification_status']) {
-                            'POTENTIAL' => '#1E293B',
-                            default => '#FFFFFF'
-                        };
-                    ?>;"><?php 
-                        $statusMap = ['EXIST' => 'EXISTING', 'EMERGE' => 'EMERGING', 'POTENTIAL' => 'POTENTIAL'];
-                        echo htmlspecialchars($statusMap[$spot['classification_status']] ?? $spot['classification_status']); 
-                    ?></span>
-                <?php endif; ?></td>
-                <td>&#x20B1;<?= number_format($spot['entrance_fee']); ?></td>
-                <td><?= date('M j, Y', strtotime($spot['created_at'])); ?></td>
-                <td style="text-align:right;">
-                    <div class="table-actions-dropdown">
-                        <button class="dropdown-toggle" id="tbl-dropdown-<?= $spot['id']; ?>">
-                            <i class="fas fa-ellipsis-v"></i>
-                        </button>
-                        <div class="dropdown-menu" id="tbl-menu-<?= $spot['id']; ?>">
-                            <button class="dropdown-item" data-action="view-spot" data-spot-id="<?= $spot['id']; ?>">
-                                <i class="fas fa-eye" style="color:#3B82F6;"></i> View All Fields
-                            </button>
-                            <button class="dropdown-item" data-action="edit-spot" data-spot-id="<?= $spot['id']; ?>">
-                                <i class="fas fa-edit" style="color:#F59E0B;"></i> Edit
-                            </button>
-                        </div>
-                    </div>
-                </td>
-            </tr>
-        <?php endforeach; ?>
-        </tbody>
+        <tbody></tbody>
     </table>
 </div>
 
@@ -645,7 +457,9 @@ foreach ($spots as $spot):
                     <i class="fas fa-times" style="margin-right: 6px;"></i> No
                 </button>
                 <button class="btn btn-primary" id="saveConfirmBtn" data-action="confirm-save-spot" style="flex: 1; justify-content: center;">
-                    <i class="fas fa-check" style="margin-right: 6px;"></i> Yes
+                    <i class="fas fa-check" id="confirmBtnIcon" style="margin-right: 6px;"></i>
+                    <i class="fas fa-circle-notch fa-spin" id="confirmBtnSpinner" style="display:none; margin-right:6px;"></i>
+                    <span id="confirmBtnLabel">Yes, Save</span>
                 </button>
             </div>
         </div>
@@ -653,28 +467,23 @@ foreach ($spots as $spot):
 </div>
 
 <!-- -- Scripts -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" defer></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" defer></script>
 
 <script>
-    // Pass data from PHP to JavaScript — must be defined before map-view-api.js runs
-    window.touristSpotsData = <?= json_encode($spots) ?>;
-    window.municipalitiesData = <?= json_encode($municipalities) ?>;
+    window.touristSpotsData = [];
+    window.municipalitiesData = [];
+    window.TOURIST_SPOT_UPLOAD_URL = new URL('../../api/upload-spot-image.php', window.location.href).href;
 </script>
 <script src="../../scripts/functions/LUPTO/map-view-api.js?v=<?= time() ?>"></script>
 
 <script type="module">
 import { initializeAll } from '../../scripts/functions/LUPTO/tourist-spots-api.js?v=<?= time() ?>';
 
-// -- Data injected from PHP
-const spotsData = <?= json_encode($spots) ?>;
-const municipalData = <?= json_encode($municipalities) ?>;
-
-// -- Initialize Everything (Event Listeners for Add Spot, etc.)
-initializeAll(spotsData, municipalData);
+initializeAll();
 </script>
 
-<!-- Multi-category filter helpers (classic script) -->
+<!-- Multi-category filter helpers -->
 <script>
 function getSelectedCats() {
     return Array.from(document.querySelectorAll('.cat-filter-chk:checked')).map(c => c.value);
@@ -730,4 +539,3 @@ if (is_ajax_request()) {
     exit;
 }
 include '../../components/sections.php';
-?>

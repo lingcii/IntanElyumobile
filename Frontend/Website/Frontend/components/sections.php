@@ -83,5 +83,6 @@ if (str_starts_with($entryFileDir, $frontendRootPath)) {
     <script src="<?= $basePath ?>scripts/components/sidebar.js"></script>
     <script src="<?= $basePath ?>scripts/map-cache.js"></script>
     <script src="<?= $basePath ?>scripts/spa-router.js"></script>
+    <script src="<?= $basePath ?>scripts/logout.js"></script>
 </body>
 </html>

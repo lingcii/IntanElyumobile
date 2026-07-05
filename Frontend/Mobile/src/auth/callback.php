@@ -63,7 +63,7 @@ $error = isset($_GET['error']) ? $_GET['error'] : null;
         <p class="msg">Sign-in Failed</p>
         <p class="sub"><?= htmlspecialchars($error) ?></p>
     </div>
-    <button class="btn" onclick="window.location.href='/?view=auth'">Try Again</button>
+    <button class="btn" onclick="window.location.href='../index.php?view=auth'">Try Again</button>
 
 <?php elseif ($token && $user): ?>
     <div class="spinner"></div>
@@ -78,8 +78,9 @@ $error = isset($_GET['error']) ? $_GET['error'] : null;
                 const user  = <?= json_encode($user) ?>;
 
                 // Store auth data
-                sessionStorage.setItem('auth_token', token);
-                sessionStorage.setItem('auth_user', user);
+                localStorage.setItem('intan_elyu_token', token);
+                localStorage.setItem('Intan_Elyu_Token', token); // Fallback for case sensitivity used in app
+                localStorage.setItem('auth_user', user);
 
                 // Parse user to show name if possible
                 const userData = JSON.parse(user);
@@ -89,7 +90,7 @@ $error = isset($_GET['error']) ? $_GET['error'] : null;
 
                 // Redirect to the main app dashboard
                 setTimeout(() => {
-                    window.location.href = '/?view=dashboard';
+                    window.location.href = '../index.php?view=dashboard';
                 }, 800);
             } catch(e) {
                 document.querySelector('.msg').textContent = 'Something went wrong';
@@ -104,7 +105,7 @@ $error = isset($_GET['error']) ? $_GET['error'] : null;
         <p class="msg">Invalid Callback</p>
         <p class="sub">No authentication data received.</p>
     </div>
-    <button class="btn" onclick="window.location.href='/?view=auth'">Go Back</button>
+    <button class="btn" onclick="window.location.href='../index.php?view=auth'">Go Back</button>
 <?php endif; ?>
 
 </body>

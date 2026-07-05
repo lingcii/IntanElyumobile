@@ -17,6 +17,10 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
+use App\Http\Controllers\Tourist\DashboardController as TouristDashboardController;
+use App\Http\Controllers\Tourist\FavoriteController;
+use App\Http\Controllers\Tourist\ItineraryController;
+use App\Http\Controllers\Tourist\ItineraryItemController;
 use Illuminate\Support\Facades\Route;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -74,15 +78,16 @@ Route::middleware('auth.session')->group(function () {
         Route::get('/tourist-spots/{id}',[TouristSpotController::class, 'show']);
 
         // Analytics
-        Route::prefix('analytics')->group(function () {
-            Route::get('/summary',              [AnalyticsController::class, 'summary']);
-            Route::get('/top-municipalities',   [AnalyticsController::class, 'topMunicipalities']);
-            Route::get('/top-spots',            [AnalyticsController::class, 'topSpots']);
-            Route::get('/chart-data',           [AnalyticsController::class, 'chartData']);
-            Route::get('/monthly-trend',        [AnalyticsController::class, 'monthlyTrend']);
-            Route::get('/filter-options',       [AnalyticsController::class, 'filterOptions']);
-            Route::get('/full',                 [AnalyticsController::class, 'full']);
-        });
+            Route::prefix('analytics')->group(function () {
+                Route::get('/summary',              [AnalyticsController::class, 'summary']);
+                Route::get('/top-municipalities',   [AnalyticsController::class, 'topMunicipalities']);
+                Route::get('/top-spots',            [AnalyticsController::class, 'topSpots']);
+                Route::get('/chart-data',           [AnalyticsController::class, 'chartData']);
+                Route::get('/monthly-trend',        [AnalyticsController::class, 'monthlyTrend']);
+                Route::get('/filter-options',       [AnalyticsController::class, 'filterOptions']);
+                Route::get('/full',                 [AnalyticsController::class, 'full']);
+                Route::get('/export',               [AnalyticsController::class, 'export']);
+            });
 
         // Fare Data (full access)
         Route::prefix('fare-data')->group(function () {
@@ -156,6 +161,7 @@ Route::middleware('auth.session')->group(function () {
             Route::get('/monthly-trend',        [AnalyticsController::class, 'monthlyTrend']);
             Route::get('/filter-options',       [AnalyticsController::class, 'filterOptions']);
             Route::get('/full',                 [AnalyticsController::class, 'full']);
+            Route::get('/export',               [AnalyticsController::class, 'export']);
         });
 
         // Fare Data (view-only)
@@ -195,10 +201,16 @@ Route::middleware('auth.session')->group(function () {
         // Dashboard
         Route::get('/dashboard', [DashboardController::class, 'index']);
 
-        // Analytics
+        // Analytics (scoped to own municipality)
         Route::prefix('analytics')->group(function () {
-            Route::get('/full',     [AnalyticsController::class, 'full']);
-            Route::get('/summary',  [AnalyticsController::class, 'summary']);
+            Route::get('/summary',              [AnalyticsController::class, 'summary']);
+            Route::get('/top-municipalities',   [AnalyticsController::class, 'topMunicipalities']);
+            Route::get('/top-spots',            [AnalyticsController::class, 'topSpots']);
+            Route::get('/chart-data',           [AnalyticsController::class, 'chartData']);
+            Route::get('/monthly-trend',        [AnalyticsController::class, 'monthlyTrend']);
+            Route::get('/filter-options',       [AnalyticsController::class, 'filterOptions']);
+            Route::get('/full',                 [AnalyticsController::class, 'full']);
+            Route::get('/export',               [AnalyticsController::class, 'export']);
         });
 
         // Fare Data (upload + view)
@@ -245,4 +257,32 @@ Route::middleware('auth.session')->group(function () {
             Route::put('/password', [SettingsController::class, 'updatePassword']);
         });
     });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  PUBLIC routes (no auth required) — for mobile app unauthenticated features
+// ─────────────────────────────────────────────────────────────────────────────
+Route::prefix('public')->group(function () {
+    Route::get('/map',         [MapController::class, 'publicMapData']);
+    Route::get('/leaderboard', [LeaderboardController::class, 'index']);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  TOURIST (mobile app — Bearer token auth)
+// ─────────────────────────────────────────────────────────────────────────────
+Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
+    // Dashboard (profile, trending, saved places, recommendations)
+    Route::get('/dashboard', [TouristDashboardController::class, 'index']);
+
+    // Destinations / Saved Places (Favorites)
+    Route::post('/destinations/{id}/favorite', [FavoriteController::class, 'toggle']);
+
+    // Itineraries (Saved Trips)
+    Route::get('/itineraries',              [ItineraryController::class, 'index']);
+    Route::post('/itineraries',             [ItineraryController::class, 'store']);
+    Route::patch('/itineraries/{id}/complete', [ItineraryController::class, 'markCompleted']);
+
+    // Itinerary Items (Check-in)
+    Route::patch('/itineraries/items/{id}/visit', [ItineraryItemController::class, 'visit']);
+    Route::post('/itineraries/items/{id}/visit',  [ItineraryItemController::class, 'visit']);
 });

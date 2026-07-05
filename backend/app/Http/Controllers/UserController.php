@@ -70,7 +70,8 @@ class UserController extends Controller
     /** GET /api/{role}/users/municipalities */
     public function municipalities(): JsonResponse
     {
-        $municipalities = Cache::rememberForever('municipalities:list', function () {
+        // Cache for 1 hour (not forever) so municipality additions don't go stale
+        $municipalities = Cache::remember('municipalities:list', 3600, function () {
             return Municipality::orderBy('name')->get(['id', 'name']);
         });
         return response()->json(['success' => true, 'municipalities' => $municipalities]);
