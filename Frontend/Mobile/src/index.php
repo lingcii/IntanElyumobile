@@ -24,7 +24,9 @@ if ($isAjax) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Intan Elyu</title>
-    <?php $baseHref = (strpos($_SERVER['REQUEST_URI'], '/mobile') !== false) ? '/mobile/' : '/'; ?>
+    <?php 
+    $baseHref = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\') . '/'; 
+    ?>
     <base href="<?= $baseHref ?>">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

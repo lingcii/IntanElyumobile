@@ -35,8 +35,9 @@ const state = {
  * Navigation Router Function (SPA feel)
  * @param {string} viewName - Name of the view to load
  * @param {boolean} addToHistory - Whether to push to browser history
+ * @param {boolean} fade - Whether to apply the fade transition
  */
-async function navigateTo(viewName, addToHistory = true) {
+async function navigateTo(viewName, addToHistory = true, fade = true) {
     // Prevent overlapping navigations or navigating to the same view
     if (state.isNavigating) return;
     
@@ -67,7 +68,9 @@ async function navigateTo(viewName, addToHistory = true) {
     }
     
     // Animate out
-    mainContent.classList.add('view-transitioning');
+    if (fade) {
+        mainContent.classList.add('view-transitioning');
+    }
     
     try {
         // Fetch new view via AJAX (with strict cache buster)
@@ -81,8 +84,7 @@ async function navigateTo(viewName, addToHistory = true) {
         
         const html = await response.text();
         
-        // Update content after animation halfway point
-        setTimeout(() => {
+        const updateContent = () => {
             try {
                 mainContent.innerHTML = html;
                 
@@ -90,7 +92,9 @@ async function navigateTo(viewName, addToHistory = true) {
                 executeScripts(mainContent);
                 
                 // Animate in
-                mainContent.classList.remove('view-transitioning');
+                if (fade) {
+                    mainContent.classList.remove('view-transitioning');
+                }
                 
                 // Update URL
                 if (addToHistory) {
@@ -107,13 +111,20 @@ async function navigateTo(viewName, addToHistory = true) {
                 clearTimeout(failsafe);
                 state.isNavigating = false;
             }
-        }, 200); // 200ms matches the CSS transition-fast
+        };
+
+        // If fading, wait for the fade out to finish (200ms). Otherwise update instantly.
+        if (fade) {
+            setTimeout(updateContent, 200);
+        } else {
+            updateContent();
+        }
         
     } catch (error) {
         clearTimeout(failsafe);
         console.error('Navigation error:', error);
         showToast('Failed to load view');
-        mainContent.classList.remove('view-transitioning');
+        if (fade) mainContent.classList.remove('view-transitioning');
         state.isNavigating = false;
     }
 }
@@ -314,6 +325,16 @@ window.toggleDarkMode = function(isDark) {
 
 // Initialize the dark mode toggle switch every time a view loads
 document.addEventListener('viewLoaded', (e) => {
+    // Sync CSS wave animations to global time so they don't jump horizontally on view transition
+    const timePassed = performance.now() / 1000;
+    const waves = document.querySelectorAll('.wave-layer');
+    waves.forEach(wave => {
+        if (!wave.dataset.synced) {
+            wave.style.animationDelay = `-${timePassed}s`;
+            wave.dataset.synced = 'true';
+        }
+    });
+
     if (e.detail.view === 'settings') {
         const toggle = document.getElementById('dark-mode-toggle');
         if (toggle) {
@@ -402,7 +423,7 @@ window.showInAppNotification = function(title, message, iconUrl = '') {
 
     // Play a subtle native-like sound if possible
     try {
-        const audio = new Audio('assets/sounds/notification.mp3'); // Fallback if missing
+        const audio = new Audio('assets/audio/tuturu.mp3'); // Fallback if missing
         audio.play().catch(e => {}); 
     } catch(e) {}
 

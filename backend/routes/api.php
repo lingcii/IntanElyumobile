@@ -31,6 +31,14 @@ Route::prefix('auth')->group(function () {
     Route::post('/logout',   [LogoutController::class,  'logout']);
     Route::post('/register', [RegisterController::class,'register']);
     Route::get('/check',     [SessionController::class, 'check']);
+    
+    // Dummy Google Auth redirect for UI testing
+    Route::get('/google/redirect', function () {
+        return response()->json([
+            'success' => false,
+            'message' => 'Google Authentication is not yet configured on the backend. This requires a Google Cloud Console Client ID and Secret.'
+        ], 501);
+    });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

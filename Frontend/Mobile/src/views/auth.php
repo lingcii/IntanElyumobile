@@ -1,12 +1,12 @@
 <!-- Auth View (Login, Register & Forgot Password) -->
 
-<div class="auth-container animate-fade-in">
+<div class="auth-container">
     <!-- Top Blue Section -->
-    <div class="auth-top stagger-1">
+    <div class="auth-top">
         <div class="logo-container">
             <img src="assets/img/logo.png" alt="Intan Elyu Logo">
         </div>
-        <h1 id="auth-title">Login page</h1>
+        <h1 id="auth-title">Welcome to Elyu</h1>
         
         <!-- Animated Seamless SVG Wave -->
         <div class="wave-bottom">
@@ -19,7 +19,7 @@
     </div>
     
     <!-- Bottom White Section -->
-    <div class="auth-bottom stagger-2">
+    <div class="auth-bottom">
         <div class="auth-tabs" id="auth-tabs">
             <div class="auth-tab active" id="tab-login" onclick="toggleAuthMode(false)">Login</div>
             <div class="auth-tab" id="tab-register" onclick="toggleAuthMode(true)">Register</div>
@@ -131,6 +131,15 @@
     const tabRegister = document.getElementById('tab-register');
     const tabsContainer = document.getElementById('auth-tabs');
 
+    function updateTitleWithTransition(newText) {
+        if (titleEl.textContent === newText) return;
+        titleEl.classList.add('text-fade-out');
+        setTimeout(() => {
+            titleEl.textContent = newText;
+            titleEl.classList.remove('text-fade-out');
+        }, 200); // Wait for the 0.2s fade out transition
+    }
+
     function toggleAuthMode(isRegister) {
         tabsContainer.style.display = 'flex';
         wrapper.classList.remove('show-forgot');
@@ -139,12 +148,12 @@
             wrapper.classList.add('show-register');
             tabLogin.classList.remove('active');
             tabRegister.classList.add('active');
-            titleEl.textContent = 'Register page';
+            updateTitleWithTransition('Start your Journey');
         } else {
             wrapper.classList.remove('show-register');
             tabRegister.classList.remove('active');
             tabLogin.classList.add('active');
-            titleEl.textContent = 'Login page';
+            updateTitleWithTransition('Welcome to Elyu');
         }
     }
 
@@ -165,7 +174,7 @@
 
         wrapper.classList.remove('show-register');
         wrapper.classList.add('show-forgot');
-        titleEl.textContent = 'Recovery';
+        updateTitleWithTransition('Account Recovery');
     }
 
     function hideForgotPassword(e) {
@@ -175,7 +184,7 @@
         wrapper.classList.remove('show-forgot', 'show-register');
         tabRegister.classList.remove('active');
         tabLogin.classList.add('active');
-        titleEl.textContent = 'Login page';
+        updateTitleWithTransition('Welcome to Elyu');
     }
 
     function togglePasswordVisibility(inputId, iconElement) {

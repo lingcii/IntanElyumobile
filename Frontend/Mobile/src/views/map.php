@@ -2,7 +2,102 @@
 <?php
 $pageTitle = 'Explore Map';
 $activeTab = 'map';
+
+$municipalityImages = [];
+$imgDir = __DIR__ . '/../assets/img/municipalities';
+if (is_dir($imgDir)) {
+    $munis = scandir($imgDir);
+    foreach ($munis as $muni) {
+        if ($muni === '.' || $muni === '..') continue;
+        if (is_dir("$imgDir/$muni")) {
+            $files = scandir("$imgDir/$muni");
+            foreach ($files as $f) {
+                $fLower = strtolower($f);
+                if (preg_match('/\.(jpg|jpeg|png|webp|gif)$/', $fLower)) {
+                    $municipalityImages[strtoupper($muni)][] = $f;
+                }
+            }
+        }
+    }
+}
 ?>
+
+<script>
+window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
+window.getDestImage = function(dest, width = 600) {
+    if (window.AVAILABLE_MUNI_IMAGES && dest.name) {
+        let munisToCheck = dest.municipality ? [dest.municipality.toUpperCase()] : Object.keys(window.AVAILABLE_MUNI_IMAGES);
+        
+        const dNorm = dest.name.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
+        const dWords = dNorm.split(/\s+/).filter(w => w.length > 2);
+
+        let bestMatch = null;
+        let bestScore = 0;
+        let bestMuni = null;
+
+        for (let muni of munisToCheck) {
+            const images = window.AVAILABLE_MUNI_IMAGES[muni];
+            if (images && images.length > 0) {
+                for (let img of images) {
+                    const iNorm = img.replace(/\.(jpg|jpeg|png|webp|gif)$/i, '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
+                    
+                    const dStr = dNorm.replace(/\s+/g, '');
+                    const iStr = iNorm.replace(/\s+/g, '').replace(/[0-9]+$/, ''); 
+                    
+                    if (dStr === iStr) {
+                        return encodeURI(`assets/img/municipalities/${muni}/${img}`);
+                    }
+                    
+                    let score = 0;
+                    if (dStr.includes(iStr) || iStr.includes(dStr)) {
+                        score += 100; 
+                    }
+                    
+                    const iWords = iNorm.split(/\s+/).filter(w => w.length > 2);
+                    let common = 0;
+                    for (let w of dWords) {
+                        if (iWords.includes(w)) {
+                            if (w === muni.toLowerCase()) {
+                                score += 1;
+                            } else {
+                                score += 10;
+                            }
+                            common++;
+                        }
+                    }
+                    
+                    if (common > 0) {
+                        score += (common / Math.max(dWords.length, iWords.length)) * 5;
+                    }
+
+                    if (score > bestScore && score >= 10) { 
+                        bestScore = score;
+                        bestMatch = img;
+                        bestMuni = muni;
+                    } else if (score === bestScore && score >= 10) {
+                        if (img.includes('1') || img.toLowerCase().includes('one')) {
+                            bestMatch = img;
+                            bestMuni = muni;
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (bestMatch) {
+            return encodeURI(`assets/img/municipalities/${bestMuni}/${bestMatch}`);
+        }
+    }
+    
+    if (dest.image) {
+        const backendUrl = window.backendUrl || 'http://localhost:8000';
+        if (dest.image.startsWith('http')) return dest.image;
+        if (dest.image.startsWith('uploads/')) return backendUrl + '/' + dest.image;
+        return backendUrl + '/storage/' + dest.image;
+    }
+    return `https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=${width}`;
+};
+</script>
 
 <div class="map-container animate-fade-in">
     <!-- Map Container -->
@@ -480,7 +575,11 @@ $activeTab = 'map';
             } else {
                 return new Promise((resolve, reject) => {
                     if ("geolocation" in navigator) {
-                        navigator.geolocation.getCurrentPosition(resolve, () => reject(new Error("Location denied by browser")), { enableHighAccuracy: false, timeout: 30000 });
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => resolve([position.coords.latitude, position.coords.longitude]), 
+                            () => reject(new Error("Location denied by browser")), 
+                            { enableHighAccuracy: true, timeout: 30000 }
+                        );
                     } else {
                         reject(new Error("Geolocation not supported"));
                     }
@@ -688,40 +787,61 @@ $activeTab = 'map';
         }
     }
 
-    window.toggleMapFavorite = async function(element) {
+    window.toggleMapFavorite = function(element) {
         if (!window.currentDestinationForRoute) return;
         const destId = window.currentDestinationForRoute.id;
         const token = localStorage.getItem('intan_elyu_token');
         if (!token) {
-            showToast('Please login to save places');
+            if (typeof showToast === 'function') showToast('Please login to save places');
             return;
         }
+        
+        // Save original state for reverting
+        const originalColor = element.style.color;
+        const wasRed = originalColor === 'rgb(255, 59, 48)' || originalColor === '#ff3b30';
+        
+        // 1. INSTANT OPTIMISTIC UPDATE (Zero Delay)
+        // Trigger pop animation
+        element.classList.remove('heart-pop-anim');
+        void element.offsetWidth; // trigger reflow
+        element.classList.add('heart-pop-anim');
+
+        if (wasRed) {
+            element.style.color = 'rgba(255,255,255,0.4)';
+            if (typeof showToast === 'function') showToast('Removed from Saved Places');
+            if (window.savedPlaceIds) {
+                window.savedPlaceIds = window.savedPlaceIds.filter(id => id !== destId);
+            }
+        } else {
+            element.style.color = '#ff3b30';
+            if (typeof showToast === 'function') showToast('Added to Saved Places');
+            if (!window.savedPlaceIds) window.savedPlaceIds = [];
+            if (!window.savedPlaceIds.includes(destId)) window.savedPlaceIds.push(destId);
+        }
+
+        // 2. BACKGROUND NETWORK REQUEST
         let backendUrl = 'http://localhost:8000';
-        try {
-            const res = await fetch(backendUrl + '/api/tourist/destinations/' + destId + '/favorite', {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'Authorization': 'Bearer ' + token
-                }
-            });
-            const data = await res.json();
-            if (data.status === 'added') {
-                element.style.color = '#ff3b30';
-                showToast('Added to Saved Places');
+        fetch(backendUrl + '/api/tourist/destinations/' + destId + '/favorite', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token
+            }
+        }).catch(e => {
+            // Revert on error
+            if (typeof showToast === 'function') showToast('Error updating favorite');
+            element.style.color = originalColor;
+            
+            if (wasRed) {
                 if (!window.savedPlaceIds) window.savedPlaceIds = [];
                 if (!window.savedPlaceIds.includes(destId)) window.savedPlaceIds.push(destId);
             } else {
-                element.style.color = 'rgba(255,255,255,0.4)';
-                showToast('Removed from Saved Places');
                 if (window.savedPlaceIds) {
                     window.savedPlaceIds = window.savedPlaceIds.filter(id => id !== destId);
                 }
             }
-        } catch(e) {
-            showToast('Error updating favorite');
-        }
+        });
     };
 
     window.openSheet = function(locationData) {
@@ -759,13 +879,12 @@ $activeTab = 'map';
             }
         }
         
-        let backendUrl = 'http://localhost:8000';
-        const imgPath = locationData.image ? (locationData.image.startsWith('http') ? locationData.image : (locationData.image.startsWith('uploads/') ? backendUrl + '/' + locationData.image : backendUrl + '/storage/' + locationData.image)) : 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
+        const imgPath = window.getDestImage(locationData, 600);
         
         const imgEl = document.getElementById('sheet-img');
         if (imgEl) {
             imgEl.src = imgPath;
-            imgEl.onerror = function() { this.onerror = null; this.src = 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'; };
+            imgEl.onerror = function() { this.onerror = null; this.src = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600'; };
         }
         
 

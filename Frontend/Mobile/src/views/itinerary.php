@@ -224,7 +224,7 @@ $activeTab = 'itinerary';
             const fuelPanel = document.getElementById('own-car-fuel-panel');
             if (fuelPanel) {
                 if (el.getAttribute('data-val') === 'own_car') {
-                    fuelPanel.style.maxHeight = '120px';
+                    fuelPanel.style.maxHeight = '200px';
                     fuelPanel.style.opacity = '1';
                 } else {
                     fuelPanel.style.maxHeight = '0';
@@ -287,32 +287,7 @@ $activeTab = 'itinerary';
     </div>
 </div>
 
-<!-- Check-in Verification Modal -->
-<div id="checkin-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:999; justify-content:center; align-items:center;">
-    <div style="background:var(--glass-bg); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid var(--glass-border); border-radius:24px; padding:24px; width:90%; max-width:400px; box-shadow:0 20px 40px rgba(0,0,0,0.2); text-align:center;">
-        <h3 style="margin-top:0;">Verify Check-In</h3>
-        <p style="font-size:14px; color:#666; margin-bottom:20px;">Prove you are here to earn your XP! Select a verification method.</p>
-        
-        <input type="hidden" id="checkin-item-id">
 
-        <button class="btn-primary" style="width:100%; margin-bottom:12px; padding:16px;" onclick="verifyGpsCheckIn()" id="btn-verify-gps">
-            <i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify via GPS
-        </button>
-        
-        <div style="position:relative;">
-            <button class="btn-primary" style="width:100%; background:transparent; border:2px dashed var(--primary-color); color:var(--primary-color); padding:16px; margin-bottom:12px;" onclick="document.getElementById('proof-photo').click()" id="btn-verify-photo">
-                <i class="fa-solid fa-camera" style="margin-right:8px;"></i> Upload Photo Proof
-            </button>
-            <input type="file" id="proof-photo" accept="image/*" style="display:none;" onchange="verifyPhotoCheckIn(this)">
-        </div>
-        
-        <button class="btn-primary" style="width:100%; background:#FF9500; border:none; padding:16px; margin-bottom:24px;" onclick="verifyTestCheckIn()" id="btn-verify-test">
-            <i class="fa-solid fa-check-double" style="margin-right:8px;"></i> Mark as Completed (Bypass)
-        </button>
-
-        <button class="btn-primary" style="width:100%; background:transparent; border:1px solid #E5E5EA; color:#333;" onclick="closeCheckinModal()">Cancel</button>
-    </div>
-</div>
 
 <script>
 (function() {
@@ -679,13 +654,7 @@ $activeTab = 'itinerary';
 
         const transCostPerPlace = transport ? (totalTransCost / draft.length) : null;
 
-        const items = draft.map(place => ({
-            destination_id: place.id,
-            transport_cost: transCostPerPlace !== null ? transCostPerPlace : parseFloat(place.avg_transport_cost || 0),
-            activity_cost: parseFloat(place.entrance_fee || 0),
-            food_cost: parseFloat(place.avg_food_cost || 0),
-            accommodation_cost: 0
-        }));
+        const destinations = draft.map(place => place.id);
 
         try {
             const response = await fetch(backendUrl + '/api/tourist/itineraries', {
@@ -694,9 +663,9 @@ $activeTab = 'itinerary';
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                     'ngrok-skip-browser-warning': 'true',
-                    'Authorization': 'Bearer ' + localStorage.getItem('Intan_Elyu_Token')
+                    'Authorization': 'Bearer ' + localStorage.getItem('intan_elyu_token')
                 },
-                body: JSON.stringify({ title: title, trip_date: date, budget: budget, items: items })
+                body: JSON.stringify({ title: title, trip_date: date, budget: budget, destinations: destinations })
             });
 
             const data = await response.json();
@@ -789,8 +758,8 @@ $activeTab = 'itinerary';
                                 '<span style="color:var(--primary-color); font-size:12px; font-weight:600;"><i class="fa-solid fa-check-circle"></i> Visited</span>' : 
                                 item.proof_image ? 
                                 '<span style="color:#FF9500; font-size:12px; font-weight:600;"><i class="fa-solid fa-clock"></i> Pending Approval</span>' :
-                                `<button class="btn-primary" style="padding: 6px 12px; font-size:11px; width:auto; border-radius:100px; margin-top:8px;" onclick="window.openCheckinModal('${item.id}')">
-                                    <i class="fa-solid fa-location-arrow"></i> Check In (Earn XP)
+                                `<button class="btn-primary" style="padding: 6px 12px; font-size:11px; width:auto; border-radius:100px; margin-top:8px; background:#FF9500; border:none;" onclick="window.markItemCompleted('${item.id}', this)">
+                                    <i class="fa-solid fa-check-double" style="margin-right:4px;"></i> Mark as Completed
                                  </button>`
                             }
                         </div>
@@ -823,117 +792,43 @@ $activeTab = 'itinerary';
         list.innerHTML = html;
     }
 
-    window.openCheckinModal = function(itemId) {
-        document.getElementById('checkin-item-id').value = itemId;
-        document.getElementById('checkin-modal').style.display = 'flex';
-    };
-
-    window.closeCheckinModal = function() {
-        document.getElementById('checkin-modal').style.display = 'none';
-        document.getElementById('checkin-item-id').value = '';
-        document.getElementById('proof-photo').value = '';
-    };
-
-    window.verifyGpsCheckIn = function() {
-        if (!navigator.geolocation) {
-            showToast("Geolocation is not supported by your browser.");
-            return;
-        }
-
-        const btn = document.getElementById('btn-verify-gps');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
-        btn.disabled = true;
-
-        navigator.geolocation.getCurrentPosition(async (position) => {
-            await submitVerification({
-                verification_method: 'gps',
-                lat: position.coords.latitude,
-                lng: position.coords.longitude
-            });
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        }, (error) => {
-            console.error(error);
-            showToast("Failed to get location. Make sure GPS is enabled.");
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        }, { enableHighAccuracy: true });
-    };
-
-    window.verifyPhotoCheckIn = async function(input) {
-        if (!input.files || input.files.length === 0) return;
+    window.markItemCompleted = async function(itemId, btn) {
+        if (!confirm('Mark this destination as completed?')) return;
         
-        const btn = document.getElementById('btn-verify-photo');
         const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking in...';
         btn.disabled = true;
-
-        const formData = new FormData();
-        formData.append('verification_method', 'photo');
-        formData.append('proof_photo', input.files[0]);
-
-        await submitVerification(formData, true);
-
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        input.value = ''; // Reset
-    };
-
-    window.verifyTestCheckIn = async function() {
-        if (!confirm('Are you sure you want to bypass GPS check-in? This is for testing only.')) return;
-
-        const btn = document.getElementById('btn-verify-test');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Bypassing...';
-        btn.disabled = true;
-
-        await submitVerification({
-            verification_method: 'test'
-        });
-
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    };
-
-    async function submitVerification(data, isFormData = false) {
-        const itemId = document.getElementById('checkin-item-id').value;
-        if (!itemId) return;
 
         try {
+            const data = { _method: 'PATCH', verification_method: 'test' };
             const options = {
-                method: 'POST', // Use POST with _method=PATCH for multipart/form-data support in Laravel
+                method: 'POST',
                 headers: {
+                    'Content-Type': 'application/json',
                     'Accept': 'application/json',
                     'ngrok-skip-browser-warning': 'true',
-                    'Authorization': 'Bearer ' + localStorage.getItem('Intan_Elyu_Token')
-                }
+                    'Authorization': 'Bearer ' + localStorage.getItem('intan_elyu_token')
+                },
+                body: JSON.stringify(data)
             };
-
-            if (isFormData) {
-                data.append('_method', 'PATCH');
-                options.body = data;
-            } else {
-                data._method = 'PATCH';
-                options.headers['Content-Type'] = 'application/json';
-                options.body = JSON.stringify(data);
-            }
 
             const response = await fetch(backendUrl + '/api/tourist/itineraries/items/' + itemId + '/visit', options);
             const result = await response.json();
 
             if (response.ok) {
                 showToast(result.message || "Checked In! 🌟");
-                closeCheckinModal();
                 window.fetchSavedTrips(); // Refresh the list
             } else {
-                showToast(result.message || "Verification failed.");
+                throw new Error(result.message || "Failed to check in");
             }
         } catch (error) {
-            console.error("Verification Error:", error);
-            showToast("Failed to check in. Check connection.");
+            console.error("Checkin Error:", error);
+            showToast(error.message || "Failed to check in. Check connection.");
+            btn.innerHTML = originalText;
+            btn.disabled = false;
         }
-    }
+    };
+
 
     // Render immediately on view load
     window.renderItinerary();
@@ -1233,6 +1128,13 @@ $activeTab = 'itinerary';
         
         if (selectedHidden) {
             document.getElementById('trip-transport').value = '';
+            
+            const fuelPanel = document.getElementById('own-car-fuel-panel');
+            if (fuelPanel) {
+                fuelPanel.style.maxHeight = '0';
+                fuelPanel.style.opacity = '0';
+            }
+            
             if (window.calculateModalBudget) window.calculateModalBudget();
         }
     };
