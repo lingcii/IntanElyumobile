@@ -104,7 +104,10 @@ $backRoute = 'itinerary';
                     <div class="timeline-item ${isVisited ? 'completed' : ''}">
                         <div class="timeline-dot"></div>
                         <div class="timeline-content" style="padding:12px;">
-                            <h4 style="margin:0 0 4px 0; font-size:15px;">${dest ? dest.name : 'Unknown Destination'}</h4>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                <h4 style="margin:0; font-size:15px;">${dest ? dest.name : 'Unknown Destination'}</h4>
+                                ${(dest && dest.classification_status) ? `<span style="padding: 2px 6px; border-radius: 6px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')};">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
+                            </div>
                             ${isVisited ? 
                                 '<span style="color:var(--primary-color); font-size:12px; font-weight:600;"><i class="fa-solid fa-check-circle"></i> Visited</span>' : 
                                 item.proof_image ? 
