@@ -136,7 +136,8 @@ window.getDestImage = function(dest, width = 600) {
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:2px;">
             <div style="flex:1; min-width:0;">
                 <h3 class="sheet-title" id="sheet-title">Destination Name</h3>
-                <p class="sheet-location"><i class="fa-solid fa-location-dot"></i><span id="sheet-location">Location details</span></p>
+                <p class="sheet-location" style="margin-bottom: 4px;"><i class="fa-solid fa-location-dot"></i><span id="sheet-location">Location details</span></p>
+                <div id="sheet-status-badge" style="display:none; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #fff; background: #38bdf8; width: max-content;"></div>
             </div>
             <div style="display:flex; gap: 8px;">
                 <button onclick="window.closeSheet()" style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:rgba(148,163,184,0.9); font-size:14px; cursor:pointer; flex-shrink:0; transition:background 0.2s;">
@@ -173,36 +174,16 @@ window.getDestImage = function(dest, width = 600) {
 
                 <div class="map-info-row">
                     <span class="map-info-label">
-                        <i class="fa-solid fa-car"></i>
-                        How to get there
-                    </span>
-                    <span class="map-info-value" id="sheet-how-to-go">...</span>
-                </div>
-
-                <div class="map-info-row">
-                    <span class="map-info-label">
                         <i class="fa-solid fa-location-arrow"></i>
                         Distance
                     </span>
                     <span class="map-info-value" id="sheet-distance">Calculating...</span>
                 </div>
 
-                <div class="map-info-row">
-                    <span class="map-info-label">
-                        <i class="fa-solid fa-van-shuttle"></i>
-                        Avg. Transport
-                    </span>
-                    <span class="map-info-value" id="sheet-transport">₱0</span>
-                </div>
-
                 <div style="margin-top: 10px; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
                     <h5 style="margin: 0 0 6px; font-size: 10px; color: rgba(148,163,184,0.7); text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-map" style="margin-right: 4px;"></i> Route Guide</h5>
                     <p id="sheet-manual-guide" style="margin: 0; font-size: 13px; color: #e2e8f0; line-height: 1.5;"></p>
                 </div>
-
-                <button onclick="window.contactMTO()" style="margin-top:12px; width:100%; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.2); color:#38bdf8; padding:12px; border-radius:14px; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px;">
-                    <i class="fa-solid fa-user-tie"></i> Contact MTO / Guide
-                </button>
             </div>
             </div> <!-- End sheet-desc-animator -->
 
@@ -853,6 +834,27 @@ window.getDestImage = function(dest, width = 600) {
         document.getElementById('sheet-title').textContent = locationData.name;
         document.getElementById('sheet-location').textContent = locationData.location;
 
+        const statusBadge = document.getElementById('sheet-status-badge');
+        if (statusBadge) {
+            if (locationData.classification_status) {
+                statusBadge.style.display = 'inline-block';
+                if (locationData.classification_status === 'EXIST') {
+                    statusBadge.style.background = '#34c759';
+                    statusBadge.textContent = 'EXISTING';
+                } else if (locationData.classification_status === 'EMERGE') {
+                    statusBadge.style.background = '#38bdf8';
+                    statusBadge.textContent = 'EMERGING';
+                } else if (locationData.classification_status === 'POTENTIAL') {
+                    statusBadge.style.background = '#f59e0b';
+                    statusBadge.textContent = 'POTENTIAL';
+                } else {
+                    statusBadge.style.display = 'none';
+                }
+            } else {
+                statusBadge.style.display = 'none';
+            }
+        }
+
         const favBtn = document.getElementById('sheet-fav-btn');
         if (favBtn) {
             if (window.savedPlaceIds && window.savedPlaceIds.includes(locationData.id)) {
@@ -891,15 +893,13 @@ window.getDestImage = function(dest, width = 600) {
         
         const destName = locationData.name.toLowerCase();
         
-        let howToGo = locationData.accessible_by_car ? 'Car / Tricycle' : 'Tricycle';
-        document.getElementById('sheet-how-to-go').textContent = howToGo;
         
         let manualGuide = "From the town proper of " + (locationData.municipality || "La Union") + ", take a local tricycle heading to " + (locationData.location || "the barangay") + ". Ask the driver to drop you off at " + locationData.name + ".";
         
         document.getElementById('sheet-manual-guide').textContent = manualGuide;
         
         document.getElementById('sheet-distance').textContent = 'Calculating...';
-        document.getElementById('sheet-transport').textContent = '₱' + (locationData.avg_transport_cost || 0);
+
 
         if (window.getDeviceLocation) {
             window.getDeviceLocation().then(async (pos) => {

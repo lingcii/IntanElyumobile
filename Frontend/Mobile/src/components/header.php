@@ -44,7 +44,9 @@
             <i class="fa-solid fa-arrow-left"></i>
         </div>
     <?php else: ?>
-        <div style="width: 36px;"></div> <!-- Placeholder to keep title centered -->
+        <div class="header-icon" style="width: 36px; padding: 8px 0; text-align: left;" onclick="toggleSidebar()">
+            <i class="fa-solid fa-bars"></i>
+        </div>
     <?php endif; ?>
     <h1 class="header-title"><?php echo isset($pageTitle) ? $pageTitle : 'Intan Elyu'; ?></h1>
     <div class="header-icon" onclick="toggleNotifications()">
@@ -63,7 +65,51 @@
     </div>
 </div>
 
+<!-- Sidebar Menu -->
+<div id="sidebar-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000;" onclick="toggleSidebar()"></div>
+<div id="sidebar-menu" style="position: fixed; top: 0; left: -280px; width: 280px; bottom: 0; background: #0f172a; z-index: 1001; transition: left 0.3s ease; display: flex; flex-direction: column; box-shadow: 2px 0 10px rgba(0,0,0,0.5);">
+    <div style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-top: max(env(safe-area-inset-top), 40px);">
+        <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #fff;">Menu</h2>
+    </div>
+    <div style="flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 15px;">
+        <a href="#" onclick="toggleSidebar(); showToast('Coming soon: Merch Page'); return false;" style="color: #e2e8f0; text-decoration: none; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-shirt" style="color: #38bdf8; width: 20px; text-align: center;"></i> Merch Page
+        </a>
+        <a href="#" onclick="toggleSidebar(); showToast('Coming soon: Terms & Privacy'); return false;" style="color: #e2e8f0; text-decoration: none; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-shield-halved" style="color: #38bdf8; width: 20px; text-align: center;"></i> Terms & Privacy
+        </a>
+        <a href="#" onclick="toggleSidebar(); showToast('Coming soon: About Us'); return false;" style="color: #e2e8f0; text-decoration: none; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-circle-info" style="color: #38bdf8; width: 20px; text-align: center;"></i> About Us
+        </a>
+    </div>
+    <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+        <a href="#" onclick="logoutUser(); return false;" style="color: #ef4444; text-decoration: none; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-right-from-bracket" style="width: 20px; text-align: center;"></i> Log Out
+        </a>
+    </div>
+</div>
+
 <script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar-menu');
+        const overlay = document.getElementById('sidebar-overlay');
+        if (sidebar && overlay) {
+            if (sidebar.style.left === '0px') {
+                sidebar.style.left = '-280px';
+                overlay.style.display = 'none';
+            } else {
+                sidebar.style.left = '0px';
+                overlay.style.display = 'block';
+            }
+        }
+    }
+
+    function logoutUser() {
+        localStorage.removeItem('intan_elyu_token');
+        localStorage.removeItem('auth_user');
+        window.location.href = '?view=auth';
+    }
+
     function toggleNotifications() {
         const dropdown = document.getElementById('notifications-dropdown');
         if (dropdown.style.display === 'none' || dropdown.style.display === '') {

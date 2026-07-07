@@ -50,14 +50,7 @@ if (is_dir($imgDir)) {
         </div>
     </div>
 
-    <!-- Search -->
-    <div class="search-wrapper stagger-1" style="margin-bottom: 14px; position: relative;">
-        <i class="fa-solid fa-magnifying-glass search-icon"></i>
-        <input type="text" id="dash-search-input" class="search-input" placeholder="Search beaches, cafes, falls..." autocomplete="off">
-        <div id="dash-search-results" style="position: absolute; top: 60px; left: 0; right: 0; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; max-height: 300px; overflow-y: auto; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: none; padding: 8px;">
-            <!-- Results injected here -->
-        </div>
-    </div>
+
 
     <!-- Stats Row -->
     <div class="stats-row stagger-1">
@@ -244,8 +237,22 @@ window.getDestImage = function(dest, width = 600) {
 
     if (!token) return;
 
+    let lat = null, lng = null;
     try {
-        const res = await fetch(backendUrl + '/api/tourist/dashboard', {
+        if ("geolocation" in navigator) {
+            const pos = await new Promise((res, rej) => {
+                navigator.geolocation.getCurrentPosition(res, rej, { timeout: 3000 });
+            });
+            lat = pos.coords.latitude;
+            lng = pos.coords.longitude;
+        }
+    } catch(e) { console.warn("Location not available for dashboard", e); }
+
+    let apiUrl = backendUrl + '/api/tourist/dashboard';
+    if (lat && lng) apiUrl += `?lat=${lat}&lng=${lng}`;
+
+    try {
+        const res = await fetch(apiUrl, {
             credentials: 'include',
             headers: {
                 'Accept': 'application/json',

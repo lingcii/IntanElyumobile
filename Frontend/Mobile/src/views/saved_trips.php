@@ -91,7 +91,7 @@ $backRoute = 'itinerary';
                     ${trip.trip_date ? 'Date: ' + new Date(trip.trip_date).toLocaleDateString() : 'No date set'} 
                     ${trip.budget ? '&nbsp;&bull;&nbsp; <span style="color:var(--primary-color); font-weight:700;">Budget: ₱' + parseFloat(trip.budget).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + '</span>' + budgetIndicator : ''}
                 </p>
-                <div class="timeline" style="margin-top:0;">`;
+                <div class="timeline" id="timeline-${trip.id}" style="margin-top:0; display:none;">`;
                 
             let unvisitedCount = 0;
             if (trip.items && trip.items.length) {
@@ -127,14 +127,20 @@ $backRoute = 'itinerary';
 
             // View Details button
             html += `
-            <button class="btn-primary" style="flex:1; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:12px;" onclick="window.viewTripDetails('${trip.id}')">
-                <i class="fa-solid fa-circle-info" style="margin-right:8px;"></i> View Details
+            <button class="btn-primary" style="flex:1; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:12px;" onclick="window.toggleTripDetails('${trip.id}')">
+                <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="margin-right:8px; transition:transform 0.3s ease;"></i> View Details
             </button>`;
-            
+
+            // Start / Complete button
             if (unvisitedCount === 0 && trip.items && trip.items.length > 0) {
                 html += `
                 <button class="btn-primary" style="flex:1; background:#34C759; border:none; padding:12px;" onclick="window.markTripCompleted('${trip.id}')">
                     <i class="fa-solid fa-flag-checkered" style="margin-right:8px;"></i> Complete
+                </button>`;
+            } else {
+                html += `
+                <button class="btn-primary" style="flex:1; background:#007AFF; border:none; padding:12px;" onclick="window.startTrip('${trip.id}')">
+                    <i class="fa-solid fa-play" style="margin-right:8px;"></i> Start
                 </button>`;
             }
             
@@ -144,10 +150,25 @@ $backRoute = 'itinerary';
         list.innerHTML = html;
     }
 
-    window.viewTripDetails = function(tripId) {
-        showToast("Opening details for trip...");
-        // TODO: Implement navigation to a dedicated details view or open a modal
-        console.log("View Details clicked for trip:", tripId);
+    window.toggleTripDetails = function(tripId) {
+        const timeline = document.getElementById('timeline-' + tripId);
+        const chevron = document.getElementById('chevron-' + tripId);
+        if (timeline && chevron) {
+            if (timeline.style.display === 'none') {
+                timeline.style.display = 'block';
+                chevron.style.transform = 'rotate(180deg)';
+            } else {
+                timeline.style.display = 'none';
+                chevron.style.transform = 'rotate(0deg)';
+            }
+        }
+    };
+
+    window.startTrip = function(tripId) {
+        if (typeof showToast === 'function') showToast("Starting trip...");
+        setTimeout(() => {
+            window.location.href = '?view=map&trip_id=' + tripId;
+        }, 1000);
     };
 
     window.openCheckinModal = function(itemId) {

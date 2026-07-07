@@ -27,49 +27,34 @@ class DashboardController extends Controller
         $trending = TouristSpot::where('status', 'approved')
             ->orderByDesc('visits')
             ->limit(5)
-            ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'barangay'])
+            ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'barangay', 'classification_status'])
             ->map(fn($s) => $this->formatSpot($s));
 
         // Saved/Favorite places
         $favoriteIds = Favorite::where('user_id', $user->id)->pluck('tourist_spot_id');
         $savedPlaces = TouristSpot::whereIn('id', $favoriteIds)
             ->where('status', 'approved')
-            ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'barangay'])
+            ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'barangay', 'classification_status'])
             ->map(fn($s) => $this->formatSpot($s));
 
-        // Recommendations: top-rated spots not yet favorited
-        $hour = now()->hour;
-        if ($hour >= 5 && $hour < 12) {
-            $timeLabel = '☀️ Good Morning Picks';
-            $categories = ['Beach', 'Park', 'Viewpoint'];
-        } elseif ($hour >= 12 && $hour < 17) {
-            $timeLabel = '🌤️ Afternoon Adventures';
-            $categories = ['Restaurant', 'Cafe', 'Museum'];
-        } elseif ($hour >= 17 && $hour < 20) {
-            $timeLabel = '🌅 Evening Spots';
-            $categories = ['Restaurant', 'Cafe', 'Bar'];
-        } else {
-            $timeLabel = '🌙 Night Picks';
-            $categories = ['Hotel', 'Resort', 'Hostel'];
-        }
+        // Recommendations: Near Me feature
+        $lat = $request->query('lat');
+        $lng = $request->query('lng');
+        $timeLabel = '📍 Near Me';
 
-        $recommended = TouristSpot::where('status', 'approved')
+        $recommendedQuery = TouristSpot::where('status', 'approved')
             ->whereNotIn('id', $favoriteIds)
-            ->when($categories, fn($q) => $q->whereIn('category', $categories))
-            ->orderByDesc('rating')
-            ->limit(5)
-            ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'rating', 'description', 'entrance_fee', 'barangay'])
-            ->map(fn($s) => $this->formatSpot($s));
+            ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'rating', 'description', 'entrance_fee', 'barangay', 'classification_status']);
 
-        // If no category matches, fallback to top rated
-        if ($recommended->isEmpty()) {
-            $recommended = TouristSpot::where('status', 'approved')
-                ->whereNotIn('id', $favoriteIds)
-                ->orderByDesc('rating')
-                ->limit(5)
-                ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'rating', 'description', 'entrance_fee', 'barangay'])
-                ->map(fn($s) => $this->formatSpot($s));
+        if ($lat && $lng) {
+            $recommendedQuery = $recommendedQuery->sortBy(function($spot) use ($lat, $lng) {
+                return pow($spot->latitude - $lat, 2) + pow($spot->longitude - $lng, 2);
+            });
+        } else {
+            $recommendedQuery = $recommendedQuery->sortByDesc('rating');
         }
+
+        $recommended = $recommendedQuery->take(5)->values()->map(fn($s) => $this->formatSpot($s));
 
         // Stats
         $placesVisited = \App\Models\ItineraryItem::whereHas('itinerary', fn($q) => $q->where('user_id', $user->id))
@@ -118,6 +103,7 @@ class DashboardController extends Controller
             'visits'       => $spot->visits,
             'description'  => $spot->description,
             'entrance_fee' => $spot->entrance_fee,
+            'classification_status' => $spot->classification_status,
         ];
     }
 }
