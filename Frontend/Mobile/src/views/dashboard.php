@@ -400,8 +400,10 @@ window.getDestImage = function(dest, width = 600) {
             if (data.trending && data.trending.length > 0) {
                 data.trending.forEach(dest => {
                     const img = window.getDestImage(dest, 600);
+                    const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
                     trendingContainer.innerHTML += `
                         <div class="fav-card" onclick="window.viewDestinationOnMap(encodeURIComponent(JSON.stringify(${JSON.stringify(dest).replace(/"/g, '&quot;')})))">
+                            ${badgeHtml}
                             <img src="${img}" alt="${dest.name}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
                             <div class="fav-card-overlay"><span class="fav-card-name">${dest.name}</span></div>
                             <i class="fa-solid fa-fire fav-heart" style="color: #ff9500; font-size: 14px;"></i>
@@ -426,8 +428,10 @@ window.getDestImage = function(dest, width = 600) {
             if (data.savedPlaces && data.savedPlaces.length > 0) {
                 data.savedPlaces.forEach(dest => {
                     const img = window.getDestImage(dest, 600);
+                    const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
                     savedContainer.innerHTML += `
                         <div class="fav-card" onclick="window.viewDestinationOnMap(encodeURIComponent(JSON.stringify(${JSON.stringify(dest).replace(/"/g, '&quot;')})))">
+                            ${badgeHtml}
                             <img src="${img}" alt="${dest.name}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
                             <div class="fav-card-overlay"><span class="fav-card-name">${dest.name}</span></div>
                             <i class="fa-solid fa-heart fav-heart" style="color: #ff3b30;" onclick="event.stopPropagation(); window.toggleFavorite(${dest.id}, this)"></i>
@@ -468,9 +472,10 @@ window.getDestImage = function(dest, width = 600) {
                             <div style="flex:1; min-width:0;">
                                 <h4 style="margin:0 0 5px; font-size:15px; font-weight:800; letter-spacing:-0.3px; color:#f8fafc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dest.name}</h4>
                                 <p style="margin:0 0 8px; font-size:12px; color:rgba(148,163,184,0.8);"><i class="fa-solid fa-location-dot" style="margin-right:4px; color:#38bdf8;"></i>${dest.location || dest.municipality_id || 'La Union'}</p>
-                                <div style="display:flex; align-items:center; gap:5px;">
+                                <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
                                     <i class="fa-solid fa-star" style="color:#fbbf24; font-size:11px;"></i>
-                                    <span style="font-size:12px; font-weight:700; color:#f8fafc;">${rating}</span>
+                                    <span style="font-size:12px; font-weight:700; color:#f8fafc; margin-right:4px;">${rating}</span>
+                                    ${dest.classification_status ? `<span style="padding: 2px 6px; border-radius: 6px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')};">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
                                 </div>
                             </div>
                             <i class="fa-solid fa-chevron-right toggle-icon" style="color:rgba(148,163,184,0.4); font-size:13px; padding:4px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></i>
