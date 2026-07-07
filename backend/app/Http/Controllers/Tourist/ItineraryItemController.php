@@ -31,7 +31,7 @@ class ItineraryItemController extends Controller
         $user = $request->user();
 
         $item = ItineraryItem::whereHas('itinerary', fn($q) => $q->where('user_id', $user->id))
-            ->with('destination:id,name,latitude,longitude')
+            ->with('destination:id,name,latitude,longitude,classification_status')
             ->findOrFail($id);
 
         if ($item->is_visited) {
@@ -69,14 +69,24 @@ class ItineraryItemController extends Controller
         // Increment the tourist spot's visit counter
         $item->destination()->increment('visits');
 
+        // Determine XP based on classification status
+        $baseXp = self::XP_PER_VISIT; // 50
+        $xpEarned = match($spot->classification_status) {
+            'EMERGE'    => 100,
+            'POTENTIAL' => 75,
+            default     => $baseXp,
+        };
+
         // Award XP
-        $newXp    = ($user->xp ?? 0) + self::XP_PER_VISIT;
+        $newXp    = ($user->xp ?? 0) + $xpEarned;
         $newLevel = (int) floor($newXp / 1000) + 1;
         $user->update(['xp' => $newXp, 'level' => $newLevel]);
 
+        $bonusMsg = $xpEarned > $baseXp ? "🔥 (Bonus for discovering new spots!)" : "🌟";
+
         return response()->json([
-            'message'   => "You're here! +".self::XP_PER_VISIT." XP earned! 🌟",
-            'xp_earned' => self::XP_PER_VISIT,
+            'message'   => "You're here! +{$xpEarned} XP earned! {$bonusMsg}",
+            'xp_earned' => $xpEarned,
             'total_xp'  => $newXp,
             'new_level' => $newLevel,
             'distance'  => round($distanceMeters) . 'm',
