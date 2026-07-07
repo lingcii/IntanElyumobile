@@ -10,7 +10,6 @@ $activeTab = 'leaderboard';
     
     <!-- Title -->
     <div class="leaderboard-title stagger-0">
-        <h1>Top Explorers</h1>
         <p>Climb the ranks by exploring places!</p>
     </div>
     
@@ -20,10 +19,42 @@ $activeTab = 'leaderboard';
     </div>
     
     <!-- Rank List -->
-    <div class="rank-list stagger-2" id="rank-list-container">
-        <!-- Injected via JS -->
+    <div class="rank-list-wrapper stagger-2">
+        <div class="rank-list" id="rank-list-container">
+            <!-- Injected via JS -->
+        </div>
     </div>
     
+    </div>
+</div>
+
+<!-- User Profile Modal (Moved outside container to fix z-index stacking issues) -->
+<div id="user-profile-modal" class="profile-modal-overlay">
+    <div class="profile-modal-card">
+        <button class="profile-modal-close" onclick="closeUserProfile()"><i class="fa-solid fa-xmark"></i></button>
+        <div class="profile-modal-header">
+            <img id="modal-avatar" src="" alt="Avatar">
+            <div id="modal-rank-badge" class="modal-rank-badge">1</div>
+        </div>
+        <h2 id="modal-name">Name</h2>
+        <div class="modal-stats">
+            <div class="modal-stat-box">
+                <i class="fa-solid fa-bolt" style="color:#FFD700;"></i>
+                <span id="modal-xp">0</span>
+                <small>Total XP</small>
+            </div>
+            <div class="modal-stat-box">
+                <i class="fa-solid fa-map-location-dot" style="color:#10b981;"></i>
+                <span id="modal-activities">0</span>
+                <small>Visited</small>
+            </div>
+            <div class="modal-stat-box">
+                <i class="fa-solid fa-medal" style="color:#38bdf8;"></i>
+                <span id="modal-level">Lvl 1</span>
+                <small>Explorer</small>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -32,27 +63,21 @@ $activeTab = 'leaderboard';
     const rankListContainer = document.getElementById('rank-list-container');
     
     try {
-        const token = localStorage.getItem('Intan_Elyu_Token');
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
         const headers = { 'Accept': 'application/json' };
         
-        let url = '/api/public/leaderboard';
+        const backendUrl = window.backendUrl || 'http://localhost:8000';
+        let url = backendUrl + '/api/public/leaderboard';
         if (token) {
             headers['Authorization'] = 'Bearer ' + token;
-            url = '/api/tourist/leaderboard'; // Will be prefixed by proxy or relative if on same domain
-        }
-
-        // Fix absolute URL for mobile webview
-        if (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            url = '../api' + url.replace('/api', '');
-        } else {
-            url = '../api' + url.replace('/api', '');
+            url = backendUrl + '/api/tourist/leaderboard';
         }
 
         const res = await fetch(url, { headers });
         if (!res.ok) throw new Error("Failed to fetch leaderboard");
         const data = await res.json();
         
-        const leaders = data.leaders || [];
+        const leaders = data.users || data.leaders || [];
         const myRank = data.myRank || 999;
         const me = data.me || null;
 
@@ -65,10 +90,14 @@ $activeTab = 'leaderboard';
 
         // Render Rank List (Ranks 4-20)
         let rankListHTML = '';
-        for (let i = 3; i < leaders.length; i++) {
-            const user = leaders[i];
-            const isMe = me && user.id === me.id;
-            rankListHTML += generateRankItem(user, i + 1, isMe);
+        if (leaders.length === 0) {
+            rankListHTML = '<div style="text-align:center; padding: 20px; color: var(--text-muted); font-size: 14px;">No explorers found yet. Start exploring to claim the #1 spot!</div>';
+        } else {
+            for (let i = 3; i < leaders.length; i++) {
+                const user = leaders[i];
+                const isMe = me && user.id === me.id;
+                rankListHTML += generateRankItem(user, i + 1, isMe);
+            }
         }
 
         if (me && myRank > 20) {
@@ -83,44 +112,67 @@ $activeTab = 'leaderboard';
     }
 
     function generatePodiumPlace(user, rank) {
-        const displayName = `Explorer #${user.id}`;
+        const idToUse = user.user_id || user.id;
+        const displayName = `Explorer #${idToUse}`;
         const avatarUrl = user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random&color=fff`;
         const crown = rank === 1 ? `<div style="position:absolute; top:-35px; left:50%; width:30px; height:30px; margin-left:-15px; text-align:center; animation: pulseCrown 2s infinite; z-index:10;"><i class="fa-solid fa-crown" style="color:#FFD700; font-size:24px;"></i></div>` : '';
+        
+        const safeName = displayName.replace(/'/g, "\\'");
+        const xp = parseInt(user.total_points || user.total_xp || 0);
+        const level = user.level || 1;
+        const activities = parseInt(user.completed_activities || 0);
+        
         return `
-        <div class="podium-place place-${rank}">
+        <div class="podium-place place-${rank}" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${xp}, ${rank}, ${level}, ${activities})">
             <div style="position:relative;">
                 ${crown}
                 <img src="${avatarUrl}" alt="${displayName}" class="podium-avatar">
-                <div class="rank-badge">${rank}</div>
             </div>
             <div class="podium-name">${displayName}</div>
-            <div class="podium-xp">${parseInt(user.total_xp).toLocaleString()} XP</div>
+            <div class="podium-xp"><i class="fa-solid fa-bolt" style="color:#38bdf8; font-size:10px;"></i> ${xp.toLocaleString()}</div>
             <div class="podium-block"></div>
         </div>`;
     }
 
     function generateRankItem(user, rank, isMe) {
-        const displayName = `Explorer #${user.id}`;
+        const idToUse = user.user_id || user.id;
+        const displayName = `Explorer #${idToUse}`;
         const avatarUrl = user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random&color=fff`;
-        const activeStyle = isMe ? 'border-color: var(--primary-color); background: rgba(0, 122, 255, 0.05); box-shadow: 0 4px 15px rgba(0, 122, 255, 0.15);' : '';
-        const numBadgeClass = rank <= 10 ? 'rank-badge-top10' : 'rank-badge-normal';
-        const numBadgeStyle = isMe ? 'background: var(--primary-color); color: white; border-color: var(--primary-color);' : '';
-        const imgStyle = isMe ? 'border: 2px solid var(--primary-color); padding: 2px;' : '';
+        const activeClass = isMe ? 'is-me' : '';
         const youTag = isMe ? `<span style="font-size:10px; background:var(--primary-color); color:white; padding:2px 6px; border-radius:10px; margin-left:6px; vertical-align:middle;">You</span>` : '';
+        const delay = 0.5 + ((rank - 4) * 0.05);
+        
+        const safeName = displayName.replace(/'/g, "\\'");
+        const xp = parseInt(user.total_points || user.total_xp || 0);
+        const level = user.level || 1;
+        const activities = parseInt(user.completed_activities || 0);
         
         return `
-        <div class="rank-item" style="${activeStyle}">
+        <div class="rank-item ${activeClass}" style="animation-delay: ${Math.max(0, delay)}s;" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${xp}, ${rank}, ${level}, ${activities})">
             <div class="rank-number-container">
-                <div class="rank-number-badge ${numBadgeClass}" style="${numBadgeStyle}">${rank}</div>
+                <div class="rank-number-badge">${rank}</div>
             </div>
-            <img src="${avatarUrl}" alt="${displayName}" class="rank-item-avatar" style="${imgStyle}">
+            <img src="${avatarUrl}" alt="${displayName}" class="rank-item-avatar">
             <div class="rank-item-info">
                 <h4 class="rank-item-name">${displayName} ${youTag}</h4>
-                <p class="rank-item-level"><i class="fa-solid fa-medal" style="color:#CD7F32; margin-right:4px;"></i> Lvl ${user.level} Explorer</p>
+                <div class="rank-item-xp-inline"><i class="fa-solid fa-bolt" style="color:#38bdf8; font-size:10px;"></i> ${xp.toLocaleString()}</div>
             </div>
-            <div class="rank-item-xp"><i class="fa-solid fa-bolt" style="color:#FFD700; margin-right:4px;"></i> ${parseInt(user.total_xp).toLocaleString()}</div>
         </div>`;
     }
+
+    window.showUserProfile = function(name, avatar, xp, rank, level, activities) {
+        document.getElementById('modal-avatar').src = avatar;
+        document.getElementById('modal-name').innerText = name;
+        document.getElementById('modal-xp').innerText = xp.toLocaleString();
+        document.getElementById('modal-rank-badge').innerText = rank;
+        document.getElementById('modal-level').innerText = 'Lvl ' + level;
+        document.getElementById('modal-activities').innerText = activities ? activities.toLocaleString() : '0';
+        document.getElementById('user-profile-modal').classList.add('active');
+    };
+    
+    window.closeUserProfile = function() {
+        document.getElementById('user-profile-modal').classList.remove('active');
+    };
 })();
 </script>
 

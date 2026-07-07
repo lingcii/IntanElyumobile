@@ -6,7 +6,7 @@
 .itinerary-container {
     padding: 0 16px 100px;
     min-height: 100vh;
-    background: var(--bg-primary);
+    background: radial-gradient(circle at 50% 250px, rgba(255, 215, 0, 0.15) 0%, transparent 60%), linear-gradient(135deg, #162a66 0%, #0a0f1c 100%);
 }
 
 /* ── Section headings ── */
@@ -83,10 +83,10 @@
 
 /* ── Timeline Card ── */
 .timeline-content {
-    background: rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(37, 99, 235, 0.15);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(56, 189, 248, 0.2);
     border-radius: 20px;
     padding: 16px 16px 14px;
     color: #f8fafc;
@@ -204,8 +204,8 @@
     align-items: center;
     gap: 12px;
     padding: 40px 20px;
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
     border-radius: 24px;
 }
 

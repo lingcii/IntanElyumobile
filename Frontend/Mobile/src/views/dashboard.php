@@ -112,7 +112,7 @@ if (is_dir($imgDir)) {
     <div class="dash-section stagger-3">
         <div class="section-title">
             <h3>My Saved Trips</h3>
-            <a href="#" onclick="navigateTo('itinerary')">Open Saved Trips</a>
+            <a href="#" onclick="navigateTo('saved_trips')">Open Saved Trips</a>
         </div>
         
         <div id="saved-trips-container">
@@ -294,7 +294,23 @@ window.getDestImage = function(dest, width = 600) {
         // Stats
         if (document.getElementById('dash-stat-places')) document.getElementById('dash-stat-places').textContent = (data.stats && data.stats.placesVisited) ? data.stats.placesVisited : 0;
         if (document.getElementById('dash-stat-xp')) document.getElementById('dash-stat-xp').textContent = xp.toLocaleString();
-        if (data.myRank && document.getElementById('dash-stat-rank')) document.getElementById('dash-stat-rank').textContent = '#' + data.myRank;
+        
+        // Fetch Rank
+        try {
+            const rankRes = await fetch(backendUrl + '/api/tourist/leaderboard', {
+                headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token, 'ngrok-skip-browser-warning': 'true' }
+            });
+            if (rankRes.ok) {
+                const rankData = await rankRes.json();
+                if (rankData.myRank && document.getElementById('dash-stat-rank')) {
+                    document.getElementById('dash-stat-rank').textContent = '#' + rankData.myRank;
+                } else if (document.getElementById('dash-stat-rank')) {
+                    document.getElementById('dash-stat-rank').textContent = 'Unranked';
+                }
+            }
+        } catch (e) {
+            console.error('Failed to fetch rank', e);
+        }
 
         // Populate Saved Trips Preview
         const tripsContainer = document.getElementById('saved-trips-container');

@@ -8,7 +8,7 @@
 }
 
 body {
-    background-color: #ffffff;
+    background-color: #1e293b;
     margin: 0;
 }
 
@@ -119,7 +119,7 @@ body {
 /* --- Bottom White Section --- */
 .auth-bottom {
     flex: 1;
-    background: #ffffff;
+    background: #1e293b;
     padding: 20px 40px 40px 40px;
     display: flex;
     flex-direction: column;
@@ -157,7 +157,7 @@ body {
 }
 
 .auth-tab.active {
-    color: #333333;
+    color: #ffffff;
     font-weight: 700;
     font-size: 17px;
 }
@@ -213,7 +213,7 @@ body {
 /* Minimal Inputs */
 .input-group {
     position: relative;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid #334155;
     margin-bottom: 30px;
     transition: border-color 0.3s;
     width: 100%;
@@ -252,12 +252,22 @@ body {
     background: transparent;
     padding: 12px 32px 12px 36px !important;
     font-size: 14px;
-    color: #333333;
+    color: #ffffff;
     outline: none;
 }
 
+/* Override Browser Autofill Styles for Dark Mode */
+.auth-input:-webkit-autofill,
+.auth-input:-webkit-autofill:hover, 
+.auth-input:-webkit-autofill:focus, 
+.auth-input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #1e293b inset !important;
+    -webkit-text-fill-color: #ffffff !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
 .auth-input::placeholder {
-    color: #cccccc;
+    color: #64748b;
 }
 
 .input-group i.password-toggle {
@@ -332,7 +342,7 @@ body {
 .auth-divider::after {
     content: '';
     flex: 1;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid #334155;
 }
 
 .auth-divider span {
@@ -349,13 +359,13 @@ body {
     align-items: center;
     justify-content: center;
     gap: 12px;
-    background: #ffffff;
-    border: 1px solid #e0e0e0;
+    background: #0f172a;
+    border: 1px solid #334155;
     border-radius: 100px;
     padding: 14px;
     font-size: 14px;
     font-weight: 600;
-    color: #555555;
+    color: #f8fafc;
     cursor: pointer;
     transition: background 0.3s, border-color 0.3s, transform 0.2s;
 }
@@ -366,8 +376,8 @@ body {
 }
 
 .btn-google:active {
-    background: #f8f8f8;
-    border-color: #cccccc;
+    background: #1e293b;
+    border-color: #475569;
     transform: scale(0.98);
 }
 
@@ -379,7 +389,7 @@ body {
 
 .fp-header h3 {
     font-size: 20px;
-    color: #333;
+    color: #ffffff;
     margin: 0 0 8px 0;
 }
 

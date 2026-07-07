@@ -34,8 +34,9 @@ class LeaderboardController extends Controller
 
     public function top3(): JsonResponse
     {
-        $rows = \Illuminate\Support\Facades\Cache::remember('leaderboard:top3', 60, function () {
-            return DB::select($this->rankedCte() . 'SELECT * FROM ranked WHERE `rank` <= 3 ORDER BY `rank` ASC');
+        $rows = \Illuminate\Support\Facades\Cache::remember('leaderboard:top3', 1, function () {
+            $data = DB::select($this->rankedCte() . 'SELECT * FROM ranked WHERE `rank` <= 3 ORDER BY `rank` ASC');
+            return json_decode(json_encode($data), true);
         });
 
         return response()->json(['success' => true, 'top3' => $this->castRows($rows)]);
@@ -95,7 +96,7 @@ class LeaderboardController extends Controller
 
         $cacheKey = "leaderboard:index:{$search}:{$sortBy}:{$limit}:{$offset}";
 
-        $cachedData = \Illuminate\Support\Facades\Cache::remember($cacheKey, 60, function () use ($whereClause, $params, $orderSql, $limit, $offset) {
+        $cachedData = \Illuminate\Support\Facades\Cache::remember($cacheKey, 1, function () use ($whereClause, $params, $orderSql, $limit, $offset) {
             $total = DB::selectOne($this->rankedCte() . "SELECT COUNT(*) as cnt FROM ranked {$whereClause}", $params)->cnt;
 
             $rows = DB::select(
@@ -105,7 +106,7 @@ class LeaderboardController extends Controller
 
             return [
                 'total' => (int) $total,
-                'rows'  => $rows
+                'rows'  => json_decode(json_encode($rows), true)
             ];
         });
 
@@ -121,6 +122,7 @@ class LeaderboardController extends Controller
     private function castRows(array $rows): array
     {
         return array_map(function ($r) {
+            $r = (object) $r;
             return [
                 'user_id'              => (int) $r->user_id,
                 'full_name'            => $r->full_name,

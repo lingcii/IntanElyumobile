@@ -5,10 +5,10 @@
         top: 0;
         left: 0;
         right: 0;
-        background: var(--glass-bg);
+        background: rgba(22, 42, 102, 0.85); /* Dimmed navy (#162a66) to match background */
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
-        border-bottom: 1px solid var(--glass-border);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -39,7 +39,13 @@
 </style>
 
 <div class="mobile-header">
-    <div style="width: 36px;"></div> <!-- Placeholder to keep title centered -->
+    <?php if (isset($backRoute) && $backRoute): ?>
+        <div class="header-icon" style="width: 36px; padding: 8px 0; text-align: left;" onclick="navigateTo('<?php echo htmlspecialchars($backRoute); ?>')">
+            <i class="fa-solid fa-arrow-left"></i>
+        </div>
+    <?php else: ?>
+        <div style="width: 36px;"></div> <!-- Placeholder to keep title centered -->
+    <?php endif; ?>
     <h1 class="header-title"><?php echo isset($pageTitle) ? $pageTitle : 'Intan Elyu'; ?></h1>
     <div class="header-icon" onclick="toggleNotifications()">
         <i class="fa-regular fa-bell"></i>

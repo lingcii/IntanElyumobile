@@ -1,14 +1,14 @@
 <?php
 $pageTitle = 'My Saved Trips';
+$backRoute = 'itinerary';
 ?>
 
 <!-- Include Header Component -->
 <?php include __DIR__ . '/../components/header.php'; ?>
 
 <!-- Saved Trips Container -->
-<div class="saved-trips-page-container has-header has-bottom-nav animate-slide-up" style="padding: 20px;">
-    <h2 style="margin:0 0 16px 0;">My Saved Trips</h2>
-    <div id="saved-trips-list">
+<div class="saved-trips-page-container has-header animate-slide-up" style="padding-left: 20px; padding-right: 20px; padding-bottom: 20px;">
+    <div id="saved-trips-list" style="margin-top: 16px;">
         <!-- Fetched saved trips will be injected here -->
         <p style="text-align:center; color:#999; margin-top: 20px;">
             <i class="fa-solid fa-spinner fa-spin"></i> Loading saved trips...
@@ -61,6 +61,8 @@ $pageTitle = 'My Saved Trips';
     function renderSavedTrips(itineraries) {
         const list = document.getElementById('saved-trips-list');
         
+        if (!list) return;
+
         if (!itineraries || itineraries.length === 0) {
             list.innerHTML = '<p style="text-align:center; color:#999; margin-top: 20px;">No saved trips found.</p>';
             return;
@@ -122,16 +124,17 @@ $pageTitle = 'My Saved Trips';
 
             // Action buttons
             html += `<div style="display:flex; gap:8px; margin-top:16px;">`;
+
+            // View Details button
+            html += `
+            <button class="btn-primary" style="flex:1; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:12px;" onclick="window.viewTripDetails('${trip.id}')">
+                <i class="fa-solid fa-circle-info" style="margin-right:8px;"></i> View Details
+            </button>`;
             
             if (unvisitedCount === 0 && trip.items && trip.items.length > 0) {
                 html += `
                 <button class="btn-primary" style="flex:1; background:#34C759; border:none; padding:12px;" onclick="window.markTripCompleted('${trip.id}')">
-                    <i class="fa-solid fa-flag-checkered" style="margin-right:8px;"></i> Mark Trip as Completed
-                </button>`;
-            } else {
-                html += `
-                <button class="btn-primary" style="flex:1; background:transparent; border:1px solid var(--primary-color); color:var(--primary-color); padding:12px;" onclick="navigateTo('map')">
-                    <i class="fa-solid fa-plus" style="margin-right:8px;"></i> Add more destinations
+                    <i class="fa-solid fa-flag-checkered" style="margin-right:8px;"></i> Complete
                 </button>`;
             }
             
@@ -140,6 +143,12 @@ $pageTitle = 'My Saved Trips';
 
         list.innerHTML = html;
     }
+
+    window.viewTripDetails = function(tripId) {
+        showToast("Opening details for trip...");
+        // TODO: Implement navigation to a dedicated details view or open a modal
+        console.log("View Details clicked for trip:", tripId);
+    };
 
     window.openCheckinModal = function(itemId) {
         document.getElementById('checkin-item-id').value = itemId;

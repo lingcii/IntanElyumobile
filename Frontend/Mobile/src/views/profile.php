@@ -5,13 +5,13 @@ $activeTab = 'profile';
 ?>
 
 
+<?php include __DIR__ . '/../components/header.php'; ?>
 
-
-<div class="profile-container has-bottom-nav animate-slide-up" style="padding-top: env(safe-area-inset-top, 40px);">
+<div class="profile-container has-header has-bottom-nav animate-slide-up">
     
     <div class="profile-header stagger-1">
         <div class="profile-avatar-container">
-            <img src="https://i.pravatar.cc/150?img=11" alt="Profile" class="profile-avatar" id="profile-img">
+            <img src="https://ui-avatars.com/api/?name=User&background=007AFF&color=fff&rounded=true&bold=true&size=128" alt="Profile" class="profile-avatar" id="profile-img">
         </div>
         <h2 class="profile-name" id="profile-name">Loading...</h2>
         <p class="profile-email" id="profile-email">loading@example.com</p>
@@ -34,7 +34,7 @@ $activeTab = 'profile';
     
     <h3 class="stagger-3" style="font-size: 18px; margin-bottom: 12px; margin-left: 8px;">Trip History</h3>
     <div id="trip-history-list" class="stagger-3" style="margin-bottom: 24px;">
-        <div style="text-align:center; padding:20px; color:#8E8E93; font-size:14px; background:var(--glass-bg); border-radius:16px;">Loading history...</div>
+        <div style="text-align:center; padding:20px; color:rgba(148, 163, 184, 0.8); font-size:14px; background:rgba(37, 99, 235, 0.15); border:1px solid rgba(56, 189, 248, 0.2); backdrop-filter:blur(24px); border-radius:16px;">Loading history...</div>
     </div>
     
 
@@ -100,7 +100,7 @@ $activeTab = 'profile';
 
                 const historyList = document.getElementById('trip-history-list');
                 if (!data.completed_trips || data.completed_trips.length === 0) {
-                    historyList.innerHTML = '<div style="text-align:center; padding:20px; color:#8E8E93; font-size:14px; background:var(--glass-bg); border-radius:16px;">No completed trips yet. Start exploring!</div>';
+                    historyList.innerHTML = '<div style="text-align:center; padding:20px; color:rgba(148, 163, 184, 0.8); font-size:14px; background:rgba(37, 99, 235, 0.15); border:1px solid rgba(56, 189, 248, 0.2); border-radius:16px; backdrop-filter:blur(24px);">No completed trips yet. Start exploring!</div>';
                     return;
                 }
 
@@ -108,18 +108,18 @@ $activeTab = 'profile';
                 data.completed_trips.forEach(trip => {
                     const date = trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date';
                     html += `
-                    <div style="background:var(--glass-bg); backdrop-filter:blur(16px); border:1px solid var(--glass-border); border-radius:16px; padding:16px; margin-bottom:12px;">
+                    <div style="background:rgba(37, 99, 235, 0.15); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(56, 189, 248, 0.2); border-radius:16px; padding:16px; margin-bottom:12px; box-shadow:0 4px 16px rgba(0,0,0,0.2);">
                         <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                            <strong style="color:var(--text-dark); font-size:16px;">${trip.title}</strong>
+                            <strong style="color:#f8fafc; font-size:16px;">${trip.title}</strong>
                             <span style="color:#34C759; font-weight:700; font-size:14px;">Completed</span>
                         </div>
-                        <div style="font-size:13px; color:#8E8E93; margin-bottom:12px;">
+                        <div style="font-size:13px; color:rgba(148, 163, 184, 0.8); margin-bottom:12px;">
                             <i class="fa-regular fa-calendar" style="margin-right:4px;"></i> ${date}
                             <span style="margin:0 8px;">&bull;</span>
                             <i class="fa-solid fa-coins" style="margin-right:4px;"></i> ₱${trip.total_cost || 0}
                         </div>
-                        <div style="font-size:12px; color:#666;">
-                            ${trip.items.length} Destinations Visited
+                        <div style="font-size:12px; color:rgba(148, 163, 184, 0.6);">
+                            ${trip.items ? trip.items.length : 0} Destinations Visited
                         </div>
                     </div>`;
                 });

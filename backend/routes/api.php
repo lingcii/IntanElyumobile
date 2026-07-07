@@ -18,6 +18,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\Tourist\DashboardController as TouristDashboardController;
+use App\Http\Controllers\Tourist\ProfileController as TouristProfileController;
 use App\Http\Controllers\Tourist\FavoriteController;
 use App\Http\Controllers\Tourist\ItineraryController;
 use App\Http\Controllers\Tourist\ItineraryItemController;
@@ -281,6 +282,8 @@ Route::prefix('public')->group(function () {
 Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     // Dashboard (profile, trending, saved places, recommendations)
     Route::get('/dashboard', [TouristDashboardController::class, 'index']);
+    Route::get('/profile', [TouristProfileController::class, 'show']);
+    Route::get('/leaderboard', [LeaderboardController::class, 'index']);
 
     // Destinations / Saved Places (Favorites)
     Route::post('/destinations/{id}/favorite', [FavoriteController::class, 'toggle']);

@@ -195,7 +195,7 @@ function updateMagicNav(viewName) {
     if (!nav) return;
     
     // Hide nav on splash, auth, and setup profile screens
-    const hiddenViews = ['splash', 'auth', 'setup_profile'];
+    const hiddenViews = ['splash', 'auth', 'setup_profile', 'saved_trips'];
     if (hiddenViews.includes(viewName)) {
         nav.classList.add('hidden');
         return;

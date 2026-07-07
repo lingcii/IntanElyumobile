@@ -65,11 +65,17 @@ $activeTab = 'itinerary';
 
 <div class="itinerary-container has-header has-bottom-nav animate-slide-up">
     
-    <div style="display:flex; justify-content:space-between; align-items:center;" class="stagger-1">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px; padding-top: 16px;" class="stagger-1">
         <h2 style="margin:0; font-size:22px; font-weight:800; letter-spacing:-0.5px;">Draft Plan</h2>
-        <span style="background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.2); color:#38bdf8; padding:6px 14px; border-radius:20px; font-size:12px; font-weight:700;">
-            <span id="itinerary-count">0</span> Places
-        </span>
+        <div style="display:flex; align-items:center; gap: 8px;">
+            <!-- Saved Trips Button (Small) -->
+            <button onclick="navigateTo('saved_trips')" style="background: rgba(37, 99, 235, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; font-weight:700; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; box-sizing: border-box; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <i class="fa-solid fa-bookmark" style="margin-right:6px;"></i> Saved Trips
+            </button>
+            <span style="background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.2); color:#38bdf8; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; font-weight:700; display:flex; align-items:center; box-sizing: border-box;">
+                <span id="itinerary-count" style="margin-right:4px;">0</span> Places
+            </span>
+        </div>
     </div>
 
     <!-- Map Visualization Container -->
@@ -117,11 +123,7 @@ $activeTab = 'itinerary';
         <button class="btn-primary" style="margin-top: 20px; width:auto; padding:12px 24px;" onclick="navigateTo('map')">Open Map</button>
     </div>
     
-    <!-- Saved Trips Container -->
-    <div id="saved-trips-container" style="margin-top: 40px; display: none;" class="stagger-3">
-        <h2 style="margin:0 0 16px 0;">My Saved Trips</h2>
-        <div id="saved-trips-list"></div>
-    </div>
+
     
 </div>
 
@@ -675,7 +677,7 @@ $activeTab = 'itinerary';
                 localStorage.removeItem('intan_elyu_draft_itinerary');
                 closeSaveModal();
                 window.renderItinerary();
-                window.fetchSavedTrips();
+                navigateTo('saved_trips');
             } else {
                 throw new Error(data.message || "Failed to save trip");
             }
@@ -688,176 +690,8 @@ $activeTab = 'itinerary';
         }
     };
 
-    window.fetchSavedTrips = async function() {
-        try {
-            const response = await fetch(backendUrl + '/api/tourist/itineraries', {
-                headers: {
-                    'Accept': 'application/json',
-                    'ngrok-skip-browser-warning': 'true',
-                    'Authorization': 'Bearer ' + localStorage.getItem('intan_elyu_token')
-                }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                renderSavedTrips(data.itineraries || []);
-            }
-        } catch (error) {
-            console.error("Error fetching saved trips:", error);
-        }
-    };
-
-    function renderSavedTrips(itineraries) {
-        const container = document.getElementById('saved-trips-container');
-        const list = document.getElementById('saved-trips-list');
-        
-        if (!itineraries || itineraries.length === 0) {
-            container.style.display = 'none';
-            return;
-        }
-
-        container.style.display = 'block';
-        let html = '';
-
-        itineraries.forEach(trip => {
-            let budgetIndicator = '';
-            if (trip.budget && trip.budget > 0) {
-                const cost = parseFloat(trip.total_cost || 0);
-                const budget = parseFloat(trip.budget);
-                const pct = cost / budget;
-                
-                let color = '#34C759'; // Green (Safe)
-                if (pct >= 1.0) color = '#FF3B30'; // Red (Over/Warning)
-                else if (pct >= 0.8) color = '#FF9500'; // Orange (Near)
-                
-                budgetIndicator = `<span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${color}; margin-left:6px; box-shadow:0 0 4px ${color}80;" title="Estimated Cost: ₱${cost.toFixed(2)}"></span>`;
-            }
-
-            html += `
-            <div style="background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:16px; padding:20px; margin-bottom:20px;">
-                <h3 style="margin:0 0 4px 0;">${trip.title}</h3>
-                <p style="font-size:12px; color:#666; margin:0 0 16px 0;">
-                    ${trip.trip_date ? 'Date: ' + new Date(trip.trip_date).toLocaleDateString() : 'No date set'} 
-                    ${trip.budget ? '&nbsp;&bull;&nbsp; <span style="color:var(--primary-color); font-weight:700;">Budget: ₱' + parseFloat(trip.budget).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + '</span>' + budgetIndicator : ''}
-                </p>
-                <div class="timeline" style="margin-top:0;">`;
-                
-            let unvisitedCount = 0;
-            if (trip.items && trip.items.length) {
-                trip.items.forEach((item, index) => {
-                    const dest = item.destination;
-                    const isVisited = item.is_visited;
-                    if (!isVisited) unvisitedCount++;
-                    
-                    html += `
-                    <div class="timeline-item ${isVisited ? 'completed' : ''}">
-                        <div class="timeline-dot"></div>
-                        <div class="timeline-content" style="padding:12px;">
-                            <h4 style="margin:0 0 4px 0; font-size:15px;">${dest ? dest.name : 'Unknown Destination'}</h4>
-                            ${isVisited ? 
-                                '<span style="color:var(--primary-color); font-size:12px; font-weight:600;"><i class="fa-solid fa-check-circle"></i> Visited</span>' : 
-                                item.proof_image ? 
-                                '<span style="color:#FF9500; font-size:12px; font-weight:600;"><i class="fa-solid fa-clock"></i> Pending Approval</span>' :
-                                `<button class="btn-primary" style="padding: 6px 12px; font-size:11px; width:auto; border-radius:100px; margin-top:8px; background:#FF9500; border:none;" onclick="window.markItemCompleted('${item.id}', this)">
-                                    <i class="fa-solid fa-check-double" style="margin-right:4px;"></i> Mark as Completed
-                                 </button>`
-                            }
-                        </div>
-                    </div>`;
-                });
-            } else {
-                html += `<p style="font-size:13px; color:#999;">No destinations in this trip.</p>`;
-            }
-                
-            html += `</div>`; // Close timeline
-
-            // Action buttons
-            html += `<div style="display:flex; gap:8px; margin-top:16px;">`;
-            
-            if (unvisitedCount === 0 && trip.items && trip.items.length > 0) {
-                html += `
-                <button class="btn-primary" style="flex:1; background:#34C759; border:none; padding:12px;" onclick="window.markTripCompleted('${trip.id}')">
-                    <i class="fa-solid fa-flag-checkered" style="margin-right:8px;"></i> Mark Trip as Completed
-                </button>`;
-            } else {
-                html += `
-                <button class="btn-primary" style="flex:1; background:transparent; border:1px solid var(--primary-color); color:var(--primary-color); padding:12px;" onclick="navigateTo('map')">
-                    <i class="fa-solid fa-plus" style="margin-right:8px;"></i> Add more destinations
-                </button>`;
-            }
-            
-            html += `</div></div>`; // Close card
-        });
-
-        list.innerHTML = html;
-    }
-
-    window.markItemCompleted = async function(itemId, btn) {
-        if (!confirm('Mark this destination as completed?')) return;
-        
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking in...';
-        btn.disabled = true;
-
-        try {
-            const data = { _method: 'PATCH', verification_method: 'test' };
-            const options = {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'ngrok-skip-browser-warning': 'true',
-                    'Authorization': 'Bearer ' + localStorage.getItem('intan_elyu_token')
-                },
-                body: JSON.stringify(data)
-            };
-
-            const response = await fetch(backendUrl + '/api/tourist/itineraries/items/' + itemId + '/visit', options);
-            const result = await response.json();
-
-            if (response.ok) {
-                showToast(result.message || "Checked In! 🌟");
-                window.fetchSavedTrips(); // Refresh the list
-            } else {
-                throw new Error(result.message || "Failed to check in");
-            }
-        } catch (error) {
-            console.error("Checkin Error:", error);
-            showToast(error.message || "Failed to check in. Check connection.");
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        }
-    };
-
-
     // Render immediately on view load
     window.renderItinerary();
-    window.fetchSavedTrips();
-    window.markTripCompleted = async function(id) {
-        if (!confirm("Are you sure you want to mark this trip as completed? It will be moved to your History.")) return;
-        
-        try {
-            const response = await fetch(backendUrl + '/api/tourist/itineraries/' + id + '/complete', {
-                method: 'PATCH',
-                headers: {
-                    'Accept': 'application/json',
-                    'ngrok-skip-browser-warning': 'true',
-                    'Authorization': 'Bearer ' + localStorage.getItem('Intan_Elyu_Token')
-                }
-            });
-            
-            const data = await response.json();
-            if (response.ok) {
-                showToast(data.message || "Trip completed!");
-                window.fetchSavedTrips(); // Refresh the list
-            } else {
-                showToast(data.message || "Failed to complete trip.");
-            }
-        } catch (error) {
-            console.error("Error completing trip:", error);
-            showToast("Network error.");
-        }
-    };
     
     // ==========================================
     // MAP & DONUT CHART LOGIC
