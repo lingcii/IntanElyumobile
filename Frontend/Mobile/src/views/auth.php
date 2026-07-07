@@ -200,7 +200,7 @@
         }
     }
 
-    let backendUrl = 'http://localhost:8000';
+    var backendUrl = 'http://localhost:8000';
 
     window.handleLogin = async function(e) {
         e.preventDefault();
@@ -293,3 +293,4 @@
         }, 400);
     }
 </script>
+

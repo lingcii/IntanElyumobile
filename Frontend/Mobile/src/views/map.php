@@ -90,7 +90,7 @@ window.getDestImage = function(dest, width = 600) {
     }
     
     if (dest.image) {
-        const backendUrl = window.backendUrl || 'http://localhost:8000';
+        var backendUrl = window.backendUrl || 'http://localhost:8000';
         if (dest.image.startsWith('http')) return dest.image;
         if (dest.image.startsWith('uploads/')) return backendUrl + '/' + dest.image;
         return backendUrl + '/storage/' + dest.image;
@@ -150,6 +150,15 @@ window.getDestImage = function(dest, width = 600) {
 
         <!-- About This Location & Tourist Guide Details -->
         <div id="sheet-desc-container" style="margin-top:16px; margin-bottom:16px; display:none; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:16px;">
+            <div id="vehicle-accessibility-warning" style="display:none; background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.2); border-radius:12px; padding:12px; margin-bottom:12px;">
+                <div style="display:flex; align-items:flex-start; gap:8px;">
+                    <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; margin-top:2px;"></i>
+                    <div>
+                        <h5 style="margin:0 0 4px 0; font-size:12px; font-weight:700; color:#ef4444; text-transform:uppercase; letter-spacing:0.5px;">Inaccessible by Private Car</h5>
+                        <p style="margin:0; font-size:11px; color:rgba(248,250,252,0.8); line-height:1.4;">Prepare to hike or use specialized local transport to reach this destination.</p>
+                    </div>
+                </div>
+            </div>
             <div id="sheet-desc-animator" style="overflow:hidden;">
                 <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
                     <div style="width:30px; height:30px; border-radius:10px; background:rgba(56,189,248,0.15); display:flex; align-items:center; justify-content:center; border:1px solid rgba(56,189,248,0.2);">
@@ -280,7 +289,7 @@ window.getDestImage = function(dest, width = 600) {
         if (!mapEl) return;
 
         // Fetch data immediately to run in parallel with MapLibre initialization
-        let backendUrl = 'http://localhost:8000';
+        var backendUrl = 'http://localhost:8000';
         const mapDataPromise = fetch(backendUrl + '/api/public/map', {
             headers: { 'ngrok-skip-browser-warning': 'true', 'Accept': 'application/json' }
         }).then(r => r.json()).catch(e => console.error("Map fetch error:", e));
@@ -393,8 +402,10 @@ window.getDestImage = function(dest, width = 600) {
                         if (pendingStr) {
                             localStorage.removeItem('intan_elyu_pending_route');
                             const place = JSON.parse(pendingStr);
-                            if (place.lat && place.lng && !isNaN(parseFloat(place.lat)) && !isNaN(parseFloat(place.lng))) {
-                                window.mapInstance.flyTo({ center: [parseFloat(place.lng), parseFloat(place.lat) - 0.02], zoom: 14 });
+                            const pLat = place.lat || place.latitude;
+                            const pLng = place.lng || place.longitude;
+                            if (pLat && pLng && !isNaN(parseFloat(pLat)) && !isNaN(parseFloat(pLng))) {
+                                window.mapInstance.flyTo({ center: [parseFloat(pLng), parseFloat(pLat) - 0.02], zoom: 14 });
                                 window.openSheet(place);
                                 setTimeout(() => {
                                     const routeBtn = document.getElementById('btn-show-route');
@@ -407,11 +418,14 @@ window.getDestImage = function(dest, width = 600) {
                         if (viewStr) {
                             localStorage.removeItem('intan_elyu_view_destination');
                             const place = JSON.parse(viewStr);
-                            if (place.lat && place.lng && !isNaN(parseFloat(place.lat)) && !isNaN(parseFloat(place.lng))) {
-                                window.mapInstance.flyTo({ center: [parseFloat(place.lng), parseFloat(place.lat) - 0.02], zoom: 14 });
+                            const pLat = place.lat || place.latitude;
+                            const pLng = place.lng || place.longitude;
+                            if (pLat && pLng && !isNaN(parseFloat(pLat)) && !isNaN(parseFloat(pLng))) {
+                                window.mapInstance.flyTo({ center: [parseFloat(pLng), parseFloat(pLat) - 0.02], zoom: 14 });
                                 window.openSheet(place);
                             }
                         }
+
                     }, 300); // Reduced delay since data is ready faster
                 }
             } catch (error) {
@@ -548,7 +562,7 @@ window.getDestImage = function(dest, width = 600) {
                         const req = await Geolocation.requestPermissions();
                         if (req.location !== 'granted') throw new Error('Permission denied by user');
                     }
-                    const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true });
+                    const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: false, maximumAge: 60000, timeout: 5000 });
                     return pos;
                 } catch (e) {
                     throw new Error("Native location error: " + e.message);
@@ -557,9 +571,9 @@ window.getDestImage = function(dest, width = 600) {
                 return new Promise((resolve, reject) => {
                     if ("geolocation" in navigator) {
                         navigator.geolocation.getCurrentPosition(
-                            (position) => resolve([position.coords.latitude, position.coords.longitude]), 
+                            (position) => resolve(position), 
                             () => reject(new Error("Location denied by browser")), 
-                            { enableHighAccuracy: true, timeout: 30000 }
+                            { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
                         );
                     } else {
                         reject(new Error("Geolocation not supported"));
@@ -648,7 +662,9 @@ window.getDestImage = function(dest, width = 600) {
                     const startLng = position.coords.longitude;
                     
                     try {
-                        const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${dest.lng},${dest.lat}?overview=full&geometries=geojson`);
+                        const dLat = dest.lat || dest.latitude;
+                        const dLng = dest.lng || dest.longitude;
+                        const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${dLng},${dLat}?overview=full&geometries=geojson`);
                         const routeData = await res.json();
                         if (routeData.code !== 'Ok' || !routeData.routes.length) throw new Error("No route");
 
@@ -801,7 +817,7 @@ window.getDestImage = function(dest, width = 600) {
         }
 
         // 2. BACKGROUND NETWORK REQUEST
-        let backendUrl = 'http://localhost:8000';
+        var backendUrl = 'http://localhost:8000';
         fetch(backendUrl + '/api/tourist/destinations/' + destId + '/favorite', {
             method: 'POST',
             credentials: 'include',
@@ -890,10 +906,17 @@ window.getDestImage = function(dest, width = 600) {
         }
         
 
-        
         const destName = locationData.name.toLowerCase();
-        
-        
+
+        const warningEl = document.getElementById('vehicle-accessibility-warning');
+        if (warningEl) {
+            if (locationData.accessible_by_private_vehicle === false || locationData.accessible_by_private_vehicle === 0) {
+                warningEl.style.display = 'block';
+            } else {
+                warningEl.style.display = 'none';
+            }
+        }
+
         let manualGuide = "From the town proper of " + (locationData.municipality || "La Union") + ", take a local tricycle heading to " + (locationData.location || "the barangay") + ". Ask the driver to drop you off at " + locationData.name + ".";
         
         document.getElementById('sheet-manual-guide').textContent = manualGuide;
@@ -905,8 +928,8 @@ window.getDestImage = function(dest, width = 600) {
             window.getDeviceLocation().then(async (pos) => {
                 const startLat = pos.coords.latitude;
                 const startLng = pos.coords.longitude;
-                const destLat = parseFloat(locationData.lat);
-                const destLng = parseFloat(locationData.lng);
+                const destLat = parseFloat(locationData.lat || locationData.latitude);
+                const destLng = parseFloat(locationData.lng || locationData.longitude);
                 try {
                     const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${destLng},${destLat}?overview=false`);
                     const routeData = await res.json();
@@ -1097,3 +1120,4 @@ window.getDestImage = function(dest, width = 600) {
     setTimeout(window.initMap, 50);
 })();
 </script>
+

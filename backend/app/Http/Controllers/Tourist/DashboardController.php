@@ -27,14 +27,14 @@ class DashboardController extends Controller
         $trending = TouristSpot::where('status', 'approved')
             ->orderByDesc('visits')
             ->limit(5)
-            ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'barangay', 'classification_status'])
+            ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'barangay', 'classification_status', 'accessible_by_private_vehicle'])
             ->map(fn($s) => $this->formatSpot($s));
 
         // Saved/Favorite places
         $favoriteIds = Favorite::where('user_id', $user->id)->pluck('tourist_spot_id');
         $savedPlaces = TouristSpot::whereIn('id', $favoriteIds)
             ->where('status', 'approved')
-            ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'barangay', 'classification_status'])
+            ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'barangay', 'classification_status', 'accessible_by_private_vehicle'])
             ->map(fn($s) => $this->formatSpot($s));
 
         // Recommendations: Near Me feature
@@ -44,7 +44,7 @@ class DashboardController extends Controller
 
         $recommendedQuery = TouristSpot::where('status', 'approved')
             ->whereNotIn('id', $favoriteIds)
-            ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'rating', 'description', 'entrance_fee', 'barangay', 'classification_status']);
+            ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'rating', 'description', 'entrance_fee', 'barangay', 'classification_status', 'accessible_by_private_vehicle']);
 
         if ($lat && $lng) {
             $recommendedQuery = $recommendedQuery->sortBy(function($spot) use ($lat, $lng) {
@@ -104,6 +104,7 @@ class DashboardController extends Controller
             'description'  => $spot->description,
             'entrance_fee' => $spot->entrance_fee,
             'classification_status' => $spot->classification_status,
+            'accessible_by_private_vehicle' => (bool)$spot->accessible_by_private_vehicle,
         ];
     }
 }

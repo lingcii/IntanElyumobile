@@ -20,7 +20,7 @@ class ItineraryController extends Controller
         $user = $request->user();
 
         $itineraries = Itinerary::where('user_id', $user->id)
-            ->with(['items.destination:id,name,photo_url,barangay,latitude,longitude,entrance_fee,classification_status'])
+            ->with(['items.destination:id,name,photo_url,barangay,latitude,longitude,entrance_fee,classification_status,accessible_by_private_vehicle'])
             ->orderByDesc('created_at')
             ->get()
             ->map(function ($itinerary) {
@@ -47,6 +47,7 @@ class ItineraryController extends Controller
                             'longitude'    => $dest->longitude,
                             'entrance_fee' => $dest->entrance_fee,
                             'classification_status' => $dest->classification_status,
+                            'accessible_by_private_vehicle' => (bool)$dest->accessible_by_private_vehicle,
                         ] : null,
                     ];
                 });

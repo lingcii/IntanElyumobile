@@ -195,7 +195,7 @@ function updateMagicNav(viewName) {
     if (!nav) return;
     
     // Hide nav on splash, auth, and setup profile screens
-    const hiddenViews = ['splash', 'auth', 'setup_profile', 'saved_trips'];
+    const hiddenViews = ['splash', 'auth', 'setup_profile', 'saved_trips', 'trip_map', 'merch'];
     if (hiddenViews.includes(viewName)) {
         nav.classList.add('hidden');
         return;
@@ -520,7 +520,7 @@ window.startLocationWatch = function() {
             });
         },
         (error) => { console.error("Location watch error:", error); },
-        { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+        { enableHighAccuracy: false, maximumAge: 10000, timeout: 5000 }
     );
 };
 
@@ -543,3 +543,4 @@ document.addEventListener('DOMContentLoaded', () => {
         window.startLocationWatch();
     }
 });
+

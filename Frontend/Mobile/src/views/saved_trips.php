@@ -6,6 +6,34 @@ $backRoute = 'itinerary';
 <!-- Include Header Component -->
 <?php include __DIR__ . '/../components/header.php'; ?>
 
+<style>
+.timeline-collapsible {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease, margin-top 0.4s ease;
+}
+.timeline-collapsible.expanded {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    margin-top: 16px;
+}
+.timeline-inner {
+    overflow: hidden;
+}
+.start-collapsible {
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease;
+    display: flex;
+}
+.start-collapsible.expanded {
+    max-width: 200px;
+    opacity: 1;
+}
+</style>
+
 <!-- Saved Trips Container -->
 <div class="saved-trips-page-container has-header animate-slide-up" style="padding-left: 20px; padding-right: 20px; padding-bottom: 20px;">
     <div id="saved-trips-list" style="margin-top: 16px;">
@@ -35,7 +63,7 @@ $backRoute = 'itinerary';
 
 <script>
 (function() {
-    let backendUrl = 'http://localhost:8000';
+    var backendUrl = 'http://localhost:8000';
 
     window.fetchSavedTrips = async function() {
         try {
@@ -91,7 +119,9 @@ $backRoute = 'itinerary';
                     ${trip.trip_date ? 'Date: ' + new Date(trip.trip_date).toLocaleDateString() : 'No date set'} 
                     ${trip.budget ? '&nbsp;&bull;&nbsp; <span style="color:var(--primary-color); font-weight:700;">Budget: ₱' + parseFloat(trip.budget).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + '</span>' + budgetIndicator : ''}
                 </p>
-                <div class="timeline" id="timeline-${trip.id}" style="margin-top:16px; display:none;">`;
+                <div class="timeline-collapsible" id="timeline-${trip.id}">
+                    <div class="timeline-inner">
+                        <div class="timeline">`;
                 
             let unvisitedCount = 0;
             if (trip.items && trip.items.length) {
@@ -108,6 +138,8 @@ $backRoute = 'itinerary';
                                 <h4 style="margin:0; font-size:15px;">${dest ? dest.name : 'Unknown Destination'}</h4>
                                 ${(dest && dest.classification_status) ? `<span style="padding: 2px 6px; border-radius: 6px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')};">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
                             </div>
+                            ${(dest && (dest.accessible_by_private_vehicle === 0 || dest.accessible_by_private_vehicle === false)) ? `<div style="background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.2); border-radius:8px; padding:8px; display:flex; gap:6px; align-items:flex-start; margin-top:4px;"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; font-size:12px; margin-top:1px;"></i><div><h5 style="margin:0 0 2px 0; font-size:11px; font-weight:700; color:#ef4444; text-transform:uppercase;">Inaccessible by Private Car</h5><p style="margin:0; font-size:10px; color:#999; line-height:1.3;">Prepare to hike or use specialized local transport.</p></div></div>` : ''}
+
                             ${isVisited ? 
                                 '<span style="color:var(--primary-color); font-size:12px; font-weight:600;"><i class="fa-solid fa-check-circle"></i> Visited</span>' : 
                                 item.proof_image ? 
@@ -123,7 +155,7 @@ $backRoute = 'itinerary';
                 html += `<p style="font-size:13px; color:#999;">No destinations in this trip.</p>`;
             }
                 
-            html += `</div>`; // Close timeline
+            html += `</div></div></div>`; // Close timeline, timeline-inner, and timeline-collapsible
 
             // Action buttons
             html += `<div style="display:flex; gap:8px; margin-top:16px;">`;
@@ -134,18 +166,20 @@ $backRoute = 'itinerary';
                 <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="margin-right:8px; transition:transform 0.3s ease;"></i> View Details
             </button>`;
 
-            // Start / Complete button
+            // Start / Complete button wrapper
+            html += `<div class="start-collapsible" id="start-wrapper-${trip.id}">`;
             if (unvisitedCount === 0 && trip.items && trip.items.length > 0) {
                 html += `
-                <button class="btn-primary" style="flex:1; background:#34C759; border:none; padding:12px;" onclick="window.markTripCompleted('${trip.id}')">
-                    <i class="fa-solid fa-flag-checkered" style="margin-right:8px;"></i> Complete
+                <button class="btn-primary" style="width:100%; white-space:nowrap; background:#34C759; border:none; padding:12px;" onclick="window.markTripCompleted('${trip.id}')">
+                    <i class="fa-solid fa-flag-checkered" style="margin-right:4px;"></i> Complete
                 </button>`;
             } else {
                 html += `
-                <button class="btn-primary" style="flex:1; background:#007AFF; border:none; padding:12px;" onclick="window.startTrip('${trip.id}')">
-                    <i class="fa-solid fa-play" style="margin-right:8px;"></i> Start
+                <button class="btn-primary" style="width:100%; white-space:nowrap; background:#007AFF; border:none; padding:12px;" onclick="window.startTrip('${trip.id}')">
+                    <i class="fa-solid fa-play" style="margin-right:4px;"></i> Start
                 </button>`;
             }
+            html += `</div>`; // Close start-collapsible
             
             html += `</div></div>`; // Close card
         });
@@ -156,21 +190,25 @@ $backRoute = 'itinerary';
     window.toggleTripDetails = function(tripId) {
         const timeline = document.getElementById('timeline-' + tripId);
         const chevron = document.getElementById('chevron-' + tripId);
+        const startWrapper = document.getElementById('start-wrapper-' + tripId);
+        
         if (timeline && chevron) {
-            if (timeline.style.display === 'none') {
-                timeline.style.display = 'block';
+            if (!timeline.classList.contains('expanded')) {
+                timeline.classList.add('expanded');
                 chevron.style.transform = 'rotate(180deg)';
+                if (startWrapper) startWrapper.classList.add('expanded');
             } else {
-                timeline.style.display = 'none';
+                timeline.classList.remove('expanded');
                 chevron.style.transform = 'rotate(0deg)';
+                if (startWrapper) startWrapper.classList.remove('expanded');
             }
         }
     };
 
     window.startTrip = function(tripId) {
-        if (typeof showToast === 'function') showToast("Starting trip...");
+        if (typeof showToast === 'function') showToast("Starting trip preview...");
         setTimeout(() => {
-            window.location.href = '?view=map&trip_id=' + tripId;
+            window.location.href = '?view=trip_map&trip_id=' + tripId;
         }, 1000);
     };
 
@@ -242,7 +280,7 @@ $backRoute = 'itinerary';
                 btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> I\'m Here — Claim Reward';
                 btn.disabled = false;
             },
-            { enableHighAccuracy: true, timeout: 10000 }
+            { enableHighAccuracy: false, timeout: 10000 }
         );
     };
 
@@ -277,3 +315,5 @@ $backRoute = 'itinerary';
 
 })();
 </script>
+
+

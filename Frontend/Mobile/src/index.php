@@ -63,6 +63,8 @@ if ($isAjax) {
     <link rel="stylesheet" href="assets/css/views/splash.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/map.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/itinerary.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/views/merch.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/views/trip_map.css?v=<?= time() ?>">
 </head>
 <body>
 

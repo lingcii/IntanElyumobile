@@ -22,6 +22,7 @@ use App\Http\Controllers\Tourist\ProfileController as TouristProfileController;
 use App\Http\Controllers\Tourist\FavoriteController;
 use App\Http\Controllers\Tourist\ItineraryController;
 use App\Http\Controllers\Tourist\ItineraryItemController;
+use App\Http\Controllers\MerchandiseController;
 use Illuminate\Support\Facades\Route;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -201,6 +202,15 @@ Route::middleware('auth.session')->group(function () {
             Route::put('/{id}',           [UserController::class, 'update']);
             Route::patch('/{id}/password',[UserController::class, 'resetPassword']);
         });
+
+        // Merchandise Management
+        Route::prefix('merch')->group(function () {
+            Route::get('/inventory',        [MerchandiseController::class, 'getAdminInventory']);
+            Route::post('/inventory',       [MerchandiseController::class, 'saveItem']);
+            Route::delete('/inventory/{id}',[MerchandiseController::class, 'deleteItem']);
+            Route::get('/reservations',     [MerchandiseController::class, 'getAdminReservations']);
+            Route::patch('/reservations/{id}/claim', [MerchandiseController::class, 'claimReservation']);
+        });
     });
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -296,4 +306,8 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     // Itinerary Items (Check-in)
     Route::patch('/itineraries/items/{id}/visit', [ItineraryItemController::class, 'visit']);
     Route::post('/itineraries/items/{id}/visit',  [ItineraryItemController::class, 'visit']);
+
+    // Merchandise
+    Route::get('/merch', [MerchandiseController::class, 'index']);
+    Route::post('/merch/reserve', [MerchandiseController::class, 'reserve']);
 });

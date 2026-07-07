@@ -71,8 +71,8 @@
     <div style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-top: max(env(safe-area-inset-top), 40px);">
         <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #fff;">Menu</h2>
     </div>
-    <div style="flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 15px;">
-        <a href="#" onclick="toggleSidebar(); showToast('Coming soon: Merch Page'); return false;" style="color: #e2e8f0; text-decoration: none; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+    <div style="flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 30px;">
+        <a href="#" onclick="toggleSidebar(); navigateTo('merch'); return false;" style="color: #e2e8f0; text-decoration: none; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
             <i class="fa-solid fa-shirt" style="color: #38bdf8; width: 20px; text-align: center;"></i> Merch Page
         </a>
         <a href="#" onclick="toggleSidebar(); showToast('Coming soon: Terms & Privacy'); return false;" style="color: #e2e8f0; text-decoration: none; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 10px;">

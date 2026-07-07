@@ -70,7 +70,7 @@ $activeTab = 'profile';
 
 
 <script>
-    const backendUrl = "http://localhost:8000";
+    var backendUrl = "http://localhost:8000";
 
     async function fetchProfileData() {
         try {
@@ -132,3 +132,4 @@ $activeTab = 'profile';
 
     fetchProfileData();
 </script>
+

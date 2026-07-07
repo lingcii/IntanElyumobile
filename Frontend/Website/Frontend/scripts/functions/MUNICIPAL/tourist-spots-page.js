@@ -443,6 +443,7 @@
         document.getElementById('spotOpeningTime').value = '';
         document.getElementById('spotClosingTime').value = '';
         if (document.getElementById('spotIsMaintenance')) document.getElementById('spotIsMaintenance').checked = false;
+        if (document.getElementById('spotAccessibleVehicle')) document.getElementById('spotAccessibleVehicle').checked = true;
         if (window.setOperatingStatus) window.setOperatingStatus('open');
         if (window.setMaintenanceStatus) window.setMaintenanceStatus(false);
         // Hide Under Maintenance — not applicable when adding a new spot
@@ -487,6 +488,9 @@
             document.getElementById('spotClosingTime').value = spot.closing_time || '';
             if (document.getElementById('spotIsMaintenance')) {
                 document.getElementById('spotIsMaintenance').checked = !!spot.is_maintenance;
+            }
+            if (document.getElementById('spotAccessibleVehicle')) {
+                document.getElementById('spotAccessibleVehicle').checked = spot.accessible_by_private_vehicle !== false && spot.accessible_by_private_vehicle !== 0;
             }
             if (window.setMaintenanceStatus) window.setMaintenanceStatus(spot.is_maintenance);
             if (window.setOperatingStatus) {
@@ -905,6 +909,7 @@
         const openingTime = document.getElementById('spotOpeningTime').value || null;
         const closingTime = document.getElementById('spotClosingTime').value || null;
         const isMaintenance = document.getElementById('spotIsMaintenance') ? (document.getElementById('spotIsMaintenance').checked ? 1 : 0) : currentMaintenanceStatus;
+        const accessibleByPrivateVehicle = document.getElementById('spotAccessibleVehicle') ? (document.getElementById('spotAccessibleVehicle').checked ? 1 : 0) : 1;
 
         if (!name || !category || !classificationStatus || !desc) {
             alert('Please fill in all required fields');
@@ -913,7 +918,7 @@
 
         pendingSaveData = {
             spotId, name, category, classificationStatus, fee, lat, lng, barangay,
-            desc, images, openingTime, closingTime, isMaintenance
+            desc, images, openingTime, closingTime, isMaintenance, accessibleByPrivateVehicle
         };
 
         document.getElementById('saveConfirmModal').classList.add('active');
@@ -927,7 +932,7 @@
     window.confirmSaveSpot = async function () {
         if (!pendingSaveData) return;
 
-        const { spotId, name, category, classificationStatus, fee, lat, lng, barangay, desc, images, openingTime, closingTime, isMaintenance } = pendingSaveData;
+        const { spotId, name, category, classificationStatus, fee, lat, lng, barangay, desc, images, openingTime, closingTime, isMaintenance, accessibleByPrivateVehicle } = pendingSaveData;
 
         try {
             if (spotId) {
@@ -944,7 +949,8 @@
                     barangay: barangay,
                     opening_time: openingTime,
                     closing_time: closingTime,
-                    is_maintenance: isMaintenance
+                    is_maintenance: isMaintenance,
+                    accessible_by_private_vehicle: accessibleByPrivateVehicle
                 });
                 sessionStorage.setItem('save_success_toast', '✅ Spot updated successfully!');
             } else {
@@ -960,7 +966,8 @@
                     barangay: barangay,
                     opening_time: openingTime,
                     closing_time: closingTime,
-                    is_maintenance: isMaintenance
+                    is_maintenance: isMaintenance,
+                    accessible_by_private_vehicle: accessibleByPrivateVehicle
                 });
                 sessionStorage.setItem('save_success_toast', '✅ Spot created successfully!');
             }

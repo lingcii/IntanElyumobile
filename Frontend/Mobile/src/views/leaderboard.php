@@ -66,7 +66,7 @@ $activeTab = 'leaderboard';
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
         const headers = { 'Accept': 'application/json' };
         
-        const backendUrl = window.backendUrl || 'http://localhost:8000';
+        var backendUrl = window.backendUrl || 'http://localhost:8000';
         let url = backendUrl + '/api/public/leaderboard';
         if (token) {
             headers['Authorization'] = 'Bearer ' + token;
@@ -177,4 +177,5 @@ $activeTab = 'leaderboard';
 </script>
 
 <!-- Include Bottom Navigation Component -->
+
 

@@ -57,7 +57,7 @@ class MapController extends Controller
                 ->with('municipality:id,name')
                 ->get(['id', 'name', 'category', 'municipality_id', 'barangay', 'latitude', 'longitude',
                        'entrance_fee', 'photo_url', 'description', 'opening_time', 'closing_time',
-                       'is_maintenance', 'rating', 'visits', 'classification_status'])
+                       'is_maintenance', 'rating', 'visits', 'classification_status', 'accessible_by_private_vehicle'])
                 ->map(function ($spot) {
                     $imageUrl = null;
                     if ($spot->photo_url) {
@@ -82,6 +82,7 @@ class MapController extends Controller
                         'rating'                => $spot->rating,
                         'visits'                => $spot->visits,
                         'classification_status' => $spot->classification_status,
+                        'accessible_by_private_vehicle' => (bool)$spot->accessible_by_private_vehicle,
                     ];
                 })->values()->toArray();  // toArray() stores a plain array in cache — safe to serialize
         });

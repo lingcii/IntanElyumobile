@@ -293,7 +293,7 @@ $activeTab = 'itinerary';
 
 <script>
 (function() {
-    const backendUrl = "http://localhost:8000";
+    var backendUrl = "http://localhost:8000";
 
     window.renderItinerary = function() {
         const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
@@ -975,5 +975,6 @@ $activeTab = 'itinerary';
 
 })();
 </script>
+
 
 

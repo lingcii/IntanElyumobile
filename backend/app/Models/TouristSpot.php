@@ -24,6 +24,7 @@ class TouristSpot extends Model
         'is_maintenance',
         'status',
         'classification_status',
+        'accessible_by_private_vehicle',
         'visits',
         'rating',
     ];
@@ -33,6 +34,7 @@ class TouristSpot extends Model
         'latitude'       => 'float',
         'longitude'      => 'float',
         'is_maintenance' => 'boolean',
+        'accessible_by_private_vehicle' => 'boolean',
         'visits'         => 'integer',
         'rating'         => 'float',
     ];

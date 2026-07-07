@@ -84,4 +84,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Itinerary::class);
     }
+
+    public function merchReservations()
+    {
+        return $this->hasMany(MerchReservation::class, 'user_id');
+    }
 }

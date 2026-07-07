@@ -296,6 +296,15 @@ ob_start();
                                 <option value="POTENTIAL">POTENTIAL</option>
                             </select>
                         </div>
+
+                        <div class="sfm-field">
+                            <label class="sfm-maintenance-toggle" style="background:#F0FDF4; border-color:#BBF7D0; color:#166534;">
+                                <input type="checkbox" id="spotAccessibleVehicle" checked>
+                                <span class="sfm-maintenance-icon" style="color:#16A34A; background:#DCFCE7;"><i class="fas fa-car"></i></span>
+                                <span class="sfm-maintenance-text">Accessible by Private Vehicle</span>
+                                <span class="sfm-maintenance-hint" style="color:#15803D;">Uncheck if roads are too rough or narrow for standard cars</span>
+                            </label>
+                        </div>
                     </div>
 
                     <div class="sfm-section">

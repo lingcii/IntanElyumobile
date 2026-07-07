@@ -76,7 +76,7 @@ class TouristSpotController extends Controller
         $query = TouristSpot::select([
             'id', 'name', 'municipality_id', 'barangay', 'category', 'entrance_fee',
             'status', 'photo_url', 'latitude', 'longitude', 'opening_time',
-            'closing_time', 'is_maintenance', 'classification_status', 'visits', 'rating', 'created_at'
+            'closing_time', 'is_maintenance', 'accessible_by_private_vehicle', 'classification_status', 'visits', 'rating', 'created_at'
         ])->with(['municipality:id,name', 'images']);
 
         // Municipal users only see their own municipality's spots
@@ -162,6 +162,7 @@ class TouristSpotController extends Controller
             'opening_time'          => 'nullable|string',
             'closing_time'          => 'nullable|string',
             'is_maintenance'        => 'nullable|boolean',
+            'accessible_by_private_vehicle' => 'nullable|boolean',
             'images'                => 'nullable|array',
         ]);
 
@@ -202,6 +203,7 @@ class TouristSpotController extends Controller
                 'opening_time'          => $data['opening_time']  ?? null,
                 'closing_time'          => $data['closing_time']  ?? null,
                 'is_maintenance'        => $data['is_maintenance'] ?? false,
+                'accessible_by_private_vehicle' => $data['accessible_by_private_vehicle'] ?? true,
                 'status'                => 'approved',
                 'classification_status' => $data['classification_status'],
             ];
@@ -243,6 +245,7 @@ class TouristSpotController extends Controller
             'opening_time'          => 'nullable|string',
             'closing_time'          => 'nullable|string',
             'is_maintenance'        => 'nullable|boolean',
+            'accessible_by_private_vehicle' => 'nullable|boolean',
             'images'                => 'nullable|array',
         ]);
 
@@ -280,6 +283,7 @@ class TouristSpotController extends Controller
                 'opening_time'          => $data['opening_time']  ?? null,
                 'closing_time'          => $data['closing_time']  ?? null,
                 'is_maintenance'        => $data['is_maintenance'] ?? false,
+                'accessible_by_private_vehicle' => $data['accessible_by_private_vehicle'] ?? true,
                 'classification_status' => $data['classification_status'],
             ];
 

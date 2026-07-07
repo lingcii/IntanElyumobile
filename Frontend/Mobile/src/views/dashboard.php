@@ -213,7 +213,7 @@ window.getDestImage = function(dest, width = 600) {
     }
     
     if (dest.image) {
-        const backendUrl = window.backendUrl || 'http://localhost:8000';
+        var backendUrl = window.backendUrl || 'http://localhost:8000';
         if (dest.image.startsWith('http')) return dest.image;
         if (dest.image.startsWith('uploads/')) return backendUrl + '/' + dest.image;
         return backendUrl + '/storage/' + dest.image;
@@ -225,7 +225,7 @@ window.getDestImage = function(dest, width = 600) {
     const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
     const setSrc = (id, src) => { const el = document.getElementById(id); if (el) el.src = src; };
 
-    let backendUrl = 'http://localhost:8000';
+    var backendUrl = 'http://localhost:8000';
     const token = localStorage.getItem('intan_elyu_token');
     const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
 
@@ -241,12 +241,20 @@ window.getDestImage = function(dest, width = 600) {
     try {
         if ("geolocation" in navigator) {
             const pos = await new Promise((res, rej) => {
-                navigator.geolocation.getCurrentPosition(res, rej, { timeout: 3000 });
+                // Use cached location (maximumAge: 1 hour) and give it 5s instead of 3s
+                navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: false, timeout: 5000, maximumAge: 3600000 });
             });
-            lat = pos.coords.latitude;
-            lng = pos.coords.longitude;
+            if (pos && pos.coords) {
+                lat = pos.coords.latitude;
+                lng = pos.coords.longitude;
+            }
         }
-    } catch(e) { console.warn("Location not available for dashboard", e); }
+    } catch(e) {
+        // Suppress timeout error (code 3) as it is a safe fallback scenario
+        if (e && e.code !== 3) {
+            console.log("Location access issue (handled):", e.message);
+        }
+    }
 
     let apiUrl = backendUrl + '/api/tourist/dashboard';
     if (lat && lng) apiUrl += `?lat=${lat}&lng=${lng}`;
@@ -530,7 +538,7 @@ window.getDestImage = function(dest, width = 600) {
 
 window.toggleFavorite = function(destId, element) {
     const token = localStorage.getItem('intan_elyu_token');
-    let backendUrl = 'http://localhost:8000';
+    var backendUrl = 'http://localhost:8000';
     
     const card = element.closest('.fav-card');
     const isSavedContainer = card && card.parentElement && card.parentElement.id === 'saved-places-container';
@@ -751,3 +759,4 @@ window.toggleRecommendedMore = function() {
     }, 500);
 
 </script>
+
