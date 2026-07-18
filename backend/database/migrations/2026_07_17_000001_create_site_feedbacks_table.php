@@ -9,8 +9,8 @@ return new class extends Migration
     {
         Schema::create('site_feedbacks', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('user_id');
-            $table->unsignedInteger('tourist_spot_id')->nullable(); // null = general policy recommendation
+            $table->integer('user_id');
+            $table->integer('tourist_spot_id')->nullable(); // null = general policy recommendation
             $table->integer('rating')->nullable();
             $table->text('testimony')->nullable();
             $table->text('policy_recommendation')->nullable();

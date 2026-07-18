@@ -9,7 +9,7 @@ return new class extends Migration
     {
         Schema::create('point_redemptions', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('user_id');
+            $table->integer('user_id');
             $table->string('type'); // pasalubong_discount, environmental_fee
             $table->integer('points_cost');
             $table->string('voucher_code')->unique();
