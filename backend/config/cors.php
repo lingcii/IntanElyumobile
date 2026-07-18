@@ -42,7 +42,7 @@ return [
         'http://localhost:4000', // Admin Website
         
         // Auto-Injected Cloudflare URL
-        'https://notre-landing-telephone-frost.trycloudflare.com',
+        'https://dummy-frontend-tunnel.trycloudflare.com',
 
         // Cloudflare tunnel (remote access / staging)
         'https://boc-cornell-rolled-delicious.trycloudflare.com',

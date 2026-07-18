@@ -176,7 +176,7 @@
         if (!token) return;
 
         try {
-            const backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
+            const backendUrl = window.backendUrl || 'https://intanelyumobile-production.up.railway.app';
             const res = await fetch(backendUrl + '/api/tourist/notifications', {
                 credentials: 'include',
                 headers: {
@@ -249,7 +249,7 @@
         const token = localStorage.getItem('intan_elyu_token');
         if (!token) return;
         try {
-            const backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
+            const backendUrl = window.backendUrl || 'https://intanelyumobile-production.up.railway.app';
             await fetch(backendUrl + '/api/tourist/notifications/' + id + '/read', {
                 method: 'POST',
                 headers: {
@@ -273,7 +273,7 @@
         const token = localStorage.getItem('intan_elyu_token');
         if (!token) return;
         try {
-            const backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
+            const backendUrl = window.backendUrl || 'https://intanelyumobile-production.up.railway.app';
             await fetch(backendUrl + '/api/tourist/notifications/read-all', {
                 method: 'POST',
                 headers: {

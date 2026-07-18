@@ -101,7 +101,7 @@ $pageTitle = 'Settings';
         if (!token) return;
         
         try {
-            const backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
+            const backendUrl = window.backendUrl || 'https://intanelyumobile-production.up.railway.app';
             const res = await fetch(backendUrl + '/api/tourist/profile', {
                 method: 'POST',
                 headers: {

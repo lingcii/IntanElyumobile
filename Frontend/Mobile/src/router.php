@@ -2,7 +2,7 @@
 $uri = $_SERVER['REQUEST_URI'];
 $path = parse_url($uri, PHP_URL_PATH);
 
-$backendUrl = 'https://intanelyu-production.up.railway.app';
+$backendUrl = 'https://intanelyumobile-production.up.railway.app';
 $cacheDir = __DIR__ . '/assets/img/upload_image';
 
 function serveCachedImage($cachePath) {

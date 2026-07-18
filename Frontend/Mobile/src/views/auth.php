@@ -209,7 +209,7 @@
         }
     }
 
-    var backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
+    var backendUrl = window.backendUrl || 'https://intanelyumobile-production.up.railway.app';
 
     window.handleLogin = async function(e) {
         e.preventDefault();

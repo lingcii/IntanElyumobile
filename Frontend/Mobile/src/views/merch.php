@@ -42,7 +42,7 @@ $backRoute = 'dashboard';
 
 <script>
 (function() {
-    let backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
+    let backendUrl = window.backendUrl || 'https://intanelyumobile-production.up.railway.app';
     let allMerch = [];
 
     async function fetchMerchData(forceRefresh = false) {

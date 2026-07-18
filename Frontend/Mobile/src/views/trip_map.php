@@ -81,7 +81,7 @@ require_once __DIR__ . '/../components/header.php';
 
 <script>
 (function() {
-    var backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
+    var backendUrl = window.backendUrl || 'https://intanelyumobile-production.up.railway.app';
     var tripMap;
 
     function initTripMap() {

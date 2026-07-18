@@ -111,7 +111,7 @@ $activeTab = 'profile';
 
 
 <script>
-    var backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
+    var backendUrl = window.backendUrl || 'https://intanelyumobile-production.up.railway.app';
 
     async function fetchProfileData() {
         const token = localStorage.getItem('intan_elyu_token');

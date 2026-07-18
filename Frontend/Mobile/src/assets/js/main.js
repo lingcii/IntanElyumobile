@@ -603,7 +603,7 @@ document.addEventListener('error', function (e) {
  */
 window.getDestImage = function (dest, width) {
     if (!width) width = 600;
-    var backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
+    var backendUrl = window.backendUrl || 'https://intanelyumobile-production.up.railway.app';
 
     // Phase 1: Try local filesystem images (AVAILABLE_MUNI_IMAGES)
     if (window.AVAILABLE_MUNI_IMAGES && dest && dest.name) {

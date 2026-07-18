@@ -34,7 +34,7 @@ if (is_dir($imgDir)) {
 
 <script>
 (function() {
-    var backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
+    var backendUrl = window.backendUrl || 'https://intanelyumobile-production.up.railway.app';
 
     window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
 

@@ -324,7 +324,7 @@ $activeTab = 'itinerary';
 </div>
 <script>
 (function() {
-    var backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
+    var backendUrl = window.backendUrl || 'https://intanelyumobile-production.up.railway.app';
 
     // ---- Custom confirm modal (replaces native confirm) ----
     window.showConfirmModal = function(msg) {

@@ -38,13 +38,13 @@ async function run() {
     const isRailway = process.argv.includes('railway') || process.argv.includes('--railway');
     
     if (isRailway) {
-        console.log('=> Targeting Deployed Railway Backend: https://intanelyu-production.up.railway.app');
+        console.log('=> Targeting Deployed Railway Backend: https://intanelyumobile-production.up.railway.app');
     } else {
         console.log('Waiting for Cloudflare tunnels to establish...');
     }
 
     let frontendUrl = null;
-    let backendUrl = isRailway ? 'https://intanelyu-production.up.railway.app' : null;
+    let backendUrl = isRailway ? 'https://intanelyumobile-production.up.railway.app' : null;
     const maxWait = 30000;
     const start = Date.now();
 

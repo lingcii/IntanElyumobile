@@ -172,7 +172,7 @@ if (is_dir($imgDir)) {
     const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
     const setSrc = (id, src) => { const el = document.getElementById(id); if (el) el.src = src; };
 
-    var backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
+    var backendUrl = window.backendUrl || 'https://intanelyumobile-production.up.railway.app';
     const token = localStorage.getItem('intan_elyu_token');
     const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
 
@@ -605,7 +605,7 @@ if (is_dir($imgDir)) {
 
 window.toggleFavorite = function(destId, element) {
     const token = localStorage.getItem('intan_elyu_token');
-    var backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
+    var backendUrl = window.backendUrl || 'https://intanelyumobile-production.up.railway.app';
     
     const card = element.closest('.fav-card');
     const isSavedContainer = card && card.parentElement && card.parentElement.id === 'saved-places-container';
@@ -752,7 +752,7 @@ window.toggleRecommendedMore = function() {
                 if (!allDestinationsForSearch && !isFetching) {
                     isFetching = true;
                     try {
-                        const backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
+                        const backendUrl = window.backendUrl || 'https://intanelyumobile-production.up.railway.app';
                         const res = await fetch(backendUrl + '/api/public/map');
                         const data = await res.json();
                         allDestinationsForSearch = data.destinations || [];

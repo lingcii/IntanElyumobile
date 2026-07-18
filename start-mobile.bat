@@ -53,7 +53,7 @@ del "%TEMP%\cf-backend.log" 2>nul
 echo ----------------------------------------------------------
 echo Select Backend Target:
 echo [1] Local Backend (via Cloudflare Tunnel)
-echo [2] Deployed Railway Backend (https://intanelyu-production.up.railway.app)
+echo [2] Deployed Railway Backend (https://intanelyumobile-production.up.railway.app)
 echo ----------------------------------------------------------
 set /p TARGET="Choose target (1 or 2, default is 1): "
 

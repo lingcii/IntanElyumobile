@@ -69,7 +69,7 @@ $backRoute = 'itinerary';
 
 <script>
 (function() {
-    var backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
+    var backendUrl = window.backendUrl || 'https://intanelyumobile-production.up.railway.app';
 
     window.fetchSavedTrips = async function(forceRefresh = false) {
         const token = localStorage.getItem('intan_elyu_token');

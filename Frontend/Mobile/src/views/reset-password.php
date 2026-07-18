@@ -47,7 +47,7 @@
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
     const email = params.get('email');
-    const backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
+    const backendUrl = window.backendUrl || 'https://intanelyumobile-production.up.railway.app';
 
     if (!token || !email) {
         if (typeof showToast === 'function') showToast('Invalid or missing password reset token.');

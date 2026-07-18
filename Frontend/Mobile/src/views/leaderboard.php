@@ -66,7 +66,7 @@ $activeTab = 'leaderboard';
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
         const headers = { 'Accept': 'application/json' };
         
-        var backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
+        var backendUrl = window.backendUrl || 'https://intanelyumobile-production.up.railway.app';
         let url = backendUrl + '/api/public/leaderboard';
         if (token) {
             headers['Authorization'] = 'Bearer ' + token;
