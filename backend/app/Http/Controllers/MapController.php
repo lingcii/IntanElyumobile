@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FareGuide;
+use App\Models\FareMatrix;
 use App\Models\Municipality;
 use App\Models\TouristSpot;
 use Illuminate\Http\JsonResponse;
@@ -9,43 +11,6 @@ use Illuminate\Http\Request;
 
 class MapController extends Controller
 {
-    /**
-     * GET /api/lupto/map
-     * Returns all municipalities with coordinates for LUPTO dashboard map.
-     */
-    public function luptoMapData(): JsonResponse
-    {
-        $municipalities = \Illuminate\Support\Facades\Cache::remember('map:lupto:municipalities', 3600, function () {
-            return Municipality::select('id', 'name', 'latitude', 'longitude', 'attraction_count')
-                ->orderBy('name')
-                ->get();
-        });
-
-        return response()->json(['municipalities' => $municipalities]);
-    }
-
-    /**
-     * GET /api/municipal/map
-     * Returns municipality info + tourist spots for the user's municipality.
-     */
-    public function municipalityData(Request $request): JsonResponse
-    {
-        $municipalityId = (int) $request->session()->get('user_municipality_id', 0);
-        $cacheKey = "map:muni:{$municipalityId}";
-
-        $payload = \Illuminate\Support\Facades\Cache::remember($cacheKey, 60, function () use ($municipalityId) {
-            $municipality = Municipality::find($municipalityId);
-            $spots        = TouristSpot::where('municipality_id', $municipalityId)
-                ->with('municipality:id,name')
-                ->latest()
-                ->get();
-
-            return ['municipality' => $municipality, 'spots' => $spots];
-        });
-
-        return response()->json($payload);
-    }
-
     /**
      * GET /api/public/map
      * Returns all approved tourist spots for the mobile map view (no auth required).
@@ -55,26 +20,24 @@ class MapController extends Controller
         $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots', 300, function () {
             return TouristSpot::where('status', 'approved')
                 ->with('municipality:id,name')
-                ->get(['id', 'name', 'category', 'municipality_id', 'barangay', 'latitude', 'longitude',
+                ->with('images')
+                ->get(['id', 'name', 'category', 'municipality_id', 'latitude', 'longitude',
                        'entrance_fee', 'photo_url', 'description', 'opening_time', 'closing_time',
-                       'is_maintenance', 'rating', 'visits', 'classification_status', 'accessible_by_private_vehicle'])
+                       'is_maintenance', 'rating', 'visits', 'classification_status'])
                 ->map(function ($spot) {
-                    $imageUrl = null;
-                    if ($spot->photo_url) {
-                        $imageUrl = str_starts_with($spot->photo_url, 'http')
-                            ? $spot->photo_url
-                            : rtrim(env('APP_URL', 'http://127.0.0.1:8000'), '/') . '/storage/' . $spot->photo_url;
+                    $imageUrl = $spot->photo_url;
+                    if (!$imageUrl && $spot->images->isNotEmpty()) {
+                        $imageUrl = $spot->images->first()->photo_url;
                     }
                     return [
                         'id'                    => $spot->id,
                         'name'                  => $spot->name,
                         'category'              => $spot->category,
                         'municipality'          => $spot->municipality?->name,
-                        'location'              => $spot->barangay,
                         'lat'                   => $spot->latitude,
                         'lng'                   => $spot->longitude,
                         'entrance_fee'          => $spot->entrance_fee,
-                        'image'                 => $imageUrl,
+                        'photo_url'             => $imageUrl,
                         'description'           => $spot->description,
                         'opening_time'          => $spot->opening_time,
                         'closing_time'          => $spot->closing_time,
@@ -82,11 +45,78 @@ class MapController extends Controller
                         'rating'                => $spot->rating,
                         'visits'                => $spot->visits,
                         'classification_status' => $spot->classification_status,
-                        'accessible_by_private_vehicle' => (bool)$spot->accessible_by_private_vehicle,
                     ];
                 })->values()->toArray();  // toArray() stores a plain array in cache — safe to serialize
         });
 
         return response()->json(['destinations' => $spots]);
+    }
+
+    /**
+     * GET /api/public/municipalities
+     * Returns all municipalities with their tourist spot counts for zone overlays.
+     */
+    public function publicMunicipalities(): JsonResponse
+    {
+        $municipalities = \Illuminate\Support\Facades\Cache::remember('map:public:municipalities', 300, function () {
+            return Municipality::withCount(['touristSpots' => function ($q) {
+                $q->where('status', 'approved');
+            }])
+            ->get(['id', 'name', 'latitude', 'longitude'])
+            ->map(function ($m) {
+                return [
+                    'id'         => $m->id,
+                    'name'       => $m->name,
+                    'lat'        => $m->latitude,
+                    'lng'        => $m->longitude,
+                    'spot_count' => $m->tourist_spots_count ?? 0,
+                ];
+            })->values()->toArray();
+        });
+
+        return response()->json(['municipalities' => $municipalities]);
+    }
+
+    /**
+     * GET /api/public/fares
+     * Returns latest active fare rates per vehicle type for the mobile app.
+     */
+    public function publicFares(): JsonResponse
+    {
+        $cacheKey = 'map:public:fares';
+
+        $fares = \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function () {
+            $vehicleMap = [
+                'Tricycle'    => 'tricycle',
+                'PUJ_Ordinary'=> 'jeepney',
+                'PUB_Ordinary'=> 'lutrampco',
+                'PUJ_Aircon'  => 'mini_bus',
+                'PUB_Aircon'  => 'private_bus',
+                'Van'         => 'van',
+            ];
+
+            $result = [];
+
+            foreach ($vehicleMap as $dbType => $frontendType) {
+                $guide = FareGuide::where('vehicle_type', $dbType)
+                    ->where('status', 'active')
+                    ->latest('effective_date')
+                    ->first();
+
+                if ($guide) {
+                    $matrices = FareMatrix::where('fare_guide_id', $guide->id)
+                        ->orderBy('distance_km')
+                        ->get(['distance_km', 'regular_fare', 'discounted_fare']);
+                    $result[$frontendType] = [
+                        'title'    => $guide->title,
+                        'rates'    => $matrices,
+                    ];
+                }
+            }
+
+            return $result;
+        });
+
+        return response()->json(['success' => true, 'fares' => $fares]);
     }
 }

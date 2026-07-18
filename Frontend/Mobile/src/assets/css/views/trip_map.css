@@ -8,14 +8,14 @@
 
 .map-container { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; overflow: hidden; }
 
-#tourist-map { width: 100%; height: 100%; background-color: #F2F2F7; }
+#tourist-map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; background-color: #F2F2F7; }
 
 /* ── Floating Search Bar ── */
 .map-floating-header {
     position: absolute;
     top: env(safe-area-inset-top, 20px);
     left: 16px; right: 16px;
-    z-index: 1000;
+    z-index: 900;
     margin-top: 20px;
 }
 
@@ -97,15 +97,14 @@
     position: absolute;
     bottom: 90px;
     left: 12px; right: 12px;
-    z-index: 1000;
+    z-index: 990;
     background: radial-gradient(circle at 50% 30%, rgba(45, 100, 170, 0.95) 0%, rgba(20, 40, 90, 0.96) 50%, rgba(15, 23, 42, 0.98) 100%);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow:
         0 -4px 60px rgba(0, 0, 0, 0.5),
-        0 0 0 1px rgba(56, 189, 248, 0.06),
-        inset 0 1px 0 rgba(255,255,255,0.06);
+        0 0 0 1px rgba(56, 189, 248, 0.06);
     border-radius: 28px;
     padding: 20px 20px 16px;
     transform: translateY(1000px);
@@ -289,11 +288,11 @@
     transition: all 0.2s !important;
 }
 
-.btn-locate-me { position: absolute; bottom: calc(220px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 18px; z-index: 1000; cursor: pointer; }
+.btn-locate-me { position: absolute; bottom: calc(220px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 18px; z-index: 900; cursor: pointer; }
 .btn-locate-me:active { transform: scale(0.9) !important; background: rgba(56,189,248,0.25) !important; }
 
 /* ── MapLibre Controls ── */
-.maplibregl-ctrl-bottom-right { bottom: calc(100px + env(safe-area-inset-bottom)) !important; right: 10px !important; margin: 0 !important; }
+.maplibregl-ctrl-bottom-right { bottom: calc(100px + env(safe-area-inset-bottom)) !important; right: 10px !important; margin: 0 !important; z-index: 900 !important; }
 
 .maplibregl-ctrl-group {
     background: rgba(30, 58, 138, 0.95) !important;

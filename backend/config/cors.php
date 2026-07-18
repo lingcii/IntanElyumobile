@@ -33,12 +33,24 @@ return [
         // Generic localhost (no port) — kept for compatibility
         'http://localhost',
         'http://127.0.0.1',
+        'capacitor://localhost',
+        'https://localhost',
+
+        // Auto-Injected Backend URL
+        'https://equipped-cedar-waterproof-cluster.trycloudflare.com',
+        'http://localhost:3000', // Mobile Frontend
+        'http://localhost:4000', // Admin Website
+        
+        // Auto-Injected Cloudflare URL
+        'https://notre-landing-telephone-frost.trycloudflare.com',
 
         // Cloudflare tunnel (remote access / staging)
         'https://boc-cornell-rolled-delicious.trycloudflare.com',
     ],
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => [
+        '#^https?://[a-zA-Z0-9-]+\.trycloudflare\.com$#',
+    ],
 
     'allowed_headers' => ['*'],
 

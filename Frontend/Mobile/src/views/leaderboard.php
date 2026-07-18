@@ -66,45 +66,56 @@ $activeTab = 'leaderboard';
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
         const headers = { 'Accept': 'application/json' };
         
-        var backendUrl = window.backendUrl || 'http://localhost:8000';
+        var backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
         let url = backendUrl + '/api/public/leaderboard';
         if (token) {
             headers['Authorization'] = 'Bearer ' + token;
             url = backendUrl + '/api/tourist/leaderboard';
         }
 
-        const res = await fetch(url, { headers });
-        if (!res.ok) throw new Error("Failed to fetch leaderboard");
-        const data = await res.json();
-        
-        const leaders = data.users || data.leaders || [];
-        const myRank = data.myRank || 999;
-        const me = data.me || null;
+        const cacheKey = 'leaderboard_data_' + (token ? token.substring(0, 10) : 'public');
 
-        // Render Podium
-        let podiumHTML = '';
-        if (leaders[1]) podiumHTML += generatePodiumPlace(leaders[1], 2);
-        if (leaders[0]) podiumHTML += generatePodiumPlace(leaders[0], 1);
-        if (leaders[2]) podiumHTML += generatePodiumPlace(leaders[2], 3);
-        podiumContainer.innerHTML = podiumHTML;
+        await window.useCache(
+            cacheKey,
+            async () => {
+                const res = await fetch(url, { headers: { ...headers } });
+                if (!res.ok) throw new Error("Failed to fetch leaderboard");
+                return await res.json();
+            },
+            (data) => {
+                if (!data) return;
+                const leaders = data.users || data.leaders || [];
+                const myRank = data.myRank || 999;
+                const me = data.me || null;
 
-        // Render Rank List (Ranks 4-20)
-        let rankListHTML = '';
-        if (leaders.length === 0) {
-            rankListHTML = '<div style="text-align:center; padding: 20px; color: var(--text-muted); font-size: 14px;">No explorers found yet. Start exploring to claim the #1 spot!</div>';
-        } else {
-            for (let i = 3; i < leaders.length; i++) {
-                const user = leaders[i];
-                const isMe = me && user.id === me.id;
-                rankListHTML += generateRankItem(user, i + 1, isMe);
-            }
-        }
+                // Render Podium
+                let podiumHTML = '';
+                if (leaders[1]) podiumHTML += generatePodiumPlace(leaders[1], 2);
+                if (leaders[0]) podiumHTML += generatePodiumPlace(leaders[0], 1);
+                if (leaders[2]) podiumHTML += generatePodiumPlace(leaders[2], 3);
+                if (podiumContainer) podiumContainer.innerHTML = podiumHTML;
 
-        if (me && myRank > 20) {
-            rankListHTML += generateRankItem(me, myRank, true);
-        }
+                // Render Rank List (Ranks 4-20)
+                let rankListHTML = '';
+                if (leaders.length === 0) {
+                    rankListHTML = '<div style="text-align:center; padding: 20px; color: var(--text-muted); font-size: 14px;">No explorers found yet. Start exploring to claim the #1 spot!</div>';
+                } else {
+                    for (let i = 3; i < Math.min(leaders.length, 10); i++) {
+                        const user = leaders[i];
+                        const isMe = me && user.id === me.id;
+                        rankListHTML += generateRankItem(user, i + 1, isMe);
+                    }
+                }
 
-        rankListContainer.innerHTML = rankListHTML;
+                if (me && myRank > 20) {
+                    rankListHTML += generateRankItem(me, myRank, true);
+                }
+
+                if (rankListContainer) rankListContainer.innerHTML = rankListHTML;
+            },
+            false,
+            60000 // 1 minute TTL
+        );
 
     } catch(e) {
         console.error("Leaderboard error:", e);
@@ -113,7 +124,7 @@ $activeTab = 'leaderboard';
 
     function generatePodiumPlace(user, rank) {
         const idToUse = user.user_id || user.id;
-        const displayName = `Explorer #${idToUse}`;
+        const displayName = user.full_name || user.name || `Explorer #${idToUse}`;
         const avatarUrl = user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random&color=fff`;
         const crown = rank === 1 ? `<div style="position:absolute; top:-35px; left:50%; width:30px; height:30px; margin-left:-15px; text-align:center; animation: pulseCrown 2s infinite; z-index:10;"><i class="fa-solid fa-crown" style="color:#FFD700; font-size:24px;"></i></div>` : '';
         
@@ -136,7 +147,7 @@ $activeTab = 'leaderboard';
 
     function generateRankItem(user, rank, isMe) {
         const idToUse = user.user_id || user.id;
-        const displayName = `Explorer #${idToUse}`;
+        const displayName = user.full_name || user.name || `Explorer #${idToUse}`;
         const avatarUrl = user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random&color=fff`;
         const activeClass = isMe ? 'is-me' : '';
         const youTag = isMe ? `<span style="font-size:10px; background:var(--primary-color); color:white; padding:2px 6px; border-radius:10px; margin-left:6px; vertical-align:middle;">You</span>` : '';

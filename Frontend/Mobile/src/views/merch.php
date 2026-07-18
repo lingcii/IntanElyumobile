@@ -42,30 +42,39 @@ $backRoute = 'dashboard';
 
 <script>
 (function() {
-    let backendUrl = window.backendUrl || 'http://localhost:8000';
+    let backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
     let allMerch = [];
 
-    async function fetchMerchData() {
-        try {
-            const response = await fetch(backendUrl + '/api/tourist/merch', {
-                headers: {
-                    'Accept': 'application/json',
-                    'ngrok-skip-browser-warning': 'true',
-                    'Authorization': 'Bearer ' + localStorage.getItem('intan_elyu_token')
-                }
-            });
-            
-            if (response.ok) {
+    async function fetchMerchData(forceRefresh = false) {
+        const token = localStorage.getItem('intan_elyu_token');
+        if (!token) return;
+
+        const cacheKey = 'merch_data_' + token.substring(0, 10);
+
+        await window.useCache(
+            cacheKey,
+            async () => {
+                const response = await fetch(backendUrl + '/api/tourist/merch', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                if (!response.ok) throw new Error("Failed to fetch merch");
                 const result = await response.json();
-                allMerch = result.data || [];
-                renderMerch('All');
-            } else {
-                console.error('Failed to fetch merch', response.status);
-                document.getElementById('merch-grid').innerHTML = '<p style="grid-column: span 2; text-align: center; color: #ef4444; padding: 20px;">Failed to load items.</p>';
-            }
-        } catch (error) {
-            console.error('Error fetching merch', error);
-        }
+                return result.data || [];
+            },
+            (data) => {
+                if (data) {
+                    allMerch = data;
+                    renderMerch('All');
+                } else {
+                    document.getElementById('merch-grid').innerHTML = '<p style="grid-column: span 2; text-align: center; color: #ef4444; padding: 20px;">Failed to load items.</p>';
+                }
+            },
+            forceRefresh,
+            60000 // 1 minute TTL
+        );
     }
 
     function renderMerch(filterCategory = 'All') {
@@ -96,7 +105,7 @@ $backRoute = 'dashboard';
             if (imgUrl && !imgUrl.startsWith('http')) {
                 imgUrl = backendUrl + '/' + imgUrl;
             } else if (!imgUrl) {
-                imgUrl = 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80'; // fallback
+                imgUrl = '';
             }
             
             card.innerHTML = `
@@ -146,7 +155,7 @@ $backRoute = 'dashboard';
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'ngrok-skip-browser-warning': 'true',
+                    
                     'Authorization': 'Bearer ' + localStorage.getItem('intan_elyu_token')
                 },
                 body: JSON.stringify({ merchandise_id: id })
@@ -166,7 +175,7 @@ $backRoute = 'dashboard';
                 }
                 
                 // Refresh merch list (stock changed)
-                fetchMerchData();
+                fetchMerchData(true);
                 
                 // Show modal
                 document.getElementById('reservation-modal').style.display = 'flex';

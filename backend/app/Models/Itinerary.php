@@ -15,6 +15,8 @@ class Itinerary extends Model
         'budget',
         'status',
         'total_cost',
+        'route_type',
+        'transport_mode'
     ];
 
     protected $casts = [

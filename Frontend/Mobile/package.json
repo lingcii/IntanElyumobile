@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "cd src && php -S localhost:3000 router.php",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

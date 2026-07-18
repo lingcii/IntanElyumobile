@@ -44,17 +44,23 @@ $backRoute = 'itinerary';
     </div>
 </div>
 
-<!-- Check-in Verification Modal (GPS only) -->
+<!-- Check-in Verification Modal (GPS and Photo Proof) -->
 <div id="checkin-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:999; justify-content:center; align-items:center;">
     <div style="background:var(--glass-bg); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid var(--glass-border); border-radius:24px; padding:28px 24px; width:90%; max-width:380px; box-shadow:0 20px 40px rgba(0,0,0,0.3); text-align:center;">
-        <div style="font-size:48px; margin-bottom:12px;">📍</div>
+        <div style="font-size:48px; margin-bottom:12px;">📸</div>
         <h3 style="margin:0 0 8px;">Claim Your Reward</h3>
-        <p style="font-size:14px; color:#8E8E93; margin-bottom:24px; line-height:1.5;">Your GPS location will be verified. Make sure you are physically at this spot to earn <strong>+50 XP</strong>.</p>
+        <p style="font-size:13px; color:#8E8E93; margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination to verify your visit and earn <strong>+50 XP</strong> & <strong>+50 Points</strong>.</p>
 
         <input type="hidden" id="checkin-item-id">
+        
+        <!-- File Input for Image Proof -->
+        <div style="margin-bottom: 20px; text-align: left;">
+            <label style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.75); margin-bottom:6px; display:block; text-transform:uppercase;">Photo Proof (Required):</label>
+            <input type="file" id="checkin-proof-image" accept="image/*" capture="environment" style="width:100%; box-sizing:border-box; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:10px; color:#fff; font-size:12px;">
+        </div>
 
         <button class="btn-primary" id="btn-verify-gps" style="width:100%; padding:16px; margin-bottom:12px; font-size:15px;" onclick="verifyGpsCheckIn()">
-            <i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> I'm Here — Claim Reward
+            <i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo
         </button>
 
         <button style="width:100%; padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:transparent; color:rgba(255,255,255,0.6); font-size:13px; font-weight:600; cursor:pointer;" onclick="closeCheckinModal()">Cancel</button>
@@ -63,27 +69,39 @@ $backRoute = 'itinerary';
 
 <script>
 (function() {
-    var backendUrl = 'http://localhost:8000';
+    var backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
 
-    window.fetchSavedTrips = async function() {
-        try {
-            const response = await fetch(backendUrl + '/api/tourist/itineraries', {
-                headers: {
-                    'Accept': 'application/json',
-                    'ngrok-skip-browser-warning': 'true',
-                    'Authorization': 'Bearer ' + localStorage.getItem('intan_elyu_token')
-                }
-            });
-            
-            if (response.ok) {
+    window.fetchSavedTrips = async function(forceRefresh = false) {
+        const token = localStorage.getItem('intan_elyu_token');
+        if (!token) return;
+
+        const cacheKey = 'saved_trips_' + token.substring(0, 10);
+
+        await window.useCache(
+            cacheKey,
+            async () => {
+                const response = await fetch(backendUrl + '/api/tourist/itineraries', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'ngrok-skip-browser-warning': 'true',
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                if (!response.ok) throw new Error("Failed to fetch saved trips");
                 const data = await response.json();
-                renderSavedTrips(data.itineraries || []);
-            }
-        } catch (error) {
-            console.error("Error fetching saved trips:", error);
-            const list = document.getElementById('saved-trips-list');
-            if(list) list.innerHTML = '<p style="text-align:center; color:#999; margin-top: 20px;">Failed to load saved trips.</p>';
-        }
+                return data.itineraries || [];
+            },
+            (itineraries) => {
+                if (itineraries) {
+                    renderSavedTrips(itineraries);
+                } else {
+                    const list = document.getElementById('saved-trips-list');
+                    if(list) list.innerHTML = '<p style="text-align:center; color:#999; margin-top: 20px;">Failed to load saved trips.</p>';
+                }
+            },
+            forceRefresh,
+            60000 // 1 minute TTL
+        );
     };
 
     function renderSavedTrips(itineraries) {
@@ -220,11 +238,19 @@ $backRoute = 'itinerary';
     window.closeCheckinModal = function() {
         document.getElementById('checkin-modal').style.display = 'none';
         document.getElementById('checkin-item-id').value = '';
+        const imgInput = document.getElementById('checkin-proof-image');
+        if (imgInput) imgInput.value = '';
         const btn = document.getElementById('btn-verify-gps');
-        if (btn) { btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> I\'m Here — Claim Reward'; btn.disabled = false; }
+        if (btn) { btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo'; btn.disabled = false; }
     };
 
     window.verifyGpsCheckIn = function() {
+        const imageFile = document.getElementById('checkin-proof-image').files[0];
+        if (!imageFile) {
+            if (typeof showToast === 'function') showToast('Please select or capture a photo proof first! 📸');
+            return;
+        }
+
         if (!navigator.geolocation) {
             if (typeof showToast === 'function') showToast('Geolocation is not supported by your browser.');
             return;
@@ -241,19 +267,20 @@ $backRoute = 'itinerary';
                 const itemId = document.getElementById('checkin-item-id').value;
                 if (!itemId) return;
 
+                const formData = new FormData();
+                formData.append('lat', position.coords.latitude);
+                formData.append('lng', position.coords.longitude);
+                formData.append('image', imageFile);
+
                 try {
                     const response = await fetch(backendUrl + '/api/tourist/itineraries/items/' + itemId + '/visit', {
-                        method: 'PATCH',
+                        method: 'POST',
                         headers: {
                             'Accept': 'application/json',
-                            'Content-Type': 'application/json',
                             'ngrok-skip-browser-warning': 'true',
                             'Authorization': 'Bearer ' + (localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('intan_elyu_token'))
                         },
-                        body: JSON.stringify({
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude
-                        })
+                        body: formData
                     });
 
                     const result = await response.json();
@@ -261,23 +288,23 @@ $backRoute = 'itinerary';
                     if (response.ok) {
                         if (typeof showToast === 'function') showToast(result.message || 'Checked in! 🌟');
                         closeCheckinModal();
-                        window.fetchSavedTrips();
+                        window.fetchSavedTrips(true);
                     } else {
                         if (typeof showToast === 'function') showToast(result.message || 'Check-in failed.');
-                        btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> I\'m Here — Claim Reward';
+                        btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo';
                         btn.disabled = false;
                     }
                 } catch (error) {
                     console.error('Check-in error:', error);
                     if (typeof showToast === 'function') showToast('Network error. Please try again.');
-                    btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> I\'m Here — Claim Reward';
+                    btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo';
                     btn.disabled = false;
                 }
             },
             (error) => {
                 console.error('GPS error:', error);
                 if (typeof showToast === 'function') showToast('Could not get your location. Please enable GPS.');
-                btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> I\'m Here — Claim Reward';
+                btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo';
                 btn.disabled = false;
             },
             { enableHighAccuracy: false, timeout: 10000 }
@@ -293,14 +320,14 @@ $backRoute = 'itinerary';
                 headers: {
                     'Accept': 'application/json',
                     'ngrok-skip-browser-warning': 'true',
-                    'Authorization': 'Bearer ' + localStorage.getItem('Intan_Elyu_Token')
+                    'Authorization': 'Bearer ' + (localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('intan_elyu_token'))
                 }
             });
             
             const data = await response.json();
             if (response.ok) {
                 if (typeof showToast === 'function') showToast(data.message || "Trip completed!");
-                window.fetchSavedTrips(); // Refresh the list
+                window.fetchSavedTrips(true); // Refresh the list
             } else {
                 if (typeof showToast === 'function') showToast(data.message || "Failed to complete trip.");
             }

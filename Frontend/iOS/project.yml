@@ -1,0 +1,30 @@
+name: IntanElyu
+options:
+  bundleIdPrefix: com.intan
+  deploymentTarget:
+    iOS: "16.0"
+  xcodeVersion: "15.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    TARGETED_DEVICE_FAMILY: "1"
+    INFOPLIST_FILE: IntanElyu/Info.plist
+    PRODUCT_BUNDLE_IDENTIFIER: com.intan.elyu
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  IntanElyu:
+    type: application
+    platform: iOS
+    sources:
+      - path: IntanElyu
+        type: group
+    settings:
+      base:
+        INFOPLIST_FILE: IntanElyu/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.intan.elyu
+        SWIFT_OBJC_BRIDGING_HEADER: ""
+    info:
+      path: IntanElyu/Info.plist

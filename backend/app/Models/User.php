@@ -23,6 +23,8 @@ class User extends Authenticatable
         'api_token',
         'xp',
         'level',
+        'google_id',
+        'is_leaderboard_private',
         'avatar',
     ];
 
@@ -40,40 +42,8 @@ class User extends Authenticatable
 
     /** Valid roles in the system */
     public static array $ALL_ROLES = [
-        'picto', 'lupto', 'municipal', 'tourist',
-        'san_juan_mto', 'san_fernando_mto', 'bauang_mto', 'agoo_mto', 'luna_mto',
-        'san_gabriel_mto', 'balaoan_mto', 'aringay_mto', 'rosario_mto', 'bacnotan_mto',
-        'naguilian_mto', 'tubao_mto', 'pugo_mto', 'caba_mto', 'santo_tomas_mto',
-        'bangar_mto', 'burgos_mto', 'bagulin_mto', 'santol_mto', 'sudipen_mto',
+        'tourist',
     ];
-
-    /** Municipal (MTO) roles */
-    public static array $MUNICIPAL_ROLES = [
-        'san_juan_mto', 'san_fernando_mto', 'bauang_mto', 'agoo_mto', 'luna_mto',
-        'san_gabriel_mto', 'balaoan_mto', 'aringay_mto', 'rosario_mto', 'bacnotan_mto',
-        'naguilian_mto', 'tubao_mto', 'pugo_mto', 'caba_mto', 'santo_tomas_mto',
-        'bangar_mto', 'burgos_mto', 'bagulin_mto', 'santol_mto', 'sudipen_mto', 'municipal',
-    ];
-
-    public function municipality()
-    {
-        return $this->belongsTo(Municipality::class);
-    }
-
-    public function getRoleAttribute($value)
-    {
-        return $value === 'pitco' ? 'picto' : $value;
-    }
-
-    public function setRoleAttribute($value)
-    {
-        $this->attributes['role'] = $value === 'picto' ? 'pitco' : $value;
-    }
-
-    public function isMunicipal(): bool
-    {
-        return in_array($this->role, self::$MUNICIPAL_ROLES);
-    }
 
     public function favorites()
     {
@@ -88,5 +58,20 @@ class User extends Authenticatable
     public function merchReservations()
     {
         return $this->hasMany(MerchReservation::class, 'user_id');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function scopeByRole($query, string $role)
+    {
+        return $query->where('role', $role);
+    }
+
+    public function scopeTourist($query)
+    {
+        return $query->where('role', 'tourist');
     }
 }

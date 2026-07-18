@@ -3,9 +3,9 @@
 $pageTitle = 'Discover La Union';
 $activeTab = 'dashboard';
 
-// Scan local municipality images
+// Scan municipality images from backend storage
 $municipalityImages = [];
-$imgDir = __DIR__ . '/../assets/img/municipalities';
+$imgDir = __DIR__ . '/../../../../backend/storage/app/public/municipalities';
 if (is_dir($imgDir)) {
     $munis = scandir($imgDir);
     foreach ($munis as $muni) {
@@ -86,11 +86,23 @@ if (is_dir($imgDir)) {
         <div class="weather-icon">⛅</div>
     </div>
 
+    <!-- Gamification Panel -->
+    <div class="weather-card stagger-2" onclick="navigateTo('puzzles')" style="background: linear-gradient(135deg, #1e1b4b 0%, #311042 100%); border: 1px solid rgba(139, 92, 246, 0.3); box-shadow: 0 8px 32px rgba(139, 92, 246, 0.15); margin-top: 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="font-size: 32px; filter: drop-shadow(0 0 10px rgba(167, 139, 250, 0.6));">🧩</div>
+            <div>
+                <h4 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -0.2px;">Gamification Zone</h4>
+                <p style="margin: 0; font-size: 12px; color: #e9d5ff; font-weight: 600;">Play puzzles & trivia to earn discount vouchers! 🎁</p>
+            </div>
+        </div>
+        <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; color: #a78bfa; font-size: 14px;"><i class="fa-solid fa-play"></i></div>
+    </div>
+
     <!-- Trending Spots -->
     <div class="dash-section stagger-2">
         <div class="section-title">
             <h3>Trending Spots</h3>
-            <a href="#" onclick="showToast('Loading all places...')">See All</a>
+            <a href="javascript:void(0);" onclick="navigateTo('trending')">See All</a>
         </div>
         <div class="favorites-row" id="trending-container">
             <div style="padding: 20px; width: 100%; text-align: center; color: rgba(255,255,255,0.5); font-size: 14px;">
@@ -100,12 +112,12 @@ if (is_dir($imgDir)) {
     </div>
 
 
-
+    
     <!-- My Saved Trips Preview -->
     <div class="dash-section stagger-3">
         <div class="section-title">
             <h3>My Saved Trips</h3>
-            <a href="#" onclick="navigateTo('saved_trips')">Open Saved Trips</a>
+            <a href="javascript:void(0);" onclick="navigateTo('saved_trips')">Open Saved Trips</a>
         </div>
         
         <div id="saved-trips-container">
@@ -114,12 +126,12 @@ if (is_dir($imgDir)) {
             </div>
         </div>
     </div>
-
+    
     <!-- Favorites / Saved Places -->
     <div class="dash-section stagger-3">
         <div class="section-title">
             <h3>Saved Places</h3>
-            <a href="#" onclick="showToast('View all saved')">See All</a>
+            <a href="javascript:void(0);" onclick="navigateTo('saved_places')">See All</a>
         </div>
         <div class="favorites-row" id="saved-places-container">
             <div style="padding: 20px; width: 100%; text-align: center; color: rgba(255,255,255,0.5); font-size: 14px;">
@@ -128,9 +140,10 @@ if (is_dir($imgDir)) {
         </div>  
     </div>
 
+    <!-- Recommended For You -->
     <div class="dash-section stagger-3">
         <div class="section-title">
-            <h3 id="recommended-title">Recommended For You</h3>
+            <h3>Recommended For You</h3>
         </div>
         <div id="recommended-container">
             <div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.5); font-size: 14px;">
@@ -139,93 +152,27 @@ if (is_dir($imgDir)) {
         </div>
     </div>
 
+    <!-- Near Me Spots -->
+    <div class="dash-section stagger-2">
+        <div class="section-title">
+            <h3>Near Me</h3>
+            <a href="javascript:void(0);" onclick="navigateTo('map')">See Map</a>
+        </div>
+        <div class="favorites-row" id="near-me-container">
+            <div style="padding: 20px; width: 100%; text-align: center; color: rgba(255,255,255,0.5); font-size: 14px;">
+                <i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Finding spots near you...
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
-window.getDestImage = function(dest, width = 600) {
-    if (window.AVAILABLE_MUNI_IMAGES && dest.name) {
-        let munisToCheck = dest.municipality ? [dest.municipality.toUpperCase()] : Object.keys(window.AVAILABLE_MUNI_IMAGES);
-        
-        const dNorm = dest.name.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
-        const dWords = dNorm.split(/\s+/).filter(w => w.length > 2);
-
-        let bestMatch = null;
-        let bestScore = 0;
-        let bestMuni = null;
-
-        for (let muni of munisToCheck) {
-            const images = window.AVAILABLE_MUNI_IMAGES[muni];
-            if (images && images.length > 0) {
-                for (let img of images) {
-                    const iNorm = img.replace(/\.(jpg|jpeg|png|webp|gif)$/i, '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
-                    
-                    const dStr = dNorm.replace(/\s+/g, '');
-                    const iStr = iNorm.replace(/\s+/g, '').replace(/[0-9]+$/, ''); 
-                    
-                    if (dStr === iStr) {
-                        return encodeURI(`assets/img/municipalities/${muni}/${img}`);
-                    }
-                    
-                    let score = 0;
-                    if (dStr.includes(iStr) || iStr.includes(dStr)) {
-                        score += 100; 
-                    }
-                    
-                    const iWords = iNorm.split(/\s+/).filter(w => w.length > 2);
-                    let common = 0;
-                    for (let w of dWords) {
-                        if (iWords.includes(w)) {
-                            // Give less weight to municipality name to avoid false positives
-                            if (w === muni.toLowerCase()) {
-                                score += 1;
-                            } else {
-                                score += 10;
-                            }
-                            common++;
-                        }
-                    }
-                    
-                    if (common > 0) {
-                        score += (common / Math.max(dWords.length, iWords.length)) * 5;
-                    }
-
-                    // Require at least one meaningful matching word or substring match
-                    if (score > bestScore && score >= 10) { 
-                        bestScore = score;
-                        bestMatch = img;
-                        bestMuni = muni;
-                    } else if (score === bestScore && score >= 10) {
-                        // Tie breaker: prefer the primary photo (usually has '1' in the filename)
-                        // If current bestMatch has '3' or '2', and this one has '1', it will override it.
-                        if (img.includes('1') || img.toLowerCase().includes('one')) {
-                            bestMatch = img;
-                            bestMuni = muni;
-                        }
-                    }
-                }
-            }
-        }
-        
-        if (bestMatch) {
-            return encodeURI(`assets/img/municipalities/${bestMuni}/${bestMatch}`);
-        }
-    }
-    
-    if (dest.image) {
-        var backendUrl = window.backendUrl || 'http://localhost:8000';
-        if (dest.image.startsWith('http')) return dest.image;
-        if (dest.image.startsWith('uploads/')) return backendUrl + '/' + dest.image;
-        return backendUrl + '/storage/' + dest.image;
-    }
-    return `https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=${width}`;
-};
-
+    window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
 (async function dashboardInit() {
     const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
     const setSrc = (id, src) => { const el = document.getElementById(id); if (el) el.src = src; };
 
-    var backendUrl = 'http://localhost:8000';
+    var backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
     const token = localStorage.getItem('intan_elyu_token');
     const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
 
@@ -259,28 +206,12 @@ window.getDestImage = function(dest, width = 600) {
     let apiUrl = backendUrl + '/api/tourist/dashboard';
     if (lat && lng) apiUrl += `?lat=${lat}&lng=${lng}`;
 
-    try {
-        const res = await fetch(apiUrl, {
-            credentials: 'include',
-            headers: {
-                'Accept': 'application/json',
-                'ngrok-skip-browser-warning': 'true',
-                'Authorization': 'Bearer ' + token
-            }
-        });
-        if (!res.ok) {
-            if (res.status === 401) {
-                localStorage.removeItem('intan_elyu_token');
-                localStorage.removeItem('auth_user');
-                window.location.href = '?view=auth';
-            }
-            return;
-        }
-        const data = await res.json();
-        
-        // Update global notifications if function exists
-        if (typeof updateNotificationsDropdown === 'function') {
-            updateNotificationsDropdown(data.announcements);
+    const cacheKey = 'dashboard_data_' + (lat && lng ? `${lat.toFixed(3)}_${lng.toFixed(3)}` : 'default');
+
+    function renderDashboard(data) {
+        // Update notification badge
+        if (data.stats && typeof window.updateUnreadBadge === 'function') {
+            window.updateUnreadBadge(data.stats.unread_notifications || 0);
         }
 
         const u = data.user || {};
@@ -309,97 +240,6 @@ window.getDestImage = function(dest, width = 600) {
         // Stats
         if (document.getElementById('dash-stat-places')) document.getElementById('dash-stat-places').textContent = (data.stats && data.stats.placesVisited) ? data.stats.placesVisited : 0;
         if (document.getElementById('dash-stat-xp')) document.getElementById('dash-stat-xp').textContent = xp.toLocaleString();
-        
-        // Fetch Rank
-        try {
-            const rankRes = await fetch(backendUrl + '/api/tourist/leaderboard', {
-                headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token, 'ngrok-skip-browser-warning': 'true' }
-            });
-            if (rankRes.ok) {
-                const rankData = await rankRes.json();
-                if (rankData.myRank && document.getElementById('dash-stat-rank')) {
-                    document.getElementById('dash-stat-rank').textContent = '#' + rankData.myRank;
-                } else if (document.getElementById('dash-stat-rank')) {
-                    document.getElementById('dash-stat-rank').textContent = 'Unranked';
-                }
-            }
-        } catch (e) {
-            console.error('Failed to fetch rank', e);
-        }
-
-        // Populate Saved Trips Preview
-        const tripsContainer = document.getElementById('saved-trips-container');
-        if (tripsContainer) {
-            try {
-                const itinRes = await fetch(backendUrl + '/api/tourist/itineraries', {
-                    headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
-                });
-                if (itinRes.ok) {
-                    const itinData = await itinRes.json();
-                    const itineraries = itinData.itineraries || [];
-                    
-                    if (itineraries.length > 0) {
-                        let tripsHtml = '';
-                        // Show up to 3 most recent trips
-                        itineraries.slice(0, 3).forEach(trip => {
-                            let destinationsHtml = '';
-                            if (trip.items && trip.items.length > 0) {
-                                trip.items.forEach((item, index) => {
-                                    const destName = item.destination ? item.destination.name : 'Unknown Destination';
-                                    destinationsHtml += `
-                                        <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
-                                            <div style="width:24px; height:24px; border-radius:50%; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.2); color:#38bdf8; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; flex-shrink:0;">${index+1}</div>
-                                            <div style="flex:1; font-size:13px; color:rgba(248,250,252,0.85); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
-                                        </div>
-                                    `;
-                                });
-                            } else {
-                                destinationsHtml = '<div style="font-size:12px; color:rgba(255,255,255,0.4); font-style:italic; text-align:center; padding:10px 0;">No destinations added yet.</div>';
-                            }
-
-                            tripsHtml += `
-                                <div style="margin-bottom: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; overflow: hidden; transition: all 0.3s ease;">
-                                    <div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.toggle-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.paddingTop = '14px'; content.style.paddingBottom = '14px'; content.style.maxHeight = (content.scrollHeight + 50) + 'px'; content.style.opacity = '1'; icon.style.transform = 'rotate(90deg)'; } else { content.style.maxHeight = '0px'; content.style.opacity = '0'; content.style.paddingTop = '0'; content.style.paddingBottom = '0'; icon.style.transform = 'rotate(0deg)'; }" style="cursor:pointer; display:flex; align-items:center; gap: 14px; padding: 14px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.05)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
-                                        <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                            <i class="fa-solid fa-map-location-dot" style="color: #38bdf8; font-size: 20px;"></i>
-                                        </div>
-                                        <div style="flex: 1; min-width: 0;">
-                                            <span style="display:block; font-size:15px; font-weight:800; color:#f8fafc; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.2px;">${trip.title}</span>
-                                            <span style="display:block; font-size:12px; color:rgba(148,163,184,0.9); font-weight:500;">
-                                                <i class="fa-solid fa-location-dot" style="margin-right:3px; color:rgba(148,163,184,0.6);"></i>${trip.items ? trip.items.length : 0} Stops
-                                                <span style="margin:0 4px; color:rgba(255,255,255,0.1);">|</span>
-                                                <i class="fa-regular fa-calendar" style="margin-right:3px; color:rgba(148,163,184,0.6);"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No Date'}
-                                            </span>
-                                        </div>
-                                        <i class="fa-solid fa-chevron-right toggle-icon" style="color: rgba(255,255,255,0.3); font-size: 14px; margin-right:4px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></i>
-                                    </div>
-                                    <div style="max-height: 0px; opacity: 0; padding: 0 14px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255,255,255,0.03);">
-                                        ${destinationsHtml}
-                                        <button onclick="navigateTo('itinerary')" style="width:100%; margin-top:6px; background:rgba(56,189,248,0.1); border:1px dashed rgba(56,189,248,0.3); color:#38bdf8; padding:10px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; transition:background 0.2s;">
-                                            Open Full Itinerary
-                                        </button>
-                                    </div>
-                                </div>
-                            `;
-                        });
-                        tripsContainer.innerHTML = tripsHtml;
-                    } else {
-                        tripsContainer.innerHTML = `
-                            <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px;">
-                                <i class="fa-solid fa-route" style="font-size: 32px; color: rgba(56,189,248,0.4);"></i>
-                                <div style="color: rgba(148,163,184,0.8); font-size: 14px; line-height: 1.4;">No saved trips yet.</div>
-                                <button onclick="navigateTo('itinerary')" style="background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; border: none; padding: 11px 22px; border-radius: 100px; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(56,189,248,0.3);">
-                                    <i class="fa-solid fa-plus"></i> Plan a Trip
-                                </button>
-                            </div>
-                        `;
-                    }
-                }
-            } catch(e) {
-                console.error('Failed to fetch itineraries for dashboard', e);
-            }
-        }
-
 
         // Populate Trending Spots (Top 3)
         const trendingContainer = document.getElementById('trending-container');
@@ -427,7 +267,6 @@ window.getDestImage = function(dest, width = 600) {
                 `;
             }
         }
-
 
         // Populate Saved Places
         const savedContainer = document.getElementById('saved-places-container');
@@ -458,6 +297,7 @@ window.getDestImage = function(dest, width = 600) {
                 `;
             }
         }
+
         const recContainer = document.getElementById('recommended-container');
         if (recContainer && data.recommended) {
             recContainer.innerHTML = '';
@@ -467,43 +307,6 @@ window.getDestImage = function(dest, width = 600) {
 
             const INITIAL_SHOW = 2;
             const allDests = data.recommended;
-
-            function buildRecommendedItem(dest) {
-                const img = window.getDestImage(dest, 300);
-                const rating = dest.rating ? parseFloat(dest.rating).toFixed(1) : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating).toFixed(1) : 'New');
-                const desc = dest.description ? dest.description.substring(0, 150) + (dest.description.length > 150 ? '...' : '') : 'A beautiful destination waiting to be explored.';
-                
-                return `
-                    <div style="margin-bottom: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 18px; overflow: hidden; transition: all 0.3s ease;">
-                        <div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.toggle-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.paddingTop = '14px'; content.style.paddingBottom = '14px'; content.style.maxHeight = (content.scrollHeight + 150) + 'px'; content.style.opacity = '1'; icon.style.transform = 'rotate(90deg)'; } else { content.style.maxHeight = '0px'; content.style.opacity = '0'; content.style.paddingTop = '0'; content.style.paddingBottom = '0'; icon.style.transform = 'rotate(0deg)'; }" style="cursor:pointer; display:flex; align-items:center; gap: 12px; padding: 12px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.05)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
-                            <img src="${img}" alt="${dest.name}" style="width:60px; height:60px; border-radius:12px; object-fit:cover;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
-                            <div style="flex:1; min-width:0;">
-                                <h4 style="margin:0 0 5px; font-size:15px; font-weight:800; letter-spacing:-0.3px; color:#f8fafc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dest.name}</h4>
-                                <p style="margin:0 0 8px; font-size:12px; color:rgba(148,163,184,0.8);"><i class="fa-solid fa-location-dot" style="margin-right:4px; color:#38bdf8;"></i>${dest.location || dest.municipality_id || 'La Union'}</p>
-                                <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
-                                    <i class="fa-solid fa-star" style="color:#fbbf24; font-size:11px;"></i>
-                                    <span style="font-size:12px; font-weight:700; color:#f8fafc; margin-right:4px;">${rating}</span>
-                                    ${dest.classification_status ? `<span style="padding: 2px 6px; border-radius: 6px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')};">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
-                                </div>
-                            </div>
-                            <i class="fa-solid fa-chevron-right toggle-icon" style="color:rgba(148,163,184,0.4); font-size:13px; padding:4px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></i>
-                        </div>
-                        
-                        <div style="max-height: 0px; opacity: 0; padding: 0 14px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255,255,255,0.03);">
-                            <div style="font-size:12px; color:rgba(255,255,255,0.7); line-height:1.5; margin-bottom:12px;">
-                                ${desc}
-                            </div>
-                            <div style="display:flex; gap:8px; font-size:11px; margin-bottom:12px; flex-wrap:wrap;">
-                                ${dest.category ? `<span style="background:rgba(255,255,255,0.1); color:#fff; padding:4px 8px; border-radius:100px;">${dest.category}</span>` : ''}
-                                ${dest.entrance_fee ? `<span style="background:rgba(56,189,248,0.1); color:#38bdf8; padding:4px 8px; border-radius:100px;">₱${dest.entrance_fee}</span>` : '<span style="background:rgba(52,199,89,0.1); color:#34c759; padding:4px 8px; border-radius:100px;">Free</span>'}
-                            </div>
-                            <button onclick="window.viewDestinationOnMap(encodeURIComponent(JSON.stringify(${JSON.stringify(dest).replace(/"/g, '&quot;')})))" style="width:100%; margin-top:4px; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:10px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
-                                <i class="fa-solid fa-map-location-dot"></i> View Details on Map
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }
 
             // Render first 2
             allDests.slice(0, INITIAL_SHOW).forEach(dest => {
@@ -531,6 +334,270 @@ window.getDestImage = function(dest, width = 600) {
 
         // Cache updated user
         localStorage.setItem('auth_user', JSON.stringify(u));
+    }
+
+    // Helper functions used inside render/build
+    function getDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Radius of the earth in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    async function loadNearMe(userLat, userLng) {
+        const nearContainer = document.getElementById('near-me-container');
+        if (!nearContainer) return;
+
+        if (!userLat || !userLng) {
+            nearContainer.innerHTML = `
+                <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; margin: 0 16px;">
+                    <i class="fa-solid fa-location-crosshairs" style="font-size: 32px; color: rgba(56,189,248,0.4);"></i>
+                    <div style="color: rgba(148,163,184,0.8); font-size: 14px; line-height: 1.4;">Enable location access to see spots near you.</div>
+                </div>
+            `;
+            return;
+        }
+
+        const cacheKey = 'public_map_data';
+        await window.useCache(
+            cacheKey,
+            async () => {
+                const res = await fetch(backendUrl + '/api/public/map');
+                if (!res.ok) throw new Error("Failed to fetch map data");
+                return await res.json();
+            },
+            (data) => {
+                if (!data) {
+                    nearContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.5); font-size: 14px;">Error loading nearby spots.</div>';
+                    return;
+                }
+                let spots = data.destinations || [];
+                spots.forEach(spot => {
+                    var sLat = spot.latitude || spot.lat;
+                    var sLng = spot.longitude || spot.lng;
+                    if (sLat && sLng) {
+                        spot.distance = getDistance(userLat, userLng, sLat, sLng);
+                    } else {
+                        spot.distance = 999999;
+                    }
+                });
+
+                spots.sort((a, b) => a.distance - b.distance);
+                const nearSpots = spots.filter(s => s.distance < 2);
+
+                if (nearSpots.length > 0) {
+                    nearContainer.innerHTML = '';
+                    nearSpots.slice(0, 5).forEach(dest => {
+                        const img = window.getDestImage(dest, 600);
+                        const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
+                        const distText = dest.distance < 1 ? '< 1 km' : dest.distance.toFixed(1) + ' km';
+                        nearContainer.innerHTML += `
+                            <div class="fav-card" onclick="window.viewDestinationOnMap(encodeURIComponent(JSON.stringify(${JSON.stringify(dest).replace(/"/g, '&quot;')})))">
+                                ${badgeHtml}
+                                <img src="${img}" alt="${dest.name}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
+                                <div class="fav-card-overlay">
+                                    <span class="fav-card-name">${dest.name}</span>
+                                    <span style="display:block; font-size:10px; color:#38bdf8; margin-top:2px; font-weight:700;"><i class="fa-solid fa-location-arrow"></i> ${distText} away</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    nearContainer.innerHTML = `
+                        <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; margin: 0 16px;">
+                            <i class="fa-solid fa-location-dot" style="font-size: 32px; color: rgba(56,189,248,0.4);"></i>
+                            <div style="color: rgba(148,163,184,0.8); font-size: 14px; line-height: 1.4;">There are no spots near you right now.</div>
+                        </div>
+                    `;
+                }
+            },
+            false,
+            300000 // 5 minutes TTL
+        );
+    }
+
+    function buildRecommendedItem(dest) {
+        const img = window.getDestImage(dest, 300);
+        const rating = dest.rating ? parseFloat(dest.rating).toFixed(1) : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating).toFixed(1) : 'New');
+        const desc = dest.description ? dest.description.substring(0, 150) + (dest.description.length > 150 ? '...' : '') : 'A beautiful destination waiting to be explored.';
+        
+        return `
+            <div style="margin-bottom: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 18px; overflow: hidden; transition: all 0.3s ease;">
+                <div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.toggle-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.paddingTop = '14px'; content.style.paddingBottom = '14px'; content.style.maxHeight = (content.scrollHeight + 150) + 'px'; content.style.opacity = '1'; icon.style.transform = 'rotate(90deg)'; } else { content.style.maxHeight = '0px'; content.style.opacity = '0'; content.style.paddingTop = '0'; content.style.paddingBottom = '0'; icon.style.transform = 'rotate(0deg)'; }" style="cursor:pointer; display:flex; align-items:center; gap: 12px; padding: 12px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.05)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
+                    <img src="${img}" alt="${dest.name}" style="width:60px; height:60px; border-radius:12px; object-fit:cover;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
+                    <div style="flex:1; min-width:0;">
+                        <h4 style="margin:0 0 5px; font-size:15px; font-weight:800; letter-spacing:-0.3px; color:#f8fafc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dest.name}</h4>
+                        <p style="margin:0 0 8px; font-size:12px; color:rgba(148,163,184,0.8);"><i class="fa-solid fa-location-dot" style="margin-right:4px; color:#38bdf8;"></i>${dest.location || dest.municipality_id || 'La Union'}</p>
+                        <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
+                            <i class="fa-solid fa-star" style="color:#fbbf24; font-size:11px;"></i>
+                            <span style="font-size:12px; font-weight:700; color:#f8fafc; margin-right:4px;">${rating}</span>
+                            ${dest.classification_status ? `<span style="padding: 2px 6px; border-radius: 6px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')};">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right toggle-icon" style="color:rgba(148,163,184,0.4); font-size:13px; padding:4px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></i>
+                </div>
+                
+                <div style="max-height: 0px; opacity: 0; padding: 0 14px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255,255,255,0.03);">
+                    <div style="font-size:12px; color:rgba(255,255,255,0.7); line-height:1.5; margin-bottom:12px;">
+                        ${desc}
+                    </div>
+                    <div style="display:flex; gap:8px; font-size:11px; margin-bottom:12px; flex-wrap:wrap;">
+                        ${dest.category ? `<span style="background:rgba(255,255,255,0.1); color:#fff; padding:4px 8px; border-radius:100px;">${dest.category}</span>` : ''}
+                        ${dest.entrance_fee ? `<span style="background:rgba(56,189,248,0.1); color:#38bdf8; padding:4px 8px; border-radius:100px;">₱${dest.entrance_fee}</span>` : '<span style="background:rgba(52,199,89,0.1); color:#34c759; padding:4px 8px; border-radius:100px;">Free</span>'}
+                    </div>
+                    <button onclick="window.viewDestinationOnMap(encodeURIComponent(JSON.stringify(${JSON.stringify(dest).replace(/"/g, '&quot;')})))" style="width:100%; margin-top:4px; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:10px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
+                        <i class="fa-solid fa-map-location-dot"></i> View Details on Map
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    try {
+        await window.useCache(
+            cacheKey,
+            async () => {
+                const res = await fetch(apiUrl, {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'ngrok-skip-browser-warning': 'true',
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        localStorage.removeItem('intan_elyu_token');
+                        localStorage.removeItem('auth_user');
+                        window.location.href = '?view=auth';
+                    }
+                    throw new Error("Dashboard fetch failed");
+                }
+                return await res.json();
+            },
+            (data) => {
+                if (data) {
+                    renderDashboard(data);
+                }
+            },
+            false,
+            30000 // 30 seconds TTL for dashboard
+        );
+
+        loadNearMe(lat, lng);
+
+        // Fetch Rank and Cache it
+        const rankCacheKey = 'dashboard_rank_' + token.substring(0, 10);
+        await window.useCache(
+            rankCacheKey,
+            async () => {
+                const rankRes = await fetch(backendUrl + '/api/tourist/leaderboard', {
+                    headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token, 'ngrok-skip-browser-warning': 'true' }
+                });
+                if (rankRes.ok) return await rankRes.json();
+                throw new Error("Rank fetch failed");
+            },
+            (rankData) => {
+                if (rankData && rankData.myRank) {
+                    const el = document.getElementById('dash-stat-rank');
+                    if (el) el.textContent = '#' + rankData.myRank;
+                } else {
+                    const el = document.getElementById('dash-stat-rank');
+                    if (el) el.textContent = 'Unranked';
+                }
+            },
+            false,
+            60000 // 1 minute TTL for rank
+        );
+
+        // Fetch Saved Trips and Cache it
+        const tripsContainer = document.getElementById('saved-trips-container');
+        if (tripsContainer) {
+            const tripsCacheKey = 'dashboard_trips_' + token.substring(0, 10);
+            await window.useCache(
+                tripsCacheKey,
+                async () => {
+                    const itinRes = await fetch(backendUrl + '/api/tourist/itineraries', {
+                        headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
+                    });
+                    if (itinRes.ok) return await itinRes.json();
+                    throw new Error("Trips fetch failed");
+                },
+                (itinData) => {
+                    if (!itinData) return;
+                    const itineraries = itinData.itineraries || [];
+                    if (itineraries.length > 0) {
+                        let tripsHtml = '';
+                        // Show up to 3 most recent trips
+                        itineraries.slice(0, 3).forEach(trip => {
+                            let destinationsHtml = '';
+                            if (trip.items && trip.items.length > 0) {
+                                trip.items.forEach((item, index) => {
+                                    const destName = item.destination ? item.destination.name : 'Unknown Destination';
+                                    destinationsHtml += `
+                                        <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+                                            <div style="width:24px; height:24px; border-radius:50%; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.2); color:#38bdf8; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; flex-shrink:0;">${index+1}</div>
+                                            <div style="flex:1; font-size:13px; color:rgba(248,250,252,0.85); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
+                                        </div>
+                                    `;
+                                });
+                            } else {
+                                destinationsHtml = '<div style="font-size:12px; color:rgba(255,255,255,0.4); font-style:italic; text-align:center; padding:10px 0;">No destinations added yet.</div>';
+                            }
+
+                            tripsHtml += `
+                                <div class="trip-swipe-container" data-trip-id="${trip.id}" style="margin-bottom: 12px; position: relative; overflow: hidden; border-radius: 16px;">
+                                    <div class="trip-swipe-bg" style="position: absolute; top: 0; right: 0; bottom: 0; width: 80px; background: #ef4444; border-radius: 0 16px 16px 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; gap: 4px; transform: translateX(100%);">
+                                        <i class="fa-solid fa-trash"></i> Delete
+                                    </div>
+                                    <div class="trip-swipe-content" style="position: relative; z-index: 1; transition: transform 0.2s ease; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; overflow: hidden;">
+                                        <div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.toggle-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.paddingTop = '14px'; content.style.paddingBottom = '14px'; content.style.maxHeight = (content.scrollHeight + 50) + 'px'; content.style.opacity = '1'; icon.style.transform = 'rotate(90deg)'; } else { content.style.maxHeight = '0px'; content.style.opacity = '0'; content.style.paddingTop = '0'; content.style.paddingBottom = '0'; icon.style.transform = 'rotate(0deg)'; }" style="cursor:pointer; display:flex; align-items:center; gap: 14px; padding: 14px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.05)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
+                                            <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                                                <i class="fa-solid fa-map-location-dot" style="color: #38bdf8; font-size: 20px;"></i>
+                                            </div>
+                                            <div style="flex: 1; min-width: 0;">
+                                                <span style="display:block; font-size:15px; font-weight:800; color:#f8fafc; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.2px;">${trip.title}</span>
+                                                <span style="display:block; font-size:12px; color:rgba(148,163,184,0.9); font-weight:500;">
+                                                    <i class="fa-solid fa-location-dot" style="margin-right:3px; color:rgba(148,163,184,0.6);"></i>${trip.items ? trip.items.length : 0} Stops
+                                                    <span style="margin:0 4px; color:rgba(255,255,255,0.1);">|</span>
+                                                    <i class="fa-regular fa-calendar" style="margin-right:3px; color:rgba(148,163,184,0.6);"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No Date'}
+                                                </span>
+                                            </div>
+                                            <i class="fa-solid fa-chevron-right toggle-icon" style="color: rgba(255,255,255,0.3); font-size: 14px; margin-right:4px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></i>
+                                        </div>
+                                        <div style="max-height: 0px; opacity: 0; padding: 0 14px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255,255,255,0.03);">
+                                            ${destinationsHtml}
+                                            <button onclick="navigateTo('itinerary')" style="width:100%; margin-top:6px; background:rgba(56,189,248,0.1); border:1px dashed rgba(56,189,248,0.3); color:#38bdf8; padding:10px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; transition:background 0.2s;">
+                                                Open Full Itinerary
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        tripsContainer.innerHTML = tripsHtml;
+                        if (typeof window.setupDashboardSwipeToDelete === 'function') {
+                            window.setupDashboardSwipeToDelete();
+                        }
+                    } else {
+                        tripsContainer.innerHTML = `
+                            <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px;">
+                                <i class="fa-solid fa-route" style="font-size: 32px; color: rgba(56,189,248,0.4);"></i>
+                                <div style="color: rgba(148,163,184,0.8); font-size: 14px; line-height: 1.4;">No saved trips yet.</div>
+                                <button onclick="navigateTo('itinerary')" style="background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; border: none; padding: 11px 22px; border-radius: 100px; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(56,189,248,0.3);">
+                                    <i class="fa-solid fa-plus"></i> Plan a Trip
+                                </button>
+                            </div>
+                        `;
+                    }
+                },
+                false,
+                60000 // 1 minute TTL for trips
+            );
+        }
     } catch(e) {
         console.error(e);
     }
@@ -538,7 +605,7 @@ window.getDestImage = function(dest, width = 600) {
 
 window.toggleFavorite = function(destId, element) {
     const token = localStorage.getItem('intan_elyu_token');
-    var backendUrl = 'http://localhost:8000';
+    var backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
     
     const card = element.closest('.fav-card');
     const isSavedContainer = card && card.parentElement && card.parentElement.id === 'saved-places-container';
@@ -685,7 +752,7 @@ window.toggleRecommendedMore = function() {
                 if (!allDestinationsForSearch && !isFetching) {
                     isFetching = true;
                     try {
-                        const backendUrl = 'http://localhost:8000';
+                        const backendUrl = window.backendUrl || 'https://intanelyu-production.up.railway.app';
                         const res = await fetch(backendUrl + '/api/public/map');
                         const data = await res.json();
                         allDestinationsForSearch = data.destinations || [];
@@ -758,5 +825,91 @@ window.toggleRecommendedMore = function() {
         }
     }, 500);
 
+    window.setupDashboardSwipeToDelete = function() {
+        document.querySelectorAll('.trip-swipe-container').forEach(container => {
+            const content = container.querySelector('.trip-swipe-content');
+            const bg = container.querySelector('.trip-swipe-bg');
+            if (!content) return;
+            let startX = 0, currentX = 0, isSwiping = false;
+
+            content.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                isSwiping = false;
+                content.style.transition = 'none';
+            }, { passive: true });
+
+            content.addEventListener('touchmove', (e) => {
+                if (startX === 0) return;
+                currentX = e.touches[0].clientX;
+                let diff = startX - currentX;
+                if (Math.abs(diff) > 5) isSwiping = true;
+                if (diff < 0) diff = 0;
+                const translate = Math.min(diff, 80);
+                content.style.transform = `translateX(-${translate}px)`;
+                content.style.borderRadius = translate > 5 ? '16px 0 0 16px' : '16px';
+                if (bg) bg.style.transform = `translateX(${80 - translate}px)`;
+            }, { passive: true });
+
+            content.addEventListener('touchend', (e) => {
+                content.style.transition = 'transform 0.2s ease, border-radius 0.2s ease';
+                if (bg) bg.style.transition = 'transform 0.2s ease';
+                const diff = startX - currentX;
+                if (diff > 60 && isSwiping) {
+                    const id = container.dataset.tripId;
+                    if (id) window.deleteSavedTrip(id, container);
+                } else {
+                    content.style.transform = '';
+                    content.style.borderRadius = '16px';
+                    if (bg) bg.style.transform = 'translateX(100%)';
+                }
+                startX = 0;
+                currentX = 0;
+                isSwiping = false;
+            }, { passive: true });
+        });
+    };
+
+    window.deleteSavedTrip = async function(id, element) {
+        const token = localStorage.getItem('intan_elyu_token');
+        if (!token) return;
+        
+        try {
+            const res = await fetch(window.backendUrl + '/api/tourist/itineraries/' + id, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Accept': 'application/json'
+                }
+            });
+            if (res.ok) {
+                element.style.transition = 'all 0.3s ease';
+                element.style.opacity = '0';
+                element.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    element.remove();
+                    const tripsContainer = document.getElementById('saved-trips-container');
+                    if (tripsContainer && tripsContainer.children.length === 0) {
+                        tripsContainer.innerHTML = `
+                            <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px;">
+                                <i class="fa-solid fa-route" style="font-size: 32px; color: rgba(56,189,248,0.4);"></i>
+                                <div style="color: rgba(148,163,184,0.8); font-size: 14px; line-height: 1.4;">No saved trips yet.</div>
+                                <button onclick="navigateTo('itinerary')" style="background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; border: none; padding: 11px 22px; border-radius: 100px; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(56,189,248,0.3);">
+                                    <i class="fa-solid fa-plus"></i> Plan a Trip
+                                </button>
+                            </div>
+                        `;
+                    }
+                }, 300);
+            } else {
+                console.error('Failed to delete itinerary');
+                const content = element.querySelector('.trip-swipe-content');
+                const bg = element.querySelector('.trip-swipe-bg');
+                if (content) { content.style.transform = ''; content.style.borderRadius = '16px'; }
+                if (bg) bg.style.transform = 'translateX(100%)';
+            }
+        } catch (e) {
+            console.error('Error deleting itinerary', e);
+        }
+    };
 </script>
 
