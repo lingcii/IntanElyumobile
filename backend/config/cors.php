@@ -38,14 +38,19 @@ return [
 
         // Auto-Injected Backend URL
         'https://equipped-cedar-waterproof-cluster.trycloudflare.com',
-        'http://localhost:3000', // Mobile Frontend
-        'http://localhost:4000', // Admin Website
-        
+        'http://localhost:3000', // Mobile Frontend (local)
+        'http://localhost:4000', // Admin Website (local)
+
         // Auto-Injected Cloudflare URL
         'https://dummy-frontend-tunnel.trycloudflare.com',
 
         // Cloudflare tunnel (remote access / staging)
         'https://boc-cornell-rolled-delicious.trycloudflare.com',
+
+        // Railway deployed domains
+        'https://intanelyumobile-production.up.railway.app',
+        'https://natural-transformation-production-f1ec.up.railway.app',
+        'https://intanelyu-production.up.railway.app',
     ],
 
     'allowed_origins_patterns' => [
