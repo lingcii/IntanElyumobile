@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\TouristWelcomeMail;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class RegisterController extends Controller
@@ -33,6 +36,15 @@ class RegisterController extends Controller
             'status'    => 'active',
             'api_token' => $token,
         ]);
+
+        // ── Send welcome email ──────────────────────────────────────────────
+        // Wrapped in try/catch so a mail failure never breaks registration.
+        try {
+            Mail::to($user->email)->send(new TouristWelcomeMail($user));
+        } catch (\Exception $e) {
+            Log::warning('TouristWelcomeMail failed for user #' . $user->id . ': ' . $e->getMessage());
+        }
+        // ───────────────────────────────────────────────────────────────────
 
         return response()->json([
             'success' => true,

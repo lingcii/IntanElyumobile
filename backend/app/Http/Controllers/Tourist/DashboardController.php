@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Tourist;
 use App\Http\Controllers\Controller;
 use App\Models\TouristSpot;
 use App\Models\Favorite;
+use App\Models\Notification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -23,18 +26,23 @@ class DashboardController extends Controller
         $level     = (int) ($user->level ?? 1);
         $xpPerLevel = 1000;
 
-        // Trending: top 5 by visits
-        $trending = TouristSpot::where('status', 'approved')
-            ->orderByDesc('visits')
-            ->limit(5)
-            ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'barangay', 'classification_status', 'accessible_by_private_vehicle'])
-            ->map(fn($s) => $this->formatSpot($s));
+        // Trending: top spots by visits (default 5, configurable via ?limit=)
+        // Technique 2: Server-Side Caching — 2 minute TTL for trending spots
+        $trendingLimit = min((int) $request->query('limit', 5), 50);
+        $trending = Cache::remember("trending:top:{$trendingLimit}", 120, function () use ($trendingLimit) {
+            return TouristSpot::where('status', 'approved')
+                ->orderByDesc('visits')
+                ->limit($trendingLimit)
+                ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'classification_status'])
+                ->map(fn($s) => $this->formatSpot($s))
+                ->toArray();
+        });
 
         // Saved/Favorite places
         $favoriteIds = Favorite::where('user_id', $user->id)->pluck('tourist_spot_id');
         $savedPlaces = TouristSpot::whereIn('id', $favoriteIds)
             ->where('status', 'approved')
-            ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'barangay', 'classification_status', 'accessible_by_private_vehicle'])
+            ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'classification_status'])
             ->map(fn($s) => $this->formatSpot($s));
 
         // Recommendations: Near Me feature
@@ -44,7 +52,7 @@ class DashboardController extends Controller
 
         $recommendedQuery = TouristSpot::where('status', 'approved')
             ->whereNotIn('id', $favoriteIds)
-            ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'rating', 'description', 'entrance_fee', 'barangay', 'classification_status', 'accessible_by_private_vehicle']);
+            ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'rating', 'description', 'entrance_fee', 'classification_status']);
 
         if ($lat && $lng) {
             $recommendedQuery = $recommendedQuery->sortBy(function($spot) use ($lat, $lng) {
@@ -56,10 +64,40 @@ class DashboardController extends Controller
 
         $recommended = $recommendedQuery->take(5)->values()->map(fn($s) => $this->formatSpot($s));
 
-        // Stats
-        $placesVisited = \App\Models\ItineraryItem::whereHas('itinerary', fn($q) => $q->where('user_id', $user->id))
-            ->where('is_visited', true)
-            ->count();
+        // Stats — use denormalized counter (Technique 5: Denormalization)
+        $placesVisited = (int) ($user->completed_activities ?? 0);
+
+        // Rank — Technique 2: Server-Side Caching + Technique 6: Materialized Views
+        $myRank = Cache::remember("rank:user:{$user->id}", 60, function () use ($user) {
+            // Try materialized view first
+            $cached = DB::table('leaderboard_cache')->where('user_id', $user->id)->first();
+            if ($cached) {
+                return (int) $cached->rank;
+            }
+
+            // Fallback: live CTE with denormalized column (Technique 3 + 5)
+            $rankData = DB::selectOne("
+                WITH ranked AS (
+                    SELECT
+                        u.id AS user_id,
+                        ROW_NUMBER() OVER (
+                            ORDER BY
+                                COALESCE(u.xp, 0) DESC,
+                                COALESCE(u.completed_activities, 0) DESC,
+                                u.created_at ASC
+                        ) AS `rank`
+                    FROM users u
+                    WHERE u.role = 'tourist' AND u.status = 'active'
+                )
+                SELECT `rank` FROM ranked WHERE user_id = ?
+            ", [$user->id]);
+            return $rankData ? (int) $rankData->rank : null;
+        });
+
+        // Calculate points balance
+        $earnedPoints = (int) \App\Models\UserPoint::where('user_id', $user->id)->sum('points');
+        $redeemedPoints = (int) \App\Models\PointRedemption::where('user_id', $user->id)->sum('points_cost');
+        $points = max(0, $earnedPoints - $redeemedPoints);
 
         return response()->json([
             'user' => [
@@ -68,35 +106,33 @@ class DashboardController extends Controller
                 'email'  => $user->email,
                 'xp'     => $xp,
                 'level'  => $level,
+                'points' => $points,
                 'avatar' => $user->avatar,
             ],
             'stats' => [
-                'placesVisited' => $placesVisited,
+                'placesVisited'        => $placesVisited,
+                'unread_notifications' => Notification::where('user_id', $user->id)
+                    ->where('is_read', false)
+                    ->count(),
             ],
             'trending'     => $trending,
             'savedPlaces'  => $savedPlaces,
             'recommended'  => $recommended,
             'timeLabel'    => $timeLabel,
             'announcements'=> [],
-            'myRank'       => null, // Placeholder
+            'myRank'       => $myRank,
         ]);
     }
 
     private function formatSpot($spot): array
     {
-        $imageUrl = null;
-        if ($spot->photo_url) {
-            $imageUrl = str_starts_with($spot->photo_url, 'http')
-                ? $spot->photo_url
-                : 'http://localhost:8000/storage/' . $spot->photo_url;
-        }
+        $imageUrl = $spot->photo_url;
 
         return [
             'id'           => $spot->id,
             'name'         => $spot->name,
             'category'     => $spot->category,
             'image'        => $imageUrl,
-            'location'     => $spot->barangay,
             'latitude'     => $spot->latitude,
             'longitude'    => $spot->longitude,
             'rating'       => $spot->rating,
@@ -104,7 +140,6 @@ class DashboardController extends Controller
             'description'  => $spot->description,
             'entrance_fee' => $spot->entrance_fee,
             'classification_status' => $spot->classification_status,
-            'accessible_by_private_vehicle' => (bool)$spot->accessible_by_private_vehicle,
         ];
     }
 }

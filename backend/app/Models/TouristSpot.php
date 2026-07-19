@@ -73,4 +73,19 @@ class TouristSpot extends Model
     {
         return $this->hasMany(TouristSpotAudit::class, 'spot_id');
     }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'EXIST');
+    }
+
+    public function scopeByCategory($query, string $category)
+    {
+        return $query->where('category', $category);
+    }
+
+    public function scopeMaintenance($query, bool $isMaintenance = true)
+    {
+        return $query->where('is_maintenance', $isMaintenance);
+    }
 }

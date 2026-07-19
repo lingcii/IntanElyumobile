@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class FareGuide extends Model
 {
     protected $fillable = [
-        'title', 'vehicle_type', 'region', 'effective_date', 
+        'title', 'vehicle_type', 'vehicle_id', 'region', 'effective_date', 
         'status', 'created_by'
     ];
     
@@ -24,5 +24,10 @@ class FareGuide extends Model
     public function matrices()
     {
         return $this->hasMany(FareMatrix::class);
+    }
+
+    public function vehicle()
+    {
+        return $this->belongsTo(Vehicle::class);
     }
 }

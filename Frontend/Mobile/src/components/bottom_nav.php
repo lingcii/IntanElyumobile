@@ -1,5 +1,5 @@
 <!-- Magic Bottom Navigation Bar -->
-<div class="magic-nav hidden" id="magic-nav">
+<div class="magic-nav" id="magic-nav">
     <div class="magic-nav-bg">
         <svg class="magic-nav-svg" id="magic-nav-svg" viewBox="0 0 448 66" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
             <defs>

@@ -19,9 +19,6 @@
     transition: transform 0.4s ease-in-out;
 }
 
-.magic-nav.hidden {
-    transform: translate(-50%, 150%);
-}
 
 .magic-nav-bg {
     position: absolute;

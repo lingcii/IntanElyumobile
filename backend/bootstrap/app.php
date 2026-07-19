@@ -13,17 +13,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // CORS — allow the React dev server (port 5173) and same origin
+        // CORS — global so preflight OPTIONS requests get handled correctly
+        $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
+
         $middleware->api(prepend: [
-            \Illuminate\Http\Middleware\HandleCors::class,
             \Illuminate\Session\Middleware\StartSession::class,
         ]);
 
-        // Alias for role-based access
         $middleware->alias([
-            'role'         => \App\Http\Middleware\RoleMiddleware::class,
-            'auth.session' => \App\Http\Middleware\AuthenticateSession::class,
-            'tourist.auth' => \App\Http\Middleware\TouristAuthenticate::class,
+            'tourist.auth'  => \App\Http\Middleware\TouristAuthenticate::class,
+            'auth.throttle' => \App\Http\Middleware\ThrottleAuthRequests::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
