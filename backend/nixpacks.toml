@@ -4,11 +4,11 @@
 
 [phases.install]
   dependsOn = ["setup"]
-  cmds = ["cd backend && composer install --no-dev --optimize-autoloader", "cd backend && npm install --ignore-scripts"]
+  cmds = ["composer install --no-dev --optimize-autoloader", "npm install --ignore-scripts"]
 
 [phases.build]
   dependsOn = ["install"]
-  cmds = ["cd backend && php artisan config:clear", "cd backend && php artisan route:clear", "cd backend && php artisan view:clear", "cd backend && php artisan migrate --force", "cd backend && php artisan db:seed --force", "cd backend && php artisan config:cache", "cd backend && php artisan route:cache", "cd backend && php artisan view:cache"]
+  cmds = ["php artisan config:clear", "php artisan route:clear", "php artisan view:clear", "php artisan migrate --force", "php artisan db:seed --force", "php artisan config:cache", "php artisan route:cache", "php artisan view:cache"]
 
 [start]
-  cmd = "cd backend && php artisan serve --host=0.0.0.0 --port=$PORT"
+  cmd = "php artisan serve --host=0.0.0.0 --port=$PORT"

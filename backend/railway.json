@@ -1,13 +1,9 @@
 {
   "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "cd backend && composer install --no-dev --optimize-autoloader && npm install --ignore-scripts",
-    "nixpacks": {
-      "path": "backend"
-    }
+    "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "cd backend && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}",
+    "startCommand": "php artisan serve --host=0.0.0.0 --port=${PORT:-8000}",
     "healthcheckPath": "/",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
