@@ -119,12 +119,16 @@ $activeTab = 'itinerary';
         <i class="fa-solid fa-cloud-arrow-up" style="margin-right:8px;"></i> Save Draft Plan
     </button>
     
-    <!-- Empty State -->
-    <div id="itinerary-empty-state" style="text-align: center;">
-        <i class="fa-solid fa-route" style="font-size: 54px; margin-bottom: 16px; color:var(--primary-color);"></i>
-        <h3 style="margin-bottom:8px;">No plans yet</h3>
-        <p style="font-size:14px; text-align:center; color:rgba(255,255,255,0.7); max-width:80%; margin:0 auto;">Go to the Map and tap "Add to Itinerary"<br>on a place to start building your trip!</p>
-        <button class="btn-primary" style="margin-top: 20px; width:auto; padding:12px 24px;" onclick="navigateTo('map')">Open Map</button>
+    <!-- Empty State Card -->
+    <div id="itinerary-empty-state" class="empty-state-card">
+        <div class="empty-state-icon">
+            <i class="fa-solid fa-route"></i>
+        </div>
+        <h3>No plans yet</h3>
+        <p>Go to the Map and tap <strong>"Add to Itinerary"</strong> on a place to start building your trip!</p>
+        <button class="btn-open-map" onclick="navigateTo('map')">
+            <i class="fa-solid fa-location-dot"></i> Open Map
+        </button>
     </div>
     
 
