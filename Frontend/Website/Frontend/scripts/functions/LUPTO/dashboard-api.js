@@ -10,10 +10,7 @@
     // from stacking up and hammering the API (this was causing the
     // "auto refresh going crazy" behavior).
     if (window.__luptoDashboardLoaded) {
-        console.warn('[Dashboard] Script already loaded — restarting refresh only.');
-        if (typeof window.startAutoRefresh === 'function') {
-            window.startAutoRefresh();
-        }
+        if (typeof initializeDashboard === 'function') initializeDashboard();
         return;
     }
     window.__luptoDashboardLoaded = true;

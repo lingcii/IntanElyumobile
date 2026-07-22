@@ -6,7 +6,7 @@
      */
 
     if (window.__muniDashboardLoaded) {
-        console.warn('[MUNI Dashboard] Script already loaded — skipping duplicate execution.');
+        if (typeof initializeDashboard === 'function') initializeDashboard();
         return;
     }
     window.__muniDashboardLoaded = true;
