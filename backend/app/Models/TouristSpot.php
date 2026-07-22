@@ -67,6 +67,21 @@ class TouristSpot extends Model
         return $this->hasMany(TouristSpotImage::class, 'spot_id')->orderBy('sort_order')->orderBy('id');
     }
 
+    public function getPhotoUrlAttribute($value)
+    {
+        if (!$value) {
+            $firstImg = $this->relationLoaded('images') ? $this->images->first()?->photo_url : null;
+            $value = $firstImg;
+        }
+        if (!$value) return null;
+
+        if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://') || str_starts_with($value, 'data:')) {
+            return $value;
+        }
+
+        return asset(ltrim($value, '/'));
+    }
+
     public function audits()
     {
         return $this->hasMany(TouristSpotAudit::class, 'spot_id');

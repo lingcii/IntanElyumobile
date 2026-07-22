@@ -2,6 +2,15 @@
  * Intan Elyu - Mobile PHP Frontend Main Logic
  */
 
+window.getFullImageUrl = function(url) {
+    if (!url) return window.placeholderImage || '';
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+        return url;
+    }
+    const base = window.backendUrl || 'https://api.intan-elyu.online';
+    return base.replace(/\/+$/, '') + '/' + url.replace(/^\/+/, '');
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     // Global Auth Enforcement for Initial Direct Load
     const publicViews = ['splash', 'auth', 'reset-password'];
