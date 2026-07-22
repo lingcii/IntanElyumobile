@@ -1676,6 +1676,9 @@ function loadCachedKpis() {
 function renderCardsGrid(spotsData) {
     const grid = document.getElementById('cardsView');
     if (!grid) return;
+    if (!Array.isArray(spotsData)) {
+        spotsData = (spotsData && Array.isArray(spotsData.data)) ? spotsData.data : (spotsData && Array.isArray(spotsData.touristSpots) ? spotsData.touristSpots : []);
+    }
     let html = '';
     spotsData.forEach(spot => {
         const desc = (spot.description || '').substring(0, 100);

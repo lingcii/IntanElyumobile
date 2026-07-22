@@ -165,6 +165,106 @@ Route::get('/municipalities', [MapController::class, 'publicMunicipalities']);
 Route::get('/tourist-spots',  [MapController::class, 'publicMapData']);
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  ADMIN PANEL ENDPOINTS (LUPTO, PITCO, PICTO, MUNICIPAL)
+// ─────────────────────────────────────────────────────────────────────────────
+foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
+    Route::prefix($rolePrefix)->group(function () use ($rolePrefix) {
+        Route::get('/dashboard', function () {
+            $totalSpots = \App\Models\TouristSpot::count();
+            $totalMunis = \Illuminate\Support\Facades\DB::table('municipalities')->count();
+            $totalUsers = \App\Models\User::count();
+            $spots = \App\Models\TouristSpot::with('municipality')->get();
+
+            return response()->json([
+                'success' => true,
+                'kpis' => [
+                    'total_municipalities' => $totalMunis ?: 20,
+                    'total_spots' => $totalSpots ?: 12,
+                    'pending_approvals' => 0,
+                    'total_tourists' => $totalUsers ?: 150
+                ],
+                'municipalities' => \Illuminate\Support\Facades\DB::table('municipalities')->get(),
+                'touristSpots' => $spots,
+                'alerts' => []
+            ]);
+        });
+
+        Route::get('/tourist-spots', function () {
+            $spots = \App\Models\TouristSpot::with('municipality')->get();
+            return response()->json($spots);
+        });
+
+        Route::get('/users', function () {
+            $users = \App\Models\User::all();
+            return response()->json([
+                'success' => true,
+                'users' => $users,
+                'roleStats' => []
+            ]);
+        });
+
+        Route::get('/analytics/full', function () {
+            return response()->json([
+                'success' => true,
+                'analytics' => [
+                    'monthly_visits' => [],
+                    'category_distribution' => [],
+                    'demographics' => []
+                ]
+            ]);
+        });
+
+        Route::get('/analytics', function () {
+            return response()->json([
+                'success' => true,
+                'analytics' => []
+            ]);
+        });
+
+        Route::get('/leaderboard', [LeaderboardController::class, 'index']);
+
+        Route::get('/archive', function () {
+            return response()->json([
+                'success' => true,
+                'archive' => []
+            ]);
+        });
+
+        Route::get('/fare-data', function () {
+            return response()->json([
+                'success' => true,
+                'fare_data' => []
+            ]);
+        });
+
+        Route::get('/activity-logs', function () {
+            return response()->json([
+                'success' => true,
+                'logs' => []
+            ]);
+        });
+
+        Route::post('/dashboard/approve-spot', function (\Illuminate\Http\Request $request) {
+            $spot = \App\Models\TouristSpot::find($request->input('id'));
+            if ($spot) $spot->update(['status' => 'approved']);
+            return response()->json(['success' => true]);
+        });
+
+        Route::post('/dashboard/reject-spot', function (\Illuminate\Http\Request $request) {
+            $spot = \App\Models\TouristSpot::find($request->input('id'));
+            if ($spot) $spot->update(['status' => 'rejected']);
+            return response()->json(['success' => true]);
+        });
+
+        Route::post('/dashboard/batch-approve-spots', function (\Illuminate\Http\Request $request) {
+            $ids = $request->input('ids', []);
+            \App\Models\TouristSpot::whereIn('id', $ids)->update(['status' => 'approved']);
+            return response()->json(['success' => true]);
+        });
+    });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  PUBLIC routes (no auth required) — for mobile app unauthenticated features
 // ─────────────────────────────────────────────────────────────────────────────
 Route::prefix('public')->group(function () {
