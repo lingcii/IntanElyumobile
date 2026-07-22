@@ -112,7 +112,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             </div>
         </div>
 
-        <img src="" alt="Place Image" class="sheet-img" id="sheet-img">
+        <img src="" alt="Place Image" class="sheet-img" id="sheet-img" style="width:100% !important; height:180px !important; object-fit:cover !important; object-position:center !important; border-radius:18px !important; display:block !important;">
 
         <!-- About This Location & Tourist Guide Details -->
         <div id="sheet-desc-container" style="margin-top:16px; margin-bottom:16px; display:none; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:16px;">
