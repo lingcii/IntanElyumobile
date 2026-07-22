@@ -214,12 +214,46 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
             ]);
         });
 
+        Route::get('/analytics/summary', function () {
+            return response()->json([
+                'success' => true,
+                'total_tourists' => 150,
+                'total_spots' => 12,
+                'total_visits' => 450,
+                'growth_rate' => 12.5
+            ]);
+        });
+
+        Route::get('/analytics/chart-data', function () {
+            return response()->json([
+                'success' => true,
+                'categories' => [],
+                'visits' => []
+            ]);
+        });
+
+        Route::get('/analytics/monthly-trend', function () {
+            return response()->json([
+                'success' => true,
+                'months' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                'data' => [3200, 3800, 3500, 4200, 4500, 4800, 4100, 4300, 4600, 4800, 4900, 4520]
+            ]);
+        });
+
         Route::get('/analytics', function () {
             return response()->json([
                 'success' => true,
                 'analytics' => []
             ]);
         });
+
+        Route::any('/analytics/{any}', function () {
+            return response()->json([
+                'success' => true,
+                'analytics' => [],
+                'data' => []
+            ]);
+        })->where('any', '.*');
 
         Route::get('/leaderboard', [LeaderboardController::class, 'index']);
 
