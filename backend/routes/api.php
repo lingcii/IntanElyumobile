@@ -95,6 +95,60 @@ Route::prefix('auth')->group(function () {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  ADMIN API (spot photo upload & management)
+// ─────────────────────────────────────────────────────────────────────────────
+Route::prefix('admin')->group(function () {
+    Route::post('/spots/{id}/photo', function (\Illuminate\Http\Request $request, $id) {
+        $request->validate([
+            'photo' => 'required|image|mimes:jpeg,png,jpg,webp,gif|max:10240'
+        ]);
+
+        $spot = TouristSpot::findOrFail($id);
+        $path = $request->file('photo')->store('tourist_spots', 'public');
+        $fullUrl = asset('storage/' . $path);
+
+        $spot->update(['photo_url' => 'storage/' . $path]);
+
+        // Clear public map cache so mobile app gets the new photo immediately
+        \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Photo uploaded successfully!',
+            'photo_url' => $fullUrl,
+            'spot' => $spot
+        ]);
+    });
+
+    Route::post('/spots', function (\Illuminate\Http\Request $request) {
+        $data = $request->validate([
+            'name' => 'required|string',
+            'municipality_id' => 'required|integer',
+            'category' => 'required|string',
+            'entrance_fee' => 'nullable|numeric',
+            'description' => 'nullable|string',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:10240'
+        ]);
+
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('tourist_spots', 'public');
+            $data['photo_url'] = 'storage/' . $path;
+        }
+
+        $spot = TouristSpot::create($data);
+        \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tourist spot created successfully!',
+            'spot' => $spot
+        ]);
+    });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  PUBLIC routes (no auth required) — for mobile app unauthenticated features
 // ─────────────────────────────────────────────────────────────────────────────
 Route::prefix('public')->group(function () {
