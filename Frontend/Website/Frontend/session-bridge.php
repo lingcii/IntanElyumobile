@@ -3,7 +3,12 @@ session_start();
 
 // Check if PHP session has user data
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    $loginRedirect = 'login.php';
+    $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+    if (str_contains($scriptName, '/views/')) {
+        $loginRedirect = '../../login.php';
+    }
+    header('Location: ' . $loginRedirect);
     exit;
 }
 

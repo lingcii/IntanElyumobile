@@ -160,6 +160,10 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
     });
 });
 
+// Top-level aliases for backward-compatible admin website views
+Route::get('/municipalities', [MapController::class, 'publicMunicipalities']);
+Route::get('/tourist-spots',  [MapController::class, 'publicMapData']);
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  PUBLIC routes (no auth required) — for mobile app unauthenticated features
 // ─────────────────────────────────────────────────────────────────────────────
