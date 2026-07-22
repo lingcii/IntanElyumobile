@@ -435,6 +435,49 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         // Add 3D Terrain and Region Mask
         window.mapInstance.on('load', async () => {
             window.mapInstance.setTerrain({ "source": "terrain", "exaggeration": 1.5 });
+
+            // Render markers immediately
+            try {
+                const data = await mapDataPromise;
+                if (data && data.destinations) {
+                    window.allMapLocations = data.destinations || [];
+                    setupFilters();
+                    renderMarkers(window.allMapLocations);
+
+                    setTimeout(() => {
+                        const pendingStr = localStorage.getItem('intan_elyu_pending_route');
+                        if (pendingStr) {
+                            localStorage.removeItem('intan_elyu_pending_route');
+                            const place = JSON.parse(pendingStr);
+                            const pLat = place.lat || place.latitude;
+                            const pLng = place.lng || place.longitude;
+                            if (pLat && pLng && !isNaN(parseFloat(pLat)) && !isNaN(parseFloat(pLng))) {
+                                window.mapInstance.flyTo({ center: [parseFloat(pLng), parseFloat(pLat)], zoom: 14, offset: [0, -160] });
+                                window.openSheet(place);
+                                setTimeout(() => {
+                                    const routeBtn = document.getElementById('btn-show-route');
+                                    if (routeBtn) routeBtn.click();
+                                }, 800);
+                            }
+                        }
+
+                        const viewStr = localStorage.getItem('intan_elyu_view_destination');
+                        if (viewStr) {
+                            localStorage.removeItem('intan_elyu_view_destination');
+                            const place = JSON.parse(viewStr);
+                            const pLat = place.lat || place.latitude;
+                            const pLng = place.lng || place.longitude;
+                            if (pLat && pLng && !isNaN(parseFloat(pLat)) && !isNaN(parseFloat(pLng))) {
+                                window.mapInstance.flyTo({ center: [parseFloat(pLng), parseFloat(pLat)], zoom: 14, offset: [0, -160] });
+                                window.openSheet(place);
+                            }
+                        }
+                    }, 300);
+                }
+            } catch (error) {
+                console.error("Map data processing error:", error);
+            }
+
             try {
                 window.mapInstance.setSky({
                     'sky-color': '#0a0f1c',
@@ -663,49 +706,6 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             } catch (zoneErr) { console.error('Zone render error:', zoneErr); }
             // ── END TOURIST ZONES ────────────────────────────────────────────
 
-            // Fetch and render markers
-            try {
-                const data = await mapDataPromise;
-                if (data && data.destinations) {
-                    window.allMapLocations = data.destinations || [];
-
-                    setupFilters();
-                    renderMarkers(window.allMapLocations);
-                    
-                    setTimeout(() => {
-                        const pendingStr = localStorage.getItem('intan_elyu_pending_route');
-                        if (pendingStr) {
-                            localStorage.removeItem('intan_elyu_pending_route');
-                            const place = JSON.parse(pendingStr);
-                            const pLat = place.lat || place.latitude;
-                            const pLng = place.lng || place.longitude;
-                            if (pLat && pLng && !isNaN(parseFloat(pLat)) && !isNaN(parseFloat(pLng))) {
-                                window.mapInstance.flyTo({ center: [parseFloat(pLng), parseFloat(pLat)], zoom: 14, offset: [0, -160] });
-                                window.openSheet(place);
-                                setTimeout(() => {
-                                    const routeBtn = document.getElementById('btn-show-route');
-                                    if (routeBtn) routeBtn.click();
-                                }, 800);
-                            }
-                        }
-
-                        const viewStr = localStorage.getItem('intan_elyu_view_destination');
-                        if (viewStr) {
-                            localStorage.removeItem('intan_elyu_view_destination');
-                            const place = JSON.parse(viewStr);
-                            const pLat = place.lat || place.latitude;
-                            const pLng = place.lng || place.longitude;
-                            if (pLat && pLng && !isNaN(parseFloat(pLat)) && !isNaN(parseFloat(pLng))) {
-                                window.mapInstance.flyTo({ center: [parseFloat(pLng), parseFloat(pLat)], zoom: 14, offset: [0, -160] });
-                                window.openSheet(place);
-                            }
-                        }
-
-                    }, 300); // Reduced delay since data is ready faster
-                }
-            } catch (error) {
-                console.error("Map data processing error:", error);
-            }
         });
 
         setupEventListeners();
@@ -718,7 +718,9 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         window.mapMarkers = [];
 
         locations.forEach(loc => {
-            if (!loc.lat || !loc.lng || isNaN(parseFloat(loc.lat)) || isNaN(parseFloat(loc.lng))) return;
+            const locLat = parseFloat(loc.lat || loc.latitude);
+            const locLng = parseFloat(loc.lng || loc.longitude);
+            if (isNaN(locLat) || isNaN(locLng)) return;
             
             const cat = loc.category || 'Other';
             let iconClass = 'fa-location-dot';
@@ -789,14 +791,14 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 popupContent.addEventListener('click', () => {
                     const cp = window.mapInstance.getCenter();
                     const cz = window.mapInstance.getZoom();
-                    window.mapInstance.flyTo({ center: [parseFloat(loc.lng), parseFloat(loc.lat)], zoom: Math.max(cz, 14), offset: [0, -180], duration: 400 });
+                    window.mapInstance.flyTo({ center: [locLng, locLat], zoom: Math.max(cz, 14), offset: [0, -180], duration: 400 });
                     window.openSheet(loc);
                 });
 
                 window.activePopup = new maplibregl.Popup({
                     closeButton: false, closeOnClick: false, offset: 15, className: 'smooth-map-popup'
                 })
-                .setLngLat([parseFloat(loc.lng), parseFloat(loc.lat)])
+                .setLngLat([locLng, locLat])
                 .setDOMContent(popupContent)
                 .addTo(window.mapInstance);
 
@@ -805,11 +807,11 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 
                 const cp = window.mapInstance.getCenter();
                 const cz = window.mapInstance.getZoom();
-                window.mapInstance.flyTo({ center: [parseFloat(loc.lng), parseFloat(loc.lat)], zoom: Math.max(cz, 14), offset: [0, -180], duration: 1000 });
+                window.mapInstance.flyTo({ center: [locLng, locLat], zoom: Math.max(cz, 14), offset: [0, -180], duration: 1000 });
             });
             
             const marker = new maplibregl.Marker({ element: container })
-                .setLngLat([parseFloat(loc.lng), parseFloat(loc.lat)])
+                .setLngLat([locLng, locLat])
                 .addTo(window.mapInstance);
                 
             window.mapMarkers.push(marker);
