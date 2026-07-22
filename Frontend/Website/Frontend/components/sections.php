@@ -41,6 +41,7 @@ if (str_starts_with($entryFileDir, $frontendRootPath)) {
     }
     ?>
     <link rel="stylesheet" href="<?= $basePath ?>css/<?= $cssDir ?>/base.css">
+    <link rel="stylesheet" href="<?= $basePath ?>css/<?= $cssDir ?>/dashboard.css">
 
     <!-- Global Libraries: Leaflet Map & Chart.js -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
