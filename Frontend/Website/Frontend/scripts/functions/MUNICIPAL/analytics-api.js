@@ -96,7 +96,7 @@ function toggleAutoRefresh() {
 async function loadSummary() {
     try {
         const data = await apiFetch('summary');
-        const s = data.summary;
+        const s = data.summary || data || {};
 
         setText('kpiTotalSpots', fmtNum(s.total_spots));
         setText('kpiApproved',   fmtNum(s.approved_spots));

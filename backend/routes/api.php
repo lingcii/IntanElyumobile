@@ -215,14 +215,55 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
         });
 
         Route::get('/analytics/summary', function () {
+            $totalSpots = \App\Models\TouristSpot::count();
             return response()->json([
                 'success' => true,
-                'total_tourists' => 150,
-                'total_spots' => 12,
-                'total_visits' => 450,
-                'growth_rate' => 12.5
+                'summary' => [
+                    'total_spots' => $totalSpots ?: 12,
+                    'approved_spots' => $totalSpots ?: 12,
+                    'total_visits' => 450,
+                    'total_analytics_visits' => 450,
+                    'most_visited_spot' => 'Ma-Cho Temple',
+                    'most_visited_muni' => 'San Fernando',
+                    'growth_rate' => 12.5
+                ]
             ]);
         });
+
+        Route::get('/fare-data/guides', function () {
+            return response()->json([
+                'success' => true,
+                'guides' => [],
+                'data' => []
+            ]);
+        });
+
+        Route::get('/fare-data/uploads', function () {
+            return response()->json([
+                'success' => true,
+                'uploads' => [],
+                'data' => []
+            ]);
+        });
+
+        Route::get('/fare-data', function () {
+            return response()->json([
+                'success' => true,
+                'fare_data' => [],
+                'guides' => [],
+                'uploads' => []
+            ]);
+        });
+
+        Route::any('/fare-data/{any}', function () {
+            return response()->json([
+                'success' => true,
+                'fare_data' => [],
+                'guides' => [],
+                'uploads' => [],
+                'data' => []
+            ]);
+        })->where('any', '.*');
 
         Route::get('/analytics/chart-data', function () {
             return response()->json([
