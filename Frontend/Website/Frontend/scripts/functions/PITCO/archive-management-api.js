@@ -4,7 +4,7 @@
  */
 'use strict';
 
-const AM_API = 'http://' + (window.location.hostname || '127.0.0.1') + ':8000/api/pitco/archive';
+const AM_API = (window.API_CONFIG?.BASE_URL || ('http://' + (window.location.hostname || '127.0.0.1') + ':8000')) + '/api/pitco/archive';
 
 // Helper: map action → Laravel REST route
 function amActionToUrl(action, params = {}) {

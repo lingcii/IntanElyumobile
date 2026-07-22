@@ -27,7 +27,10 @@
     // (scoped to that same host) is always sent.
     const apiHost = window.location.hostname || '127.0.0.1';
     const apiPort = '8000';
-    const baseUrl = `${window.location.protocol}//${apiHost}:${apiPort}`;
+    let baseUrl = `${window.location.protocol}//${apiHost}:${apiPort}`;
+    if (apiHost.includes('intan-elyu.online') || window.location.protocol === 'https:') {
+        baseUrl = 'https://api.intan-elyu.online';
+    }
 
     window.API_CONFIG = {
         BASE_URL: baseUrl,
