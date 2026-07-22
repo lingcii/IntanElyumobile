@@ -96,13 +96,12 @@ function _runMapView() {
         };
     }).filter(spot => spot.lat && spot.lng); // Filter out spots without coordinates
 
-    // Municipality coordinates from database
-    const municipalityCoordinates = window.municipalitiesData.map(muni => ({
+    // Municipality coordinates from database    const municipalityCoordinates = (window.municipalitiesData || []).map(muni => ({
         name: muni.name,
-        lat: muni.latitude,
-        lng: muni.longitude,
+        lat: parseFloat(muni.latitude || muni.lat),
+        lng: parseFloat(muni.longitude || muni.lng),
         attraction_count: muni.attraction_count
-    }));
+    })).filter(m => Number.isFinite(m.lat) && Number.isFinite(m.lng));
 
     const municipalityProfiles = {
         'San Juan': {
@@ -111,20 +110,32 @@ function _runMapView() {
             geography: 'San Juan lies within La Union\'s coastal-upland corridor and connects neighboring municipalities through the province\'s road and river systems.',
             culture: 'San Juan supports local traditions, community tourism, and municipal events that reflect the wider identity of La Union.'
         },
+        'Bauang': {
+            description: 'Bauang is known for its beach resorts, grape farms, and agricultural tourism destinations.',
+            history: 'Bauang contributes to the historical development of La Union through its local settlements, community institutions, and municipal heritage.',
+            geography: 'Bauang lies within La Union\'s coastal-upland corridor and connects neighboring municipalities through the province\'s road and river systems.',
+            culture: 'Bauang supports local traditions, community tourism, and municipal events that reflect the wider identity of La Union.'
+        },
         'San Gabriel': {
-            description: 'San Gabriel is an inland municipality recognized for waterfalls, rivers, and mountain eco-adventures.',
+            description: 'San Gabriel is famous for Tangadan Falls and upland eco-tourism experiences.',
             history: 'San Gabriel contributes to the historical development of La Union through its local settlements, community institutions, and municipal heritage.',
             geography: 'San Gabriel lies within La Union\'s coastal-upland corridor and connects neighboring municipalities through the province\'s road and river systems.',
             culture: 'San Gabriel supports local traditions, community tourism, and municipal events that reflect the wider identity of La Union.'
         },
         'Luna': {
-            description: 'Luna is famous for its pebble shoreline, stonecraft heritage, and coastal heritage attractions.',
+            description: 'Luna features historic watchtowers, pebble beaches, and coastal heritage landmarks.',
             history: 'Luna contributes to the historical development of La Union through its local settlements, community institutions, and municipal heritage.',
             geography: 'Luna lies within La Union\'s coastal-upland corridor and connects neighboring municipalities through the province\'s road and river systems.',
             culture: 'Luna supports local traditions, community tourism, and municipal events that reflect the wider identity of La Union.'
         },
+        'Pugo': {
+            description: 'Pugo is an inland destination known for river parks, adventure resorts, and mountain vistas.',
+            history: 'Pugo contributes to the historical development of La Union through its local settlements, community institutions, and municipal heritage.',
+            geography: 'Pugo lies within La Union\'s coastal-upland corridor and connects neighboring municipalities through the province\'s road and river systems.',
+            culture: 'Pugo supports local traditions, community tourism, and municipal events that reflect the wider identity of La Union.'
+        },
         'Bacnotan': {
-            description: 'Bacnotan combines coastal communities, inland green spaces, and growing eco-tourism sites.',
+            description: 'Bacnotan features coastal reserves, agricultural areas, and educational institutions.',
             history: 'Bacnotan contributes to the historical development of La Union through its local settlements, community institutions, and municipal heritage.',
             geography: 'Bacnotan lies within La Union\'s coastal-upland corridor and connects neighboring municipalities through the province\'s road and river systems.',
             culture: 'Bacnotan supports local traditions, community tourism, and municipal events that reflect the wider identity of La Union.'
@@ -177,8 +188,9 @@ function _runMapView() {
     let satelliteLabelsLayer = null;
     let activeSpotMarker = null;
     let laUnionBounds;
-    if (municipalities && municipalities.length > 0) {
-        laUnionBounds = L.latLngBounds(municipalities.map((municipality) => [municipality.lat, municipality.lng])).pad(0.08);
+    const validMuniPoints = municipalities.filter(m => Number.isFinite(parseFloat(m.lat)) && Number.isFinite(parseFloat(m.lng)));
+    if (validMuniPoints.length > 0) {
+        laUnionBounds = L.latLngBounds(validMuniPoints.map((municipality) => [parseFloat(municipality.lat), parseFloat(municipality.lng)])).pad(0.08);
     } else {
         laUnionBounds = L.latLngBounds([[16.2, 120.2], [16.8, 120.5]]);
     }
