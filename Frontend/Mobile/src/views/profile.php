@@ -139,16 +139,22 @@ $activeTab = 'profile';
             (data) => {
                 if (!data) return;
                 const u = data.user || {};
-                document.getElementById('stat-xp').textContent = u.xp || 0;
-                document.getElementById('stat-places').textContent = data.places_visited || 0;
-                if (data.my_rank) document.getElementById('stat-rank').textContent = '#' + data.my_rank;
+                const elXp = document.getElementById('stat-xp');
+                const elPlaces = document.getElementById('stat-places');
+                const elRank = document.getElementById('stat-rank');
+                const elName = document.getElementById('profile-name');
+                const elEmail = document.getElementById('profile-email');
+                const elImg = document.getElementById('profile-img');
 
-                document.getElementById('profile-name').textContent = u.name || 'Explorer';
-                document.getElementById('profile-email').textContent = u.email || '';
+                if (elXp) elXp.textContent = u.xp || 0;
+                if (elPlaces) elPlaces.textContent = data.places_visited || 0;
+                if (elRank && data.my_rank) elRank.textContent = '#' + data.my_rank;
+                if (elName) elName.textContent = u.name || 'Explorer';
+                if (elEmail) elEmail.textContent = u.email || '';
 
                 // Avatar
-                if (document.getElementById('profile-img')) {
-                    document.getElementById('profile-img').src = u.avatar ||
+                if (elImg) {
+                    elImg.src = u.avatar ||
                         `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Tourist')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
                 }
 

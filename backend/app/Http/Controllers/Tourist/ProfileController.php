@@ -22,29 +22,37 @@ class ProfileController extends Controller
 
         // 1. Rank — Technique 2: Server-Side Caching + Technique 6: Materialized Views
         $myRank = Cache::remember("rank:user:{$user->id}", 60, function () use ($user) {
-            // Try materialized view first
-            $cached = DB::table('leaderboard_cache')->where('user_id', $user->id)->first();
-            if ($cached) {
-                return (int) $cached->rank;
+            try {
+                // Try materialized view first
+                $cached = DB::table('leaderboard_cache')->where('user_id', $user->id)->first();
+                if ($cached) {
+                    return (int) $cached->rank;
+                }
+            } catch (\Throwable $e) {
+                // leaderboard_cache table may not exist yet
             }
 
-            // Fallback: live CTE with denormalized column (Technique 3 + 5)
-            $rankData = DB::selectOne("
-                WITH ranked AS (
-                    SELECT
-                        u.id AS user_id,
-                        ROW_NUMBER() OVER (
-                            ORDER BY
-                                COALESCE(u.xp, 0) DESC,
-                                COALESCE(u.completed_activities, 0) DESC,
-                                u.created_at ASC
-                        ) AS `rank`
-                    FROM users u
-                    WHERE u.role = 'tourist' AND u.status = 'active'
-                )
-                SELECT `rank` FROM ranked WHERE user_id = ?
-            ", [$user->id]);
-            return $rankData ? (int) $rankData->rank : null;
+            try {
+                // Fallback: live CTE with denormalized column (Technique 3 + 5)
+                $rankData = DB::selectOne("
+                    WITH ranked AS (
+                        SELECT
+                            u.id AS user_id,
+                            ROW_NUMBER() OVER (
+                                ORDER BY
+                                    COALESCE(u.xp, 0) DESC,
+                                    COALESCE(u.completed_activities, 0) DESC,
+                                    u.created_at ASC
+                            ) AS `rank`
+                        FROM users u
+                        WHERE u.role = 'tourist' AND u.status = 'active'
+                    )
+                    SELECT `rank` FROM ranked WHERE user_id = ?
+                ", [$user->id]);
+                return $rankData ? (int) $rankData->rank : null;
+            } catch (\Throwable $e) {
+                return null;
+            }
         });
 
         // 2. Places Visited — use denormalized counter (Technique 5)
