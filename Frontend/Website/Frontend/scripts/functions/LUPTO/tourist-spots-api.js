@@ -62,23 +62,23 @@ function getFilePreviewUrl(file) {
 // API CALLS - PROPERLY MAPPED TO LARAVEL ENDPOINTS
 
 
-export const getSpots = async () => {
+const getSpots = async () => {
     return await window.API_CONFIG.get(`${API_BASE}`);
 };
 
-export const getSpot = async (id) => {
+const getSpot = async (id) => {
     return await window.API_CONFIG.get(`${API_BASE}/${id}`);
 };
 
-export const createSpot = async (data) => {
+const createSpot = async (data) => {
     return await window.API_CONFIG.post(`${API_BASE}`, data);
 };
 
-export const updateSpot = async (id, data) => {
+const updateSpot = async (id, data) => {
     return await window.API_CONFIG.put(`${API_BASE}/${id}`, data);
 };
 
-export const deleteSpot = async (id) => {
+const deleteSpot = async (id) => {
     return await window.API_CONFIG.delete(`${API_BASE}/${id}`);
 };
 
@@ -140,7 +140,7 @@ const compressImage = async (file, maxWidth = 1280, maxHeight = 720, quality = 0
     });
 };
 
-export const uploadImage = async (file) => {
+const uploadImage = async (file) => {
     let processedFile = file;
     try {
         processedFile = await withTimeout(compressImage(file), 12000, 'Image processing');
@@ -214,7 +214,7 @@ const statusReverseMap = {
     'POTENTIAL': 'POTENTIAL'
 };
 
-export function getClassificationStyle(status) {
+function getClassificationStyle(status) {
     const styles = {
         'EXIST': { bg: '#10B981', text: '#FFFFFF', label: 'EXISTING' },
         'EMERGE': { bg: '#8B5CF6', text: '#FFFFFF', label: 'EMERGING' },
@@ -226,7 +226,7 @@ export function getClassificationStyle(status) {
     return styles[status] || styles['default'];
 }
 
-export function getClassificationBadgeHTML(status) {
+function getClassificationBadgeHTML(status) {
     if (!status) return '';
     const style = getClassificationStyle(status);
     return `<span class="tag" style="background:${style.bg};color:${style.text};">${style.label}</span>`;
@@ -234,7 +234,7 @@ export function getClassificationBadgeHTML(status) {
 
 // TOAST NOTIFICATIONS
 
-export function showToast(msg, type = 'success') {
+function showToast(msg, type = 'success') {
     const colors = {
         success: '#16A34A',
         danger: '#DC2626',
@@ -281,7 +281,7 @@ export function showToast(msg, type = 'success') {
 // MAP INITIALIZATION
 // ════════════════════════════════════════════════════════════════════════════════
 
-export function getCategoryIcon(categoryStr) {
+function getCategoryIcon(categoryStr) {
     if (!categoryStr) return 'map-marker-alt';
     const categories = categoryStr.split(',').map(c => c.trim().toLowerCase());
     const mapping = {
@@ -333,7 +333,7 @@ export function getCategoryIcon(categoryStr) {
     return 'map-marker-alt';
 }
 
-export function getCategoryColor(categoryStr) {
+function getCategoryColor(categoryStr) {
     if (!categoryStr) return '#3B82F6';
     const cat = categoryStr.split(',')[0].trim().toLowerCase();
     const colors = {
@@ -356,7 +356,7 @@ export function getCategoryColor(categoryStr) {
     return colors[cat] || '#3B82F6';
 }
 
-export function initMap(spotsData, municipalData) {
+function initMap(spotsData, municipalData) {
     if (!document.getElementById('touristMap')) return;
 
     let bounds;
@@ -471,7 +471,7 @@ export function initMap(spotsData, municipalData) {
 }
 
 // ── Map Layer Toggle
-export function setupMapLayerToggle() {
+function setupMapLayerToggle() {
     document.querySelectorAll('.map-tab').forEach(tab => {
         tab.addEventListener('click', function () {
             document.querySelectorAll('.map-tab').forEach(t => t.classList.remove('active'));
@@ -488,7 +488,7 @@ export function setupMapLayerToggle() {
 // FILTERING LOGIC
 // ════════════════════════════════════════════════════════════════════════════════
 
-export function filterSpots(searchValue = '', municipalityValue = '', selectedCats = [], statusValue = '') {
+function filterSpots(searchValue = '', municipalityValue = '', selectedCats = [], statusValue = '') {
     let visibleCount = 0;
     const mappedStatus = statusReverseMap[statusValue] || statusValue;
 
@@ -531,7 +531,7 @@ export function filterSpots(searchValue = '', municipalityValue = '', selectedCa
 }
 
 // ── Dropdown Toggle
-export function toggleDropdown(menuId) {
+function toggleDropdown(menuId) {
     const menu = document.getElementById(menuId);
     const isOpen = menu.style.display === 'block';
     document.querySelectorAll('.dropdown-menu').forEach(m => m.style.display = 'none');
@@ -539,7 +539,7 @@ export function toggleDropdown(menuId) {
 }
 
 // ── View Toggle (Cards/Table)
-export function setupViewToggle() {
+function setupViewToggle() {
     document.getElementById('viewCards')?.addEventListener('click', function () {
         this.classList.add('active');
         document.getElementById('viewTable').classList.remove('active');
@@ -556,7 +556,7 @@ export function setupViewToggle() {
 }
 
 // ── Filter Event Listeners
-export function setupFilterListeners() {
+function setupFilterListeners() {
     const applyFilters = () => {
         const searchValue = document.getElementById('searchInput')?.value || '';
         const municipalityValue = document.getElementById('filterMunicipality')?.value || '';
@@ -575,7 +575,7 @@ export function setupFilterListeners() {
 }
 
 // ── Dropdown Event Listeners
-export function setupDropdownListeners() {
+function setupDropdownListeners() {
     // Card dropdowns
     document.querySelectorAll('[id^="card-dropdown-"]').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -705,12 +705,12 @@ window.openSpotModal = async function openSpotModal(spotId) {
     }
 }
 
-export function closeSpotModal() {
+function closeSpotModal() {
     const modal = document.getElementById('spotModal');
     if (modal) modal.classList.remove('active');
 }
 
-export function setupModalListeners() {
+function setupModalListeners() {
     document.getElementById('closeSpotModal')?.addEventListener('click', closeSpotModal);
 
     document.getElementById('spotModal')?.addEventListener('click', e => {
@@ -726,7 +726,7 @@ export function setupModalListeners() {
 }
 
 // ── Utility: HTML Escape
-export function escapeHtml(text) {
+function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
@@ -1450,7 +1450,7 @@ window.confirmSaveSpot = async function () {
 // INITIALIZE ALL EVENT LISTENERS
 // ════════════════════════════════════════════════════════════════════════════════
 
-export async function initializeAll(spotsData, municipalData) {
+async function initializeAll(spotsData, municipalData) {
     loadCachedKpis();
 
     // If data not provided, fetch from API (lightweight shell pattern)

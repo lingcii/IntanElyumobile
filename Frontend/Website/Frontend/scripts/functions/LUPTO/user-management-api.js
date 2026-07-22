@@ -5,7 +5,7 @@
 
 const LUPTO_API = window.API_CONFIG?.LUPTO || 'http://localhost:8000/api/lupto';
 
-export async function fetchUsersData() {
+async function fetchUsersData() {
     try {
         const data = await window.API_CONFIG.fetch(`${LUPTO_API}/users`);
         return data;
@@ -15,7 +15,7 @@ export async function fetchUsersData() {
     }
 }
 
-export async function updateUser(id, role, status) {
+async function updateUser(id, role, status) {
     try {
         const data = await window.API_CONFIG.put(`${LUPTO_API}/users/${id}`, { role, status });
         return data;
@@ -25,7 +25,7 @@ export async function updateUser(id, role, status) {
     }
 }
 
-export async function resetPassword(id, password) {
+async function resetPassword(id, password) {
     try {
         const data = await window.API_CONFIG.patch(`${LUPTO_API}/users/${id}/password`, { password });
         return data;
@@ -36,7 +36,7 @@ export async function resetPassword(id, password) {
 }
 
 // Real-time refresh for user table
-export async function refreshUsers() {
+async function refreshUsers() {
     try {
         return await fetchUsersData();
     } catch (err) {

@@ -61,11 +61,11 @@ function getFilePreviewUrl(file) {
 }
 
 // ── API CALLS ────────────────────────────────────────────────────────────────
-export const getSpots = async () => await window.API_CONFIG.get(`${API_BASE}`);
-export const getSpot = async (id) => await window.API_CONFIG.get(`${API_BASE}/${id}`);
-export const createSpot = async (data) => await window.API_CONFIG.post(`${API_BASE}`, data);
-export const updateSpot = async (id, data) => await window.API_CONFIG.put(`${API_BASE}/${id}`, data);
-export const deleteSpot = async (id) => await window.API_CONFIG.delete(`${API_BASE}/${id}`);
+const getSpots = async () => await window.API_CONFIG.get(`${API_BASE}`);
+const getSpot = async (id) => await window.API_CONFIG.get(`${API_BASE}/${id}`);
+const createSpot = async (data) => await window.API_CONFIG.post(`${API_BASE}`, data);
+const updateSpot = async (id, data) => await window.API_CONFIG.put(`${API_BASE}/${id}`, data);
+const deleteSpot = async (id) => await window.API_CONFIG.delete(`${API_BASE}/${id}`);
 
 window.getSpots = getSpots;
 window.getSpot = getSpot;
@@ -101,7 +101,7 @@ const compressImage = async (file, maxWidth = 1280, maxHeight = 720, quality = 0
     });
 };
 
-export const uploadImage = async (file) => {
+const uploadImage = async (file) => {
     let processedFile = file;
     try { processedFile = await compressImage(file); } catch (err) { processedFile = file; }
     const formData = new FormData();
@@ -122,7 +122,7 @@ export const uploadImage = async (file) => {
 const statusDisplayMap = { 'EXIST': 'EXISTING', 'EMERGE': 'EMERGING', 'POTENTIAL': 'POTENTIAL' };
 const statusReverseMap = { 'EXISTING': 'EXIST', 'EMERGING': 'EMERGE', 'POTENTIAL': 'POTENTIAL' };
 
-export function getClassificationStyle(status) {
+function getClassificationStyle(status) {
     const styles = {
         'EXIST': { bg: '#10B981', text: '#FFFFFF', label: 'EXISTING' },
         'EMERGE': { bg: '#8B5CF6', text: '#FFFFFF', label: 'EMERGING' },
@@ -133,7 +133,7 @@ export function getClassificationStyle(status) {
 }
 
 // ── TOAST ────────────────────────────────────────────────────────────────────
-export function showToast(msg, type = 'success') {
+function showToast(msg, type = 'success') {
     const colors = { success: '#16A34A', danger: '#DC2626', info: '#4338CA', warning: '#F59E0B' };
     const icons = { success: 'fa-check-circle', danger: 'fa-times-circle', info: 'fa-info-circle', warning: 'fa-exclamation-circle' };
     const toast = document.createElement('div');
@@ -146,7 +146,7 @@ export function showToast(msg, type = 'success') {
 }
 
 // ── CATEGORY ICON / COLOR ───────────────────────────────────────────────────
-export function getCategoryIcon(catStr) {
+function getCategoryIcon(catStr) {
     if (!catStr) return 'map-marker-alt';
     const cats = catStr.split(',').map(c => c.trim().toLowerCase());
     const map = { 'beach': 'umbrella-beach', 'mountain': 'mountain', 'waterfall': 'water', 'waterfalls': 'water', 'river': 'water', 'lake': 'water', 'island': 'umbrella-beach', 'cave': 'mountain', 'volcano': 'mountain', 'forest': 'tree', 'nature park': 'tree', 'marine sanctuary': 'fish', 'wildlife sanctuary': 'paw', 'historical': 'landmark', 'cultural heritage': 'landmark', 'religious': 'church', 'museum': 'museum', 'monument': 'monument', 'landmark': 'landmark', 'viewpoint': 'binoculars', 'adventure': 'hiking', 'hiking': 'hiking', 'camping': 'campground', 'farm': 'seedling', 'eco-tourism': 'leaf', 'garden': 'seedling', 'park': 'tree', 'recreation': 'bicycle', 'hot spring': 'hot-tub-person', 'cold spring': 'snowflake', 'food destination': 'utensils', 'shopping': 'shopping-cart', 'festival venue': 'masks-theater', 'resort': 'hotel', 'other': 'star' };
@@ -154,7 +154,7 @@ export function getCategoryIcon(catStr) {
     return 'map-marker-alt';
 }
 
-export function getCategoryColor(catStr) {
+function getCategoryColor(catStr) {
     if (!catStr) return '#3B82F6';
     const cat = catStr.split(',')[0].trim().toLowerCase();
     const colors = { 'beach': '#0EA5E9', 'waterfalls': '#06B6D4', 'waterfall': '#06B6D4', 'nature park': '#10B981', 'forest': '#059669', 'cultural heritage': '#F59E0B', 'historical': '#D97706', 'museum': '#8B5CF6', 'religious': '#EC4899', 'farm': '#84CC16', 'eco-tourism': '#10B981', 'cold spring': '#06B6D4', 'hot spring': '#EF4444', 'resort': '#6366F1' };
@@ -162,7 +162,7 @@ export function getCategoryColor(catStr) {
 }
 
 // ── MAIN MAP ─────────────────────────────────────────────────────────────────
-export function initMap(spotsData, municipalData) {
+function initMap(spotsData, municipalData) {
     if (!document.getElementById('touristMap')) return;
 
     const muni = municipalData[0] || window.municipalityData || {};
@@ -206,7 +206,7 @@ export function initMap(spotsData, municipalData) {
     setTimeout(() => map.invalidateSize(), 300);
 }
 
-export function setupMapLayerToggle() {
+function setupMapLayerToggle() {
     document.querySelectorAll('.map-tab').forEach(tab => {
         tab.addEventListener('click', function () {
             document.querySelectorAll('.map-tab').forEach(t => t.classList.remove('active'));
@@ -218,7 +218,7 @@ export function setupMapLayerToggle() {
 }
 
 // ── FILTERING ────────────────────────────────────────────────────────────────
-export function filterSpots(searchValue = '', selectedCats = [], statusValue = '') {
+function filterSpots(searchValue = '', selectedCats = [], statusValue = '') {
     let visibleCount = 0;
     const mappedStatus = statusReverseMap[statusValue] || statusValue;
 
@@ -249,14 +249,14 @@ export function filterSpots(searchValue = '', selectedCats = [], statusValue = '
     return visibleCount;
 }
 
-export function toggleDropdown(menuId) {
+function toggleDropdown(menuId) {
     const menu = document.getElementById(menuId);
     const isOpen = menu.style.display === 'block';
     document.querySelectorAll('.dropdown-menu').forEach(m => m.style.display = 'none');
     if (!isOpen) menu.style.display = 'block';
 }
 
-export function setupViewToggle() {
+function setupViewToggle() {
     document.getElementById('viewCards')?.addEventListener('click', function () {
         this.classList.add('active');
         document.getElementById('viewTable').classList.remove('active');
@@ -271,7 +271,7 @@ export function setupViewToggle() {
     });
 }
 
-export function setupFilterListeners() {
+function setupFilterListeners() {
     const applyFilters = () => {
         const searchValue = document.getElementById('searchInput')?.value || '';
         const selectedCats = Array.from(document.querySelectorAll('.cat-filter-chk:checked')).map(c => c.value);
@@ -284,7 +284,7 @@ export function setupFilterListeners() {
     document.querySelectorAll('.cat-filter-chk').forEach(chk => chk.addEventListener('change', applyFilters));
 }
 
-export function setupDropdownListeners() {
+function setupDropdownListeners() {
     document.querySelectorAll('[id^="card-dropdown-"]').forEach(btn => {
         btn.addEventListener('click', () => {
             const spotId = btn.id.replace('card-dropdown-', '');
@@ -346,9 +346,9 @@ window.openSpotModal = async function (spotId) {
     }
 };
 
-export function closeSpotModal() { document.getElementById('spotModal')?.classList.remove('active'); }
+function closeSpotModal() { document.getElementById('spotModal')?.classList.remove('active'); }
 
-export function setupModalListeners() {
+function setupModalListeners() {
     document.getElementById('closeSpotModal')?.addEventListener('click', closeSpotModal);
     document.getElementById('spotModal')?.addEventListener('click', e => { if (e.target.id === 'spotModal') closeSpotModal(); });
     document.querySelectorAll('[data-action="view-spot"]').forEach(item => {
@@ -356,7 +356,7 @@ export function setupModalListeners() {
     });
 }
 
-export function escapeHtml(text) {
+function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
@@ -716,7 +716,7 @@ window.confirmSaveSpot = async function () {
 };
 
 // ── INITIALIZE ALL ───────────────────────────────────────────────────────────
-export async function initializeAll(spotsData, municipalData) {
+async function initializeAll(spotsData, municipalData) {
     loadCachedMuniKpis();
 
     if (!spotsData || !spotsData.length || !municipalData || !municipalData.length) {

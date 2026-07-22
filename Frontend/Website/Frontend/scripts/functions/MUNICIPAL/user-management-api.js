@@ -2,7 +2,7 @@
 
 const MTO_API = window.API_CONFIG?.MUNICIPAL || 'http://' + (window.location.hostname || '127.0.0.1') + ':8000/api/municipal';
 
-export async function fetchUsersData() {
+async function fetchUsersData() {
     try {
         const response = await fetch(`${MTO_API}/users`, { credentials: 'include' });
         if (!response.ok) throw new Error('Failed to fetch users');
@@ -13,7 +13,7 @@ export async function fetchUsersData() {
     }
 }
 
-export async function updateUser(id, role, status) {
+async function updateUser(id, role, status) {
     try {
         const response = await fetch(`${MTO_API}/users/${id}`, {
             method: 'PUT',
@@ -28,7 +28,7 @@ export async function updateUser(id, role, status) {
     }
 }
 
-export async function resetPassword(id, password) {
+async function resetPassword(id, password) {
     try {
         const response = await fetch(`${MTO_API}/users/${id}/password`, {
             method: 'PATCH',

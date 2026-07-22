@@ -7,7 +7,7 @@ const MUNICIPAL_API = window.API_CONFIG?.MUNICIPAL || 'http://localhost:8000/api
 let refreshTimer = null;
 
 // ── Fetch Activity Logs from Database ───────────────────────────────────────
-export async function fetchActivityLogs() {
+async function fetchActivityLogs() {
     try {
         const data = await window.API_CONFIG.get(`${MUNICIPAL_API}/activity-logs`);
         return data;
@@ -18,7 +18,7 @@ export async function fetchActivityLogs() {
 }
 
 // ── Real-time Auto Refresh ────────────────────────────────────────────────────
-export function startAutoRefresh(callback) {
+function startAutoRefresh(callback) {
     if (refreshTimer) clearInterval(refreshTimer);
     refreshTimer = setInterval(async () => {
         try {
@@ -29,7 +29,7 @@ export function startAutoRefresh(callback) {
     }, 30000);
 }
 
-export function stopAutoRefresh() {
+function stopAutoRefresh() {
     if (refreshTimer) {
         clearInterval(refreshTimer);
         refreshTimer = null;
