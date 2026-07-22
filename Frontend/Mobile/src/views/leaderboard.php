@@ -74,8 +74,9 @@ $activeTab = 'leaderboard';
         }
 
         const cacheKey = 'leaderboard_data_' + (token ? token.substring(0, 10) : 'public');
+        const fetchCache = window.useCache || (async (key, fetcher, renderer) => { const d = await fetcher(); if(renderer) renderer(d); return d; });
 
-        await window.useCache(
+        await fetchCache(
             cacheKey,
             async () => {
                 const res = await fetch(url, { headers: { ...headers } });
