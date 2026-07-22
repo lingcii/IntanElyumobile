@@ -1,2 +1,101 @@
-/* Profile View Styles */
-.profile-view { padding: 16px; }
+/* ============================================================
+ * Profile View Styles - profile.css
+ * Intan Elyu Mobile — Premium Dark Theme
+ * ============================================================ */
+
+/* Main Container */
+.profile-container {
+    width: 100%;
+    min-height: 100vh;
+    padding: 16px 16px 120px 16px;
+    box-sizing: border-box;
+    background-color: #0a0f1c !important;
+    color: #f8fafc !important;
+}
+
+body[data-view="profile"] {
+    background-color: #0a0f1c !important;
+    color: #f8fafc !important;
+}
+
+/* Profile Header Card */
+.profile-header {
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(15, 23, 42, 0.7) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 24px;
+    padding: 24px 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+.profile-avatar-container {
+    display: inline-block;
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #38bdf8;
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+}
+
+.profile-name {
+    margin: 0 0 4px 0;
+    font-size: 22px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.3px;
+}
+
+.profile-email {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: #94a3b8;
+}
+
+/* Stats Container Grid */
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.stats-container .stat-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 16px 8px;
+    text-align: center;
+}
+
+.stats-container .stat-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: #38bdf8;
+    margin-bottom: 2px;
+}
+
+.stats-container .stat-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Section Subtitles */
+.profile-container h3 {
+    color: #ffffff !important;
+    font-weight: 800 !important;
+}
