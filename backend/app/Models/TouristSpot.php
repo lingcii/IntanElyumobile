@@ -24,7 +24,6 @@ class TouristSpot extends Model
         'is_maintenance',
         'status',
         'classification_status',
-        'accessible_by_private_vehicle',
         'visits',
         'rating',
     ];
@@ -34,7 +33,6 @@ class TouristSpot extends Model
         'latitude'       => 'float',
         'longitude'      => 'float',
         'is_maintenance' => 'boolean',
-        'accessible_by_private_vehicle' => 'boolean',
         'visits'         => 'integer',
         'rating'         => 'float',
     ];
@@ -72,20 +70,5 @@ class TouristSpot extends Model
     public function audits()
     {
         return $this->hasMany(TouristSpotAudit::class, 'spot_id');
-    }
-
-    public function scopeActive($query)
-    {
-        return $query->where('status', 'EXIST');
-    }
-
-    public function scopeByCategory($query, string $category)
-    {
-        return $query->where('category', $category);
-    }
-
-    public function scopeMaintenance($query, bool $isMaintenance = true)
-    {
-        return $query->where('is_maintenance', $isMaintenance);
     }
 }

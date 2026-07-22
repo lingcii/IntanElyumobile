@@ -363,7 +363,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             headers: { 'Accept': 'application/json' }
         }).then(r => r.json()).catch(e => console.error("Map fetch error:", e));
 
-        const regionDataPromise = fetch('assets/la_union.json').then(r => r.json()).catch(e => console.error("Region fetch error:", e));
+        const regionDataPromise = fetch('assets/la_union_municipalities.json').then(r => r.json()).catch(e => console.error("Region fetch error:", e));
 
         // Fetch fare rates from DB
         const faresPromise = fetch(_backendBase + '/api/public/fares', {

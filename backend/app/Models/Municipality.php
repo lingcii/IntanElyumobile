@@ -20,4 +20,14 @@ class Municipality extends Model
     {
         return $this->hasMany(TouristSpot::class);
     }
+
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
+
+    public function analytics()
+    {
+        return $this->hasMany(Analytics::class);
+    }
 }
