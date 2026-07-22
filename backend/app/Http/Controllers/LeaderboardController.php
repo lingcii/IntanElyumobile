@@ -69,11 +69,12 @@ class LeaderboardController extends Controller
 
         // Technique 2: Server-Side Caching — 60 second TTL
         $cachedData = Cache::remember($cacheKey, 60, function () use ($search, $orderSql, $limit, $offset) {
-            // Technique 6: Try the materialized view first (instant reads)
-            $hasCacheTable = DB::table('leaderboard_cache')->exists();
+            $hasCacheTable = \Illuminate\Support\Facades\Schema::hasTable('leaderboard_cache');
 
             if ($hasCacheTable) {
-                return $this->queryFromMaterializedView($search, $orderSql, $limit, $offset);
+                try {
+                    return $this->queryFromMaterializedView($search, $orderSql, $limit, $offset);
+                } catch (\Throwable $e) {}
             }
 
             // Fallback: live CTE query (still optimized via denormalization)
