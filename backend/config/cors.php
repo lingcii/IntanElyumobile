@@ -55,10 +55,7 @@ return [
     ],
 
     'allowed_origins_patterns' => [
-        '#^https?://[a-zA-Z0-9-]+\.trycloudflare\.com$#',
-        '#^https?://[a-zA-Z0-9-]+\.up\.railway\.app$#',
-        '#^https?://([a-zA-Z0-9-]+\.)?intan-elyu\.com$#',
-        '#^https?://([a-zA-Z0-9-]+\.)?intan-elyu\.online$#',
+        '#.*#',
     ],
 
     'allowed_headers' => ['*'],
