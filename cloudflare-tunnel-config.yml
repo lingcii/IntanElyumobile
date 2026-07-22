@@ -1,0 +1,11 @@
+tunnel: 85cd9abd-8a80-41b9-822f-395765017bc4
+credentials-file: C:\Users\JAMES VERGEL\.cloudflared\85cd9abd-8a80-41b9-822f-395765017bc4.json
+
+ingress:
+  - hostname: app.intan-elyu.online
+    service: http://localhost:3000
+
+  - hostname: api.intan-elyu.online
+    service: http://localhost:8000
+
+  - service: http_status:404

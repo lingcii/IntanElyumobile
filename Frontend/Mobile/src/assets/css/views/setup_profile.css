@@ -1,0 +1,135 @@
+.setup-container {
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-height: 100vh;
+    justify-content: center;
+}
+
+.setup-header {
+    margin-bottom: 32px;
+}
+
+.setup-header h2 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #f8fafc;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+.setup-header p {
+    color: rgba(148,163,184,0.7);
+    font-size: 14px;
+}
+
+.setup-form {
+    width: 100%;
+    max-width: 360px;
+}
+
+.avatar-upload {
+    position: relative;
+    margin-bottom: 32px;
+    display: inline-block;
+}
+
+.avatar-preview {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    border: 3px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+.avatar-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+}
+
+.avatar-preview i {
+    font-size: 36px;
+    color: rgba(148,163,184,0.4);
+}
+
+.avatar-btn {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #38bdf8, #2563eb);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #0f172a;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(56,189,248,0.3);
+    font-size: 14px;
+}
+
+.form-group {
+    text-align: left;
+    margin-bottom: 18px;
+}
+
+.form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 6px;
+    margin-left: 4px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #f8fafc;
+    border-radius: 14px;
+    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: all 0.3s;
+    box-sizing: border-box;
+}
+
+.form-control::placeholder {
+    color: rgba(148,163,184,0.4);
+}
+
+.form-control:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 3px rgba(56,189,248,0.1);
+    background: rgba(255,255,255,0.08);
+}
+
+.btn-skip {
+    background: transparent;
+    color: rgba(148,163,184,0.5);
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 14px;
+    width: 100%;
+    margin-top: 8px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.btn-skip:hover {
+    color: rgba(148,163,184,0.8);
+}

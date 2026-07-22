@@ -1,0 +1,5 @@
+.edit-profile-container.setup-container {
+    min-height: auto;
+    justify-content: flex-start;
+    padding-top: 20px;
+}

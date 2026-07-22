@@ -1,0 +1,10 @@
+{
+  "appId": "com.intan.elyu",
+  "appName": "Intan Elyu",
+  "webDir": "public",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "https://typical-pick-interview-listen.trycloudflare.com",
+    "cleartext": true
+  }
+}

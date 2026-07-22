@@ -1,0 +1,16 @@
+node_modules/
+vendor/
+.gradle/
+.idea/
+.vscode/
+build/
+dist/
+*.log
+.env
+Frontend/Mobile/node_modules/
+Frontend/Mobile/android/.gradle/
+Frontend/Mobile/android/app/build/
+Frontend/Mobile/android/build/
+Frontend/Mobile/android/capacitor-cordova-android-plugins/
+backend/vendor/
+backend/storage/*.key
