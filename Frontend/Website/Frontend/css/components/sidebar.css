@@ -112,6 +112,17 @@
     letter-spacing: 0.3px;
 }
 
+/* Nav section title */
+.nav-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #64748b;
+    padding: 16px 16px 4px 16px;
+    white-space: nowrap;
+}
+
 /* Nav container */
 .sidebar-nav {
     flex: 1;

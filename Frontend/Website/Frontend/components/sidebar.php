@@ -17,13 +17,15 @@ $sidebarConfig = [
         'brand' => 'LUPTO',
         'brand_sub' => 'San Fernando City, La Union',
         'items' => [
-            ['href' => 'dashboard.php',       'icon' => 'fa-gauge-high',      'label' => 'Dashboard'],
-            ['href' => 'tourist-spots.php',   'icon' => 'fa-location-dot',    'label' => 'Manage Tourist Spots'],
-            ['href' => 'fare-data.php',       'icon' => 'fa-money-bill-trend-up', 'label' => 'Transportation Fare'],
-            ['href' => 'leaderboard.php', 'icon' => 'fa-trophy', 'label' => 'Leaderboard'],
-            ['href' => 'analytics.php',       'icon' => 'fa-chart-simple',    'label' => 'Analytics'],
-            ['href' => 'activity-logs.php',   'icon' => 'fa-history',         'label' => 'Activity Logs'],
-            ['href' => 'settings.php',        'icon' => 'fa-cog',             'label' => 'System Settings'],
+            ['href' => 'dashboard.php',          'icon' => 'fa-gauge-high',          'label' => 'Dashboard',            'section' => 'MAIN MENU'],
+            ['href' => 'tourist-spots.php',      'icon' => 'fa-location-dot',        'label' => 'Manage Tourist Spots'],
+            ['href' => 'report-generator.php',   'icon' => 'fa-comments',            'label' => 'Feedback'],
+            ['href' => 'fare-data.php',          'icon' => 'fa-money-bill-trend-up', 'label' => 'Transportation Fare'],
+            ['href' => 'analytics.php',          'icon' => 'fa-chart-simple',        'label' => 'Analytics'],
+            ['href' => 'leaderboard.php',        'icon' => 'fa-trophy',              'label' => 'Leaderboard'],
+            ['href' => 'user-management.php',     'icon' => 'fa-user',               'label' => 'User Management',      'section' => 'ADMINISTRATION'],
+            ['href' => 'activity-logs.php',      'icon' => 'fa-history',             'label' => 'Activity Logs'],
+            ['href' => 'settings.php',           'icon' => 'fa-cog',                 'label' => 'System Settings',      'section' => 'SETTINGS & PRIVACY'],
         ]
     ],
     // PICTO Role
@@ -32,14 +34,14 @@ $sidebarConfig = [
         'brand' => 'PICTO',
         'brand_sub' => 'San Fernando City, La Union',
         'items' => [
-            ['href' => 'dashboard.php',            'icon' => 'fa-gauge-high',             'label' => 'Dashboard'],
-            ['href' => 'tourist-spots.php',        'icon' => 'fa-location-dot',           'label' => 'Manage Tourist Spots'],
-            ['href' => 'fare-data.php',            'icon' => 'fa-money-bill-trend-up',    'label' => 'Transportation Fare'],
-            ['href' => 'user-management.php',      'icon' => 'fa-user',                   'label' => 'User Management'],
-            ['href' => 'analytics.php',            'icon' => 'fa-chart-simple',           'label' => 'Analytics'],
-            ['href' => 'activity-logs.php',        'icon' => 'fa-history',                'label' => 'Activity Logs'],
-            ['href' => 'archive-management.php',   'icon' => 'fa-box-archive',            'label' => 'Archive Management'],
-            ['href' => 'settings.php',             'icon' => 'fa-cog',                    'label' => 'System Settings'],
+            ['href' => 'dashboard.php',          'icon' => 'fa-gauge-high',          'label' => 'Dashboard',            'section' => 'MAIN MENU'],
+            ['href' => 'tourist-spots.php',      'icon' => 'fa-location-dot',        'label' => 'Manage Tourist Spots'],
+            ['href' => 'fare-data.php',          'icon' => 'fa-money-bill-trend-up', 'label' => 'Transportation Fare'],
+            ['href' => 'analytics.php',          'icon' => 'fa-chart-simple',        'label' => 'Analytics'],
+            ['href' => 'user-management.php',     'icon' => 'fa-user',               'label' => 'User Management',      'section' => 'ADMINISTRATION'],
+            ['href' => 'activity-logs.php',      'icon' => 'fa-history',             'label' => 'Activity Logs'],
+            ['href' => 'archive-management.php', 'icon' => 'fa-box-archive',        'label' => 'Archive Management'],
+            ['href' => 'settings.php',           'icon' => 'fa-cog',                 'label' => 'System Settings',      'section' => 'SETTINGS & PRIVACY'],
         ]
     ],
     // Municipal/LGU Roles (fallback for all municipal roles)
@@ -48,12 +50,12 @@ $sidebarConfig = [
         'brand' => 'MTO',
         'brand_sub' => 'San Fernando City, La Union',
         'items' => [
-            ['href' => 'dashboard.php',       'icon' => 'fa-gauge-high',      'label' => 'Dashboard Overview'],
-            ['href' => 'tourist-spots.php',   'icon' => 'fa-location-dot',    'label' => 'Tourist Spots'],
-            ['href' => 'fare-data.php',       'icon' => 'fa-money-bill-trend-up', 'label' => 'Fare Management'],
-            ['href' => 'analytics.php',       'icon' => 'fa-chart-simple',    'label' => 'Analytics and Statistics'],
-            ['href' => 'report-generator.php','icon' => 'fa-file-pen',        'label' => 'Reports Management'],
-            ['href' => 'settings.php',        'icon' => 'fa-cog',             'label' => 'System Settings'],
+            ['href' => 'dashboard.php',          'icon' => 'fa-gauge-high',          'label' => 'Dashboard Overview',   'section' => 'MAIN MENU'],
+            ['href' => 'tourist-spots.php',      'icon' => 'fa-location-dot',        'label' => 'Tourist Spots'],
+            ['href' => 'fare-data.php',          'icon' => 'fa-money-bill-trend-up', 'label' => 'Fare Management'],
+            ['href' => 'analytics.php',          'icon' => 'fa-chart-simple',        'label' => 'Analytics and Statistics'],
+            ['href' => 'report-generator.php',   'icon' => 'fa-file-pen',            'label' => 'Reports Management',   'section' => 'ADMINISTRATION'],
+            ['href' => 'settings.php',           'icon' => 'fa-cog',                 'label' => 'System Settings',      'section' => 'SETTINGS & PRIVACY'],
         ]
     ],
     // Specific municipal roles with custom brand names
@@ -358,7 +360,15 @@ $brandLogo = $config['logo'] ?? 'images/LOGO.png';
 
     <!-- Primary Navigation -->
     <nav class="sidebar-nav" role="navigation" aria-label="Main navigation">
-        <?php foreach ($navItems as $item):
+        <?php 
+        $currentSection = null;
+        foreach ($navItems as $item):
+            if (!empty($item['section']) && $item['section'] !== $currentSection):
+                $currentSection = $item['section'];
+        ?>
+            <div class="nav-section-title"><?= htmlspecialchars($currentSection) ?></div>
+        <?php 
+            endif;
             $active = ($currentPage === $item['href']) ? ' active' : '';
         ?>
         <a href="<?= htmlspecialchars($item['href']) ?>" class="nav-item<?= $active ?>" title="<?= htmlspecialchars($item['label']) ?>">
