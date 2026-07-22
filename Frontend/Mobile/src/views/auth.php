@@ -506,53 +506,51 @@
         }
 
         function promptGoogle() {
-            if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+            if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
                 try {
-                    google.accounts.id.initialize({
+                    const tokenClient = google.accounts.oauth2.initTokenClient({
                         client_id: clientId,
-                        callback: window.handleCredentialResponse,
-                        auto_select: false,
-                        use_fedcm_for_prompt: false
-                    });
-                    google.accounts.id.prompt((notification) => {
-                        if ((notification.isNotDisplayed && notification.isNotDisplayed()) || (notification.isSkippedMoment && notification.isSkippedMoment())) {
-                            if (google.accounts.oauth2) {
-                                const tokenClient = google.accounts.oauth2.initTokenClient({
-                                    client_id: clientId,
-                                    scope: 'email profile openid',
-                                    callback: async (tokenResponse) => {
-                                        if (tokenResponse && tokenResponse.access_token) {
-                                            try {
-                                                const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                                                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-                                                });
-                                                const profile = await userInfoRes.json();
-                                                window.handleCredentialResponse({ profile: profile });
-                                            } catch (e) {
-                                                console.error('Fetch Google profile error:', e);
-                                            }
-                                        }
-                                        if (googleBtn) {
-                                            googleBtn.innerHTML = oldHtml;
-                                            googleBtn.disabled = false;
-                                        }
+                        scope: 'email profile openid',
+                        callback: async (tokenResponse) => {
+                            if (tokenResponse && tokenResponse.access_token) {
+                                try {
+                                    const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                                        headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+                                    });
+                                    const profile = await userInfoRes.json();
+                                    window.handleCredentialResponse({ profile: profile });
+                                } catch (e) {
+                                    console.error('Fetch Google profile error:', e);
+                                    if (googleBtn) {
+                                        googleBtn.innerHTML = oldHtml;
+                                        googleBtn.disabled = false;
                                     }
-                                });
-                                tokenClient.requestAccessToken();
-                                return;
+                                }
+                            } else {
+                                if (googleBtn) {
+                                    googleBtn.innerHTML = oldHtml;
+                                    googleBtn.disabled = false;
+                                }
                             }
                         }
-                        if (googleBtn) {
-                            googleBtn.innerHTML = oldHtml;
-                            googleBtn.disabled = false;
-                        }
                     });
+                    tokenClient.requestAccessToken();
                 } catch (err) {
-                    console.error('Google GIS error:', err);
+                    console.error('Google Auth error:', err);
                     if (googleBtn) {
                         googleBtn.innerHTML = oldHtml;
                         googleBtn.disabled = false;
                     }
+                }
+            } else if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+                google.accounts.id.initialize({
+                    client_id: clientId,
+                    callback: window.handleCredentialResponse
+                });
+                google.accounts.id.prompt();
+                if (googleBtn) {
+                    googleBtn.innerHTML = oldHtml;
+                    googleBtn.disabled = false;
                 }
             } else {
                 if (googleBtn) {
