@@ -4,9 +4,9 @@
  * Stores Laravel session cookies server-side so XAMPP (port 80) can call the API.
  */
 
-function getLaravelApiHost(): string
+function getLaravelApiUrl(): string
 {
-    return '127.0.0.1';
+    return 'https://api.intan-elyu.online';
 }
 
 function getLaravelApiCookieString(): string
@@ -25,10 +25,10 @@ function getLaravelApiCookieString(): string
 
 function establishLaravelSession(string $email, string $password): bool
 {
-    $apiHost = getLaravelApiHost();
+    $apiUrl = getLaravelApiUrl();
     $cookies = [];
 
-    $ch = curl_init("http://{$apiHost}:8000/api/auth/login");
+    $ch = curl_init("{$apiUrl}/api/auth/login");
     curl_setopt_array($ch, [
         CURLOPT_POST           => true,
         CURLOPT_POSTFIELDS     => http_build_query([

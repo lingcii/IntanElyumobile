@@ -8,8 +8,10 @@ if ($_SESSION['user_role'] !== 'municipal' && !str_ends_with($_SESSION['user_rol
 
 $pageTitle = 'Municipal Map View';
 
-$laravelHost = (isset($_SERVER['HTTP_HOST']) && str_contains($_SERVER['HTTP_HOST'], 'intan-elyu.online')) ? 'https://api.intan-elyu.online/api' : 'http://127.0.0.1:8000/api';
-$laravelBase = $laravelHost;
+$laravelBase = 'https://api.intan-elyu.online/api';
+if (isset($_SERVER['HTTP_HOST']) && ($_SERVER['HTTP_HOST'] === 'localhost' || $_SERVER['HTTP_HOST'] === '127.0.0.1')) {
+    $laravelBase = 'http://127.0.0.1:8000/api';
+}
 
 $cookieStr = '';
 foreach ($_COOKIE as $name => $value) {

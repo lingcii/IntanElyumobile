@@ -26,10 +26,10 @@
     // browser actually used to load the page, so the session cookie
     // (scoped to that same host) is always sent.
     const apiHost = window.location.hostname || '127.0.0.1';
-    const apiPort = '8000';
-    let baseUrl = `${window.location.protocol}//${apiHost}:${apiPort}`;
-    if (apiHost.includes('intan-elyu.online') || window.location.protocol === 'https:') {
-        baseUrl = 'https://api.intan-elyu.online';
+    let baseUrl = 'https://api.intan-elyu.online';
+    if (apiHost === '127.0.0.1' || apiHost === 'localhost') {
+        // Fallback to local server if running strictly on localhost
+        baseUrl = `${window.location.protocol}//${apiHost}:8000`;
     }
 
     window.API_CONFIG = {
