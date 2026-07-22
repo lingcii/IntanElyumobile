@@ -2,6 +2,12 @@
 $uri = $_SERVER['REQUEST_URI'];
 $path = parse_url($uri, PHP_URL_PATH);
 
+// Return clean 404 for missing static assets to prevent HTML syntax errors in CSS/JS
+if (preg_match('/\.(css|js|png|jpg|jpeg|gif|svg|ico|json|woff|woff2|ttf|map)$/i', $path) && !file_exists(__DIR__ . $path)) {
+    http_response_code(404);
+    exit;
+}
+
 $backendUrl = 'http://127.0.0.1:8000';
 $cacheDir = __DIR__ . '/assets/img/upload_image';
 
