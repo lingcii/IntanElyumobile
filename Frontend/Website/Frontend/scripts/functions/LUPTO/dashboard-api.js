@@ -228,6 +228,7 @@
 
     // ── Initialize Dashboard Map ─────────────────────────────────────────────────
     function initDashboardMap(municipalities) {
+        if (typeof L === 'undefined') return;
         const mapEl = document.getElementById('dashboard-map');
         if (!mapEl) return;
 
@@ -308,6 +309,7 @@
 
     // ── Visitor Trends Chart (Line) from Cached Payload ───────────────────────────────────────────────
     function initVisitorTrendsChart(skipError = false) {
+        if (typeof Chart === 'undefined') return;
         const ctx = document.getElementById('visitorTrendsChart');
         if (!ctx) return;
 
@@ -387,6 +389,7 @@
 
     // ── Category Chart (Doughnut) from Cached Payload ─────────────────────────────────────────────────
     function initCategoryChart(skipError = false) {
+        if (typeof Chart === 'undefined') return;
         const ctx = document.getElementById('categoryChart');
         if (!ctx) return;
 
@@ -519,6 +522,7 @@
 
     // ── Top Municipalities Chart (Bar) from Cached Payload ─────────────────────────────────────────────
     function initTopMunicipalitiesChart(skipError = false) {
+        if (typeof Chart === 'undefined') return;
         const ctx = document.getElementById('topMunicipalitiesChart');
         if (!ctx) return;
 

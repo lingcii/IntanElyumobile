@@ -223,12 +223,43 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
 
         Route::get('/leaderboard', [LeaderboardController::class, 'index']);
 
+        Route::get('/archive/stats', function () {
+            return response()->json([
+                'success' => true,
+                'stats' => [
+                    'fares' => 0,
+                    'users' => 0,
+                    'spots' => 0,
+                    'total' => 0
+                ]
+            ]);
+        });
+
+        Route::get('/archive/fares', function () {
+            return response()->json([
+                'success' => true,
+                'fares' => [],
+                'data'  => []
+            ]);
+        });
+
         Route::get('/archive', function () {
             return response()->json([
                 'success' => true,
-                'archive' => []
+                'archive' => [],
+                'fares' => [],
+                'stats' => ['fares' => 0, 'users' => 0, 'spots' => 0, 'total' => 0]
             ]);
         });
+
+        Route::any('/archive/{any}', function () {
+            return response()->json([
+                'success' => true,
+                'archive' => [],
+                'fares' => [],
+                'stats' => ['fares' => 0, 'users' => 0, 'spots' => 0, 'total' => 0]
+            ]);
+        })->where('any', '.*');
 
         Route::get('/fare-data', function () {
             return response()->json([

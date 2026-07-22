@@ -42,8 +42,10 @@ if (str_starts_with($entryFileDir, $frontendRootPath)) {
     ?>
     <link rel="stylesheet" href="<?= $basePath ?>css/<?= $cssDir ?>/base.css">
 
-    <!-- Extra head content from page -->
-    <?= isset($extraHeadContent) ? $extraHeadContent : '' ?>
+    <!-- Global Libraries: Leaflet Map & Chart.js -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- api-config.js must be in <head> so it runs before any inline or module scripts in the body -->
     <script src="<?= $basePath ?>scripts/api-config.js"></script>
