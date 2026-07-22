@@ -95,10 +95,16 @@ Route::prefix('auth')->group(function () {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  ADMIN API (spot photo upload & management)
+//  ADMIN API (spot photo upload & management) — Protected by auth + role check
 // ─────────────────────────────────────────────────────────────────────────────
-Route::prefix('admin')->group(function () {
+Route::prefix('admin')->middleware('tourist.auth')->group(function () {
     Route::post('/spots/{id}/photo', function (\Illuminate\Http\Request $request, $id) {
+        // Only allow admin-level roles (picto, lupto, municipal MTOs)
+        $user = $request->user();
+        if ($user->role === 'tourist') {
+            return response()->json(['error' => 'Forbidden: admin access required.'], 403);
+        }
+
         $request->validate([
             'photo' => 'required|image|mimes:jpeg,png,jpg,webp,gif|max:10240'
         ]);
@@ -121,6 +127,12 @@ Route::prefix('admin')->group(function () {
     });
 
     Route::post('/spots', function (\Illuminate\Http\Request $request) {
+        // Only allow admin-level roles
+        $user = $request->user();
+        if ($user->role === 'tourist') {
+            return response()->json(['error' => 'Forbidden: admin access required.'], 403);
+        }
+
         $data = $request->validate([
             'name' => 'required|string',
             'municipality_id' => 'required|integer',

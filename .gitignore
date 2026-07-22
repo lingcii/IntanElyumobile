@@ -14,3 +14,7 @@ Frontend/Mobile/android/build/
 Frontend/Mobile/android/capacitor-cordova-android-plugins/
 backend/vendor/
 backend/storage/*.key
+backend/.env
+backend/storage/framework/
+backend/storage/logs/
+revised_manuscript.md

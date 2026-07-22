@@ -291,7 +291,7 @@ async function handleLogout(e) {
     try {
         const token = localStorage.getItem('intan_elyu_token');
         if (token) {
-            await fetch('/api/auth/logout', {
+            await fetch(window.backendUrl + '/api/auth/logout', {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
@@ -598,7 +598,7 @@ document.addEventListener('error', function (e) {
         var placeholder = window.placeholderImage || '';
         if (placeholder && target.src !== placeholder) {
             target.src = placeholder;
-            target.style.objectFit = 'contain';
+            target.style.objectFit = 'cover';
             target.style.background = '#1e293b';
         }
     }
@@ -697,7 +697,7 @@ window.getDestImage = function (dest, width) {
 
     // Phase 3: Placeholder
     if (dest && dest.name) {
-        return 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=' + width;
+        return window.placeholderImage || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22%3E%3Crect fill=%22%231e293b%22 width=%22400%22 height=%22300%22/%3E%3Ctext x=%22200%22 y=%22150%22 text-anchor=%22middle%22 fill=%22%236b7280%22 font-size=%2220%22 font-family=%22sans-serif%22%3ENo Image%3C/text%3E%3C/svg%3E';
     }
     return window.placeholderImage || '';
 };
@@ -749,8 +749,3 @@ window.useCache = async function (cacheKey, fetchFn, callback, forceRefresh = fa
         }
     }
 };
-
-// Pre-cache destination images in background
-setTimeout(function () {
-    fetch('/cache-all-images').catch(function () { });
-}, 2000);

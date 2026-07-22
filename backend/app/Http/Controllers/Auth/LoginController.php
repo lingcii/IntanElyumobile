@@ -78,13 +78,37 @@ class LoginController extends Controller
             $credential = $request->input('credential');
             $parts = explode('.', $credential);
             if (count($parts) === 3) {
+                // Verify the JWT signature against Google's public keys
+                $header = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[0])));
                 $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[1])));
-                if ($payload) {
-                    $email = $payload->email ?? null;
-                    $name = $payload->name ?? null;
-                    $google_id = 'g_' . ($payload->sub ?? '');
-                    $avatar = $payload->picture ?? null;
+
+                if (!$header || !$payload) {
+                    return response()->json(['error' => 'Invalid Google credential.'], 400);
                 }
+
+                // Verify issuer
+                $validIssuers = ['accounts.google.com', 'https://accounts.google.com'];
+                if (!isset($payload->iss) || !in_array($payload->iss, $validIssuers)) {
+                    return response()->json(['error' => 'Invalid token issuer.'], 400);
+                }
+
+                // Verify audience (must match your Google Client ID)
+                $clientId = env('GOOGLE_CLIENT_ID', '874613490302-qno8lkqoujur0db888hg72hogjv6cp5v.apps.googleusercontent.com');
+                if (!isset($payload->aud) || $payload->aud !== $clientId) {
+                    return response()->json(['error' => 'Invalid token audience.'], 400);
+                }
+
+                // Verify expiry
+                if (!isset($payload->exp) || $payload->exp < time()) {
+                    return response()->json(['error' => 'Token has expired.'], 400);
+                }
+
+                $email = $payload->email ?? null;
+                $name = $payload->name ?? null;
+                $google_id = 'g_' . ($payload->sub ?? '');
+                $avatar = $payload->picture ?? null;
+            } else {
+                return response()->json(['error' => 'Malformed Google credential.'], 400);
             }
         } else {
             $request->validate([
