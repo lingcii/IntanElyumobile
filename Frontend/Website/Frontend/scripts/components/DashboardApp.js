@@ -205,6 +205,7 @@ function DashboardApp() {
     // Fetch User Management data
     const fetchUsersData = async (force = false) => {
         if (!force && _isCached('users')) return;
+        try {
             const apiBase = window.API_CONFIG?.BASE_URL || 'http://127.0.0.1:8000';
             const response = await fetch(`${apiBase}/api/lupto/users`, { credentials: 'include' });
             if (!response.ok) throw new Error('Failed to fetch users');
@@ -222,6 +223,7 @@ function DashboardApp() {
     const fetchSpots = async (status = pendingStatusFilter, force = false) => {
         const cacheKey = 'spots_' + status;
         if (!force && _isCached(cacheKey)) return;
+        try {
             const apiBase = window.API_CONFIG?.BASE_URL || 'http://127.0.0.1:8000';
             const response = await fetch(`${apiBase}/api/lupto/tourist-spots?status=${status}`, { credentials: 'include' });
             if (!response.ok) throw new Error('Failed to fetch spots');
@@ -241,6 +243,7 @@ function DashboardApp() {
     // Fetch Analytics
     const fetchAnalyticsData = async (force = false) => {
         if (!force && _isCached('analytics')) return;
+        try {
             const apiBase = window.API_CONFIG?.BASE_URL || 'http://127.0.0.1:8000';
             const response = await fetch(`${apiBase}/api/lupto/analytics/full`, { credentials: 'include' });
             if (!response.ok) throw new Error('Failed to fetch analytics');
@@ -597,6 +600,7 @@ function DashboardApp() {
     const handleUpdateUser = async () => {
         if (!selectedUser) return;
         setActionLoading(true);
+        try {
             const apiBase = window.API_CONFIG?.BASE_URL || 'http://127.0.0.1:8000';
             const response = await fetch(`${apiBase}/api/lupto/users/${selectedUser.id}`, {
                 method: 'PUT',
@@ -632,6 +636,7 @@ function DashboardApp() {
     const handleResetPassword = async () => {
         if (!selectedUser || !resetPasswordVal.trim()) return;
         setActionLoading(true);
+        try {
             const apiBase = window.API_CONFIG?.BASE_URL || 'http://127.0.0.1:8000';
             const response = await fetch(`${apiBase}/api/lupto/users/${selectedUser.id}/password`, {
                 method: 'PATCH',
@@ -659,6 +664,7 @@ function DashboardApp() {
     const handleToggleUserStatus = async (user) => {
         const nextStatus = user.status === 'active' ? 'inactive' : 'active';
         setActionLoading(true);
+        try {
             const apiBase = window.API_CONFIG?.BASE_URL || 'http://127.0.0.1:8000';
             const response = await fetch(`${apiBase}/api/lupto/users/${user.id}`, {
                 method: 'PUT',
@@ -687,6 +693,7 @@ function DashboardApp() {
     const handleApproveSpot = async (id) => {
         if (!confirm('Are you sure you want to approve this tourist spot attraction?')) return;
         setActionLoading(true);
+        try {
             const apiBase = window.API_CONFIG?.BASE_URL || 'http://127.0.0.1:8000';
             const response = await fetch(`${apiBase}/api/lupto/dashboard/approve-spot`, {
                 method: 'POST',
@@ -712,6 +719,7 @@ function DashboardApp() {
     const handleRejectSpot = async (id) => {
         if (!confirm('Are you sure you want to reject this tourist spot proposal?')) return;
         setActionLoading(true);
+        try {
             const apiBase = window.API_CONFIG?.BASE_URL || 'http://127.0.0.1:8000';
             const response = await fetch(`${apiBase}/api/lupto/dashboard/reject-spot`, {
                 method: 'POST',
@@ -744,6 +752,7 @@ function DashboardApp() {
         if (selectedPendingIds.length === 0) return;
         if (!confirm(`Are you sure you want to approve these ${selectedPendingIds.length} selected tourist spots?`)) return;
         setActionLoading(true);
+        try {
             const apiBase = window.API_CONFIG?.BASE_URL || 'http://127.0.0.1:8000';
             const response = await fetch(`${apiBase}/api/lupto/dashboard/batch-approve-spots`, {
                 method: 'POST',
