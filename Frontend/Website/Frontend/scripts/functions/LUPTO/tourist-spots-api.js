@@ -1470,6 +1470,13 @@ export async function initializeAll(spotsData, municipalData) {
         }
     }
 
+    if (!Array.isArray(spotsData)) {
+        spotsData = (spotsData && Array.isArray(spotsData.data)) ? spotsData.data : (spotsData && Array.isArray(spotsData.touristSpots) ? spotsData.touristSpots : []);
+    }
+    if (!Array.isArray(municipalData)) {
+        municipalData = (municipalData && Array.isArray(municipalData.data)) ? municipalData.data : (municipalData && Array.isArray(municipalData.municipalities) ? municipalData.municipalities : []);
+    }
+
     window.touristSpotsData = spotsData;
     window.municipalitiesData = municipalData;
     window.touristSpotsAll = spotsData;
@@ -1725,6 +1732,9 @@ function renderCardsGrid(spotsData) {
 function renderTableRows(spotsData) {
     const tbody = document.querySelector('#tableView tbody');
     if (!tbody) return;
+    if (!Array.isArray(spotsData)) {
+        spotsData = (spotsData && Array.isArray(spotsData.data)) ? spotsData.data : (spotsData && Array.isArray(spotsData.touristSpots) ? spotsData.touristSpots : []);
+    }
     let html = '';
     spotsData.forEach(spot => {
         const munName = spot.municipality_name || (spot.municipality && spot.municipality.name) || '';
