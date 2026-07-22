@@ -80,7 +80,7 @@
         try {
             const state = JSON.parse(raw);
 
-            // Restore inputs & selects
+            // Restore inputs & selects without firing synthetic change events that trigger premature fetch errors
             if (state.inputs) {
                 Object.keys(state.inputs).forEach(id => {
                     const el = tabEl.querySelector('#' + id);
@@ -90,9 +90,6 @@
                     } else {
                         el.value = state.inputs[id];
                     }
-                    // Trigger events so that view scripts update UI dynamically
-                    el.dispatchEvent(new Event('input', { bubbles: true }));
-                    el.dispatchEvent(new Event('change', { bubbles: true }));
                 });
             }
 
@@ -104,13 +101,12 @@
                     if (mapEl && mapEl._leaflet_map) {
                         try {
                             mapEl._leaflet_map.setView(state.map.center, state.map.zoom);
-                            mapEl._leaflet_map.invalidateSize();
                         } catch (e) {}
                         clearInterval(mapInterval);
                     }
                     attempts++;
-                    if (attempts > 30) clearInterval(mapInterval);
-                }, 500);
+                    if (attempts >= 10) clearInterval(mapInterval);
+                }, 100);
             }
 
             // Restore scroll position
@@ -379,16 +375,7 @@
         const icon = document.getElementById('spaRefreshIcon');
         if (icon) icon.classList.add('fa-spin');
 
-        // Check for cached HTML in sessionStorage (skip if we want fresh data)
-        const cacheKey = STORAGE_PREFIX + 'html_' + pageName;
-        const cachedHtml = sessionStorage.getItem(cacheKey);
-
-        if (cachedHtml) {
-            injectTabHtml(pageName, cachedHtml, icon);
-            return;
-        }
-
-        fetch(pageName, {
+        fetch(pageName + '?v=' + Date.now(), {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-SPA-Request': 'true'
