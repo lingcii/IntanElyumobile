@@ -477,10 +477,11 @@ ob_start();
 </script>
 <script src="../../scripts/functions/LUPTO/map-view-api.js?v=<?= time() ?>"></script>
 
-<script type="module">
-import { initializeAll } from '../../scripts/functions/LUPTO/tourist-spots-api.js?v=<?= time() ?>';
-
-initializeAll();
+<script src="../../scripts/functions/LUPTO/tourist-spots-api.js?v=<?= time() ?>"></script>
+<script>
+    if (typeof initializeAll === 'function') {
+        initializeAll();
+    }
 </script>
 
 <!-- Multi-category filter helpers -->

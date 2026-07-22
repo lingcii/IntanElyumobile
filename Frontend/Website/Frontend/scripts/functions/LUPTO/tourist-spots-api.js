@@ -1482,6 +1482,14 @@ export async function initializeAll(spotsData, municipalData) {
     window.touristSpotsAll = spotsData;
     window.municipalitiesAll = municipalData;
 
+    window.initializeAll = initializeAll;
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => initializeAll());
+    } else {
+        setTimeout(initializeAll, 50);
+    }
+
     // Render cards and table from JS data
     renderCardsGrid(spotsData);
     renderTableRows(spotsData);
