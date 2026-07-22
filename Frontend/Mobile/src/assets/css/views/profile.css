@@ -99,3 +99,61 @@ body[data-view="profile"] {
     color: #ffffff !important;
     font-weight: 800 !important;
 }
+
+/* Settings & Account Group Card */
+.settings-group {
+    background: rgba(255, 255, 255, 0.03) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 20px !important;
+    overflow: hidden !important;
+    margin-bottom: 40px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+}
+
+.settings-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+    padding: 14px 18px !important;
+    text-decoration: none !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    transition: background 0.2s ease !important;
+}
+
+.settings-item:last-child {
+    border-bottom: none !important;
+}
+
+.settings-item:active {
+    background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.settings-icon {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #ffffff !important;
+    font-size: 16px !important;
+    flex-shrink: 0 !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important;
+}
+
+.settings-text {
+    flex: 1 !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+}
+
+.settings-arrow {
+    color: rgba(148, 163, 184, 0.5) !important;
+    font-size: 13px !important;
+}
