@@ -42,6 +42,11 @@ if (str_starts_with($entryFileDir, $frontendRootPath)) {
     ?>
     <link rel="stylesheet" href="<?= $basePath ?>css/<?= $cssDir ?>/base.css">
     <link rel="stylesheet" href="<?= $basePath ?>css/<?= $cssDir ?>/dashboard.css">
+    <?php if (file_exists(__DIR__ . "/../css/{$cssDir}/tourist-spots.css")): ?>
+        <link rel="stylesheet" href="<?= $basePath ?>css/<?= $cssDir ?>/tourist-spots.css">
+    <?php else: ?>
+        <link rel="stylesheet" href="<?= $basePath ?>css/LUPTO/tourist-spots.css">
+    <?php endif; ?>
 
     <!-- Global Libraries: Leaflet Map & Chart.js -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
