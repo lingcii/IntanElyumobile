@@ -9,8 +9,8 @@ if ($_SESSION['user_role'] !== 'lupto') {
 
 $pageTitle = 'LUPTO Map View';
 
-// ── Fetch data from Laravel API ───────────────────────────────────────────
-$laravelBase = 'http://127.0.0.1:8000/api';
+$laravelHost = (isset($_SERVER['HTTP_HOST']) && str_contains($_SERVER['HTTP_HOST'], 'intan-elyu.online')) ? 'https://api.intan-elyu.online/api' : 'http://127.0.0.1:8000/api';
+$laravelBase = $laravelHost;
 
 // Build the Laravel session cookie header
 $cookieStr = '';
