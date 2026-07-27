@@ -13,6 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Trust Cloudflare & Railway reverse proxies
+        $middleware->trustProxies(at: '*');
+
         // Guarantee CORS headers on all requests and OPTIONS preflights
         $middleware->prepend(\App\Http\Middleware\AlwaysAllowCors::class);
 

@@ -61,7 +61,7 @@ if ($isAjax) {
                 ? 'http://localhost:8000' 
                 : (window.location.protocol + '//' + window.location.host + '/Intan-Elyu-Tourism-Management-System/backend/public');
         } else {
-            window.backendUrl = window.BACKEND_URL || 'https://intanelyumobile-production.up.railway.app';
+            window.backendUrl = window.BACKEND_URL || 'https://api.intan-elyu.online';
         }
         window.GOOGLE_CLIENT_ID = '874613490302-qno8lkqoujur0db888hg72hogjv6cp5v.apps.googleusercontent.com';
         window.placeholderImage = 'assets/img/logo.png';
