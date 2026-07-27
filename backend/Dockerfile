@@ -21,10 +21,9 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 
-# Copy backend files
+# Copy files
 COPY . .
 
-# Install PHP composer dependencies
 RUN composer install --no-dev --optimize-autoloader
 
 EXPOSE 8000
