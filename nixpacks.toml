@@ -1,0 +1,14 @@
+[phases.setup]
+  nixpkgsArchive = "23.11"
+  nixPkgs = ["php83", "php83Packages.composer", "php83Extensions.pdo_mysql", "php83Extensions.mbstring", "php83Extensions.xml", "php83Extensions.bcmath", "php83Extensions.curl", "php83Extensions.zip", "php83Extensions.gd"]
+
+[phases.install]
+  dependsOn = ["setup"]
+  cmds = ["cd backend && composer install --no-dev --optimize-autoloader"]
+
+[phases.build]
+  dependsOn = ["install"]
+  cmds = ["cd backend && php artisan storage:link"]
+
+[start]
+  cmd = "cd backend && php artisan serve --host=0.0.0.0 --port=$PORT"
