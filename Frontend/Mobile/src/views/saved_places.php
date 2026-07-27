@@ -3,7 +3,7 @@ $pageTitle = 'Saved Places';
 $backRoute = 'dashboard';
 
 $municipalityImages = [];
-$imgDir = __DIR__ . '/../../../../backend/storage/app/public/municipalities';
+$imgDir = __DIR__ . '/../assets/img/MUNICIPALITIES';
 if (is_dir($imgDir)) {
     $munis = scandir($imgDir);
     foreach ($munis as $muni) {

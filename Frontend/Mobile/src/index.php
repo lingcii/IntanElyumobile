@@ -29,6 +29,7 @@ if ($isAjax) {
     <link rel="icon" type="image/png" href="assets/img/logo.png">
     <link rel="apple-touch-icon" href="assets/img/logo.png">
     <meta name="theme-color" content="#0a0a0e">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
@@ -55,9 +56,15 @@ if ($isAjax) {
     <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
     <script>
-        window.backendUrl = 'https://api.intan-elyu.online';
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            window.backendUrl = window.location.port === '3000' 
+                ? 'http://localhost:8000' 
+                : (window.location.protocol + '//' + window.location.host + '/Intan-Elyu-Tourism-Management-System/backend/public');
+        } else {
+            window.backendUrl = window.BACKEND_URL || 'https://intanelyumobile-production.up.railway.app';
+        }
         window.GOOGLE_CLIENT_ID = '874613490302-qno8lkqoujur0db888hg72hogjv6cp5v.apps.googleusercontent.com';
-        window.placeholderImage = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22%3E%3Crect fill=%22%231e293b%22 width=%22400%22 height=%22300%22/%3E%3Ctext x=%22200%22 y=%22150%22 text-anchor=%22middle%22 fill=%22%236b7280%22 font-size=%2220%22 font-family=%22sans-serif%22%3ENo Image%3C/text%3E%3C/svg%3E';
+        window.placeholderImage = 'assets/img/logo.png';
     </script>
     <script src="assets/js/main.js?v=<?= time() ?>"></script>
 
@@ -80,6 +87,7 @@ if ($isAjax) {
     <link rel="stylesheet" href="assets/css/views/itinerary.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/discount.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/trip_map.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/views/saved_trips.css?v=<?= time() ?>">
 </head>
 <body data-view="<?= htmlspecialchars($view) ?>">
     <!-- Global Drifting Clouds -->
@@ -129,7 +137,7 @@ if ($isAjax) {
         </main>
         
         <?php
-        $noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings'];
+        $noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'quests'];
         $navHiddenClass = in_array($view, $noNavViews) ? 'nav-hidden' : '';
         ?>
         <div id="bottom-navigation" class="<?= $navHiddenClass ?>">

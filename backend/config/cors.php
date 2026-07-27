@@ -6,11 +6,7 @@ return [
     | CORS Configuration
     |--------------------------------------------------------------------------
     |
-    | Allows the PHP frontend (http://localhost:8080) to call the Laravel API (http://127.0.0.1:8000).
-    |
-    | Both frontends run as separate processes in the non-XAMPP setup:
-    |   - PHP built-in server:  php -S localhost:8080   (Frontend)
-    |   - Laravel:              php artisan serve        (Backend, port 8000)
+    | Allows frontend clients to call the Laravel API.
     |
     */
 
@@ -19,44 +15,27 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        // PHP built-in dev server (Frontend)
+        // Local development servers
         'http://localhost:8080',
         'http://127.0.0.1:8080',
         'http://localhost:8081',
-        'http://[IP_ADDRESS]',
-
-
-        // Laravel itself (for same-origin requests / Artisan serve)
         'http://localhost:8000',
         'http://127.0.0.1:8000',
-
-        // Generic localhost (no port) — kept for compatibility
+        'http://localhost:3000', // Mobile Frontend
+        'http://localhost:4000', // Admin Website
         'http://localhost',
         'http://127.0.0.1',
         'capacitor://localhost',
 
-        // Production Domain (Cloudflare Named Tunnel / Live Server / Railway)
-        'https://app.intan-elyu.com',
-        'https://api.intan-elyu.com',
+        // Production — Custom Domain (Named Cloudflare Tunnel)
         'https://app.intan-elyu.online',
         'https://api.intan-elyu.online',
+
+        // Production — Railway Cloud Backend
         'https://intanelyu-production.up.railway.app',
-
-        // Auto-Injected Backend URL
-        'https://equipped-cedar-waterproof-cluster.trycloudflare.com',
-        'http://localhost:3000', // Mobile Frontend
-        'http://localhost:4000', // Admin Website
-        
-        // Auto-Injected Cloudflare URL
-        'https://typical-pick-interview-listen.trycloudflare.com',
-
-        // Cloudflare tunnel (remote access / staging)
-        'https://boc-cornell-rolled-delicious.trycloudflare.com',
     ],
 
-    'allowed_origins_patterns' => [
-        '#.*#',
-    ],
+    'allowed_origins_patterns' => [],
 
     'allowed_headers' => ['*'],
 

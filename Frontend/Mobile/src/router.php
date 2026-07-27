@@ -14,7 +14,15 @@ $cacheDir = __DIR__ . '/assets/img/upload_image';
 function serveCachedImage($cachePath) {
     if (!file_exists($cachePath)) return false;
     $ext = strtolower(pathinfo($cachePath, PATHINFO_EXTENSION));
-    $mimeMap = ['jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png', 'gif' => 'image/gif', 'webp' => 'image/webp'];
+    $mimeMap = [
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'png' => 'image/png',
+        'gif' => 'image/gif',
+        'webp' => 'image/webp',
+        'avif' => 'image/avif',
+        'svg' => 'image/svg+xml'
+    ];
     header('Content-Type: ' . ($mimeMap[$ext] ?? 'application/octet-stream'));
     header('Cache-Control: public, max-age=86400');
     readfile($cachePath);
@@ -66,6 +74,24 @@ if (strpos($path, '/storage/') === 0) {
 
 // Serve and cache images from /api/image/ (backend image route)
 if (strpos($path, '/api/image/') === 0) {
+    // Check for local municipality images first
+    if (strpos($path, '/api/image/municipalities/') === 0) {
+        $relativePath = substr($path, strlen('/api/image/municipalities/'));
+        $localPath = __DIR__ . '/assets/img/MUNICIPALITIES/' . urldecode($relativePath);
+        if (file_exists($localPath)) {
+            serveCachedImage($localPath);
+            return true;
+        }
+    }
+
+    // Check for other local images in assets/img/
+    $fileName = substr($path, strlen('/api/image/'));
+    $localPath = __DIR__ . '/assets/img/' . urldecode($fileName);
+    if (file_exists($localPath) && !is_dir($localPath)) {
+        serveCachedImage($localPath);
+        return true;
+    }
+
     $cacheKey = cacheKeyFromPath($path);
     $cachePath = $cacheDir . '/' . $cacheKey;
     if (serveCachedImage($cachePath)) return true;

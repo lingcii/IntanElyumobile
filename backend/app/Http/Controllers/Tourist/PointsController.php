@@ -21,15 +21,44 @@ class PointsController extends Controller
         $user = $request->user();
 
         // Calculate earned points
-        $earned = (int) UserPoint::where('user_id', $user->id)->sum('points');
+        $earned = 0;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('user_points') && \Illuminate\Support\Facades\Schema::hasColumn('user_points', 'points')) {
+                $earned = (int) UserPoint::where('user_id', $user->id)->sum('points');
+            }
+        } catch (\Throwable $e) {
+            $earned = 0;
+        }
 
         // Calculate redeemed points
-        $redeemed = (int) PointRedemption::where('user_id', $user->id)->sum('points_cost');
+        $redeemed = 0;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions') && \Illuminate\Support\Facades\Schema::hasColumn('point_redemptions', 'points_cost')) {
+                $redeemed = (int) PointRedemption::where('user_id', $user->id)->sum('points_cost');
+            }
+        } catch (\Throwable $e) {
+            $redeemed = 0;
+        }
 
         $balance = max(0, $earned - $redeemed);
 
-        $history = UserPoint::where('user_id', $user->id)->latest()->get();
-        $vouchers = PointRedemption::where('user_id', $user->id)->latest()->get();
+        $history = collect();
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('user_points')) {
+                $history = UserPoint::where('user_id', $user->id)->latest()->get();
+            }
+        } catch (\Throwable $e) {
+            $history = collect();
+        }
+
+        $vouchers = collect();
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
+                $vouchers = PointRedemption::where('user_id', $user->id)->latest()->get();
+            }
+        } catch (\Throwable $e) {
+            $vouchers = collect();
+        }
 
         return response()->json([
             'status' => 'success',
@@ -48,11 +77,21 @@ class PointsController extends Controller
     public function awardPuzzlePoints(Request $request): JsonResponse
     {
         $user = $request->user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
 
-        $todayCompleted = UserPoint::where('user_id', $user->id)
-            ->where('source', 'puzzle')
-            ->whereDate('created_at', now()->toDateString())
-            ->exists();
+        $todayCompleted = false;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('user_points')) {
+                $todayCompleted = UserPoint::where('user_id', $user->id)
+                    ->where('source', 'puzzle')
+                    ->whereDate('created_at', now()->toDateString())
+                    ->exists();
+            }
+        } catch (\Throwable $e) {
+            $todayCompleted = false;
+        }
 
         if ($todayCompleted) {
             return response()->json([
@@ -62,12 +101,18 @@ class PointsController extends Controller
         }
 
         $points = 100;
-        UserPoint::create([
-            'user_id' => $user->id,
-            'points' => $points,
-            'source' => 'puzzle',
-            'description' => 'Successfully solved a sliding block puzzle',
-        ]);
+        UserPoint::awardPointsSafely(
+            $user->id,
+            $points,
+            'puzzle',
+            'Successfully solved a sliding block puzzle'
+        );
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
+                $user->increment('xp', 25);
+            }
+        } catch (\Throwable $e) {}
 
         return response()->json([
             'status' => 'success',
@@ -83,11 +128,21 @@ class PointsController extends Controller
     public function awardTriviaPoints(Request $request): JsonResponse
     {
         $user = $request->user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
 
-        $todayCompleted = UserPoint::where('user_id', $user->id)
-            ->where('source', 'trivia')
-            ->whereDate('created_at', now()->toDateString())
-            ->exists();
+        $todayCompleted = false;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('user_points')) {
+                $todayCompleted = UserPoint::where('user_id', $user->id)
+                    ->where('source', 'trivia')
+                    ->whereDate('created_at', now()->toDateString())
+                    ->exists();
+            }
+        } catch (\Throwable $e) {
+            $todayCompleted = false;
+        }
 
         if ($todayCompleted) {
             return response()->json([
@@ -97,12 +152,18 @@ class PointsController extends Controller
         }
 
         $points = 50;
-        UserPoint::create([
-            'user_id' => $user->id,
-            'points' => $points,
-            'source' => 'trivia',
-            'description' => 'Answered La Union trivia questions correctly',
-        ]);
+        UserPoint::awardPointsSafely(
+            $user->id,
+            $points,
+            'trivia',
+            'Answered La Union trivia questions correctly'
+        );
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
+                $user->increment('xp', 25);
+            }
+        } catch (\Throwable $e) {}
 
         return response()->json([
             'status' => 'success',
@@ -122,12 +183,23 @@ class PointsController extends Controller
         ]);
 
         $user = $request->user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
         $gameType = $request->game_type;
 
-        $todayCompleted = UserPoint::where('user_id', $user->id)
-            ->where('source', $gameType)
-            ->whereDate('created_at', now()->toDateString())
-            ->exists();
+        $todayCompleted = false;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('user_points')) {
+                $todayCompleted = UserPoint::where('user_id', $user->id)
+                    ->where('source', $gameType)
+                    ->whereDate('created_at', now()->toDateString())
+                    ->exists();
+            }
+        } catch (\Throwable $e) {
+            $todayCompleted = false;
+        }
 
         if ($todayCompleted) {
             return response()->json([
@@ -139,19 +211,25 @@ class PointsController extends Controller
         $gameConfig = [
             'memory_match' => ['points' => 75, 'desc' => 'Completed La Union Memory Card Match'],
             'word_scramble' => ['points' => 75, 'desc' => 'Unscrambled La Union Eco Explorer Words'],
-            'puzzle' => ['points' => 100, 'desc' => 'Successfully solved a sliding block puzzle'],
-            'trivia' => ['points' => 50, 'desc' => 'Answered La Union trivia questions correctly'],
+            'puzzle'        => ['points' => 100, 'desc' => 'Successfully solved a sliding block puzzle'],
+            'trivia'        => ['points' => 50, 'desc' => 'Answered La Union trivia questions correctly'],
         ];
 
-        $config = $gameConfig[$gameType];
+        $config = $gameConfig[$gameType] ?? ['points' => 50, 'desc' => 'Completed Mini Game'];
         $points = $config['points'];
 
-        UserPoint::create([
-            'user_id' => $user->id,
-            'points' => $points,
-            'source' => $gameType,
-            'description' => $config['desc'],
-        ]);
+        UserPoint::awardPointsSafely(
+            $user->id,
+            $points,
+            $gameType,
+            $config['desc']
+        );
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
+                $user->increment('xp', 25);
+            }
+        } catch (\Throwable $e) {}
 
         return response()->json([
             'status' => 'success',
@@ -207,6 +285,14 @@ class PointsController extends Controller
                 'status' => 'active'
             ]);
         });
+
+        \App\Models\Notification::createSafely(
+            $user->id,
+            'favorite_update',
+            '🎟️ Voucher Redeemed!',
+            "Redeemed voucher {$code} ({$type}). Present code at merchant checkout!",
+            ['action_url' => '/discount']
+        );
 
         return response()->json([
             'status' => 'success',

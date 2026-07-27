@@ -1,0 +1,148 @@
+/* ============================================================
+ * Saved Trips View Styles - saved_trips.css
+ * Intan Elyu Mobile — Ultra-Premium Modern Redesign
+ * ============================================================ */
+
+/* Main Container with Header Clearances & Adjusted Spacing */
+.saved-trips-page-container {
+    width: 100%;
+    min-height: 100vh;
+    padding-top: calc(var(--header-height, 90px) + 24px) !important;
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+    padding-bottom: 110px !important;
+    box-sizing: border-box;
+    background: radial-gradient(circle at 50% 0%, #0f172a 0%, #090d16 100%) !important;
+    color: #f8fafc !important;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+}
+
+body[data-view="saved_trips"] {
+    background-color: #090d16 !important;
+    color: #f8fafc !important;
+}
+
+/* Headings & Section Titles */
+.saved-trips-page-container h2, 
+.saved-trips-page-container h3, 
+.saved-trips-page-container h4 {
+    color: #ffffff !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.4px !important;
+}
+
+/* Keyframe Animations */
+@keyframes tripCardFade {
+    0% {
+        opacity: 0;
+        transform: translateY(18px) scale(0.97);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Trip Swipe Container & Front Card */
+.trip-swipe-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 26px !important;
+    margin-bottom: 24px !important;
+    animation: tripCardFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.trip-swipe-content {
+    position: relative;
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.65) 0%, rgba(15, 23, 42, 0.88) 100%) !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: 1px solid rgba(56, 189, 248, 0.25) !important;
+    border-radius: 26px !important;
+    padding: 22px 20px !important;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4) !important;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease !important;
+}
+
+.trip-swipe-content:hover {
+    border-color: rgba(56, 189, 248, 0.4) !important;
+}
+
+/* Collapsible Timeline Spacing */
+.timeline-collapsible {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, margin-top 0.4s ease, margin-bottom 0.4s ease;
+}
+
+.timeline-collapsible.expanded {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    margin-top: 18px;
+    margin-bottom: 12px;
+}
+
+.timeline-inner {
+    overflow: hidden;
+}
+
+.start-collapsible {
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-width 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, margin-left 0.4s ease;
+    display: flex;
+}
+
+.start-collapsible.expanded {
+    max-width: 220px;
+    opacity: 1;
+    margin-left: 12px;
+}
+
+/* Timeline Destination Card Items */
+.timeline-content {
+    padding: 16px !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 18px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    transition: background 0.2s ease !important;
+}
+
+.timeline-content:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Buttons Micro-Interactions */
+.saved-trips-page-container button {
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.saved-trips-page-container button:active {
+    transform: scale(0.96);
+}
+
+/* Check-in & Trip Modals */
+#checkin-modal,
+#complete-trip-modal,
+#delete-trip-modal {
+    z-index: 99999 !important;
+    background: rgba(6, 11, 25, 0.8) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+}
+
+#checkin-modal > div,
+#complete-trip-modal > div,
+#delete-trip-modal > div {
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%) !important;
+    border: 1px solid rgba(56, 189, 248, 0.35) !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 35px rgba(56, 189, 248, 0.2) !important;
+    color: #ffffff !important;
+    border-radius: 26px !important;
+}

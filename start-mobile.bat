@@ -2,9 +2,17 @@
 setlocal enabledelayedexpansion
 
 echo ==========================================================
-echo Starting Intan Elyu - MOBILE APP SYSTEM
+echo  Intan Elyu - MOBILE APP System
+echo  Backend  : https://api.intan-elyu.online
+echo  Frontend : https://app.intan-elyu.online
 echo ==========================================================
 echo.
+
+:: Pre-set paths to avoid nested quotes inside start commands
+set "BACKEND_DIR=%~dp0backend"
+set "MOBILE_DIR=%~dp0Frontend\Mobile"
+set "TUNNEL_CONFIG=%~dp0cloudflare-tunnel-config.yml"
+set "CREDS_FILE=%USERPROFILE%\.cloudflared\85cd9abd-8a80-41b9-822f-395765017bc4.json"
 
 :: 1. Check for cloudflared
 echo Checking for cloudflared...
@@ -15,58 +23,65 @@ if %errorlevel% equ 0 (
 ) else (
     if exist "%USERPROFILE%\.cloudflare\cloudflared.exe" (
         set "CF_PATH=%USERPROFILE%\.cloudflare\cloudflared.exe"
+    ) else if exist "C:\Program Files\cloudflared\cloudflared.exe" (
+        set "CF_PATH=C:\Program Files\cloudflared\cloudflared.exe"
     )
 )
 
 if "!CF_PATH!"=="" (
     echo [!] cloudflared not found. Downloading automatically...
     md "%USERPROFILE%\.cloudflare" 2>nul
-    powershell -Command "Invoke-WebRequest -Uri 'https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe' -OutFile '%USERPROFILE%\.cloudflare\cloudflared.exe'" >nul 2>&1
+    powershell -Command "Invoke-WebRequest -Uri 'https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe' -OutFile '%USERPROFILE%\.cloudflare\cloudflared.exe'"
     if exist "%USERPROFILE%\.cloudflare\cloudflared.exe" (
         set "CF_PATH=%USERPROFILE%\.cloudflare\cloudflared.exe"
-        echo Installed cloudflared to !CF_PATH!
+        echo [OK] Installed cloudflared to !CF_PATH!
     ) else (
-        echo [!] Download failed. Please check internet connection.
+        echo [!] Automatic download failed. Please install cloudflared manually.
         pause
-        exit /b
+        exit /b 1
     )
 )
 echo Found: !CF_PATH!
 echo.
 
-:: 2. Clean old logs
-del "%TEMP%\cf-frontend.log" 2>nul
-del "%TEMP%\cf-backend.log" 2>nul
+:: 2. Check for tunnel credentials
+if not exist "!CREDS_FILE!" (
+    echo [!] Tunnel credentials not found at: !CREDS_FILE!
+    echo.
+    echo To authenticate, run this command ONCE in a separate terminal:
+    echo   "!CF_PATH!" login
+    echo.
+    echo Then re-run this script.
+    pause
+    exit /b 1
+)
+echo [OK] Tunnel credentials found.
+echo.
 
 :: 3. Start Backend
-echo Starting Laravel Backend (port 8000)...
-start "Laravel Backend" cmd /k "cd /d "%~dp0backend" && php artisan serve --host=0.0.0.0"
+echo [1/3] Starting Laravel Backend (http://localhost:8000)...
+start "Laravel Backend" cmd /k "cd /d ""!BACKEND_DIR!"" && php artisan serve --host=0.0.0.0 --port=8000"
+timeout /t 2 /nobreak >nul
 
 :: 4. Start Mobile Frontend
-echo Starting Mobile Frontend (port 3000)...
-start "Mobile Frontend" cmd /k "cd /d "%~dp0Frontend\Mobile" && npm run start"
+echo [2/3] Starting Mobile Frontend (http://localhost:3000)...
+start "Mobile Frontend" cmd /k "cd /d ""!MOBILE_DIR!"" && npm run start"
+timeout /t 2 /nobreak >nul
 
-:: 5. Start Tunnel
-if exist "%USERPROFILE%\.cloudflared\cert.pem" (
-    echo Starting Named Cloudflare Tunnel (intan-elyu.online)...
-    start "CF Named Tunnel" cmd /k ""!CF_PATH!" tunnel --config "%~dp0cloudflare-tunnel-config.yml" run intan-elyu-tunnel"
-    echo.
-    echo ==========================================================
-    echo SYSTEM IS RUNNING LIVE!
-    echo Mobile PWA:  https://app.intan-elyu.online
-    echo Backend API: https://api.intan-elyu.online
-    echo ==========================================================
-) else (
-    echo Starting Instant Cloudflare Tunnels...
-    start "CF Frontend" cmd /c ""!CF_PATH!" tunnel --url http://localhost:3000 > "%TEMP%\cf-frontend.log" 2>&1"
-    start "CF Backend" cmd /c ""!CF_PATH!" tunnel --url http://localhost:8000 > "%TEMP%\cf-backend.log" 2>&1"
-    
-    echo Waiting for tunnels to establish (10 seconds)...
-    ping 127.0.0.1 -n 10 > nul
-    
-    echo Running Auto-Configurator to inject URLs into project...
-    node "%~dp0cloudflare-configurator.js"
-)
+:: 5. Start Named Cloudflare Tunnel via helper script (handles spaces in path)
+echo [3/3] Starting Cloudflare Named Tunnel...
+echo @echo off > "%TEMP%\run-tunnel.bat"
+echo "!CF_PATH!" tunnel --config "!TUNNEL_CONFIG!" run >> "%TEMP%\run-tunnel.bat"
+start "Cloudflare Tunnel" cmd /k "%TEMP%\run-tunnel.bat"
 
+echo.
+echo ==========================================================
+echo  MOBILE SYSTEM IS RUNNING
+echo.
+echo  Frontend : https://app.intan-elyu.online
+echo  Backend  : https://api.intan-elyu.online
+echo.
+echo  Open the Frontend URL on your mobile device.
+echo ==========================================================
 echo.
 pause

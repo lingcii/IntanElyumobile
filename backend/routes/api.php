@@ -12,9 +12,10 @@ use App\Http\Controllers\Tourist\FavoriteController;
 use App\Http\Controllers\Tourist\ItineraryController;
 use App\Http\Controllers\Tourist\ItineraryItemController;
 use App\Http\Controllers\Tourist\NotificationController;
-use App\Http\Controllers\MerchandiseController;
 use App\Http\Controllers\Tourist\FeedbackController;
 use App\Http\Controllers\Tourist\PointsController;
+use App\Http\Controllers\Tourist\QuestController;
+use App\Http\Controllers\WeatherController;
 use App\Models\TouristSpot;
 use Illuminate\Support\Facades\Route;
 
@@ -29,34 +30,72 @@ Route::options('/{any}', function (\Illuminate\Http\Request $request) {
         ->header('Access-Control-Max-Age', '86400');
 })->where('any', '.*');
 
-// Legacy route to serve images from storage (tourist_spots, municipalities, etc.)
-Route::get('/image/{file}', function ($file) {
+// Route to serve images from storage (proofs, tourist_spots, municipalities, avatars, etc.)
+$serveFileHandler = function ($file) {
     if (!$file) abort(404);
+    $file = rawurldecode(urldecode($file));
     $base = storage_path('app/public');
     
+    $cleanFile = preg_replace('#^storage/#i', '', $file);
+    $normalizedFile = preg_replace('#^municipalities/#i', 'MUNICIPALITIES/', $cleanFile);
+    
     $paths = [
-        $base . '/tourist_spots/' . $file,
+        $base . '/' . $cleanFile,
         $base . '/' . $file,
+        $base . '/proofs/' . preg_replace('#^proofs/#i', '', $cleanFile),
+        $base . '/tourist_spots/' . preg_replace('#^tourist_spots/#i', '', $cleanFile),
+        $base . '/avatars/' . preg_replace('#^avatars/#i', '', $cleanFile),
+        base_path('../Frontend/Mobile/src/assets/img/' . $normalizedFile),
+        base_path('../Frontend/Website/Frontend/images/tourist_spots/' . $cleanFile),
+        base_path('../Frontend/Website/Frontend/images/' . $cleanFile),
+        base_path('../Frontend/Mobile/src/assets/img/upload_image/' . $cleanFile),
+        base_path('../Frontend/Mobile/src/assets/img/' . $cleanFile),
+        public_path('storage/' . $cleanFile),
+        public_path('images/tourist_spots/' . $cleanFile),
+        public_path('storage/tourist_spots/' . $cleanFile),
+        public_path('uploads/tourist_spots/' . $cleanFile),
+        public_path('storage/upload_image/' . $cleanFile),
+        public_path('upload_image/' . $cleanFile),
+        base_path('../Frontend/Mobile/src/assets/images/' . $cleanFile),
     ];
     
     foreach ($paths as $path) {
-        if (file_exists($path)) {
+        if (file_exists($path) && is_file($path)) {
             return response()->file($path);
         }
     }
     
     abort(404);
-})->where('file', '.+');
+};
+
+Route::get('/image/{file}', $serveFileHandler)->where('file', '.+');
+Route::get('/storage/{file}', $serveFileHandler)->where('file', '.+');
 
 // Backward-compatible route for legacy /api/serve-image.php?file=... URLs
 Route::get('/serve-image.php', function (\Illuminate\Http\Request $request) {
     $file = $request->query('file');
     if (!$file) abort(404);
+    $file = rawurldecode(urldecode($file));
     $base = storage_path('app/public');
     
+    // Normalize lowercase municipalities/ to match the actual MUNICIPALITIES/ folder
+    $normalizedFile = preg_replace('#^municipalities/#i', 'MUNICIPALITIES/', $file);
+    
     $paths = [
-        $base . '/tourist_spots/' . $file,
+        base_path('../Frontend/Mobile/src/assets/img/' . $normalizedFile),
+        base_path('../Frontend/Website/Frontend/images/tourist_spots/' . $file),
+        base_path('../Frontend/Website/Frontend/images/' . $file),
+        base_path('../Frontend/Mobile/src/assets/img/upload_image/' . $file),
+        base_path('../Frontend/Mobile/src/assets/img/' . $file),
         $base . '/' . $file,
+        $base . '/tourist_spots/' . $file,
+        $base . '/upload_image/' . $file,
+        public_path('images/tourist_spots/' . $file),
+        public_path('storage/tourist_spots/' . $file),
+        public_path('uploads/tourist_spots/' . $file),
+        public_path('storage/upload_image/' . $file),
+        public_path('upload_image/' . $file),
+        base_path('../Frontend/Mobile/src/assets/images/' . $file),
     ];
     
     foreach ($paths as $path) {
@@ -75,16 +114,18 @@ Route::prefix('auth')->group(function () {
     // ── Rate-limited: brute-force / credential-stuffing protection ──────────
     // Max 5 attempts per IP per 60 seconds on login & register.
     Route::middleware('auth.throttle:5,60')->group(function () {
-        Route::post('/login',    [LoginController::class,    'login']);
-        Route::post('/register', [RegisterController::class, 'register']);
+        Route::post('/login',      [LoginController::class,    'login']);
+        Route::post('/register',   [RegisterController::class, 'register']);
+        Route::post('/verify-otp', [RegisterController::class, 'verifyOtp']);
     });
 
     // Not rate-limited — these can't be brute-forced in any meaningful way
     Route::post('/logout',   [LogoutController::class,  'logout']);
     Route::get('/check',     [SessionController::class, 'check']);
     Route::post('/google',   [LoginController::class,   'googleLogin']);
-    Route::post('/forgot-password', [LoginController::class, 'sendResetLinkEmail']);
-    Route::post('/reset-password',  [LoginController::class, 'resetPassword']);
+    Route::post('/forgot-password',     [LoginController::class, 'sendResetLinkEmail']);
+    Route::post('/reset-password',      [LoginController::class, 'resetPassword']);
+    Route::post('/reset-password-otp',  [LoginController::class, 'resetPasswordWithOtp']);
 
     Route::get('/google/redirect', function () {
         return response()->json([
@@ -200,6 +241,19 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
                 'success' => true,
                 'users' => $users,
                 'roleStats' => []
+            ]);
+        });
+
+        Route::get('/feedback', function (\Illuminate\Http\Request $request) {
+            $spotId = $request->query('tourist_spot_id');
+            $query = \App\Models\SiteFeedback::with(['user:id,name,email,avatar', 'touristSpot:id,name,category,municipality_id'])
+                ->latest();
+            if ($spotId) {
+                $query->where('tourist_spot_id', $spotId);
+            }
+            return response()->json([
+                'success' => true,
+                'feedbacks' => $query->get()
             ]);
         });
 
@@ -380,7 +434,10 @@ Route::prefix('public')->group(function () {
     Route::get('/municipalities', [MapController::class, 'publicMunicipalities']);
     Route::get('/leaderboard',    [LeaderboardController::class, 'index']);
     Route::get('/feedback',       [FeedbackController::class, 'index']);
+    Route::get('/quests',         [QuestController::class, 'index']);
+    Route::get('/weather',        [WeatherController::class, 'getWeather']);
 });
+Route::get('/weather', [WeatherController::class, 'getWeather']);
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  TOURIST (mobile app — Bearer token auth)
@@ -389,28 +446,63 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     Route::get('/dashboard', [TouristDashboardController::class, 'index']);
     Route::get('/profile', [TouristProfileController::class, 'show']);
     Route::post('/profile', [TouristProfileController::class, 'update']);
+    Route::post('/2fa/toggle', [TouristProfileController::class, 'toggle2FA']);
+    Route::post('/2fa/verify', [TouristProfileController::class, 'verify2FA']);
     Route::get('/leaderboard', [LeaderboardController::class, 'index']);
 
     Route::post('/destinations/{id}/favorite', [FavoriteController::class, 'toggle']);
     Route::post('/destinations/{id}/rate', function (Illuminate\Http\Request $request, int $id) {
         $request->validate(['rating' => 'required|integer|min:1|max:5']);
         $spot = TouristSpot::findOrFail($id);
-        $spot->update(['rating' => $request->rating]);
-        return response()->json(['message' => 'Rating submitted!']);
+        $user = $request->user();
+
+        // Create or update feedback rating for this user & spot
+        \App\Models\SiteFeedback::updateOrCreate(
+            ['user_id' => $user->id, 'tourist_spot_id' => $id],
+            ['rating' => $request->rating]
+        );
+
+        // Recalculate true average rating from all site feedbacks for this spot
+        $avgRating = \App\Models\SiteFeedback::where('tourist_spot_id', $id)
+            ->whereNotNull('rating')
+            ->avg('rating');
+
+        $spot->rating = round((float)$avgRating, 2);
+        $spot->save();
+
+        // Invalidate public map & trending spots cache
+        \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:5');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:10');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:50');
+
+        // Award gamification points (+25 XP, +25 points)
+        try {
+            $user->increment('xp', 25);
+            \App\Models\UserPoint::awardPointsSafely(
+                $user->id,
+                25,
+                'rating',
+                "Rated {$spot->name} {$request->rating} stars"
+            );
+        } catch (\Throwable $e) {}
+
+        return response()->json([
+            'message' => 'Rating submitted successfully!',
+            'spot_rating' => $spot->rating
+        ]);
     });
 
     Route::get('/itineraries',              [ItineraryController::class, 'index']);
     Route::get('/itineraries/{id}',         [ItineraryController::class, 'show']);
     Route::post('/itineraries',             [ItineraryController::class, 'store']);
+    Route::post('/itineraries/estimate-cost', [ItineraryController::class, 'estimateCost']);
     Route::put('/itineraries/{id}',         [ItineraryController::class, 'update']);
     Route::delete('/itineraries/{id}',      [ItineraryController::class, 'destroy']);
     Route::patch('/itineraries/{id}/complete', [ItineraryController::class, 'markCompleted']);
 
     Route::patch('/itineraries/items/{id}/visit', [ItineraryItemController::class, 'visit']);
     Route::post('/itineraries/items/{id}/visit',  [ItineraryItemController::class, 'visit']);
-
-    Route::get('/merch', [MerchandiseController::class, 'index']);
-    Route::post('/merch/reserve', [MerchandiseController::class, 'reserve']);
 
     Route::get('/notifications',         [NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);
@@ -426,4 +518,10 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     Route::post('/points/trivia', [PointsController::class, 'awardTriviaPoints']);
     Route::post('/points/minigame', [PointsController::class, 'awardMiniGamePoints']);
     Route::post('/points/redeem', [PointsController::class, 'redeem']);
+
+    // Quests & Gamification
+    Route::get('/quests', [QuestController::class, 'index']);
+    Route::get('/quests/my-completions', [QuestController::class, 'myCompletions']);
+    Route::get('/quests/{id}/generate', [QuestController::class, 'generate']);
+    Route::post('/quests/{id}/start', [QuestController::class, 'startQuest']);
 });

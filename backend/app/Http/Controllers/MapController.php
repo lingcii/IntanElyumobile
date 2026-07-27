@@ -17,8 +17,11 @@ class MapController extends Controller
      */
     public function publicMapData(): JsonResponse
     {
-        $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots', 300, function () {
-            return TouristSpot::where('status', 'approved')
+        $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots', 30, function () {
+            return TouristSpot::where(function($q) {
+                    $q->whereIn('status', ['approved', 'active', 'published', 'EXIST', 'exist', 'pending'])
+                      ->orWhereNull('status');
+                })
                 ->with('municipality:id,name')
                 ->with('images')
                 ->get(['id', 'name', 'category', 'municipality_id', 'latitude', 'longitude',

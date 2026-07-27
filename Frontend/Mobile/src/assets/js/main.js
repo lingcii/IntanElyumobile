@@ -2,7 +2,26 @@
  * Intan Elyu - Mobile PHP Frontend Main Logic
  */
 
-window.getFullImageUrl = function(url) {
+window.safeJsonParse = function (str, fallback = {}) {
+    if (!str || str === 'undefined' || str === 'null' || str === 'NaN') return fallback;
+    try {
+        return JSON.parse(str);
+    } catch (e) {
+        return fallback;
+    }
+};
+
+window.setTxt = function (id, val) {
+    const el = (typeof id === 'string') ? document.getElementById(id) : id;
+    if (el) el.textContent = (val !== undefined && val !== null) ? val : '';
+};
+
+window.setHtml = function (id, html) {
+    const el = (typeof id === 'string') ? document.getElementById(id) : id;
+    if (el) el.innerHTML = (html !== undefined && html !== null) ? html : '';
+};
+
+window.getFullImageUrl = function (url) {
     if (!url) return window.placeholderImage || '';
     if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
         return url;
@@ -105,7 +124,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
                 // Toggle bottom nav visibility
                 const bottomNav = document.getElementById('bottom-navigation');
-                const noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings'];
+                const noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'quests'];
                 if (bottomNav) {
                     bottomNav.classList.toggle('nav-hidden', noNavViews.includes(viewName));
                 }
@@ -162,7 +181,12 @@ window.addEventListener('popstate', (e) => {
 /**
  * Toast Notification System
  */
-function showToast(message, duration = 3000) {
+window.showToast = function showToast(message, type = 'info', duration = 3200) {
+    if (typeof type === 'number') {
+        duration = type;
+        type = 'info';
+    }
+
     let container = document.getElementById('toast-container');
     if (!container) {
         container = document.createElement('div');
@@ -170,17 +194,40 @@ function showToast(message, duration = 3000) {
         document.body.appendChild(container);
     }
 
+    // Determine icon and color variant
+    let iconHTML = '<i class="fa-solid fa-circle-info" style="color:#38bdf8; font-size:16px;"></i>';
+    let borderColor = 'rgba(56, 189, 248, 0.35)';
+
+    const lowerMsg = String(message).toLowerCase();
+    if (type === 'success' || lowerMsg.includes('success') || lowerMsg.includes('deleted') || lowerMsg.includes('checked in') || lowerMsg.includes('completed') || lowerMsg.includes('added') || lowerMsg.includes('saved')) {
+        iconHTML = '<i class="fa-solid fa-circle-check" style="color:#34c759; font-size:16px;"></i>';
+        borderColor = 'rgba(52, 199, 89, 0.4)';
+    } else if (type === 'error' || lowerMsg.includes('error') || lowerMsg.includes('failed') || lowerMsg.includes('invalid') || lowerMsg.includes('inaccessible') || lowerMsg.includes('timeout')) {
+        iconHTML = '<i class="fa-solid fa-circle-exclamation" style="color:#ef4444; font-size:16px;"></i>';
+        borderColor = 'rgba(239, 68, 68, 0.4)';
+    } else if (type === 'warning' || lowerMsg.includes('warning') || lowerMsg.includes('select') || lowerMsg.includes('capture')) {
+        iconHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b; font-size:16px;"></i>';
+        borderColor = 'rgba(245, 158, 11, 0.4)';
+    }
+
     const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.textContent = message;
+    toast.className = 'toast-card';
+    toast.style.borderColor = borderColor;
+    toast.innerHTML = `<div style="display:flex; align-items:center; gap:10px;">${iconHTML}<span style="font-size:13px; font-weight:700; color:#ffffff; line-height:1.3;">${message}</span></div>`;
 
     container.appendChild(toast);
 
     setTimeout(() => {
-        toast.style.animation = 'toast-slide-down 0.3s reverse forwards';
-        setTimeout(() => toast.remove(), 300);
+        toast.style.animation = 'toastOut 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+        setTimeout(() => {
+            toast.remove();
+            if (container && container.children.length === 0) {
+                container.remove();
+            }
+        }, 280);
     }, duration);
-}
+};
+var showToast = window.showToast;
 
 /**
  * Execute scripts injected via innerHTML
@@ -191,7 +238,9 @@ function executeScripts(container) {
         const newScript = document.createElement('script');
         Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
         newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-        oldScript.parentNode.replaceChild(newScript, oldScript);
+        if (oldScript.parentNode) {
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        }
     });
 }
 
@@ -454,10 +503,14 @@ window.toggleLocationServices = function (enabled) {
 };
 
 window.startLocationWatch = function () {
-    // Force enable location tracking per user request (dynamic global tracking)
-    localStorage.setItem('intan_elyu_loc_enabled', 'true');
-
     if (!navigator.geolocation) return;
+    if (localStorage.getItem('intan_elyu_loc_enabled') === 'false') {
+        if (window.intanElyuLocationWatchId) {
+            navigator.geolocation.clearWatch(window.intanElyuLocationWatchId);
+            window.intanElyuLocationWatchId = null;
+        }
+        return;
+    }
 
     if (window.intanElyuLocationWatchId) {
         navigator.geolocation.clearWatch(window.intanElyuLocationWatchId);
@@ -509,7 +562,7 @@ window.startLocationWatch = function () {
                         // If within 500 meters and haven't alerted yet
                         if (dist <= 500 && !lastAlertedItems[item.id]) {
                             // Fire Notification
-                            if (localStorage.getItem('intan_elyu_push_enabled') === 'true') {
+                            if (localStorage.getItem('intan_elyu_push_enabled') !== 'false') {
                                 window.showInAppNotification(
                                     "Destination Nearby!",
                                     `You are near ${dest.name}! Open the app to check in and earn XP.`
@@ -525,9 +578,9 @@ window.startLocationWatch = function () {
             });
         },
         (error) => {
-            // Suppress harmless timeout errors (code 3) from polluting the console, 
-            // especially on desktop devices that take longer to get a location fix.
-            if (error.code !== 3) {
+            // Suppress harmless timeout errors (code 3) and permission denied errors (code 1)
+            // from polluting the console when location access is denied or delayed.
+            if (error.code !== 3 && error.code !== 1) {
                 console.warn("Global Location watch error:", error);
             }
         },
@@ -593,8 +646,29 @@ window.handleImageError = function (e) {
 document.addEventListener('error', function (e) {
     var target = e.target;
     if (target && target.tagName === 'IMG' && target.src) {
-        if (target.src.indexOf('placeholderImage') !== -1 || target.src.indexOf('data:image/svg') !== -1) return;
+        if (target.src.indexOf('placeholderImage') !== -1 || target.src.indexOf('data:image/svg') !== -1 || target.src.indexOf('ui-avatars.com') !== -1) return;
         target.onerror = null;
+
+        // Special handling for user profile avatars
+        var isAvatar = target.classList.contains('profile-avatar') ||
+            target.classList.contains('podium-avatar') ||
+            target.classList.contains('rank-item-avatar') ||
+            target.id === 'profile-img' ||
+            target.id === 'dash-avatar' ||
+            target.id === 'avatar-img' ||
+            (target.closest && (target.closest('.profile-avatar-container') || target.closest('.avatar-preview')));
+
+        if (isAvatar) {
+            var userName = 'Tourist';
+            try {
+                var authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                if (authUser.name) userName = authUser.name;
+            } catch (err) { }
+            target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName) + '&background=007AFF&color=fff&rounded=true&bold=true&size=128';
+            target.style.objectFit = 'cover';
+            return;
+        }
+
         var placeholder = window.placeholderImage || '';
         if (placeholder && target.src !== placeholder) {
             target.src = placeholder;
@@ -633,7 +707,7 @@ window.getDestImage = function (dest, width) {
                 var dStr = dNorm.replace(/\s+/g, '');
                 var iStr = iNorm.replace(/\s+/g, '').replace(/[0-9]+$/, '');
                 if (dStr === iStr) {
-                    return encodeURI('/api/image/municipalities/' + muni + '/' + img);
+                    return encodeURI('assets/img/MUNICIPALITIES/' + muni + '/' + img);
                 }
                 var score = 0;
                 if (dStr.indexOf(iStr) !== -1 || iStr.indexOf(dStr) !== -1) score += 100;
@@ -660,31 +734,45 @@ window.getDestImage = function (dest, width) {
             }
         }
         if (bestMatch) {
-            return encodeURI('/api/image/municipalities/' + bestMuni + '/' + bestMatch);
+            return encodeURI('assets/img/MUNICIPALITIES/' + bestMuni + '/' + bestMatch);
         }
     }
 
-    // Phase 2: Use image from API response
-    var url = dest ? (dest.image || dest.photo_url) : null;
+    // Phase 2: Extract URL string from string parameter or object (photo_url, image, avatar, profile_picture)
+    var url = null;
+    if (typeof dest === 'string') {
+        url = dest;
+    } else if (dest && typeof dest === 'object') {
+        url = dest.photo_url || dest.image || dest.avatar || dest.profile_picture || null;
+    }
+
     if (url) {
-        if (url.indexOf('serve-image.php?file=') !== -1) {
-            url = '/api/image/' + url.split('serve-image.php?file=')[1];
+        if (url.indexOf('data:') === 0 || url.indexOf('blob:') === 0) return url;
+
+        if (url.indexOf('serve-image.php') !== -1) {
+            if (url.indexOf('http') === 0) {
+                try {
+                    var parsed = new URL(url);
+                    if (parsed.host.includes('localhost') || parsed.host.includes('127.0.0.1') || parsed.host.includes('intan-elyu.online')) {
+                        return backendUrl + parsed.pathname + parsed.search;
+                    }
+                    return url;
+                } catch (e) { return url; }
+            }
+            return backendUrl + (url.indexOf('/') === 0 ? '' : '/') + url;
+        }
+
+        if (url.indexOf('storage/') === 0 || url.indexOf('uploads/') === 0 || url.indexOf('avatars/') === 0 || url.indexOf('upload_image/') === 0 || url.indexOf('tourist_spots/') === 0) {
+            url = '/api/image/' + url;
         } else if (url.indexOf('http') !== 0 && url.indexOf('/') !== 0) {
             url = '/api/image/' + url;
         }
-        // Strip backend localhost hosts so the request goes through the frontend proxy
+
+        // Strip domain prefixes if points to backend
         if (url.indexOf('http') === 0) {
-            var backendHosts = ['localhost:8000', '127.0.0.1:8000', 'localhost:3000'];
             try {
                 var parsed = new URL(url);
-                var isBackendHost = false;
-                for (var hi = 0; hi < backendHosts.length; hi++) {
-                    if (parsed.host === backendHosts[hi]) {
-                        isBackendHost = true;
-                        break;
-                    }
-                }
-                if (isBackendHost) {
+                if (parsed.host.includes('localhost') || parsed.host.includes('127.0.0.1') || parsed.host.includes('intan-elyu.online')) {
                     url = parsed.pathname + parsed.search;
                 } else {
                     return url;
@@ -696,10 +784,7 @@ window.getDestImage = function (dest, width) {
     }
 
     // Phase 3: Placeholder
-    if (dest && dest.name) {
-        return window.placeholderImage || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22%3E%3Crect fill=%22%231e293b%22 width=%22400%22 height=%22300%22/%3E%3Ctext x=%22200%22 y=%22150%22 text-anchor=%22middle%22 fill=%22%236b7280%22 font-size=%2220%22 font-family=%22sans-serif%22%3ENo Image%3C/text%3E%3C/svg%3E';
-    }
-    return window.placeholderImage || '';
+    return window.placeholderImage || 'assets/img/logo.png';
 };
 
 /**
@@ -717,7 +802,7 @@ window.useCache = async function (cacheKey, fetchFn, callback, forceRefresh = fa
 
     if (cached) {
         try {
-            cachedData = JSON.parse(cached);
+            cachedData = window.safeJsonParse(cached, null);
             if (cachedData && cachedData.hasOwnProperty('data')) {
                 // Call callback with cached data immediately
                 callback(cachedData.data, true);
@@ -749,3 +834,220 @@ window.useCache = async function (cacheKey, fetchFn, callback, forceRefresh = fa
         }
     }
 };
+
+// ── Global Badge Detail Modal Handler ─────────────────────────────────────────
+window.openBadgeModal = function (name, description, isUnlocked, category, icon) {
+    const existing = document.getElementById('badge-details-modal');
+    if (existing) existing.remove();
+
+    const isQuest = category === 'Quest';
+    const borderGlow = isUnlocked
+        ? 'border: 1.5px solid rgba(251, 191, 36, 0.5); box-shadow: 0 0 35px rgba(251, 191, 36, 0.25);'
+        : 'border: 1.5px solid rgba(255, 255, 255, 0.15); box-shadow: 0 0 35px rgba(0, 0, 0, 0.5);';
+
+    const statusBadge = isUnlocked
+        ? `<span style="background:rgba(52,211,153,0.15); border:1px solid rgba(52,211,153,0.3); color:#34d399; font-size:11px; font-weight:800; padding:4px 12px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-check-circle"></i> UNLOCKED BADGE</span>`
+        : `<span style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#f87171; font-size:11px; font-weight:800; padding:4px 12px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-lock"></i> LOCKED BADGE</span>`;
+
+    const iconStyle = isUnlocked
+        ? 'background:rgba(251,191,36,0.15); color:#fbbf24; border:1px solid rgba(251,191,36,0.4);'
+        : 'background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.3); border:1px dashed rgba(255,255,255,0.15); filter:grayscale(1);';
+
+    const actionButton = !isUnlocked
+        ? isQuest
+            ? `<button onclick="window.closeBadgeModal(); if(typeof navigateTo === 'function') navigateTo('quests');" style="width:100%; margin-top:16px; padding:12px; border-radius:100px; border:none; background:linear-gradient(135deg,#6366f1,#38bdf8); color:#fff; font-weight:800; font-size:13px; cursor:pointer;"><i class="fa-solid fa-compass" style="margin-right:6px;"></i>Go to Quests & Expeditions</button>`
+            : `<button onclick="window.closeBadgeModal(); if(typeof navigateTo === 'function') navigateTo('map');" style="width:100%; margin-top:16px; padding:12px; border-radius:100px; border:none; background:linear-gradient(135deg,#10b981,#059669); color:#fff; font-weight:800; font-size:13px; cursor:pointer;"><i class="fa-solid fa-map-location-dot" style="margin-right:6px;"></i>Explore Destinations</button>`
+        : `<button onclick="window.closeBadgeModal()" style="width:100%; margin-top:16px; padding:12px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#e2e8f0; font-weight:700; font-size:13px; cursor:pointer;">Close</button>`;
+
+    const safeDesc = (description || 'Complete activities in La Union to unlock this badge.').replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+
+    const modalHtml = `
+    <div id="badge-details-modal" onclick="if(event.target === this) window.closeBadgeModal();" style="position:fixed; inset:0; z-index:99999; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; transition:opacity 0.3s ease;">
+        <div style="position:relative; background:linear-gradient(145deg, rgba(30, 41, 59, 0.96) 0%, rgba(15, 23, 42, 0.99) 100%); ${borderGlow} border-radius:24px; padding:26px 22px; width:100%; max-width:360px; text-align:center; transform:scale(0.92) translateY(12px); transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);">
+            <button onclick="window.closeBadgeModal()" style="position:absolute; top:14px; right:14px; background:rgba(255,255,255,0.08); border:none; color:rgba(255,255,255,0.7); width:30px; height:30px; border-radius:50%; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s ease;" title="Close">✕</button>
+            <div style="width:68px; height:68px; border-radius:50%; ${iconStyle} display:flex; align-items:center; justify-content:center; margin:0 auto 16px auto; font-size:32px;">
+                ${isUnlocked ? '<i class="fa-solid fa-award"></i>' : '<i class="fa-solid fa-lock"></i>'}
+            </div>
+            <div style="margin-bottom:8px;">${statusBadge}</div>
+            <h3 style="margin:10px 0 4px; color:#fff; font-size:19px; font-weight:900;">${name}</h3>
+            <div style="font-size:11px; color:rgba(148,163,184,0.7); text-transform:uppercase; font-weight:800; letter-spacing:0.5px; margin-bottom:12px;">${category || 'Badge'}</div>
+            <p style="font-size:12.5px; color:rgba(255,255,255,0.8); margin:0 0 4px; line-height:1.5; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); padding:12px; border-radius:14px;">
+                ${safeDesc}
+            </p>
+            ${actionButton}
+        </div>
+    </div>`;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    requestAnimationFrame(() => {
+        const modal = document.getElementById('badge-details-modal');
+        if (modal) {
+            modal.style.opacity = '1';
+            const card = modal.querySelector('div > div');
+            if (card) card.style.transform = 'scale(1) translateY(0)';
+        }
+    });
+};
+
+window.closeBadgeModal = function () {
+    const modal = document.getElementById('badge-details-modal');
+    if (modal) {
+        modal.style.opacity = '0';
+        setTimeout(() => modal.remove(), 300);
+    }
+};
+
+// ── View All Badges Modal Sheet ───────────────────────────────────────────────
+window.openAllBadgesModal = function (badgesData) {
+    const existing = document.getElementById('all-badges-modal');
+    if (existing) existing.remove();
+
+    const badges = badgesData || window._cachedMasterBadges || [];
+
+    const unlocked = badges.filter(b => b.is_unlocked);
+    const locked = badges.filter(b => !b.is_unlocked);
+
+    const renderBadgeItem = (b) => {
+        const safeName = (b.name || '').replace(/'/g, "\\'");
+        const safeDesc = (b.description || '').replace(/'/g, "\\'");
+        const clickFn = `onclick="window.openBadgeModal('${safeName}', '${safeDesc}', ${b.is_unlocked ? 'true' : 'false'}, '${b.category || 'Badge'}', '${b.icon || '🏅'}')"`;
+
+        const badgeIcons = {
+            'Beach Chiller': '<i class="fa-solid fa-umbrella-beach"></i>',
+            'City Express': '<i class="fa-solid fa-city"></i>',
+            'Sunset Chaser': '<i class="fa-solid fa-sun"></i>',
+            'Foodie Explorer': '<i class="fa-solid fa-utensils"></i>',
+            'Adrenaline Chaser': '<i class="fa-solid fa-person-hiking"></i>',
+            'Heritage Guardian': '<i class="fa-solid fa-landmark"></i>',
+            'Nature Seeker': '<i class="fa-solid fa-water"></i>',
+            'Wave Rider': '<i class="fa-solid fa-water-ladder"></i>',
+            'First Step': '<i class="fa-solid fa-star"></i>',
+            'Globe Trotter': '<i class="fa-solid fa-globe"></i>',
+            'Master Voyager': '<i class="fa-solid fa-crown"></i>',
+            'Pioneer Explorer': '<i class="fa-solid fa-flag"></i>',
+            'Local Voice': '<i class="fa-solid fa-comments"></i>',
+        };
+        const displayIcon = badgeIcons[b.name] || (b.is_unlocked ? '<i class="fa-solid fa-award"></i>' : '<i class="fa-solid fa-lock"></i>');
+
+        if (b.is_unlocked) {
+            return `
+            <div ${clickFn} style="background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.3); border-radius: 18px; padding: 14px 10px; text-align: center; cursor: pointer; transition: transform 0.2s;">
+                <div style="font-size: 24px; margin-bottom: 6px; color: #fbbf24;">${displayIcon}</div>
+                <div style="font-size: 11.5px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.name}</div>
+                <div style="font-size: 9px; color: #fbbf24; margin-top: 2px; font-weight: 700;">✓ Unlocked</div>
+            </div>`;
+        } else {
+            return `
+            <div ${clickFn} style="background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.12); border-radius: 18px; padding: 14px 10px; text-align: center; opacity: 0.55; filter: grayscale(1); cursor: pointer; transition: transform 0.2s;">
+                <div style="font-size: 22px; margin-bottom: 6px; color: rgba(255,255,255,0.4);"><i class="fa-solid fa-lock"></i></div>
+                <div style="font-size: 11.5px; font-weight: 700; color: rgba(255,255,255,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.name}</div>
+                <div style="font-size: 9px; color: rgba(255,255,255,0.4); margin-top: 2px;">Locked</div>
+            </div>`;
+        }
+    };
+
+    const modalHtml = `
+    <div id="all-badges-modal" style="position:fixed; inset:0; z-index:99998; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); display:flex; align-items:flex-end; justify-content:center; opacity:0; transition:opacity 0.3s ease;">
+        <div style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%); border-top:1.5px solid rgba(251,191,36,0.4); border-radius:28px 28px 0 0; padding:24px 20px 36px; width:100%; max-width:480px; max-height:85vh; overflow-y:auto; transform:translateY(100%); transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div style="width:40px; height:4px; background:rgba(255,255,255,0.2); border-radius:2px; margin:0 auto 16px auto;"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+                <div>
+                    <h3 style="margin:0; font-size:18px; font-weight:900; color:#fff; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-award" style="color:#fbbf24;"></i> All Explorer Badges</h3>
+                    <p style="margin:2px 0 0; font-size:11px; color:rgba(255,255,255,0.5);">${unlocked.length} / ${badges.length} Unlocked Badges</p>
+                </div>
+                <button onclick="window.closeAllBadgesModal()" style="background:rgba(255,255,255,0.08); border:none; color:rgba(255,255,255,0.7); width:32px; height:32px; border-radius:50%; font-size:14px; cursor:pointer;">✕</button>
+            </div>
+
+            ${unlocked.length > 0 ? `
+                <div style="margin-bottom:20px;">
+                    <div style="font-size:11px; font-weight:800; color:#fbbf24; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;"><i class="fa-solid fa-trophy" style="margin-right:6px;"></i> Unlocked Badges (${unlocked.length})</div>
+                    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
+                        ${unlocked.map(renderBadgeItem).join('')}
+                    </div>
+                </div>
+            ` : ''}
+
+            <div>
+                <div style="font-size:11px; font-weight:800; color:rgba(255,255,255,0.45); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;"><i class="fa-solid fa-lock" style="margin-right:6px;"></i> Locked Badges (${locked.length})</div>
+                <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
+                    ${locked.map(renderBadgeItem).join('')}
+                </div>
+            </div>
+        </div>
+    </div>`;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    requestAnimationFrame(() => {
+        const modal = document.getElementById('all-badges-modal');
+        if (modal) {
+            modal.style.opacity = '1';
+            const sheet = modal.querySelector('div > div');
+            if (sheet) sheet.style.transform = 'translateY(0)';
+        }
+    });
+};
+
+window.closeAllBadgesModal = function () {
+    const modal = document.getElementById('all-badges-modal');
+    if (modal) {
+        modal.style.opacity = '0';
+        const sheet = modal.querySelector('div > div');
+        if (sheet) sheet.style.transform = 'translateY(100%)';
+        setTimeout(() => modal.remove(), 350);
+    }
+};
+
+// ── Offline Low-Signal Check-in Auto-Sync Queue Handler ─────────────────────
+window.processOfflineCheckinQueue = async function () {
+    const queueRaw = localStorage.getItem('offline_checkin_queue');
+    if (!queueRaw) return;
+    try {
+        const queue = JSON.parse(queueRaw);
+        if (!Array.isArray(queue) || queue.length === 0) return;
+
+        const token = localStorage.getItem('tourist_token');
+        const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const remaining = [];
+        let syncedCount = 0;
+
+        for (const item of queue) {
+            try {
+                const res = await fetch(`${backendUrl}/api/tourist/points/ar-checkin`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(item)
+                });
+                if (res.ok) {
+                    syncedCount++;
+                } else {
+                    remaining.push(item);
+                }
+            } catch (err) {
+                remaining.push(item);
+            }
+        }
+
+        if (remaining.length > 0) {
+            localStorage.setItem('offline_checkin_queue', JSON.stringify(remaining));
+        } else {
+            localStorage.removeItem('offline_checkin_queue');
+        }
+
+        if (syncedCount > 0 && typeof showToast === 'function') {
+            showToast(`⚡ ${syncedCount} Offline Check-in(s) synced! XP awarded!`);
+        }
+    } catch (e) {
+        console.warn('Failed processing offline checkin queue', e);
+    }
+};
+
+window.addEventListener('online', window.processOfflineCheckinQueue);
+document.addEventListener('DOMContentLoaded', () => {
+    if (navigator.onLine) {
+        window.processOfflineCheckinQueue();
+    }
+});

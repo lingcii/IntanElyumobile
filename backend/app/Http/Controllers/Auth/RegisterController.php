@@ -15,40 +15,148 @@ use Illuminate\Support\Str;
 class RegisterController extends Controller
 {
     /**
+     * List of prohibited disposable / fake email domains.
+     */
+    protected array $disposableDomains = [
+        'mailinator.com', 'tempmail.com', '10minutemail.com', 'dispostable.com',
+        'trashmail.com', 'yopmail.com', 'guerrillamail.com', 'fake.com',
+        'example.com', 'test.com', 'asdf.com', 'a.com', 'b.com', 'xyz.com', 'foo.com'
+    ];
+
+    /**
      * POST /api/auth/register
-     * Registers a tourist account (self-registration).
+     * Initiates registration with strict validation & sends 6-digit OTP code to email.
      */
     public function register(Request $request): JsonResponse
     {
         $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
+            'first_name' => 'nullable|string|min:2|max:50',
+            'last_name'  => 'nullable|string|min:2|max:50',
+            'name'       => 'nullable|string|min:4|max:100',
+            'email'      => 'required|email|unique:users,email',
+            'password'   => 'required|string|min:8|confirmed',
         ]);
 
-        $token = Str::random(60);
+        $firstName = trim($request->first_name ?? '');
+        $lastName  = trim($request->last_name ?? '');
 
+        if ($firstName && $lastName) {
+            $trimmedName = "{$firstName} {$lastName}";
+        } else {
+            $trimmedName = trim($request->name ?? '');
+        }
+
+        // 1. Full Name check (at least 2 words: First Name & Last Name)
+        $nameParts = array_filter(explode(' ', $trimmedName));
+        if (count($nameParts) < 2 || strlen($nameParts[0]) < 2 || strlen(end($nameParts)) < 2) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please provide a legitimate First Name and Last Name.'
+            ], 422);
+        }
+
+        // 2. Reject disposable / fake email domains
+        $domain = strtolower(substr(strrchr($request->email, "@"), 1));
+        if (in_array($domain, $this->disposableDomains)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Disposable or temporary email addresses are not allowed. Please enter a valid email.'
+            ], 422);
+        }
+
+        // 3. Password strength check
+        if (!preg_match('/[A-Za-z]/', $request->password) || !preg_match('/[0-9]/', $request->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Password must be at least 8 characters and contain both letters and numbers.'
+            ], 422);
+        }
+
+        // Generate 6-digit OTP
+        $otp = sprintf('%06d', random_int(0, 999999));
+        $emailKey = strtolower(trim($request->email));
+
+        // Save pending registration in Cache for 10 minutes
+        \Illuminate\Support\Facades\Cache::put("pending_reg_{$emailKey}", [
+            'name'     => $trimmedName,
+            'email'    => $emailKey,
+            'password' => Hash::make($request->password),
+            'otp'      => $otp,
+        ], now()->addMinutes(10));
+
+        // Send OTP Verification Email
+        try {
+            Mail::to($emailKey)->send(new \App\Mail\EmailVerificationOtpMail($trimmedName, $otp));
+        } catch (\Throwable $e) {
+            Log::warning('EmailVerificationOtpMail failed for ' . $emailKey . ': ' . $e->getMessage());
+        }
+
+        return response()->json([
+            'success'      => true,
+            'requires_otp' => true,
+            'email'        => $emailKey,
+            'message'      => 'Verification code sent to your email! Please enter the 6-digit code to activate your account.',
+        ], 200);
+    }
+
+    /**
+     * POST /api/auth/verify-otp
+     * Verifies 6-digit OTP code and creates active user account.
+     */
+    public function verifyOtp(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'otp'   => 'required|string|size:6',
+        ]);
+
+        $emailKey = strtolower(trim($request->email));
+        $pending = \Illuminate\Support\Facades\Cache::get("pending_reg_{$emailKey}");
+
+        if (!$pending) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Verification code expired or invalid request. Please register again.'
+            ], 400);
+        }
+
+        if ($pending['otp'] !== trim($request->otp)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Incorrect verification code. Please check your email and try again.'
+            ], 400);
+        }
+
+        // Check if user was already created in the meantime
+        if (User::where('email', $emailKey)->exists()) {
+            \Illuminate\Support\Facades\Cache::forget("pending_reg_{$emailKey}");
+            return response()->json([
+                'success' => false,
+                'message' => 'Account already exists. Please log in.'
+            ], 400);
+        }
+
+        // Create active user account
+        $token = Str::random(60);
         $user = User::create([
-            'name'      => $request->name,
-            'email'     => $request->email,
-            'password'  => Hash::make($request->password),
+            'name'      => $pending['name'],
+            'email'     => $pending['email'],
+            'password'  => $pending['password'],
             'role'      => 'tourist',
             'status'    => 'active',
             'api_token' => $token,
         ]);
 
-        // ── Send welcome email ──────────────────────────────────────────────
-        // Wrapped in try/catch so a mail failure never breaks registration.
+        \Illuminate\Support\Facades\Cache::forget("pending_reg_{$emailKey}");
+
+        // Send Welcome Mail
         try {
             Mail::to($user->email)->send(new TouristWelcomeMail($user));
-        } catch (\Exception $e) {
-            Log::warning('TouristWelcomeMail failed for user #' . $user->id . ': ' . $e->getMessage());
-        }
-        // ───────────────────────────────────────────────────────────────────
+        } catch (\Throwable $e) {}
 
         return response()->json([
             'success' => true,
-            'message' => 'Account created successfully.',
+            'message' => 'Email verified and account activated successfully!',
             'token'   => $token,
             'user'    => [
                 'id'     => $user->id,

@@ -69,3 +69,6 @@
         <div class="magic-circle-shine"></div>
     </div>
 </div>
+
+<!-- Include Global Testimony Review Modal -->
+<?php include __DIR__ . '/testimony_modal.php'; ?>

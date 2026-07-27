@@ -4,7 +4,7 @@ $pageTitle = 'Explore Map';
 $activeTab = 'map';
 
 $municipalityImages = [];
-$imgDir = __DIR__ . '/../../../../backend/storage/app/public/municipalities';
+$imgDir = __DIR__ . '/../assets/img/MUNICIPALITIES';
 if (is_dir($imgDir)) {
     $munis = scandir($imgDir);
     foreach ($munis as $muni) {
@@ -79,17 +79,17 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     </div>
 
     <!-- Locate Me Button -->
-    <div class="btn-locate-me animate-slide-up" id="btn-locate-me">
+    <div class="btn-locate-me animate-slide-up" id="btn-locate-me" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); right: 10px;">
         <i class="fa-solid fa-crosshairs"></i>
     </div>
 
-        <!-- Layer Toggle Button -->
-    <div class="btn-layer-toggle animate-slide-up" id="btn-layer-toggle" style="position: absolute; bottom: calc(335px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: #1E3A8A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 900; cursor: pointer; transition: all 0.2s;">
+    <!-- Layer Toggle Button -->
+    <div class="btn-layer-toggle animate-slide-up" id="btn-layer-toggle" style="position: absolute; bottom: calc(235px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: #1E3A8A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-layer-group"></i>
     </div>
 
     <!-- 3D Mode Button -->
-    <div class="btn-3d-view animate-slide-up" id="btn-3d-view" style="position: absolute; bottom: calc(275px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: #1E3A8A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 900; cursor: pointer; transition: all 0.2s;">
+    <div class="btn-3d-view animate-slide-up" id="btn-3d-view" style="position: absolute; bottom: calc(175px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: #1E3A8A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-cube"></i>
     </div>
 
@@ -199,10 +199,10 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 <!-- Testimonies & Policy Recommendations Section -->
                 <div id="sheet-testimonies-section" style="display:none; margin-top:16px; padding-top:16px; border-top:1px dashed rgba(255,255,255,0.1); text-align: left;">
                     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
-                        <h4 style="margin:0; font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff;">🗣️ Tourist Testimonies</h4>
-                        <button onclick="window.openWriteTestimonyModal()" style="background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.25); color:#38bdf8; font-size:11px; font-weight:700; padding:6px 12px; border-radius:8px; cursor:pointer;">
-                            Write Review
-                        </button>
+                        <h4 style="margin:0; font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff;">Tourist Testimonies</h4>
+                        <span style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.45); background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:6px;">
+                            <i class="fa-solid fa-shield-halved" style="color:#38bdf8; margin-right:4px;"></i> Verified Visitor Reviews
+                        </span>
                     </div>
 
                     <!-- Aggregated Ratings / Crowd / Cleanliness / Safety metrics display -->
@@ -284,34 +284,47 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 <input type="hidden" id="testimony-rating" value="5">
             </div>
 
-            <!-- Crowd, Cleanliness, Safety parameters -->
-            <div style="display:flex; gap:8px; margin-bottom:14px;">
-                <!-- Crowd Level -->
-                <div style="flex:1;">
-                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.7); text-transform:uppercase; display:block; margin-bottom:4px;">Crowd:</label>
-                    <select id="testimony-crowd" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:6px; color:#fff; font-size:11px; font-weight:600; box-sizing:border-box;">
-                        <option value="low" style="background:#1e293b;">Low</option>
-                        <option value="medium" style="background:#1e293b;" selected>Medium</option>
-                        <option value="high" style="background:#1e293b;">High</option>
-                    </select>
-                </div>
+            <!-- Cleanliness, Safety parameters -->
+            <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;">
+
                 <!-- Cleanliness -->
-                <div style="flex:1;">
-                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.7); text-transform:uppercase; display:block; margin-bottom:4px;">Clean:</label>
-                    <select id="testimony-cleanliness" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:6px; color:#fff; font-size:11px; font-weight:600; box-sizing:border-box;">
-                        <option value="clean" style="background:#1e293b;" selected>Clean</option>
-                        <option value="moderate" style="background:#1e293b;">Moderate</option>
-                        <option value="dirty" style="background:#1e293b;">Dirty</option>
-                    </select>
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.7); text-transform:uppercase;">Cleanliness:</label>
+                        <span id="cleanliness-selected-label" style="font-size:11px; font-weight:700; color:#10b981;">Clean</span>
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                        <button type="button" class="option-pill clean-pill active" data-val="clean" onclick="window.selectCleanliness('clean')" style="flex:1; padding:8px 4px; border-radius:10px; border:1px solid #10b981; background:rgba(16,185,129,0.18); color:#10b981; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease; box-shadow:0 0 10px rgba(16,185,129,0.2);">
+                            ✨ Clean
+                        </button>
+                        <button type="button" class="option-pill clean-pill" data-val="moderate" onclick="window.selectCleanliness('moderate')" style="flex:1; padding:8px 4px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.7); font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                            🧹 Moderate
+                        </button>
+                        <button type="button" class="option-pill clean-pill" data-val="dirty" onclick="window.selectCleanliness('dirty')" style="flex:1; padding:8px 4px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.7); font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                            ⚠️ Dirty
+                        </button>
+                    </div>
+                    <input type="hidden" id="testimony-cleanliness" value="clean">
                 </div>
+
                 <!-- Safety -->
-                <div style="flex:1;">
-                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.7); text-transform:uppercase; display:block; margin-bottom:4px;">Safety:</label>
-                    <select id="testimony-safety" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:6px; color:#fff; font-size:11px; font-weight:600; box-sizing:border-box;">
-                        <option value="safe" style="background:#1e293b;" selected>Safe</option>
-                        <option value="moderate" style="background:#1e293b;">Moderate</option>
-                        <option value="unsafe" style="background:#1e293b;">Unsafe</option>
-                    </select>
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.7); text-transform:uppercase;">Safety Level:</label>
+                        <span id="safety-selected-label" style="font-size:11px; font-weight:700; color:#10b981;">Safe</span>
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                        <button type="button" class="option-pill safety-pill active" data-val="safe" onclick="window.selectSafety('safe')" style="flex:1; padding:8px 4px; border-radius:10px; border:1px solid #10b981; background:rgba(16,185,129,0.18); color:#10b981; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease; box-shadow:0 0 10px rgba(16,185,129,0.2);">
+                            🛡️ Safe
+                        </button>
+                        <button type="button" class="option-pill safety-pill" data-val="moderate" onclick="window.selectSafety('moderate')" style="flex:1; padding:8px 4px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.7); font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                            ⚡ Moderate
+                        </button>
+                        <button type="button" class="option-pill safety-pill" data-val="unsafe" onclick="window.selectSafety('unsafe')" style="flex:1; padding:8px 4px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.7); font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                            🚨 Unsafe
+                        </button>
+                    </div>
+                    <input type="hidden" id="testimony-safety" value="safe">
                 </div>
             </div>
 
@@ -429,8 +442,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             if (e && e.source && e.source.type === 'raster') return;
         });
 
-        // Add Zoom Controls (+ and -)
-        window.mapInstance.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+        // window.mapInstance.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
 
         // Add 3D Terrain and Region Mask
         window.mapInstance.on('load', async () => {
@@ -1054,7 +1066,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             });
         }
 
-        // Real-time GPS Tracker Hook
+        // Real-time GPS Tracker Hook with Proximity Auto-Pop Trigger
         document.addEventListener('gpsUpdated', function(e) {
             const lat = e.detail.lat;
             const lng = e.detail.lng;
@@ -1066,8 +1078,72 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                     el.innerHTML = `<div style="background:#007AFF; width:20px; height:20px; border-radius:50%; border:3px solid white; box-shadow:0 0 0 5px rgba(0,122,255,0.3);"></div>`;
                     window.userMarker = new maplibregl.Marker({element: el}).setLngLat([lng, lat]).addTo(window.mapInstance);
                 }
+                checkProximityAutoPop(lat, lng);
             }
         });
+
+        // ── Proximity Auto-Pop Logic ──
+        window._poppedSpots = window._poppedSpots || {};
+        
+        function getDistanceMeters(lat1, lon1, lat2, lon2) {
+            const R = 6371000;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+
+        function checkProximityAutoPop(lat, lng) {
+            if (!window.allMapLocations || window.allMapLocations.length === 0) return;
+            
+            for (const loc of window.allMapLocations) {
+                const locLat = parseFloat(loc.lat);
+                const locLng = parseFloat(loc.lng);
+                if (isNaN(locLat) || isNaN(locLng)) continue;
+
+                const dist = getDistanceMeters(lat, lng, locLat, locLng);
+                if (dist <= 200 && !window._poppedSpots[loc.id]) { // Within 200m radius
+                    window._poppedSpots[loc.id] = true;
+
+                    showProximityBanner(loc, Math.round(dist));
+
+                    if (window.mapInstance) {
+                        window.mapInstance.flyTo({ center: [locLng, locLat], zoom: 15, duration: 1200 });
+                        window.openSheet(loc);
+                    }
+                    break;
+                }
+            }
+        }
+
+        function showProximityBanner(loc, distMeters) {
+            let banner = document.getElementById('proximity-auto-pop-banner');
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = 'proximity-auto-pop-banner';
+                banner.style.cssText = "position:fixed; top:80px; left:50%; transform:translateX(-50%); z-index:10001; background:linear-gradient(135deg,#0f172a,#1e293b); border:1px solid #38bdf8; border-radius:16px; padding:12px 20px; box-shadow:0 12px 32px rgba(0,0,0,0.6); display:flex; align-items:center; gap:12px; color:#fff; transition:all 0.3s; max-width:90vw;";
+                document.body.appendChild(banner);
+            }
+            banner.innerHTML = `
+                <div style="width:38px; height:38px; border-radius:12px; background:rgba(56,189,248,0.2); border:1px solid #38bdf8; display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:18px; flex-shrink:0;">
+                    <i class="fa-solid fa-compass-drafting"></i>
+                </div>
+                <div>
+                    <span style="display:block; font-size:10px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px;">📍 Nearby Destination Discovered</span>
+                    <strong style="font-size:14px; color:#fff;">${loc.name}</strong>
+                    <span style="display:block; font-size:11px; color:rgba(255,255,255,0.7);">${distMeters}m away</span>
+                </div>
+                <button onclick="document.getElementById('proximity-auto-pop-banner').style.display='none'" style="background:none; border:none; color:rgba(255,255,255,0.5); font-size:16px; cursor:pointer; margin-left:8px;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+            banner.style.display = 'flex';
+            setTimeout(() => {
+                if (banner) banner.style.display = 'none';
+            }, 8000);
+        }
 
         // Auto-check on load in case GPS already acquired globally
         setTimeout(() => {
@@ -1953,16 +2029,10 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                     summary.style.display = 'block';
                     summary.innerHTML = `
                         <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:6px;">
-                            <strong style="color:#fff;">📊 Visitor Insights (${sm.total_reviews} reviews)</strong>
+                            <strong style="color:#fff;">Visitor Insights (${sm.total_reviews} reviews)</strong>
                             <strong style="color:#38bdf8;">★ ${sm.average_rating}</strong>
                         </div>
-                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;">
-                            <div>
-                                <span style="display:block; font-size:9px; color:rgba(255,255,255,0.45); text-transform:uppercase;">Crowd Level</span>
-                                <span style="font-weight:700; color:#fff;">
-                                    ${sm.crowd.high >= sm.crowd.medium && sm.crowd.high >= sm.crowd.low ? 'High' : (sm.crowd.medium >= sm.crowd.low ? 'Medium' : 'Low')}
-                                </span>
-                            </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
                             <div>
                                 <span style="display:block; font-size:9px; color:rgba(255,255,255,0.45); text-transform:uppercase;">Cleanliness</span>
                                 <span style="font-weight:700; color:#fff;">
@@ -2074,6 +2144,8 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         if (!window.currentSelectedSpotId) return;
         document.getElementById('testimony-spot-id').value = window.currentSelectedSpotId;
         window.setStarRating(5);
+        if (typeof window.selectCleanliness === 'function') window.selectCleanliness('clean');
+        if (typeof window.selectSafety === 'function') window.selectSafety('safe');
         document.getElementById('testimony-comment').value = '';
         document.getElementById('testimony-policy').value = '';
 
@@ -2099,14 +2171,84 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
     window.setStarRating = function(rating) {
         document.getElementById('testimony-rating').value = rating;
-        document.querySelectorAll('.star-btn').forEach(btn => {
+        document.querySelectorAll('.star-btn').forEach((btn, index) => {
             const starNum = parseInt(btn.dataset.star);
+            btn.classList.remove('pop-anim');
+            void btn.offsetWidth; // force reflow for animation reset
+
             if (starNum <= rating) {
                 btn.style.opacity = '1';
                 btn.className = 'fa-solid fa-star star-btn';
+                setTimeout(() => {
+                    btn.classList.add('pop-anim');
+                }, index * 40);
             } else {
                 btn.style.opacity = '0.35';
                 btn.className = 'fa-regular fa-star star-btn';
+                btn.style.filter = 'none';
+            }
+        });
+    };
+
+
+    window.selectCleanliness = function(val) {
+        const input = document.getElementById('testimony-cleanliness');
+        if (input) input.value = val;
+
+        const labelMap = { clean: 'Clean', moderate: 'Moderate', dirty: 'Dirty' };
+        const colorMap = { clean: '#10b981', moderate: '#f59e0b', dirty: '#f43f5e' };
+        const bgMap = { clean: 'rgba(16,185,129,0.18)', moderate: 'rgba(245,158,11,0.18)', dirty: 'rgba(244,63,94,0.18)' };
+
+        const labelEl = document.getElementById('cleanliness-selected-label');
+        if (labelEl) {
+            labelEl.textContent = labelMap[val] || val;
+            labelEl.style.color = colorMap[val] || '#38bdf8';
+        }
+
+        document.querySelectorAll('.clean-pill').forEach(btn => {
+            if (btn.dataset.val === val) {
+                btn.classList.add('active');
+                btn.style.borderColor = colorMap[val];
+                btn.style.background = bgMap[val];
+                btn.style.color = colorMap[val];
+                btn.style.boxShadow = `0 0 12px ${colorMap[val]}33`;
+            } else {
+                btn.classList.remove('active');
+                btn.style.borderColor = 'rgba(255,255,255,0.1)';
+                btn.style.background = 'rgba(255,255,255,0.04)';
+                btn.style.color = 'rgba(255,255,255,0.7)';
+                btn.style.boxShadow = 'none';
+            }
+        });
+    };
+
+    window.selectSafety = function(val) {
+        const input = document.getElementById('testimony-safety');
+        if (input) input.value = val;
+
+        const labelMap = { safe: 'Safe', moderate: 'Moderate', unsafe: 'Unsafe' };
+        const colorMap = { safe: '#10b981', moderate: '#f59e0b', unsafe: '#f43f5e' };
+        const bgMap = { safe: 'rgba(16,185,129,0.18)', moderate: 'rgba(245,158,11,0.18)', unsafe: 'rgba(244,63,94,0.18)' };
+
+        const labelEl = document.getElementById('safety-selected-label');
+        if (labelEl) {
+            labelEl.textContent = labelMap[val] || val;
+            labelEl.style.color = colorMap[val] || '#38bdf8';
+        }
+
+        document.querySelectorAll('.safety-pill').forEach(btn => {
+            if (btn.dataset.val === val) {
+                btn.classList.add('active');
+                btn.style.borderColor = colorMap[val];
+                btn.style.background = bgMap[val];
+                btn.style.color = colorMap[val];
+                btn.style.boxShadow = `0 0 12px ${colorMap[val]}33`;
+            } else {
+                btn.classList.remove('active');
+                btn.style.borderColor = 'rgba(255,255,255,0.1)';
+                btn.style.background = 'rgba(255,255,255,0.04)';
+                btn.style.color = 'rgba(255,255,255,0.7)';
+                btn.style.boxShadow = 'none';
             }
         });
     };
@@ -2124,7 +2266,6 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         const rating = document.getElementById('testimony-rating').value;
         const testimony = document.getElementById('testimony-comment').value;
         const policy = document.getElementById('testimony-policy').value;
-        const crowd = document.getElementById('testimony-crowd').value;
         const cleanliness = document.getElementById('testimony-cleanliness').value;
         const safety = document.getElementById('testimony-safety').value;
 
@@ -2141,7 +2282,6 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                     rating: rating,
                     testimony: testimony,
                     policy_recommendation: policy,
-                    crowd_level: crowd,
                     cleanliness_level: cleanliness,
                     safety_level: safety
                 })

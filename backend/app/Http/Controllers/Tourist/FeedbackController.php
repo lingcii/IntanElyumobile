@@ -34,12 +34,6 @@ class FeedbackController extends Controller
             $spot = TouristSpot::find($spotId);
             
             // Calculate distributions
-            $crowdDistribution = SiteFeedback::where('tourist_spot_id', $spotId)
-                ->select('crowd_level', DB::raw('count(*) as count'))
-                ->whereNotNull('crowd_level')
-                ->groupBy('crowd_level')
-                ->pluck('count', 'crowd_level');
-
             $cleanlinessDistribution = SiteFeedback::where('tourist_spot_id', $spotId)
                 ->select('cleanliness_level', DB::raw('count(*) as count'))
                 ->whereNotNull('cleanliness_level')
@@ -55,11 +49,6 @@ class FeedbackController extends Controller
             $summary = [
                 'average_rating' => $spot ? round($spot->rating, 1) : 0,
                 'total_reviews' => SiteFeedback::where('tourist_spot_id', $spotId)->count(),
-                'crowd' => [
-                    'low' => (int)($crowdDistribution['low'] ?? 0),
-                    'medium' => (int)($crowdDistribution['medium'] ?? 0),
-                    'high' => (int)($crowdDistribution['high'] ?? 0),
-                ],
                 'cleanliness' => [
                     'clean' => (int)($cleanlinessDistribution['clean'] ?? 0),
                     'moderate' => (int)($cleanlinessDistribution['moderate'] ?? 0),
@@ -91,24 +80,54 @@ class FeedbackController extends Controller
             'rating' => 'nullable|integer|between:1,5',
             'testimony' => 'nullable|string',
             'policy_recommendation' => 'nullable|string',
-            'crowd_level' => 'nullable|string|in:low,medium,high',
             'cleanliness_level' => 'nullable|string|in:clean,moderate,dirty',
             'safety_level' => 'nullable|string|in:safe,moderate,unsafe',
         ]);
 
         $user = $request->user();
 
-        // Save feedback
-        $feedback = SiteFeedback::create([
-            'user_id' => $user->id,
-            'tourist_spot_id' => $request->tourist_spot_id,
-            'rating' => $request->rating,
-            'testimony' => $request->testimony,
-            'policy_recommendation' => $request->policy_recommendation,
-            'crowd_level' => $request->crowd_level,
-            'cleanliness_level' => $request->cleanliness_level,
-            'safety_level' => $request->safety_level,
-        ]);
+        // Enforce 1 review per user per spot (update existing if re-submitted)
+        if ($request->tourist_spot_id) {
+            $feedbackData = array_filter([
+                'rating'                => $request->rating,
+                'testimony'             => $request->testimony,
+                'policy_recommendation' => $request->policy_recommendation,
+                'cleanliness_level'     => $request->cleanliness_level,
+                'safety_level'          => $request->safety_level,
+            ], fn($v) => !is_null($v));
+
+            $feedback = SiteFeedback::updateOrCreate(
+                [
+                    'user_id'         => $user->id,
+                    'tourist_spot_id' => $request->tourist_spot_id,
+                ],
+                $feedbackData
+            );
+        } else {
+            // Deduplicate rapid general feedback submissions (within 10 seconds)
+            $existingRecent = SiteFeedback::where('user_id', $user->id)
+                ->whereNull('tourist_spot_id')
+                ->where('created_at', '>=', now()->subSeconds(10))
+                ->first();
+
+            if ($existingRecent) {
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => 'Feedback submitted successfully!',
+                    'data'    => $existingRecent
+                ]);
+            }
+
+            $feedback = SiteFeedback::create([
+                'user_id'               => $user->id,
+                'tourist_spot_id'       => null,
+                'rating'                => $request->rating,
+                'testimony'             => $request->testimony,
+                'policy_recommendation' => $request->policy_recommendation,
+                'cleanliness_level'     => $request->cleanliness_level,
+                'safety_level'          => $request->safety_level,
+            ]);
+        }
 
         // If specific tourist spot feedback is given with a rating, recalculate average rating
         if ($request->tourist_spot_id && $request->rating) {
@@ -117,14 +136,35 @@ class FeedbackController extends Controller
                 $avgRating = SiteFeedback::where('tourist_spot_id', $spot->id)
                     ->whereNotNull('rating')
                     ->avg('rating');
-                $spot->rating = round($avgRating, 2);
+                $spot->rating = round((float)$avgRating, 2);
                 $spot->save();
+            }
+        }
+
+        // Invalidate map & dashboard caches so new ratings/testimonies reflect immediately
+        \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:5');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:10');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:50');
+
+        // Award gamification points (+25 XP, +25 points)
+        if ($user) {
+            try {
+                $user->increment('xp', 25);
+                \App\Models\UserPoint::awardPointsSafely(
+                    $user->id,
+                    25,
+                    'feedback',
+                    'Shared site testimony and policy feedback'
+                );
+            } catch (\Throwable $e) {
+                // Log or ignore if user_points creation encounters minor issue
             }
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Thank you for your testimony and feedback!',
+            'message' => 'Thank you for your testimony and feedback! (+25 XP & +25 Points earned)',
             'data' => $feedback
         ]);
     }

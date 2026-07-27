@@ -8,7 +8,7 @@
 
 .map-container { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; overflow: hidden; }
 
-#tourist-map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; background-color: #F2F2F7; }
+#tourist-map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; background-color: #0a0f1c; }
 
 /* ── Floating Search Bar ── */
 .map-floating-header {
@@ -288,20 +288,14 @@
     transition: all 0.2s !important;
 }
 
-.btn-locate-me { position: absolute; bottom: calc(220px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 18px; z-index: 900; cursor: pointer; }
+.btn-locate-me { position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 18px; z-index: 900; cursor: pointer; }
 .btn-locate-me:active { transform: scale(0.9) !important; background: rgba(56,189,248,0.25) !important; }
 
 /* ── MapLibre Controls ── */
 .maplibregl-ctrl-bottom-right { bottom: calc(100px + env(safe-area-inset-bottom)) !important; right: 10px !important; margin: 0 !important; z-index: 900 !important; }
 
-.maplibregl-ctrl-group {
-    background: rgba(30, 58, 138, 0.95) !important;
-    backdrop-filter: blur(16px) !important;
-    border: 1px solid rgba(56, 189, 248, 0.2) !important;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
-    border-radius: 14px !important;
-    overflow: hidden;
-    margin: 0 !important;
+.maplibregl-ctrl-group, .leaflet-control-zoom {
+    display: none !important;
 }
 
 .maplibregl-ctrl-group button { width: 44px !important; height: 44px !important; }

@@ -225,17 +225,17 @@ const vouchersData = [
     },
     {
         id: 7,
-        title: "Intan Elyu Official Explorer Cap",
+        title: "25% OFF La Union Souvenir Pass",
         category: "Souvenirs",
         partner: "Provincial Tourism (LUPTO)",
         location: "Mabanag Hall, San Fernando",
-        badge: "OFFICIAL MERCH",
+        badge: "25% OFF PASS",
         pointsCost: 300,
-        icon: "fa-graduation-cap",
+        icon: "fa-gift",
         color: "#f97316",
-        code: "ELYU-CAP-2026",
+        code: "ELYU-PASS-25",
         expires: "2026-11-15",
-        description: "Claim an official embroidered Intan Elyu Explorer Snapback Cap at the Provincial Capitol Tourism Office."
+        description: "Get 25% discount on all official La Union souvenir crafts and products at the Capitol Tourism Center."
     }
 ];
 

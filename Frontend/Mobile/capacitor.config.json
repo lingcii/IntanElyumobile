@@ -4,7 +4,7 @@
   "webDir": "public",
   "bundledWebRuntime": false,
   "server": {
-    "url": "https://typical-pick-interview-listen.trycloudflare.com",
+    "url": "https://app.intan-elyu.online",
     "cleartext": true
   }
 }

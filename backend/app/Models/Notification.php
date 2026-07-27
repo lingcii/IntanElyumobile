@@ -32,4 +32,26 @@ class Notification extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * Safely create a notification for a user.
+     */
+    public static function createSafely(int $userId, string $type, string $title, string $message, array $extraData = []): ?self
+    {
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                return null;
+            }
+
+            return self::create(array_merge([
+                'user_id' => $userId,
+                'type'    => $type,
+                'title'   => $title,
+                'message' => $message,
+                'is_read' => false,
+            ], $extraData));
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
 }

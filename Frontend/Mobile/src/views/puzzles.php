@@ -1,5 +1,5 @@
 <?php
-$pageTitle = 'Gamification Zone';
+$pageTitle = 'GameZone';
 $backRoute = 'dashboard';
 include __DIR__ . '/../components/header.php';
 ?>
@@ -26,12 +26,9 @@ include __DIR__ . '/../components/header.php';
     </div>
 
     <!-- Tab Selector -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 6px; border-radius: 16px; margin-bottom: 20px;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 6px; border-radius: 16px; margin-bottom: 20px;">
         <button id="tab-btn-puzzle" onclick="switchGameTab('puzzle')" class="game-nav-tab active">
             <i class="fa-solid fa-puzzle-piece"></i> Slide Puzzle
-        </button>
-        <button id="tab-btn-trivia" onclick="switchGameTab('trivia')" class="game-nav-tab">
-            <i class="fa-solid fa-circle-question"></i> Trivia Quiz
         </button>
         <button id="tab-btn-memory" onclick="switchGameTab('memory')" class="game-nav-tab">
             <i class="fa-solid fa-clone"></i> Memory Match
@@ -68,24 +65,6 @@ include __DIR__ . '/../components/header.php';
                 <i class="fa-solid fa-arrows-rotate"></i> Reset Puzzle
             </button>
         </div>
-    </div>
-
-    <!-- TRIVIA QUIZ TAB -->
-    <div id="game-tab-trivia" class="game-tab-content" style="display: none;">
-        <div style="background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 16px; margin-bottom: 16px; text-align: center;">
-            <h3 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800;">La Union Trivia Challenge</h3>
-            <p style="margin: 0; font-size: 12px; color: rgba(148, 163, 184, 0.8); line-height: 1.4;">
-                Answer all 3 trivia questions correctly to test your knowledge of La Union and earn <strong style="color: #38bdf8;">+50 Points</strong>!
-            </p>
-        </div>
-
-        <div id="trivia-questions-container" style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
-            <!-- Dynamic Questions -->
-        </div>
-
-        <button onclick="submitTriviaAnswers()" style="width: 100%; border: none; background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 10px 20px rgba(37,99,235,0.25);">
-            Submit Answers
-        </button>
     </div>
 
     <!-- MEMORY MATCH TAB -->
@@ -891,15 +870,17 @@ async function claimMiniGamePoints(gameType) {
             body: JSON.stringify(bodyObj)
         });
         const d = await r.json();
-        if (d.status === 'success') {
+        if (r.ok && d.status === 'success') {
             // Mark as completed today for local checks
             try { localStorage.setItem('game_done_' + gameType, new Date().toDateString()); } catch(e) {}
             openGameSuccess(d.message);
         } else {
-            openGameAlert(d.message || "Game already completed today!");
+            const title = (r.status === 429) ? "Already Done!" : (r.status >= 500 ? "Server Error" : "Notice");
+            openGameAlert(d.message || "Game already completed today!", title);
         }
     } catch (e) {
         console.error("Points claim error:", e);
+        openGameAlert("Connection issue. Please try again.", "Error");
     }
 }
 
@@ -920,9 +901,11 @@ function closeGameSuccess() {
     if (modal) modal.style.display = 'none';
 }
 
-function openGameAlert(message) {
+function openGameAlert(message, title = "Already Done!") {
     const modal = document.getElementById('game-alert-modal');
     if (modal) {
+        const titleEl = modal.querySelector('h2');
+        if (titleEl) titleEl.textContent = title;
         const msgEl = document.getElementById('alert-points-msg');
         if (msgEl) msgEl.textContent = message || "You already completed this game today!";
         modal.style.display = 'flex';

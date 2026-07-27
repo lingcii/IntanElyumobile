@@ -13,7 +13,7 @@
         justify-content: space-between;
         align-items: center;
         padding: 10px 20px; /* 10px top/bottom, 20px sides */
-        z-index: 100;
+        z-index: 9000 !important;
         /* Ensure Android gets safe padding since safe-area-inset-top is sometimes 0 on Android WebViews */
         padding-top: max(env(safe-area-inset-top), 40px);
     }
@@ -84,9 +84,9 @@
     </div>
 </div>
 
-<!-- Notifications Dropdown -->
-<div id="notifications-dropdown" style="position: fixed; top: max(env(safe-area-inset-top, 0px), 60px); right: 12px; left: 12px; max-width: 360px; margin: 0 auto; background: #0f172a; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; z-index: 101; box-shadow: 0 10px 40px rgba(0,0,0,0.5); padding: 16px; max-height: 70vh; overflow-y: auto; opacity: 0; pointer-events: none; transform: translateY(-8px); transition: opacity 0.25s ease, transform 0.25s ease;">
-    <h3 style="margin: 0 0 12px 0; font-size: 15px; font-weight: 800; color: #f8fafc; letter-spacing: -0.3px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+<!-- Notifications Dropdown (In Front of All Elements) -->
+<div id="notifications-dropdown" style="position: fixed; top: max(env(safe-area-inset-top, 0px), 65px); right: 12px; left: 12px; max-width: 360px; margin: 0 auto; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 20px; z-index: 999999; box-shadow: 0 25px 60px rgba(0,0,0,0.8); padding: 18px; max-height: 75vh; overflow-y: auto; opacity: 0; pointer-events: none; transform: translateY(-10px) scale(0.96); transition: opacity 0.25s ease, transform 0.25s ease;">
+    <h3 style="margin: 0 0 12px 0; font-size: 15px; font-weight: 800; color: #f8fafc; letter-spacing: -0.3px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
         <span><i class="fa-regular fa-bell" style="margin-right: 8px; color: #38bdf8;"></i>Notifications</span>
         <i class="fa-solid fa-xmark" style="font-size: 16px; color: rgba(148,163,184,0.6); cursor: pointer; padding: 4px; transition: color 0.2s;" onclick="toggleNotifications()"></i>
     </h3>
@@ -95,47 +95,95 @@
     </div>
 </div>
 
-<!-- Sidebar Menu -->
-<div id="sidebar-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000;" onclick="toggleSidebar()"></div>
-<div id="sidebar-menu" style="position: fixed; top: 0; left: -280px; width: 280px; bottom: 0; background: #0f172a; z-index: 1001; transition: left 0.3s ease; display: flex; flex-direction: column; box-shadow: 2px 0 10px rgba(0,0,0,0.5);">
-    <div style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-top: max(env(safe-area-inset-top), 40px);">
-        <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #fff;">Menu</h2>
+<!-- Sidebar Menu Drawer -->
+<div id="sidebar-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 99990; transition: opacity 0.3s ease;" onclick="toggleSidebar()"></div>
+<div id="sidebar-menu" style="position: fixed; top: 0; left: -310px; width: 300px; bottom: 0; background: linear-gradient(180deg, #0d1527 0%, #080c14 100%); z-index: 99991; transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; box-shadow: 10px 0 40px rgba(0,0,0,0.6); border-right: 1px solid rgba(56, 189, 248, 0.2); overflow: hidden;">
+    
+    <!-- User Profile Header Banner -->
+    <div style="padding: 24px 20px 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); background: linear-gradient(135deg, rgba(30,58,138,0.4) 0%, rgba(15,23,42,0.8) 100%); margin-top: max(env(safe-area-inset-top), 20px); position: relative;">
+        <button onclick="toggleSidebar()" style="position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.08); border: none; color: rgba(248,250,252,0.7); width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s;">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 4px;">
+            <div style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; border: 2px solid #38bdf8; box-shadow: 0 0 16px rgba(56,189,248,0.4); flex-shrink: 0;">
+                <img id="sidebar-avatar" src="https://ui-avatars.com/api/?name=Tourist&background=007AFF&color=fff&rounded=true&bold=true&size=128" alt="Avatar" style="width:100%; height:100%; object-fit:cover;">
+            </div>
+            <div style="flex: 1; min-width: 0;">
+                <h3 id="sidebar-user-name" style="margin: 0 0 2px 0; font-size: 16px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Hi, Explorer!</h3>
+                <span style="font-size: 11px; font-weight: 700; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 2px 8px; border-radius: 100px; border: 1px solid rgba(56,189,248,0.2); display: inline-flex; align-items: center; gap: 4px;">
+                    <i class="fa-solid fa-compass" style="font-size: 9px;"></i> Elyu Tourist
+                </span>
+            </div>
+        </div>
     </div>
-    <div style="flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 16px;">
-        <div style="font-size: 11px; font-weight: 700; color: rgba(148,163,184,0.5); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Your Stuff</div>
-        <a href="#" onclick="toggleSidebar(); navigateTo('saved_places'); return false;" style="color: #e2e8f0; text-decoration: none; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 10px; padding: 6px 0;">
-            <i class="fa-solid fa-heart" style="color: #ff3b30; width: 20px; text-align: center;"></i> Saved Places
-        </a>
-        <a href="#" onclick="toggleSidebar(); navigateTo('saved_trips'); return false;" style="color: #e2e8f0; text-decoration: none; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 10px; padding: 6px 0;">
-            <i class="fa-solid fa-route" style="color: #34c759; width: 20px; text-align: center;"></i> Saved Trips
-        </a>
-        <div style="font-size: 11px; font-weight: 700; color: rgba(148,163,184,0.5); text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; margin-bottom: 4px;">Discover</div>
-        <a href="#" onclick="toggleSidebar(); navigateTo('trending'); return false;" style="color: #e2e8f0; text-decoration: none; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 10px; padding: 6px 0;">
-            <i class="fa-solid fa-fire" style="color: #f59e0b; width: 20px; text-align: center;"></i> Trending
-        </a>
-        <a href="#" onclick="toggleSidebar(); navigateTo('puzzles'); return false;" style="color: #e2e8f0; text-decoration: none; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 10px; padding: 6px 0;">
-            <i class="fa-solid fa-gamepad" style="color: #38bdf8; width: 20px; text-align: center;"></i> Gamification Zone
-        </a>
-        <a href="#" onclick="toggleSidebar(); navigateTo('discount'); return false;" style="color: #e2e8f0; text-decoration: none; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 10px; padding: 6px 0;">
-            <i class="fa-solid fa-tags" style="color: #a78bfa; width: 20px; text-align: center;"></i> Discounts & Vouchers
-        </a>
-        <div style="font-size: 11px; font-weight: 700; color: rgba(148,163,184,0.5); text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; margin-bottom: 4px;">Support</div>
-        <a href="#" onclick="toggleSidebar(); navigateTo('settings'); return false;" style="color: #e2e8f0; text-decoration: none; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 10px; padding: 6px 0;">
-            <i class="fa-solid fa-gear" style="color: #94a3b8; width: 20px; text-align: center;"></i> Settings
-        </a>
-        <a href="#" onclick="toggleSidebar(); navigateTo('help'); return false;" style="color: #e2e8f0; text-decoration: none; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 10px; padding: 6px 0;">
-            <i class="fa-solid fa-circle-question" style="color: #94a3b8; width: 20px; text-align: center;"></i> Help & FAQ
-        </a>
-        <a href="#" onclick="toggleSidebar(); navigateTo('terms'); return false;" style="color: #e2e8f0; text-decoration: none; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 10px; padding: 6px 0;">
-            <i class="fa-solid fa-shield-halved" style="color: #94a3b8; width: 20px; text-align: center;"></i> Terms & Privacy
-        </a>
-        <a href="#" onclick="toggleSidebar(); navigateTo('about'); return false;" style="color: #e2e8f0; text-decoration: none; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 10px; padding: 6px 0;">
-            <i class="fa-solid fa-circle-info" style="color: #94a3b8; width: 20px; text-align: center;"></i> About Us
-        </a>
+
+    <!-- Scrollable Navigation Items -->
+    <div style="flex: 1; padding: 18px 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto;">
+        
+        <!-- Section: Your Stuff -->
+        <div>
+            <div style="font-size: 10px; font-weight: 800; color: rgba(148,163,184,0.6); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding-left: 6px;">Your Stuff</div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <a href="#" onclick="toggleSidebar(); navigateTo('saved_places'); return false;" style="color: #f1f5f9; text-decoration: none; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); transition: all 0.2s;">
+                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(255,59,48,0.15); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-heart" style="color: #ff3b30; font-size: 14px;"></i></span>
+                    Saved Places
+                </a>
+                <a href="#" onclick="toggleSidebar(); navigateTo('saved_trips'); return false;" style="color: #f1f5f9; text-decoration: none; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); transition: all 0.2s;">
+                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(52,199,89,0.15); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-route" style="color: #34c759; font-size: 14px;"></i></span>
+                    Saved Trips
+                </a>
+            </div>
+        </div>
+
+        <!-- Section: Discover -->
+        <div>
+            <div style="font-size: 10px; font-weight: 800; color: rgba(148,163,184,0.6); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding-left: 6px;">Discover & Explore</div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <a href="#" onclick="toggleSidebar(); navigateTo('quests'); return false;" style="color: #f1f5f9; text-decoration: none; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); transition: all 0.2s;">
+                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(245,158,11,0.15); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-scroll" style="color: #f59e0b; font-size: 14px;"></i></span>
+                    Quests & Challenges
+                </a>
+                <a href="#" onclick="toggleSidebar(); navigateTo('trending'); return false;" style="color: #f1f5f9; text-decoration: none; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); transition: all 0.2s;">
+                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(239,68,68,0.15); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-fire" style="color: #ef4444; font-size: 14px;"></i></span>
+                    Trending Sites
+                </a>
+                <a href="#" onclick="toggleSidebar(); navigateTo('puzzles'); return false;" style="color: #f1f5f9; text-decoration: none; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); transition: all 0.2s;">
+                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(56,189,248,0.15); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-gamepad" style="color: #38bdf8; font-size: 14px;"></i></span>
+                    GameZone
+                </a>
+                <a href="#" onclick="toggleSidebar(); navigateTo('discount'); return false;" style="color: #f1f5f9; text-decoration: none; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); transition: all 0.2s;">
+                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(236,72,153,0.15); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-tags" style="color: #ec4899; font-size: 14px;"></i></span>
+                    Discounts & Vouchers
+                </a>
+            </div>
+        </div>
+
+        <!-- Section: Support -->
+        <div>
+            <div style="font-size: 10px; font-weight: 800; color: rgba(148,163,184,0.6); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding-left: 6px;">Support & System</div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <a href="#" onclick="toggleSidebar(); navigateTo('settings'); return false;" style="color: #cbd5e1; text-decoration: none; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 12px; transition: all 0.2s;">
+                    <i class="fa-solid fa-gear" style="color: #94a3b8; width: 20px; text-align: center;"></i> Settings
+                </a>
+                <a href="#" onclick="toggleSidebar(); navigateTo('help'); return false;" style="color: #cbd5e1; text-decoration: none; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 12px; transition: all 0.2s;">
+                    <i class="fa-solid fa-circle-question" style="color: #94a3b8; width: 20px; text-align: center;"></i> Help & FAQ
+                </a>
+                <a href="#" onclick="toggleSidebar(); navigateTo('terms'); return false;" style="color: #cbd5e1; text-decoration: none; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 12px; transition: all 0.2s;">
+                    <i class="fa-solid fa-shield-halved" style="color: #94a3b8; width: 20px; text-align: center;"></i> Terms & Privacy
+                </a>
+                <a href="#" onclick="toggleSidebar(); navigateTo('about'); return false;" style="color: #cbd5e1; text-decoration: none; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 12px; transition: all 0.2s;">
+                    <i class="fa-solid fa-circle-info" style="color: #94a3b8; width: 20px; text-align: center;"></i> About Us
+                </a>
+            </div>
+        </div>
+
     </div>
-    <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
-        <a href="#" onclick="logoutUser(); return false;" style="color: #ef4444; text-decoration: none; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
-            <i class="fa-solid fa-right-from-bracket" style="width: 20px; text-align: center;"></i> Log Out
+
+    <!-- Sidebar Bottom Footer -->
+    <div style="padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.2);">
+        <a href="#" onclick="logoutUser(); return false;" style="color: #ef4444; text-decoration: none; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); border-radius: 14px; transition: all 0.2s;">
+            <i class="fa-solid fa-right-from-bracket"></i> Log Out
         </a>
     </div>
 </div>
@@ -155,12 +203,26 @@
         const sidebar = document.getElementById('sidebar-menu');
         const overlay = document.getElementById('sidebar-overlay');
         if (sidebar && overlay) {
-            if (sidebar.style.left === '0px') {
-                sidebar.style.left = '-280px';
-                overlay.style.display = 'none';
-            } else {
+            const isClosed = sidebar.style.left === '-310px' || !sidebar.style.left || sidebar.style.left === '';
+            if (isClosed) {
+                // Populate user profile info in sidebar
+                const user = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : {};
+                const avatarEl = document.getElementById('sidebar-avatar');
+                const nameEl = document.getElementById('sidebar-user-name');
+                if (user && user.name) {
+                    if (nameEl) nameEl.textContent = user.name;
+                    if (avatarEl) {
+                        avatarEl.src = user.avatar ? (window.getFullImageUrl ? window.getFullImageUrl(user.avatar) : user.avatar) : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
+                    }
+                }
+
                 sidebar.style.left = '0px';
                 overlay.style.display = 'block';
+                overlay.style.opacity = '1';
+            } else {
+                sidebar.style.left = '-310px';
+                overlay.style.opacity = '0';
+                setTimeout(() => { overlay.style.display = 'none'; }, 300);
             }
         }
     }
@@ -177,11 +239,11 @@
         if (isOpen) {
             dropdown.style.opacity = '0';
             dropdown.style.pointerEvents = 'none';
-            dropdown.style.transform = 'translateY(-8px)';
+            dropdown.style.transform = 'translateY(-10px) scale(0.96)';
         } else {
             dropdown.style.opacity = '1';
             dropdown.style.pointerEvents = 'all';
-            dropdown.style.transform = 'translateY(0)';
+            dropdown.style.transform = 'translateY(0) scale(1)';
             const bell = document.getElementById('bell-icon');
             if (bell) { bell.classList.remove('bell-ring'); void bell.offsetWidth; bell.classList.add('bell-ring'); }
             const dot = document.getElementById('bell-dot');
@@ -195,8 +257,11 @@
         if (!list) return;
         list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;"><i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px;"></i>Loading...</div>';
 
-        const token = localStorage.getItem('intan_elyu_token');
-        if (!token) return;
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
+        if (!token) {
+            list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;"><i class="fa-regular fa-bell-slash" style="margin-right: 6px;"></i>Please sign in to view notifications.</div>';
+            return;
+        }
 
         try {
             const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
@@ -214,6 +279,195 @@
             list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;">Failed to load notifications.</div>';
         }
     }
+</script>
+
+<!-- Interactive Push Notification Popup Modal -->
+<div id="push-notification-modal" class="push-notif-backdrop" style="display: none;" onclick="if(event.target===this) closePushNotificationModal()">
+    <div class="push-notif-card">
+        <div class="push-notif-header">
+            <div id="push-notif-icon-ring" class="push-notif-icon-ring">
+                <i id="push-notif-icon" class="fa-solid fa-bell"></i>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+                <div id="push-notif-badge" class="push-notif-badge">
+                    <i id="push-notif-badge-icon" class="fa-solid fa-bolt"></i>
+                    <span id="push-notif-category">PUSH NOTIFICATION</span>
+                </div>
+                <div id="push-notif-time" class="push-notif-time">Just now</div>
+            </div>
+            <button type="button" class="push-notif-close-btn" onclick="closePushNotificationModal()">&times;</button>
+        </div>
+
+        <h3 id="push-notif-title" class="push-notif-title">Push Notification Alert</h3>
+        <p id="push-notif-body" class="push-notif-body">Notification details will appear here.</p>
+
+        <div id="push-notif-footer-extra" style="display: none; margin-bottom: 16px; padding: 10px 14px; background: rgba(56,189,248,0.08); border-radius: 12px; border: 1px dashed rgba(56,189,248,0.3); font-size: 12px; color: #38bdf8;">
+            <i class="fa-solid fa-location-dot" style="margin-right: 6px;"></i><span id="push-notif-spot-name"></span>
+        </div>
+
+        <div class="push-notif-actions">
+            <button id="push-notif-action-btn" type="button" class="push-notif-btn-primary" onclick="handlePushNotificationAction()">
+                <i class="fa-solid fa-compass" style="margin-right: 6px;"></i><span id="push-notif-action-text">View Details</span>
+            </button>
+            <button type="button" class="push-notif-btn-secondary" onclick="closePushNotificationModal()">Dismiss</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.push-notif-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000005;
+    background: rgba(15, 23, 42, 0.82);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.push-notif-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+.push-notif-card {
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.99));
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 28px;
+    width: 100%;
+    max-width: 380px;
+    padding: 24px;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.8), 0 0 50px rgba(56, 189, 248, 0.18);
+    transform: scale(0.85) translateY(20px);
+    transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-align: left;
+}
+.push-notif-backdrop.active .push-notif-card {
+    transform: scale(1) translateY(0);
+}
+.push-notif-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+.push-notif-icon-ring {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgba(56, 189, 248, 0.15);
+    border: 2px solid #38bdf8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: #38bdf8;
+    flex-shrink: 0;
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+    animation: pushPulse 2s infinite;
+}
+@keyframes pushPulse {
+    0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); }
+    70% { box-shadow: 0 0 0 14px rgba(56, 189, 248, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+}
+.push-notif-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: #38bdf8;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+.push-notif-time {
+    font-size: 11px;
+    color: rgba(148, 163, 184, 0.6);
+    font-weight: 500;
+}
+.push-notif-close-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
+    color: rgba(248, 250, 252, 0.7);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.push-notif-close-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+}
+.push-notif-title {
+    margin: 0 0 8px;
+    font-size: 19px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.35;
+    letter-spacing: -0.3px;
+}
+.push-notif-body {
+    margin: 0 0 20px;
+    font-size: 14px;
+    color: rgba(203, 213, 225, 0.9);
+    line-height: 1.55;
+    font-weight: 400;
+}
+.push-notif-actions {
+    display: flex;
+    gap: 10px;
+}
+.push-notif-btn-primary {
+    flex: 1;
+    border: none;
+    background: linear-gradient(135deg, #38bdf8, #2563eb);
+    color: #ffffff;
+    padding: 13px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.push-notif-btn-primary:active {
+    transform: scale(0.97);
+}
+.push-notif-btn-secondary {
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(248, 250, 252, 0.8);
+    padding: 13px 18px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.push-notif-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+</style>
+
+<script>
+    var _currentPushNotifTargetUrl = window._currentPushNotifTargetUrl || null;
 
     function renderNotifications(notifications) {
         const list = document.getElementById('notifications-list');
@@ -239,17 +493,21 @@
                 } else if (item.type === 'spot_maintenance') {
                     icon = 'fa-triangle-exclamation';
                     color = '#ef4444';
+                } else if (item.type === 'welcome') {
+                    icon = 'fa-compass';
+                    color = '#38bdf8';
                 }
 
                 const isUnread = !item.is_read;
+                const encodedItem = encodeURIComponent(JSON.stringify(item));
                 html += `
-                    <div style="display: flex; gap: 12px; margin-bottom: 10px; padding: 12px; background: ${isUnread ? 'rgba(56,189,248,0.06)' : 'rgba(255,255,255,0.02)'}; border: 1px solid ${isUnread ? 'rgba(56,189,248,0.12)' : 'rgba(255,255,255,0.04)'}; border-radius: 12px; align-items: flex-start; cursor: ${isUnread ? 'pointer' : 'default'}; transition: background 0.2s;" onclick="${isUnread ? `markNotifRead(${item.id}, this)` : ''}">
+                    <div style="display: flex; gap: 12px; margin-bottom: 10px; padding: 12px; background: ${isUnread ? 'rgba(56,189,248,0.06)' : 'rgba(255,255,255,0.02)'}; border: 1px solid ${isUnread ? 'rgba(56,189,248,0.12)' : 'rgba(255,255,255,0.04)'}; border-radius: 12px; align-items: flex-start; cursor: pointer; transition: background 0.2s;" onclick="handleNotifClick('${encodedItem}', this)">
                         <div style="width: 34px; height: 34px; border-radius: 50%; background: ${color}15; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid ${color}30;">
                             <i class="fa-solid ${icon}" style="color: ${color}; font-size: 14px;"></i>
                         </div>
                         <div style="flex: 1; min-width: 0;">
                             <p style="margin: 0 0 4px 0; font-size: 13px; color: #e2e8f0; line-height: 1.4; font-weight: ${isUnread ? '600' : '400'};">${item.message || item.title}</p>
-                            <span style="font-size: 11px; color: rgba(148,163,184,0.5); font-weight: 500;">${new Date(item.created_at).toLocaleDateString(undefined, {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'})}</span>
+                            <span style="font-size: 11px; color: rgba(148,163,184,0.5); font-weight: 500;">${new Date(item.created_at || Date.now()).toLocaleDateString(undefined, {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'})}</span>
                         </div>
                         ${isUnread ? '<i class="fa-solid fa-circle" style="font-size: 8px; color: #38bdf8; margin-top: 6px; flex-shrink: 0;"></i>' : ''}
                     </div>
@@ -268,8 +526,151 @@
         }
     }
 
+    window.handleNotifClick = function(encodedItem, el) {
+        try {
+            const item = JSON.parse(decodeURIComponent(encodedItem));
+            if (!item.is_read) {
+                markNotifRead(item.id, el);
+            }
+            toggleNotifications(); // close dropdown
+            showNotificationModal(item);
+        } catch (e) {
+            console.error("Error handling notification click:", e);
+        }
+    };
+
+    window.showNotificationModal = function(opts) {
+        if (!opts) return;
+        const modal = document.getElementById('push-notification-modal');
+        if (!modal) return;
+
+        const title = opts.title || (opts.type ? opts.type.replace(/_/g, ' ').toUpperCase() : 'Notification');
+        const body = opts.message || opts.body || 'You have a new update.';
+        const type = opts.type || 'general';
+        const actionUrl = opts.action_url || opts.url || null;
+        const spotName = opts.spot_name || opts.spot || null;
+        const timeStr = opts.created_at ? new Date(opts.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now';
+
+        let icon = 'fa-bell';
+        let color = '#38bdf8';
+        let category = 'PUSH ALERT';
+        let badgeIcon = 'fa-bolt';
+
+        if (type === 'new_spot' || type === 'spot_added') {
+            icon = 'fa-map-pin';
+            color = '#34c759';
+            category = 'NEW SPOT';
+            badgeIcon = 'fa-location-dot';
+        } else if (type === 'favorite_update' || type === 'spot_updated') {
+            icon = 'fa-star';
+            color = '#f59e0b';
+            category = 'FAVORITE UPDATE';
+            badgeIcon = 'fa-star';
+        } else if (type === 'itinerary_reminder' || type === 'trip') {
+            icon = 'fa-calendar-day';
+            color = '#8b5cf6';
+            category = 'TRIP REMINDER';
+            badgeIcon = 'fa-clock';
+        } else if (type === 'spot_maintenance' || type === 'alert') {
+            icon = 'fa-triangle-exclamation';
+            color = '#ef4444';
+            category = 'SPOT ALERT';
+            badgeIcon = 'fa-triangle-exclamation';
+        } else if (type === 'reward' || type === 'quest' || type === 'points') {
+            icon = 'fa-trophy';
+            color = '#facc15';
+            category = 'REWARD UNLOCKED';
+            badgeIcon = 'fa-gift';
+        } else if (type === 'welcome') {
+            icon = 'fa-compass';
+            color = '#38bdf8';
+            category = 'SYSTEM NOTICE';
+            badgeIcon = 'fa-compass';
+        }
+
+        // Apply dynamic DOM values
+        const titleEl = document.getElementById('push-notif-title');
+        const bodyEl = document.getElementById('push-notif-body');
+        const catEl = document.getElementById('push-notif-category');
+        const timeEl = document.getElementById('push-notif-time');
+        const iconEl = document.getElementById('push-notif-icon');
+        const ringEl = document.getElementById('push-notif-icon-ring');
+        const badgeEl = document.getElementById('push-notif-badge');
+        const badgeIconEl = document.getElementById('push-notif-badge-icon');
+        const spotContainer = document.getElementById('push-notif-footer-extra');
+        const spotNameEl = document.getElementById('push-notif-spot-name');
+        const actionBtn = document.getElementById('push-notif-action-btn');
+
+        if (titleEl) titleEl.textContent = title;
+        if (bodyEl) bodyEl.textContent = body;
+        if (catEl) catEl.textContent = category;
+        if (timeEl) timeEl.textContent = timeStr;
+
+        if (ringEl) {
+            ringEl.style.borderColor = color;
+            ringEl.style.background = color + '20';
+            ringEl.style.boxShadow = `0 0 24px ${color}40`;
+        }
+        if (iconEl) {
+            iconEl.className = `fa-solid ${icon}`;
+            iconEl.style.color = color;
+        }
+        if (badgeEl) {
+            badgeEl.style.borderColor = color + '50';
+            badgeEl.style.background = color + '20';
+            badgeEl.style.color = color;
+        }
+        if (badgeIconEl) {
+            badgeIconEl.className = `fa-solid ${badgeIcon}`;
+        }
+
+        if (spotName && spotContainer && spotNameEl) {
+            spotNameEl.textContent = spotName;
+            spotContainer.style.display = 'block';
+        } else if (spotContainer) {
+            spotContainer.style.display = 'none';
+        }
+
+        _currentPushNotifTargetUrl = actionUrl;
+        if (actionBtn) {
+            if (actionUrl) {
+                actionBtn.style.display = 'flex';
+            } else {
+                actionBtn.style.display = 'none';
+            }
+        }
+
+        modal.style.display = 'flex';
+        requestAnimationFrame(() => {
+            modal.classList.add('active');
+        });
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closePushNotificationModal = function() {
+        const modal = document.getElementById('push-notification-modal');
+        if (!modal) return;
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }, 300);
+    };
+
+    window.handlePushNotificationAction = function() {
+        if (_currentPushNotifTargetUrl) {
+            const target = _currentPushNotifTargetUrl;
+            closePushNotificationModal();
+            setTimeout(() => {
+                window.location.href = target;
+            }, 150);
+        } else {
+            closePushNotificationModal();
+        }
+    };
+
     async function markNotifRead(id, el) {
-        const token = localStorage.getItem('intan_elyu_token');
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
         if (!token) return;
         try {
             const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
@@ -293,7 +694,7 @@
     }
 
     async function markAllNotifRead() {
-        const token = localStorage.getItem('intan_elyu_token');
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
         if (!token) return;
         try {
             const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';

@@ -61,7 +61,36 @@ $backRoute = 'dashboard';
             <i class="fa-solid fa-chevron-down" style="margin-left: auto;"></i>
         </div>
         <div class="faq-answer" style="display:none;">
-            Make sure you have an active internet connection. Try refreshing the page or re-opening the app. If it persists, contact support.
+            Make sure you have an active internet connection. Try refreshing the page or re-opening the app. If it persists, reach out to customer service.
+        </div>
+    </div>
+
+    <!-- Customer Service Card -->
+    <div style="margin-top: 32px; padding: 22px; background: linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(30,58,138,0.4) 100%); border: 1px solid rgba(56,189,248,0.25); border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 12px;">
+            <div style="width: 46px; height: 46px; border-radius: 14px; background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 20px;">
+                <i class="fa-solid fa-headset"></i>
+            </div>
+            <div>
+                <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #f8fafc;">Customer Service</h3>
+                <span style="font-size: 12px; color: #34d399; font-weight: 600;"><i class="fa-solid fa-circle" style="font-size: 8px; margin-right: 4px;"></i>Available 24/7 • Fast Response</span>
+            </div>
+        </div>
+
+        <p style="margin: 0 0 16px 0; color: #94a3b8; font-size: 13px; line-height: 1.5;">Have questions, account inquiries, or need trip assistance? Reach out to our dedicated support team.</p>
+
+        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; margin-bottom: 16px;">
+            <i class="fa-solid fa-envelope" style="color: #38bdf8; font-size: 16px;"></i>
+            <span style="font-size: 14px; font-weight: 600; color: #38bdf8; font-family: monospace;">support@intan-elyu.online</span>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <a href="mailto:support@intan-elyu.online?subject=Customer%20Support%20Inquiry%20-%20Intan%20Elyu" style="flex: 1; text-align: center; background: linear-gradient(135deg, #0284c7, #0369a1); color: white; border: none; padding: 12px; border-radius: 12px; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 14px rgba(2,132,199,0.3);">
+                <i class="fa-solid fa-paper-plane"></i> Email Support
+            </a>
+            <button onclick="copySupportEmail()" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #e2e8f0; padding: 12px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-regular fa-copy"></i> Copy
+            </button>
         </div>
     </div>
 
@@ -81,12 +110,14 @@ window.toggleFaq = function(el) {
     }
 };
 
+window.copySupportEmail = function() {
+    navigator.clipboard.writeText('support@intan-elyu.online').then(() => {
+        if (typeof showToast === 'function') showToast('Copied support@intan-elyu.online to clipboard! 📋');
+    });
+};
+
 window.contactSupport = function(e) {
-    e.preventDefault();
-    if (typeof showToast === 'function') {
-        showToast('Contact support at support@intan-elyu.com');
-    } else {
-        alert('Contact support at support@intan-elyu.com');
-    }
+    if (e) e.preventDefault();
+    window.location.href = 'mailto:support@intan-elyu.online?subject=Customer%20Support%20Inquiry%20-%20Intan%20Elyu';
 };
 </script>

@@ -1,9 +1,9 @@
 <?php
-$pageTitle = 'Trending Spots';
+$pageTitle = 'Trending Sites';
 $backRoute = 'dashboard';
 
 $municipalityImages = [];
-$imgDir = __DIR__ . '/../../../../backend/storage/app/public/municipalities';
+$imgDir = __DIR__ . '/../assets/img/MUNICIPALITIES';
 if (is_dir($imgDir)) {
     $munis = scandir($imgDir);
     foreach ($munis as $muni) {
@@ -26,7 +26,7 @@ if (is_dir($imgDir)) {
 <div class="saved-trips-page-container has-header animate-slide-up" style="padding-left: 16px; padding-right: 16px;">
     <div id="trending-list" style="margin-top: 16px;">
         <p style="text-align:center; color:rgba(255,255,255,0.5); margin-top:40px;">
-            <i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i> Loading trending spots...
+            <i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i> Loading trending sites...
         </p>
     </div>
 </div>
@@ -52,7 +52,7 @@ if (is_dir($imgDir)) {
                         'Authorization': 'Bearer ' + token
                     }
                 });
-                if (!res.ok) throw new Error("Failed to fetch trending spots");
+                if (!res.ok) throw new Error("Failed to fetch trending sites");
                 const data = await res.json();
                 return data.trending || [];
             },
@@ -61,7 +61,7 @@ if (is_dir($imgDir)) {
                     renderTrending(spots);
                 } else {
                     const list = document.getElementById('trending-list');
-                    if (list) list.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">Failed to load trending spots.</p>';
+                    if (list) list.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">Failed to load trending sites.</p>';
                 }
             },
             false,
@@ -76,7 +76,7 @@ if (is_dir($imgDir)) {
             list.innerHTML = `
                 <div style="padding:40px 20px; text-align:center; color:rgba(255,255,255,0.4);">
                     <i class="fa-solid fa-fire-flame-curved" style="font-size:40px; margin-bottom:12px; display:block;"></i>
-                    No trending spots right now.
+                    No trending sites right now.
                 </div>
             `;
             return;

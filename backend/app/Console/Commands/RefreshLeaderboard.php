@@ -34,7 +34,7 @@ class RefreshLeaderboard extends Command
                 INSERT INTO leaderboard_cache (user_id, full_name, total_points, completed_activities, `rank`, last_activity, points_since, refreshed_at)
                 SELECT
                     u.id AS user_id,
-                    CASE WHEN u.is_leaderboard_private = 1 THEN CONCAT('Explorer #', u.id) ELSE u.name END AS full_name,
+                    COALESCE(NULLIF(u.name, ''), CONCAT('Explorer #', u.id)) AS full_name,
                     COALESCE(u.xp, 0) AS total_points,
                     COALESCE(u.completed_activities, 0) AS completed_activities,
                     ROW_NUMBER() OVER (

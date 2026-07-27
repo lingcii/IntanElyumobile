@@ -87,7 +87,7 @@ $activeTab = 'itinerary';
         </div>
 
         <!-- The Map -->
-        <div style="height: 180px; width:100%; border-radius: 16px; overflow: hidden; border:1px solid rgba(255,255,255,0.1); position:relative; background:#f1f5f9;">
+        <div id="draft-map-container" style="height: 260px; width:100%; border-radius: 20px; overflow: hidden; border:1px solid rgba(56, 189, 248, 0.25); position:relative; background:#0f172a; box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
             <div id="itinerary-map" style="width:100%; height:100%;"></div>
             
             <!-- Locate Me Floating Button -->
@@ -136,15 +136,15 @@ $activeTab = 'itinerary';
 </div>
 
 <!-- Save Trip Modal -->
-<div id="save-trip-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:999; justify-content:center; align-items:center;">
-    <div style="background:var(--glass-bg); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid var(--glass-border); border-radius:24px; padding:24px; width:90%; max-width:400px; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
-        <h3 style="margin-top:0;">Save Your Trip</h3>
-        <p style="font-size:14px; color:#666; margin-bottom:20px;">Give your awesome adventure a name so you can pull it up later!</p>
+<div id="save-trip-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:99999; justify-content:center; align-items:center;">
+    <div style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(56, 189, 248, 0.3); border-radius:24px; padding:24px; width:90%; max-width:400px; box-shadow:0 24px 60px rgba(0,0,0,0.6), 0 0 30px rgba(56,189,248,0.15);">
+        <h3 style="margin-top:0; color:#ffffff; font-size:20px; font-weight:800;">Save Your Trip</h3>
+        <p style="font-size:13px; color:rgba(226, 232, 240, 0.85); margin-bottom:20px; line-height:1.4;">Give your awesome adventure a name so you can pull it up later!</p>
         
-        <input type="text" id="trip-title" placeholder="e.g. La Union Weekend" style="width:100%; padding:12px 16px; border-radius:12px; border:1px solid #ddd; margin-bottom:16px; font-family:inherit; font-size:16px;">
+        <input type="text" id="trip-title" placeholder="e.g. La Union Weekend" style="width:100%; padding:12px 16px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#ffffff; margin-bottom:16px; font-family:inherit; font-size:15px; box-sizing:border-box;">
         
-        <label style="font-size:12px; color:rgba(255,255,255,0.7); margin-bottom:4px; display:block;">Trip Date (Optional)</label>
-        <input type="date" id="trip-date" style="width:100%; padding:12px 16px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:white; margin-bottom:16px; font-family:inherit; font-size:16px;">
+        <label style="font-size:12px; color:rgba(226, 232, 240, 0.8); margin-bottom:4px; display:block; font-weight:600;">Trip Date (Optional)</label>
+        <input type="date" id="trip-date" style="width:100%; padding:12px 16px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:white; margin-bottom:16px; font-family:inherit; font-size:15px; box-sizing:border-box;">
 
         <label style="font-size:12px; color:rgba(255,255,255,0.7); margin-bottom:8px; display:block;">Transport Type</label>
         <div style="display:flex; gap:8px; margin-bottom:16px; background:rgba(255,255,255,0.05); padding:4px; border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
@@ -305,9 +305,9 @@ $activeTab = 'itinerary';
             </div>
         </div>
         
-        <div style="display:flex; gap:12px;">
-            <button class="btn-primary" style="flex:1; background:transparent; border:1px solid rgba(255,255,255,0.2); color:white;" onclick="closeSaveModal()">Cancel</button>
-            <button class="btn-primary" style="flex:1;" onclick="submitItinerary()" id="btn-submit-trip">Save Trip</button>
+        <div style="display:flex; gap:12px; margin-top:20px;">
+            <button class="btn-primary" style="flex:1; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:#e2e8f0; padding:12px; border-radius:14px; font-weight:700; font-size:14px; cursor:pointer;" onclick="closeSaveModal()">Cancel</button>
+            <button class="btn-primary" style="flex:1; background:linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); border:1px solid rgba(255,255,255,0.2); color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:14px; box-shadow:0 4px 16px rgba(56,189,248,0.4); cursor:pointer;" onclick="submitItinerary()" id="btn-submit-trip">Save Trip</button>
         </div>
     </div>
 </div>
@@ -400,7 +400,10 @@ $activeTab = 'itinerary';
 
         if (draft.length === 0) {
             timeline.innerHTML = '';
-            emptyState.style.display = 'block';
+            emptyState.style.display = 'flex';
+            emptyState.style.animation = 'none';
+            void emptyState.offsetHeight; // Trigger reflow for smooth re-animation
+            emptyState.style.animation = 'cardFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards';
             fab.style.display = 'none';
             if (mapWrapper) mapWrapper.style.display = 'none';
             return;
@@ -1020,7 +1023,7 @@ $activeTab = 'itinerary';
         if (!draftMap) {
             draftMap = L.map('itinerary-map', {
                 attributionControl: false,
-                zoomControl: true,
+                zoomControl: false,
                 scrollWheelZoom: true,
                 dragging: true,
                 touchZoom: true,
@@ -1207,8 +1210,8 @@ $activeTab = 'itinerary';
                         // Store globally so the Save modal can use it for fuel cost
                         window._draftDistanceKm = distanceKm;
                         
-                        document.getElementById('draft-map-dist').textContent = distanceKm.toFixed(1) + ' km';
-                        document.getElementById('draft-map-time').textContent = Math.round(durationMin) + ' min';
+                        window.setTxt('draft-map-dist', distanceKm.toFixed(1) + ' km');
+                        window.setTxt('draft-map-time', Math.round(durationMin) + ' min');
                         
                         // Dynamically scale line width on zoom (like MapLibre)
                         const updateRouteScale = () => {
@@ -1232,9 +1235,10 @@ $activeTab = 'itinerary';
             }
             
             // Reset stats
-            document.getElementById('draft-map-dist').innerText = '0 km';
-            document.getElementById('draft-map-time').innerText = '0 min';
-            document.getElementById('draft-traffic-warning').style.display = 'none';
+            window.setTxt('draft-map-dist', '0 km');
+            window.setTxt('draft-map-time', '0 min');
+            const warnEl = document.getElementById('draft-traffic-warning');
+            if (warnEl) warnEl.style.display = 'none';
         }
     };
     
@@ -1303,10 +1307,10 @@ $activeTab = 'itinerary';
         });
         
         const total = actCost + foodCost + transCost;
-        document.getElementById('main-budget-total').textContent = '₱' + total.toLocaleString(undefined, {minimumFractionDigits:2});
-        document.getElementById('main-cost-trans').textContent = '₱' + transCost;
-        document.getElementById('main-cost-food').textContent = '₱' + foodCost;
-        document.getElementById('main-cost-act').textContent = '₱' + actCost;
+        window.setTxt('main-budget-total', '₱' + total.toLocaleString(undefined, {minimumFractionDigits:2}));
+        window.setTxt('main-cost-trans', '₱' + transCost);
+        window.setTxt('main-cost-food', '₱' + foodCost);
+        window.setTxt('main-cost-act', '₱' + actCost);
         
         window.updateDonutChart('main-budget-donut', transCost, foodCost, actCost);
     };
@@ -1388,6 +1392,10 @@ $activeTab = 'itinerary';
         }
     });
 
+    // Initial render on load
+    if (window.renderItinerary) {
+        window.renderItinerary();
+    }
 })();
 </script>
 

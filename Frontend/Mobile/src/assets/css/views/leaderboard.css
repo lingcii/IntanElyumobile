@@ -1,34 +1,45 @@
 /* ============================================================
  * Leaderboard View Styles - leaderboard.css
- * Intan Elyu Mobile — Premium Gold/Silver/Bronze Theme
+ * Intan Elyu Mobile — Ultra-Premium Gold/Silver/Bronze Design System
  * ============================================================ */
 
-/* Main Container */
+/* Main Container with Header Clearances */
 .leaderboard-container {
     width: 100%;
     min-height: 100vh;
-    padding: 16px 16px 100px 16px;
+    padding-top: calc(var(--header-height, 90px) + 24px) !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-bottom: 110px !important;
     box-sizing: border-box;
-    background-color: #0a0f1c !important;
+    background: radial-gradient(circle at 50% 0%, #0f172a 0%, #090d16 100%) !important;
     color: #f8fafc !important;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
 }
 
 body[data-view="leaderboard"] {
-    background-color: #0a0f1c !important;
+    background-color: #090d16 !important;
     color: #f8fafc !important;
 }
 
 /* Title & Subtitle */
 .leaderboard-title {
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
+}
+
+.leaderboard-title h2 {
+    font-size: 22px !important;
+    font-weight: 900 !important;
+    color: #ffffff !important;
+    letter-spacing: -0.5px !important;
 }
 
 .leaderboard-title p {
     margin: 0;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
-    color: #38bdf8;
+    color: rgba(148, 163, 184, 0.85);
     letter-spacing: 0.2px;
 }
 
@@ -37,9 +48,10 @@ body[data-view="leaderboard"] {
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    gap: 12px;
-    margin-bottom: 28px;
-    padding: 10px 0;
+    gap: 14px;
+    margin-bottom: 24px;
+    margin-top: 14px !important;
+    padding: 24px 0 0 0;
 }
 
 /* Individual Podium Place (1st, 2nd, 3rd) */
@@ -50,97 +62,147 @@ body[data-view="leaderboard"] {
     flex: 1;
     max-width: 110px;
     cursor: pointer;
-    transition: transform 0.25s ease;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), filter 0.35s ease;
+}
+
+.podium-place:hover {
+    transform: translateY(-6px) scale(1.03) !important;
 }
 
 .podium-place:active {
     transform: scale(0.95);
 }
 
-.podium-avatar-wrapper {
-    position: relative;
-    margin-bottom: 8px;
-}
-
 .podium-avatar {
-    width: 60px;
-    height: 60px;
+    width: 62px;
+    height: 62px;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid #e2e8f0;
     box-shadow: 0 0 16px rgba(255, 255, 255, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* Gold - 1st Place */
 .podium-place.rank-1 .podium-avatar {
-    width: 76px;
-    height: 76px;
-    border-color: #ffd700;
-    box-shadow: 0 0 24px rgba(255, 215, 0, 0.4);
+    width: 78px;
+    height: 78px;
+    border: 4px solid #ffd700;
+    box-shadow: 0 0 28px rgba(255, 215, 0, 0.6), 0 0 10px rgba(255, 215, 0, 0.4);
 }
 
+/* Silver - 2nd Place */
 .podium-place.rank-2 .podium-avatar {
-    border-color: #c0c0c0;
-    box-shadow: 0 0 18px rgba(192, 192, 192, 0.3);
+    width: 66px;
+    height: 66px;
+    border: 3px solid #e2e8f0;
+    box-shadow: 0 0 20px rgba(226, 232, 240, 0.5);
 }
 
+/* Bronze - 3rd Place */
 .podium-place.rank-3 .podium-avatar {
-    border-color: #cd7f32;
-    box-shadow: 0 0 18px rgba(205, 127, 50, 0.3);
+    width: 62px;
+    height: 62px;
+    border: 3px solid #f97316;
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.5);
 }
 
-.podium-crown {
+/* Rank Badge Pill on Avatar */
+.podium-rank-badge {
     position: absolute;
-    top: -16px;
+    bottom: -4px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 20px;
-}
-
-.podium-badge {
-    position: absolute;
-    bottom: -6px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
-    background: #0f172a;
-    color: #fff;
-    font-size: 11px;
-    font-weight: 800;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 900;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid #38bdf8;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
-.podium-name {
-    font-size: 13px;
-    font-weight: 800;
-    color: #ffffff;
-    margin-bottom: 2px;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.rank-badge-1 {
+    background: linear-gradient(135deg, #ffd700, #b45309);
+    border: 2px solid #ffffff;
+}
+
+.rank-badge-2 {
+    background: linear-gradient(135deg, #e2e8f0, #64748b);
+    border: 2px solid #ffffff;
+}
+
+.rank-badge-3 {
+    background: linear-gradient(135deg, #f97316, #92400e);
+    border: 2px solid #ffffff;
+}
+
+/* 3D Glassmorphic Podium Step Blocks */
+.podium-block {
     width: 100%;
+    border-radius: 20px 20px 10px 10px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 14px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    position: relative;
+    overflow: hidden;
 }
 
-.podium-xp {
-    font-size: 11px;
-    font-weight: 700;
-    color: #38bdf8;
+.block-1 {
+    background: linear-gradient(180deg, rgba(255, 215, 0, 0.4) 0%, rgba(180, 83, 9, 0.65) 100%) !important;
+    border: 1px solid rgba(255, 215, 0, 0.55) !important;
+    box-shadow: 0 14px 36px rgba(255, 215, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+}
+
+.block-2 {
+    background: linear-gradient(180deg, rgba(226, 232, 240, 0.3) 0%, rgba(71, 85, 105, 0.55) 100%) !important;
+    border: 1px solid rgba(226, 232, 240, 0.45) !important;
+    box-shadow: 0 12px 28px rgba(226, 232, 240, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+}
+
+.block-3 {
+    background: linear-gradient(180deg, rgba(249, 115, 22, 0.3) 0%, rgba(146, 64, 14, 0.55) 100%) !important;
+    border: 1px solid rgba(249, 115, 22, 0.45) !important;
+    box-shadow: 0 12px 28px rgba(249, 115, 22, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+}
+
+.block-label {
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.block-1 .block-label {
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+}
+
+.block-2 .block-label {
+    color: #e2e8f0;
+    text-shadow: 0 0 10px rgba(226, 232, 240, 0.6);
+}
+
+.block-3 .block-label {
+    color: #f97316;
+    text-shadow: 0 0 10px rgba(249, 115, 22, 0.6);
 }
 
 /* Rank List Container */
 .rank-list-wrapper {
     background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 24px;
-    padding: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border-radius: 26px;
+    padding: 18px;
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.35);
 }
 
 .rank-list {
@@ -157,15 +219,17 @@ body[data-view="leaderboard"] {
     padding: 12px 14px;
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
+    border-radius: 18px;
     cursor: pointer;
-    transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease !important;
+    animation: rankSlideIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.rank-item:active {
-    transform: scale(0.98);
-    background: rgba(56, 189, 248, 0.08);
-    border-color: rgba(56, 189, 248, 0.3);
+.rank-item:hover {
+    transform: translateX(6px) !important;
+    background: rgba(56, 189, 248, 0.08) !important;
+    border-color: rgba(56, 189, 248, 0.35) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3) !important;
 }
 
 .rank-item.is-me {
@@ -174,8 +238,8 @@ body[data-view="leaderboard"] {
 }
 
 .rank-number {
-    font-size: 14px;
-    font-weight: 800;
+    font-size: 15px;
+    font-weight: 900;
     color: #94a3b8;
     min-width: 24px;
     text-align: center;
@@ -227,9 +291,9 @@ body[data-view="leaderboard"] {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(10, 15, 28, 0.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(6, 11, 25, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     z-index: 9999;
     display: none;
     align-items: center;
@@ -248,17 +312,17 @@ body[data-view="leaderboard"] {
 /* Profile Modal Card */
 .profile-modal-card {
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
-    border: 1px solid rgba(56, 189, 248, 0.3);
+    border: 1px solid rgba(56, 189, 248, 0.35);
     border-radius: 28px;
     width: 100%;
-    max-width: 340px;
+    max-width: 350px;
     padding: 28px 24px;
     box-sizing: border-box;
     text-align: center;
     position: relative;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 30px rgba(56, 189, 248, 0.15);
     transform: scale(0.9);
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .profile-modal-overlay.active .profile-modal-card {
@@ -294,12 +358,12 @@ body[data-view="leaderboard"] {
 }
 
 #modal-avatar {
-    width: 80px;
-    height: 80px;
+    width: 85px;
+    height: 85px;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid #38bdf8;
-    box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+    box-shadow: 0 0 22px rgba(56, 189, 248, 0.4);
 }
 
 .modal-rank-badge {
@@ -311,7 +375,7 @@ body[data-view="leaderboard"] {
     border-radius: 50%;
     background: #2563eb;
     color: #ffffff;
-    font-weight: 800;
+    font-weight: 900;
     font-size: 13px;
     display: flex;
     align-items: center;
@@ -322,7 +386,7 @@ body[data-view="leaderboard"] {
 #modal-name {
     margin: 0 0 20px 0;
     font-size: 20px;
-    font-weight: 800;
+    font-weight: 900;
     color: #ffffff;
 }
 
@@ -349,13 +413,68 @@ body[data-view="leaderboard"] {
 
 .modal-stat-box span {
     font-size: 15px;
-    font-weight: 800;
+    font-weight: 900;
     color: #ffffff;
 }
 
 .modal-stat-box small {
     font-size: 10px;
-    font-weight: 600;
+    font-weight: 700;
     color: #94a3b8;
     text-transform: uppercase;
+}
+
+/* Animations */
+.podium-place.rank-2 {
+    animation: podiumRise 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
+}
+
+.podium-place.rank-1 {
+    animation: podiumRise 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.25s forwards;
+}
+
+.podium-place.rank-3 {
+    animation: podiumRise 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
+}
+
+@keyframes podiumRise {
+    0% {
+        opacity: 0;
+        transform: translateY(180px) scale(0.85);
+    }
+
+    60% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes pulseCrown {
+
+    0%,
+    100% {
+        transform: translateX(-50%) translateY(0) scale(1);
+        filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.8));
+    }
+
+    50% {
+        transform: translateX(-50%) translateY(-5px) scale(1.08);
+        filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1));
+    }
+}
+
+@keyframes rankSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

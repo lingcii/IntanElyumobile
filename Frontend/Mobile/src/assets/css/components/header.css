@@ -1,2 +1,2 @@
 /* Header Component Styles */
-.app-header { width: 100%; position: sticky; top: 0; z-index: 100; }
+.app-header, .mobile-header { width: 100%; position: fixed; top: 0; z-index: 9000 !important; }

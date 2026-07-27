@@ -29,40 +29,73 @@ class DashboardController extends Controller
         // Trending: top spots by visits (default 5, configurable via ?limit=)
         // Technique 2: Server-Side Caching — 2 minute TTL for trending spots
         $trendingLimit = min((int) $request->query('limit', 5), 50);
-        $trending = Cache::remember("trending:top:{$trendingLimit}", 120, function () use ($trendingLimit) {
-            return TouristSpot::where('status', 'approved')
+        $trending = Cache::remember("trending:top:{$trendingLimit}", 30, function () use ($trendingLimit) {
+            return TouristSpot::where(function($q) {
+                    $q->whereIn('status', ['approved', 'active', 'published', 'EXIST', 'exist', 'pending'])
+                      ->orWhereNull('status');
+                })
                 ->orderByDesc('visits')
                 ->limit($trendingLimit)
-                ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'classification_status'])
+                ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'classification_status', 'municipality_id'])
                 ->map(fn($s) => $this->formatSpot($s))
                 ->toArray();
         });
 
         // Saved/Favorite places
-        $favoriteIds = Favorite::where('user_id', $user->id)->pluck('tourist_spot_id');
-        $savedPlaces = TouristSpot::whereIn('id', $favoriteIds)
-            ->where('status', 'approved')
-            ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'classification_status'])
-            ->map(fn($s) => $this->formatSpot($s));
+        $favoriteIds = collect();
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('favorites')) {
+                $favoriteIds = Favorite::where('user_id', $user->id)->pluck('tourist_spot_id');
+            }
+        } catch (\Throwable $e) {
+            $favoriteIds = collect();
+        }
+
+        $savedPlaces = collect();
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('tourist_spots') && $favoriteIds->isNotEmpty()) {
+                $savedPlaces = TouristSpot::whereIn('id', $favoriteIds)
+                    ->where(function($q) {
+                        $q->whereIn('status', ['approved', 'active', 'published', 'EXIST', 'exist', 'pending'])
+                          ->orWhereNull('status');
+                    })
+                    ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'classification_status', 'municipality_id'])
+                    ->map(fn($s) => $this->formatSpot($s));
+            }
+        } catch (\Throwable $e) {
+            $savedPlaces = collect();
+        }
 
         // Recommendations: Near Me feature
         $lat = $request->query('lat');
         $lng = $request->query('lng');
         $timeLabel = '📍 Near Me';
 
-        $recommendedQuery = TouristSpot::where('status', 'approved')
-            ->whereNotIn('id', $favoriteIds)
-            ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'rating', 'description', 'entrance_fee', 'classification_status']);
+        $recommended = collect();
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('tourist_spots')) {
+                $recommendedQuery = TouristSpot::where(function($q) {
+                        $q->whereIn('status', ['approved', 'active', 'published', 'EXIST', 'exist', 'pending'])
+                          ->orWhereNull('status');
+                    })
+                    ->when($favoriteIds->isNotEmpty(), function($q) use ($favoriteIds) {
+                        $q->whereNotIn('id', $favoriteIds);
+                    })
+                    ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'rating', 'description', 'entrance_fee', 'classification_status', 'municipality_id']);
 
-        if ($lat && $lng) {
-            $recommendedQuery = $recommendedQuery->sortBy(function($spot) use ($lat, $lng) {
-                return pow($spot->latitude - $lat, 2) + pow($spot->longitude - $lng, 2);
-            });
-        } else {
-            $recommendedQuery = $recommendedQuery->sortByDesc('rating');
+                if ($lat && $lng) {
+                    $recommendedQuery = $recommendedQuery->sortBy(function($spot) use ($lat, $lng) {
+                        return pow($spot->latitude - $lat, 2) + pow($spot->longitude - $lng, 2);
+                    });
+                } else {
+                    $recommendedQuery = $recommendedQuery->sortByDesc('rating');
+                }
+
+                $recommended = $recommendedQuery->take(5)->values()->map(fn($s) => $this->formatSpot($s));
+            }
+        } catch (\Throwable $e) {
+            $recommended = collect();
         }
-
-        $recommended = $recommendedQuery->take(5)->values()->map(fn($s) => $this->formatSpot($s));
 
         // Stats — use denormalized counter (Technique 5: Denormalization)
         $placesVisited = (int) ($user->completed_activities ?? 0);
@@ -98,10 +131,36 @@ class DashboardController extends Controller
             }
         });
 
-        // Calculate points balance
-        $earnedPoints = (int) \App\Models\UserPoint::where('user_id', $user->id)->sum('points');
-        $redeemedPoints = (int) \App\Models\PointRedemption::where('user_id', $user->id)->sum('points_cost');
+        // Calculate points balance safely
+        $earnedPoints = 0;
+        $redeemedPoints = 0;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('user_points') && \Illuminate\Support\Facades\Schema::hasColumn('user_points', 'points')) {
+                $earnedPoints = (int) \App\Models\UserPoint::where('user_id', $user->id)->sum('points');
+            }
+        } catch (\Throwable $e) {
+            $earnedPoints = 0;
+        }
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions') && \Illuminate\Support\Facades\Schema::hasColumn('point_redemptions', 'points_cost')) {
+                $redeemedPoints = (int) \App\Models\PointRedemption::where('user_id', $user->id)->sum('points_cost');
+            }
+        } catch (\Throwable $e) {
+            $redeemedPoints = 0;
+        }
         $points = max(0, $earnedPoints - $redeemedPoints);
+
+        $unreadNotifications = 0;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                $unreadNotifications = Notification::where('user_id', $user->id)
+                    ->where('is_read', false)
+                    ->count();
+            }
+        } catch (\Throwable $e) {
+            $unreadNotifications = 0;
+        }
 
         return response()->json([
             'user' => [
@@ -115,9 +174,8 @@ class DashboardController extends Controller
             ],
             'stats' => [
                 'placesVisited'        => $placesVisited,
-                'unread_notifications' => Notification::where('user_id', $user->id)
-                    ->where('is_read', false)
-                    ->count(),
+                'rank'                 => $myRank,
+                'unread_notifications' => $unreadNotifications,
             ],
             'trending'     => $trending,
             'savedPlaces'  => $savedPlaces,
@@ -125,6 +183,7 @@ class DashboardController extends Controller
             'timeLabel'    => $timeLabel,
             'announcements'=> [],
             'myRank'       => $myRank,
+            'my_rank'      => $myRank,
         ]);
     }
 
@@ -132,11 +191,22 @@ class DashboardController extends Controller
     {
         $imageUrl = $spot->photo_url;
 
+        // Resolve municipality name for local image matching
+        $muniName = null;
+        if ($spot->municipality_id) {
+            try {
+                $muniName = \Illuminate\Support\Facades\DB::table('municipalities')
+                    ->where('id', $spot->municipality_id)
+                    ->value('name');
+            } catch (\Throwable $e) {}
+        }
+
         return [
             'id'           => $spot->id,
             'name'         => $spot->name,
             'category'     => $spot->category,
             'image'        => $imageUrl,
+            'photo_url'    => $imageUrl,
             'latitude'     => $spot->latitude,
             'longitude'    => $spot->longitude,
             'rating'       => $spot->rating,
@@ -144,6 +214,8 @@ class DashboardController extends Controller
             'description'  => $spot->description,
             'entrance_fee' => $spot->entrance_fee,
             'classification_status' => $spot->classification_status,
+            'municipality_id' => $spot->municipality_id,
+            'municipality' => $muniName,
         ];
     }
 }

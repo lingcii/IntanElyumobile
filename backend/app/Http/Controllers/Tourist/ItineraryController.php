@@ -31,10 +31,12 @@ class ItineraryController extends Controller
                     $imageUrl = $dest ? $dest->photo_url : null;
 
                     return [
-                        'id'          => $item->id,
-                        'is_visited'  => $item->is_visited,
-                        'proof_image' => $item->proof_image,
-                        'visited_at'  => $item->visited_at,
+                        'id'               => $item->id,
+                        'is_visited'       => $item->is_visited,
+                        'proof_image'      => $item->proof_image,
+                        'proof_status'     => $item->proof_status ?? ($item->is_visited ? 'approved' : 'pending'),
+                        'rejection_reason' => $item->rejection_reason,
+                        'visited_at'       => $item->visited_at,
                         'destination' => $dest ? [
                             'id'           => $dest->id,
                             'name'         => $dest->name,
@@ -78,10 +80,12 @@ class ItineraryController extends Controller
             $dest = $item->destination;
             $imageUrl = $dest ? $dest->photo_url : null;
             return [
-                'id'          => $item->id,
-                'is_visited'  => $item->is_visited,
-                'proof_image' => $item->proof_image,
-                'visited_at'  => $item->visited_at,
+                'id'               => $item->id,
+                'is_visited'       => $item->is_visited,
+                'proof_image'      => $item->proof_image,
+                'proof_status'     => $item->proof_status ?? ($item->is_visited ? 'approved' : 'pending'),
+                'rejection_reason' => $item->rejection_reason,
+                'visited_at'       => $item->visited_at,
                 'destination' => $dest ? [
                     'id'           => $dest->id,
                     'name'         => $dest->name,
@@ -178,11 +182,76 @@ class ItineraryController extends Controller
 
         $itinerary->update(['status' => 'completed']);
 
+        try {
+            $user->increment('xp', 100);
+            $user->increment('completed_activities');
+        } catch (\Throwable $e) {}
+
+        // Check if this itinerary is a quest trip and record completion + badge
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('quests')) {
+                $cleanTitle = trim(preg_replace('/\s*\(Quest\)$/i', '', $itinerary->title));
+                $quest = \App\Models\Quest::where('name', $cleanTitle)->first();
+                if ($quest) {
+                    if (\Illuminate\Support\Facades\Schema::hasTable('quest_completions')) {
+                        \App\Models\QuestCompletion::firstOrCreate([
+                            'user_id'  => $user->id,
+                            'quest_id' => $quest->id,
+                        ], [
+                            'xp_earned'    => $quest->xp_reward,
+                            'completed_at' => now(),
+                        ]);
+                    }
+                    $user->increment('xp', $quest->xp_reward);
+
+                    // Add badge to user's badges array on profile
+                    $badges = is_array($user->badges) ? $user->badges : (json_decode($user->badges ?? '[]', true) ?? []);
+                    $badgeName = $quest->badge_name ?? "{$quest->name} Explorer";
+                    $exists = collect($badges)->contains(fn($b) => is_array($b) && (($b['badge'] ?? $b['name'] ?? '') === $badgeName));
+                    if (!$exists) {
+                        $badges[] = [
+                            'badge'       => $badgeName,
+                            'name'        => $badgeName,
+                            'icon'        => $quest->badge_icon ?? '🏅',
+                            'description' => "Earned by completing {$quest->name}",
+                            'unlocked_at' => now()->toIso8601String(),
+                        ];
+                        $user->update(['badges' => json_encode($badges)]);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        \App\Models\Notification::createSafely(
+            $user->id,
+            'itinerary_reminder',
+            '🎉 Trip Completed!',
+            "Congratulations! You completed '{$itinerary->title}' and earned +100 XP!",
+            ['action_url' => '/saved_trips']
+        );
+
         // Cache invalidation — flush stale profile/rank caches
         Cache::forget("rank:user:{$user->id}");
         Cache::forget("profile:trips:{$user->id}");
+        Cache::flush();
 
-        return response()->json(['message' => 'Trip marked as completed! 🏁']);
+        // Return visited items with spot IDs for frontend review modal
+        $visitedItems = $itinerary->items()
+            ->where('is_visited', true)
+            ->with('destination:id,name')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'tourist_spot_id' => $item->tourist_spot_id,
+                    'destination_name' => $item->destination?->name ?? 'Unknown',
+                ];
+            });
+
+        return response()->json([
+            'message' => 'Trip marked as completed! 🏁',
+            'visited_items' => $visitedItems,
+        ]);
     }
 
     /**
@@ -217,7 +286,18 @@ class ItineraryController extends Controller
     public function destroy(Request $request, int $id): JsonResponse
     {
         $user = $request->user();
-        $itinerary = Itinerary::where('user_id', $user->id)->findOrFail($id);
+        $itinerary = Itinerary::find($id);
+
+        if (!$itinerary) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Trip already deleted or not found.'
+            ], 200);
+        }
+
+        if ($itinerary->user_id !== $user->id && $user->role === 'tourist') {
+            return response()->json(['message' => 'Unauthorized to delete this trip.'], 403);
+        }
 
         $itinerary->items()->delete();
         $itinerary->delete();
@@ -226,6 +306,38 @@ class ItineraryController extends Controller
         Cache::forget("rank:user:{$user->id}");
         Cache::forget("profile:trips:{$user->id}");
 
-        return response()->json(['message' => 'Trip deleted successfully.']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Trip deleted successfully.'
+        ]);
+    }
+
+    /**
+     * POST /api/tourist/itineraries/estimate-cost
+     * Estimate itinerary costs including distance, fuel, fares, and peak season multipliers.
+     */
+    public function estimateCost(Request $request): JsonResponse
+    {
+        $request->validate([
+            'destination_ids' => 'required|array',
+            'destination_ids.*' => 'integer',
+            'transport_mode' => 'nullable|string',
+            'trip_date' => 'nullable|date',
+        ]);
+
+        $service = new \App\Services\CostEstimationService();
+        $result = $service->estimateItineraryCosts(
+            $request->input('destination_ids', []),
+            $request->input('transport_mode', 'jeepney'),
+            $request->input('fuel_price'),
+            $request->input('fuel_efficiency'),
+            $request->input('trip_date'),
+            $request->input('peak_multiplier')
+        );
+
+        return response()->json([
+            'status' => 'success',
+            'estimation' => $result
+        ]);
     }
 }

@@ -16,7 +16,7 @@ class PasswordResetMail extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct(public User $user, public string $token)
+    public function __construct(public User $user, public string $token, public string $otpCode = '')
     {
         //
     }
@@ -44,6 +44,7 @@ class PasswordResetMail extends Mailable
                 'userName'  => $this->user->name,
                 'userEmail' => $this->user->email,
                 'resetUrl'  => $resetUrl,
+                'otpCode'   => $this->otpCode,
             ],
         );
     }

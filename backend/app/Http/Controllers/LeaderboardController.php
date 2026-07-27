@@ -25,15 +25,22 @@ class LeaderboardController extends Controller
             WITH ranked AS (
                 SELECT
                     u.id                                              AS user_id,
-                    CASE WHEN u.is_leaderboard_private = 1 THEN CONCAT('Explorer #', u.id) ELSE u.name END AS full_name,
+                    u.name                                            AS name,
+                    COALESCE(NULLIF(u.name, ''), CONCAT('Explorer #', u.id)) AS full_name,
                     u.last_activity                                   AS last_activity_date,
                     COALESCE(u.xp, 0)                                 AS total_points,
-                    COALESCE(u.completed_activities, 0)               AS completed_activities,
+                    GREATEST(
+                        COALESCE(u.completed_activities, 0),
+                        (SELECT COUNT(*) FROM itinerary_items ii JOIN itineraries it ON ii.itinerary_id = it.id WHERE it.user_id = u.id AND ii.is_visited = 1)
+                    )                                                 AS completed_activities,
                     u.created_at                                      AS points_since,
                     ROW_NUMBER() OVER (
                         ORDER BY
                             COALESCE(u.xp, 0)                          DESC,
-                            COALESCE(u.completed_activities, 0)         DESC,
+                            GREATEST(
+                                COALESCE(u.completed_activities, 0),
+                                (SELECT COUNT(*) FROM itinerary_items ii JOIN itineraries it ON ii.itinerary_id = it.id WHERE it.user_id = u.id AND ii.is_visited = 1)
+                            ) DESC,
                             u.created_at                               ASC
                     ) AS `rank`
                 FROM users u
@@ -45,10 +52,6 @@ class LeaderboardController extends Controller
     /**
      * GET /api/tourist/leaderboard  (authenticated)
      * GET /api/public/leaderboard   (public)
-     *
-     * Techniques applied:
-     *   2. Server-Side Caching — Cache::remember with 60s TTL
-     *   6. Materialized Views — reads from leaderboard_cache when populated
      */
     public function index(Request $request): JsonResponse
     {
@@ -65,24 +68,29 @@ class LeaderboardController extends Controller
         ];
         $orderSql = $orderMap[$sortBy] ?? $orderMap['points_desc'];
 
-        $cacheKey = "leaderboard:index:{$search}:{$sortBy}:{$limit}:{$offset}";
+        $cacheKey = "leaderboard:index:v2:{$search}:{$sortBy}:{$limit}:{$offset}";
 
-        // Technique 2: Server-Side Caching — 60 second TTL
-        $cachedData = Cache::remember($cacheKey, 60, function () use ($search, $orderSql, $limit, $offset) {
-            $hasCacheTable = \Illuminate\Support\Facades\Schema::hasTable('leaderboard_cache');
+        $myRank = null;
+        $user = $request->user();
+        if ($user) {
+            try {
+                $myRankRow = DB::selectOne(
+                    $this->rankedCte() . "SELECT `rank` FROM ranked WHERE user_id = ?",
+                    [$user->id]
+                );
+                if ($myRankRow) {
+                    $myRank = (int) $myRankRow->rank;
+                }
+            } catch (\Throwable $e) {}
+        }
 
-            if ($hasCacheTable) {
-                try {
-                    return $this->queryFromMaterializedView($search, $orderSql, $limit, $offset);
-                } catch (\Throwable $e) {}
-            }
-
-            // Fallback: live CTE query (still optimized via denormalization)
-            return $this->queryFromLiveCte($search, $orderSql, $limit, $offset);
-        });
+        // Live ranked query computed directly on demand for the leaderboards
+        $cachedData = $this->queryFromLiveCte($search, $orderSql, $limit, $offset);
 
         return response()->json([
             'success' => true,
+            'myRank'  => $myRank,
+            'my_rank' => $myRank,
             'users'   => $this->castRows($cachedData['rows']),
             'total'   => $cachedData['total'],
             'offset'  => $offset,
@@ -156,9 +164,12 @@ class LeaderboardController extends Controller
     {
         return array_map(function ($r) {
             $r = (object) $r;
+            $displayName = "Explorer #{$r->user_id}";
+
             return [
                 'user_id'              => (int) $r->user_id,
-                'full_name'            => $r->full_name,
+                'name'                 => $displayName,
+                'full_name'            => $displayName,
                 'last_activity_date'   => $r->last_activity_date ?: null,
                 'total_points'         => (int) $r->total_points,
                 'completed_activities' => (int) $r->completed_activities,

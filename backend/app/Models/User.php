@@ -25,6 +25,11 @@ class User extends Authenticatable
         'level',
         'avatar',
         'google_id',
+        'phone',
+        'home_location',
+        'bio',
+        'travel_preferences',
+        'is_leaderboard_private',
     ];
 
     protected $hidden = [

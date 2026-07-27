@@ -97,7 +97,16 @@
                 <td class="content">
                     <h2>Hi <?php echo e($userName); ?>,</h2>
                     <p>We received a request to reset the password for your account linked with <strong><?php echo e($userEmail); ?></strong>.</p>
-                    <p>Click the button below to choose a new password. This reset link is valid for 60 minutes.</p>
+                    
+                    <?php if(!empty($otpCode)): ?>
+                    <div style="background: #f0f9ff; border: 1.5px dashed #0284c7; border-radius: 12px; padding: 20px; text-align: center; margin: 25px 0;">
+                        <span style="font-size: 12px; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 8px;">Your 6-Digit In-App Security Reset Code</span>
+                        <div style="font-size: 32px; font-weight: 900; font-family: monospace; letter-spacing: 10px; color: #0f172a; margin-left: 10px;"><?php echo e($otpCode); ?></div>
+                        <span style="font-size: 12px; color: #64748b; margin-top: 6px; display: block;">Enter this code directly in the app to reset your password instantly. Valid for 15 minutes.</span>
+                    </div>
+                    <?php endif; ?>
+
+                    <p>You can also click the button below to choose a new password on your browser. This reset link is valid for 60 minutes.</p>
                     
                     <center>
                         <a href="<?php echo e($resetUrl); ?>" class="btn">Reset Password</a>

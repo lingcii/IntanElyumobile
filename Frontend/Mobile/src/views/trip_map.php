@@ -1,8 +1,19 @@
 <style>
     .maplibregl-ctrl-bottom-right {
-        bottom: 230px !important;
+        bottom: 190px !important;
         right: 16px !important;
         z-index: 999;
+    }
+    .maplibregl-ctrl-group {
+        box-shadow: none !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
     }
 </style>
 <?php
@@ -11,27 +22,29 @@ $backRoute = "saved_trips";
 require_once __DIR__ . '/../components/header.php';
 ?>
 
-<div id="trip-map" style="width: 100%; height: 100vh; background: #F2F2F7;"></div>
+<div id="trip-map" style="width: 100%; height: 100vh; background: #0a0f1c;"></div>
 
-<div id="trip-info-card" style="position: absolute; bottom: 16px; left: 16px; right: 16px; z-index: 1000; background: radial-gradient(circle at 50% 30%, rgba(45, 100, 170, 0.95) 0%, rgba(20, 40, 90, 0.96) 50%, rgba(15, 23, 42, 0.98) 100%); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 28px; padding: 20px; box-shadow: 0 -4px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(56, 189, 248, 0.06), inset 0 1px 0 rgba(255,255,255,0.06); display: none;">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
-        <h3 id="trip-info-name" style="margin: 0; font-size: 18px; font-weight: 700; color: white;"></h3>
-        <span id="trip-info-route-type" style="background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 8px; text-transform: uppercase;"></span>
+<!-- Floating Destination Conveyor Carousel -->
+<div id="trip-conveyor-wrapper" style="position: absolute; bottom: max(env(safe-area-inset-bottom), 16px); left: 0; right: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 12px; pointer-events: none; width: 100%; box-sizing: border-box; overflow: hidden;">
+    
+    <!-- Trip Overview Summary Header Pill -->
+    <div id="trip-summary-pill" style="align-self: center; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 100px; padding: 8px 18px; display: flex; align-items: center; gap: 14px; box-shadow: none; pointer-events: auto;">
+        <div style="display:flex; align-items:center; gap:6px; color:#ffffff; font-size:12px; font-weight:800;">
+            <i class="fa-solid fa-route" style="color:#38bdf8;"></i> <span id="trip-info-distance">-- km</span>
+        </div>
+        <div style="width:1px; height:12px; background:rgba(255,255,255,0.2);"></div>
+        <div style="display:flex; align-items:center; gap:6px; color:#ffffff; font-size:12px; font-weight:800;">
+            <i class="fa-solid fa-stopwatch" style="color:#34d399;"></i> <span id="trip-info-time">-- mins</span>
+        </div>
+        <div style="width:1px; height:12px; background:rgba(255,255,255,0.2);"></div>
+        <div style="display:flex; align-items:center; gap:6px; color:#ffffff; font-size:12px; font-weight:800;">
+            <i id="trip-info-vehicle-icon" class="fa-solid fa-car" style="color:#f59e0b;"></i> <span id="trip-info-vehicle-name">Own Car</span>
+        </div>
     </div>
-    <p id="trip-info-desc" style="margin: 0 0 16px; font-size: 13px; color: rgba(148,163,184,0.9); line-height: 1.4;"></p>
-    <div style="display: flex; gap: 10px;">
-        <div style="flex: 1; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; text-align: center;">
-            <i class="fa-solid fa-route" style="color: #38bdf8; font-size: 16px; margin-bottom: 4px;"></i>
-            <div id="trip-info-distance" style="font-size: 14px; font-weight: 700; color: white;">-- km</div>
-        </div>
-        <div style="flex: 1; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; text-align: center;">
-            <i class="fa-solid fa-stopwatch" style="color: #34d399; font-size: 16px; margin-bottom: 4px;"></i>
-            <div id="trip-info-time" style="font-size: 14px; font-weight: 700; color: white;">-- mins</div>
-        </div>
-        <div style="flex: 1; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; text-align: center;">
-            <i id="trip-info-vehicle-icon" class="fa-solid fa-car" style="color: #f59e0b; font-size: 16px; margin-bottom: 4px;"></i>
-            <div id="trip-info-vehicle-name" style="font-size: 14px; font-weight: 700; color: white;">N/A</div>
-        </div>
+
+    <!-- Conveyor Cards Carousel Scroll Container -->
+    <div id="conveyor-cards-scroll" style="display: flex; justify-content: flex-start; align-items: stretch; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 16px; padding: 4px 16px 12px 16px; pointer-events: auto; scroll-behavior: smooth; width: 100%; box-sizing: border-box;" class="hide-scrollbar">
+        <!-- Injected via JS -->
     </div>
 </div>
 
@@ -50,25 +63,73 @@ require_once __DIR__ . '/../components/header.php';
 </div>
 
 <!-- Check-in Verification Modal (GPS and Photo Proof) -->
-<div id="checkin-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.65); z-index:1002; justify-content:center; align-items:center;">
-    <div style="background:rgba(15,23,42,0.95); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.1); border-radius:24px; padding:28px 24px; width:90%; max-width:380px; box-shadow:0 20px 40px rgba(0,0,0,0.3); text-align:center;">
+<div id="checkin-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.78); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:99999; justify-content:center; align-items:center;">
+    <div style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(56, 189, 248, 0.3); border-radius:24px; padding:28px 24px; width:90%; max-width:380px; box-shadow:0 24px 60px rgba(0,0,0,0.6), 0 0 30px rgba(56,189,248,0.15); text-align:center;">
         <div style="font-size:48px; margin-bottom:12px;">📸</div>
-        <h3 style="margin:0 0 8px; color:#fff;">Verify Visit</h3>
-        <p style="font-size:13px; color:rgba(255,255,255,0.6); margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination to verify your visit and earn <strong>+50 XP</strong> & <strong>+50 Points</strong>.</p>
+        <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Claim Your Reward</h3>
+        <p style="font-size:13px; color:rgba(226, 232, 240, 0.85); margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination to verify your visit and earn <strong style="color:#38bdf8; font-weight:800;">+50 XP</strong> & <strong style="color:#38bdf8; font-weight:800;">+50 Points</strong>.</p>
 
         <input type="hidden" id="checkin-item-id">
         
-        <!-- File Input for Image Proof -->
-        <div style="margin-bottom: 20px; text-align: left;">
-            <label style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.75); margin-bottom:6px; display:block; text-transform:uppercase;">Photo Proof (Required):</label>
-            <input type="file" id="checkin-proof-image" accept="image/*" capture="environment" style="width:100%; box-sizing:border-box; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:10px; color:#fff; font-size:12px;">
+        <!-- Step 1: Photo Proof -->
+        <div style="margin-bottom: 16px; text-align: left;">
+            <label style="font-size:11px; font-weight:800; color:#38bdf8; margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Step 1: Photo Proof (Required)</label>
+            <input type="file" id="checkin-proof-image" accept="image/*" style="display:none;" onchange="window.handlePhotoSelected(this)">
+            <button type="button" onclick="window.openCheckinImagePickerModal()" id="btn-select-photo" style="width:100%; padding:14px; background:rgba(56,189,248,0.1); border:1.5px dashed rgba(56,189,248,0.4); border-radius:14px; color:#38bdf8; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:all 0.2s ease;">
+                <i class="fa-solid fa-camera" style="font-size:16px;"></i> <span id="photo-status-text">Take or Choose Photo</span>
+            </button>
+
+            <!-- Picture Preview Container (Displays actual picture preview instead of filename string) -->
+            <div id="checkin-photo-preview-container" style="display:none; margin-top:12px; position:relative; border-radius:16px; overflow:hidden; border:1.5px solid rgba(56,189,248,0.4); background:rgba(15,23,42,0.8); box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+                <img id="checkin-photo-preview-img" src="" alt="Proof Preview" style="width:100%; max-height:180px; object-fit:cover; display:block;">
+                <div style="position:absolute; top:8px; right:8px; display:flex; gap:6px;">
+                    <button type="button" onclick="window.openCheckinImagePickerModal()" title="Change Picture" style="background:rgba(15,23,42,0.85); color:#38bdf8; border:1px solid rgba(56,189,248,0.4); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; backdrop-filter:blur(6px);">
+                        <i class="fa-solid fa-arrows-rotate" style="font-size:13px;"></i>
+                    </button>
+                    <button type="button" onclick="window.removeCheckinPhoto()" title="Remove Picture" style="background:rgba(239,68,68,0.85); color:#ffffff; border:none; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; backdrop-filter:blur(6px);">
+                        <i class="fa-solid fa-xmark" style="font-size:14px;"></i>
+                    </button>
+                </div>
+                <div style="padding:6px 10px; background:rgba(15,23,42,0.9); font-size:10px; font-weight:700; color:#38bdf8; text-transform:uppercase; text-align:center; border-top:1px solid rgba(255,255,255,0.08);">
+                    <i class="fa-solid fa-circle-check" style="margin-right:4px; color:#34c759;"></i> Picture Proof Attached
+                </div>
+            </div>
         </div>
 
-        <button class="btn-primary" id="btn-verify-gps" style="width:100%; padding:16px; margin-bottom:12px; font-size:15px; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:#fff; border-radius:14px; font-weight:800; cursor:pointer;" onclick="verifyGpsCheckIn()">
-            <i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo
-        </button>
+        <!-- Step 2: Location Verification -->
+        <div style="margin-bottom: 12px; text-align: left;">
+            <label style="font-size:11px; font-weight:800; color:#38bdf8; margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Step 2: Location Check-in</label>
+            <button class="btn-primary" id="btn-verify-gps" style="width:100%; padding:14px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); border:1px solid rgba(255,255,255,0.25); color:#ffffff; border-radius:14px; box-shadow:0 4px 16px rgba(56,189,248,0.4); cursor:pointer;" onclick="verifyGpsCheckIn()">
+                <i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Submit
+            </button>
+        </div>
 
-        <button style="width:100%; padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:transparent; color:rgba(255,255,255,0.6); font-size:13px; font-weight:600; cursor:pointer;" onclick="closeCheckinModal()">Cancel</button>
+        <button style="width:100%; padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#e2e8f0; font-size:13px; font-weight:700; cursor:pointer;" onclick="closeCheckinModal()">Cancel</button>
+    </div>
+</div>
+
+<!-- Check-in Image Picker Choice Modal -->
+<div id="checkin-image-picker-modal" onclick="if(event.target===this) window.closeCheckinImagePickerModal()" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:999999; align-items:flex-end; justify-content:center; padding:0; margin:0; box-sizing:border-box;">
+    <div style="background:linear-gradient(135deg, rgba(30,41,59,0.98) 0%, rgba(15,23,42,1) 100%); border-top:1px solid rgba(56,189,248,0.3); border-radius:28px 28px 0 0; width:100%; max-width:500px; padding:26px 22px; box-shadow:0 -10px 45px rgba(0,0,0,0.8); animation:slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); box-sizing:border-box;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h3 style="margin:0; font-size:17px; font-weight:800; color:#f8fafc; display:flex; align-items:center; gap:10px;">
+                <i class="fa-solid fa-camera" style="color:#38bdf8; font-size:18px;"></i> Attach Proof Photo
+            </h3>
+            <button type="button" onclick="window.closeCheckinImagePickerModal()" style="background:rgba(255,255,255,0.08); border:none; color:#94a3b8; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                <i class="fa-solid fa-xmark" style="font-size:15px;"></i>
+            </button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            <button type="button" onclick="window.selectCheckinImageSource('camera')" style="width:100%; padding:15px; background:linear-gradient(135deg, rgba(56,189,248,0.18) 0%, rgba(37,99,235,0.22) 100%); border:1px solid rgba(56,189,248,0.35); border-radius:18px; color:#38bdf8; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:transform 0.15s ease, box-shadow 0.15s ease;">
+                <i class="fa-solid fa-camera" style="font-size:17px;"></i> Take Photo with Camera
+            </button>
+            <button type="button" onclick="window.selectCheckinImageSource('gallery')" style="width:100%; padding:15px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:18px; color:#f8fafc; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:transform 0.15s ease, background 0.15s ease;">
+                <i class="fa-solid fa-images" style="font-size:17px; color:#38bdf8;"></i> Choose from Photo Gallery
+            </button>
+            <button type="button" onclick="window.closeCheckinImagePickerModal()" style="width:100%; padding:12px; background:transparent; border:none; color:#94a3b8; font-size:13px; font-weight:600; cursor:pointer; margin-top:4px;">
+                Cancel
+            </button>
+        </div>
     </div>
 </div>
 
@@ -121,7 +182,7 @@ require_once __DIR__ . '/../components/header.php';
             attributionControl: false
         });
 
-        tripMap.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+        // tripMap.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
 
         tripMap.on('load', async () => {
             tripMap.setTerrain({ "source": "terrain", "exaggeration": 1.5 });
@@ -157,11 +218,14 @@ require_once __DIR__ . '/../components/header.php';
                 if (trip) {
                     const headerTitleEl = document.querySelector('.header-title');
                     if (headerTitleEl) headerTitleEl.textContent = trip.title;
-                    document.getElementById('trip-info-name').textContent = trip.title;
+                    const nameEl = document.getElementById('trip-info-name');
+                    if (nameEl) nameEl.textContent = trip.title;
                     
                     if (trip.items && trip.items.length > 0) {
-                        document.getElementById('trip-info-desc').textContent = `Route preview for ${trip.items.length} destination(s).`;
-                        document.getElementById('trip-info-route-type').textContent = trip.route_type || 'Recommended';
+                        const descEl = document.getElementById('trip-info-desc');
+                        if (descEl) descEl.textContent = `Route preview for ${trip.items.length} destination(s).`;
+                        const routeTypeEl = document.getElementById('trip-info-route-type');
+                        if (routeTypeEl) routeTypeEl.textContent = trip.route_type || 'Recommended';
                         
                         const tMap = {
                             'own_car': { name: 'Own Car', icon: 'fa-car' },
@@ -172,16 +236,18 @@ require_once __DIR__ . '/../components/header.php';
                             'lutrampco': { name: 'LUTRAMPCO', icon: 'fa-van-shuttle' }
                         };
                         const trans = tMap[trip.transport_mode];
+                        const vehicleNameEl = document.getElementById('trip-info-vehicle-name');
+                        const vehicleIconEl = document.getElementById('trip-info-vehicle-icon');
                         if (trans) {
-                            document.getElementById('trip-info-vehicle-name').textContent = trans.name;
-                            document.getElementById('trip-info-vehicle-icon').className = 'fa-solid ' + trans.icon;
+                            if (vehicleNameEl) vehicleNameEl.textContent = trans.name;
+                            if (vehicleIconEl) vehicleIconEl.className = 'fa-solid ' + trans.icon;
                         } else {
-                            // Fallback for legacy trips saved before the transport_mode database column was added
-                            document.getElementById('trip-info-vehicle-name').textContent = 'Own Car';
-                            document.getElementById('trip-info-vehicle-icon').className = 'fa-solid fa-car';
+                            if (vehicleNameEl) vehicleNameEl.textContent = 'Own Car';
+                            if (vehicleIconEl) vehicleIconEl.className = 'fa-solid fa-car';
                         }
                         
-                        document.getElementById('trip-info-card').style.display = 'block';
+                        const conveyorWrapper = document.getElementById('trip-conveyor-wrapper');
+                        if (conveyorWrapper) conveyorWrapper.style.display = 'flex';
                         window.currentTripItems = trip.items;
                         window.currentRouteType = trip.route_type || 'Recommended';
                         plotTrip(window.currentTripItems, window.currentRouteType);
@@ -270,36 +336,36 @@ require_once __DIR__ . '/../components/header.php';
                     if (item.is_visited) {
                         // VISITED - Green Checkmark
                         iconHtml = `
-                            <div style="background: #10b981; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; border: 3px solid #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+                            <div style="background: #10b981; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; border: 3px solid #ffffff; box-shadow: none;">
                                 <i class="fa-solid fa-check"></i>
                             </div>
                         `;
                         labelHtml = `
-                            <div style="background: rgba(16,185,129,0.8); color: white; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; white-space: nowrap; margin-top: 4px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 2px 5px rgba(0,0,0,0.5); text-align: center; text-decoration: line-through;">
+                            <div style="background: rgba(16,185,129,0.8); color: white; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; white-space: nowrap; margin-top: 4px; border: 1px solid rgba(255,255,255,0.2); box-shadow: none; text-align: center; text-decoration: line-through;">
                                 ${dest.name}
                             </div>
                         `;
                     } else if (idx === activeIndex) {
                         // ACTIVE - Glowing Blue Number
                         iconHtml = `
-                            <div style="background: #38bdf8; color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; border: 3px solid #ffffff; box-shadow: 0 0 15px rgba(56,189,248,0.8), 0 4px 10px rgba(0,0,0,0.5); animation: pulse 2s infinite;">
+                            <div style="background: #38bdf8; color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; border: 3px solid #ffffff; box-shadow: none; animation: pulse 2s infinite;">
                                 ${idx + 1}
                             </div>
                         `;
                         labelHtml = `
-                            <div style="background: #0f172a; color: #38bdf8; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; white-space: nowrap; margin-top: 4px; border: 1px solid #38bdf8; box-shadow: 0 2px 5px rgba(0,0,0,0.5); text-align: center;">
+                            <div style="background: #0f172a; color: #38bdf8; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; white-space: nowrap; margin-top: 4px; border: 1px solid #38bdf8; box-shadow: none; text-align: center;">
                                 Next: ${dest.name}
                             </div>
                         `;
                     } else {
                         // LOCKED - Grey Padlock
                         iconHtml = `
-                            <div style="background: #94a3b8; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; border: 3px solid #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.3); opacity: 0.8;">
+                            <div style="background: #94a3b8; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; border: 3px solid #ffffff; box-shadow: none; opacity: 0.8;">
                                 <i class="fa-solid fa-lock"></i>
                             </div>
                         `;
                         labelHtml = `
-                            <div style="background: rgba(148,163,184,0.8); color: white; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; white-space: nowrap; margin-top: 4px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 2px 5px rgba(0,0,0,0.3); text-align: center; opacity: 0.8;">
+                            <div style="background: rgba(148,163,184,0.8); color: white; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; white-space: nowrap; margin-top: 4px; border: 1px solid rgba(255,255,255,0.2); box-shadow: none; text-align: center; opacity: 0.8;">
                                 Locked
                             </div>
                         `;
@@ -319,6 +385,106 @@ require_once __DIR__ . '/../components/header.php';
                 }
             }
         });
+
+        // Build Conveyor Cards HTML
+        let conveyorHtml = '';
+        items.forEach((item, idx) => {
+            const dest = item.destination;
+            if (!dest) return;
+            const lat = parseFloat(dest.lat || dest.latitude);
+            const lng = parseFloat(dest.lng || dest.longitude);
+            const isVisited = item.is_visited;
+            const isActive = idx === activeIndex;
+
+            let badgeHtml = '';
+            if (isVisited) {
+                badgeHtml = `<span style="background:rgba(52,199,89,0.15); border:1px solid rgba(52,199,89,0.4); color:#34c759; padding:3px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-circle-check"></i> Visited</span>`;
+            } else if (isActive) {
+                badgeHtml = `<span style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.4); color:#38bdf8; padding:3px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;">Stop ${idx + 1} of ${items.length} • NEXT</span>`;
+            } else {
+                badgeHtml = `<span style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:rgba(226,232,240,0.7); padding:3px 10px; border-radius:100px; font-size:10px; font-weight:700; flex-shrink:0;">Stop ${idx + 1} of ${items.length}</span>`;
+            }
+
+            let proofThumbnail = '';
+            if (item.proof_image) {
+                let pUrl = item.proof_image;
+                if (!pUrl.startsWith('http') && !pUrl.startsWith('data:') && !pUrl.startsWith('blob:')) {
+                    let b = (window.backendUrl || '').replace(/\/+$/, '');
+                    pUrl = b + '/' + pUrl.replace(/^\//, '');
+                }
+                let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + item.proof_image.replace(/^\//, '');
+                proofThumbnail = `<img src="${pUrl}" onerror="if(this.src!=='${fallbackUrl}'){this.src='${fallbackUrl}';}" alt="Proof" style="width:40px; height:40px; border-radius:8px; object-fit:cover; border:1px solid rgba(52,199,89,0.5); box-shadow:0 2px 8px rgba(0,0,0,0.3); flex-shrink:0;">`;
+            }
+
+            let actionBtnHtml = '';
+            if (isVisited || item.proof_status === 'approved') {
+                actionBtnHtml = `<div style="display:flex; align-items:center; gap:10px;">
+                    ${proofThumbnail}
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <span style="color:#34c759; font-weight:800; font-size:12px;"><i class="fa-solid fa-check-circle"></i> Visited & Verified</span>
+                        <button type="button" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (item.destination ? item.destination.id : '')}')" style="background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px; cursor:pointer; width:fit-content;">
+                            <i class="fa-solid fa-pen" style="margin-right:4px;"></i> Review Site
+                        </button>
+                    </div>
+                </div>`;
+            } else if (item.proof_status === 'rejected') {
+                actionBtnHtml = `<div style="display:flex; align-items:center; gap:8px;">
+                    ${proofThumbnail}
+                    <button onclick="event.stopPropagation(); window.currentCheckinItemId='${item.id}'; window.triggerMapCheckinModal()" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:#ffffff; border:none; padding:8px 12px; border-radius:100px; font-weight:800; font-size:11px; cursor:pointer;"><i class="fa-solid fa-camera" style="margin-right:4px;"></i> Re-upload Proof</button>
+                </div>`;
+            } else if (item.proof_image && (item.proof_status === 'pending' || !item.proof_status)) {
+                actionBtnHtml = `<div style="display:flex; align-items:center; gap:8px;">
+                    ${proofThumbnail}
+                    <span style="color:#FF9500; font-weight:800; font-size:11px;"><i class="fa-solid fa-clock"></i> Pending Validation</span>
+                </div>`;
+            } else if (isActive) {
+                actionBtnHtml = `<button onclick="event.stopPropagation(); window.currentCheckinItemId='${item.id}'; window.triggerMapCheckinModal()" style="background:linear-gradient(135deg, #38bdf8, #2563eb); color:#ffffff; border:none; padding:10px 16px; border-radius:100px; font-weight:800; font-size:12px; box-shadow:none; cursor:pointer;"><i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In (+50 XP)</button>`;
+            } else {
+                actionBtnHtml = `<span style="color:rgba(226,232,240,0.5); font-size:12px; font-weight:700;"><i class="fa-solid fa-lock"></i> Locked</span>`;
+            }
+
+            const classBadge = dest.classification_status ? `<span style="padding: 2px 7px; border-radius: 100px; font-size: 8px; font-weight: 800; text-transform: uppercase; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; flex-shrink:0;">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : '';
+
+            conveyorHtml += `
+            <div id="conveyor-card-${idx}" class="conveyor-card ${isActive ? 'active' : ''}" onclick="window.flyToConveyorSpot(${lng}, ${lat}, ${idx})" style="scroll-snap-align: center; flex: 0 0 calc(100vw - 64px); max-width: 320px; min-width: 250px; box-sizing: border-box; background: rgba(15, 23, 42, 0.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid ${isActive ? 'rgba(56, 189, 248, 0.6)' : 'rgba(255, 255, 255, 0.15)'}; border-radius: 24px; padding: 16px 18px; box-shadow: none; cursor: pointer; transition: transform 0.25s ease, border-color 0.25s ease;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px;">
+                    ${badgeHtml}
+                    ${classBadge}
+                </div>
+                <h4 style="margin:0 0 4px 0; font-size:15px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${dest.name}">${dest.name}</h4>
+                <p style="margin:0 0 12px 0; font-size:12px; color:rgba(226,232,240,0.8); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i>${dest.municipality || 'La Union'}</p>
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                    <span style="font-size:11px; font-weight:700; color:rgba(226,232,240,0.6); flex-shrink:0;"><i class="fa-solid fa-compass" style="color:#38bdf8;"></i> Tap to view</span>
+                    <div style="flex-shrink:0;">${actionBtnHtml}</div>
+                </div>
+            </div>`;
+        });
+
+        const conveyorScroll = document.getElementById('conveyor-cards-scroll');
+        if (conveyorScroll) {
+            conveyorScroll.innerHTML = conveyorHtml;
+            setTimeout(() => {
+                const targetCard = document.querySelector('.conveyor-card.active') || document.getElementById('conveyor-card-0');
+                if (targetCard) {
+                    targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            }, 100);
+        }
+
+        window.flyToConveyorSpot = function(lng, lat, idx) {
+            if (tripMap && !isNaN(lng) && !isNaN(lat)) {
+                tripMap.flyTo({
+                    center: [lng, lat],
+                    zoom: 15,
+                    pitch: 30,
+                    duration: 1200
+                });
+            }
+            const card = document.getElementById(`conveyor-card-${idx}`);
+            if (card) {
+                card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+        };
 
         // Clear existing GPS marker if any
         if (window.tripGpsMarker) {
@@ -381,8 +547,8 @@ require_once __DIR__ . '/../components/header.php';
                             durationMin *= 1.2; distanceKm *= 1.15;
                         }
                         
-                        document.getElementById('trip-info-distance').textContent = distanceKm.toFixed(1) + ' km';
-                        document.getElementById('trip-info-time').textContent = Math.round(durationMin) + ' mins';
+                        window.setTxt('trip-info-distance', distanceKm.toFixed(1) + ' km');
+                        window.setTxt('trip-info-time', Math.round(durationMin) + ' mins');
 
                         // NEW MECHANIC: Real-time Dynamic Google-Maps-Style Floating ETA Box!
                         if (window.etaMarker) window.etaMarker.remove();
@@ -455,39 +621,143 @@ require_once __DIR__ . '/../components/header.php';
                 }).catch(e => {
                     console.error("Trip routing error", e);
                     const distEl = document.getElementById('trip-info-distance');
-                    if (distEl) {
-                        distEl.textContent = "N/A";
-                        document.getElementById('trip-info-time').textContent = "N/A";
-                    }
+                    const timeEl = document.getElementById('trip-info-time');
+                    if (distEl) distEl.textContent = "N/A";
+                    if (timeEl) timeEl.textContent = "N/A";
                 });
             } else {
                 const distEl = document.getElementById('trip-info-distance');
-                if (distEl) {
-                    distEl.textContent = "N/A";
-                    document.getElementById('trip-info-time').textContent = "N/A";
-                }
+                const timeEl = document.getElementById('trip-info-time');
+                if (distEl) distEl.textContent = "N/A";
+                if (timeEl) timeEl.textContent = "N/A";
             }
         }
     }
 
     // Map Checkin Modal functions
+    window.selectedCheckinImageFile = null;
+
     window.triggerMapCheckinModal = function() {
         if (!window.currentCheckinItemId) return;
         document.getElementById('checkin-item-id').value = window.currentCheckinItemId;
         document.getElementById('checkin-modal').style.display = 'flex';
     };
 
+    window.openCheckinImagePickerModal = function() {
+        const modal = document.getElementById('checkin-image-picker-modal');
+        if (modal) modal.style.display = 'flex';
+    };
+
+    window.closeCheckinImagePickerModal = function() {
+        const modal = document.getElementById('checkin-image-picker-modal');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.selectCheckinImageSource = async function(mode) {
+        window.closeCheckinImagePickerModal();
+        const input = document.getElementById('checkin-proof-image');
+
+        const isCapacitorNative = Boolean(
+            window.Capacitor &&
+            typeof window.Capacitor.isNativePlatform === 'function' &&
+            window.Capacitor.isNativePlatform() &&
+            window.Capacitor.Plugins &&
+            window.Capacitor.Plugins.Camera
+        );
+
+        if (isCapacitorNative) {
+            try {
+                const cameraPlugin = window.Capacitor.Plugins.Camera;
+                const image = await cameraPlugin.getPhoto({
+                    quality: 85,
+                    allowEditing: false,
+                    resultType: 'dataUrl',
+                    source: mode === 'camera' ? 'CAMERA' : 'PHOTOS'
+                });
+
+                if (image && image.dataUrl) {
+                    const res = await fetch(image.dataUrl);
+                    const blob = await res.blob();
+                    const file = new File([blob], 'proof_' + Date.now() + '.jpg', { type: blob.type || 'image/jpeg' });
+                    window.selectedCheckinImageFile = file;
+                    window.updateCheckinPhotoPreview(image.dataUrl);
+                }
+            } catch (err) {
+                console.warn('Capacitor Camera cancel or error:', err);
+            }
+        } else {
+            if (!input) return;
+            if (mode === 'camera') {
+                input.setAttribute('capture', 'environment');
+            } else {
+                input.removeAttribute('capture');
+            }
+            input.click();
+        }
+    };
+
+    window.handlePhotoSelected = function(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            window.selectedCheckinImageFile = file;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                window.updateCheckinPhotoPreview(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    window.updateCheckinPhotoPreview = function(dataUrl) {
+        const previewContainer = document.getElementById('checkin-photo-preview-container');
+        const previewImg = document.getElementById('checkin-photo-preview-img');
+        const btnText = document.getElementById('photo-status-text');
+        const btn = document.getElementById('btn-select-photo');
+
+        if (previewContainer && previewImg) {
+            previewImg.src = dataUrl;
+            previewContainer.style.display = 'block';
+        }
+
+        if (btnText) btnText.textContent = 'Change Photo 📸';
+        if (btn) {
+            btn.style.background = 'rgba(52, 199, 89, 0.15)';
+            btn.style.borderColor = 'rgba(52, 199, 89, 0.5)';
+            btn.style.color = '#34c759';
+        }
+    };
+
+    window.removeCheckinPhoto = function() {
+        window.selectedCheckinImageFile = null;
+        const imgInput = document.getElementById('checkin-proof-image');
+        if (imgInput) imgInput.value = '';
+
+        const previewContainer = document.getElementById('checkin-photo-preview-container');
+        const previewImg = document.getElementById('checkin-photo-preview-img');
+        if (previewContainer) previewContainer.style.display = 'none';
+        if (previewImg) previewImg.src = '';
+
+        const photoBtn = document.getElementById('btn-select-photo');
+        const photoText = document.getElementById('photo-status-text');
+        if (photoText) photoText.textContent = 'Take or Choose Photo';
+        if (photoBtn) {
+            photoBtn.style.background = 'rgba(56,189,248,0.1)';
+            photoBtn.style.borderColor = 'rgba(56,189,248,0.4)';
+            photoBtn.style.color = '#38bdf8';
+        }
+    };
+
     window.closeCheckinModal = function() {
         document.getElementById('checkin-modal').style.display = 'none';
         document.getElementById('checkin-item-id').value = '';
-        const imgInput = document.getElementById('checkin-proof-image');
-        if (imgInput) imgInput.value = '';
+        window.removeCheckinPhoto();
+
         const btn = document.getElementById('btn-verify-gps');
-        if (btn) { btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo'; btn.disabled = false; }
+        if (btn) { btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Submit'; btn.disabled = false; }
     };
 
     window.verifyGpsCheckIn = async function() {
-        const imageFile = document.getElementById('checkin-proof-image').files[0];
+        const imageFile = window.selectedCheckinImageFile || (document.getElementById('checkin-proof-image') ? document.getElementById('checkin-proof-image').files[0] : null);
         if (!imageFile) {
             if (typeof showToast === 'function') showToast('Please select or capture a photo proof first! 📸');
             return;
@@ -520,9 +790,13 @@ require_once __DIR__ . '/../components/header.php';
             const result = await response.json();
 
             if (response.ok) {
-                if (typeof showToast === 'function') showToast(result.message || 'Checked in! 🌟');
+                if (typeof showToast === 'function') showToast(result.message || 'Checked in! Earned +50 XP & Points');
                 closeCheckinModal();
                 document.getElementById('checkin-prompt-card').style.display = 'none';
+                
+                const item = window.currentTripItems?.find(i => i.id == itemId);
+                const visitedSpotId = result.item?.tourist_spot_id || (item ? item.tourist_spot_id : null);
+
                 loadTripData();
             } else {
                 if (typeof showToast === 'function') showToast(result.message || 'Check-in failed.');

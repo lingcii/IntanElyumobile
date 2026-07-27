@@ -1,10 +1,11 @@
 <!-- Splash Screen View -->
+<?php @include_once __DIR__ . '/../components/logo_base64.php'; ?>
 
 <div class="splash-container animate-fade-in" id="splash-main">
     <div class="stagger-1" style="position:relative; z-index:100;">
         <div class="splash-logo">
             <div class="splash-logo-container" style="box-sizing: border-box; width: 140px; height: 140px; background: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; position: relative; z-index: 10; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4); padding: 5px;">
-                <img src="assets/img/logo.png" alt="Intan Elyu Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                <img src="<?= isset($appLogoBase64) ? $appLogoBase64 : 'assets/img/logo.png' ?>" alt="Intan Elyu Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%;">
             </div>
             <span class="splash-title">Intan Elyu</span>
         </div>

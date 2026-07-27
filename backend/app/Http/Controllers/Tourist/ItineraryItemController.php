@@ -95,10 +95,10 @@ class ItineraryItemController extends Controller
             ], 403);
         }
 
-        // GPS confirmed — mark as visited
+        // GPS confirmed — save photo proof into Railway database and set proof_status = pending
         $itemData = [
-            'is_visited' => true,
-            'visited_at' => now(),
+            'is_visited'   => false,
+            'proof_status' => 'pending',
         ];
 
         if ($request->hasFile('image')) {
@@ -108,51 +108,18 @@ class ItineraryItemController extends Controller
 
         $item->update($itemData);
 
-        // Increment the tourist spot's visit counter
-        $item->destination()->increment('visits');
-
-        // Determine XP based on classification status
-        $baseXp = self::XP_PER_VISIT; // 50
-        $xpEarned = match($spot->classification_status) {
-            'EMERGE'    => 100,
-            'POTENTIAL' => 75,
-            default     => $baseXp,
-        };
-
-        // Award XP
-        $newXp    = ($user->xp ?? 0) + $xpEarned;
-        $newLevel = (int) floor($newXp / 1000) + 1;
+        // Record last GPS ping on user for anti-spoofing
         $user->update([
-            'xp' => $newXp, 
-            'level' => $newLevel,
-            'last_gps_lat' => $request->lat,
-            'last_gps_lng' => $request->lng,
+            'last_gps_lat'     => $request->lat,
+            'last_gps_lng'     => $request->lng,
             'last_gps_ping_at' => now(),
         ]);
 
-        // Award Points in points ledger
-        \App\Models\UserPoint::create([
-            'user_id' => $user->id,
-            'points' => 50,
-            'source' => 'check_in',
-            'description' => "GPS Check-in with photo proof at " . $spot->name,
-        ]);
-
-        // Technique 5: Denormalization — increment the counter on users table
-        $user->increment('completed_activities');
-
-        // Technique 2: Cache Invalidation — flush stale rank/profile caches
-        Cache::forget("rank:user:{$user->id}");
-        Cache::forget("profile:trips:{$user->id}");
-
-        $bonusMsg = $xpEarned > $baseXp ? "🔥 (Bonus for discovering new spots!)" : "🌟";
-
         return response()->json([
-            'message'   => "You're here! +{$xpEarned} XP earned! {$bonusMsg}",
-            'xp_earned' => $xpEarned,
-            'total_xp'  => $newXp,
-            'new_level' => $newLevel,
-            'distance'  => round($distanceMeters) . 'm',
+            'status'      => 'pending',
+            'message'     => "Photo proof saved in database! 📸 Pending admin confirmation before completion.",
+            'proof_image' => $itemData['proof_image'] ?? null,
+            'distance'    => round($distanceMeters) . 'm',
         ]);
     }
 

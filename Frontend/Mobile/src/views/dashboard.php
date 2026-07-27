@@ -3,9 +3,9 @@
 $pageTitle = 'Discover La Union';
 $activeTab = 'dashboard';
 
-// Scan municipality images from backend storage
+// Scan municipality images from local assets
 $municipalityImages = [];
-$imgDir = __DIR__ . '/../../../../backend/storage/app/public/municipalities';
+$imgDir = __DIR__ . '/../assets/img/MUNICIPALITIES';
 if (is_dir($imgDir)) {
     $munis = scandir($imgDir);
     foreach ($munis as $muni) {
@@ -23,6 +23,73 @@ if (is_dir($imgDir)) {
 }
 ?>
 
+<link rel="stylesheet" href="assets/css/views/dashboard.css?v=<?= time() ?>">
+<style>
+@keyframes filterFadeIn {
+    0% { opacity: 0; transform: translateY(10px) scale(0.95); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.categories-container {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 12px !important;
+    overflow-x: auto !important;
+    padding: 6px 4px 14px 4px !important;
+    scroll-snap-type: x mandatory !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+}
+.categories-container::-webkit-scrollbar { display: none !important; }
+.category-card {
+    flex: 0 0 98px !important;
+    width: 98px !important;
+    height: 102px !important;
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border-radius: 22px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 10px 6px !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    border: 1px solid rgba(56, 189, 248, 0.2) !important;
+}
+.category-card.active {
+    background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%) !important;
+    border-color: #38bdf8 !important;
+}
+.category-icon-box {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 22px !important;
+    color: #38bdf8 !important;
+    margin-bottom: 6px !important;
+}
+.category-card.active .category-icon-box { color: #ffffff !important; }
+.category-card-label {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #f8fafc !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    width: 100% !important;
+}
+.category-card.active .category-card-label { color: #ffffff !important; }
+</style>
+
 <?php include __DIR__ . '/../components/header.php'; ?>
 
 
@@ -30,60 +97,116 @@ if (is_dir($imgDir)) {
 
 <div class="dashboard-container has-header has-bottom-nav animate-slide-up">
 
-    <!-- Profile + EXP -->
+    <!-- Profile + EXP Card -->
     <div class="profile-header stagger-1" onclick="navigateTo('profile')">
-        <div class="profile-info-row">
-            <div class="profile-avatar">
-                <img id="dash-avatar" src="https://ui-avatars.com/api/?name=Tourist&amp;background=007AFF&amp;color=fff&amp;rounded=true&amp;bold=true&amp;size=128" alt="Avatar">
-            </div>
-            <div class="profile-text">
-                <h2 class="profile-name" id="dash-name">Hi, there!</h2>
-                <p class="profile-title" id="dash-title">Explorer of Elyu</p>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
+            <div class="profile-info-row" style="margin-bottom:0; flex:1;">
+                <div class="profile-avatar">
+                    <img id="dash-avatar" src="https://ui-avatars.com/api/?name=Tourist&amp;background=007AFF&amp;color=fff&amp;rounded=true&amp;bold=true&amp;size=128" alt="Avatar">
+                </div>
+                <div class="profile-text">
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                        <h2 class="profile-name" id="dash-name" style="margin:0;">Hi, there! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i></h2>
+                        <span id="dash-explorer-id" style="font-size:10px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.12); padding:2px 8px; border-radius:100px; border:1px solid rgba(56,189,248,0.25);">ID: #--</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; margin-top:4px; flex-wrap:wrap;">
+                        <span class="profile-title" id="dash-title"><i class="fa-solid fa-compass" style="color:#38bdf8; font-size:10px;"></i> Explorer of Elyu</span>
+                        <span id="dash-status-badge" style="font-size:10px; font-weight:800; color:#34c759; background:rgba(52,199,89,0.12); padding:2px 8px; border-radius:100px; border:1px solid rgba(52,199,89,0.25);"><i class="fa-solid fa-circle" style="font-size:6px; margin-right:4px;"></i> Active Tourist</span>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- Level XP Progress Section -->
         <div class="exp-container">
             <div class="exp-header">
-                <span class="exp-label" id="dash-level-label">Level Progress</span>
-                <span class="exp-value" id="dash-xp-value">— XP</span>
+                <span class="exp-label" id="dash-level-label"><i class="fa-solid fa-award" style="color:#38bdf8; margin-right:4px;"></i> Level Progress</span>
+                <span class="exp-value" id="dash-xp-value"><i class="fa-solid fa-bolt" style="color:#fbbf24; margin-right:4px;"></i>— XP</span>
             </div>
             <div class="exp-bar-bg"><div class="exp-bar-fill" id="dash-xp-bar" style="width:0%;"></div></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:rgba(148,163,184,0.8); font-weight:600; margin-top:2px;">
+                <span id="dash-xp-needed">1,000 XP to next level</span>
+                <span id="dash-xp-pct" style="color:#38bdf8; font-weight:800;">0%</span>
+            </div>
         </div>
     </div>
-
-
 
     <!-- Stats Row -->
     <div class="stats-row stagger-1">
         <div class="stat-card" onclick="navigateTo('itinerary')">
-            <div class="stat-icon"><i class="fa-solid fa-map-location-dot" style="color:#007AFF;"></i></div>
+            <div class="stat-icon"><i class="fa-solid fa-map-location-dot" style="color:#38bdf8;"></i></div>
             <div class="stat-value" id="dash-stat-places">—</div>
             <div class="stat-label">Places</div>
         </div>
         <div class="stat-card" onclick="navigateTo('leaderboard')">
-            <div class="stat-icon"><i class="fa-solid fa-bolt" style="color:#FFD700;"></i></div>
+            <div class="stat-icon"><i class="fa-solid fa-bolt" style="color:#fbbf24;"></i></div>
             <div class="stat-value" id="dash-stat-xp">—</div>
             <div class="stat-label">XP</div>
         </div>
         <div class="stat-card" onclick="navigateTo('leaderboard')">
-            <div class="stat-icon"><i class="fa-solid fa-trophy" style="color:#FF9500;"></i></div>
+            <div class="stat-icon"><i class="fa-solid fa-trophy" style="color:#f59e0b;"></i></div>
             <div class="stat-value" id="dash-stat-rank">—</div>
             <div class="stat-label">Rank</div>
         </div>
     </div>
 
     <!-- Weather Widget -->
-    <div class="weather-card stagger-2">
+    <div class="weather-card stagger-2" onclick="window.openWeatherModal()" style="cursor: pointer; position: relative;" title="Click for 5-Day Weather Forecast">
         <div class="weather-left">
-            <div class="weather-temp">29°C</div>
-            <div class="weather-desc">Partly Cloudy</div>
-            <div class="weather-loc">📍 San Fernando, La Union</div>
+            <div class="weather-temp" id="weather-temp"><i class="fa-solid fa-spinner fa-spin" style="font-size:22px; color:rgba(255,255,255,0.4);"></i></div>
+            <div class="weather-desc" id="weather-desc">Loading Weather...</div>
+            <div class="weather-loc" id="weather-loc"><i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> San Fernando, La Union</div>
             <div class="weather-details">
-                <span class="weather-detail"><i class="fa-solid fa-droplet"></i> 72%</span>
-                <span class="weather-detail"><i class="fa-solid fa-wind"></i> 14 km/h</span>
-                <span class="weather-detail"><i class="fa-solid fa-sun"></i> UV 6</span>
+                <span class="weather-detail"><i class="fa-solid fa-droplet" style="color:#38bdf8;"></i> <span id="weather-humidity">--%</span></span>
+                <span class="weather-detail"><i class="fa-solid fa-wind" style="color:#a78bfa;"></i> <span id="weather-wind">-- km/h</span></span>
+                <span class="weather-detail"><i class="fa-solid fa-sun" style="color:#fbbf24;"></i> UV <span id="weather-uv">--</span></span>
             </div>
         </div>
-        <div class="weather-icon">⛅</div>
+        <div style="text-align: right;">
+            <div class="weather-icon" id="weather-icon">⛅</div>
+            <span style="font-size: 10px; color: rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-top: 4px; font-weight: 600;">
+                5-Day Forecast <i class="fa-solid fa-chevron-right" style="font-size: 8px; color: #38bdf8;"></i>
+            </span>
+        </div>
+    </div>
+
+    <!-- Weather Forecast Modal -->
+    <div id="weather-modal" onclick="if(event.target===this) window.closeWeatherModal()" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(10px); z-index:99999; justify-content:center; align-items:flex-end;">
+        <div style="background:#0f172a; border-top:1px solid rgba(255,255,255,0.15); border-radius:28px 28px 0 0; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; padding:24px 20px; box-shadow:0 -10px 40px rgba(0,0,0,0.6); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <div>
+                    <h3 style="margin:0; font-size:18px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
+                        <span>🌤️ Weather Forecast</span>
+                    </h3>
+                    <p style="margin:2px 0 0 0; font-size:12px; color:rgba(255,255,255,0.6);" id="modal-weather-loc">San Fernando, La Union</p>
+                </div>
+                <button onclick="window.closeWeatherModal()" style="background:rgba(255,255,255,0.1); border:none; color:#fff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Current Detailed Weather Card -->
+            <div style="background:linear-gradient(135deg, rgba(56,189,248,0.2) 0%, rgba(99,102,241,0.2) 100%); border:1px solid rgba(56,189,248,0.3); border-radius:22px; padding:18px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between;">
+                <div>
+                    <div style="font-size:38px; font-weight:900; color:#fff; letter-spacing:-1px;" id="modal-temp">29°C</div>
+                    <div style="font-size:14px; font-weight:800; color:#38bdf8; margin-top:2px;" id="modal-condition">Partly Cloudy</div>
+                    <div style="font-size:12px; color:rgba(255,255,255,0.7); margin-top:6px;" id="modal-feels">Feels like 31°C</div>
+                </div>
+                <div style="text-align:center;">
+                    <div style="font-size:52px;" id="modal-icon">⛅</div>
+                </div>
+            </div>
+
+            <!-- 5-Day Forecast Grid -->
+            <h4 style="margin:0 0 12px 0; font-size:14px; font-weight:800; color:#f8fafc; display:flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-calendar-days" style="color:#38bdf8;"></i> 5-Day Forecast
+            </h4>
+            <div id="weather-forecast-container" style="display:flex; flex-direction:column; gap:10px;">
+                <div style="padding:20px; text-align:center; color:rgba(255,255,255,0.5); font-size:13px;">
+                    <i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Loading 5-day forecast...
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Gamification Panel -->
@@ -91,22 +214,60 @@ if (is_dir($imgDir)) {
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="font-size: 32px; filter: drop-shadow(0 0 10px rgba(167, 139, 250, 0.6));">🧩</div>
             <div>
-                <h4 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -0.2px;">Gamification Zone</h4>
-                <p style="margin: 0; font-size: 12px; color: #e9d5ff; font-weight: 600;">Play puzzles & trivia to earn discount vouchers! 🎁</p>
+                <h4 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -0.2px;">GameZone</h4>
+                <p style="margin: 0; font-size: 12px; color: #e9d5ff; font-weight: 600;">Play fun mini-games to earn discount vouchers! 🎁</p>
             </div>
         </div>
         <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; color: #a78bfa; font-size: 14px;"><i class="fa-solid fa-play"></i></div>
     </div>
 
-    <!-- Trending Spots -->
+    <!-- Categories Section -->
+    <div class="dash-section stagger-2" style="margin-top: 20px;">
+        <div class="section-title">
+            <h3>Categories</h3>
+            <a href="javascript:void(0);" onclick="navigateTo('map')">Explore Map</a>
+        </div>
+        <div class="categories-container" id="dash-categories-list">
+            <div class="category-card active" onclick="window.filterCategoryDash('All', this)">
+                <div class="category-icon-box"><i class="fa-solid fa-compass"></i></div>
+                <div class="category-card-label">All Spots</div>
+            </div>
+            <div class="category-card" onclick="window.filterCategoryDash('Beach', this)">
+                <div class="category-icon-box"><i class="fa-solid fa-umbrella-beach"></i></div>
+                <div class="category-card-label">Beach</div>
+            </div>
+            <div class="category-card" onclick="window.filterCategoryDash('Mountains', this)">
+                <div class="category-icon-box"><i class="fa-solid fa-mountain-sun"></i></div>
+                <div class="category-card-label">Mountains</div>
+            </div>
+            <div class="category-card" onclick="window.filterCategoryDash('Lakes', this)">
+                <div class="category-icon-box"><i class="fa-solid fa-water"></i></div>
+                <div class="category-card-label">Lakes & Falls</div>
+            </div>
+            <div class="category-card" onclick="window.filterCategoryDash('Heritage', this)">
+                <div class="category-icon-box"><i class="fa-solid fa-landmark"></i></div>
+                <div class="category-card-label">Heritage</div>
+            </div>
+            <div class="category-card" onclick="window.filterCategoryDash('Food & Dining', this)">
+                <div class="category-icon-box"><i class="fa-solid fa-utensils"></i></div>
+                <div class="category-card-label">Food</div>
+            </div>
+            <div class="category-card" onclick="window.filterCategoryDash('Nightlife', this)">
+                <div class="category-icon-box"><i class="fa-solid fa-martini-glass-citrus"></i></div>
+                <div class="category-card-label">Nightlife</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trending Sites -->
     <div class="dash-section stagger-2">
         <div class="section-title">
-            <h3>Trending Spots</h3>
+            <h3>Trending Sites</h3>
             <a href="javascript:void(0);" onclick="navigateTo('trending')">See All</a>
         </div>
         <div class="favorites-row" id="trending-container">
             <div style="padding: 20px; width: 100%; text-align: center; color: rgba(255,255,255,0.5); font-size: 14px;">
-                <i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Loading trending spots...
+                <i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Loading trending sites...
             </div>
         </div>
     </div>
@@ -168,17 +329,64 @@ if (is_dir($imgDir)) {
 
 <script>
     window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
+    window.filterCategoryDash = function(cat, el) {
+        document.querySelectorAll('#dash-categories-list .category-card').forEach(card => card.classList.remove('active'));
+        if (el) el.classList.add('active');
+
+        const filterContainer = (containerId, emptyMsg) => {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            // Remove existing filter empty state if any
+            const oldEmpty = container.querySelector('.dash-filter-empty-state');
+            if (oldEmpty) oldEmpty.remove();
+
+            const children = Array.from(container.children).filter(child => !child.classList.contains('dash-filter-empty-state'));
+            let visibleCount = 0;
+
+            for (let i = 0; i < children.length; i++) {
+                const child = children[i];
+                // Ignore initial loading or location prompt placeholders
+                if (child.innerText && (child.innerText.includes('Loading') || child.innerText.includes('Enable location'))) {
+                    continue;
+                }
+                const cardCat = (child.getAttribute('data-category') || child.innerText || '').toLowerCase();
+                if (cat === 'All' || cardCat.includes(cat.toLowerCase())) {
+                    child.style.display = '';
+                    child.style.animation = 'none';
+                    void child.offsetWidth;
+                    child.style.animation = 'filterFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+                    visibleCount++;
+                } else {
+                    child.style.display = 'none';
+                }
+            }
+
+            if (cat !== 'All' && visibleCount === 0) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'dash-filter-empty-state';
+                emptyDiv.style.cssText = 'padding: 24px 16px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: rgba(15,23,42,0.6); border: 1px solid rgba(56,189,248,0.15); border-radius: 20px; margin: 4px 0; font-size: 13px; color: rgba(148,163,184,0.9); font-weight: 600; box-sizing: border-box; animation: filterFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;';
+                emptyDiv.innerHTML = `<i class="fa-solid fa-compass" style="font-size: 24px; color: #38bdf8; margin-bottom: 2px;"></i><span>${emptyMsg}</span>`;
+                container.appendChild(emptyDiv);
+            }
+        };
+
+        filterContainer('trending-container', 'No trending sites here.');
+        filterContainer('recommended-container', 'No recommended sites here.');
+        filterContainer('near-me-container', 'No nearby sites found in this category.');
+    };
 (async function dashboardInit() {
     const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+    const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
     const setSrc = (id, src) => { const el = document.getElementById(id); if (el) el.src = src; };
 
     var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
     const token = localStorage.getItem('intan_elyu_token');
-    const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
+    const user = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : {};
 
     // Instant render from cache
     if (user && user.name) {
-        setTxt('dash-name', 'Hi, ' + user.name.split(' ')[0] + '! 👋');
+        setHtml('dash-name', 'Hi, ' + user.name.split(' ')[0] + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
         setSrc('dash-avatar', user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
     }
 
@@ -218,11 +426,35 @@ if (is_dir($imgDir)) {
 
         // Profile header
         const firstName = (u.name || 'Explorer').split(' ')[0];
-        setTxt('dash-name', 'Hi, ' + firstName + '! 👋');
+        setHtml('dash-name', 'Hi, ' + firstName + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
         setTxt('dash-title', 'Level ' + (u.level || 1) + ' Explorer');
         
+        const userId = u.id || u.user_id || '';
+        if (userId) setTxt('dash-explorer-id', 'ID: #' + userId);
+        
         if (u.avatar) {
-            setSrc('dash-avatar', u.avatar);
+            let avatarUrl = u.avatar;
+            if (avatarUrl.includes('localhost:3000') || avatarUrl.includes('127.0.0.1:3000')) {
+                avatarUrl = avatarUrl.replace(/http:\/\/(localhost|127\.0\.0\.1):3000/, window.backendUrl || 'http://localhost:8000');
+            }
+            if (!avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:') && !avatarUrl.startsWith('blob:')) {
+                let b = (window.backendUrl || '').replace(/\/+$/, '');
+                avatarUrl = b + '/' + avatarUrl.replace(/^\//, '');
+            }
+
+            const dashAvatarEl = document.getElementById('dash-avatar');
+            if (dashAvatarEl) {
+                let fallbackAvatar = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + u.avatar.replace(/^\//, '');
+                dashAvatarEl.onerror = function() {
+                    if (this.src !== fallbackAvatar) {
+                        this.src = fallbackAvatar;
+                    } else {
+                        this.onerror = null;
+                        this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Tourist')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
+                    }
+                };
+                dashAvatarEl.src = avatarUrl;
+            }
         } else {
             setSrc('dash-avatar', `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Tourist')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
         }
@@ -233,8 +465,20 @@ if (is_dir($imgDir)) {
         const xpPerLevel = 1000;
         const xpInLevel = xp % xpPerLevel;
         const xpPct = Math.min((xpInLevel / xpPerLevel) * 100, 100);
-        document.getElementById('dash-level-label')?.textContent && (document.getElementById('dash-level-label').textContent = 'Level ' + level + ' Progress');
-        document.getElementById('dash-xp-value')?.textContent && (document.getElementById('dash-xp-value').textContent = xpInLevel + ' / ' + xpPerLevel + ' XP');
+        const xpNeeded = xpPerLevel - xpInLevel;
+
+        const lvlLabel = document.getElementById('dash-level-label');
+        if (lvlLabel) lvlLabel.innerHTML = `<i class="fa-solid fa-award" style="color:#38bdf8; margin-right:4px;"></i> Level ${level} Progress`;
+        
+        const xpVal = document.getElementById('dash-xp-value');
+        if (xpVal) xpVal.innerHTML = `<i class="fa-solid fa-bolt" style="color:#fbbf24; margin-right:4px;"></i>${xpInLevel.toLocaleString()} / ${xpPerLevel.toLocaleString()} XP`;
+        
+        const xpNeedEl = document.getElementById('dash-xp-needed');
+        if (xpNeedEl) xpNeedEl.textContent = `${xpNeeded.toLocaleString()} XP to Level ${level + 1}`;
+        
+        const xpPctEl = document.getElementById('dash-xp-pct');
+        if (xpPctEl) xpPctEl.textContent = `${Math.round(xpPct)}%`;
+
         if (document.getElementById('dash-xp-bar')) document.getElementById('dash-xp-bar').style.width = xpPct + '%';
 
         // Stats
@@ -483,11 +727,19 @@ if (is_dir($imgDir)) {
                     renderDashboard(data);
                 }
             },
-            false,
+            Boolean(window.dashboardNeedsRefresh),
             30000 // 30 seconds TTL for dashboard
         );
+        window.dashboardNeedsRefresh = false;
 
         loadNearMe(lat, lng);
+        if (typeof window.fetchWeather === 'function') {
+            if (lat && lng) {
+                window.fetchWeather(lat, lng, 'My Location', true);
+            } else {
+                window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
+            }
+        }
 
         // Fetch Rank and Cache it
         const rankCacheKey = 'dashboard_rank_' + token.substring(0, 10);
@@ -538,42 +790,69 @@ if (is_dir($imgDir)) {
                             if (trip.items && trip.items.length > 0) {
                                 trip.items.forEach((item, index) => {
                                     const destName = item.destination ? item.destination.name : 'Unknown Destination';
+                                    let proofImgHtml = '';
+                                    if (item.proof_image) {
+                                        let pUrl = item.proof_image;
+                                        if (!pUrl.startsWith('http') && !pUrl.startsWith('data:') && !pUrl.startsWith('blob:')) {
+                                            let b = (window.backendUrl || '').replace(/\/+$/, '');
+                                            pUrl = b + '/' + pUrl.replace(/^\//, '');
+                                        }
+                                        let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + item.proof_image.replace(/^\//, '');
+                                        proofImgHtml = `<img src="${pUrl}" onerror="if(this.src!=='${fallbackUrl}'){this.src='${fallbackUrl}';}" alt="Proof" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1px solid ${item.is_visited ? 'rgba(52,199,89,0.5)' : (item.proof_status === 'rejected' ? 'rgba(239,68,68,0.5)' : 'rgba(255,149,0,0.5)')}; flex-shrink:0;">`;
+                                    }
+
+                                    let proofBadge = '';
+                                    if (item.is_visited || item.proof_status === 'approved') {
+                                        proofBadge = `<span style="font-size:10px; font-weight:800; color:#34c759; margin-left:auto;"><i class="fa-solid fa-circle-check"></i> Verified</span>`;
+                                    } else if (item.proof_status === 'rejected') {
+                                        proofBadge = `<span style="font-size:10px; font-weight:800; color:#ef4444; margin-left:auto;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
+                                    } else if (item.proof_image && (item.proof_status === 'pending' || !item.proof_status)) {
+                                        proofBadge = `<span style="font-size:10px; font-weight:800; color:#FF9500; margin-left:auto;"><i class="fa-solid fa-clock"></i> Pending</span>`;
+                                    }
+
                                     destinationsHtml += `
-                                        <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
-                                            <div style="width:24px; height:24px; border-radius:50%; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.2); color:#38bdf8; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; flex-shrink:0;">${index+1}</div>
-                                            <div style="flex:1; font-size:13px; color:rgba(248,250,252,0.85); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
+                                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; padding:8px 12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px;">
+                                            <div style="width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg, #38bdf8, #2563eb); color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; flex-shrink:0; box-shadow:0 2px 6px rgba(56,189,248,0.3);">${index+1}</div>
+                                            ${proofImgHtml}
+                                            <div style="flex:1; font-size:13px; color:#ffffff; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
+                                            ${proofBadge}
                                         </div>
                                     `;
                                 });
                             } else {
-                                destinationsHtml = '<div style="font-size:12px; color:rgba(255,255,255,0.4); font-style:italic; text-align:center; padding:10px 0;">No destinations added yet.</div>';
+                                destinationsHtml = '<div style="font-size:12px; color:rgba(255,255,255,0.5); font-style:italic; text-align:center; padding:10px 0;">No destinations added yet.</div>';
                             }
 
                             tripsHtml += `
-                                <div class="trip-swipe-container" data-trip-id="${trip.id}" style="margin-bottom: 12px; position: relative; overflow: hidden; border-radius: 16px;">
-                                    <div class="trip-swipe-bg" style="position: absolute; top: 0; right: 0; bottom: 0; width: 80px; background: #ef4444; border-radius: 0 16px 16px 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; gap: 4px; transform: translateX(100%);">
-                                        <i class="fa-solid fa-trash"></i> Delete
+                                <div class="trip-swipe-container" data-trip-id="${trip.id}" style="margin-bottom: 14px; position: relative; overflow: hidden; border-radius: 20px;">
+                                    <div class="trip-swipe-bg" style="position: absolute; top: 0; right: 0; bottom: 0; width: 85px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 0 20px 20px 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 800; gap: 4px; z-index: 1; transform: translateX(85px); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+                                        <i class="fa-solid fa-trash-can"></i> Delete
                                     </div>
-                                    <div class="trip-swipe-content" style="position: relative; z-index: 1; transition: transform 0.2s ease; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; overflow: hidden;">
-                                        <div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.toggle-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.paddingTop = '14px'; content.style.paddingBottom = '14px'; content.style.maxHeight = (content.scrollHeight + 50) + 'px'; content.style.opacity = '1'; icon.style.transform = 'rotate(90deg)'; } else { content.style.maxHeight = '0px'; content.style.opacity = '0'; content.style.paddingTop = '0'; content.style.paddingBottom = '0'; icon.style.transform = 'rotate(0deg)'; }" style="cursor:pointer; display:flex; align-items:center; gap: 14px; padding: 14px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.05)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
-                                            <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                                    <div class="trip-swipe-content" style="position: relative; z-index: 2; transition: transform 0.2s ease, border-radius 0.2s ease; background: linear-gradient(135deg, rgba(30, 41, 59, 0.65) 0%, rgba(15, 23, 42, 0.88) 100%); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.3);">
+                                        <div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.toggle-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.paddingTop = '14px'; content.style.paddingBottom = '16px'; content.style.maxHeight = (content.scrollHeight + 50) + 'px'; content.style.opacity = '1'; icon.style.transform = 'rotate(90deg)'; } else { content.style.maxHeight = '0px'; content.style.opacity = '0'; content.style.paddingTop = '0'; content.style.paddingBottom = '0'; icon.style.transform = 'rotate(0deg)'; }" style="cursor:pointer; display:flex; align-items:center; gap: 14px; padding: 16px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.05)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
+                                            <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(56, 189, 248, 0.14); border: 1px solid rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 14px rgba(56,189,248,0.25);">
                                                 <i class="fa-solid fa-map-location-dot" style="color: #38bdf8; font-size: 20px;"></i>
                                             </div>
                                             <div style="flex: 1; min-width: 0;">
-                                                <span style="display:block; font-size:15px; font-weight:800; color:#f8fafc; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.2px;">${trip.title}</span>
-                                                <span style="display:block; font-size:12px; color:rgba(148,163,184,0.9); font-weight:500;">
-                                                    <i class="fa-solid fa-location-dot" style="margin-right:3px; color:rgba(148,163,184,0.6);"></i>${trip.items ? trip.items.length : 0} Stops
-                                                    <span style="margin:0 4px; color:rgba(255,255,255,0.1);">|</span>
-                                                    <i class="fa-regular fa-calendar" style="margin-right:3px; color:rgba(148,163,184,0.6);"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No Date'}
+                                                <span style="display:block; font-size:16px; font-weight:800; color:#ffffff; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.3px;">${trip.title}</span>
+                                                <span style="display:flex; align-items:center; gap:8px; font-size:12px; color:rgba(226,232,240,0.8); font-weight:600;">
+                                                    <span><i class="fa-solid fa-location-dot" style="margin-right:4px; color:#38bdf8;"></i>${trip.items ? trip.items.length : 0} Stops</span>
+                                                    <span style="color:rgba(255,255,255,0.15);">&bull;</span>
+                                                    <span><i class="fa-regular fa-calendar" style="margin-right:4px; color:#38bdf8;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No Date'}</span>
                                                 </span>
                                             </div>
-                                            <i class="fa-solid fa-chevron-right toggle-icon" style="color: rgba(255,255,255,0.3); font-size: 14px; margin-right:4px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></i>
+                                            <i class="fa-solid fa-chevron-right toggle-icon" style="color: rgba(255,255,255,0.4); font-size: 14px; margin-right:4px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></i>
                                         </div>
-                                        <div style="max-height: 0px; opacity: 0; padding: 0 14px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255,255,255,0.03);">
+                                        <div style="max-height: 0px; opacity: 0; padding: 0 16px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; background: transparent; border-top: 1px solid rgba(56,189,248,0.15);">
                                             ${destinationsHtml}
-                                            <button onclick="navigateTo('itinerary')" style="width:100%; margin-top:6px; background:rgba(56,189,248,0.1); border:1px dashed rgba(56,189,248,0.3); color:#38bdf8; padding:10px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; transition:background 0.2s;">
-                                                Open Full Itinerary
-                                            </button>
+                                            <div style="display:flex; gap:10px; margin-top:12px; margin-bottom:2px;">
+                                                <button onclick="window.location.href='?view=trip_map&trip_id=${trip.id}'" style="flex:1; background:linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); border:1px solid rgba(255,255,255,0.2); color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 16px rgba(56,189,248,0.35);">
+                                                    <i class="fa-solid fa-compass"></i> Start Trip
+                                                </button>
+                                                <button onclick="navigateTo('saved_trips')" style="flex:1; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                                                    <i class="fa-solid fa-route"></i> View Details
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -835,42 +1114,60 @@ window.toggleRecommendedMore = function() {
             const content = container.querySelector('.trip-swipe-content');
             const bg = container.querySelector('.trip-swipe-bg');
             if (!content) return;
-            let startX = 0, currentX = 0, isSwiping = false;
+            let startX = 0, currentX = 0, isSwiping = false, moved = false;
 
-            content.addEventListener('touchstart', (e) => {
-                startX = e.touches[0].clientX;
-                isSwiping = false;
+            const handleStart = (clientX) => {
+                startX = clientX;
+                currentX = startX;
+                isSwiping = true;
+                moved = false;
                 content.style.transition = 'none';
-            }, { passive: true });
+                if (bg) bg.style.transition = 'none';
+            };
 
-            content.addEventListener('touchmove', (e) => {
-                if (startX === 0) return;
-                currentX = e.touches[0].clientX;
+            const handleMove = (clientX) => {
+                if (!isSwiping) return;
+                currentX = clientX;
                 let diff = startX - currentX;
-                if (Math.abs(diff) > 5) isSwiping = true;
-                if (diff < 0) diff = 0;
-                const translate = Math.min(diff, 80);
-                content.style.transform = `translateX(-${translate}px)`;
-                content.style.borderRadius = translate > 5 ? '16px 0 0 16px' : '16px';
-                if (bg) bg.style.transform = `translateX(${80 - translate}px)`;
-            }, { passive: true });
+                if (Math.abs(diff) > 5) moved = true;
+                if (diff > 0) {
+                    const translate = Math.min(diff, 85);
+                    content.style.transform = `translateX(-${translate}px)`;
+                    content.style.borderRadius = translate > 5 ? '20px 0 0 20px' : '20px';
+                    if (bg) bg.style.transform = `translateX(${85 - translate}px)`;
+                } else if (diff < -5) {
+                    content.style.transform = 'translateX(0px)';
+                    content.style.borderRadius = '20px';
+                    if (bg) bg.style.transform = 'translateX(85px)';
+                }
+            };
 
-            content.addEventListener('touchend', (e) => {
-                content.style.transition = 'transform 0.2s ease, border-radius 0.2s ease';
-                if (bg) bg.style.transition = 'transform 0.2s ease';
+            const handleEnd = () => {
+                if (!isSwiping) return;
+                content.style.transition = 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.2s ease';
+                if (bg) bg.style.transition = 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)';
                 const diff = startX - currentX;
-                if (diff > 60 && isSwiping) {
+                if (diff > 60 && moved) {
                     const id = container.dataset.tripId;
                     if (id) window.deleteSavedTrip(id, container);
                 } else {
-                    content.style.transform = '';
-                    content.style.borderRadius = '16px';
-                    if (bg) bg.style.transform = 'translateX(100%)';
+                    content.style.transform = 'translateX(0px)';
+                    content.style.borderRadius = '20px';
+                    if (bg) bg.style.transform = 'translateX(85px)';
                 }
                 startX = 0;
                 currentX = 0;
                 isSwiping = false;
-            }, { passive: true });
+                moved = false;
+            };
+
+            content.addEventListener('touchstart', (e) => handleStart(e.touches[0].clientX), { passive: true });
+            content.addEventListener('touchmove', (e) => handleMove(e.touches[0].clientX), { passive: true });
+            content.addEventListener('touchend', handleEnd, { passive: true });
+
+            content.addEventListener('mousedown', (e) => handleStart(e.clientX));
+            window.addEventListener('mousemove', (e) => { if (isSwiping) handleMove(e.clientX); });
+            window.addEventListener('mouseup', () => { if (isSwiping) handleEnd(); });
         });
     };
 
@@ -886,35 +1183,460 @@ window.toggleRecommendedMore = function() {
                     'Accept': 'application/json'
                 }
             });
-            if (res.ok) {
-                element.style.transition = 'all 0.3s ease';
-                element.style.opacity = '0';
-                element.style.transform = 'scale(0.9)';
-                setTimeout(() => {
-                    element.remove();
-                    const tripsContainer = document.getElementById('saved-trips-container');
-                    if (tripsContainer && tripsContainer.children.length === 0) {
-                        tripsContainer.innerHTML = `
-                            <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px;">
-                                <i class="fa-solid fa-route" style="font-size: 32px; color: rgba(56,189,248,0.4);"></i>
-                                <div style="color: rgba(148,163,184,0.8); font-size: 14px; line-height: 1.4;">No saved trips yet.</div>
-                                <button onclick="navigateTo('itinerary')" style="background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; border: none; padding: 11px 22px; border-radius: 100px; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(56,189,248,0.3);">
-                                    <i class="fa-solid fa-plus"></i> Plan a Trip
-                                </button>
-                            </div>
-                        `;
-                    }
-                }, 300);
+
+            // Clear local cached saved trips
+            const cacheKey = 'saved_trips_' + token.substring(0, 10);
+            localStorage.removeItem(cacheKey);
+
+            if (res.ok || res.status === 404) {
+                if (element) {
+                    element.style.transition = 'all 0.3s ease';
+                    element.style.opacity = '0';
+                    element.style.transform = 'scale(0.9)';
+                    setTimeout(() => {
+                        element.remove();
+                        const tripsContainer = document.getElementById('saved-trips-container');
+                        if (tripsContainer && tripsContainer.children.length === 0) {
+                            tripsContainer.innerHTML = `
+                                <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px;">
+                                    <i class="fa-solid fa-route" style="font-size: 32px; color: rgba(56,189,248,0.4);"></i>
+                                    <div style="color: rgba(148,163,184,0.8); font-size: 14px; line-height: 1.4;">No saved trips yet.</div>
+                                    <button onclick="navigateTo('itinerary')" style="background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; border: none; padding: 11px 22px; border-radius: 100px; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(56,189,248,0.3);">
+                                        <i class="fa-solid fa-plus"></i> Plan a Trip
+                                    </button>
+                                </div>
+                            `;
+                        }
+                    }, 300);
+                }
             } else {
-                console.error('Failed to delete itinerary');
-                const content = element.querySelector('.trip-swipe-content');
-                const bg = element.querySelector('.trip-swipe-bg');
-                if (content) { content.style.transform = ''; content.style.borderRadius = '16px'; }
-                if (bg) bg.style.transform = 'translateX(100%)';
+                const content = element ? element.querySelector('.trip-swipe-content') : null;
+                if (content) { content.style.transform = 'translateX(0px)'; content.style.borderRadius = '20px'; }
             }
         } catch (e) {
             console.error('Error deleting itinerary', e);
         }
     };
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    //  Weather API Integration
+    // ─────────────────────────────────────────────────────────────────────────────
+    window.currentWeatherLocation = { lat: 16.6159, lng: 120.3209, name: 'San Fernando, La Union', isCurrentLoc: false };
+
+    window.fetchWeather = async function(lat = 16.6159, lng = 120.3209, locationName = 'San Fernando, La Union', isCurrentLoc = false) {
+        window.currentWeatherLocation = { lat, lng, name: locationName, isCurrentLoc };
+        const tempEl = document.getElementById('weather-temp');
+        const descEl = document.getElementById('weather-desc');
+        const locEl = document.getElementById('weather-loc');
+        const humidityEl = document.getElementById('weather-humidity');
+        const windEl = document.getElementById('weather-wind');
+        const uvEl = document.getElementById('weather-uv');
+        const iconEl = document.getElementById('weather-icon');
+
+        try {
+            const apiBase = window.backendUrl || '';
+            const isCurrentParam = isCurrentLoc ? '&is_current_location=1' : '';
+            const url = `${apiBase}/api/public/weather?lat=${lat}&lng=${lng}&location=${encodeURIComponent(locationName)}${isCurrentParam}`;
+            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) throw new Error('Weather request failed with status ' + res.status);
+            const data = await res.json();
+            
+            if (tempEl) tempEl.textContent = `${data.temperature}°C`;
+            if (descEl) descEl.textContent = data.condition;
+            if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${data.location}`;
+            if (humidityEl) humidityEl.textContent = `${data.humidity}%`;
+            if (windEl) windEl.textContent = `${data.wind_speed} km/h`;
+            if (uvEl) uvEl.textContent = data.uv_index;
+            if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(data.icon, data.fa_icon);
+
+            window.updateWeatherModal(data);
+        } catch (e) {
+            console.warn('Weather fetch error, falling back:', e);
+            if (tempEl) tempEl.textContent = '29°C';
+            if (descEl) descEl.textContent = 'Partly Cloudy';
+            if (humidityEl) humidityEl.textContent = '72%';
+            if (windEl) windEl.textContent = '14 km/h';
+            if (uvEl) uvEl.textContent = '6';
+        }
+    };
+
+    window.renderWeatherIconHtml = function(iconEmoji, faIcon) {
+        if (faIcon) {
+            let color = '#fbbf24';
+            if (faIcon.includes('sun')) color = '#fbbf24';
+            else if (faIcon.includes('moon')) color = '#a78bfa';
+            else if (faIcon.includes('rain') || faIcon.includes('shower')) color = '#38bdf8';
+            else if (faIcon.includes('bolt')) color = '#f59e0b';
+            else if (faIcon.includes('cloud')) color = '#94a3b8';
+            else if (faIcon.includes('smog')) color = '#cbd5e1';
+            
+            return `<i class="fa-solid ${faIcon}" style="color:${color}; filter:drop-shadow(0 0 10px ${color}80);"></i>`;
+        }
+        return iconEmoji || '⛅';
+    };
+
+    window.locateMeForWeather = function() {
+        const locEl = document.getElementById('weather-loc');
+        const descEl = document.getElementById('weather-desc');
+        if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot fa-spin" style="color:#38bdf8; margin-right:4px;"></i> Detecting location...`;
+        if (descEl) descEl.textContent = 'Acquiring location...';
+
+        const fallbackToIp = () => {
+            fetch('https://ipapi.co/json/')
+                .then(r => r.json())
+                .then(ipData => {
+                    if (ipData && ipData.latitude && ipData.longitude) {
+                        const locName = (ipData.city || ipData.region || 'La Union') + ', ' + (ipData.region || 'Philippines');
+                        window.fetchWeather(ipData.latitude, ipData.longitude, locName, true);
+                    } else {
+                        window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
+                    }
+                })
+                .catch(() => {
+                    window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
+                });
+        };
+
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    window.userCurrentCoords = { lat, lng };
+                    window.fetchWeather(lat, lng, 'My Location', true);
+                },
+                (err) => {
+                    console.warn('GPS location failed, using IP fallback:', err);
+                    fallbackToIp();
+                },
+                { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
+            );
+        } else {
+            fallbackToIp();
+        }
+    };
+
+    window.updateWeatherModal = function(data) {
+        const modalLoc = document.getElementById('modal-weather-loc');
+        const modalTemp = document.getElementById('modal-temp');
+        const modalCondition = document.getElementById('modal-condition');
+        const modalFeels = document.getElementById('modal-feels');
+        const modalIcon = document.getElementById('modal-icon');
+        const forecastContainer = document.getElementById('weather-forecast-container');
+        const muniSelect = document.getElementById('weather-muni-select');
+
+        if (modalLoc) modalLoc.textContent = data.location;
+        if (modalTemp) modalTemp.textContent = `${data.temperature}°C`;
+        if (modalCondition) modalCondition.textContent = data.condition;
+        if (modalFeels) modalFeels.textContent = `Feels like ${data.feels_like}°C · Humidity ${data.humidity}% · Wind ${data.wind_speed}km/h`;
+        if (modalIcon) modalIcon.innerHTML = window.renderWeatherIconHtml(data.icon, data.fa_icon);
+
+        if (forecastContainer && data.forecast && data.forecast.length > 0) {
+            forecastContainer.innerHTML = data.forecast.map(item => `
+                <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between;">
+                    <div style="display:flex; align-items:center; gap:14px;">
+                        <span style="font-size:26px; width:32px; text-align:center; display:inline-block;">${window.renderWeatherIconHtml(item.icon, item.fa_icon)}</span>
+                        <div>
+                            <div style="font-size:14px; font-weight:800; color:#fff;">${item.day}</div>
+                            <div style="font-size:11px; color:rgba(255,255,255,0.6);">${item.condition}</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:14px; font-weight:800; color:#fff;">${item.temp_max}° <span style="font-size:12px; color:rgba(255,255,255,0.5); font-weight:500;">/ ${item.temp_min}°C</span></div>
+                        <div style="font-size:10px; color:#38bdf8; font-weight:700; margin-top:2px;"><i class="fa-solid fa-droplet" style="font-size:9px;"></i> ${item.rain_prob}% rain</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    };
+
+    window.openWeatherModal = function() {
+        const modal = document.getElementById('weather-modal');
+        if (modal) modal.style.display = 'flex';
+    };
+
+    window.closeWeatherModal = function() {
+        const modal = document.getElementById('weather-modal');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.changeWeatherLocation = function(valStr) {
+        if (valStr === 'GPS_CURRENT') {
+            window.locateMeForWeather();
+            return;
+        }
+        const parts = valStr.split(',');
+        if (parts.length >= 3) {
+            const lat = parseFloat(parts[0]);
+            const lng = parseFloat(parts[1]);
+            const name = parts[2];
+            window.fetchWeather(lat, lng, name + ', La Union', false);
+        }
+    };
+
+    // Auto locate & fetch weather on startup
+    setTimeout(() => {
+        if (typeof window.fetchWeather === 'function') {
+            window.locateMeForWeather();
+        }
+    }, 100);
+
+    // =========================================================================
+    // ONBOARDING MODAL SEQUENCE CONTROLLER (Privacy -> Complete Profile -> 2FA)
+    // =========================================================================
+    window.initDashboardOnboarding = function() {
+        const isActive = sessionStorage.getItem('onboarding_active') === '1';
+        if (!isActive) return;
+
+        const step = sessionStorage.getItem('onboarding_step') || '1';
+        const targetEmail = sessionStorage.getItem('pending_reg_email') || 'your email';
+
+        const privacyModal = document.getElementById('onboard-privacy-modal');
+        const profileModal = document.getElementById('onboard-profile-modal');
+        const twoFaModal = document.getElementById('onboard-2fa-modal');
+
+        if (privacyModal) privacyModal.style.display = 'none';
+        if (profileModal) profileModal.style.display = 'none';
+        if (twoFaModal) twoFaModal.style.display = 'none';
+
+        if (step === '1' && privacyModal) {
+            privacyModal.style.display = 'flex';
+        } else if (step === '2' && profileModal) {
+            profileModal.style.display = 'flex';
+        } else if (step === '3' && twoFaModal) {
+            twoFaModal.style.display = 'flex';
+            const emailEl = document.getElementById('onboard-target-email');
+            if (emailEl) emailEl.textContent = targetEmail;
+            setupOnboardOtpInputs();
+        }
+    };
+
+    function setupOnboardOtpInputs() {
+        const boxes = document.querySelectorAll('.onboard-otp-box');
+        boxes.forEach((box, idx) => {
+            box.value = '';
+            box.oninput = (e) => {
+                if (e.target.value && idx < boxes.length - 1) {
+                    boxes[idx + 1].focus();
+                }
+            };
+            box.onkeydown = (e) => {
+                if (e.key === 'Backspace' && !e.target.value && idx > 0) {
+                    boxes[idx - 1].focus();
+                }
+            };
+        });
+        if (boxes[0]) setTimeout(() => boxes[0].focus(), 200);
+    }
+
+    window.onboardAcceptPrivacy = function() {
+        const chk = document.getElementById('chk-onboard-privacy');
+        if (chk && !chk.checked) {
+            if (typeof showToast === 'function') showToast('Please accept the Privacy & Security terms to proceed.');
+            return;
+        }
+        sessionStorage.setItem('onboarding_step', '2');
+        window.initDashboardOnboarding();
+    };
+
+    window.onboardSaveProfile = async function() {
+        const phone = document.getElementById('onboard-phone')?.value || '';
+        const home = document.getElementById('onboard-home')?.value || '';
+        const bio = document.getElementById('onboard-bio')?.value || '';
+        
+        const activeChips = Array.from(document.querySelectorAll('#onboard-pref-chips .pref-chip.active')).map(c => c.textContent.trim());
+        const prefs = activeChips.join(', ');
+
+        const token = localStorage.getItem('intan_elyu_token');
+        if (token && (phone || home || bio || prefs)) {
+            try {
+                await fetch((window.backendUrl || 'https://api.intan-elyu.online') + '/api/tourist/profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ phone, home_location: home, bio, travel_preferences: prefs })
+                });
+            } catch (e) {}
+        }
+        sessionStorage.setItem('onboarding_step', '3');
+        window.initDashboardOnboarding();
+    };
+
+    window.onboardSkipProfile = function() {
+        sessionStorage.setItem('onboarding_step', '3');
+        window.initDashboardOnboarding();
+    };
+
+    window.onboardSkip2FA = function() {
+        sessionStorage.removeItem('onboarding_active');
+        sessionStorage.removeItem('onboarding_step');
+        sessionStorage.removeItem('pending_reg_email');
+        const privacyModal = document.getElementById('onboard-privacy-modal');
+        const profileModal = document.getElementById('onboard-profile-modal');
+        const twoFaModal = document.getElementById('onboard-2fa-modal');
+        if (privacyModal) privacyModal.style.display = 'none';
+        if (profileModal) profileModal.style.display = 'none';
+        if (twoFaModal) twoFaModal.style.display = 'none';
+        if (typeof showToast === 'function') showToast('You can complete 2FA verification anytime from Settings.');
+    };
+
+    window.onboardVerify2FA = async function() {
+        const email = sessionStorage.getItem('pending_reg_email') || '';
+        const boxes = document.querySelectorAll('.onboard-otp-box');
+        const otp = Array.from(boxes).map(b => b.value.trim()).join('');
+
+        if (otp.length < 6) {
+            if (typeof showToast === 'function') showToast('Please enter the full 6-digit 2FA code.');
+            return;
+        }
+
+        const btn = document.getElementById('btn-onboard-verify-2fa');
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verifying...';
+            btn.disabled = true;
+        }
+
+        try {
+            const res = await fetch((window.backendUrl || 'https://api.intan-elyu.online') + '/api/auth/verify-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ email, otp })
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.message || 'Incorrect verification code.');
+            }
+
+            if (data.token && data.user) {
+                localStorage.setItem('intan_elyu_token', data.token);
+                localStorage.setItem('auth_user', JSON.stringify(data.user));
+            }
+
+            sessionStorage.removeItem('onboarding_active');
+            sessionStorage.removeItem('onboarding_step');
+            sessionStorage.removeItem('pending_reg_email');
+
+            if (typeof showToast === 'function') showToast('🎉 Account activated successfully! Welcome to Intan Elyu!');
+            
+            setTimeout(() => window.location.reload(), 500);
+        } catch (err) {
+            if (typeof showToast === 'function') showToast(err.message);
+            if (btn) {
+                btn.innerHTML = 'Verify Code & Activate Account <i class="fa-solid fa-circle-check"></i>';
+                btn.disabled = false;
+            }
+        }
+    };
+
+    setTimeout(() => {
+        if (typeof window.initDashboardOnboarding === 'function') {
+            window.initDashboardOnboarding();
+        }
+    }, 200);
 </script>
+
+<!-- STEP 1: Privacy Policy & Security Terms Modal -->
+<div id="onboard-privacy-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(12px); z-index:999999; justify-content:center; align-items:center; padding:16px;">
+    <div style="background:#0f172a; border:1px solid rgba(56,189,248,0.3); border-radius:24px; width:100%; max-width:480px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.8); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+        <div style="padding:20px 24px; background:linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.95)); border-bottom:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin:0; font-size:17px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-shield-halved" style="color:#38bdf8;"></i> Step 1 of 3 — Privacy & Security Terms
+            </h3>
+        </div>
+        <div style="padding:20px; overflow-y:auto; flex:1; font-size:13px; color:rgba(248,250,252,0.9); line-height:1.6;">
+            <p style="margin-top:0;">Welcome to <strong>Intan Elyu Tourism Management System</strong>! Before proceeding, please review and accept our Data Privacy & Security Policy.</p>
+            <h4 style="color:#38bdf8; margin:14px 0 6px 0; font-size:13px;">1. Information Collection</h4>
+            <p style="margin:0 0 10px 0; color:rgba(148,163,184,0.9);">We collect your account details (Name, Email, Preferences) and optional GPS coordinates to provide personalized travel itineraries and AR check-in features.</p>
+            <h4 style="color:#38bdf8; margin:14px 0 6px 0; font-size:13px;">2. Data Protection</h4>
+            <p style="margin:0 0 10px 0; color:rgba(148,163,184,0.9);">Your personal information is encrypted and strictly protected under the Republic Act No. 10173 (Data Privacy Act of 2012).</p>
+            <h4 style="color:#38bdf8; margin:14px 0 6px 0; font-size:13px;">3. 2FA Security Guarantee</h4>
+            <p style="margin:0; color:rgba(148,163,184,0.9);">Two-Factor Authentication is enforced to secure your tourist account against unauthorized access.</p>
+        </div>
+        <div style="padding:16px 20px; background:rgba(15,23,42,0.98); border-top:1px solid rgba(255,255,255,0.08); display:flex; flex-direction:column; gap:14px;">
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:12px; color:#f8fafc; font-weight:600;">
+                <input type="checkbox" id="chk-onboard-privacy" class="circular-checkbox" style="width:18px; height:18px; accent-color:#38bdf8;">
+                <span>I have read and agree to the Privacy Policy & Security Terms.</span>
+            </label>
+            <button onclick="window.onboardAcceptPrivacy()" style="width:100%; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:12px; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
+                Accept Terms & Continue <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- STEP 2: Complete Profile Modal -->
+<div id="onboard-profile-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(12px); z-index:999999; justify-content:center; align-items:center; padding:16px;">
+    <div style="background:#0f172a; border:1px solid rgba(56,189,248,0.3); border-radius:24px; width:100%; max-width:480px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.8); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+        <div style="padding:20px 24px; background:linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.95)); border-bottom:1px solid rgba(255,255,255,0.08);">
+            <h3 style="margin:0 0 4px 0; font-size:17px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-user-gear" style="color:#fbbf24;"></i> Step 2 of 3 — Complete Your Profile
+            </h3>
+            <p style="margin:0; font-size:12px; color:rgba(148,163,184,0.9);">Tell us a bit about yourself to personalize recommendations.</p>
+        </div>
+        <div style="padding:20px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:14px;">
+            <div>
+                <label style="display:block; font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); margin-bottom:6px;">Mobile Phone Number</label>
+                <input type="text" id="onboard-phone" placeholder="0912 345 6789" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px 14px; color:#fff; font-size:13px; outline:none;">
+            </div>
+            <div>
+                <label style="display:block; font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); margin-bottom:6px;">Home Town / City</label>
+                <input type="text" id="onboard-home" placeholder="e.g. Manila, La Union, Baguio" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px 14px; color:#fff; font-size:13px; outline:none;">
+            </div>
+            <div>
+                <label style="display:block; font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); margin-bottom:6px;">Short Bio</label>
+                <textarea id="onboard-bio" rows="2" placeholder="Share your travel interests..." style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px 14px; color:#fff; font-size:13px; outline:none; resize:none;"></textarea>
+            </div>
+            <div>
+                <label style="display:block; font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); margin-bottom:8px;">Travel Preferences</label>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;" id="onboard-pref-chips">
+                    <span onclick="this.classList.toggle('active')" class="pref-chip" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 12px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer;">🏄 Surfing</span>
+                    <span onclick="this.classList.toggle('active')" class="pref-chip" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 12px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer;">🏖️ Beach</span>
+                    <span onclick="this.classList.toggle('active')" class="pref-chip" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 12px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer;">⛰️ Hiking</span>
+                    <span onclick="this.classList.toggle('active')" class="pref-chip" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 12px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer;">🍜 Food & Dining</span>
+                    <span onclick="this.classList.toggle('active')" class="pref-chip" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 12px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer;">🏛️ Heritage</span>
+                </div>
+            </div>
+        </div>
+        <div style="padding:16px 20px; background:rgba(15,23,42,0.98); border-top:1px solid rgba(255,255,255,0.08); display:flex; gap:10px;">
+            <button onclick="window.onboardSkipProfile()" style="flex:1; background:transparent; border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.7); padding:12px; border-radius:12px; font-weight:700; font-size:12px; cursor:pointer;">
+                Skip for now
+            </button>
+            <button onclick="window.onboardSaveProfile()" style="flex:2; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:12px; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
+                Save & Continue <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- STEP 3: 2FA Verification Modal -->
+<div id="onboard-2fa-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(12px); z-index:999999; justify-content:center; align-items:center; padding:16px;">
+    <div style="background:#0f172a; border:1px solid rgba(56,189,248,0.3); border-radius:24px; width:100%; max-width:440px; padding:24px; display:flex; flex-direction:column; gap:16px; box-shadow:0 20px 50px rgba(0,0,0,0.8); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); text-align:center;">
+        <div style="width:56px; height:56px; border-radius:50%; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:24px; margin:0 auto;">
+            <i class="fa-solid fa-lock"></i>
+        </div>
+        <div>
+            <h3 style="margin:0 0 6px 0; font-size:18px; font-weight:800; color:#fff;">Step 3 of 3 — 2FA Security Code</h3>
+            <p style="margin:0; font-size:12px; color:rgba(148,163,184,0.9); line-height:1.4;">
+                Enter the 6-digit verification code sent to your email:<br>
+                <strong id="onboard-target-email" style="color:#38bdf8;">loading...</strong>
+            </p>
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:8px; margin:10px 0;" id="onboard-otp-container">
+            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
+            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
+            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
+            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
+            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
+            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
+        </div>
+
+        <button id="btn-onboard-verify-2fa" onclick="window.onboardVerify2FA()" style="width:100%; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:13px; border-radius:12px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
+            Verify Code & Activate Account <i class="fa-solid fa-circle-check"></i>
+        </button>
+        <button onclick="window.onboardSkip2FA()" style="width:100%; background:transparent; border:none; color:rgba(255,255,255,0.6); font-size:12px; font-weight:600; cursor:pointer; padding:6px; margin-top:2px; text-decoration:underline;">
+            Skip this for now
+        </button>
+    </div>
+</div>
 
