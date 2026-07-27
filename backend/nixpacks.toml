@@ -1,6 +1,6 @@
 [phases.setup]
   nixpkgsArchive = "23.11"
-  nixPkgs = ["php", "composer", "php83Extensions.pdo_mysql", "php83Extensions.mbstring", "php83Extensions.xml", "php83Extensions.bcmath", "php83Extensions.curl", "php83Extensions.zip", "php83Extensions.gd"]
+  nixPkgs = ["php83", "php83Packages.composer", "php83Extensions.pdo_mysql", "php83Extensions.mbstring", "php83Extensions.xml", "php83Extensions.bcmath", "php83Extensions.curl", "php83Extensions.zip", "php83Extensions.gd"]
 
 [phases.install]
   dependsOn = ["setup"]
