@@ -42,6 +42,7 @@ $serveFileHandler = function ($file) {
     $paths = [
         $base . '/' . $cleanFile,
         $base . '/' . $file,
+        $base . '/Logo/' . preg_replace('#^Logo/#i', '', $cleanFile),
         $base . '/proofs/' . preg_replace('#^proofs/#i', '', $cleanFile),
         $base . '/tourist_spots/' . preg_replace('#^tourist_spots/#i', '', $cleanFile),
         $base . '/fare_matrices/' . preg_replace('#^fare_matrices/#i', '', $cleanFile),

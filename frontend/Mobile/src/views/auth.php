@@ -4,7 +4,17 @@
     <!-- Top Blue Section -->
     <div class="auth-top">
         <div class="logo-container">
-            <img src="assets/img/logo.png" alt="Intan Elyu Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%; display: block;" onerror="if(!this.dataset.tried){this.dataset.tried=1; this.src='src/assets/img/logo.png';}else if(this.dataset.tried=='1'){this.dataset.tried=2; this.src='/assets/img/logo.png';}">
+            <img id="auth-logo-img" src="assets/img/logo.png" alt="Intan Elyu Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%; display: block;">
+            <script>
+                (function(){
+                    const img = document.getElementById('auth-logo-img');
+                    if (img) {
+                        const bUrl = window.backendUrl || 'https://api.intan-elyu.online';
+                        img.src = bUrl + '/api/image/storage/Logo/intan-elyu-logo.png';
+                        img.onerror = function() { this.onerror = null; this.src = 'assets/img/logo.png'; };
+                    }
+                })();
+            </script>
         </div>
         <h1 id="auth-title" style="color: #ffffff; font-weight: 800;">Welcome to Elyu</h1>
         

@@ -4,7 +4,17 @@
     <div class="stagger-1" style="position:relative; z-index:100;">
         <div class="splash-logo">
             <div class="splash-logo-container" style="box-sizing: border-box; width: 140px; height: 140px; background: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; position: relative; z-index: 10; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4); padding: 5px;">
-                <img src="assets/img/logo.png" alt="Intan Elyu Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%; display: block;" onerror="if(!this.dataset.tried){this.dataset.tried=1; this.src='src/assets/img/logo.png';}else if(this.dataset.tried=='1'){this.dataset.tried=2; this.src='/assets/img/logo.png';}">
+                <img id="splash-logo-img" src="assets/img/logo.png" alt="Intan Elyu Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%; display: block;">
+                <script>
+                    (function(){
+                        const img = document.getElementById('splash-logo-img');
+                        if (img) {
+                            const bUrl = window.backendUrl || 'https://api.intan-elyu.online';
+                            img.src = bUrl + '/api/image/storage/Logo/intan-elyu-logo.png';
+                            img.onerror = function() { this.onerror = null; this.src = 'assets/img/logo.png'; };
+                        }
+                    })();
+                </script>
             </div>
             <span class="splash-title">Intan Elyu</span>
         </div>
