@@ -1,4 +1,5 @@
 *
 !.gitignore
-!*/
-!**/.gitkeep
+!avatars/.gitkeep
+!proofs/.gitkeep
+!tourist_spots/.gitkeep
