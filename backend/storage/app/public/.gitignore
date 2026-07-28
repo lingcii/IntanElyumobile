@@ -1,5 +1,2 @@
-*
-!.gitignore
-!avatars/.gitkeep
-!proofs/.gitkeep
-!tourist_spots/.gitkeep
+# Unignore public storage contents
+!*
