@@ -93,7 +93,7 @@ if (is_dir($imgDir)) {
                 <div class="trending-card" style="animation-delay:${i * 0.08}s" onclick="window.viewTrendingDest(${dest.id}, '${dest.name.replace(/'/g, "\\'")}', '${encodeURIComponent(JSON.stringify(dest))}')">
                     ${dest.classification_status ? `<div class="badge" style="background:${badgeColor};">${badgeLabel}</div>` : ''}
                     <i class="fa-solid fa-fire fire-icon"></i>
-                    <img src="${img}" alt="${dest.name}" onerror="this.onerror=null; this.style.display='none';">
+                    <img src="${img}" alt="${dest.name}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
                     <div class="overlay">
                         <div class="name">${dest.name}</div>
                         <div class="meta">${visits.toLocaleString()} visits</div>
