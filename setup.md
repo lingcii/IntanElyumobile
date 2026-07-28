@@ -110,3 +110,25 @@ npx cap open android
 - **CORS Issues:** If the frontend cannot communicate with the backend, ensure your backend `.env` has the correct `APP_URL` and your Laravel CORS settings (`config/cors.php`) allow requests from `http://localhost:3000`.
 - **Database Connection Errors:** Verify your MySQL server is running (e.g., Apache and MySQL modules are started in XAMPP control panel) and the credentials in `.env` are correct.
 - **Missing Images:** Run `php artisan storage:link` in the backend directory to create a symbolic link for local storage images.
+
+---
+
+## 4. Cloudflare R2 Cloud Storage Setup (Optional for Production)
+
+To store proof uploads, avatars, and tourist spot photos in Cloudflare R2 object storage ($0 egress fees):
+
+1. Go to your **Cloudflare Dashboard** -> **R2** -> Create a bucket named `intan-elyu-media`.
+2. Generate an R2 API Token with **Admin Read & Write** permissions.
+3. In your backend `.env`, set:
+   ```env
+   FILESYSTEM_DISK=r2
+   CLOUDFLARE_R2_ACCESS_KEY_ID=your_access_key
+   CLOUDFLARE_R2_SECRET_ACCESS_KEY=your_secret_key
+   CLOUDFLARE_R2_BUCKET=intan-elyu-media
+   CLOUDFLARE_R2_ENDPOINT=https://<account_id>.r2.cloudflarestorage.com
+   CLOUDFLARE_R2_URL=https://media.intan-elyu.online
+   ```
+4. Clear config cache:
+   ```bash
+   php artisan config:clear
+   ```

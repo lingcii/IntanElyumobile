@@ -105,8 +105,14 @@ class ItineraryItemController extends Controller
             $file = $request->file('image');
             $ext = $file->getClientOriginalExtension() ?: 'jpg';
             $filename = 'proof_' . random_int(10000000, 99999999) . '.' . $ext;
-            $path = $file->storeAs('proofs', $filename, 'public');
-            $itemData['proof_image'] = 'storage/' . $path;
+            $disk = env('FILESYSTEM_DISK', 'public');
+            $path = $file->storeAs('proofs', $filename, $disk);
+
+            if (in_array($disk, ['r2', 's3'])) {
+                $itemData['proof_image'] = \Illuminate\Support\Facades\Storage::disk($disk)->url($path);
+            } else {
+                $itemData['proof_image'] = 'storage/' . $path;
+            }
         }
 
         $item->update($itemData);
