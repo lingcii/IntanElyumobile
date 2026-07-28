@@ -768,15 +768,14 @@ window.getDestImage = function (dest, width) {
             url = '/api/image/' + url;
         }
 
-        // Strip domain prefixes if points to backend
+        // Strip domain prefixes if points to any backend domain (localhost, railway.app, intan-elyu.online)
         if (url.indexOf('http') === 0) {
             try {
                 var parsed = new URL(url);
-                if (parsed.host.includes('localhost') || parsed.host.includes('127.0.0.1') || parsed.host.includes('intan-elyu.online')) {
-                    url = parsed.pathname + parsed.search;
-                } else {
+                if (parsed.host.includes('r2.cloudflarestorage.com') || parsed.host.includes('cloudinary.com') || parsed.host.includes('unsplash.com')) {
                     return url;
                 }
+                url = parsed.pathname + parsed.search;
             } catch (e) { return url; }
         }
         if (url.indexOf('/') === 0) return backendUrl + url;
