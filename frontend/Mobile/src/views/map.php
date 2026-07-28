@@ -1527,13 +1527,13 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             }
         }
         
+        const fallbackBanner = window.noImageFallback || 'assets/img/no_image.svg';
         const imgPath = window.getDestImage(locationData, 600);
-        const fallbackBanner = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';
         
         const imgEl = document.getElementById('sheet-img');
         if (imgEl) {
             imgEl.style.display = 'block';
-            imgEl.src = imgPath || fallbackBanner;
+            imgEl.src = (imgPath && imgPath !== window.noImageFallback) ? imgPath : fallbackBanner;
             imgEl.onerror = function() { 
                 this.onerror = null; 
                 this.src = fallbackBanner; 
