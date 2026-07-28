@@ -15,7 +15,7 @@
     transition: opacity 0.5s ease, transform 0.5s ease;
     position: relative;
     overflow-x: hidden;
-    z-index: 1;
+    z-index: 5;
 }
 
 .splash-container.exit {
@@ -210,7 +210,7 @@
     height: 60%;
     overflow: hidden;
     pointer-events: none;
-    z-index: 2;
+    z-index: 1;
 }
 
 .cloud {
