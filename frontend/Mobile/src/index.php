@@ -64,7 +64,6 @@ if ($isAjax) {
             window.backendUrl = window.BACKEND_URL || 'https://api.intan-elyu.online';
         }
         window.GOOGLE_CLIENT_ID = '874613490302-qno8lkqoujur0db888hg72hogjv6cp5v.apps.googleusercontent.com';
-        window.placeholderImage = 'assets/img/logo.png';
     </script>
     <script src="assets/js/main.js?v=<?= time() ?>"></script>
 

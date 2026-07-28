@@ -69,13 +69,27 @@
                     // The exact pixel difference needed
                     const translateY = destCenter - currentCenter;
                     
+                    // Ensure logo stays above everything during animation
+                    logoContainer.style.setProperty('z-index', '99999', 'important');
+                    logoContainer.style.setProperty('position', 'relative', 'important');
+                    
                     // Override CSS with exact inline style
                     logoContainer.style.setProperty('transform', `translateY(${translateY}px) scale(1)`, 'important');
                     logoContainer.style.setProperty('transition', 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)', 'important');
                     
                     // Freeze the float animation exactly where it is so it doesn't drift during transition
                     const wrapper = splashMain.querySelector('.splash-logo');
-                    if (wrapper) wrapper.style.setProperty('animation', 'none', 'important');
+                    if (wrapper) {
+                        wrapper.style.setProperty('animation', 'none', 'important');
+                        wrapper.style.setProperty('z-index', '99999', 'important');
+                        wrapper.style.setProperty('position', 'relative', 'important');
+                    }
+                    
+                    // Also elevate the stagger wrapper
+                    const staggerWrapper = splashMain.querySelector('.stagger-1');
+                    if (staggerWrapper) {
+                        staggerWrapper.style.setProperty('z-index', '99999', 'important');
+                    }
                 }
                 
                 splashMain.classList.add('transition-to-auth');
