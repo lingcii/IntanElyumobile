@@ -45,18 +45,16 @@ $serveFileHandler = function ($file) {
         $base . '/proofs/' . preg_replace('#^proofs/#i', '', $cleanFile),
         $base . '/tourist_spots/' . preg_replace('#^tourist_spots/#i', '', $cleanFile),
         $base . '/avatars/' . preg_replace('#^avatars/#i', '', $cleanFile),
-        base_path('../Frontend/Mobile/src/assets/img/' . $normalizedFile),
-        base_path('../Frontend/Website/Frontend/images/tourist_spots/' . $cleanFile),
-        base_path('../Frontend/Website/Frontend/images/' . $cleanFile),
-        base_path('../Frontend/Mobile/src/assets/img/upload_image/' . $cleanFile),
-        base_path('../Frontend/Mobile/src/assets/img/' . $cleanFile),
+        base_path('../frontend/Mobile/src/assets/img/' . $normalizedFile),
+        base_path('../frontend/Mobile/src/assets/img/upload_image/' . $cleanFile),
+        base_path('../frontend/Mobile/src/assets/img/' . $cleanFile),
         public_path('storage/' . $cleanFile),
         public_path('images/tourist_spots/' . $cleanFile),
         public_path('storage/tourist_spots/' . $cleanFile),
         public_path('uploads/tourist_spots/' . $cleanFile),
         public_path('storage/upload_image/' . $cleanFile),
         public_path('upload_image/' . $cleanFile),
-        base_path('../Frontend/Mobile/src/assets/images/' . $cleanFile),
+        base_path('../frontend/Mobile/src/assets/images/' . $cleanFile),
     ];
     
     foreach ($paths as $path) {
@@ -82,11 +80,9 @@ Route::get('/serve-image.php', function (\Illuminate\Http\Request $request) {
     $normalizedFile = preg_replace('#^municipalities/#i', 'MUNICIPALITIES/', $file);
     
     $paths = [
-        base_path('../Frontend/Mobile/src/assets/img/' . $normalizedFile),
-        base_path('../Frontend/Website/Frontend/images/tourist_spots/' . $file),
-        base_path('../Frontend/Website/Frontend/images/' . $file),
-        base_path('../Frontend/Mobile/src/assets/img/upload_image/' . $file),
-        base_path('../Frontend/Mobile/src/assets/img/' . $file),
+        base_path('../frontend/Mobile/src/assets/img/' . $normalizedFile),
+        base_path('../frontend/Mobile/src/assets/img/upload_image/' . $file),
+        base_path('../frontend/Mobile/src/assets/img/' . $file),
         $base . '/' . $file,
         $base . '/tourist_spots/' . $file,
         $base . '/upload_image/' . $file,
@@ -95,7 +91,7 @@ Route::get('/serve-image.php', function (\Illuminate\Http\Request $request) {
         public_path('uploads/tourist_spots/' . $file),
         public_path('storage/upload_image/' . $file),
         public_path('upload_image/' . $file),
-        base_path('../Frontend/Mobile/src/assets/images/' . $file),
+        base_path('../frontend/Mobile/src/assets/images/' . $file),
     ];
     
     foreach ($paths as $path) {
