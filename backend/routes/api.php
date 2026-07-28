@@ -44,6 +44,7 @@ $serveFileHandler = function ($file) {
         $base . '/' . $file,
         $base . '/proofs/' . preg_replace('#^proofs/#i', '', $cleanFile),
         $base . '/tourist_spots/' . preg_replace('#^tourist_spots/#i', '', $cleanFile),
+        $base . '/fare_matrices/' . preg_replace('#^fare_matrices/#i', '', $cleanFile),
         $base . '/avatars/' . preg_replace('#^avatars/#i', '', $cleanFile),
         base_path('../frontend/Mobile/src/assets/img/' . $normalizedFile),
         base_path('../frontend/Mobile/src/assets/img/upload_image/' . $cleanFile),
