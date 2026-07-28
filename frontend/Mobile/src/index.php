@@ -55,6 +55,9 @@ if ($isAjax) {
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
     <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
+    <!-- Google Identity Services SDK -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
     <script>
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             window.backendUrl = window.location.port === '3000' 
