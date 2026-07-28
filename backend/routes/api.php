@@ -64,6 +64,15 @@ $serveFileHandler = function ($file) {
         }
     }
     
+    $disk = env('FILESYSTEM_DISK', 'public');
+    if (in_array($disk, ['r2', 's3'])) {
+        try {
+            if (\Illuminate\Support\Facades\Storage::disk($disk)->exists($cleanFile)) {
+                return redirect(\Illuminate\Support\Facades\Storage::disk($disk)->url($cleanFile));
+            }
+        } catch (\Throwable $e) {}
+    }
+
     abort(404);
 };
 
