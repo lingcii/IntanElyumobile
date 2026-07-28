@@ -1,7 +1,7 @@
 *
 !.gitignore
 !avatars/.gitkeep
-!proofs/.gitkeep
+!proof_images/.gitkeep
 !tourist_spots/.gitkeep
 !fare_matrices/.gitkeep
 !Logo/*

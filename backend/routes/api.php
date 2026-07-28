@@ -30,7 +30,7 @@ Route::options('/{any}', function (\Illuminate\Http\Request $request) {
         ->header('Access-Control-Max-Age', '86400');
 })->where('any', '.*');
 
-// Route to serve images from storage (proofs, tourist_spots, municipalities, avatars, etc.)
+// Route to serve images from storage (proof_images, tourist_spots, municipalities, avatars, etc.)
 $serveFileHandler = function ($file) {
     if (!$file) abort(404);
     $file = rawurldecode(urldecode($file));
@@ -43,7 +43,7 @@ $serveFileHandler = function ($file) {
         $base . '/' . $cleanFile,
         $base . '/' . $file,
         $base . '/Logo/' . preg_replace('#^Logo/#i', '', $cleanFile),
-        $base . '/proofs/' . preg_replace('#^proofs/#i', '', $cleanFile),
+        $base . '/proof_images/' . preg_replace('#^proof_images/#i', '', $cleanFile),
         $base . '/tourist_spots/' . preg_replace('#^tourist_spots/#i', '', $cleanFile),
         $base . '/fare_matrices/' . preg_replace('#^fare_matrices/#i', '', $cleanFile),
         $base . '/avatars/' . preg_replace('#^avatars/#i', '', $cleanFile),
