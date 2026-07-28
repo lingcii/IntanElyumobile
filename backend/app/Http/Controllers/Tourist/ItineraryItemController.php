@@ -102,7 +102,10 @@ class ItineraryItemController extends Controller
         ];
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('proofs', 'public');
+            $file = $request->file('image');
+            $ext = $file->getClientOriginalExtension() ?: 'jpg';
+            $filename = 'proof_' . random_int(10000000, 99999999) . '.' . $ext;
+            $path = $file->storeAs('proofs', $filename, 'public');
             $itemData['proof_image'] = 'storage/' . $path;
         }
 
