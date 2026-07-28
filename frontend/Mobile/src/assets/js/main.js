@@ -762,6 +762,10 @@ window.getDestImage = function (dest, width) {
             return backendUrl + (url.indexOf('/') === 0 ? '' : '/') + url;
         }
 
+        if (url.indexOf('assets/') === 0 || url.indexOf('/assets/') === 0) {
+            return (url.indexOf('/') === 0 ? '' : '/') + url;
+        }
+
         if (url.indexOf('storage/') === 0 || url.indexOf('uploads/') === 0 || url.indexOf('avatars/') === 0 || url.indexOf('upload_image/') === 0 || url.indexOf('tourist_spots/') === 0) {
             url = '/api/image/' + url;
         } else if (url.indexOf('http') !== 0 && url.indexOf('/') !== 0) {
