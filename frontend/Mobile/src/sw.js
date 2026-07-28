@@ -1,9 +1,10 @@
-const CACHE_NAME = 'Intan_Elyu_cache-v6';
+const CACHE_NAME = 'Intan_Elyu_cache-v7';
 const ASSETS = [
     './',
     './assets/css/style.css',
     './assets/js/main.js',
     './assets/img/logo.png',
+    './assets/img/no_image.svg',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
     'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
 ];
@@ -50,11 +51,16 @@ self.addEventListener('fetch', (event) => {
         event.respondWith(
             fetch(event.request)
                 .then((response) => {
-                    const clone = response.clone();
-                    caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+                    if (response && response.status === 200) {
+                        const clone = response.clone();
+                        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+                    }
                     return response;
                 })
-                .catch(() => caches.match(event.request))
+                .catch(async () => {
+                    const cached = await caches.match(event.request);
+                    return cached || new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
+                })
         );
         return;
     }
@@ -64,11 +70,14 @@ self.addEventListener('fetch', (event) => {
         caches.match(event.request).then((cachedResponse) => {
             if (cachedResponse) return cachedResponse;
             return fetch(event.request).then((response) => {
-                if (response.status === 200) {
+                if (response && response.status === 200) {
                     const clone = response.clone();
                     caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
                 }
                 return response;
+            }).catch(async () => {
+                const cached = await caches.match(event.request);
+                return cached || new Response('', { status: 404, statusText: 'Not Found' });
             });
         })
     );
