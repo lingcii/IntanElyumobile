@@ -1508,4 +1508,45 @@
             window.openAuthCancelModal(error.message || 'Google sign-in could not be completed.');
         }
     };
+
+    (function checkGoogleOAuthRedirect() {
+        const hash = window.location.hash || window.location.search;
+        if (hash && (hash.includes('access_token=') || hash.includes('id_token='))) {
+            const rawParams = hash.startsWith('#') ? hash.substring(1) : (hash.startsWith('?') ? hash.substring(1) : hash);
+            const params = new URLSearchParams(rawParams);
+            const accessToken = params.get('access_token');
+            if (accessToken) {
+                // Clean URL hash so token is not left in history
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState({}, document.title, window.location.pathname + '?view=auth');
+                }
+                
+                const googleBtns = document.querySelectorAll('.btn-google');
+                googleBtns.forEach(btn => {
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Logging in with Google...';
+                    btn.disabled = true;
+                });
+
+                fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { Authorization: `Bearer ${accessToken}` }
+                })
+                .then(res => res.json())
+                .then(profile => {
+                    if (profile && profile.email) {
+                        window.handleCredentialResponse({ profile: profile });
+                    } else {
+                        throw new Error('Unable to retrieve profile from Google.');
+                    }
+                })
+                .catch(err => {
+                    console.error('Google OAuth redirect error:', err);
+                    googleBtns.forEach(btn => {
+                        btn.innerHTML = '<span>Sign in with Google</span>';
+                        btn.disabled = false;
+                    });
+                    if (typeof showToast === 'function') showToast('Google login failed. Please try again.');
+                });
+            }
+        }
+    })();
 </script>
