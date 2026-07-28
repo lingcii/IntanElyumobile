@@ -10,7 +10,7 @@ echo.
 
 :: Pre-set paths to avoid nested quotes inside start commands
 set "BACKEND_DIR=%~dp0backend"
-set "MOBILE_DIR=%~dp0Frontend\Mobile"
+set "MOBILE_DIR=%~dp0frontend\Mobile"
 set "TUNNEL_CONFIG=%~dp0cloudflare-tunnel-config.yml"
 set "CREDS_FILE=%USERPROFILE%\.cloudflared\85cd9abd-8a80-41b9-822f-395765017bc4.json"
 

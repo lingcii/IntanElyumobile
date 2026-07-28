@@ -9,8 +9,8 @@ Welcome to the **Intan-Elyu Tourism Management System**! This platform is design
 The project is structured into three main components:
 
 ### 1. 📱 Mobile App (Frontend)
-Located in `Frontend/Mobile/src/`
-- **Purpose**: A mobile-first Progressive Web App (PWA) designed for tourists.
+Located in `frontend/Mobile/src/`
+- **Purpose**: A mobile-first Progressive Web App (PWA) designed for tourists and local users.
 - **Key Features**:
   - 🗺️ **Interactive Maps**: Powered by MapLibre GL JS, featuring 3D terrain models and province-masking for a beautiful, immersive experience.
   - 📅 **Itinerary Planner**: Users can create, save, and manage their trips, complete with budget tracking.
@@ -18,22 +18,16 @@ Located in `Frontend/Mobile/src/`
   - 🛍️ **Merch Store**: Browse and redeem tourism merchandise.
   - 🏆 **Leaderboards**: Compete with other tourists based on XP earned from visiting spots.
 
-### 2. 💻 Web Dashboard (Frontend)
-Located in `Frontend/Website/Frontend/`
-- **Purpose**: An administrative dashboard for the Local Government Unit (LGU) and Provincial Tourism Office (LUPTO).
-- **Key Features**:
-  - 📊 **Analytics Dashboard**: View insights, visitor trends, and system statistics.
-  - 📍 **Destination Management**: Add, approve, or edit tourist spots.
-  - 🚌 **Fare Data Management**: Upload and manage transportation fare matrices.
-  - 👕 **Merch Management**: Handle inventory and process reservations.
-  - 🖨️ **Report Generation**: Export tourism data and analytics.
+### 2. 🍎 iOS Native Wrapper (Frontend)
+Located in `frontend/iOS/`
+- **Purpose**: Native iOS container wrapping the mobile web interface with native capabilities.
 
 ### 3. ⚙️ Backend API
 Located in `backend/`
-- **Purpose**: The core engine powering both frontends, built with **Laravel**.
+- **Purpose**: The core engine powering the mobile application, built with **Laravel**.
 - **Key Features**:
   - 🔐 **Authentication**: Secure login system with role-based access control (Tourist, LGU, LUPTO).
-  - 🗄️ **Database**: Uses MySQL (hosted remotely) with a well-structured schema for users, itineraries, tourist spots, and logs.
+  - 🗄️ **Database**: Uses MySQL with a well-structured schema for users, itineraries, tourist spots, and logs.
   - 📡 **REST API**: Provides robust endpoints for map data, check-ins, leaderboards, and administrative tasks.
 
 ---

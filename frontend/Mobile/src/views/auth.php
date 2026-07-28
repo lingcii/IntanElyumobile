@@ -1,11 +1,10 @@
 <!-- Auth View (Login, Register & Forgot Password) -->
-<?php @include_once __DIR__ . '/../components/logo_base64.php'; ?>
 
 <div class="auth-container">
     <!-- Top Blue Section -->
     <div class="auth-top">
         <div class="logo-container">
-            <img src="<?= isset($appLogoBase64) ? $appLogoBase64 : 'assets/img/logo.png' ?>" alt="Intan Elyu Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%;">
+            <img src="assets/img/logo.png" alt="Intan Elyu Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%;">
         </div>
         <h1 id="auth-title" style="color: #ffffff; font-weight: 800;">Welcome to Elyu</h1>
         

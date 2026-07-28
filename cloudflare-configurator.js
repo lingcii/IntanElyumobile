@@ -64,8 +64,8 @@ async function run() {
     console.log('=> Found Backend:  ' + backendUrl);
 
     // 1. Update capacitor.config.json
-    const capacitorPath = path.join(ROOT, 'Frontend', 'Mobile', 'capacitor.config.json');
-    const androidAssetPath = path.join(ROOT, 'Frontend', 'Mobile', 'android', 'app', 'src', 'main', 'assets', 'capacitor.config.json');
+    const capacitorPath = path.join(ROOT, 'frontend', 'Mobile', 'capacitor.config.json');
+    const androidAssetPath = path.join(ROOT, 'frontend', 'Mobile', 'android', 'app', 'src', 'main', 'assets', 'capacitor.config.json');
 
     if (fs.existsSync(capacitorPath)) {
         let capConfig = JSON.parse(fs.readFileSync(capacitorPath, 'utf8'));
@@ -109,7 +109,7 @@ async function run() {
     }
 
     // 3. Update frontend source files
-    const srcPath = path.join(ROOT, 'Frontend', 'Mobile', 'src');
+    const srcPath = path.join(ROOT, 'frontend', 'Mobile', 'src');
     function walkSync(dir) {
         const files = [];
         fs.readdirSync(dir).forEach(file => {

@@ -67,7 +67,7 @@ The mobile frontend is built using standard web technologies (HTML, CSS, JS) and
 ### Step 1: Navigate to the Mobile Directory
 Open a **new** terminal window and navigate to the mobile frontend folder:
 ```bash
-cd Frontend/Mobile
+cd frontend/Mobile
 ```
 
 ### Step 2: Install Dependencies
