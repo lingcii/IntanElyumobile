@@ -34,7 +34,7 @@ window.getFullImageUrl = function (url) {
 
 document.addEventListener('DOMContentLoaded', () => {
     // Auto-invalidate stale caches from previous builds
-    const CACHE_VER = 'v1.0.3_r2';
+    const CACHE_VER = 'v1.0.4_r2_direct';
     if (localStorage.getItem('intan_elyu_cache_ver') !== CACHE_VER) {
         Object.keys(localStorage).forEach(k => {
             if (k.startsWith('dashboard_') || k.startsWith('trending_') || k.startsWith('map_') || k.startsWith('spots_') || k.startsWith('destinations_') || k.includes('cache')) {
@@ -700,6 +700,7 @@ document.addEventListener('error', function (e) {
 window.getDestImage = function (dest, width) {
     if (!width) width = 600;
     var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+    var r2PublicBase = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev';
 
     // Phase 1: Extract URL string from dest (photo_url, image, avatar, profile_picture)
     var rawUrl = null;
@@ -723,7 +724,11 @@ window.getDestImage = function (dest, width) {
                 if (parsed.host.includes('r2.dev') || parsed.host.includes('r2.cloudflarestorage.com') || parsed.host.includes('cloudinary.com') || parsed.host.includes('unsplash.com') || parsed.host.includes('googleapis.com') || parsed.host.includes('ui-avatars.com')) {
                     return url;
                 }
-                // If it points to storage/api/image on backend or localhost
+                var pathname = parsed.pathname;
+                if (pathname.includes('/tourist_spots/') || pathname.includes('/avatars/') || pathname.includes('/proof_images/')) {
+                    var r2Path = pathname.replace(/^.*?\/(tourist_spots|avatars|proof_images)\//i, '$1/');
+                    return r2PublicBase + '/' + r2Path;
+                }
                 if (parsed.pathname.includes('/storage/') || parsed.pathname.includes('/api/image/')) {
                     return backendUrl + parsed.pathname + parsed.search;
                 }
@@ -738,11 +743,12 @@ window.getDestImage = function (dest, width) {
             return (url.indexOf('/') === 0 ? '' : '/') + url;
         }
 
-        // 4. Relative storage/upload paths
-        var cleanPath = url.replace(/^\/+/, '');
-        if (cleanPath.indexOf('api/image/') === 0) {
-            return backendUrl + '/' + cleanPath;
+        // 4. Relative storage/upload paths -> resolve directly to R2 public URL
+        var cleanPath = url.replace(/^\/+/, '').replace(/^storage\//i, '');
+        if (cleanPath.indexOf('tourist_spots/') === 0 || cleanPath.indexOf('avatars/') === 0 || cleanPath.indexOf('proof_images/') === 0 || cleanPath.indexOf('fare_matrices/') === 0) {
+            return r2PublicBase + '/' + cleanPath;
         }
+
         return backendUrl + '/api/image/' + cleanPath;
     }
 

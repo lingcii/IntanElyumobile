@@ -460,29 +460,37 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                         const pendingStr = localStorage.getItem('intan_elyu_pending_route');
                         if (pendingStr) {
                             localStorage.removeItem('intan_elyu_pending_route');
-                            const place = JSON.parse(pendingStr);
-                            const pLat = place.lat || place.latitude;
-                            const pLng = place.lng || place.longitude;
-                            if (pLat && pLng && !isNaN(parseFloat(pLat)) && !isNaN(parseFloat(pLng))) {
-                                window.mapInstance.flyTo({ center: [parseFloat(pLng), parseFloat(pLat)], zoom: 14, offset: [0, -160] });
-                                window.openSheet(place);
-                                setTimeout(() => {
-                                    const routeBtn = document.getElementById('btn-show-route');
-                                    if (routeBtn) routeBtn.click();
-                                }, 800);
-                            }
+                            try {
+                                const place = (window.safeJsonParse ? window.safeJsonParse(pendingStr, null) : JSON.parse(pendingStr));
+                                if (place) {
+                                    const pLat = place.lat || place.latitude;
+                                    const pLng = place.lng || place.longitude;
+                                    if (pLat && pLng && !isNaN(parseFloat(pLat)) && !isNaN(parseFloat(pLng))) {
+                                        window.mapInstance.flyTo({ center: [parseFloat(pLng), parseFloat(pLat)], zoom: 14, offset: [0, -160] });
+                                        window.openSheet(place);
+                                        setTimeout(() => {
+                                            const routeBtn = document.getElementById('btn-show-route');
+                                            if (routeBtn) routeBtn.click();
+                                        }, 800);
+                                    }
+                                }
+                            } catch (e) { console.error('Error parsing pending route:', e); }
                         }
 
                         const viewStr = localStorage.getItem('intan_elyu_view_destination');
                         if (viewStr) {
                             localStorage.removeItem('intan_elyu_view_destination');
-                            const place = JSON.parse(viewStr);
-                            const pLat = place.lat || place.latitude;
-                            const pLng = place.lng || place.longitude;
-                            if (pLat && pLng && !isNaN(parseFloat(pLat)) && !isNaN(parseFloat(pLng))) {
-                                window.mapInstance.flyTo({ center: [parseFloat(pLng), parseFloat(pLat)], zoom: 14, offset: [0, -160] });
-                                window.openSheet(place);
-                            }
+                            try {
+                                const place = (window.safeJsonParse ? window.safeJsonParse(viewStr, null) : JSON.parse(viewStr));
+                                if (place) {
+                                    const pLat = place.lat || place.latitude;
+                                    const pLng = place.lng || place.longitude;
+                                    if (pLat && pLng && !isNaN(parseFloat(pLat)) && !isNaN(parseFloat(pLng))) {
+                                        window.mapInstance.flyTo({ center: [parseFloat(pLng), parseFloat(pLat)], zoom: 14, offset: [0, -160] });
+                                        window.openSheet(place);
+                                    }
+                                }
+                            } catch (e) { console.error('Error parsing view destination:', e); }
                         }
                     }, 300);
                 }
