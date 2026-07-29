@@ -1379,7 +1379,15 @@
             return;
         }
 
-        // 1. Try Google OAuth2 Token Client (In-App popup mode for APK & web)
+        const isNativeMobile = !!(window.Capacitor || (window.Capacitor && window.Capacitor.isNativePlatform()) || navigator.userAgent.includes('wv') || navigator.userAgent.includes('Android'));
+
+        // On mobile APK / WebView, use clean OAuth Redirect Flow to avoid gsi/transform postMessage WebView hangs
+        if (isNativeMobile) {
+            performFallbackRedirect();
+            return;
+        }
+
+        // 1. Try Google OAuth2 Token Client (Desktop / standard web)
         if (window.google && window.google.accounts && window.google.accounts.oauth2) {
             try {
                 const tokenClient = window.google.accounts.oauth2.initTokenClient({
