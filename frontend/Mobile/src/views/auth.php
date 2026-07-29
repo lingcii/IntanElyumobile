@@ -1514,7 +1514,20 @@
                 if (window.history && window.history.replaceState) {
                     window.history.replaceState({}, document.title, window.location.pathname + '?view=auth');
                 }
+
+                // Show full-screen loading modal immediately
+                const modal = document.getElementById('login-success-modal');
+                const titleEl = document.getElementById('login-modal-title');
+                const subEl = document.getElementById('login-success-user-name');
+                const spinnerSvg = document.getElementById('modal-spinner-svg');
+                const checkmarkIcon = document.getElementById('modal-checkmark-icon');
                 
+                if (modal) modal.style.display = 'flex';
+                if (titleEl) titleEl.textContent = 'Logging in with Google...';
+                if (subEl) subEl.textContent = 'Authenticating your account';
+                if (spinnerSvg) spinnerSvg.style.display = 'block';
+                if (checkmarkIcon) checkmarkIcon.style.display = 'none';
+
                 const googleBtns = document.querySelectorAll('.btn-google');
                 googleBtns.forEach(btn => {
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Logging in with Google...';
@@ -1534,6 +1547,7 @@
                 })
                 .catch(err => {
                     console.error('Google OAuth redirect error:', err);
+                    if (modal) modal.style.display = 'none';
                     googleBtns.forEach(btn => {
                         btn.innerHTML = '<span>Sign in with Google</span>';
                         btn.disabled = false;
