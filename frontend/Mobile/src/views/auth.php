@@ -1196,7 +1196,7 @@
         const countdownSec = document.getElementById('fp-countdown-sec');
         if (!resendBtn || !countdownText || !countdownSec) return;
 
-        let secondsLeft = 45;
+        let secondsLeft = 5;
         resendBtn.style.display = 'none';
         countdownText.style.display = 'inline';
         countdownSec.textContent = secondsLeft;
