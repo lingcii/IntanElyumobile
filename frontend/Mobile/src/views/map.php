@@ -101,9 +101,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
             <div style="flex:1; min-width:0;">
                 <h3 class="sheet-title" id="sheet-title">Destination Name</h3>
-                <p class="sheet-location" style="margin-bottom: 8px;"><i class="fa-solid fa-location-dot"></i><span id="sheet-location">Location details</span></p>
-                <div id="sheet-status-badge" style="display:none; margin-top: 4px; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #fff; background: #38bdf8; width: max-content;"></div>
-                <div id="sheet-open-badge" style="display:none; margin-top: 4px; padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; width: max-content;"></div>
+                <p class="sheet-location" style="margin-bottom: 4px;"><i class="fa-solid fa-location-dot"></i><span id="sheet-location">Location details</span></p>
             </div>
             <div style="display:flex; gap: 8px;">
                 <button onclick="window.closeSheet()" style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:rgba(148,163,184,0.9); font-size:14px; cursor:pointer; flex-shrink:0; transition:background 0.2s;">
@@ -114,6 +112,11 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
         <!-- Slidable Image Banner Carousel -->
         <div id="sheet-slider-container" style="position:relative; width:100%; height:220px; border-radius:18px; overflow:hidden; margin-top:12px; margin-bottom:12px; background:#0f172a;">
+            <!-- Floating Overlay Badges -->
+            <div id="sheet-badges-overlay" style="position:absolute; top:12px; left:12px; z-index:10; display:flex; gap:6px; flex-wrap:wrap; pointer-events:none;">
+                <div id="sheet-status-badge" style="display:none; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff; background:rgba(52, 199, 89, 0.95); backdrop-filter:blur(8px); box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>
+                <div id="sheet-open-badge" style="display:none; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff; background:rgba(52, 199, 89, 0.95); backdrop-filter:blur(8px); box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>
+            </div>
             <div id="sheet-slider-track" style="display:flex; width:100%; height:100%; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch;">
                 <img src="" alt="Place Image" class="sheet-img" id="sheet-img" style="flex:0 0 100%; min-width:100%; width:100%; max-width:100%; height:100% !important; object-fit:cover !important; object-position:center !important; border-radius:18px !important; scroll-snap-align:start; scroll-snap-stop:always; display:block !important; margin:0 !important; box-sizing:border-box !important;">
             </div>
