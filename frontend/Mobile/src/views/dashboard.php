@@ -493,8 +493,9 @@ if (is_dir($imgDir)) {
                 data.trending.forEach(dest => {
                     const img = window.getDestImage(dest, 600);
                     const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
+                    const encodedDest = encodeURIComponent(JSON.stringify(dest));
                     trendingContainer.innerHTML += `
-                        <div class="fav-card" onclick="window.viewDestinationOnMap(encodeURIComponent(JSON.stringify(${JSON.stringify(dest).replace(/"/g, '&quot;')})))">
+                        <div class="fav-card" onclick="window.viewDestinationOnMap('${encodedDest}')">
                             ${badgeHtml}
                             <img src="${img}" alt="${dest.name}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
                             <div class="fav-card-overlay"><span class="fav-card-name">${dest.name}</span></div>
@@ -520,8 +521,9 @@ if (is_dir($imgDir)) {
                 data.savedPlaces.forEach(dest => {
                     const img = window.getDestImage(dest, 600);
                     const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
+                    const encodedDest = encodeURIComponent(JSON.stringify(dest));
                     savedContainer.innerHTML += `
-                        <div class="fav-card" onclick="window.viewDestinationOnMap(encodeURIComponent(JSON.stringify(${JSON.stringify(dest).replace(/"/g, '&quot;')})))">
+                        <div class="fav-card" onclick="window.viewDestinationOnMap('${encodedDest}')">
                             ${badgeHtml}
                             <img src="${img}" alt="${dest.name}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
                             <div class="fav-card-overlay"><span class="fav-card-name">${dest.name}</span></div>
@@ -638,8 +640,9 @@ if (is_dir($imgDir)) {
                         const img = window.getDestImage(dest, 600);
                         const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
                         const distText = dest.distance < 1 ? '< 1 km' : dest.distance.toFixed(1) + ' km';
+                        const encodedDest = encodeURIComponent(JSON.stringify(dest));
                         nearContainer.innerHTML += `
-                            <div class="fav-card" onclick="window.viewDestinationOnMap(encodeURIComponent(JSON.stringify(${JSON.stringify(dest).replace(/"/g, '&quot;')})))">
+                            <div class="fav-card" onclick="window.viewDestinationOnMap('${encodedDest}')">
                                 ${badgeHtml}
                                 <img src="${img}" alt="${dest.name}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
                                 <div class="fav-card-overlay">
@@ -668,7 +671,8 @@ if (is_dir($imgDir)) {
         const rating = dest.rating ? parseFloat(dest.rating).toFixed(1) : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating).toFixed(1) : 'New');
         const desc = dest.description ? dest.description.substring(0, 150) + (dest.description.length > 150 ? '...' : '') : 'A beautiful destination waiting to be explored.';
         
-        return `
+                    const encodedDest = encodeURIComponent(JSON.stringify(dest));
+                    return `
             <div style="margin-bottom: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 18px; overflow: hidden; transition: all 0.3s ease;">
                 <div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.toggle-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.paddingTop = '14px'; content.style.paddingBottom = '14px'; content.style.maxHeight = (content.scrollHeight + 150) + 'px'; content.style.opacity = '1'; icon.style.transform = 'rotate(90deg)'; } else { content.style.maxHeight = '0px'; content.style.opacity = '0'; content.style.paddingTop = '0'; content.style.paddingBottom = '0'; icon.style.transform = 'rotate(0deg)'; }" style="cursor:pointer; display:flex; align-items:center; gap: 12px; padding: 12px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.05)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
                     <img src="${img}" alt="${dest.name}" style="width:60px; height:60px; border-radius:12px; object-fit:cover;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
@@ -692,7 +696,7 @@ if (is_dir($imgDir)) {
                         ${dest.category ? `<span style="background:rgba(255,255,255,0.1); color:#fff; padding:4px 8px; border-radius:100px;">${dest.category}</span>` : ''}
                         ${dest.entrance_fee ? `<span style="background:rgba(56,189,248,0.1); color:#38bdf8; padding:4px 8px; border-radius:100px;">₱${dest.entrance_fee}</span>` : '<span style="background:rgba(52,199,89,0.1); color:#34c759; padding:4px 8px; border-radius:100px;">Free</span>'}
                     </div>
-                    <button onclick="window.viewDestinationOnMap(encodeURIComponent(JSON.stringify(${JSON.stringify(dest).replace(/"/g, '&quot;')})))" style="width:100%; margin-top:4px; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:10px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <button onclick="window.viewDestinationOnMap('${encodedDest}')" style="width:100%; margin-top:4px; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:10px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
                         <i class="fa-solid fa-map-location-dot"></i> View Details on Map
                     </button>
                 </div>
@@ -1067,7 +1071,7 @@ window.toggleRecommendedMore = function() {
                     let html = '';
                     matches.forEach(dest => {
                         const img = window.getDestImage(dest, 150);
-                        const encodedDest = encodeURIComponent(JSON.stringify(dest).replace(/"/g, '&quot;'));
+                        const encodedDest = encodeURIComponent(JSON.stringify(dest));
                         const locName = dest.location || dest.municipality || 'La Union';
                         html += `
                             <div onclick="window.viewDestinationOnMap('${encodedDest}')" style="display:flex; align-items:center; gap:12px; padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer; transition:background 0.2s; border-radius:12px;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background=''">
