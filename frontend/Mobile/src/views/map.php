@@ -1460,8 +1460,8 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         if (window.activePopup) {
             window.activePopup.remove();
         }
-        window.currentDestinationForRoute = locationData;
-        document.getElementById('sheet-title').textContent = locationData.name;
+        const titleEl = document.getElementById('sheet-title');
+        if (titleEl) titleEl.textContent = locationData.name || '';
         
         const locElement = document.getElementById('sheet-location');
         const locContainer = document.getElementById('sheet-location-container');
@@ -1641,8 +1641,6 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         }
         
 
-        const destName = locationData.name.toLowerCase();
-
         const warningEl = document.getElementById('vehicle-accessibility-warning');
         if (warningEl) {
             if (locationData.accessible_by_private_vehicle === false || locationData.accessible_by_private_vehicle === 0) {
@@ -1652,20 +1650,24 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             }
         }
 
-        let manualGuide = "From the town proper of " + (locationData.municipality || "La Union") + ", take a local tricycle heading to " + (locationData.location || "the barangay") + ". Ask the driver to drop you off at " + locationData.name + ".";
+        let manualGuide = "From the town proper of " + (locationData.municipality || "La Union") + ", take a local tricycle heading to " + (locationData.location || "the barangay") + ". Ask the driver to drop you off at " + (locationData.name || "this location") + ".";
         
-        document.getElementById('sheet-manual-guide').textContent = manualGuide;
+        const manualGuideEl = document.getElementById('sheet-manual-guide');
+        if (manualGuideEl) manualGuideEl.textContent = manualGuide;
         
-        document.getElementById('sheet-distance').textContent = 'Calculating...';
+        const distanceEl = document.getElementById('sheet-distance');
+        if (distanceEl) distanceEl.textContent = 'Calculating...';
 
         const hoursRow = document.getElementById('sheet-hours-row');
         const hoursEl = document.getElementById('sheet-hours');
-        if (locationData.opening_time && locationData.closing_time) {
-            hoursRow.style.display = 'flex';
-            const fmt = (t) => { const p = t.split(':'); const h = parseInt(p[0]), m = p[1]; return (h % 12 || 12) + ':' + m + (h < 12 ? ' AM' : ' PM'); };
-            hoursEl.textContent = fmt(locationData.opening_time) + ' — ' + fmt(locationData.closing_time);
-        } else {
-            hoursRow.style.display = 'none';
+        if (hoursRow && hoursEl) {
+            if (locationData.opening_time && locationData.closing_time) {
+                hoursRow.style.display = 'flex';
+                const fmt = (t) => { const p = t.split(':'); const h = parseInt(p[0]), m = p[1]; return (h % 12 || 12) + ':' + m + (h < 12 ? ' AM' : ' PM'); };
+                hoursEl.textContent = fmt(locationData.opening_time) + ' — ' + fmt(locationData.closing_time);
+            } else {
+                hoursRow.style.display = 'none';
+            }
         }
 
         if (window.getDeviceLocation) {
@@ -1680,42 +1682,41 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                     const routeData = window.safeJsonParse(text, null);
                     if (routeData && routeData.code === 'Ok' && routeData.routes && routeData.routes.length > 0) {
                         const distanceKm = routeData.routes[0].distance / 1000;
-                        document.getElementById('sheet-distance').textContent = distanceKm.toFixed(1) + ' km';
+                        if (distanceEl) distanceEl.textContent = distanceKm.toFixed(1) + ' km';
                     } else {
-                        document.getElementById('sheet-distance').textContent = 'Unknown';
+                        if (distanceEl) distanceEl.textContent = 'Unknown';
                     }
                 } catch (e) {
-                    document.getElementById('sheet-distance').textContent = 'Unknown';
+                    if (distanceEl) distanceEl.textContent = 'Unknown';
                 }
             }).catch(() => {
-                document.getElementById('sheet-distance').textContent = 'Location needed';
+                if (distanceEl) distanceEl.textContent = 'Location needed';
             });
         }
-        if (locationData.description) {
-            document.getElementById('sheet-desc-container').style.display = 'block';
-            
-            const words = locationData.description.split(' ');
-            if (words.length > 40) {
-                document.getElementById('sheet-desc-short').textContent = words.slice(0, 40).join(' ') + '...';
-                document.getElementById('sheet-desc-full').textContent = locationData.description;
-                document.getElementById('btn-view-details').style.display = 'flex';
-                document.getElementById('sheet-desc-short').style.display = 'block';
-                document.getElementById('sheet-desc-full').style.display = 'none';
+
+        const descContainer = document.getElementById('sheet-desc-container');
+        const descShort = document.getElementById('sheet-desc-short');
+        const descFull = document.getElementById('sheet-desc-full');
+        const btnViewDetails = document.getElementById('btn-view-details');
+
+        if (descContainer) {
+            descContainer.style.display = 'block';
+            if (locationData.description) {
+                const words = locationData.description.split(' ');
+                if (words.length > 40) {
+                    if (descShort) descShort.textContent = words.slice(0, 40).join(' ') + '...';
+                    if (descFull) descFull.textContent = locationData.description;
+                } else {
+                    if (descShort) descShort.textContent = locationData.description;
+                    if (descFull) descFull.textContent = '';
+                }
             } else {
-                document.getElementById('sheet-desc-short').textContent = locationData.description;
-                document.getElementById('sheet-desc-full').textContent = '';
-                // Since it's short, maybe still allow expanding to see the Tourist Guide info
-                document.getElementById('btn-view-details').style.display = 'flex';
-                document.getElementById('sheet-desc-short').style.display = 'block';
-                document.getElementById('sheet-desc-full').style.display = 'none';
+                if (descShort) descShort.textContent = 'No description available.';
+                if (descFull) descFull.textContent = '';
             }
-        } else {
-            document.getElementById('sheet-desc-short').textContent = 'No description available.';
-            document.getElementById('sheet-desc-full').textContent = '';
-            document.getElementById('btn-view-details').style.display = 'flex';
-            document.getElementById('sheet-desc-short').style.display = 'block';
-            document.getElementById('sheet-desc-full').style.display = 'none';
-            document.getElementById('sheet-desc-container').style.display = 'block';
+            if (btnViewDetails) btnViewDetails.style.display = 'flex';
+            if (descShort) descShort.style.display = 'block';
+            if (descFull) descFull.style.display = 'none';
         }
         
         // Reset toggle state every time we open a sheet

@@ -117,12 +117,15 @@ class ItineraryItemController extends Controller
 
         $item->update($itemData);
 
-        // Record last GPS ping on user for anti-spoofing
-        $user->update([
-            'last_gps_lat'     => $request->lat,
-            'last_gps_lng'     => $request->lng,
-            'last_gps_ping_at' => now(),
-        ]);
+        try {
+            $user->update([
+                'last_gps_lat'     => $request->lat,
+                'last_gps_lng'     => $request->lng,
+                'last_gps_ping_at' => now(),
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Could not update user GPS ping: " . $e->getMessage());
+        }
 
         return response()->json([
             'status'      => 'pending',
