@@ -284,12 +284,34 @@ class ProfileController extends Controller
         }
 
         if ($request->hasFile('avatar')) {
-            $disk = env('FILESYSTEM_DISK', 'public');
-            $path = $request->file('avatar')->store('avatars', $disk);
-            if (in_array($disk, ['r2', 's3'])) {
-                $user->avatar = \Illuminate\Support\Facades\Storage::disk($disk)->url($path);
-            } else {
-                $user->avatar = 'storage/' . $path;
+            try {
+                $file = $request->file('avatar');
+                $ext = $file->getClientOriginalExtension() ?: 'jpg';
+                $filename = 'avatar_' . random_int(100000, 999999) . '.' . $ext;
+                $disk = 'r2';
+
+                try {
+                    // Store directly to Cloudflare R2 bucket
+                    $path = $file->storeAs('avatars', $filename, 'r2');
+                } catch (\Throwable $r2Exception) {
+                    \Illuminate\Support\Facades\Log::warning("R2 avatar store failed, fallback to public disk: " . $r2Exception->getMessage());
+                    $disk = env('FILESYSTEM_DISK', 'public');
+                    try {
+                        $path = $file->storeAs('avatars', $filename, $disk);
+                    } catch (\Throwable $diskErr) {
+                        $disk = 'public';
+                        $path = $file->storeAs('avatars', $filename, 'public');
+                    }
+                }
+
+                if (in_array($disk, ['r2', 's3'])) {
+                    $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
+                    $user->avatar = $r2PublicUrl . '/' . ltrim($path, '/');
+                } else {
+                    $user->avatar = 'storage/' . $path;
+                }
+            } catch (\Throwable $err) {
+                \Illuminate\Support\Facades\Log::error("Avatar upload failed: " . $err->getMessage());
             }
         }
 
