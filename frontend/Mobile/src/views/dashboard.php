@@ -1428,15 +1428,6 @@ window.toggleRecommendedMore = function() {
         const isActive = sessionStorage.getItem('onboarding_active') === '1';
         if (!isActive) return;
 
-        const step = sessionStorage.getItem('onboarding_step') || '1';
-        const targetEmail = sessionStorage.getItem('pending_reg_email') || 'your email';
-
-        const privacyModal = document.getElementById('onboard-privacy-modal');
-        const profileModal = document.getElementById('onboard-profile-modal');
-        const twoFaModal = document.getElementById('onboard-2fa-modal');
-
-        if (privacyModal) privacyModal.style.display = 'none';
-        if (profileModal) profileModal.style.display = 'none';
     window.initDashboardOnboarding = function() {
         const showOb = sessionStorage.getItem('show_onboarding') || sessionStorage.getItem('onboarding_active');
         if (!showOb) return;
@@ -1449,7 +1440,9 @@ window.toggleRecommendedMore = function() {
         if (profileModal) profileModal.style.display = 'none';
         if (twoFaModal) twoFaModal.style.display = 'none';
 
-        if (step === '1' && twoFaModal) {
+        if (step === '1' && profileModal) {
+            profileModal.style.display = 'flex';
+        } else if (step === '2' && twoFaModal) {
             twoFaModal.style.display = 'flex';
             const emailEl = document.getElementById('onboard-target-email');
             const storedEmail = sessionStorage.getItem('pending_reg_email');
@@ -1463,8 +1456,6 @@ window.toggleRecommendedMore = function() {
                 }
             }
             setupOnboardOtpInputs();
-        } else if (step === '2' && profileModal) {
-            profileModal.style.display = 'flex';
         }
     };
 
@@ -1486,7 +1477,30 @@ window.toggleRecommendedMore = function() {
         if (boxes[0]) setTimeout(() => boxes[0].focus(), 200);
     }
 
-    window.onboardSkip2FA = function() {
+    window.onboardSaveProfile = async function() {
+        const phone = document.getElementById('onboard-phone')?.value || '';
+        const home = document.getElementById('onboard-home')?.value || '';
+        const bio = document.getElementById('onboard-bio')?.value || '';
+        
+        const activeChips = Array.from(document.querySelectorAll('#onboard-pref-chips .pref-chip.active')).map(c => c.textContent.trim());
+        const prefs = activeChips.join(', ');
+
+        const token = localStorage.getItem('intan_elyu_token');
+        if (token && (phone || home || bio || prefs)) {
+            try {
+                await fetch((window.backendUrl || window.location.origin) + '/api/tourist/profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ phone, home_location: home, bio, travel_preferences: prefs })
+                });
+            } catch (e) {}
+        }
+        
+        sessionStorage.setItem('onboarding_step', '2');
+        window.initDashboardOnboarding();
+    };
+
+    window.onboardSkipProfile = function() {
         sessionStorage.setItem('onboarding_step', '2');
         window.initDashboardOnboarding();
     };
@@ -1524,11 +1538,17 @@ window.toggleRecommendedMore = function() {
                 localStorage.setItem('auth_user', JSON.stringify(data.user));
             }
 
-            if (typeof showToast === 'function') showToast('🎉 Account 2FA verified successfully!');
+            sessionStorage.removeItem('show_onboarding');
+            sessionStorage.removeItem('onboarding_active');
+            sessionStorage.removeItem('onboarding_step');
+            sessionStorage.removeItem('pending_reg_email');
+
+            if (typeof showToast === 'function') showToast('🎉 Account activated & 2FA verified successfully!');
             
-            // Proceed to Step 2: Complete Profile
-            sessionStorage.setItem('onboarding_step', '2');
-            window.initDashboardOnboarding();
+            const profileModal = document.getElementById('onboard-profile-modal');
+            const twoFaModal = document.getElementById('onboard-2fa-modal');
+            if (profileModal) profileModal.style.display = 'none';
+            if (twoFaModal) twoFaModal.style.display = 'none';
         } catch (err) {
             if (typeof showToast === 'function') showToast(err.message);
             if (btn) {
@@ -1538,37 +1558,7 @@ window.toggleRecommendedMore = function() {
         }
     };
 
-    window.onboardSaveProfile = async function() {
-        const phone = document.getElementById('onboard-phone')?.value || '';
-        const home = document.getElementById('onboard-home')?.value || '';
-        const bio = document.getElementById('onboard-bio')?.value || '';
-        
-        const activeChips = Array.from(document.querySelectorAll('#onboard-pref-chips .pref-chip.active')).map(c => c.textContent.trim());
-        const prefs = activeChips.join(', ');
-
-        const token = localStorage.getItem('intan_elyu_token');
-        if (token && (phone || home || bio || prefs)) {
-            try {
-                await fetch((window.backendUrl || window.location.origin) + '/api/tourist/profile', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ phone, home_location: home, bio, travel_preferences: prefs })
-                });
-            } catch (e) {}
-        }
-        
-        sessionStorage.removeItem('show_onboarding');
-        sessionStorage.removeItem('onboarding_active');
-        sessionStorage.removeItem('onboarding_step');
-        sessionStorage.removeItem('pending_reg_email');
-        const profileModal = document.getElementById('onboard-profile-modal');
-        const twoFaModal = document.getElementById('onboard-2fa-modal');
-        if (profileModal) profileModal.style.display = 'none';
-        if (twoFaModal) twoFaModal.style.display = 'none';
-        if (typeof showToast === 'function') showToast('Profile updated! Welcome to Intan Elyu!');
-    };
-
-    window.onboardSkipProfile = function() {
+    window.onboardSkip2FA = function() {
         sessionStorage.removeItem('show_onboarding');
         sessionStorage.removeItem('onboarding_active');
         sessionStorage.removeItem('onboarding_step');
@@ -1587,44 +1577,12 @@ window.toggleRecommendedMore = function() {
     }, 200);
 </script>
 
-<!-- STEP 1: 2FA Verification Modal -->
-<div id="onboard-2fa-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(12px); z-index:999999; justify-content:center; align-items:center; padding:16px;">
-    <div style="background:#0f172a; border:1px solid rgba(56,189,248,0.3); border-radius:24px; width:100%; max-width:440px; padding:24px; display:flex; flex-direction:column; gap:16px; box-shadow:0 20px 50px rgba(0,0,0,0.8); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); text-align:center;">
-        <div style="width:56px; height:56px; border-radius:50%; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:24px; margin:0 auto;">
-            <i class="fa-solid fa-lock"></i>
-        </div>
-        <div>
-            <h3 style="margin:0 0 6px 0; font-size:18px; font-weight:800; color:#fff;">Step 1 of 2 — 2FA Security Code</h3>
-            <p style="margin:0; font-size:12px; color:rgba(148,163,184,0.9); line-height:1.4;">
-                Enter the 6-digit verification code sent to your email:<br>
-                <strong id="onboard-target-email" style="color:#38bdf8;">loading...</strong>
-            </p>
-        </div>
-
-        <div style="display:flex; justify-content:center; gap:8px; margin:10px 0;" id="onboard-otp-container">
-            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
-            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
-            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
-            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
-            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
-            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
-        </div>
-
-        <button id="btn-onboard-verify-2fa" onclick="window.onboardVerify2FA()" style="width:100%; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:13px; border-radius:12px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
-            Verify Code & Activate Account <i class="fa-solid fa-circle-check"></i>
-        </button>
-        <button onclick="window.onboardSkip2FA()" style="width:100%; background:transparent; border:none; color:rgba(255,255,255,0.6); font-size:12px; font-weight:600; cursor:pointer; padding:6px; margin-top:2px; text-decoration:underline;">
-            Skip for now
-        </button>
-    </div>
-</div>
-
-<!-- STEP 2: Complete Profile Modal -->
+<!-- STEP 1: Complete Profile Modal -->
 <div id="onboard-profile-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(12px); z-index:999999; justify-content:center; align-items:center; padding:16px;">
     <div style="background:#0f172a; border:1px solid rgba(56,189,248,0.3); border-radius:24px; width:100%; max-width:480px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.8); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
         <div style="padding:20px 24px; background:linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.95)); border-bottom:1px solid rgba(255,255,255,0.08);">
             <h3 style="margin:0 0 4px 0; font-size:17px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
-                <i class="fa-solid fa-user-gear" style="color:#fbbf24;"></i> Step 2 of 2 — Complete Your Profile
+                <i class="fa-solid fa-user-gear" style="color:#fbbf24;"></i> Step 1 of 2 — Complete Your Profile
             </h3>
             <p style="margin:0; font-size:12px; color:rgba(148,163,184,0.9);">Tell us a bit about yourself to personalize recommendations.</p>
         </div>
@@ -1660,6 +1618,38 @@ window.toggleRecommendedMore = function() {
                 Save & Continue <i class="fa-solid fa-arrow-right"></i>
             </button>
         </div>
+    </div>
+</div>
+
+<!-- STEP 2: 2FA Verification Modal -->
+<div id="onboard-2fa-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(12px); z-index:999999; justify-content:center; align-items:center; padding:16px;">
+    <div style="background:#0f172a; border:1px solid rgba(56,189,248,0.3); border-radius:24px; width:100%; max-width:440px; padding:24px; display:flex; flex-direction:column; gap:16px; box-shadow:0 20px 50px rgba(0,0,0,0.8); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); text-align:center;">
+        <div style="width:56px; height:56px; border-radius:50%; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:24px; margin:0 auto;">
+            <i class="fa-solid fa-lock"></i>
+        </div>
+        <div>
+            <h3 style="margin:0 0 6px 0; font-size:18px; font-weight:800; color:#fff;">Step 2 of 2 — 2FA Security Code</h3>
+            <p style="margin:0; font-size:12px; color:rgba(148,163,184,0.9); line-height:1.4;">
+                Enter the 6-digit verification code sent to your email:<br>
+                <strong id="onboard-target-email" style="color:#38bdf8;">loading...</strong>
+            </p>
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:8px; margin:10px 0;" id="onboard-otp-container">
+            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
+            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
+            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
+            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
+            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
+            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
+        </div>
+
+        <button id="btn-onboard-verify-2fa" onclick="window.onboardVerify2FA()" style="width:100%; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:13px; border-radius:12px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
+            Verify Code & Activate Account <i class="fa-solid fa-circle-check"></i>
+        </button>
+        <button onclick="window.onboardSkip2FA()" style="width:100%; background:transparent; border:none; color:rgba(255,255,255,0.6); font-size:12px; font-weight:600; cursor:pointer; padding:6px; margin-top:2px; text-decoration:underline;">
+            Skip for now
+        </button>
     </div>
 </div>
 
