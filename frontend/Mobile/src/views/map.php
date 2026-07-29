@@ -101,13 +101,10 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; padding-right:4px;">
             <div style="flex:1; min-width:0; padding-right:12px;">
                 <h3 class="sheet-title" id="sheet-title" style="font-size:22px; font-weight:800; color:#ffffff; letter-spacing:-0.4px; margin:0 0 6px 0; line-height:1.25; text-shadow:0 2px 10px rgba(0,0,0,0.3);">Destination Name</h3>
-                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                    <p class="sheet-location" id="sheet-location-container" style="display:flex; align-items:center; gap:5px; margin:0; font-size:12px; color:#38bdf8; font-weight:600;">
-                        <i class="fa-solid fa-location-dot" style="color:#38bdf8; font-size:11px;"></i>
-                        <span id="sheet-location">Location details</span>
-                    </p>
-                    <span id="sheet-category-badge" style="display:none; padding:3px 9px; border-radius:10px; font-size:10px; font-weight:800; background:rgba(56, 189, 248, 0.15); color:#38bdf8; border:1px solid rgba(56, 189, 248, 0.3); text-transform:uppercase; letter-spacing:0.5px; backdrop-filter:blur(6px);"></span>
-                </div>
+                <p class="sheet-location" id="sheet-location-container" style="display:flex; align-items:center; gap:5px; margin:0; font-size:12px; color:#38bdf8; font-weight:600;">
+                    <i class="fa-solid fa-location-dot" style="color:#38bdf8; font-size:11px;"></i>
+                    <span id="sheet-location">Location details</span>
+                </p>
             </div>
             <div style="display:flex; gap: 8px;">
                 <button onclick="window.closeSheet()" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:rgba(248,250,252,0.9); font-size:14px; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;">
@@ -120,6 +117,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         <div id="sheet-slider-container" style="position:relative; width:100%; height:220px; border-radius:18px; overflow:hidden; margin-top:12px; margin-bottom:12px; background:#0f172a;">
             <!-- Floating Overlay Badges -->
             <div id="sheet-badges-overlay" style="position:absolute; top:12px; left:12px; z-index:10; display:flex; gap:6px; flex-wrap:wrap; pointer-events:none;">
+                <div id="sheet-category-badge" style="display:none; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff; background:rgba(56, 189, 248, 0.95); backdrop-filter:blur(8px); box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>
                 <div id="sheet-status-badge" style="display:none; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff; background:rgba(52, 199, 89, 0.95); backdrop-filter:blur(8px); box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>
                 <div id="sheet-open-badge" style="display:none; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff; background:rgba(52, 199, 89, 0.95); backdrop-filter:blur(8px); box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>
             </div>
@@ -1480,7 +1478,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         const catBadge = document.getElementById('sheet-category-badge');
         if (catBadge) {
             if (locationData.category && locationData.category.trim() !== '') {
-                catBadge.style.display = 'inline-flex';
+                catBadge.style.display = 'inline-block';
                 catBadge.textContent = locationData.category;
             } else {
                 catBadge.style.display = 'none';
