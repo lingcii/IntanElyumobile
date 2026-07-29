@@ -34,7 +34,7 @@ window.getFullImageUrl = function (url) {
 
 document.addEventListener('DOMContentLoaded', () => {
     // Auto-invalidate stale caches from previous builds
-    const CACHE_VER = 'v1.0.4_r2_direct';
+    const CACHE_VER = 'v1.0.5_r2_regex';
     if (localStorage.getItem('intan_elyu_cache_ver') !== CACHE_VER) {
         Object.keys(localStorage).forEach(k => {
             if (k.startsWith('dashboard_') || k.startsWith('trending_') || k.startsWith('map_') || k.startsWith('spots_') || k.startsWith('destinations_') || k.includes('cache')) {
@@ -715,6 +715,17 @@ window.getDestImage = function (dest, width) {
 
         // 1. Data or Blob URIs
         if (url.indexOf('data:') === 0 || url.indexOf('blob:') === 0) return url;
+
+        // Extract spot_xxx.jpg / png / webp filename if present anywhere in the URL or query params
+        var spotMatch = url.match(/(spot_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+        if (spotMatch && spotMatch[1]) {
+            return r2PublicBase + '/tourist_spots/' + spotMatch[1];
+        }
+
+        var avatarMatch = url.match(/(avatar_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+        if (avatarMatch && avatarMatch[1]) {
+            return r2PublicBase + '/avatars/' + avatarMatch[1];
+        }
 
         // 2. Full HTTP / HTTPS URLs
         if (url.indexOf('http://') === 0 || url.indexOf('https://') === 0) {
