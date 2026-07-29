@@ -968,16 +968,32 @@ $activeTab = 'itinerary';
 
         try {
             const activeRouteType = document.querySelector('.btn-route-type.active')?.innerText || 'Recommended';
-            
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            if (!token) {
+                btn.innerHTML = 'Save Trip';
+                btn.disabled = false;
+                showToast("Session expired. Please log in to save your trip.");
+                navigateTo('auth');
+                return;
+            }
+
             const response = await fetch(backendUrl + '/api/tourist/itineraries', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'Authorization': 'Bearer ' + localStorage.getItem('intan_elyu_token')
+                    'Authorization': 'Bearer ' + token
                 },
                 body: JSON.stringify({ title: title, trip_date: date, budget: budget, destinations: destinations, route_type: activeRouteType, transport_mode: transport })
             });
+
+            if (response.status === 401) {
+                localStorage.removeItem('intan_elyu_token');
+                localStorage.removeItem('Intan_Elyu_Token');
+                showToast("Session expired. Please log in again.");
+                navigateTo('auth');
+                return;
+            }
 
             const data = await response.json();
 

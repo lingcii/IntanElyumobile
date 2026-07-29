@@ -158,8 +158,11 @@ $backRoute = 'itinerary';
     var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
 
     window.fetchSavedTrips = async function(forceRefresh = false) {
-        const token = localStorage.getItem('intan_elyu_token');
-        if (!token) return;
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+        if (!token) {
+            if (typeof window.navigateTo === 'function') window.navigateTo('auth');
+            return;
+        }
 
         const cacheKey = 'saved_trips_' + token.substring(0, 10);
 
@@ -173,6 +176,13 @@ $backRoute = 'itinerary';
                         'Authorization': 'Bearer ' + token
                     }
                 });
+                if (response.status === 401) {
+                    localStorage.removeItem('intan_elyu_token');
+                    localStorage.removeItem('Intan_Elyu_Token');
+                    if (typeof showToast === 'function') showToast("Session expired. Please log in again.");
+                    if (typeof window.navigateTo === 'function') window.navigateTo('auth');
+                    return [];
+                }
                 if (!response.ok) throw new Error("Failed to fetch saved trips");
                 const data = await response.json();
                 return data.itineraries || [];
