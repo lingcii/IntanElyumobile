@@ -1566,6 +1566,11 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 track.appendChild(img);
             });
 
+            if (window.sheetSliderTimer) {
+                clearInterval(window.sheetSliderTimer);
+                window.sheetSliderTimer = null;
+            }
+
             if (dotsContainer) {
                 if (finalImages.length > 1) {
                     dotsContainer.style.display = 'flex';
@@ -1588,6 +1593,27 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                             }
                         });
                     };
+
+                    // Auto-slide interval timer (every 3.5s)
+                    window.sheetSliderTimer = setInterval(() => {
+                        if (!track) return;
+                        const width = track.offsetWidth || 1;
+                        const currentIdx = Math.round(track.scrollLeft / width);
+                        const nextIdx = (currentIdx + 1) % finalImages.length;
+                        track.scrollTo({
+                            left: nextIdx * width,
+                            behavior: 'smooth'
+                        });
+                    }, 3500);
+
+                    // Pause auto-slide on user touch
+                    const pauseAutoSlide = () => {
+                        if (window.sheetSliderTimer) {
+                            clearInterval(window.sheetSliderTimer);
+                            window.sheetSliderTimer = null;
+                        }
+                    };
+                    track.addEventListener('touchstart', pauseAutoSlide, { passive: true, once: true });
                 } else {
                     dotsContainer.style.display = 'none';
                     track.onscroll = null;
@@ -1694,6 +1720,10 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     };
 
     window.closeSheet = function() {
+        if (window.sheetSliderTimer) {
+            clearInterval(window.sheetSliderTimer);
+            window.sheetSliderTimer = null;
+        }
         const placeSheet = document.getElementById('place-details-sheet');
         if (placeSheet.closeSheet) placeSheet.closeSheet();
         else placeSheet.classList.remove('active');
