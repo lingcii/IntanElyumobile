@@ -92,7 +92,7 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'support@intan-elyu.online'),
+        'address' => env('MAIL_FROM_ADDRESS', 'acekillersmile@gmail.com'),
         'name' => env('MAIL_FROM_NAME', 'Intan-Elyu Customer Support'),
     ],
 

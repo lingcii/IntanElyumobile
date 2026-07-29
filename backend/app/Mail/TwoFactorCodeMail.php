@@ -27,6 +27,7 @@ class TwoFactorCodeMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
+            from: new \Illuminate\Mail\Mailables\Address('acekillersmile@gmail.com', 'Intan-Elyu Customer Support'),
             subject: '🔐 Your Intan Elyu 2FA Verification Code: ' . $this->code,
         );
     }
