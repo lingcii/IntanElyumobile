@@ -1437,16 +1437,33 @@ window.toggleRecommendedMore = function() {
 
         if (privacyModal) privacyModal.style.display = 'none';
         if (profileModal) profileModal.style.display = 'none';
+    window.initDashboardOnboarding = function() {
+        const showOb = sessionStorage.getItem('show_onboarding') || sessionStorage.getItem('onboarding_active');
+        if (!showOb) return;
+
+        let step = sessionStorage.getItem('onboarding_step') || '1';
+        
+        const profileModal = document.getElementById('onboard-profile-modal');
+        const twoFaModal = document.getElementById('onboard-2fa-modal');
+
+        if (profileModal) profileModal.style.display = 'none';
         if (twoFaModal) twoFaModal.style.display = 'none';
 
-        if (step === '1' && privacyModal) {
-            privacyModal.style.display = 'flex';
-        } else if (step === '2' && profileModal) {
+        if (step === '1' && profileModal) {
             profileModal.style.display = 'flex';
-        } else if (step === '3' && twoFaModal) {
+        } else if (step === '2' && twoFaModal) {
             twoFaModal.style.display = 'flex';
             const emailEl = document.getElementById('onboard-target-email');
-            if (emailEl) emailEl.textContent = targetEmail;
+            const storedEmail = sessionStorage.getItem('pending_reg_email');
+            if (emailEl) {
+                if (storedEmail) emailEl.textContent = storedEmail;
+                else {
+                    try {
+                        const user = JSON.parse(localStorage.getItem('auth_user'));
+                        if (user && user.email) emailEl.textContent = user.email;
+                    } catch (e) {}
+                }
+            }
             setupOnboardOtpInputs();
         }
     };
@@ -1469,16 +1486,6 @@ window.toggleRecommendedMore = function() {
         if (boxes[0]) setTimeout(() => boxes[0].focus(), 200);
     }
 
-    window.onboardAcceptPrivacy = function() {
-        const chk = document.getElementById('chk-onboard-privacy');
-        if (chk && !chk.checked) {
-            if (typeof showToast === 'function') showToast('Please accept the Privacy & Security terms to proceed.');
-            return;
-        }
-        sessionStorage.setItem('onboarding_step', '2');
-        window.initDashboardOnboarding();
-    };
-
     window.onboardSaveProfile = async function() {
         const phone = document.getElementById('onboard-phone')?.value || '';
         const home = document.getElementById('onboard-home')?.value || '';
@@ -1490,33 +1497,32 @@ window.toggleRecommendedMore = function() {
         const token = localStorage.getItem('intan_elyu_token');
         if (token && (phone || home || bio || prefs)) {
             try {
-                await fetch((window.backendUrl || 'https://api.intan-elyu.online') + '/api/tourist/profile', {
+                await fetch((window.backendUrl || window.location.origin) + '/api/tourist/profile', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: JSON.stringify({ phone, home_location: home, bio, travel_preferences: prefs })
                 });
             } catch (e) {}
         }
-        sessionStorage.setItem('onboarding_step', '3');
+        sessionStorage.setItem('onboarding_step', '2');
         window.initDashboardOnboarding();
     };
 
     window.onboardSkipProfile = function() {
-        sessionStorage.setItem('onboarding_step', '3');
+        sessionStorage.setItem('onboarding_step', '2');
         window.initDashboardOnboarding();
     };
 
     window.onboardSkip2FA = function() {
+        sessionStorage.removeItem('show_onboarding');
         sessionStorage.removeItem('onboarding_active');
         sessionStorage.removeItem('onboarding_step');
         sessionStorage.removeItem('pending_reg_email');
-        const privacyModal = document.getElementById('onboard-privacy-modal');
         const profileModal = document.getElementById('onboard-profile-modal');
         const twoFaModal = document.getElementById('onboard-2fa-modal');
-        if (privacyModal) privacyModal.style.display = 'none';
         if (profileModal) profileModal.style.display = 'none';
         if (twoFaModal) twoFaModal.style.display = 'none';
-        if (typeof showToast === 'function') showToast('You can complete 2FA verification anytime from Settings.');
+        if (typeof showToast === 'function') showToast('Welcome to your Dashboard!');
     };
 
     window.onboardVerify2FA = async function() {
@@ -1536,7 +1542,7 @@ window.toggleRecommendedMore = function() {
         }
 
         try {
-            const res = await fetch((window.backendUrl || 'https://api.intan-elyu.online') + '/api/auth/verify-otp', {
+            const res = await fetch((window.backendUrl || window.location.origin) + '/api/auth/verify-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({ email, otp })
@@ -1552,6 +1558,7 @@ window.toggleRecommendedMore = function() {
                 localStorage.setItem('auth_user', JSON.stringify(data.user));
             }
 
+            sessionStorage.removeItem('show_onboarding');
             sessionStorage.removeItem('onboarding_active');
             sessionStorage.removeItem('onboarding_step');
             sessionStorage.removeItem('pending_reg_email');
@@ -1575,41 +1582,12 @@ window.toggleRecommendedMore = function() {
     }, 200);
 </script>
 
-<!-- STEP 1: Privacy Policy & Security Terms Modal -->
-<div id="onboard-privacy-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(12px); z-index:999999; justify-content:center; align-items:center; padding:16px;">
-    <div style="background:#0f172a; border:1px solid rgba(56,189,248,0.3); border-radius:24px; width:100%; max-width:480px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.8); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
-        <div style="padding:20px 24px; background:linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.95)); border-bottom:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="margin:0; font-size:17px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
-                <i class="fa-solid fa-shield-halved" style="color:#38bdf8;"></i> Step 1 of 3 — Privacy & Security Terms
-            </h3>
-        </div>
-        <div style="padding:20px; overflow-y:auto; flex:1; font-size:13px; color:rgba(248,250,252,0.9); line-height:1.6;">
-            <p style="margin-top:0;">Welcome to <strong>Intan Elyu Tourism Management System</strong>! Before proceeding, please review and accept our Data Privacy & Security Policy.</p>
-            <h4 style="color:#38bdf8; margin:14px 0 6px 0; font-size:13px;">1. Information Collection</h4>
-            <p style="margin:0 0 10px 0; color:rgba(148,163,184,0.9);">We collect your account details (Name, Email, Preferences) and optional GPS coordinates to provide personalized travel itineraries and AR check-in features.</p>
-            <h4 style="color:#38bdf8; margin:14px 0 6px 0; font-size:13px;">2. Data Protection</h4>
-            <p style="margin:0 0 10px 0; color:rgba(148,163,184,0.9);">Your personal information is encrypted and strictly protected under the Republic Act No. 10173 (Data Privacy Act of 2012).</p>
-            <h4 style="color:#38bdf8; margin:14px 0 6px 0; font-size:13px;">3. 2FA Security Guarantee</h4>
-            <p style="margin:0; color:rgba(148,163,184,0.9);">Two-Factor Authentication is enforced to secure your tourist account against unauthorized access.</p>
-        </div>
-        <div style="padding:16px 20px; background:rgba(15,23,42,0.98); border-top:1px solid rgba(255,255,255,0.08); display:flex; flex-direction:column; gap:14px;">
-            <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:12px; color:#f8fafc; font-weight:600;">
-                <input type="checkbox" id="chk-onboard-privacy" class="circular-checkbox" style="width:18px; height:18px; accent-color:#38bdf8;">
-                <span>I have read and agree to the Privacy Policy & Security Terms.</span>
-            </label>
-            <button onclick="window.onboardAcceptPrivacy()" style="width:100%; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:12px; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
-                Accept Terms & Continue <i class="fa-solid fa-arrow-right"></i>
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- STEP 2: Complete Profile Modal -->
+<!-- STEP 1: Complete Profile Modal -->
 <div id="onboard-profile-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(12px); z-index:999999; justify-content:center; align-items:center; padding:16px;">
     <div style="background:#0f172a; border:1px solid rgba(56,189,248,0.3); border-radius:24px; width:100%; max-width:480px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.8); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
         <div style="padding:20px 24px; background:linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.95)); border-bottom:1px solid rgba(255,255,255,0.08);">
             <h3 style="margin:0 0 4px 0; font-size:17px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
-                <i class="fa-solid fa-user-gear" style="color:#fbbf24;"></i> Step 2 of 3 — Complete Your Profile
+                <i class="fa-solid fa-user-gear" style="color:#fbbf24;"></i> Step 1 of 2 — Complete Your Profile
             </h3>
             <p style="margin:0; font-size:12px; color:rgba(148,163,184,0.9);">Tell us a bit about yourself to personalize recommendations.</p>
         </div>
@@ -1648,14 +1626,14 @@ window.toggleRecommendedMore = function() {
     </div>
 </div>
 
-<!-- STEP 3: 2FA Verification Modal -->
+<!-- STEP 2: 2FA Verification Modal -->
 <div id="onboard-2fa-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(12px); z-index:999999; justify-content:center; align-items:center; padding:16px;">
     <div style="background:#0f172a; border:1px solid rgba(56,189,248,0.3); border-radius:24px; width:100%; max-width:440px; padding:24px; display:flex; flex-direction:column; gap:16px; box-shadow:0 20px 50px rgba(0,0,0,0.8); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); text-align:center;">
         <div style="width:56px; height:56px; border-radius:50%; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:24px; margin:0 auto;">
             <i class="fa-solid fa-lock"></i>
         </div>
         <div>
-            <h3 style="margin:0 0 6px 0; font-size:18px; font-weight:800; color:#fff;">Step 3 of 3 — 2FA Security Code</h3>
+            <h3 style="margin:0 0 6px 0; font-size:18px; font-weight:800; color:#fff;">Step 2 of 2 — 2FA Security Code</h3>
             <p style="margin:0; font-size:12px; color:rgba(148,163,184,0.9); line-height:1.4;">
                 Enter the 6-digit verification code sent to your email:<br>
                 <strong id="onboard-target-email" style="color:#38bdf8;">loading...</strong>
@@ -1675,7 +1653,7 @@ window.toggleRecommendedMore = function() {
             Verify Code & Activate Account <i class="fa-solid fa-circle-check"></i>
         </button>
         <button onclick="window.onboardSkip2FA()" style="width:100%; background:transparent; border:none; color:rgba(255,255,255,0.6); font-size:12px; font-weight:600; cursor:pointer; padding:6px; margin-top:2px; text-decoration:underline;">
-            Skip this for now
+            Skip for now
         </button>
     </div>
 </div>

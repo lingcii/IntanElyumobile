@@ -1088,23 +1088,14 @@
                     setTimeout(() => { modal.style.display = 'none'; }, 300);
                 }
 
-                // STEP 2: Transition into 2FA Email OTP Verification after policy agreement & account creation
-                if (typeof showToast === 'function') showToast(data.message || 'Terms accepted! 2FA verification code sent to your email.');
-                window.setTxt('otp-target-email', data.email || email);
-                tabsContainer.style.display = 'none';
-                wrapper.classList.remove('show-register', 'show-forgot');
-                wrapper.classList.add('show-otp');
-                updateTitleWithTransition('Verify 2FA Email Code');
-                
-                if (btn) {
-                    btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
-                    btn.disabled = false;
-                }
-                setTimeout(() => {
-                    const boxes = document.querySelectorAll('.otp-box');
-                    boxes.forEach(b => b.value = '');
-                    if (boxes[0]) boxes[0].focus();
-                }, 300);
+                if (data.user) localStorage.setItem('auth_user', JSON.stringify(data.user));
+                if (data.token) localStorage.setItem('intan_elyu_token', data.token);
+
+                sessionStorage.setItem('show_onboarding', '1');
+                sessionStorage.setItem('pending_reg_email', data.email || email);
+
+                if (typeof showToast === 'function') showToast('Account created successfully! Welcome to Intan Elyu!');
+                window.location.href = '?view=dashboard';
             }, 1800);
 
         } catch (error) {
