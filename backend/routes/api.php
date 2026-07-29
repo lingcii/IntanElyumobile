@@ -67,11 +67,20 @@ $serveFileHandler = function ($file) {
     
     $disk = env('FILESYSTEM_DISK', 'public');
     if (in_array($disk, ['r2', 's3'])) {
-        try {
-            if (\Illuminate\Support\Facades\Storage::disk($disk)->exists($cleanFile)) {
-                return redirect(\Illuminate\Support\Facades\Storage::disk($disk)->url($cleanFile));
-            }
-        } catch (\Throwable $e) {}
+        // Try multiple path patterns to find the file in R2
+        $r2Paths = array_unique(array_filter([
+            $cleanFile,
+            'tourist_spots/' . basename($cleanFile),
+            preg_replace('#^storage/#i', '', $cleanFile),
+            basename($cleanFile),
+        ]));
+        foreach ($r2Paths as $r2Path) {
+            try {
+                if (\Illuminate\Support\Facades\Storage::disk($disk)->exists($r2Path)) {
+                    return redirect(\Illuminate\Support\Facades\Storage::disk($disk)->url($r2Path));
+                }
+            } catch (\Throwable $e) {}
+        }
     }
 
     abort(404);
@@ -158,10 +167,16 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
         ]);
 
         $spot = TouristSpot::findOrFail($id);
-        $path = $request->file('photo')->store('tourist_spots', 'public');
-        $fullUrl = asset('storage/' . $path);
+        $disk = env('FILESYSTEM_DISK', 'public');
+        $path = $request->file('photo')->store('tourist_spots', $disk);
 
-        $spot->update(['photo_url' => 'storage/' . $path]);
+        if (in_array($disk, ['r2', 's3'])) {
+            $fullUrl = \Illuminate\Support\Facades\Storage::disk($disk)->url($path);
+            $spot->update(['photo_url' => $fullUrl]);
+        } else {
+            $fullUrl = asset('storage/' . $path);
+            $spot->update(['photo_url' => 'storage/' . $path]);
+        }
 
         // Clear public map cache so mobile app gets the new photo immediately
         \Illuminate\Support\Facades\Cache::forget('map:public:spots');
@@ -193,8 +208,13 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
         ]);
 
         if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('tourist_spots', 'public');
-            $data['photo_url'] = 'storage/' . $path;
+            $disk = env('FILESYSTEM_DISK', 'public');
+            $path = $request->file('photo')->store('tourist_spots', $disk);
+            if (in_array($disk, ['r2', 's3'])) {
+                $data['photo_url'] = \Illuminate\Support\Facades\Storage::disk($disk)->url($path);
+            } else {
+                $data['photo_url'] = 'storage/' . $path;
+            }
         }
 
         $spot = TouristSpot::create($data);

@@ -7,7 +7,12 @@ use Illuminate\Support\Facades\Storage;
 
 class SpotImageService
 {
-    protected string $disk = 'public';
+    protected string $disk;
+
+    public function __construct()
+    {
+        $this->disk = env('FILESYSTEM_DISK', 'public');
+    }
 
     public function sanitizeName(string $name): string
     {
