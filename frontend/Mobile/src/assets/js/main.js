@@ -5,9 +5,81 @@
 window.safeJsonParse = function (str, fallback = {}) {
     if (!str || str === 'undefined' || str === 'null' || str === 'NaN') return fallback;
     try {
-        return JSON.parse(str);
+        return typeof str === 'object' ? str : JSON.parse(str);
     } catch (e) {
         return fallback;
+    }
+};
+
+/**
+ * Asynchronous IndexedDB + localStorage Hybrid Storage Engine
+ */
+window.AppStorage = {
+    _dbPromise: null,
+
+    _getDB: function() {
+        if (!this._dbPromise) {
+            this._dbPromise = new Promise((resolve) => {
+                if (!window.indexedDB) {
+                    resolve(null);
+                    return;
+                }
+                const request = window.indexedDB.open('intan_elyu_app_storage', 1);
+                request.onupgradeneeded = function(e) {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('store')) {
+                        db.createObjectStore('store');
+                    }
+                };
+                request.onsuccess = function(e) { resolve(e.target.result); };
+                request.onerror = function() { resolve(null); };
+            });
+        }
+        return this._dbPromise;
+    },
+
+    getItem: async function(key, fallback = null) {
+        try {
+            const db = await this._getDB();
+            if (db) {
+                const val = await new Promise((resolve) => {
+                    const tx = db.transaction('store', 'readonly');
+                    const req = tx.objectStore('store').get(key);
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => resolve(undefined);
+                });
+                if (val !== undefined && val !== null) return val;
+            }
+        } catch (e) {}
+
+        const raw = localStorage.getItem(key);
+        return raw !== null ? raw : fallback;
+    },
+
+    setItem: async function(key, val) {
+        try {
+            const strVal = typeof val === 'string' ? val : JSON.stringify(val);
+            localStorage.setItem(key, strVal);
+        } catch (e) {}
+
+        try {
+            const db = await this._getDB();
+            if (db) {
+                const tx = db.transaction('store', 'readwrite');
+                tx.objectStore('store').put(val, key);
+            }
+        } catch (e) {}
+    },
+
+    removeItem: async function(key) {
+        try { localStorage.removeItem(key); } catch (e) {}
+        try {
+            const db = await this._getDB();
+            if (db) {
+                const tx = db.transaction('store', 'readwrite');
+                tx.objectStore('store').delete(key);
+            }
+        } catch (e) {}
     }
 };
 
