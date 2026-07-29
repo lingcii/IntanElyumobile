@@ -26,11 +26,24 @@ window.getFullImageUrl = function (url) {
     if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
         return url;
     }
-    const base = window.backendUrl || 'https://api.intan-elyu.online';
-    return base.replace(/\/+$/, '') + '/' + url.replace(/^\/+/, '');
+    const base = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+    const clean = url.replace(/^\/+/, '');
+    if (clean.startsWith('api/image/')) return base + '/' + clean;
+    return base + '/api/image/' + clean;
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Auto-invalidate stale caches from previous builds
+    const CACHE_VER = 'v1.0.3_r2';
+    if (localStorage.getItem('intan_elyu_cache_ver') !== CACHE_VER) {
+        Object.keys(localStorage).forEach(k => {
+            if (k.startsWith('dashboard_') || k.startsWith('trending_') || k.startsWith('map_') || k.startsWith('spots_') || k.startsWith('destinations_') || k.includes('cache')) {
+                localStorage.removeItem(k);
+            }
+        });
+        localStorage.setItem('intan_elyu_cache_ver', CACHE_VER);
+    }
+
     // Global Auth Enforcement for Initial Direct Load
     const publicViews = ['splash', 'auth', 'reset-password'];
     if (!publicViews.includes(state.currentView) && !localStorage.getItem('intan_elyu_token')) {
