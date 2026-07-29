@@ -1078,7 +1078,7 @@
 
             // Animate checkmark success in modal
             if (titleEl) titleEl.textContent = 'Account Registered Successfully!';
-            if (subEl) subEl.textContent = '2FA verification code sent to your email';
+            if (subEl) subEl.textContent = 'Redirecting to your dashboard...';
             if (spinnerSvg) spinnerSvg.style.display = 'none';
             if (checkmarkIcon) checkmarkIcon.style.display = 'block';
 
