@@ -1359,110 +1359,29 @@
 
     window.triggerGoogleLogin = function(event) {
         const googleBtns = document.querySelectorAll('.btn-google');
-        const oldTexts = [];
-        googleBtns.forEach((btn, i) => {
-            oldTexts[i] = btn.innerHTML;
+        googleBtns.forEach((btn) => {
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connecting to Google...';
             btn.disabled = true;
         });
 
-        let resetTimer = setTimeout(() => {
-            resetButtonState();
-        }, 8000);
-
-        function resetButtonState() {
-            if (resetTimer) clearTimeout(resetTimer);
-            googleBtns.forEach((btn, i) => {
-                if (oldTexts[i]) btn.innerHTML = oldTexts[i];
-                btn.disabled = false;
-            });
-        }
-
-        const clientId = window.GOOGLE_CLIENT_ID || localStorage.getItem('intan_elyu_google_client_id') || '874613490302-qno8lkqoujur0db888hg72hogjv6cp5v.apps.googleusercontent.com';
+        const clientId = window.GOOGLE_CLIENT_ID || localStorage.getItem('intan_elyu_google_client_id') || '620598190857-37a0ucobfd4b3rct7ofti8rtvl3qt884.apps.googleusercontent.com';
 
         if (!clientId) {
             if (typeof showToast === 'function') showToast('Google Client ID is required to connect to Google Cloud.');
-            resetButtonState();
+            googleBtns.forEach(btn => {
+                btn.innerHTML = '<span>Sign in with Google</span>';
+                btn.disabled = false;
+            });
             return;
         }
 
-        function promptGoogle() {
-            if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
-                try {
-                    const tokenClient = google.accounts.oauth2.initTokenClient({
-                        client_id: clientId,
-                        scope: 'email profile openid',
-                        callback: async (tokenResponse) => {
-                            if (tokenResponse && tokenResponse.access_token) {
-                                try {
-                                    const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                                        headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-                                    });
-                                    const profile = await userInfoRes.json();
-                                    window.handleCredentialResponse({ profile: profile }, resetButtonState);
-                                } catch (e) {
-                                    console.error('Fetch Google profile error:', e);
-                                    resetButtonState();
-                                    window.openAuthCancelModal('Unable to retrieve profile from Google. Please try again.');
-                                }
-                            } else {
-                                console.warn('Google Auth cancelled or exited:', tokenResponse);
-                                resetButtonState();
-                                window.openAuthCancelModal('You exited the Google account chooser without logging in or signing up.');
-                            }
-                        },
-                        error_callback: (err) => {
-                            console.warn('Google Auth popup closed:', err);
-                            resetButtonState();
-                            window.openAuthCancelModal('You exited the Google account chooser without logging in or signing up.');
-                        }
-                    });
-                    tokenClient.requestAccessToken();
-                } catch (err) {
-                    console.error('Google Auth error:', err);
-                    resetButtonState();
-                    window.openAuthCancelModal('Failed to connect to Google. Please try again.');
-                }
-            } else if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-                google.accounts.id.initialize({
-                    client_id: clientId,
-                    callback: (res) => window.handleCredentialResponse(res, resetButtonState)
-                });
-                google.accounts.id.prompt((notification) => {
-                    if (notification.isNotDisplayed() || notification.isSkippedMoment() || notification.isDismissedMoment()) {
-                        resetButtonState();
-                        window.openAuthCancelModal('You exited the Google account chooser without logging in or signing up.');
-                    }
-                });
-            } else {
-                fallbackGoogleOAuth();
-            }
-        }
-
-        function fallbackGoogleOAuth() {
-            try {
-                const redirectUri = window.location.origin + window.location.pathname;
-                const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile%20openid&prompt=select_account`;
-                window.location.href = googleAuthUrl;
-            } catch (err) {
-                resetButtonState();
-                if (typeof showToast === 'function') showToast('Google Sign-In is unavailable. Please sign up using email.');
-            }
-        }
-
-        if (typeof google === 'undefined' || !google.accounts) {
-            const script = document.createElement('script');
-            script.src = 'https://accounts.google.com/gsi/client?hl=en';
-            script.async = true;
-            script.defer = true;
-            script.onload = promptGoogle;
-            script.onerror = () => {
-                fallbackGoogleOAuth();
-            };
-            document.head.appendChild(script);
-        } else {
-            promptGoogle();
-        }
+        // Direct Google OAuth 2.0 Web Authorization Endpoint
+        // Bypasses GSI /gsi/transform iframe popups completely for seamless mobile login
+        // Use a fixed redirect URI so it can be exactly registered in Google Cloud Console
+        const redirectUri = window.location.origin + '/index.php';
+        const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile%20openid&prompt=select_account`;
+        
+        window.location.href = googleAuthUrl;
     };
 
     window.handleCredentialResponse = async function(response, onDone) {

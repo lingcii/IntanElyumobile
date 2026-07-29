@@ -95,7 +95,7 @@ class LoginController extends Controller
                 }
 
                 // Verify audience (must match your Google Client ID)
-                $clientId = env('GOOGLE_CLIENT_ID', '874613490302-qno8lkqoujur0db888hg72hogjv6cp5v.apps.googleusercontent.com');
+                $clientId = env('GOOGLE_CLIENT_ID', '620598190857-37a0ucobfd4b3rct7ofti8rtvl3qt884.apps.googleusercontent.com');
                 if (!isset($payload->aud) || $payload->aud !== $clientId) {
                     return response()->json(['error' => 'Invalid token audience.'], 400);
                 }
