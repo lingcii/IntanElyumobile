@@ -216,8 +216,12 @@ class LoginController extends Controller
         $tokenHash = hash('sha256', $token);
         $otpCode = sprintf('%06d', random_int(0, 999999));
 
-        // Always store OTP in Cache for fast, reliable in-app reset
+        // Always store OTP in Cache and User model for fast, reliable in-app reset
         \Illuminate\Support\Facades\Cache::put("pwd_reset_otp:{$user->email}", $otpCode, 900);
+        try {
+            $user->remember_token = 'otp_' . $otpCode;
+            $user->saveQuietly();
+        } catch (\Throwable $err) {}
 
         // Record in DB if table exists (safely guarded against missing table in remote DBs)
         try {
@@ -268,18 +272,20 @@ class LoginController extends Controller
         $email = $request->email;
         $otp = trim($request->otp);
 
-        $cachedOtp = \Illuminate\Support\Facades\Cache::get("pwd_reset_otp:{$email}");
-
-        if (!$cachedOtp || (string)$cachedOtp !== (string)$otp) {
-            return response()->json(['error' => 'Invalid or expired verification code.'], 400);
-        }
-
         $user = User::where('email', $email)->first();
         if (!$user) {
             return response()->json(['error' => 'User account not found.'], 404);
         }
 
+        $cachedOtp = \Illuminate\Support\Facades\Cache::get("pwd_reset_otp:{$email}");
+        $isValidOtp = ($cachedOtp && (string)$cachedOtp === (string)$otp) || ($user->remember_token === 'otp_' . $otp);
+
+        if (!$isValidOtp) {
+            return response()->json(['error' => 'Invalid or expired verification code.'], 400);
+        }
+
         $user->password = \Illuminate\Support\Facades\Hash::make($request->password);
+        $user->remember_token = null;
         $user->save();
 
         \Illuminate\Support\Facades\Cache::forget("pwd_reset_otp:{$email}");
