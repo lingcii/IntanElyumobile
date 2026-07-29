@@ -98,9 +98,9 @@
                     </div>
                     
                     <div style="font-size: 11px; color: rgba(255,255,255,0.85); margin: 10px 0 16px 4px; display: flex; align-items: center; gap: 8px;">
-                        <input type="checkbox" id="reg-privacy-checkbox" class="circular-checkbox" required>
-                        <label for="reg-privacy-checkbox" style="cursor: pointer; margin: 0; line-height: 1.35;">
-                            I agree to the <a href="#" onclick="openPrivacyPolicyModal(event)" style="color: #38bdf8; font-weight: 700; text-decoration: underline;">Privacy Policy & 2FA Terms</a>.
+                        <input type="checkbox" id="reg-privacy-checkbox" class="circular-checkbox" disabled style="opacity: 0.4; cursor: not-allowed;" required>
+                        <label for="reg-privacy-checkbox" id="reg-privacy-label" style="cursor: not-allowed; margin: 0; line-height: 1.35; opacity: 0.4;">
+                            I agree to the <a href="#" id="link-terms-privacy" onclick="openPrivacyPolicyModal(event)" style="color: #38bdf8; font-weight: 700; text-decoration: underline; pointer-events: none;">Terms & Privacy Policy</a>.
                         </label>
                     </div>
                     
@@ -284,38 +284,44 @@
                 <i class="fa-solid fa-shield-halved"></i>
             </div>
             <div>
-                <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff;">Privacy Policy & Terms</h3>
+                <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff;">Terms & Privacy Policy</h3>
                 <span style="font-size: 11px; color: #38bdf8; font-weight: 700;">Step 1 of 2 · Data Protection Terms</span>
             </div>
         </div>
 
-        <div style="font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.6; overflow-y: auto; padding-right: 6px; margin-bottom: 16px; flex: 1; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 14px; background: rgba(15, 23, 42, 0.5);">
-            <p style="margin-top: 0;">Welcome to <strong>Intan Elyu Tourism Management System</strong>. Before your account registration is created, please review and accept our privacy policy and security terms:</p>
+        <div id="privacy-modal-scroll-body" style="font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.6; overflow-y: auto; padding-right: 8px; margin-bottom: 16px; flex: 1; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 16px; background: rgba(15, 23, 42, 0.5);">
+            <p style="margin-top: 0;">Welcome to <strong>Intan Elyu Tourism Management System</strong>. Please read and scroll through our terms of service and privacy practices before completing your account registration:</p>
             
-            <h4 style="color: #38bdf8; margin: 12px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-database" style="margin-right: 6px;"></i> 1. Information We Collect</h4>
-            <p style="margin: 0 0 10px 0;">We store your full name, email address, password hashes, and optional profile preferences to deliver personalized itinerary recommendations.</p>
-            
-            <h4 style="color: #38bdf8; margin: 12px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-location-dot" style="margin-right: 6px;"></i> 2. Location & Check-In Data</h4>
-            <p style="margin: 0 0 10px 0;">Location coordinates are accessed strictly during active check-in tasks to verify XP rewards. We do not track location in the background or sell location data.</p>
-            
-            <h4 style="color: #38bdf8; margin: 12px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-lock" style="margin-right: 6px;"></i> 3. 2FA Security & Verification</h4>
-            <p style="margin: 0 0 10px 0;">After accepting this policy, a mandatory 2-Factor Authentication (2FA) email code will be issued to your email address to confirm identity before account activation.</p>
+            <h4 style="color: #38bdf8; margin: 14px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-user-gear" style="margin-right: 6px;"></i> 1. Account & Registration Responsibilities</h4>
+            <p style="margin: 0 0 10px 0;">By registering an account, you confirm that the personal details provided (Full Name, Email Address) are accurate and belong to you. You are responsible for maintaining the confidentiality of your account credentials.</p>
 
-            <h4 style="color: #38bdf8; margin: 12px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-user-shield" style="margin-right: 6px;"></i> 4. Privacy & Leaderboards</h4>
-            <p style="margin: 0 0 4px 0;">Your email remains confidential. You can set your profile to private at any time in App Settings to hide rankings on public leaderboards.</p>
+            <h4 style="color: #38bdf8; margin: 14px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-database" style="margin-right: 6px;"></i> 2. Information We Collect & Encryption</h4>
+            <p style="margin: 0 0 10px 0;">We store your full name, email address, password hashes (Bcrypt encrypted), and optional profile preferences to deliver personalized itinerary recommendations. We never share or sell your personal information to unauthorized third parties.</p>
+            
+            <h4 style="color: #38bdf8; margin: 14px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-location-dot" style="margin-right: 6px;"></i> 3. Location Access & Fair Play XP Rewards</h4>
+            <p style="margin: 0 0 10px 0;">Device location coordinates are accessed strictly during active spot check-in tasks to verify XP rewards and badge unlocks. We do not track your location in the background or monitor your movement outside active check-ins.</p>
+            
+            <h4 style="color: #38bdf8; margin: 14px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-shield-halved" style="margin-right: 6px;"></i> 4. 2-Factor Email Security (2FA)</h4>
+            <p style="margin: 0 0 10px 0;">After accepting these terms, a 6-digit 2-Factor Authentication (2FA) verification code will be issued to your email address to confirm identity before account activation.</p>
+
+            <h4 style="color: #38bdf8; margin: 14px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-leaf" style="margin-right: 6px;"></i> 5. Responsible Tourism Code of Conduct</h4>
+            <p style="margin: 0 0 10px 0;">As a registered tourist on Intan Elyu, you agree to follow environmental preservation guidelines, respect local La Union heritage sites, avoid littering, and adhere to municipal beach and trail safety rules.</p>
+
+            <h4 style="color: #38bdf8; margin: 14px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-user-lock" style="margin-right: 6px;"></i> 6. Privacy Rights & Profile Visibility</h4>
+            <p style="margin: 0 0 4px 0;">Your email address remains private. You can set your profile to Private mode at any time in App Settings to hide your rank on public leaderboards or request account erasure.</p>
         </div>
 
         <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 14px; padding: 10px 12px; margin-bottom: 16px; font-size: 11px; color: #38bdf8; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" id="chk-accept-privacy" class="circular-checkbox">
-            <label for="chk-accept-privacy" style="cursor: pointer; margin: 0; line-height: 1.3;">I have read, understood, and accept the Privacy Policy & Terms of Service.</label>
+            <input type="checkbox" id="chk-accept-privacy" class="circular-checkbox" disabled style="opacity: 0.4; cursor: not-allowed;">
+            <label for="chk-accept-privacy" id="lbl-chk-accept-privacy" style="cursor: not-allowed; margin: 0; line-height: 1.3; opacity: 0.4;">I have read, understood, and accept the Terms & Privacy Policy.</label>
         </div>
 
         <div style="display: flex; gap: 10px;">
             <button type="button" onclick="closePrivacyPolicyModal()" class="auth-2fa-btn-primary" style="flex: 1; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #94a3b8; font-size: 13px;">
                 Decline
             </button>
-            <button type="button" id="btn-accept-policy-proceed" onclick="acceptPolicyAndProceed()" class="auth-2fa-btn-primary" style="flex: 1.8; background: linear-gradient(135deg, #38bdf8, #2563eb); font-size: 13px;">
-                <i class="fa-solid fa-check" style="margin-right: 6px;"></i>Accept & 2FA Setup →
+            <button type="button" id="btn-accept-policy-proceed" onclick="acceptPolicyAndProceed()" class="auth-2fa-btn-primary" disabled style="flex: 1.8; background: linear-gradient(135deg, #38bdf8, #2563eb); font-size: 13px; opacity: 0.4; cursor: not-allowed;">
+                <i class="fa-solid fa-lock" style="margin-right: 6px;"></i>Scroll to Bottom to Accept
             </button>
         </div>
     </div>
@@ -898,12 +904,88 @@
         }
     };
 
+    function checkRegisterFieldsFilled() {
+        const fn = (document.getElementById('reg-first-name')?.value || '').trim();
+        const ln = (document.getElementById('reg-last-name')?.value || '').trim();
+        const email = (document.getElementById('reg-email')?.value || '').trim();
+        const pwd = document.getElementById('reg-password')?.value || '';
+
+        const chk = document.getElementById('reg-privacy-checkbox');
+        const label = document.getElementById('reg-privacy-label');
+        const link = document.getElementById('link-terms-privacy');
+
+        const isValid = fn.length > 0 && ln.length > 0 && email.includes('@') && email.includes('.') && pwd.length >= 8;
+
+        if (isValid) {
+            if (chk) { chk.disabled = false; chk.style.opacity = '1'; chk.style.cursor = 'pointer'; }
+            if (label) { label.style.cursor = 'pointer'; label.style.opacity = '1'; }
+            if (link) { link.style.pointerEvents = 'auto'; }
+        } else {
+            if (chk) { chk.disabled = true; chk.checked = false; chk.style.opacity = '0.4'; chk.style.cursor = 'not-allowed'; }
+            if (label) { label.style.cursor = 'not-allowed'; label.style.opacity = '0.4'; }
+            if (link) { link.style.pointerEvents = 'none'; }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        ['reg-first-name', 'reg-last-name', 'reg-email', 'reg-password'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', checkRegisterFieldsFilled);
+                el.addEventListener('change', checkRegisterFieldsFilled);
+            }
+        });
+        checkRegisterFieldsFilled();
+    });
+
     window.openPrivacyPolicyModal = function(e) {
         if (e) e.preventDefault();
+        
+        // Ensure textboxes are filled first
+        const fn = (document.getElementById('reg-first-name')?.value || '').trim();
+        const ln = (document.getElementById('reg-last-name')?.value || '').trim();
+        const email = (document.getElementById('reg-email')?.value || '').trim();
+        const pwd = document.getElementById('reg-password')?.value || '';
+
+        if (!fn || !ln || !email || !pwd || pwd.length < 8) {
+            if (typeof showToast === 'function') showToast('Please fill in your First Name, Last Name, Email, and Password (min 8 chars) first.');
+            return;
+        }
+
         const modal = document.getElementById('privacy-policy-modal');
         if (!modal) return;
+
         const chk = document.getElementById('chk-accept-privacy');
-        if (chk) chk.checked = false;
+        const lblChk = document.getElementById('lbl-chk-accept-privacy');
+        const acceptBtn = document.getElementById('btn-accept-policy-proceed');
+        const scrollBody = document.getElementById('privacy-modal-scroll-body');
+
+        if (chk) { chk.checked = false; chk.disabled = true; chk.style.opacity = '0.4'; chk.style.cursor = 'not-allowed'; }
+        if (lblChk) { lblChk.style.cursor = 'not-allowed'; lblChk.style.opacity = '0.4'; }
+        if (acceptBtn) {
+            acceptBtn.disabled = true;
+            acceptBtn.style.opacity = '0.4';
+            acceptBtn.style.cursor = 'not-allowed';
+            acceptBtn.innerHTML = '<i class="fa-solid fa-lock" style="margin-right: 6px;"></i>Scroll to Bottom to Accept';
+        }
+
+        if (scrollBody) {
+            scrollBody.scrollTop = 0;
+            scrollBody.onscroll = function() {
+                const isBottom = (scrollBody.scrollTop + scrollBody.clientHeight) >= (scrollBody.scrollHeight - 25);
+                if (isBottom) {
+                    if (chk) { chk.disabled = false; chk.style.opacity = '1'; chk.style.cursor = 'pointer'; }
+                    if (lblChk) { lblChk.style.cursor = 'pointer'; lblChk.style.opacity = '1'; }
+                    if (acceptBtn) {
+                        acceptBtn.disabled = false;
+                        acceptBtn.style.opacity = '1';
+                        acceptBtn.style.cursor = 'pointer';
+                        acceptBtn.innerHTML = '<i class="fa-solid fa-check" style="margin-right: 6px;"></i>Accept';
+                    }
+                }
+            };
+        }
+
         modal.style.display = 'flex';
         requestAnimationFrame(() => {
             modal.classList.add('active');
@@ -918,79 +1000,10 @@
         }, 300);
     };
 
-    window.handleRegister = async function(e) {
-        if (e) e.preventDefault();
-        const pwd = document.getElementById('reg-password')?.value || '';
-        const firstName = (document.getElementById('reg-first-name')?.value || '').trim();
-        const lastName = (document.getElementById('reg-last-name')?.value || '').trim();
-        const name = `${firstName} ${lastName}`.trim();
-        const email = (document.getElementById('reg-email')?.value || '').trim();
-
-        if (!firstName || !lastName || !email || !pwd) {
-            if (typeof showToast === 'function') showToast('Please fill in all registration fields.');
-            return;
-        }
-
-        if (pwd.length < 8) {
-            if (typeof showToast === 'function') showToast('Password must be at least 8 characters long.');
-            return;
-        }
-
-        const btn = document.getElementById('btn-register');
-        if (btn) {
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
-            btn.disabled = true;
-        }
-
-        try {
-            const response = await fetch(backendUrl + '/api/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({ 
-                    first_name: firstName,
-                    last_name: lastName,
-                    name: name, 
-                    email: email, 
-                    password: pwd, 
-                    password_confirmation: pwd 
-                })
-            });
-            const data = await response.json();
-            
-            if (!response.ok) {
-                let errMsg = data.message || 'Registration failed';
-                if (data.errors) {
-                    const details = Object.values(data.errors).flat().join(' ');
-                    if (details) errMsg += ': ' + details;
-                }
-                throw new Error(errMsg);
-            }
-
-            // Set session cache for sequential dashboard onboarding modals:
-            // Step 1: Privacy Terms Modal -> Step 2: Complete Profile Modal -> Step 3: 2FA OTP Modal
-            sessionStorage.setItem('onboarding_active', '1');
-            sessionStorage.setItem('onboarding_step', '1');
-            sessionStorage.setItem('pending_reg_email', email);
-            sessionStorage.setItem('pending_reg_name', name);
-
-            if (typeof showToast === 'function') showToast('Account created! Welcome to Intan Elyu!');
-            
-            // Redirect to dashboard to start onboarding sequence
-            window.location.href = '?view=dashboard';
-        } catch (error) {
-            console.error('Register Error:', error);
-            if (typeof showToast === 'function') showToast(error.message);
-            if (btn) {
-                btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i> Register';
-                btn.disabled = false;
-            }
-        }
-    };
-
     window.acceptPolicyAndProceed = async function() {
         const chk = document.getElementById('chk-accept-privacy');
         if (chk && !chk.checked) {
-            if (typeof showToast === 'function') showToast('Please check the box to accept the Privacy Policy & Security Terms.');
+            if (typeof showToast === 'function') showToast('Please check the box to accept the Terms & Privacy Policy.');
             return;
         }
 
@@ -1006,13 +1019,31 @@
         const firstName = (document.getElementById('reg-first-name')?.value || '').trim();
         const lastName = (document.getElementById('reg-last-name')?.value || '').trim();
         const name = `${firstName} ${lastName}`.trim();
-        const email = document.getElementById('reg-email')?.value || '';
+        const email = (document.getElementById('reg-email')?.value || '').trim();
+
+        const modal = document.getElementById('login-success-modal');
+        const titleEl = document.getElementById('login-modal-title');
+        const subEl = document.getElementById('login-success-user-name');
+        const spinnerSvg = document.getElementById('modal-spinner-svg');
+        const checkmarkIcon = document.getElementById('modal-checkmark-icon');
 
         const btn = document.getElementById('btn-register');
         if (btn) {
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
             btn.disabled = true;
         }
+
+        // Show full-screen loading modal with active CSS transition
+        if (modal) {
+            modal.style.display = 'flex';
+            setTimeout(() => { modal.classList.add('active'); }, 10);
+        }
+        if (titleEl) titleEl.textContent = 'Registering your account...';
+        if (subEl) subEl.textContent = 'Please wait while we create your tourist profile';
+        if (spinnerSvg) spinnerSvg.style.display = 'block';
+        if (checkmarkIcon) checkmarkIcon.style.display = 'none';
+
+        const startTime = Date.now();
 
         try {
             const response = await fetch(backendUrl + '/api/auth/register', {
@@ -1038,25 +1069,50 @@
                 throw new Error(errMsg);
             }
 
-            // STEP 2: Transition into 2FA Email OTP Verification after policy agreement & account creation
-            if (typeof showToast === 'function') showToast(data.message || 'Privacy policy accepted! 2FA verification code sent to your email.');
-            window.setTxt('otp-target-email', data.email || email);
-            tabsContainer.style.display = 'none';
-            wrapper.classList.remove('show-register', 'show-forgot');
-            wrapper.classList.add('show-otp');
-            updateTitleWithTransition('Verify 2FA Email Code');
-            
-            if (btn) {
-                btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
-                btn.disabled = false;
+            // Guarantee spinner stays visible for at least 5 seconds
+            const elapsedTime = Date.now() - startTime;
+            const minSpinnerTime = 5000;
+            if (elapsedTime < minSpinnerTime) {
+                await new Promise(r => setTimeout(r, minSpinnerTime - elapsedTime));
             }
+
+            // Animate checkmark success in modal
+            if (titleEl) titleEl.textContent = 'Account Registered Successfully!';
+            if (subEl) subEl.textContent = '2FA verification code sent to your email';
+            if (spinnerSvg) spinnerSvg.style.display = 'none';
+            if (checkmarkIcon) checkmarkIcon.style.display = 'block';
+
             setTimeout(() => {
-                const boxes = document.querySelectorAll('.otp-box');
-                boxes.forEach(b => b.value = '');
-                if (boxes[0]) boxes[0].focus();
-            }, 300);
+                if (modal) {
+                    modal.classList.remove('active');
+                    setTimeout(() => { modal.style.display = 'none'; }, 300);
+                }
+
+                // STEP 2: Transition into 2FA Email OTP Verification after policy agreement & account creation
+                if (typeof showToast === 'function') showToast(data.message || 'Terms accepted! 2FA verification code sent to your email.');
+                window.setTxt('otp-target-email', data.email || email);
+                tabsContainer.style.display = 'none';
+                wrapper.classList.remove('show-register', 'show-forgot');
+                wrapper.classList.add('show-otp');
+                updateTitleWithTransition('Verify 2FA Email Code');
+                
+                if (btn) {
+                    btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
+                    btn.disabled = false;
+                }
+                setTimeout(() => {
+                    const boxes = document.querySelectorAll('.otp-box');
+                    boxes.forEach(b => b.value = '');
+                    if (boxes[0]) boxes[0].focus();
+                }, 300);
+            }, 1800);
+
         } catch (error) {
             console.error('Register Error:', error);
+            if (modal) {
+                modal.classList.remove('active');
+                setTimeout(() => { modal.style.display = 'none'; }, 300);
+            }
             if (typeof showToast === 'function') showToast(error.message);
             if (btn) {
                 btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
