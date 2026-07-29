@@ -1519,10 +1519,11 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             
             const token = localStorage.getItem('intan_elyu_token');
             if (token && !window.savedPlaceIdsFetched) {
-                fetch('/api/tourist/dashboard', {
+                fetch((window.backendUrl || '') + '/api/tourist/dashboard', {
                     headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
-                }).then(r => r.json()).then(d => {
-                    if (d.savedPlaces) {
+                }).then(r => r.ok ? r.text() : null).then(txt => {
+                    const d = txt ? window.safeJsonParse(txt, null) : null;
+                    if (d && d.savedPlaces) {
                         window.savedPlaceIds = d.savedPlaces.map(p => p.id);
                         window.savedPlaceIdsFetched = true;
                         if (window.savedPlaceIds.includes(window.currentDestinationForRoute.id)) {
@@ -1585,8 +1586,9 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 const destLng = parseFloat(locationData.lng || locationData.longitude);
                 try {
                     const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${destLng},${destLat}?overview=false`);
-                    const routeData = await res.json();
-                    if (routeData.code === 'Ok' && routeData.routes.length > 0) {
+                    const text = await res.text();
+                    const routeData = window.safeJsonParse(text, null);
+                    if (routeData && routeData.code === 'Ok' && routeData.routes && routeData.routes.length > 0) {
                         const distanceKm = routeData.routes[0].distance / 1000;
                         document.getElementById('sheet-distance').textContent = distanceKm.toFixed(1) + ' km';
                     } else {
@@ -2035,8 +2037,9 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             if (!res.ok && token) {
                 res = await fetch(_backendBase + '/api/tourist/feedback?tourist_spot_id=' + spotId, { headers });
             }
-            const d = await res.json();
-            if (d.status === 'success') {
+            const text = await res.text();
+            const d = window.safeJsonParse(text, null);
+            if (d && d.status === 'success') {
                 // Render summary metrics
                 if (d.summary && d.summary.total_reviews > 0) {
                     const sm = d.summary;
@@ -2301,7 +2304,8 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 })
             });
 
-            const data = await response.json();
+            const text = await response.text();
+            const data = window.safeJsonParse(text, {});
             if (response.ok) {
                 if (typeof showToast === 'function') showToast("Thank you for your feedback! 🗣️");
                 window.closeWriteTestimonyModal();
@@ -2324,7 +2328,8 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             const res = await fetch((window.backendUrl || '') + '/api/public/map', {
                 headers: { 'Accept': 'application/json' }
             });
-            const data = await res.json();
+            const text = await res.text();
+            const data = window.safeJsonParse(text, null);
             if (!data || !data.destinations) return;
             const newIds = data.destinations.map(d => String(d.id)).sort().join(',');
             const oldIds = (window.allMapLocations || []).map(d => String(d.id)).sort().join(',');
