@@ -1280,7 +1280,7 @@
                 const fpBoxes = document.querySelectorAll('.fp-otp-box');
                 fpBoxes.forEach(b => b.value = '');
                 if (fpBoxes[0]) fpBoxes[0].focus();
-            }, 1200);
+            }, 5000);
 
         } catch (error) {
             console.error('Forgot Password Error:', error);
@@ -1419,7 +1419,7 @@
                 }
                 
                 hideForgotPassword();
-            }, 1200);
+            }, 5000);
 
         } catch (error) {
             console.error('Reset Password OTP Error:', error);
