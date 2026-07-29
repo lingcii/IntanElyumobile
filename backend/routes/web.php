@@ -38,6 +38,28 @@ Route::get('/assets/{path}', function ($path) {
     return response('Asset not found', 404);
 })->where('path', '.*');
 
+// Serve Uploaded Storage Assets (Avatars, Proof Photos, Spot Media)
+Route::get('/storage/{path}', function ($path) {
+    $possiblePaths = [
+        storage_path('app/public/' . $path),
+        base_path('public/storage/' . $path),
+        base_path('storage/app/public/' . $path),
+    ];
+
+    foreach ($possiblePaths as $filePath) {
+        if (file_exists($filePath) && is_file($filePath)) {
+            $mime = mime_content_type($filePath) ?: 'application/octet-stream';
+            if (str_ends_with($filePath, '.png'))  $mime = 'image/png';
+            if (str_ends_with($filePath, '.jpg') || str_ends_with($filePath, '.jpeg')) $mime = 'image/jpeg';
+            if (str_ends_with($filePath, '.webp')) $mime = 'image/webp';
+            if (str_ends_with($filePath, '.svg'))  $mime = 'image/svg+xml';
+
+            return response()->file($filePath, ['Content-Type' => $mime]);
+        }
+    }
+    return response('Storage file not found', 404);
+})->where('path', '.*');
+
 // Serve Manifest
 Route::get('/manifest.json', function () {
     $path = base_path('../frontend/Mobile/src/manifest.json');
@@ -82,7 +104,8 @@ function renderMobileApp(Request $request)
         return response()->json([
             'error' => $e->getMessage(),
             'file' => basename($e->getFile()),
-            'line' => $e->getLine()
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString()
         ], 500);
     }
 
