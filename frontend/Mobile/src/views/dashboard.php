@@ -1428,11 +1428,41 @@ window.toggleRecommendedMore = function() {
         const showOb = sessionStorage.getItem('show_onboarding') || sessionStorage.getItem('onboarding_active');
         if (!showOb) return;
 
+        try {
+            const user = JSON.parse(localStorage.getItem('auth_user'));
+            const avatarImg = document.getElementById('onboard-avatar-preview');
+            if (user && avatarImg) {
+                if (user.avatar) {
+                    avatarImg.src = user.avatar;
+                } else if (user.name) {
+                    avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=38bdf8&color=fff`;
+                }
+            }
+        } catch (e) {}
+
         const profileModal = document.getElementById('onboard-profile-modal');
         if (profileModal) profileModal.style.display = 'flex';
     };
 
+    window.previewOnboardAvatar = function(event) {
+        const file = event.target?.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('onboard-avatar-preview');
+                if (img) img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     window.onboardSaveProfile = async function() {
+        const btn = document.getElementById('btn-onboard-save');
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+            btn.disabled = true;
+        }
+
         const phone = document.getElementById('onboard-phone')?.value || '';
         const home = document.getElementById('onboard-home')?.value || '';
         const bio = document.getElementById('onboard-bio')?.value || '';
@@ -1440,14 +1470,32 @@ window.toggleRecommendedMore = function() {
         const activeChips = Array.from(document.querySelectorAll('#onboard-pref-chips .pref-chip.active')).map(c => c.textContent.trim());
         const prefs = activeChips.join(', ');
 
+        const avatarInput = document.getElementById('onboard-avatar-input');
         const token = localStorage.getItem('intan_elyu_token');
-        if (token && (phone || home || bio || prefs)) {
+
+        const formData = new FormData();
+        formData.append('phone', phone);
+        formData.append('home_location', home);
+        formData.append('bio', bio);
+        formData.append('travel_preferences', prefs);
+
+        if (avatarInput && avatarInput.files && avatarInput.files[0]) {
+            formData.append('avatar', avatarInput.files[0]);
+        }
+
+        if (token) {
             try {
-                await fetch((window.backendUrl || window.location.origin) + '/api/tourist/profile', {
+                const res = await fetch((window.backendUrl || window.location.origin) + '/api/tourist/profile', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ phone, home_location: home, bio, travel_preferences: prefs })
+                    headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: formData
                 });
+                const data = await res.json();
+                if (data.user) {
+                    localStorage.setItem('auth_user', JSON.stringify(data.user));
+                    const headerAvatar = document.querySelector('.user-avatar, #user-avatar, .header-avatar');
+                    if (headerAvatar && data.user.avatar) headerAvatar.src = data.user.avatar;
+                }
             } catch (e) {}
         }
         
@@ -1487,6 +1535,20 @@ window.toggleRecommendedMore = function() {
             <p style="margin:0; font-size:12px; color:rgba(148,163,184,0.9);">Tell us a bit about yourself to personalize recommendations.</p>
         </div>
         <div style="padding:20px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:14px;">
+            <!-- Profile Avatar Picker -->
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; margin-bottom:4px;">
+                <div style="position:relative; width:84px; height:84px;">
+                    <img id="onboard-avatar-preview" src="https://ui-avatars.com/api/?name=User&background=38bdf8&color=fff" style="width:84px; height:84px; border-radius:50%; object-fit:cover; border:2.5px solid #38bdf8; box-shadow:0 6px 20px rgba(56,189,248,0.35);">
+                    <label for="onboard-avatar-input" style="position:absolute; bottom:2px; right:2px; width:28px; height:28px; background:#38bdf8; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:12px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.5); border:2px solid #0f172a; transition:transform 0.2s;">
+                        <i class="fa-solid fa-camera"></i>
+                    </label>
+                    <input type="file" id="onboard-avatar-input" accept="image/*" style="display:none;" onchange="window.previewOnboardAvatar(event)">
+                </div>
+                <span style="font-size:11px; font-weight:700; color:#38bdf8; cursor:pointer;" onclick="document.getElementById('onboard-avatar-input').click()">
+                    Add Profile Picture
+                </span>
+            </div>
+
             <div>
                 <label style="display:block; font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); margin-bottom:6px;">Mobile Phone Number</label>
                 <input type="text" id="onboard-phone" placeholder="0912 345 6789" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px 14px; color:#fff; font-size:13px; outline:none;">
@@ -1514,7 +1576,7 @@ window.toggleRecommendedMore = function() {
             <button onclick="window.onboardSkipProfile()" style="flex:1; background:transparent; border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.7); padding:12px; border-radius:12px; font-weight:700; font-size:12px; cursor:pointer;">
                 Skip for now
             </button>
-            <button onclick="window.onboardSaveProfile()" style="flex:2; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:12px; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
+            <button id="btn-onboard-save" onclick="window.onboardSaveProfile()" style="flex:2; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:12px; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
                 Save & Continue <i class="fa-solid fa-arrow-right"></i>
             </button>
         </div>
