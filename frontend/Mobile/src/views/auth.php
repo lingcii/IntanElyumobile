@@ -76,7 +76,7 @@
             
             <!-- Panel 2: Register -->
             <div class="form-panel register-form">
-                <form id="form-register" onsubmit="handleRegister(event)">
+                <form id="form-register" onsubmit="handleRegisterSubmit(event)">
                     <div style="display: flex; gap: 10px;">
                         <div class="input-group" style="flex: 1;">
                             <i class="fa-regular fa-user"></i>
@@ -98,9 +98,9 @@
                     </div>
                     
                     <div style="font-size: 11px; color: rgba(255,255,255,0.85); margin: 10px 0 16px 4px; display: flex; align-items: center; gap: 8px;">
-                        <input type="checkbox" id="reg-privacy-checkbox" class="circular-checkbox" disabled style="opacity: 0.4; cursor: not-allowed;" required>
-                        <label for="reg-privacy-checkbox" id="reg-privacy-label" style="cursor: not-allowed; margin: 0; line-height: 1.35; opacity: 0.4;">
-                            I agree to the <a href="#" id="link-terms-privacy" onclick="openPrivacyPolicyModal(event)" style="color: #38bdf8; font-weight: 700; text-decoration: underline; pointer-events: none;">Terms & Privacy Policy</a>.
+                        <input type="checkbox" id="reg-privacy-checkbox" class="circular-checkbox" style="cursor: pointer;" required>
+                        <label for="reg-privacy-checkbox" id="reg-privacy-label" style="cursor: pointer; margin: 0; line-height: 1.35;">
+                            I agree to the <a href="#" id="link-terms-privacy" onclick="openPrivacyPolicyModal(event)" style="color: #38bdf8; font-weight: 700; text-decoration: underline; cursor: pointer;">Terms & Privacy Policy</a>.
                         </label>
                     </div>
                     
@@ -904,53 +904,34 @@
         }
     };
 
-    function checkRegisterFieldsFilled() {
-        const fn = (document.getElementById('reg-first-name')?.value || '').trim();
-        const ln = (document.getElementById('reg-last-name')?.value || '').trim();
-        const email = (document.getElementById('reg-email')?.value || '').trim();
+    window.handleRegisterSubmit = async function(e) {
+        if (e) e.preventDefault();
         const pwd = document.getElementById('reg-password')?.value || '';
-
+        const firstName = (document.getElementById('reg-first-name')?.value || '').trim();
+        const lastName = (document.getElementById('reg-last-name')?.value || '').trim();
+        const email = (document.getElementById('reg-email')?.value || '').trim();
         const chk = document.getElementById('reg-privacy-checkbox');
-        const label = document.getElementById('reg-privacy-label');
-        const link = document.getElementById('link-terms-privacy');
 
-        const isValid = fn.length > 0 && ln.length > 0 && email.includes('@') && email.includes('.') && pwd.length >= 8;
-
-        if (isValid) {
-            if (chk) { chk.disabled = false; chk.style.opacity = '1'; chk.style.cursor = 'pointer'; }
-            if (label) { label.style.cursor = 'pointer'; label.style.opacity = '1'; }
-            if (link) { link.style.pointerEvents = 'auto'; }
-        } else {
-            if (chk) { chk.disabled = true; chk.checked = false; chk.style.opacity = '0.4'; chk.style.cursor = 'not-allowed'; }
-            if (label) { label.style.cursor = 'not-allowed'; label.style.opacity = '0.4'; }
-            if (link) { link.style.pointerEvents = 'none'; }
+        if (!firstName || !lastName || !email || !pwd) {
+            if (typeof showToast === 'function') showToast('Please fill in all registration fields.');
+            return;
         }
-    }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        ['reg-first-name', 'reg-last-name', 'reg-email', 'reg-password'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.addEventListener('input', checkRegisterFieldsFilled);
-                el.addEventListener('change', checkRegisterFieldsFilled);
-            }
-        });
-        checkRegisterFieldsFilled();
-    });
+        if (pwd.length < 8) {
+            if (typeof showToast === 'function') showToast('Password must be at least 8 characters long.');
+            return;
+        }
+
+        if (chk && !chk.checked) {
+            if (typeof showToast === 'function') showToast('Please accept the Terms & Privacy Policy first.');
+            return;
+        }
+
+        await window.submitRegistrationAndTrigger2FA();
+    };
 
     window.openPrivacyPolicyModal = function(e) {
         if (e) e.preventDefault();
-        
-        // Ensure textboxes are filled first
-        const fn = (document.getElementById('reg-first-name')?.value || '').trim();
-        const ln = (document.getElementById('reg-last-name')?.value || '').trim();
-        const email = (document.getElementById('reg-email')?.value || '').trim();
-        const pwd = document.getElementById('reg-password')?.value || '';
-
-        if (!fn || !ln || !email || !pwd || pwd.length < 8) {
-            if (typeof showToast === 'function') showToast('Please fill in your First Name, Last Name, Email, and Password (min 8 chars) first.');
-            return;
-        }
 
         const modal = document.getElementById('privacy-policy-modal');
         if (!modal) return;
@@ -1011,7 +992,7 @@
         if (regChk) regChk.checked = true;
 
         closePrivacyPolicyModal();
-        await submitRegistrationAndTrigger2FA();
+        await window.submitRegistrationAndTrigger2FA();
     };
 
     window.submitRegistrationAndTrigger2FA = async function() {
