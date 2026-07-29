@@ -284,8 +284,13 @@ class ProfileController extends Controller
         }
 
         if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $user->avatar = 'storage/' . $path;
+            $disk = env('FILESYSTEM_DISK', 'public');
+            $path = $request->file('avatar')->store('avatars', $disk);
+            if (in_array($disk, ['r2', 's3'])) {
+                $user->avatar = \Illuminate\Support\Facades\Storage::disk($disk)->url($path);
+            } else {
+                $user->avatar = 'storage/' . $path;
+            }
         }
 
         if ($request->has('is_leaderboard_private') && Schema::hasColumn('users', 'is_leaderboard_private')) {

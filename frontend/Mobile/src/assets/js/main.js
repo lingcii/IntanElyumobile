@@ -688,6 +688,19 @@ window.getDestImage = function (dest, width) {
     if (!width) width = 600;
     var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
 
+    // Phase 0: If the API already provides a full cloud/CDN URL, use it directly
+    if (dest && typeof dest === 'object') {
+        var directUrl = dest.photo_url || dest.image || null;
+        if (directUrl && typeof directUrl === 'string' && directUrl.indexOf('http') === 0) {
+            try {
+                var parsed = new URL(directUrl);
+                if (parsed.host.includes('r2.dev') || parsed.host.includes('r2.cloudflarestorage.com') || parsed.host.includes('cloudinary.com') || parsed.host.includes('unsplash.com') || parsed.host.includes('googleapis.com')) {
+                    return directUrl;
+                }
+            } catch (e) {}
+        }
+    }
+
     // Phase 1: Try local filesystem images (AVAILABLE_MUNI_IMAGES)
     if (window.AVAILABLE_MUNI_IMAGES && dest && dest.name) {
         var munisToCheck = dest.municipality
