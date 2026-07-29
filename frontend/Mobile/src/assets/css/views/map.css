@@ -249,7 +249,7 @@
     border-bottom: none !important;
     box-shadow: none !important;
     border-radius: 28px 28px 0 0 !important;
-    padding: 8px 20px 24px;
+    padding: 8px 20px calc(90px + env(safe-area-inset-bottom)) !important;
     max-height: calc(100vh - 90px);
     transform: translateY(100%);
     opacity: 0;
