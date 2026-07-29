@@ -27,6 +27,25 @@ WORKDIR /app
 # Copy repository files
 COPY . .
 
+# Ensure storage & cache directories exist with full permissions
+RUN if [ -d "backend" ]; then \
+        mkdir -p backend/storage/framework/sessions \
+                 backend/storage/framework/views \
+                 backend/storage/framework/cache/data \
+                 backend/storage/app/public/proof_images \
+                 backend/storage/logs \
+                 backend/bootstrap/cache && \
+        chmod -R 777 backend/storage backend/bootstrap/cache; \
+    else \
+        mkdir -p storage/framework/sessions \
+                 storage/framework/views \
+                 storage/framework/cache/data \
+                 storage/app/public/proof_images \
+                 storage/logs \
+                 bootstrap/cache && \
+        chmod -R 777 storage bootstrap/cache; \
+    fi
+
 # Run composer install where composer.json exists (either /app or /app/backend)
 RUN if [ -f "composer.json" ]; then \
         composer install --no-dev --optimize-autoloader; \
@@ -38,4 +57,4 @@ RUN if [ -f "composer.json" ]; then \
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "if [ -d 'backend' ]; then cd backend; fi && php artisan storage:link && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"]
+CMD ["sh", "-c", "if [ -d 'backend' ]; then cd backend; fi && mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache/data storage/logs bootstrap/cache && chmod -R 777 storage bootstrap/cache && php artisan config:clear && php artisan cache:clear && php artisan storage:link && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"]
