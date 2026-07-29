@@ -113,11 +113,11 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         </div>
 
         <!-- Slidable Image Banner Carousel -->
-        <div id="sheet-slider-container" style="position:relative; width:100%; height:180px; border-radius:18px; overflow:hidden; margin-top:12px; margin-bottom:12px; background:#0f172a;">
+        <div id="sheet-slider-container" style="position:relative; width:100%; height:240px; border-radius:18px; overflow:hidden; margin-top:12px; margin-bottom:12px; background:#0f172a;">
             <div id="sheet-slider-track" style="display:flex; width:100%; height:100%; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch;">
-                <img src="" alt="Place Image" class="sheet-img" id="sheet-img" style="min-width:100%; width:100%; height:180px; object-fit:cover; object-position:center; border-radius:18px; flex-shrink:0; scroll-snap-align:center; display:block;">
+                <img src="" alt="Place Image" class="sheet-img" id="sheet-img" style="min-width:100%; width:100%; height:240px; object-fit:cover; object-position:center; border-radius:18px; flex-shrink:0; scroll-snap-align:center; display:block;">
             </div>
-            <div id="sheet-slider-dots" style="position:absolute; bottom:10px; left:50%; transform:translateX(-50%); display:none; gap:6px; background:rgba(0,0,0,0.5); backdrop-filter:blur(8px); padding:4px 10px; border-radius:20px; z-index:5; pointer-events:none;"></div>
+            <div id="sheet-slider-dots" style="position:absolute; bottom:12px; left:50%; transform:translateX(-50%); display:none; gap:6px; background:rgba(0,0,0,0.5); backdrop-filter:blur(8px); padding:4px 10px; border-radius:20px; z-index:5; pointer-events:none;"></div>
         </div>
 
         <!-- About This Location & Tourist Guide Details -->
@@ -1558,7 +1558,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 img.src = (imgUrl && imgUrl !== window.noImageFallback) ? imgUrl : fallbackBanner;
                 img.alt = locationData.name || 'Place Image';
                 img.className = 'sheet-img';
-                img.style.cssText = 'min-width:100%; width:100%; height:180px; object-fit:cover; object-position:center; border-radius:18px; flex-shrink:0; scroll-snap-align:center; display:block;';
+                img.style.cssText = 'min-width:100%; width:100%; height:240px; object-fit:cover; object-position:center; border-radius:18px; flex-shrink:0; scroll-snap-align:center; display:block;';
                 img.onerror = function() {
                     this.onerror = null;
                     this.src = fallbackBanner;
