@@ -299,10 +299,10 @@ $backRoute = 'itinerary';
                                             `<div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
                                                 ${proofImgHtml}
                                                 <div>
-                                                    <span style="color:#FF9500; font-size:12px; font-weight:800; display:block;">
-                                                        <i class="fa-solid fa-clock" style="margin-right:4px;"></i> Pending Confirmation
-                                                    </span>
-                                                    <span style="font-size:10px; color:rgba(226,232,240,0.6);">Awaiting Validation</span>
+                                                     <span style="background:rgba(255,149,0,0.15); border:1px solid rgba(255,149,0,0.35); color:#FF9500; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
+                                                         <i class="fa-solid fa-clock"></i> Pending Confirmation
+                                                     </span>
+                                                    <span style="font-size:10px; color:rgba(226,232,240,0.6); display:block; margin-top:4px;">Awaiting Validation</span>
                                                 </div>
                                             </div>` : 
                                             `<button class="btn-primary" style="padding: 8px 14px; font-size:12px; font-weight:700; width:max-content; border-radius:100px; background: linear-gradient(135deg, #38bdf8, #2563eb); border:none; box-shadow: 0 4px 12px rgba(56,189,248,0.3); color:#fff; cursor:pointer;" onclick="window.openCheckinModal('${item.id}')">

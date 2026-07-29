@@ -843,11 +843,11 @@ if (is_dir($imgDir)) {
 
                                     let proofBadge = '';
                                     if (item.is_visited || item.proof_status === 'approved') {
-                                        proofBadge = `<span style="font-size:10px; font-weight:800; color:#34c759; margin-left:auto;"><i class="fa-solid fa-circle-check"></i> Verified</span>`;
+                                        proofBadge = `<span style="font-size:10px; font-weight:800; color:#34c759; background:rgba(52,199,89,0.15); border:1px solid rgba(52,199,89,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Verified</span>`;
                                     } else if (item.proof_status === 'rejected') {
-                                        proofBadge = `<span style="font-size:10px; font-weight:800; color:#ef4444; margin-left:auto;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
+                                        proofBadge = `<span style="font-size:10px; font-weight:800; color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
                                     } else if (item.proof_image && (item.proof_status === 'pending' || !item.proof_status)) {
-                                        proofBadge = `<span style="font-size:10px; font-weight:800; color:#FF9500; margin-left:auto;"><i class="fa-solid fa-clock"></i> Pending</span>`;
+                                        proofBadge = `<span style="font-size:10px; font-weight:800; color:#FF9500; background:rgba(255,149,0,0.15); border:1px solid rgba(255,149,0,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-clock"></i> Pending</span>`;
                                     }
 
                                     destinationsHtml += `

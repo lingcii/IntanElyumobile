@@ -1457,6 +1457,8 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     };
 
     window.openSheet = function(locationData) {
+        if (!locationData) return;
+        window.currentDestinationForRoute = locationData;
         if (window.activePopup) {
             window.activePopup.remove();
         }
