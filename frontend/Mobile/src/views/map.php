@@ -98,13 +98,19 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     <div class="bottom-sheet" id="place-details-sheet">
         <div class="sheet-drag-handle" id="place-drag-handle"><span class="sheet-drag-dot"></span></div>
         <div class="draggable-content" id="place-details-scroll">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
-            <div style="flex:1; min-width:0;">
-                <h3 class="sheet-title" id="sheet-title">Destination Name</h3>
-                <p class="sheet-location" style="margin-bottom: 4px;"><i class="fa-solid fa-location-dot"></i><span id="sheet-location">Location details</span></p>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; padding-right:4px;">
+            <div style="flex:1; min-width:0; padding-right:12px;">
+                <h3 class="sheet-title" id="sheet-title" style="font-size:22px; font-weight:800; color:#ffffff; letter-spacing:-0.4px; margin:0 0 6px 0; line-height:1.25; text-shadow:0 2px 10px rgba(0,0,0,0.3);">Destination Name</h3>
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <p class="sheet-location" id="sheet-location-container" style="display:flex; align-items:center; gap:5px; margin:0; font-size:12px; color:#38bdf8; font-weight:600;">
+                        <i class="fa-solid fa-location-dot" style="color:#38bdf8; font-size:11px;"></i>
+                        <span id="sheet-location">Location details</span>
+                    </p>
+                    <span id="sheet-category-badge" style="display:none; padding:3px 9px; border-radius:10px; font-size:10px; font-weight:800; background:rgba(56, 189, 248, 0.15); color:#38bdf8; border:1px solid rgba(56, 189, 248, 0.3); text-transform:uppercase; letter-spacing:0.5px; backdrop-filter:blur(6px);"></span>
+                </div>
             </div>
             <div style="display:flex; gap: 8px;">
-                <button onclick="window.closeSheet()" style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:rgba(148,163,184,0.9); font-size:14px; cursor:pointer; flex-shrink:0; transition:background 0.2s;">
+                <button onclick="window.closeSheet()" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:rgba(248,250,252,0.9); font-size:14px; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -1461,11 +1467,24 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         document.getElementById('sheet-title').textContent = locationData.name;
         
         const locElement = document.getElementById('sheet-location');
-        if (locationData.location && locationData.location.trim() !== '') {
-            locElement.textContent = locationData.location;
-            locElement.parentElement.style.display = 'block';
-        } else {
-            locElement.parentElement.style.display = 'none';
+        const locContainer = document.getElementById('sheet-location-container');
+        const displayLoc = (locationData.location && locationData.location.trim() !== '') 
+            ? locationData.location 
+            : (locationData.municipality ? (locationData.municipality + ', La Union') : 'La Union, Philippines');
+
+        if (locElement && locContainer) {
+            locElement.textContent = displayLoc;
+            locContainer.style.display = 'flex';
+        }
+
+        const catBadge = document.getElementById('sheet-category-badge');
+        if (catBadge) {
+            if (locationData.category && locationData.category.trim() !== '') {
+                catBadge.style.display = 'inline-flex';
+                catBadge.textContent = locationData.category;
+            } else {
+                catBadge.style.display = 'none';
+            }
         }
 
         const statusBadge = document.getElementById('sheet-status-badge');
