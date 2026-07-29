@@ -57,4 +57,4 @@ RUN if [ -f "composer.json" ]; then \
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "if [ -d 'backend' ]; then cd backend; fi && mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache/data storage/logs bootstrap/cache && chmod -R 777 storage bootstrap/cache && php artisan config:clear && php artisan cache:clear && php artisan storage:link && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"]
+CMD ["sh", "-c", "if [ -d 'backend' ]; then cd backend; fi && mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache/data storage/logs bootstrap/cache && chmod -R 777 storage bootstrap/cache && php artisan config:clear && php artisan cache:clear && php artisan migrate --force && php artisan storage:link && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"]
