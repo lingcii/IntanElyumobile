@@ -1042,10 +1042,14 @@
             const data = await response.json();
             
             if (!response.ok) {
-                let errMsg = data.message || 'Registration failed';
-                if (data.errors) {
+                let errMsg = 'Registration failed';
+                if (data.errors && data.errors.email && data.errors.email[0]) {
+                    errMsg = data.errors.email[0];
+                } else if (data.message) {
+                    errMsg = data.message;
+                } else if (data.errors) {
                     const details = Object.values(data.errors).flat().join(' ');
-                    if (details) errMsg += ': ' + details;
+                    if (details) errMsg = details;
                 }
                 throw new Error(errMsg);
             }
@@ -1083,9 +1087,11 @@
             console.error('Register Error:', error);
             if (modal) {
                 modal.classList.remove('active');
-                setTimeout(() => { modal.style.display = 'none'; }, 300);
+                modal.style.display = 'none';
             }
-            if (typeof showToast === 'function') showToast(error.message);
+            if (typeof showToast === 'function') {
+                showToast(error.message, 'error', 4500);
+            }
             if (btn) {
                 btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
                 btn.disabled = false;
