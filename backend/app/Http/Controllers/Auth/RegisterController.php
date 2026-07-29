@@ -72,31 +72,36 @@ class RegisterController extends Controller
             ], 422);
         }
 
-        // Generate 6-digit OTP
-        $otp = sprintf('%06d', random_int(0, 999999));
-        $emailKey = strtolower(trim($request->email));
+        // Create active user account directly
+        $token = Str::random(60);
+        $user = User::create([
+            'name'      => $trimmedName,
+            'email'     => $emailKey,
+            'password'  => Hash::make($request->password),
+            'role'      => 'tourist',
+            'status'    => 'active',
+            'api_token' => $token,
+        ]);
 
-        // Save pending registration in Cache for 10 minutes
-        \Illuminate\Support\Facades\Cache::put("pending_reg_{$emailKey}", [
-            'name'     => $trimmedName,
-            'email'    => $emailKey,
-            'password' => Hash::make($request->password),
-            'otp'      => $otp,
-        ], now()->addMinutes(10));
-
-        // Send OTP Verification Email
+        // Send Welcome Mail
         try {
-            Mail::to($emailKey)->send(new \App\Mail\EmailVerificationOtpMail($trimmedName, $otp));
-        } catch (\Throwable $e) {
-            Log::warning('EmailVerificationOtpMail failed for ' . $emailKey . ': ' . $e->getMessage());
-        }
+            Mail::to($user->email)->send(new TouristWelcomeMail($user));
+        } catch (\Throwable $e) {}
 
         return response()->json([
-            'success'      => true,
-            'requires_otp' => true,
-            'email'        => $emailKey,
-            'message'      => 'Verification code sent to your email! Please enter the 6-digit code to activate your account.',
-        ], 200);
+            'success' => true,
+            'token'   => $token,
+            'user'    => [
+                'id'     => $user->id,
+                'name'   => $user->name,
+                'email'  => $user->email,
+                'role'   => $user->role,
+                'xp'     => 0,
+                'level'  => 1,
+                'avatar' => null,
+            ],
+            'message' => 'Account created successfully! Welcome to Intan Elyu!',
+        ], 201);
     }
 
     /**
