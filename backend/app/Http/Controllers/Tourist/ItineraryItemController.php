@@ -109,23 +109,31 @@ class ItineraryItemController extends Controller
                     $file = $request->file('image');
                     $ext = $file->getClientOriginalExtension() ?: 'jpg';
                     $filename = 'proof_' . random_int(10000000, 99999999) . '.' . $ext;
-                    $disk = env('FILESYSTEM_DISK', 'public');
+                    $targetPath = 'proof_images/' . $filename;
+                    $disk = 'r2';
 
                     try {
-                        $path = $file->storeAs('proof_images', $filename, $disk);
-                    } catch (\Throwable $diskException) {
-                        \Illuminate\Support\Facades\Log::warning("Primary disk {$disk} failed, falling back to public disk: " . $diskException->getMessage());
-                        $disk = 'public';
-                        $path = $file->storeAs('proof_images', $filename, 'public');
+                        // Store directly to Cloudflare R2 bucket
+                        $path = $file->storeAs('proof_images', $filename, 'r2');
+                    } catch (\Throwable $r2Exception) {
+                        \Illuminate\Support\Facades\Log::warning("R2 disk store failed, attempting fallback disk: " . $r2Exception->getMessage());
+                        $disk = env('FILESYSTEM_DISK', 'public');
+                        try {
+                            $path = $file->storeAs('proof_images', $filename, $disk);
+                        } catch (\Throwable $diskException) {
+                            $disk = 'public';
+                            $path = $file->storeAs('proof_images', $filename, 'public');
+                        }
                     }
 
                     if (in_array($disk, ['r2', 's3'])) {
-                        $itemData['proof_image'] = \Illuminate\Support\Facades\Storage::disk($disk)->url($path);
+                        $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
+                        $itemData['proof_image'] = $r2PublicUrl . '/' . ltrim($path, '/');
                     } else {
                         $itemData['proof_image'] = 'storage/' . $path;
                     }
                 } catch (\Throwable $imgErr) {
-                    \Illuminate\Support\Facades\Log::error("Failed to store proof image: " . $imgErr->getMessage());
+                    \Illuminate\Support\Facades\Log::error("Failed to store proof image to R2: " . $imgErr->getMessage());
                 }
             }
 
