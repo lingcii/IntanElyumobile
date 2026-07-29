@@ -99,7 +99,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         <div class="sheet-drag-handle" id="place-drag-handle"><span class="sheet-drag-dot"></span></div>
         <div class="draggable-content" id="place-details-scroll">
         <!-- Framed Destination Header -->
-        <div id="sheet-title-frame" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-radius:18px; padding:12px 16px; margin-bottom:14px; box-shadow:0 4px 20px rgba(0,0,0,0.25); display:flex; justify-content:space-between; align-items:center;">
+        <div id="sheet-title-frame" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-radius:18px; padding:12px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
             <div style="flex:1; min-width:0; padding-right:12px;">
                 <h3 class="sheet-title" id="sheet-title" style="font-size:20px; font-weight:800; color:#ffffff; letter-spacing:-0.4px; margin:0 0 4px 0; line-height:1.25;">Destination Name</h3>
                 <p class="sheet-location" id="sheet-location-container" style="display:flex; align-items:center; gap:5px; margin:0; font-size:12px; color:#38bdf8; font-weight:600;">
@@ -116,9 +116,9 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         <div id="sheet-slider-container" style="position:relative; width:100%; height:220px; border-radius:18px; overflow:hidden; margin-top:12px; margin-bottom:12px; background:#0f172a;">
             <!-- Floating Overlay Badges -->
             <div id="sheet-badges-overlay" style="position:absolute; top:12px; left:12px; z-index:10; display:flex; gap:6px; flex-wrap:wrap; pointer-events:none;">
-                <div id="sheet-category-badge" style="display:none; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff; background:rgba(56, 189, 248, 0.95); backdrop-filter:blur(8px); box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>
-                <div id="sheet-status-badge" style="display:none; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff; background:rgba(52, 199, 89, 0.95); backdrop-filter:blur(8px); box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>
-                <div id="sheet-open-badge" style="display:none; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff; background:rgba(52, 199, 89, 0.95); backdrop-filter:blur(8px); box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>
+                <div id="sheet-category-badge" style="display:none; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff; background:rgba(56, 189, 248, 0.95); backdrop-filter:blur(8px);"></div>
+                <div id="sheet-status-badge" style="display:none; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff; background:rgba(52, 199, 89, 0.95); backdrop-filter:blur(8px);"></div>
+                <div id="sheet-open-badge" style="display:none; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff; background:rgba(52, 199, 89, 0.95); backdrop-filter:blur(8px);"></div>
             </div>
             <div id="sheet-slider-track" style="display:flex; width:100%; height:100%; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch;">
                 <img src="" alt="Place Image" class="sheet-img" id="sheet-img" style="flex:0 0 100%; min-width:100%; width:100%; max-width:100%; height:100% !important; object-fit:cover !important; object-position:center !important; border-radius:18px !important; scroll-snap-align:start; scroll-snap-stop:always; display:block !important; margin:0 !important; box-sizing:border-box !important;">
