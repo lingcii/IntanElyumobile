@@ -1235,8 +1235,11 @@
             btn.disabled = true;
         }
 
-        // Display loading modal
-        if (modal) modal.style.display = 'flex';
+        // Display loading modal with active CSS transition
+        if (modal) {
+            modal.style.display = 'flex';
+            setTimeout(() => { modal.classList.add('active'); }, 10);
+        }
         if (titleEl) titleEl.textContent = 'Sending Reset Code...';
         if (subEl) subEl.textContent = 'Please wait while we send the code to your email';
         if (spinnerSvg) spinnerSvg.style.display = 'block';
@@ -1261,7 +1264,10 @@
             if (checkmarkIcon) checkmarkIcon.style.display = 'block';
 
             setTimeout(() => {
-                if (modal) modal.style.display = 'none';
+                if (modal) {
+                    modal.classList.remove('active');
+                    setTimeout(() => { modal.style.display = 'none'; }, 300);
+                }
                 
                 const targetEmailEl = document.getElementById('fp-target-email');
                 if (targetEmailEl) targetEmailEl.textContent = data.email || email;
@@ -1278,7 +1284,10 @@
 
         } catch (error) {
             console.error('Forgot Password Error:', error);
-            if (modal) modal.style.display = 'none';
+            if (modal) {
+                modal.classList.remove('active');
+                setTimeout(() => { modal.style.display = 'none'; }, 300);
+            }
             if (typeof showToast === 'function') showToast(error.message);
         } finally {
             if (btn) {
@@ -1356,8 +1365,11 @@
             btn.disabled = true;
         }
 
-        // Show full-screen loading modal
-        if (modal) modal.style.display = 'flex';
+        // Show full-screen loading modal with active CSS transition
+        if (modal) {
+            modal.style.display = 'flex';
+            setTimeout(() => { modal.classList.add('active'); }, 10);
+        }
         if (titleEl) titleEl.textContent = 'Resetting Password...';
         if (subEl) subEl.textContent = 'Updating your account credentials';
         if (spinnerSvg) spinnerSvg.style.display = 'block';
@@ -1387,7 +1399,10 @@
             if (checkmarkIcon) checkmarkIcon.style.display = 'block';
 
             setTimeout(() => {
-                if (modal) modal.style.display = 'none';
+                if (modal) {
+                    modal.classList.remove('active');
+                    setTimeout(() => { modal.style.display = 'none'; }, 300);
+                }
                 if (typeof showToast === 'function') showToast('🎉 Password reset successfully! Please sign in.');
                 
                 // Auto fill email into login form
@@ -1408,7 +1423,10 @@
 
         } catch (error) {
             console.error('Reset Password OTP Error:', error);
-            if (modal) modal.style.display = 'none';
+            if (modal) {
+                modal.classList.remove('active');
+                setTimeout(() => { modal.style.display = 'none'; }, 300);
+            }
             if (typeof showToast === 'function') showToast(error.message);
             if (btn) {
                 btn.innerHTML = oldHtml;
