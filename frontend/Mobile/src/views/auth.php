@@ -1343,10 +1343,25 @@
             return;
         }
 
+        const modal = document.getElementById('login-success-modal');
+        const titleEl = document.getElementById('login-modal-title');
+        const subEl = document.getElementById('login-success-user-name');
+        const spinnerSvg = document.getElementById('modal-spinner-svg');
+        const checkmarkIcon = document.getElementById('modal-checkmark-icon');
+
         const btn = document.getElementById('fp-reset-btn');
-        const oldHtml = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-        btn.disabled = true;
+        const oldHtml = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+            btn.disabled = true;
+        }
+
+        // Show full-screen loading modal
+        if (modal) modal.style.display = 'flex';
+        if (titleEl) titleEl.textContent = 'Resetting Password...';
+        if (subEl) subEl.textContent = 'Updating your account credentials';
+        if (spinnerSvg) spinnerSvg.style.display = 'block';
+        if (checkmarkIcon) checkmarkIcon.style.display = 'none';
 
         try {
             const response = await fetch(backendUrl + '/api/auth/reset-password-otp', {
@@ -1362,28 +1377,43 @@
 
             const data = await response.json();
             if (!response.ok) {
-                throw new Error(data.message || data.error || 'Failed to reset password.');
+                throw new Error(data.error || data.message || 'Failed to reset password.');
             }
 
-            if (typeof showToast === 'function') showToast('🎉 Password reset successfully! Please sign in.');
-            
-            // Auto fill email into login form
-            const loginEmailInput = document.getElementById('login-email');
-            if (loginEmailInput) loginEmailInput.value = email;
-            
-            // Clear inputs and return back to Login tab
-            boxes.forEach(b => b.value = '');
-            document.getElementById('fp-new-password').value = '';
-            document.getElementById('fp-confirm-password').value = '';
-            btn.innerHTML = oldHtml;
-            btn.disabled = false;
-            
-            hideForgotPassword();
+            // Animate checkmark success in modal
+            if (titleEl) titleEl.textContent = 'Password Reset Successfully!';
+            if (subEl) subEl.textContent = 'You can now sign in with your new password';
+            if (spinnerSvg) spinnerSvg.style.display = 'none';
+            if (checkmarkIcon) checkmarkIcon.style.display = 'block';
+
+            setTimeout(() => {
+                if (modal) modal.style.display = 'none';
+                if (typeof showToast === 'function') showToast('🎉 Password reset successfully! Please sign in.');
+                
+                // Auto fill email into login form
+                const loginEmailInput = document.getElementById('login-email');
+                if (loginEmailInput) loginEmailInput.value = email;
+                
+                // Clear inputs and return back to Login tab
+                boxes.forEach(b => b.value = '');
+                document.getElementById('fp-new-password').value = '';
+                document.getElementById('fp-confirm-password').value = '';
+                if (btn) {
+                    btn.innerHTML = oldHtml;
+                    btn.disabled = false;
+                }
+                
+                hideForgotPassword();
+            }, 1200);
+
         } catch (error) {
             console.error('Reset Password OTP Error:', error);
+            if (modal) modal.style.display = 'none';
             if (typeof showToast === 'function') showToast(error.message);
-            btn.innerHTML = oldHtml;
-            btn.disabled = false;
+            if (btn) {
+                btn.innerHTML = oldHtml;
+                btn.disabled = false;
+            }
         }
     };
 
