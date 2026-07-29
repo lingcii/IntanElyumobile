@@ -1196,7 +1196,7 @@
         const countdownSec = document.getElementById('fp-countdown-sec');
         if (!resendBtn || !countdownText || !countdownSec) return;
 
-        let secondsLeft = 5;
+        let secondsLeft = 45;
         resendBtn.style.display = 'none';
         countdownText.style.display = 'inline';
         countdownSec.textContent = secondsLeft;
@@ -1217,12 +1217,30 @@
         if (e) e.preventDefault();
         const btn = document.getElementById('fp-btn');
         const oldHtml = btn ? btn.innerHTML : '';
+        const email = (document.getElementById('fp-email')?.value || '').trim();
+
+        if (!email) {
+            if (typeof showToast === 'function') showToast('Please enter your email address.');
+            return;
+        }
+
+        const modal = document.getElementById('login-success-modal');
+        const titleEl = document.getElementById('login-modal-title');
+        const subEl = document.getElementById('login-success-user-name');
+        const spinnerSvg = document.getElementById('modal-spinner-svg');
+        const checkmarkIcon = document.getElementById('modal-checkmark-icon');
+
         if (btn) {
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
             btn.disabled = true;
         }
-        
-        const email = document.getElementById('fp-email').value;
+
+        // Display loading modal
+        if (modal) modal.style.display = 'flex';
+        if (titleEl) titleEl.textContent = 'Sending Reset Code...';
+        if (subEl) subEl.textContent = 'Please wait while we send the code to your email';
+        if (spinnerSvg) spinnerSvg.style.display = 'block';
+        if (checkmarkIcon) checkmarkIcon.style.display = 'none';
 
         try {
             const response = await fetch(backendUrl + '/api/auth/forgot-password', {
@@ -1233,24 +1251,36 @@
             const data = await response.json();
             
             if (!response.ok) {
-                throw new Error(data.message || data.error || 'Failed to send reset code.');
+                throw new Error(data.error || data.message || 'Failed to send reset code.');
             }
 
-            const targetEmailEl = document.getElementById('fp-target-email');
-            if (targetEmailEl) targetEmailEl.textContent = data.email || email;
+            // Animate checkmark success in modal
+            if (titleEl) titleEl.textContent = 'Reset Code Sent!';
+            if (subEl) subEl.textContent = 'Check your email inbox or spam folder';
+            if (spinnerSvg) spinnerSvg.style.display = 'none';
+            if (checkmarkIcon) checkmarkIcon.style.display = 'block';
 
-            document.getElementById('fp-form-state').style.display = 'none';
-            document.getElementById('fp-success-state').style.display = 'block';
-            if (typeof showToast === 'function') showToast('Security reset code sent to ' + (data.email || email));
-            startFpResendTimer();
             setTimeout(() => {
+                if (modal) modal.style.display = 'none';
+                
+                const targetEmailEl = document.getElementById('fp-target-email');
+                if (targetEmailEl) targetEmailEl.textContent = data.email || email;
+
+                document.getElementById('fp-form-state').style.display = 'none';
+                document.getElementById('fp-success-state').style.display = 'block';
+                if (typeof showToast === 'function') showToast('Security reset code sent to ' + (data.email || email));
+                startFpResendTimer();
+                
                 const fpBoxes = document.querySelectorAll('.fp-otp-box');
                 fpBoxes.forEach(b => b.value = '');
                 if (fpBoxes[0]) fpBoxes[0].focus();
-            }, 300);
+            }, 1200);
+
         } catch (error) {
             console.error('Forgot Password Error:', error);
+            if (modal) modal.style.display = 'none';
             if (typeof showToast === 'function') showToast(error.message);
+        } finally {
             if (btn) {
                 btn.innerHTML = oldHtml;
                 btn.disabled = false;
