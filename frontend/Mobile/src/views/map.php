@@ -98,19 +98,18 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     <div class="bottom-sheet" id="place-details-sheet">
         <div class="sheet-drag-handle" id="place-drag-handle"><span class="sheet-drag-dot"></span></div>
         <div class="draggable-content" id="place-details-scroll">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; padding-right:4px;">
+        <!-- Framed Destination Header -->
+        <div id="sheet-title-frame" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-radius:18px; padding:12px 16px; margin-bottom:14px; box-shadow:0 4px 20px rgba(0,0,0,0.25); display:flex; justify-content:space-between; align-items:center;">
             <div style="flex:1; min-width:0; padding-right:12px;">
-                <h3 class="sheet-title" id="sheet-title" style="font-size:22px; font-weight:800; color:#ffffff; letter-spacing:-0.4px; margin:0 0 6px 0; line-height:1.25; text-shadow:0 2px 10px rgba(0,0,0,0.3);">Destination Name</h3>
+                <h3 class="sheet-title" id="sheet-title" style="font-size:20px; font-weight:800; color:#ffffff; letter-spacing:-0.4px; margin:0 0 4px 0; line-height:1.25;">Destination Name</h3>
                 <p class="sheet-location" id="sheet-location-container" style="display:flex; align-items:center; gap:5px; margin:0; font-size:12px; color:#38bdf8; font-weight:600;">
                     <i class="fa-solid fa-location-dot" style="color:#38bdf8; font-size:11px;"></i>
                     <span id="sheet-location">Location details</span>
                 </p>
             </div>
-            <div style="display:flex; gap: 8px;">
-                <button onclick="window.closeSheet()" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:rgba(248,250,252,0.9); font-size:14px; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
+            <button onclick="window.closeSheet()" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:rgba(248,250,252,0.9); font-size:13px; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
 
         <!-- Slidable Image Banner Carousel -->
