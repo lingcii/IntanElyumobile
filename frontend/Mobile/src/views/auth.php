@@ -1515,6 +1515,15 @@
                     window.history.replaceState({}, document.title, window.location.pathname + '?view=auth');
                 }
 
+                // If running in external browser on Android, trigger Android Intent handoff back to APK package
+                const isCapacitorNative = !!(window.Capacitor && window.Capacitor.isNativePlatform());
+                if (!isCapacitorNative && /Android/i.test(navigator.userAgent)) {
+                    try {
+                        const intentUrl = 'intent://app.intan-elyu.online/index.php#access_token=' + encodeURIComponent(accessToken) + '#Intent;scheme=https;package=com.intan.elyu;end';
+                        window.location.href = intentUrl;
+                    } catch(e) {}
+                }
+
                 // Show full-screen loading modal immediately
                 const modal = document.getElementById('login-success-modal');
                 const titleEl = document.getElementById('login-modal-title');
