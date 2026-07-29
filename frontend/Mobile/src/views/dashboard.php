@@ -333,11 +333,29 @@ if (is_dir($imgDir)) {
         document.querySelectorAll('#dash-categories-list .category-card').forEach(card => card.classList.remove('active'));
         if (el) el.classList.add('active');
 
+        const matchesCategory = (cardCategory, cardName, targetCat) => {
+            if (targetCat === 'All') return true;
+            const c = (cardCategory || '').toLowerCase();
+            const n = (cardName || '').toLowerCase();
+            const combined = c + ' ' + n;
+            const t = targetCat.toLowerCase();
+
+            if (combined.includes(t)) return true;
+
+            if (t === 'beach' && (combined.includes('beach') || combined.includes('island') || combined.includes('coastal') || combined.includes('surf'))) return true;
+            if (t === 'mountains' && (combined.includes('mountain') || combined.includes('hiking') || combined.includes('hill') || combined.includes('peak') || combined.includes('viewpoint') || combined.includes('nature'))) return true;
+            if (t === 'lakes' && (combined.includes('lake') || combined.includes('fall') || combined.includes('waterfall') || combined.includes('river') || combined.includes('spring') || combined.includes('water'))) return true;
+            if (t === 'heritage' && (combined.includes('heritage') || combined.includes('historical') || combined.includes('church') || combined.includes('monument') || combined.includes('landmark') || combined.includes('museum') || combined.includes('cultural') || combined.includes('religious') || combined.includes('parish') || combined.includes('shrine'))) return true;
+            if (t.includes('food') && (combined.includes('food') || combined.includes('dining') || combined.includes('restaurant') || combined.includes('cafe') || combined.includes('bistro') || combined.includes('grill'))) return true;
+            if (t === 'nightlife' && (combined.includes('nightlife') || combined.includes('bar') || combined.includes('resort') || combined.includes('shopping') || combined.includes('festival') || combined.includes('club'))) return true;
+
+            return false;
+        };
+
         const filterContainer = (containerId, emptyMsg) => {
             const container = document.getElementById(containerId);
             if (!container) return;
 
-            // Remove existing filter empty state if any
             const oldEmpty = container.querySelector('.dash-filter-empty-state');
             if (oldEmpty) oldEmpty.remove();
 
@@ -346,12 +364,30 @@ if (is_dir($imgDir)) {
 
             for (let i = 0; i < children.length; i++) {
                 const child = children[i];
-                // Ignore initial loading or location prompt placeholders
-                if (child.innerText && (child.innerText.includes('Loading') || child.innerText.includes('Enable location'))) {
+                if (child.innerText && (child.innerText.includes('Loading') || child.innerText.includes('Enable location') || child.innerText.includes('Go to the map'))) {
                     continue;
                 }
-                const cardCat = (child.getAttribute('data-category') || child.innerText || '').toLowerCase();
-                if (cat === 'All' || cardCat.includes(cat.toLowerCase())) {
+
+                if (child.id === 'btn-view-more-rec' || child.id === 'rec-extras') {
+                    if (child.id === 'rec-extras') {
+                        Array.from(child.children).forEach(subChild => {
+                            const subCat = subChild.getAttribute('data-category') || '';
+                            const subName = subChild.querySelector('.fav-card-name, h4')?.innerText || '';
+                            if (matchesCategory(subCat, subName, cat)) {
+                                subChild.style.display = '';
+                                visibleCount++;
+                            } else {
+                                subChild.style.display = 'none';
+                            }
+                        });
+                    }
+                    continue;
+                }
+
+                const cardCat = child.getAttribute('data-category') || '';
+                const cardName = child.querySelector('.fav-card-name, h4')?.innerText || '';
+
+                if (matchesCategory(cardCat, cardName, cat)) {
                     child.style.display = '';
                     child.style.animation = 'none';
                     void child.offsetWidth;
@@ -371,8 +407,8 @@ if (is_dir($imgDir)) {
             }
         };
 
-        filterContainer('trending-container', 'No trending sites here.');
-        filterContainer('recommended-container', 'No recommended sites here.');
+        filterContainer('trending-container', 'No trending sites in this category.');
+        filterContainer('recommended-container', 'No recommended sites in this category.');
         filterContainer('near-me-container', 'No nearby sites found in this category.');
     };
 (async function dashboardInit() {
@@ -495,7 +531,7 @@ if (is_dir($imgDir)) {
                     const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
                     const encodedDest = encodeURIComponent(JSON.stringify(dest));
                     trendingContainer.innerHTML += `
-                        <div class="fav-card" onclick="window.viewDestinationOnMap('${encodedDest}')">
+                        <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                             ${badgeHtml}
                             <img src="${img}" alt="${dest.name}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
                             <div class="fav-card-overlay"><span class="fav-card-name">${dest.name}</span></div>
@@ -523,7 +559,7 @@ if (is_dir($imgDir)) {
                     const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
                     const encodedDest = encodeURIComponent(JSON.stringify(dest));
                     savedContainer.innerHTML += `
-                        <div class="fav-card" onclick="window.viewDestinationOnMap('${encodedDest}')">
+                        <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                             ${badgeHtml}
                             <img src="${img}" alt="${dest.name}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
                             <div class="fav-card-overlay"><span class="fav-card-name">${dest.name}</span></div>
@@ -642,7 +678,7 @@ if (is_dir($imgDir)) {
                         const distText = dest.distance < 1 ? '< 1 km' : dest.distance.toFixed(1) + ' km';
                         const encodedDest = encodeURIComponent(JSON.stringify(dest));
                         nearContainer.innerHTML += `
-                            <div class="fav-card" onclick="window.viewDestinationOnMap('${encodedDest}')">
+                            <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                                 ${badgeHtml}
                                 <img src="${img}" alt="${dest.name}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
                                 <div class="fav-card-overlay">
@@ -673,7 +709,7 @@ if (is_dir($imgDir)) {
         
                     const encodedDest = encodeURIComponent(JSON.stringify(dest));
                     return `
-            <div style="margin-bottom: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 18px; overflow: hidden; transition: all 0.3s ease;">
+            <div data-category="${(dest.category || '').replace(/"/g, '&quot;')}" style="margin-bottom: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 18px; overflow: hidden; transition: all 0.3s ease;">
                 <div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.toggle-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.paddingTop = '14px'; content.style.paddingBottom = '14px'; content.style.maxHeight = (content.scrollHeight + 150) + 'px'; content.style.opacity = '1'; icon.style.transform = 'rotate(90deg)'; } else { content.style.maxHeight = '0px'; content.style.opacity = '0'; content.style.paddingTop = '0'; content.style.paddingBottom = '0'; icon.style.transform = 'rotate(0deg)'; }" style="cursor:pointer; display:flex; align-items:center; gap: 12px; padding: 12px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.05)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
                     <img src="${img}" alt="${dest.name}" style="width:60px; height:60px; border-radius:12px; object-fit:cover;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
                     <div style="flex:1; min-width:0;">
