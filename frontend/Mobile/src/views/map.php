@@ -985,7 +985,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                             <i class="fa-solid ${icon}"></i>
                         </div>
                         <div class="suggestion-info">
-                            <div class="suggestion-name">${loc.name} <span class="suggestion-category" style="color:${color};">${detail}</span></div>
+                            <div class="suggestion-name">${loc.name}</div>
                         </div>
                         ${muni}
                     </div>
