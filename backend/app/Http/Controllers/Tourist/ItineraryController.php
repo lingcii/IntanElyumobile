@@ -299,12 +299,14 @@ class ItineraryController extends Controller
             return response()->json(['message' => 'Unauthorized to delete this trip.'], 403);
         }
 
-        $itinerary->items()->delete();
+        // Hard delete all items and the itinerary row from database
+        ItineraryItem::where('itinerary_id', $itinerary->id)->delete();
         $itinerary->delete();
 
-        // Cache invalidation — flush stale profile/rank caches
+        // Cache invalidation — flush all stale trip/profile caches
         Cache::forget("rank:user:{$user->id}");
         Cache::forget("profile:trips:{$user->id}");
+        Cache::flush();
 
         return response()->json([
             'success' => true,
