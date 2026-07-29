@@ -1442,7 +1442,10 @@
         performFallbackRedirect();
 
         function performFallbackRedirect() {
-            const redirectUri = window.location.origin + '/index.php';
+            let redirectUri = window.location.origin + '/index.php';
+            if (window.location.pathname && window.location.pathname !== '/' && window.location.pathname.endsWith('.php')) {
+                redirectUri = window.location.origin + window.location.pathname;
+            }
             const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile%20openid&prompt=select_account`;
             window.location.href = googleAuthUrl;
         }
