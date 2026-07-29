@@ -1366,22 +1366,86 @@
 
         const clientId = window.GOOGLE_CLIENT_ID || localStorage.getItem('intan_elyu_google_client_id') || '620598190857-37a0ucobfd4b3rct7ofti8rtvl3qt884.apps.googleusercontent.com';
 
-        if (!clientId) {
-            if (typeof showToast === 'function') showToast('Google Client ID is required to connect to Google Cloud.');
+        function resetBtns() {
             googleBtns.forEach(btn => {
                 btn.innerHTML = '<span>Sign in with Google</span>';
                 btn.disabled = false;
             });
+        }
+
+        if (!clientId) {
+            if (typeof showToast === 'function') showToast('Google Client ID is required to connect to Google Cloud.');
+            resetBtns();
             return;
         }
 
-        // Direct Google OAuth 2.0 Web Authorization Endpoint
-        // Bypasses GSI /gsi/transform iframe popups completely for seamless mobile login
-        // Use a fixed redirect URI so it can be exactly registered in Google Cloud Console
-        const redirectUri = window.location.origin + '/index.php';
-        const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile%20openid&prompt=select_account`;
-        
-        window.location.href = googleAuthUrl;
+        // 1. Try Google OAuth2 Token Client (In-App popup mode for APK & web)
+        if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+            try {
+                const tokenClient = window.google.accounts.oauth2.initTokenClient({
+                    client_id: clientId,
+                    scope: 'email profile openid',
+                    callback: (tokenResponse) => {
+                        if (tokenResponse && tokenResponse.access_token) {
+                            fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                                headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+                            })
+                            .then(res => res.json())
+                            .then(profile => {
+                                if (profile && profile.email) {
+                                    window.handleCredentialResponse({ profile: profile }, resetBtns);
+                                } else {
+                                    throw new Error('Unable to fetch profile from Google.');
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Google Userinfo Error:', err);
+                                resetBtns();
+                                if (typeof showToast === 'function') showToast('Google login failed.');
+                            });
+                        } else {
+                            resetBtns();
+                        }
+                    },
+                    error_callback: (err) => {
+                        console.warn("Google OAuth popup error, falling back:", err);
+                        performFallbackRedirect();
+                    }
+                });
+                tokenClient.requestAccessToken({ prompt: 'select_account' });
+                return;
+            } catch (e) {
+                console.warn("OAuth2 initTokenClient exception:", e);
+            }
+        }
+
+        // 2. Try Google One Tap prompt
+        if (window.google && window.google.accounts && window.google.accounts.id) {
+            try {
+                window.google.accounts.id.initialize({
+                    client_id: clientId,
+                    callback: function(response) {
+                        window.handleCredentialResponse(response, resetBtns);
+                    }
+                });
+                window.google.accounts.id.prompt((notification) => {
+                    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                        performFallbackRedirect();
+                    }
+                });
+                return;
+            } catch (e) {
+                console.warn("GSI prompt exception:", e);
+            }
+        }
+
+        performFallbackRedirect();
+
+        function performFallbackRedirect() {
+            const redirectUri = window.location.origin + '/index.php';
+            const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile%20openid&prompt=select_account`;
+            window.location.href = googleAuthUrl;
+        }
     };
 
     window.handleCredentialResponse = async function(response, onDone) {
