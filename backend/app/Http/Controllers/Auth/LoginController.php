@@ -206,10 +206,8 @@ class LoginController extends Controller
 
         if (!$user) {
             return response()->json([
-                'success' => true,
-                'email'   => $request->email,
-                'message' => 'If your email is registered, we have sent a reset code & link.'
-            ]);
+                'error' => 'This email address is not registered. Please create an account first.'
+            ], 404);
         }
 
         $token = \Illuminate\Support\Str::random(60);
