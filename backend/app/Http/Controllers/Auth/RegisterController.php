@@ -72,6 +72,8 @@ class RegisterController extends Controller
             ], 422);
         }
 
+        $emailKey = strtolower(trim($request->email));
+
         // Create active user account directly
         $token = Str::random(60);
         $user = User::create([
