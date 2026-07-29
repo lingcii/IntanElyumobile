@@ -688,20 +688,52 @@ window.getDestImage = function (dest, width) {
     if (!width) width = 600;
     var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
 
-    // Phase 0: If the API already provides a full cloud/CDN URL, use it directly
-    if (dest && typeof dest === 'object') {
-        var directUrl = dest.photo_url || dest.image || null;
-        if (directUrl && typeof directUrl === 'string' && directUrl.indexOf('http') === 0) {
-            try {
-                var parsed = new URL(directUrl);
-                if (parsed.host.includes('r2.dev') || parsed.host.includes('r2.cloudflarestorage.com') || parsed.host.includes('cloudinary.com') || parsed.host.includes('unsplash.com') || parsed.host.includes('googleapis.com')) {
-                    return directUrl;
-                }
-            } catch (e) {}
-        }
+    // Phase 1: Extract URL string from dest (photo_url, image, avatar, profile_picture)
+    var rawUrl = null;
+    if (typeof dest === 'string') {
+        rawUrl = dest;
+    } else if (dest && typeof dest === 'object') {
+        rawUrl = dest.photo_url || dest.image || dest.avatar || dest.profile_picture || null;
     }
 
-    // Phase 1: Try local filesystem images (AVAILABLE_MUNI_IMAGES)
+    if (rawUrl && typeof rawUrl === 'string' && rawUrl.trim() !== '') {
+        var url = rawUrl.trim();
+
+        // 1. Data or Blob URIs
+        if (url.indexOf('data:') === 0 || url.indexOf('blob:') === 0) return url;
+
+        // 2. Full HTTP / HTTPS URLs
+        if (url.indexOf('http://') === 0 || url.indexOf('https://') === 0) {
+            try {
+                var parsed = new URL(url);
+                // If it's Cloudflare R2, Cloudinary, Unsplash, Google, UI-Avatars etc., return directly
+                if (parsed.host.includes('r2.dev') || parsed.host.includes('r2.cloudflarestorage.com') || parsed.host.includes('cloudinary.com') || parsed.host.includes('unsplash.com') || parsed.host.includes('googleapis.com') || parsed.host.includes('ui-avatars.com')) {
+                    return url;
+                }
+                // If it points to storage/api/image on backend or localhost
+                if (parsed.pathname.includes('/storage/') || parsed.pathname.includes('/api/image/')) {
+                    return backendUrl + parsed.pathname + parsed.search;
+                }
+                return url;
+            } catch (e) {
+                return url;
+            }
+        }
+
+        // 3. Local asset paths
+        if (url.indexOf('assets/') === 0 || url.indexOf('/assets/') === 0) {
+            return (url.indexOf('/') === 0 ? '' : '/') + url;
+        }
+
+        // 4. Relative storage/upload paths
+        var cleanPath = url.replace(/^\/+/, '');
+        if (cleanPath.indexOf('api/image/') === 0) {
+            return backendUrl + '/' + cleanPath;
+        }
+        return backendUrl + '/api/image/' + cleanPath;
+    }
+
+    // Phase 2: Fallback to local filesystem images (AVAILABLE_MUNI_IMAGES) if photo_url is missing
     if (window.AVAILABLE_MUNI_IMAGES && dest && dest.name) {
         var munisToCheck = dest.municipality
             ? [dest.municipality.toUpperCase()]
@@ -751,56 +783,8 @@ window.getDestImage = function (dest, width) {
         }
     }
 
-    // Phase 2: Extract URL string from string parameter or object (photo_url, image, avatar, profile_picture)
-    var url = null;
-    if (typeof dest === 'string') {
-        url = dest;
-    } else if (dest && typeof dest === 'object') {
-        url = dest.photo_url || dest.image || dest.avatar || dest.profile_picture || null;
-    }
-
-    if (url) {
-        if (url.indexOf('data:') === 0 || url.indexOf('blob:') === 0) return url;
-
-        if (url.indexOf('serve-image.php') !== -1) {
-            if (url.indexOf('http') === 0) {
-                try {
-                    var parsed = new URL(url);
-                    if (parsed.host.includes('localhost') || parsed.host.includes('127.0.0.1') || parsed.host.includes('intan-elyu.online')) {
-                        return backendUrl + parsed.pathname + parsed.search;
-                    }
-                    return url;
-                } catch (e) { return url; }
-            }
-            return backendUrl + (url.indexOf('/') === 0 ? '' : '/') + url;
-        }
-
-        if (url.indexOf('assets/') === 0 || url.indexOf('/assets/') === 0) {
-            return (url.indexOf('/') === 0 ? '' : '/') + url;
-        }
-
-        if (url.indexOf('storage/') === 0 || url.indexOf('uploads/') === 0 || url.indexOf('avatars/') === 0 || url.indexOf('upload_image/') === 0 || url.indexOf('tourist_spots/') === 0) {
-            url = '/api/image/' + url;
-        } else if (url.indexOf('http') !== 0 && url.indexOf('/') !== 0) {
-            url = '/api/image/' + url;
-        }
-
-        // Strip domain prefixes if points to any backend domain (localhost, railway.app, intan-elyu.online)
-        if (url.indexOf('http') === 0) {
-            try {
-                var parsed = new URL(url);
-                if (parsed.host.includes('r2.cloudflarestorage.com') || parsed.host.includes('cloudinary.com') || parsed.host.includes('unsplash.com')) {
-                    return url;
-                }
-                url = parsed.pathname + parsed.search;
-            } catch (e) { return url; }
-        }
-        if (url.indexOf('/') === 0) return backendUrl + url;
-        return backendUrl + '/' + url;
-    }
-
-    // Phase 3: Placeholder
-    return window.placeholderImage || window.noImageFallback;
+    // Phase 3: Final fallback placeholder
+    return window.placeholderImage || window.noImageFallback || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=' + width;
 };
 
 window.noImageFallback = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" fill="none"><rect width="600" height="400" fill="%230F172A"/><rect x="2" y="2" width="596" height="396" rx="16" fill="url(%23bg_grad)" stroke="rgba(255,255,255,0.08)" stroke-width="2"/><defs><linearGradient id="bg_grad" x1="0" y1="0" x2="600" y2="400" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="%230F172A"/><stop offset="100%" stop-color="%231E293B"/></linearGradient></defs><circle cx="300" cy="165" r="44" fill="rgba(56,189,248,0.1)" stroke="%2338BDF8" stroke-width="2" stroke-dasharray="4 4"/><path d="M284 153H288L290.5 149H309.5L312 153H316C320.418 153 324 156.582 324 161V177C324 181.418 320.418 185 316 185H284C279.582 185 276 181.418 276 177V161C276 156.582 279.582 153 284 153Z" stroke="%2338BDF8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="300" cy="169" r="7" stroke="%2338BDF8" stroke-width="3"/><text x="300" y="240" text-anchor="middle" fill="%23F8FAFC" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="20" font-weight="800" letter-spacing="2">NO IMAGE ADDED</text><text x="300" y="268" text-anchor="middle" fill="%2394A3B8" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="500" letter-spacing="0.5">Destination photo coming soon</text></svg>';
