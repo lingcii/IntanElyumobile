@@ -50,31 +50,40 @@ Route::get('/manifest.json', function () {
 // Helper function to render Mobile PHP App
 function renderMobileApp(Request $request)
 {
-    $mobileSrcPath = base_path('../frontend/Mobile/src');
-    if (!file_exists($mobileSrcPath . '/index.php')) {
-        $mobileSrcPath = base_path('public');
-    }
-
-    if (file_exists($mobileSrcPath . '/index.php')) {
-        if (session_status() === PHP_SESSION_NONE) {
-            @session_start();
+    try {
+        $mobileSrcPath = base_path('../frontend/Mobile/src');
+        if (!file_exists($mobileSrcPath . '/index.php')) {
+            $mobileSrcPath = base_path('public');
         }
 
-        if ($request->has('view')) {
-            $_GET['view'] = $request->query('view');
-        }
-        if ($request->has('id')) {
-            $_GET['id'] = $request->query('id');
-        }
+        if (file_exists($mobileSrcPath . '/index.php')) {
+            if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+                @session_start();
+            }
 
-        ob_start();
-        $oldCwd = getcwd();
-        chdir($mobileSrcPath);
-        include $mobileSrcPath . '/index.php';
-        chdir($oldCwd);
-        $output = ob_get_clean();
+            if ($request->has('view')) {
+                $_GET['view'] = $request->query('view');
+            }
+            if ($request->has('id')) {
+                $_GET['id'] = $request->query('id');
+            }
 
-        return response($output, 200)->header('Content-Type', 'text/html; charset=utf-8');
+            ob_start();
+            $oldCwd = getcwd();
+            chdir($mobileSrcPath);
+            include $mobileSrcPath . '/index.php';
+            chdir($oldCwd);
+            $output = ob_get_clean();
+
+            return response($output, 200)->header('Content-Type', 'text/html; charset=utf-8');
+        }
+    } catch (\Throwable $e) {
+        \Illuminate\Support\Facades\Log::error("renderMobileApp Exception: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
+        return response()->json([
+            'error' => $e->getMessage(),
+            'file' => basename($e->getFile()),
+            'line' => $e->getLine()
+        ], 500);
     }
 
     return response()->json(['status' => 'online', 'system' => 'Intan-Elyu Tourism API']);

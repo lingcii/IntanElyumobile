@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+    @session_start();
+}
 
 // Extract view name safely - strip any extra query params appended to it
 $rawView = isset($_GET['view']) ? $_GET['view'] : 'splash';
