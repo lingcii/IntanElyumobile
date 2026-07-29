@@ -300,14 +300,13 @@
     transition: none !important;
 }
 
-/* ── Sheet Image ── */
 .sheet-img {
     width: 100% !important;
-    height: 190px !important;
-    border-radius: 20px !important;
+    height: 100% !important;
+    border-radius: 18px !important;
     object-fit: cover !important;
     object-position: center !important;
-    margin-bottom: 16px !important;
+    margin-bottom: 0 !important;
     box-shadow: none !important;
     display: block !important;
 }
