@@ -32,6 +32,17 @@ class MapController extends Controller
                     if (!$imageUrl && $spot->images->isNotEmpty()) {
                         $imageUrl = $spot->images->first()->photo_url;
                     }
+                    $imagesList = [];
+                    if ($spot->photo_url) {
+                        $imagesList[] = $spot->photo_url;
+                    }
+                    if ($spot->relationLoaded('images') && $spot->images->isNotEmpty()) {
+                        foreach ($spot->images as $imgObj) {
+                            if ($imgObj->photo_url && !in_array($imgObj->photo_url, $imagesList)) {
+                                $imagesList[] = $imgObj->photo_url;
+                            }
+                        }
+                    }
                     return [
                         'id'                    => $spot->id,
                         'name'                  => $spot->name,
@@ -41,6 +52,7 @@ class MapController extends Controller
                         'lng'                   => $spot->longitude,
                         'entrance_fee'          => $spot->entrance_fee,
                         'photo_url'             => $imageUrl,
+                        'images'                => $imagesList,
                         'description'           => $spot->description,
                         'opening_time'          => $spot->opening_time,
                         'closing_time'          => $spot->closing_time,

@@ -112,7 +112,13 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             </div>
         </div>
 
-        <img src="" alt="Place Image" class="sheet-img" id="sheet-img" style="width:100% !important; height:180px !important; object-fit:cover !important; object-position:center !important; border-radius:18px !important; display:block !important;">
+        <!-- Slidable Image Banner Carousel -->
+        <div id="sheet-slider-container" style="position:relative; width:100%; height:180px; border-radius:18px; overflow:hidden; margin-top:12px; margin-bottom:12px; background:#0f172a;">
+            <div id="sheet-slider-track" style="display:flex; width:100%; height:100%; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch;">
+                <img src="" alt="Place Image" class="sheet-img" id="sheet-img" style="min-width:100%; width:100%; height:180px; object-fit:cover; object-position:center; border-radius:18px; flex-shrink:0; scroll-snap-align:center; display:block;">
+            </div>
+            <div id="sheet-slider-dots" style="position:absolute; bottom:10px; left:50%; transform:translateX(-50%); display:none; gap:6px; background:rgba(0,0,0,0.5); backdrop-filter:blur(8px); padding:4px 10px; border-radius:20px; z-index:5; pointer-events:none;"></div>
+        </div>
 
         <!-- About This Location & Tourist Guide Details -->
         <div id="sheet-desc-container" style="margin-top:16px; margin-bottom:16px; display:none; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:16px;">
@@ -1537,17 +1543,56 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         }
         
         const fallbackBanner = window.noImageFallback || 'assets/img/no_image.svg';
-        const imgPath = window.getDestImage(locationData, 600);
-        
-        const imgEl = document.getElementById('sheet-img');
-        if (imgEl) {
-            imgEl.style.display = 'block';
-            imgEl.src = (imgPath && imgPath !== window.noImageFallback) ? imgPath : fallbackBanner;
-            imgEl.onerror = function() { 
-                this.onerror = null; 
-                this.src = fallbackBanner; 
-                this.style.display = 'block'; 
-            };
+        const imagesList = (window.getDestImages ? window.getDestImages(locationData, 600) : [window.getDestImage(locationData, 600)]);
+        const track = document.getElementById('sheet-slider-track');
+        const dotsContainer = document.getElementById('sheet-slider-dots');
+
+        if (track) {
+            track.innerHTML = '';
+            track.scrollLeft = 0;
+
+            const finalImages = (imagesList && imagesList.length > 0) ? imagesList : [fallbackBanner];
+
+            finalImages.forEach((imgUrl, idx) => {
+                const img = document.createElement('img');
+                img.src = (imgUrl && imgUrl !== window.noImageFallback) ? imgUrl : fallbackBanner;
+                img.alt = locationData.name || 'Place Image';
+                img.className = 'sheet-img';
+                img.style.cssText = 'min-width:100%; width:100%; height:180px; object-fit:cover; object-position:center; border-radius:18px; flex-shrink:0; scroll-snap-align:center; display:block;';
+                img.onerror = function() {
+                    this.onerror = null;
+                    this.src = fallbackBanner;
+                };
+                track.appendChild(img);
+            });
+
+            if (dotsContainer) {
+                if (finalImages.length > 1) {
+                    dotsContainer.style.display = 'flex';
+                    dotsContainer.innerHTML = finalImages.map((_, i) => 
+                        `<span class="slider-dot" data-index="${i}" style="width:${i === 0 ? '16px' : '6px'}; height:6px; border-radius:3px; background:${i === 0 ? '#38bdf8' : 'rgba(255,255,255,0.4)'}; transition:all 0.3s ease;"></span>`
+                    ).join('');
+
+                    track.onscroll = function() {
+                        const scrollPos = track.scrollLeft;
+                        const width = track.offsetWidth || 1;
+                        const activeIndex = Math.round(scrollPos / width);
+                        const dots = dotsContainer.querySelectorAll('.slider-dot');
+                        dots.forEach((dot, i) => {
+                            if (i === activeIndex) {
+                                dot.style.width = '16px';
+                                dot.style.background = '#38bdf8';
+                            } else {
+                                dot.style.width = '6px';
+                                dot.style.background = 'rgba(255,255,255,0.4)';
+                            }
+                        });
+                    };
+                } else {
+                    dotsContainer.style.display = 'none';
+                    track.onscroll = null;
+                }
+            }
         }
         
 

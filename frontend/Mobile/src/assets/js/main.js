@@ -817,6 +817,36 @@ window.getDestImage = function (dest, width) {
     return window.placeholderImage || window.noImageFallback || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=' + width;
 };
 
+/**
+ * Resolves an array of all images for a destination.
+ * If dest.images is provided, resolves each image; otherwise falls back to single image.
+ * @param {Object} dest
+ * @param {number} [width=600]
+ * @returns {Array<string>} Array of image URLs
+ */
+window.getDestImages = function (dest, width) {
+    if (!width) width = 600;
+    var list = [];
+
+    if (dest && typeof dest === 'object') {
+        if (Array.isArray(dest.images) && dest.images.length > 0) {
+            dest.images.forEach(function(imgItem) {
+                var resolved = window.getDestImage(imgItem, width);
+                if (resolved && !list.includes(resolved) && resolved !== window.noImageFallback) {
+                    list.push(resolved);
+                }
+            });
+        }
+    }
+
+    if (list.length === 0) {
+        var single = window.getDestImage(dest, width);
+        if (single) list.push(single);
+    }
+
+    return list;
+};
+
 window.noImageFallback = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" fill="none"><rect width="600" height="400" fill="%230F172A"/><rect x="2" y="2" width="596" height="396" rx="16" fill="url(%23bg_grad)" stroke="rgba(255,255,255,0.08)" stroke-width="2"/><defs><linearGradient id="bg_grad" x1="0" y1="0" x2="600" y2="400" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="%230F172A"/><stop offset="100%" stop-color="%231E293B"/></linearGradient></defs><circle cx="300" cy="165" r="44" fill="rgba(56,189,248,0.1)" stroke="%2338BDF8" stroke-width="2" stroke-dasharray="4 4"/><path d="M284 153H288L290.5 149H309.5L312 153H316C320.418 153 324 156.582 324 161V177C324 181.418 320.418 185 316 185H284C279.582 185 276 181.418 276 177V161C276 156.582 279.582 153 284 153Z" stroke="%2338BDF8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="300" cy="169" r="7" stroke="%2338BDF8" stroke-width="3"/><text x="300" y="240" text-anchor="middle" fill="%23F8FAFC" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="20" font-weight="800" letter-spacing="2">NO IMAGE ADDED</text><text x="300" y="268" text-anchor="middle" fill="%2394A3B8" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="500" letter-spacing="0.5">Destination photo coming soon</text></svg>';
 
 /**
