@@ -1245,6 +1245,8 @@
         if (spinnerSvg) spinnerSvg.style.display = 'block';
         if (checkmarkIcon) checkmarkIcon.style.display = 'none';
 
+        const startTime = Date.now();
+
         try {
             const response = await fetch(backendUrl + '/api/auth/forgot-password', {
                 method: 'POST',
@@ -1255,6 +1257,13 @@
             
             if (!response.ok) {
                 throw new Error(data.error || data.message || 'Failed to send reset code.');
+            }
+
+            // Guarantee spinner stays visible for at least 5 seconds
+            const elapsedTime = Date.now() - startTime;
+            const minSpinnerTime = 5000;
+            if (elapsedTime < minSpinnerTime) {
+                await new Promise(r => setTimeout(r, minSpinnerTime - elapsedTime));
             }
 
             // Animate checkmark success in modal
@@ -1280,7 +1289,7 @@
                 const fpBoxes = document.querySelectorAll('.fp-otp-box');
                 fpBoxes.forEach(b => b.value = '');
                 if (fpBoxes[0]) fpBoxes[0].focus();
-            }, 5000);
+            }, 1800);
 
         } catch (error) {
             console.error('Forgot Password Error:', error);
@@ -1375,6 +1384,8 @@
         if (spinnerSvg) spinnerSvg.style.display = 'block';
         if (checkmarkIcon) checkmarkIcon.style.display = 'none';
 
+        const startTime = Date.now();
+
         try {
             const response = await fetch(backendUrl + '/api/auth/reset-password-otp', {
                 method: 'POST',
@@ -1390,6 +1401,13 @@
             const data = await response.json();
             if (!response.ok) {
                 throw new Error(data.error || data.message || 'Failed to reset password.');
+            }
+
+            // Guarantee spinner stays visible for at least 5 seconds
+            const elapsedTime = Date.now() - startTime;
+            const minSpinnerTime = 5000;
+            if (elapsedTime < minSpinnerTime) {
+                await new Promise(r => setTimeout(r, minSpinnerTime - elapsedTime));
             }
 
             // Animate checkmark success in modal
@@ -1419,7 +1437,7 @@
                 }
                 
                 hideForgotPassword();
-            }, 5000);
+            }, 1800);
 
         } catch (error) {
             console.error('Reset Password OTP Error:', error);
