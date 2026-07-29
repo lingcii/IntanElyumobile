@@ -395,10 +395,7 @@ input:checked + .slider:before {
                 <label class="form-label" for="profile-email">
                     <i class="fa-solid fa-envelope"></i> Email Address
                 </label>
-                <div class="input-with-badge">
-                    <input class="form-control disabled-input" id="profile-email" type="email" placeholder="Email address" readonly disabled>
-                    <span class="read-only-badge"><i class="fa-solid fa-lock"></i> Locked</span>
-                </div>
+                <input class="form-control" id="profile-email" type="email" placeholder="Email address" required autocomplete="email">
             </div>
 
             <div class="form-group">
@@ -443,22 +440,6 @@ input:checked + .slider:before {
                     <div class="chip-item" onclick="toggleChip(this)" data-value="Food & Dining">🍲 Food & Dining</div>
                     <div class="chip-item" onclick="toggleChip(this)" data-value="Sunset & Nightlife">🌅 Sunset & Nightlife</div>
                 </div>
-            </div>
-
-            <!-- Privacy Settings -->
-            <div class="edit-section-title">
-                <i class="fa-solid fa-shield-halved"></i> Privacy Controls
-            </div>
-
-            <div class="toggle-row">
-                <div class="toggle-info">
-                    <div class="toggle-title">Private Leaderboard Profile</div>
-                    <div class="toggle-desc">Hide your profile from public ranking lists</div>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" id="profile-privacy">
-                    <span class="slider"></span>
-                </label>
             </div>
 
             <!-- Actions -->
@@ -646,11 +627,11 @@ input:checked + .slider:before {
         btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> <span>Saving...</span>';
         btn.disabled = true;
 
-        const name = document.getElementById('profile-name').value;
-        const phone = document.getElementById('profile-phone').value;
-        const homeLocation = document.getElementById('profile-location').value;
-        const bio = document.getElementById('profile-bio').value;
-        const privacy = document.getElementById('profile-privacy').checked;
+        const name = document.getElementById('profile-name')?.value || '';
+        const email = document.getElementById('profile-email')?.value || '';
+        const phone = document.getElementById('profile-phone')?.value || '';
+        const homeLocation = document.getElementById('profile-location')?.value || '';
+        const bio = document.getElementById('profile-bio')?.value || '';
 
         // Active preferences chips
         const activeChips = Array.from(document.querySelectorAll('#preferences-chips .chip-item.active'))
@@ -661,11 +642,11 @@ input:checked + .slider:before {
 
         const formData = new FormData();
         formData.append('name', name);
+        formData.append('email', email);
         formData.append('phone', phone);
         formData.append('home_location', homeLocation);
         formData.append('bio', bio);
         formData.append('travel_preferences', travelPreferences);
-        formData.append('is_leaderboard_private', privacy ? '1' : '0');
 
         if (avatarFile) formData.append('avatar', avatarFile);
 
@@ -689,11 +670,11 @@ input:checked + .slider:before {
                 if (data.user) {
                     const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
                     stored.name = data.user.name;
+                    stored.email = data.user.email;
                     stored.phone = data.user.phone;
                     stored.home_location = data.user.home_location;
                     stored.bio = data.user.bio;
                     stored.travel_preferences = data.user.travel_preferences;
-                    stored.is_leaderboard_private = data.user.is_leaderboard_private;
 
                     if (data.user.avatar) {
                         stored.avatar = window.getFullImageUrl ? window.getFullImageUrl(data.user.avatar) : data.user.avatar;

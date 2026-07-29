@@ -267,6 +267,10 @@ class ProfileController extends Controller
             $user->name = $request->input('name');
         }
 
+        if ($request->filled('email')) {
+            $user->email = strtolower(trim($request->input('email')));
+        }
+
         if ($request->has('phone') && Schema::hasColumn('users', 'phone')) {
             $user->phone = $request->input('phone');
         }
