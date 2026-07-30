@@ -954,6 +954,17 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             return 'fa-location-dot';
         }
 
+        function highlightMatch(text, query) {
+            if (!text) return '';
+            if (!query) return text;
+            const idx = text.toLowerCase().indexOf(query.toLowerCase());
+            if (idx === -1) return text;
+            const before = text.slice(0, idx);
+            const matched = text.slice(idx, idx + query.length);
+            const after = text.slice(idx + query.length);
+            return `${before}<mark class="search-highlight" style="background:rgba(56,189,248,0.22); color:#38bdf8; font-weight:700; padding:0 3px; border-radius:4px;">${matched}</mark>${after}`;
+        }
+
         function renderSuggestions(query) {
             if (!suggestionsEl) return;
             const q = (query || '').toLowerCase().trim();
@@ -977,17 +988,19 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             suggestionsEl.innerHTML = matches.map(loc => {
                 const color = getCatColor(loc.category);
                 const icon = getCatIcon(loc.category);
-                const muni = loc.municipality ? `<span class="suggestion-municipality">${loc.municipality}</span>` : '';
-                const detail = loc.category || '';
+                const highlightedName = highlightMatch(loc.name, q);
+                const subtitle = loc.municipality ? (loc.municipality + (loc.category ? ' • ' + loc.category : '')) : (loc.category || '');
+                const highlightedSubtitle = highlightMatch(subtitle, q);
+
                 return `
                     <div class="map-search-suggestion-item" data-id="${loc.id}" data-lat="${loc.lat}" data-lng="${loc.lng}">
                         <div class="suggestion-icon" style="background:${color}22; color:${color}; border:1px solid ${color}44;">
                             <i class="fa-solid ${icon}"></i>
                         </div>
-                        <div class="suggestion-info">
-                            <div class="suggestion-name">${loc.name}</div>
+                        <div class="suggestion-info" style="flex:1; min-width:0; overflow:hidden;">
+                            <div class="suggestion-name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${highlightedName}</div>
+                            <div class="suggestion-sub" style="font-size:11px; opacity:0.75; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${highlightedSubtitle}</div>
                         </div>
-                        ${muni}
                     </div>
                 `;
             }).join('');
