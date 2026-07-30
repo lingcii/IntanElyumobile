@@ -66,7 +66,7 @@ if ($isAjax) {
                 ? 'http://localhost:8000' 
                 : (window.location.protocol + '//' + window.location.host + '/Intan-Elyu-Tourism-Management-System/backend/public');
         } else {
-            window.backendUrl = window.BACKEND_URL || window.location.origin;
+            window.backendUrl = window.BACKEND_URL || (window.location.hostname.includes('app.intan-elyu.online') ? 'https://api.intan-elyu.online' : window.location.origin);
         }
         window.GOOGLE_CLIENT_ID = '620598190857-37a0ucobfd4b3rct7ofti8rtvl3qt884.apps.googleusercontent.com';
     </script>
