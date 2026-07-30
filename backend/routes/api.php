@@ -87,7 +87,15 @@ $serveFileHandler = function ($file) {
 };
 
 Route::get('/image/{file}', $serveFileHandler)->where('file', '.+');
+Route::get('/serve/{file}', $serveFileHandler)->where('file', '.+');
 Route::get('/storage/{file}', $serveFileHandler)->where('file', '.+');
+
+// Endpoint for api/serve?file=... or api/serve?id=... or api/serve?image_id=...
+Route::get('/serve', function (\Illuminate\Http\Request $request) use ($serveFileHandler) {
+    $file = $request->query('file') ?: $request->query('id') ?: $request->query('image_id');
+    if (!$file) abort(404);
+    return $serveFileHandler($file);
+});
 
 // Backward-compatible route for legacy /api/serve-image.php?file=... URLs
 Route::get('/serve-image.php', function (\Illuminate\Http\Request $request) {

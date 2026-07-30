@@ -100,7 +100,7 @@ window.getFullImageUrl = function (url) {
     }
     const base = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
     const clean = url.replace(/^\/+/, '');
-    if (clean.startsWith('api/image/')) return base + '/' + clean;
+    if (clean.startsWith('api/image/') || clean.startsWith('api/serve')) return base + '/' + clean;
     return base + '/api/image/' + clean;
 };
 

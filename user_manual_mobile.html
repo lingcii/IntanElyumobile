@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intan Elyu — Mobile App User Manual</title>
+  <meta name="description" content="Step-by-step user manual for the Intan Elyu Tourism Mobile App — your ultimate travel companion for La Union, Philippines.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #38bdf8;
+      --primary-dark: #0ea5e9;
+      --secondary: #6366f1;
+      --accent: #fbbf24;
+      --accent-green: #34c759;
+      --accent-red: #ef4444;
+      --accent-purple: #a78bfa;
+      --bg-primary: #060b19;
+      --bg-secondary: #0f172a;
+      --bg-card: rgba(30, 41, 59, 0.6);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-primary: rgba(56, 189, 248, 0.25);
+      --text-primary: #f8fafc;
+      --text-secondary: rgba(148, 163, 184, 0.85);
+      --text-muted: rgba(100, 116, 139, 0.8);
+      --sidebar-w: 260px;
+      --radius: 20px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 10%, rgba(56, 189, 248, 0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(99, 102, 241, 0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 50% 50%, rgba(251, 191, 36, 0.03) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: var(--sidebar-w);
+      height: 100vh;
+      background: rgba(6, 11, 25, 0.95);
+      backdrop-filter: blur(24px);
+      border-right: 1px solid var(--border);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(56,189,248,0.2) transparent;
+    }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; }
+    .sidebar::-webkit-scrollbar-thumb { background: rgba(56,189,248,0.2); border-radius: 4px; }
+
+    .sidebar-logo { padding: 28px 20px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .sidebar-logo-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px; font-weight: 900; color: var(--text-primary);
+      letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px;
+    }
+    .sidebar-logo-title .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: white; flex-shrink: 0;
+    }
+    .sidebar-subtitle { font-size: 11px; color: var(--text-muted); margin-top: 4px; font-weight: 500; padding-left: 46px; }
+
+    .sidebar-nav { padding: 12px 12px 20px; flex: 1; }
+    .sidebar-section-label {
+      font-size: 10px; font-weight: 800; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 1.2px; padding: 12px 8px 6px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 12px;
+      color: var(--text-secondary); font-size: 13px; font-weight: 600;
+      text-decoration: none; cursor: pointer;
+      transition: all 0.2s ease; border: 1px solid transparent; margin-bottom: 2px;
+    }
+    .nav-item:hover { background: rgba(56,189,248,0.08); color: var(--text-primary); border-color: var(--border-primary); }
+    .nav-item.active { background: rgba(56,189,248,0.12); color: var(--primary); border-color: rgba(56,189,248,0.3); }
+    .nav-item i { width: 20px; text-align: center; font-size: 14px; opacity: 0.8; flex-shrink: 0; }
+    .nav-item.active i { opacity: 1; }
+    .nav-step-num {
+      margin-left: auto; font-size: 10px; font-weight: 800; color: var(--text-muted);
+      background: rgba(255,255,255,0.05); padding: 2px 7px; border-radius: 100px;
+    }
+
+    /* MAIN */
+    .main-content { margin-left: var(--sidebar-w); padding: 0 0 80px; min-height: 100vh; position: relative; z-index: 1; }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, rgba(6,11,25,0.98) 0%, rgba(15,23,42,0.95) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 60px 48px 52px; position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -60px; right: -80px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(56,189,248,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.25);
+      color: var(--primary); font-size: 11px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 1px;
+      padding: 5px 14px; border-radius: 100px; margin-bottom: 18px;
+    }
+    .hero h1 {
+      font-family: 'Outfit', sans-serif; font-size: 44px; font-weight: 900;
+      color: var(--text-primary); letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 14px;
+    }
+    .hero h1 span { color: var(--primary); }
+    .hero-desc { font-size: 16px; color: var(--text-secondary); line-height: 1.7; max-width: 600px; font-weight: 400; margin-bottom: 28px; }
+    .hero-meta { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+    .hero-meta-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); font-weight: 600; }
+    .hero-meta-item i { color: var(--primary); font-size: 12px; }
+
+    /* CONTENT */
+    .content-area { padding: 40px 48px; }
+
+    .section { margin-bottom: 64px; scroll-margin-top: 24px; }
+    .section-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 28px; }
+    .section-icon {
+      width: 52px; height: 52px; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; flex-shrink: 0; box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+    .section-icon.blue { background: linear-gradient(135deg, rgba(56,189,248,0.2), rgba(37,99,235,0.2)); color: var(--primary); border: 1px solid rgba(56,189,248,0.3); }
+    .section-icon.purple { background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2)); color: var(--accent-purple); border: 1px solid rgba(139,92,246,0.3); }
+    .section-icon.yellow { background: linear-gradient(135deg, rgba(251,191,36,0.2), rgba(245,158,11,0.2)); color: var(--accent); border: 1px solid rgba(251,191,36,0.3); }
+    .section-icon.green { background: linear-gradient(135deg, rgba(52,199,89,0.2), rgba(16,185,129,0.2)); color: var(--accent-green); border: 1px solid rgba(52,199,89,0.3); }
+    .section-icon.red { background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(220,38,38,0.2)); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+    .section-icon.teal { background: linear-gradient(135deg, rgba(20,184,166,0.2), rgba(6,182,212,0.2)); color: #2dd4bf; border: 1px solid rgba(20,184,166,0.3); }
+    .section-title-wrap h2 {
+      font-family: 'Outfit', sans-serif; font-size: 26px; font-weight: 800;
+      color: var(--text-primary); letter-spacing: -0.5px; margin-bottom: 4px;
+    }
+    .section-title-wrap p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; font-weight: 400; }
+
+    /* STEP CARDS */
+    .steps-list { display: flex; flex-direction: column; gap: 14px; }
+    .step-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px 22px; display: flex; gap: 16px; align-items: flex-start;
+      backdrop-filter: blur(12px); transition: all 0.25s ease;
+      position: relative; overflow: hidden;
+    }
+    .step-card::before {
+      content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
+      background: var(--step-color, var(--primary)); border-radius: 3px 0 0 3px; opacity: 0.6;
+    }
+    .step-card:hover { border-color: rgba(56,189,248,0.2); background: rgba(30,41,59,0.75); transform: translateX(4px); }
+    .step-num {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--step-bg, rgba(56,189,248,0.12)); border: 1px solid var(--step-border, rgba(56,189,248,0.2));
+      color: var(--step-color, var(--primary)); font-size: 14px; font-weight: 900;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .step-body { flex: 1; }
+    .step-title { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .step-title .tag { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .tag-required { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+    .tag-optional { background: rgba(52,199,89,0.12); color: #6ee7b7; border: 1px solid rgba(52,199,89,0.2); }
+    .tag-tip { background: rgba(251,191,36,0.12); color: #fcd34d; border: 1px solid rgba(251,191,36,0.2); }
+    .step-desc { font-size: 13.5px; color: var(--text-secondary); line-height: 1.6; font-weight: 400; }
+    .step-desc strong { color: var(--text-primary); font-weight: 700; }
+    .step-desc ul { margin-top: 8px; margin-left: 16px; line-height: 1.8; font-size: 13px; }
+
+    .step-card.purple { --step-color: var(--accent-purple); --step-bg: rgba(139,92,246,0.12); --step-border: rgba(139,92,246,0.2); }
+    .step-card.yellow { --step-color: var(--accent); --step-bg: rgba(251,191,36,0.12); --step-border: rgba(251,191,36,0.2); }
+    .step-card.green { --step-color: var(--accent-green); --step-bg: rgba(52,199,89,0.12); --step-border: rgba(52,199,89,0.2); }
+    .step-card.red { --step-color: #f87171; --step-bg: rgba(239,68,68,0.12); --step-border: rgba(239,68,68,0.2); }
+    .step-card.teal { --step-color: #2dd4bf; --step-bg: rgba(20,184,166,0.12); --step-border: rgba(20,184,166,0.2); }
+
+    /* INFO BOXES */
+    .info-box { border-radius: 14px; padding: 14px 18px; display: flex; gap: 12px; align-items: flex-start; margin: 16px 0; font-size: 13px; line-height: 1.6; }
+    .info-box i { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .info-box.tip { background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.2); color: #fde68a; }
+    .info-box.tip i { color: var(--accent); }
+    .info-box.note { background: rgba(56,189,248,0.08); border: 1px solid rgba(56,189,248,0.2); color: rgba(186,230,253,0.9); }
+    .info-box.note i { color: var(--primary); }
+    .info-box.warning { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #fca5a5; }
+    .info-box.warning i { color: #f87171; }
+
+    /* FEATURE GRID */
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin: 20px 0; }
+    .feature-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 18px 16px; backdrop-filter: blur(12px); transition: all 0.2s;
+    }
+    .feature-card:hover { border-color: var(--border-primary); background: rgba(30,41,59,0.8); }
+    .feature-card-icon { font-size: 22px; margin-bottom: 10px; }
+    .feature-card h4 { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+    .feature-card p { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+    /* TABLE */
+    .quick-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 16px 0; }
+    .quick-table th {
+      text-align: left; padding: 12px 16px; font-size: 11px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted);
+      background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);
+    }
+    .quick-table td { padding: 12px 16px; color: var(--text-secondary); border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: top; }
+    .quick-table tr:hover td { background: rgba(56,189,248,0.03); }
+    .quick-table td:first-child { color: var(--text-primary); font-weight: 600; }
+    .icon-badge { display: inline-flex; align-items: center; gap: 5px; color: var(--primary); font-size: 12px; }
+
+    .xp-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.25);
+      color: #fcd34d; font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 100px;
+    }
+    .pts-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.3);
+      color: #38bdf8; font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 100px;
+    }
+
+    /* FOOTER */
+    .manual-footer {
+      background: rgba(6,11,25,0.98); border-top: 1px solid var(--border);
+      padding: 32px 48px; display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 16px;
+    }
+    .manual-footer p { font-size: 13px; color: var(--text-muted); }
+    .version-badge {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(56,189,248,0.08); border: 1px solid rgba(56,189,248,0.2);
+      color: var(--primary); font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 100px;
+    }
+
+    /* MOBILE TOGGLE */
+    .mobile-toggle {
+      display: none; position: fixed; top: 16px; left: 16px; z-index: 200;
+      width: 40px; height: 40px; background: rgba(6,11,25,0.9);
+      border: 1px solid var(--border); border-radius: 10px;
+      align-items: center; justify-content: center;
+      color: var(--text-primary); font-size: 16px; cursor: pointer; backdrop-filter: blur(12px);
+    }
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6); z-index: 99; backdrop-filter: blur(4px);
+    }
+
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
+      .sidebar.open { transform: translateX(0); z-index: 200; }
+      .sidebar-overlay.open { display: block; }
+      .mobile-toggle { display: flex; }
+      .main-content { margin-left: 0; }
+      .hero { padding: 56px 24px 40px; }
+      .hero h1 { font-size: 30px; }
+      .content-area { padding: 28px 20px; }
+      .feature-grid { grid-template-columns: 1fr 1fr; }
+      .manual-footer { padding: 24px 20px; }
+    }
+    @media (max-width: 540px) {
+      .hero { padding: 64px 18px 32px; }
+      .hero h1 { font-size: 24px; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .content-area { padding: 20px 16px; }
+    }
+    @media print {
+      .sidebar, .mobile-toggle { display: none; }
+      .main-content { margin-left: 0; }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .hero { animation: fadeInUp 0.6s ease forwards; }
+  </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+<button class="mobile-toggle" id="mobile-toggle" onclick="toggleSidebar()" title="Toggle Navigation">
+  <i class="fa-solid fa-bars"></i>
+</button>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-title">
+      <div class="logo-icon"><i class="fa-solid fa-compass"></i></div>
+      Intan Elyu
+    </div>
+    <div class="sidebar-subtitle">Mobile App User Manual</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-label">Getting Started</div>
+    <a class="nav-item active" href="#splash" onclick="closeSidebar()">
+      <i class="fa-solid fa-mobile-screen-button"></i> Splash Screen <span class="nav-step-num">1</span>
+    </a>
+    <a class="nav-item" href="#auth" onclick="closeSidebar()">
+      <i class="fa-solid fa-shield-halved"></i> Login &amp; Register <span class="nav-step-num">2</span>
+    </a>
+    <div class="sidebar-section-label">Core Features</div>
+    <a class="nav-item" href="#dashboard" onclick="closeSidebar()">
+      <i class="fa-solid fa-gauge-high"></i> Dashboard <span class="nav-step-num">3</span>
+    </a>
+    <a class="nav-item" href="#map" onclick="closeSidebar()">
+      <i class="fa-solid fa-map-location-dot"></i> Explore Map <span class="nav-step-num">4</span>
+    </a>
+    <a class="nav-item" href="#itinerary" onclick="closeSidebar()">
+      <i class="fa-solid fa-route"></i> Itinerary Planner <span class="nav-step-num">5</span>
+    </a>
+    <a class="nav-item" href="#checkin" onclick="closeSidebar()">
+      <i class="fa-solid fa-camera"></i> AR Check-In <span class="nav-step-num">6</span>
+    </a>
+    <div class="sidebar-section-label">Rewards &amp; Games</div>
+    <a class="nav-item" href="#quests" onclick="closeSidebar()">
+      <i class="fa-solid fa-scroll"></i> Quests <span class="nav-step-num">7</span>
+    </a>
+    <a class="nav-item" href="#gamezone" onclick="closeSidebar()">
+      <i class="fa-solid fa-gamepad"></i> GameZone <span class="nav-step-num">8</span>
+    </a>
+    <a class="nav-item" href="#leaderboard" onclick="closeSidebar()">
+      <i class="fa-solid fa-trophy"></i> Leaderboard <span class="nav-step-num">9</span>
+    </a>
+    <a class="nav-item" href="#discounts" onclick="closeSidebar()">
+      <i class="fa-solid fa-tags"></i> Discounts &amp; Vouchers <span class="nav-step-num">10</span>
+    </a>
+    <div class="sidebar-section-label">Account</div>
+    <a class="nav-item" href="#profile" onclick="closeSidebar()">
+      <i class="fa-solid fa-user-circle"></i> My Profile <span class="nav-step-num">11</span>
+    </a>
+    <a class="nav-item" href="#settings" onclick="closeSidebar()">
+      <i class="fa-solid fa-sliders"></i> Settings <span class="nav-step-num">12</span>
+    </a>
+    <a class="nav-item" href="#quick-ref" onclick="closeSidebar()">
+      <i class="fa-solid fa-table-list"></i> Quick Reference
+    </a>
+  </nav>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-badge"><i class="fa-solid fa-book-open"></i> Official User Manual</div>
+    <h1>Intan Elyu<br><span>Mobile App Guide</span></h1>
+    <p class="hero-desc">
+      Your complete step-by-step guide for exploring La Union, Philippines with the Intan Elyu
+      tourism companion app &mdash; from getting started to earning rewards and redeeming vouchers.
+    </p>
+    <div class="hero-meta">
+      <div class="hero-meta-item"><i class="fa-solid fa-layer-group"></i> 12 Feature Sections</div>
+      <div class="hero-meta-item"><i class="fa-solid fa-list-check"></i> Step-by-Step Instructions</div>
+      <div class="hero-meta-item"><i class="fa-solid fa-location-dot"></i> La Union, Philippines</div>
+      <div class="hero-meta-item"><i class="fa-regular fa-calendar"></i> Version 2026</div>
+    </div>
+  </header>
+
+  <div class="content-area">
+
+    <!-- OVERVIEW -->
+    <div class="section" id="overview">
+      <div class="section-header">
+        <div class="section-icon blue"><i class="fa-solid fa-star"></i></div>
+        <div class="section-title-wrap">
+          <h2>App Overview</h2>
+          <p>Intan Elyu is a gamified tourism companion for La Union featuring smart maps, AI-assisted itinerary planning, AR check-ins, mini-games, and exclusive local vouchers.</p>
+        </div>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-card"><div class="feature-card-icon">🗺️</div><h4>Explore Map</h4><p>Discover tourist spots, beaches, and heritage sites with real-time navigation.</p></div>
+        <div class="feature-card"><div class="feature-card-icon">📅</div><h4>Itinerary Planner</h4><p>Build and save AI-assisted day trips with fare and travel time estimates.</p></div>
+        <div class="feature-card"><div class="feature-card-icon">📸</div><h4>AR Check-In</h4><p>Scan your surroundings to verify visits and earn XP at destinations.</p></div>
+        <div class="feature-card"><div class="feature-card-icon">🎮</div><h4>GameZone</h4><p>Play Slide Puzzle, Memory Match, and Word Scramble to earn points.</p></div>
+        <div class="feature-card"><div class="feature-card-icon">🏆</div><h4>Leaderboard</h4><p>Compete with other tourists across La Union and claim top explorer rank.</p></div>
+        <div class="feature-card"><div class="feature-card-icon">🎟️</div><h4>Vouchers</h4><p>Redeem XP and Points for exclusive dining, surf, and resort discounts.</p></div>
+        <div class="feature-card"><div class="feature-card-icon">📜</div><h4>Quests</h4><p>Complete daily, weekly, and monthly challenges to earn bonus rewards.</p></div>
+        <div class="feature-card"><div class="feature-card-icon">🌤️</div><h4>Weather Forecast</h4><p>Check real-time weather and 5-day forecasts for La Union directly in-app.</p></div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- STEP 1: SPLASH -->
+    <div class="section" id="splash">
+      <div class="section-header">
+        <div class="section-icon blue"><i class="fa-solid fa-mobile-screen-button"></i></div>
+        <div class="section-title-wrap">
+          <h2>Step 1 &mdash; Splash Screen</h2>
+          <p>The animated welcome screen that greets you every time you open the app.</p>
+        </div>
+      </div>
+      <div class="steps-list">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Open the App</div>
+            <div class="step-desc">Launch <strong>Intan Elyu</strong> on your device. The animated splash screen appears with the Intan Elyu logo and tagline <em>"Your Ultimate Travel Companion"</em>.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Wait for Auto-Detection</div>
+            <div class="step-desc">The app automatically checks for an active session. <strong>If logged in</strong> &rarr; redirected to <strong>Dashboard</strong>. <strong>If not logged in</strong> &rarr; transitions smoothly to the <strong>Login / Register</strong> screen.</div>
+          </div>
+        </div>
+      </div>
+      <div class="info-box tip">
+        <i class="fa-solid fa-lightbulb"></i>
+        <span>The transition animation takes about <strong>2.5 seconds</strong>. The logo gracefully morphs into the auth screen for a seamless first impression.</span>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- STEP 2: AUTH -->
+    <div class="section" id="auth">
+      <div class="section-header">
+        <div class="section-icon purple"><i class="fa-solid fa-shield-halved"></i></div>
+        <div class="section-title-wrap">
+          <h2>Step 2 &mdash; Login &amp; Register</h2>
+          <p>Create your explorer account or sign in to access all app features.</p>
+        </div>
+      </div>
+
+      <h3 style="font-size:17px;font-weight:800;color:var(--text-primary);margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+        <i class="fa-solid fa-user-plus" style="color:var(--accent-purple);font-size:14px;"></i> New User &mdash; Create an Account
+      </h3>
+      <div class="steps-list">
+        <div class="step-card purple">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Tap the "Register" Tab <span class="tag tag-required">Required</span></div>
+            <div class="step-desc">On the auth screen, tap the <strong>Register</strong> tab at the top to switch to the registration form.</div>
+          </div>
+        </div>
+        <div class="step-card purple">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Enter Your Name</div>
+            <div class="step-desc">Fill in your <strong>First Name</strong> and <strong>Last Name</strong> in the two side-by-side input fields.</div>
+          </div>
+        </div>
+        <div class="step-card purple">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Enter Your Email Address</div>
+            <div class="step-desc">Type a valid email address &mdash; this will be your login credential for all future sessions.</div>
+          </div>
+        </div>
+        <div class="step-card purple">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Create a Password</div>
+            <div class="step-desc">Enter a secure password. Tap the <strong>eye icon</strong> to toggle visibility. The password must meet the app's minimum security requirements.</div>
+          </div>
+        </div>
+        <div class="step-card purple">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <div class="step-title">Agree to Terms &amp; Submit</div>
+            <div class="step-desc">Accept the Terms &amp; Conditions checkbox, then tap the circular <strong>arrow (&#8594;) button</strong> to complete registration. You'll be automatically logged in on success.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="font-size:17px;font-weight:800;color:var(--text-primary);margin:28px 0 14px;display:flex;align-items:center;gap:8px;">
+        <i class="fa-solid fa-right-to-bracket" style="color:var(--primary);font-size:14px;"></i> Returning User &mdash; Login
+      </h3>
+      <div class="steps-list">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Select the "Login" Tab</div>
+            <div class="step-desc">The <strong>Login</strong> tab is selected by default. If not, tap it at the top of the auth screen.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Enter Email &amp; Password</div>
+            <div class="step-desc">Type your registered <strong>email address</strong> and <strong>password</strong>. Use the eye icon to reveal your password if needed.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Tap the Submit Button</div>
+            <div class="step-desc">Press the circular <strong>arrow (&#8594;) button</strong> to log in. You will be taken to the Dashboard on success.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="font-size:17px;font-weight:800;color:var(--text-primary);margin:28px 0 14px;display:flex;align-items:center;gap:8px;">
+        <i class="fab fa-google" style="color:#ea4335;font-size:14px;"></i> Quick Login &mdash; Google Sign-In
+      </h3>
+      <div class="steps-list">
+        <div class="step-card green">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Tap "Sign in with Google" <span class="tag tag-optional">Alternative</span></div>
+            <div class="step-desc">Below the login form, tap the <strong>Google button</strong>. A Google OAuth popup will appear to authorize your account.</div>
+          </div>
+        </div>
+        <div class="step-card green">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Choose Your Google Account</div>
+            <div class="step-desc">Select your Google account. The app will automatically create or retrieve your Intan Elyu account and log you in.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="font-size:17px;font-weight:800;color:var(--text-primary);margin:28px 0 14px;display:flex;align-items:center;gap:8px;">
+        <i class="fa-solid fa-key" style="color:var(--accent);font-size:14px;"></i> Forgot Password
+      </h3>
+      <div class="steps-list">
+        <div class="step-card yellow">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Tap "Forgot Password?"</div>
+            <div class="step-desc">On the Login form, tap the <strong>Forgot Password?</strong> link. A password recovery form will slide in.</div>
+          </div>
+        </div>
+        <div class="step-card yellow">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Enter Your Email &amp; Submit</div>
+            <div class="step-desc">Type your registered email and submit. A password reset link will be sent to your inbox.</div>
+          </div>
+        </div>
+        <div class="step-card yellow">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Open the Reset Link</div>
+            <div class="step-desc">Open the email from Intan Elyu and tap the <strong>reset link</strong>. You'll be taken to the password reset page to set a new password.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- STEP 3: DASHBOARD -->
+    <div class="section" id="dashboard">
+      <div class="section-header">
+        <div class="section-icon blue"><i class="fa-solid fa-gauge-high"></i></div>
+        <div class="section-title-wrap">
+          <h2>Step 3 &mdash; Dashboard</h2>
+          <p>Your personalized home screen. Monitor explorer stats, live weather, and discover tourist spots.</p>
+        </div>
+      </div>
+      <div class="steps-list">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">View Your Explorer Profile Card</div>
+            <div class="step-desc">At the top you'll see your <strong>avatar</strong>, <strong>name</strong>, unique <strong>Explorer ID</strong>, current <strong>title</strong> (e.g., "Explorer of Elyu"), and your <strong>XP level progress bar</strong>. Tap the card to view your full profile.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Check Your Stats Row</div>
+            <div class="step-desc">Three quick-stat cards show total <strong>Places Visited</strong>, total <strong>XP Earned</strong>, and your current <strong>Leaderboard Rank</strong>. Tap any stat to navigate to its respective screen.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">View the Live Weather Widget</div>
+            <div class="step-desc">A dynamic weather card shows current <strong>temperature</strong>, <strong>conditions</strong>, <strong>humidity</strong>, <strong>wind speed</strong>, and <strong>UV index</strong> for San Fernando, La Union. Tap it to open the <strong>5-Day Forecast modal</strong>.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Access GameZone Panel</div>
+            <div class="step-desc">Tap the 🧩 <strong>GameZone</strong> banner to enter the mini-games section where you play for discount vouchers.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <div class="step-title">Browse by Category</div>
+            <div class="step-desc">Scroll the <strong>Categories</strong> row horizontally: <em>All Spots, Beach, Mountains, Lakes &amp; Falls, Heritage, Food, Eco-Tourism</em>, and more. Tap a category to filter the tourist spots list below.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <div class="step-title">Explore Tourist Spot Cards</div>
+            <div class="step-desc">Scroll down to see <strong>place cards</strong> with photos, names, categories, and municipality info. Tap a card to view full details, ratings, photos, and add it to your itinerary.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">7</div>
+          <div class="step-body">
+            <div class="step-title">Use the Bottom Navigation Bar</div>
+            <div class="step-desc">The bottom nav provides quick access to: <strong>Dashboard</strong>, <strong>Explore Map</strong>, <strong>Itinerary</strong>, <strong>Leaderboard</strong>, and <strong>Profile</strong>.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- STEP 4: MAP -->
+    <div class="section" id="map">
+      <div class="section-header">
+        <div class="section-icon teal"><i class="fa-solid fa-map-location-dot"></i></div>
+        <div class="section-title-wrap">
+          <h2>Step 4 &mdash; Explore Map</h2>
+          <p>An interactive map of all La Union tourist spots with navigation, fare calculator, and detailed place info.</p>
+        </div>
+      </div>
+      <div class="steps-list">
+        <div class="step-card teal">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Open the Map Tab</div>
+            <div class="step-desc">Tap the <strong>Map</strong> icon in the bottom navigation bar. The interactive map loads centered on La Union, Philippines.</div>
+          </div>
+        </div>
+        <div class="step-card teal">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Browse Tourist Spot Pins</div>
+            <div class="step-desc">All registered tourist spots appear as <strong>pins on the map</strong>. Tap any pin to see a quick preview card with the spot's name, category, municipality, and rating.</div>
+          </div>
+        </div>
+        <div class="step-card teal">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Use Category Filters</div>
+            <div class="step-desc">Use the <strong>filter chips</strong> at the top of the map to narrow pins by category: Beach, Mountains, Heritage, Food, and more.</div>
+          </div>
+        </div>
+        <div class="step-card teal">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">View Full Place Details</div>
+            <div class="step-desc">Tap a pin then tap <strong>"View Details"</strong> to open the full place detail sheet. See photos, description, reviews, operating hours, and location info.</div>
+          </div>
+        </div>
+        <div class="step-card teal">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <div class="step-title">Calculate Travel Fare</div>
+            <div class="step-desc">From the detail sheet, tap <strong>Fare Calculator</strong>. Select your vehicle type (Tricycle, Jeepney, Bus, Taxi, Own Car) and starting point to get an estimated fare and travel time.</div>
+          </div>
+        </div>
+        <div class="step-card teal">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <div class="step-title">Add to Itinerary</div>
+            <div class="step-desc">Tap <strong>"Add to Itinerary"</strong> from any place detail to include that spot in your current trip plan.</div>
+          </div>
+        </div>
+        <div class="step-card teal">
+          <div class="step-num">7</div>
+          <div class="step-body">
+            <div class="step-title">Get Navigation Directions</div>
+            <div class="step-desc">Tap <strong>"Navigate"</strong> to get turn-by-turn directions from your current GPS location to the selected tourist spot.</div>
+          </div>
+        </div>
+      </div>
+      <div class="info-box note">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>Make sure <strong>Location Services</strong> is enabled in your phone settings for the best map experience.</span>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- STEP 5: ITINERARY -->
+    <div class="section" id="itinerary">
+      <div class="section-header">
+        <div class="section-icon blue"><i class="fa-solid fa-route"></i></div>
+        <div class="section-title-wrap">
+          <h2>Step 5 &mdash; Itinerary Planner</h2>
+          <p>Plan, save, and manage your day trips to multiple destinations across La Union with route optimization and fare estimates.</p>
+        </div>
+      </div>
+      <div class="steps-list">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Open Itinerary</div>
+            <div class="step-desc">Tap the <strong>Route</strong> icon in the bottom navigation bar to open the Itinerary Planner screen.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Create a New Trip</div>
+            <div class="step-desc">Tap <strong>"+ New Trip"</strong> or <strong>"Plan a Trip"</strong>. Give your trip a name (e.g., "La Union Beach Day") and set your travel date.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Set Your Starting Point</div>
+            <div class="step-desc">Enter or confirm your <strong>starting location</strong> (e.g., your hotel or a specific barangay in La Union).</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Add Destinations</div>
+            <div class="step-desc">Search for and add tourist spots as <strong>stops on your itinerary</strong>. You can add multiple places and reorder them via drag-and-drop.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <div class="step-title">Select Transport Mode</div>
+            <div class="step-desc">Use the <strong>route type selector</strong> (Tricycle, Jeepney, Bus, etc.) to choose your transport. The app calculates the estimated fare per leg.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <div class="step-title">Review Budget Summary</div>
+            <div class="step-desc">The <strong>Donut Chart</strong> and budget breakdown shows your total estimated fare, travel times, and cost distribution across all stops.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">7</div>
+          <div class="step-body">
+            <div class="step-title">Save Your Trip</div>
+            <div class="step-desc">Tap <strong>"Save Trip"</strong> to save your itinerary. It will be synced to the cloud and accessible in <strong>Saved Trips</strong>.</div>
+          </div>
+        </div>
+        <div class="step-card green">
+          <div class="step-num">8</div>
+          <div class="step-body">
+            <div class="step-title">Execute &amp; Check In <span class="tag tag-tip">Earn XP!</span></div>
+            <div class="step-desc">When at a saved trip destination, tap <strong>"Check In"</strong> next to the stop. Complete the check-in flow to earn <span class="xp-badge"><i class="fa-solid fa-bolt"></i> +50 XP</span> and <span class="pts-badge">+50 PTS</span> per verified visit.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- STEP 6: AR CHECK-IN -->
+    <div class="section" id="checkin">
+      <div class="section-header">
+        <div class="section-icon green"><i class="fa-solid fa-camera"></i></div>
+        <div class="section-title-wrap">
+          <h2>Step 6 &mdash; AR Check-In</h2>
+          <p>Verify your presence at a tourist spot using camera and GPS to earn XP and Points.</p>
+        </div>
+      </div>
+      <div class="steps-list">
+        <div class="step-card green">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Allow Camera &amp; Location Permissions</div>
+            <div class="step-desc">When prompted, allow the app to access your <strong>camera</strong> and <strong>GPS location</strong>. These are required for check-in verification.</div>
+          </div>
+        </div>
+        <div class="step-card green">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Navigate to a Destination</div>
+            <div class="step-desc">From a saved trip or place card, tap the <strong>"Check In"</strong> button when you are physically at the location.</div>
+          </div>
+        </div>
+        <div class="step-card green">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Point Camera at the Location</div>
+            <div class="step-desc">The AR camera view opens. A dashed <strong>reticle frame</strong> appears in the center. Point your camera at the tourist spot or landmark.</div>
+          </div>
+        </div>
+        <div class="step-card green">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Wait for Detection</div>
+            <div class="step-desc">The status indicator at the top shows scan progress. The <strong>reticle turns green</strong> when the spot is detected and GPS is confirmed.</div>
+          </div>
+        </div>
+        <div class="step-card green">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <div class="step-title">Tap the Scan Button</div>
+            <div class="step-desc">Press the large circular <strong>Scan button</strong> at the bottom to capture your check-in photo. The app verifies your GPS location simultaneously.</div>
+          </div>
+        </div>
+        <div class="step-card green">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <div class="step-title">Collect Your Reward <span class="tag tag-tip">XP Earned!</span></div>
+            <div class="step-desc">Upon successful verification you receive <span class="xp-badge"><i class="fa-solid fa-bolt"></i> +50 XP</span> and <span class="pts-badge">+50 PTS</span>. A success animation confirms your check-in.</div>
+          </div>
+        </div>
+      </div>
+      <div class="info-box warning">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>Check-in only works when you are <strong>physically present</strong> at the tourist spot. GPS verification confirms your proximity.</span>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- STEP 7: QUESTS -->
+    <div class="section" id="quests">
+      <div class="section-header">
+        <div class="section-icon purple"><i class="fa-solid fa-scroll"></i></div>
+        <div class="section-title-wrap">
+          <h2>Step 7 &mdash; Quests</h2>
+          <p>Complete daily, weekly, and monthly challenges to earn bonus XP and Points.</p>
+        </div>
+      </div>
+      <div class="steps-list">
+        <div class="step-card purple">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Open the Quests Page</div>
+            <div class="step-desc">Navigate to <strong>Quests</strong> from the Dashboard or side menu to see an overview of active challenges and your progress.</div>
+          </div>
+        </div>
+        <div class="step-card purple">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Filter by Time Period</div>
+            <div class="step-desc">Use the <strong>time filter pills</strong> at the top to switch between <strong>Daily</strong>, <strong>Weekly</strong>, and <strong>Monthly</strong> quests.</div>
+          </div>
+        </div>
+        <div class="step-card purple">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Review Quest Cards</div>
+            <div class="step-desc">Each card shows the quest <strong>icon</strong>, <strong>title</strong>, <strong>difficulty</strong>, <strong>XP reward</strong>, and a <strong>progress bar</strong>. Completed quests are dimmed with a checkmark.</div>
+          </div>
+        </div>
+        <div class="step-card purple">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Tap a Quest Card</div>
+            <div class="step-desc">Tap any quest to view full requirements (e.g., "Visit 3 beaches in San Juan" or "Check in at a heritage site").</div>
+          </div>
+        </div>
+        <div class="step-card purple">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <div class="step-title">Complete &amp; Claim Reward</div>
+            <div class="step-desc">Once all requirements are met, the quest auto-completes and XP is instantly added to your account. Progress is tracked automatically as you use the app.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- STEP 8: GAMEZONE -->
+    <div class="section" id="gamezone">
+      <div class="section-header">
+        <div class="section-icon purple" style="background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(30,27,75,0.5));border-color:rgba(139,92,246,0.3);"><i class="fa-solid fa-gamepad"></i></div>
+        <div class="section-title-wrap">
+          <h2>Step 8 &mdash; GameZone</h2>
+          <p>Play three fun mini-games themed around La Union to earn Points redeemable for discount vouchers.</p>
+        </div>
+      </div>
+      <div class="steps-list">
+        <div class="step-card purple">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Open GameZone</div>
+            <div class="step-desc">From the Dashboard, tap the <strong>🧩 GameZone</strong> banner. Your current <strong>Points Balance</strong> is shown at the top with a Redeem shortcut.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:22px 0 12px;display:flex;align-items:center;gap:8px;">
+        <i class="fa-solid fa-puzzle-piece" style="color:var(--accent-purple);font-size:13px;"></i> Game 1 &mdash; Slide Puzzle
+      </h3>
+      <div class="steps-list">
+        <div class="step-card purple">
+          <div class="step-num">A</div>
+          <div class="step-body">
+            <div class="step-title">Select "Slide Puzzle" Tab</div>
+            <div class="step-desc">Tap the <strong>Slide Puzzle</strong> tab. A scrambled 3&times;3 image of <em>Tangadan Falls</em> will appear on the board.</div>
+          </div>
+        </div>
+        <div class="step-card purple">
+          <div class="step-num">B</div>
+          <div class="step-body">
+            <div class="step-title">Rearrange the Tiles</div>
+            <div class="step-desc">Tap tiles adjacent to the empty space to slide them. Arrange all 8 tiles in the correct order to reveal the complete waterfall image.</div>
+          </div>
+        </div>
+        <div class="step-card purple">
+          <div class="step-num">C</div>
+          <div class="step-body">
+            <div class="step-title">Solve to Earn Points <span class="tag tag-tip">+100 PTS</span></div>
+            <div class="step-desc">Completing the puzzle earns you <strong>+100 Points</strong>. The app tracks your move count and completion time.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:22px 0 12px;display:flex;align-items:center;gap:8px;">
+        <i class="fa-solid fa-clone" style="color:var(--primary);font-size:13px;"></i> Game 2 &mdash; Memory Match
+      </h3>
+      <div class="steps-list">
+        <div class="step-card">
+          <div class="step-num">A</div>
+          <div class="step-body">
+            <div class="step-title">Select "Memory Match" Tab</div>
+            <div class="step-desc">Tap the <strong>Memory Match</strong> tab. A grid of face-down cards featuring La Union landmark icons appears.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">B</div>
+          <div class="step-body">
+            <div class="step-title">Flip &amp; Match Pairs</div>
+            <div class="step-desc">Tap a card to flip it, then tap another to find its pair. Matched pairs stay face-up; unmatched pairs flip back after a short delay.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">C</div>
+          <div class="step-body">
+            <div class="step-title">Match All Pairs to Win <span class="tag tag-tip">+80 PTS</span></div>
+            <div class="step-desc">Successfully match all card pairs to earn <strong>+80 Points</strong>. Fewer attempts = better score!</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:22px 0 12px;display:flex;align-items:center;gap:8px;">
+        <i class="fa-solid fa-font" style="color:var(--accent-green);font-size:13px;"></i> Game 3 &mdash; Word Scramble
+      </h3>
+      <div class="steps-list">
+        <div class="step-card green">
+          <div class="step-num">A</div>
+          <div class="step-body">
+            <div class="step-title">Select "Word Scramble" Tab</div>
+            <div class="step-desc">Tap the <strong>Word Scramble</strong> tab. A scrambled set of letters spelling a La Union&ndash;related word appears.</div>
+          </div>
+        </div>
+        <div class="step-card green">
+          <div class="step-num">B</div>
+          <div class="step-body">
+            <div class="step-title">Arrange the Letters</div>
+            <div class="step-desc">Tap the scrambled letters in the correct order to spell out the hidden word (e.g., a tourist spot, local dish, or municipality name).</div>
+          </div>
+        </div>
+        <div class="step-card green">
+          <div class="step-num">C</div>
+          <div class="step-body">
+            <div class="step-title">Submit Your Answer <span class="tag tag-tip">+60 PTS</span></div>
+            <div class="step-desc">When confident, tap <strong>"Submit"</strong>. Correct answers earn <strong>+60 Points</strong> per word solved.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box tip">
+        <i class="fa-solid fa-lightbulb"></i>
+        <span>Tap the <strong>Redeem &rarr;</strong> button at the top of GameZone to go directly to Discounts &amp; Vouchers to spend your accumulated Points.</span>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- STEP 9: LEADERBOARD -->
+    <div class="section" id="leaderboard">
+      <div class="section-header">
+        <div class="section-icon yellow"><i class="fa-solid fa-trophy"></i></div>
+        <div class="section-title-wrap">
+          <h2>Step 9 &mdash; Leaderboard</h2>
+          <p>See where you rank among all La Union explorers and compete for the top spot.</p>
+        </div>
+      </div>
+      <div class="steps-list">
+        <div class="step-card yellow">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Open the Leaderboard Tab</div>
+            <div class="step-desc">Tap the <strong>Trophy</strong> icon in the bottom navigation bar to open the Leaderboard screen.</div>
+          </div>
+        </div>
+        <div class="step-card yellow">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">View Your Current Standing</div>
+            <div class="step-desc">A personal banner at the top shows your <strong>rank</strong>, <strong>explorer title</strong>, and <strong>XP</strong>. It includes a quick <strong>"Explore"</strong> button to earn more XP.</div>
+          </div>
+        </div>
+        <div class="step-card yellow">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">View the Top 3 Podium</div>
+            <div class="step-desc">An animated <strong>podium</strong> displays the Gold 🥇, Silver 🥈, and Bronze 🥉 ranked explorers with avatars, names, and XP totals.</div>
+          </div>
+        </div>
+        <div class="step-card yellow">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Browse the Full Explorer List</div>
+            <div class="step-desc">Scroll down to see the complete <strong>ranked list</strong> of all explorers showing rank number, avatar, name, and total XP.</div>
+          </div>
+        </div>
+        <div class="step-card yellow">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <div class="step-title">Invite Friends to Compete <span class="tag tag-optional">Social</span></div>
+            <div class="step-desc">Tap <strong>"Invite Friends &amp; Compete"</strong> at the bottom to share the leaderboard link via your device's native share sheet.</div>
+          </div>
+        </div>
+      </div>
+      <div class="info-box note">
+        <i class="fa-solid fa-circle-info"></i>
+        <span><strong>How to climb ranks:</strong> Check in at more tourist spots, complete quests, and play GameZone regularly to accumulate XP and rise to the top.</span>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- STEP 10: DISCOUNTS -->
+    <div class="section" id="discounts">
+      <div class="section-header">
+        <div class="section-icon green"><i class="fa-solid fa-tags"></i></div>
+        <div class="section-title-wrap">
+          <h2>Step 10 &mdash; Discounts &amp; Vouchers</h2>
+          <p>Redeem your earned Points and XP for exclusive deals at local restaurants, surf shops, and resorts.</p>
+        </div>
+      </div>
+      <div class="steps-list">
+        <div class="step-card green">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Open Discounts &amp; Vouchers</div>
+            <div class="step-desc">From the Dashboard or GameZone "Redeem" button, navigate to <strong>Discounts &amp; Vouchers</strong>. Your current balance is shown at the top.</div>
+          </div>
+        </div>
+        <div class="step-card green">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Browse by Category</div>
+            <div class="step-desc">Filter vouchers: <strong>All Deals</strong> &bull; <strong>🎟️ My Vouchers</strong> &bull; <strong>🍔 Food &amp; Dining</strong> &bull; <strong>🏄 Activities &amp; Surf</strong> &bull; <strong>🏨 Accommodations</strong> &bull; <strong>🎁 Gear &amp; Passes</strong>.</div>
+          </div>
+        </div>
+        <div class="step-card green">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Select a Voucher</div>
+            <div class="step-desc">Tap any voucher card to open the <strong>Voucher Detail Modal</strong>. Review the discount amount, partner business, location, expiration date, and required Points/XP.</div>
+          </div>
+        </div>
+        <div class="step-card green">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Tap "Claim Voucher"</div>
+            <div class="step-desc">Ensure you have enough Points/XP, then tap <strong>"Claim Voucher"</strong>. The cost is deducted from your balance and the voucher is added to <strong>My Vouchers</strong>.</div>
+          </div>
+        </div>
+        <div class="step-card green">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <div class="step-title">Use Your Voucher at the Business</div>
+            <div class="step-desc">Visit the partner business and show your <strong>voucher code / QR code</strong> (accessible from the My Vouchers tab) at the counter to claim your discount.</div>
+          </div>
+        </div>
+      </div>
+      <div class="info-box tip">
+        <i class="fa-solid fa-lightbulb"></i>
+        <span>Check the <strong>expiry date</strong> of each voucher before claiming. Expired vouchers cannot be reactivated.</span>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- STEP 11: PROFILE -->
+    <div class="section" id="profile">
+      <div class="section-header">
+        <div class="section-icon blue"><i class="fa-solid fa-user-circle"></i></div>
+        <div class="section-title-wrap">
+          <h2>Step 11 &mdash; My Profile</h2>
+          <p>View explorer stats, badge level, trip history, reviews, and manage your account.</p>
+        </div>
+      </div>
+      <div class="steps-list">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Open Your Profile</div>
+            <div class="step-desc">Tap the <strong>Profile</strong> icon in the bottom nav, or tap your avatar card on the Dashboard.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">View Profile Summary Card</div>
+            <div class="step-desc">See your <strong>photo</strong>, <strong>name</strong>, <strong>email</strong>, <strong>bio</strong>, and <strong>travel preference chips</strong> (e.g., Beach Lover, Foodie, Adventurer).</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Check Your Stats</div>
+            <div class="step-desc">The Stats Row shows total <strong>XP</strong>, number of <strong>Places Visited</strong>, and your current <strong>Leaderboard Rank</strong>.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">View Explorer Level Progress</div>
+            <div class="step-desc">The <strong>XP Progress Bar</strong> shows your level, accumulated XP, and how much XP you need for the next level.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <div class="step-title">Browse Trip History</div>
+            <div class="step-desc">Scroll down to <strong>Trip History</strong> to see all completed visits. Tap <strong>"View All"</strong> for the full history modal with check-in details and photos.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <div class="step-title">Write Reviews <span class="tag tag-optional">Optional</span></div>
+            <div class="step-desc">View testimonials you've written for visited spots or submit a new review from a place's detail page.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">7</div>
+          <div class="step-body">
+            <div class="step-title">Edit Your Profile</div>
+            <div class="step-desc">Tap <strong>Edit Profile</strong> to update your name, bio, profile photo, and travel preferences. Tap <strong>Save Changes</strong> to apply.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- STEP 12: SETTINGS -->
+    <div class="section" id="settings">
+      <div class="section-header">
+        <div class="section-icon red"><i class="fa-solid fa-sliders"></i></div>
+        <div class="section-title-wrap">
+          <h2>Step 12 &mdash; Settings</h2>
+          <p>Customize app behavior, notifications, privacy, language, and manage your account.</p>
+        </div>
+      </div>
+      <div class="steps-list">
+        <div class="step-card red">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Open Settings</div>
+            <div class="step-desc">From your Profile page, tap the <strong>Settings</strong> button (gear icon), or navigate from the main menu.</div>
+          </div>
+        </div>
+        <div class="step-card red">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Preferences &amp; App Behavior</div>
+            <div class="step-desc">Toggle the following features using the on/off switches:
+              <ul>
+                <li><strong>🔔 Push Notifications</strong> &mdash; Alerts for nearby spots &amp; updates</li>
+                <li><strong>📍 Location Services</strong> &mdash; High-accuracy GPS for itineraries</li>
+                <li><strong>🗺️ Offline Maps &amp; Spot Caching</strong> &mdash; Access info without internet</li>
+                <li><strong>☁️ Automatic Trip Cloud Sync</strong> &mdash; Sync itinerary changes live</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="step-card red">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Change App Language <span class="tag tag-optional">Multi-language</span></div>
+            <div class="step-desc">Tap the <strong>App Language</strong> dropdown to select your preferred language. Changes take effect immediately.</div>
+          </div>
+        </div>
+        <div class="step-card red">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Privacy &amp; Security</div>
+            <div class="step-desc">Review data sharing preferences, profile visibility, and linked accounts (e.g., Google).</div>
+          </div>
+        </div>
+        <div class="step-card red">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <div class="step-title">Account Actions</div>
+            <div class="step-desc">From Settings you can:
+              <ul>
+                <li><strong>Change Password</strong> &mdash; Update your account password</li>
+                <li><strong>Sign Out</strong> &mdash; Log out from the current device</li>
+                <li><strong>Delete Account</strong> &mdash; Permanently remove your account</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="info-box warning">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span><strong>Account Deletion</strong> is permanent and cannot be undone. All XP, vouchers, and trip history will be permanently lost.</span>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- QUICK REFERENCE -->
+    <div class="section" id="quick-ref">
+      <div class="section-header">
+        <div class="section-icon blue"><i class="fa-solid fa-table-list"></i></div>
+        <div class="section-title-wrap">
+          <h2>Quick Reference &mdash; XP &amp; Points Guide</h2>
+          <p>How to earn and spend your rewards in the Intan Elyu app.</p>
+        </div>
+      </div>
+
+      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin-bottom:12px;">💰 How to Earn XP &amp; Points</h3>
+      <table class="quick-table">
+        <thead>
+          <tr><th>Activity</th><th>XP Earned</th><th>Points Earned</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>📸 AR Check-In at a tourist spot</td><td>+50 XP</td><td>+50 PTS</td></tr>
+          <tr><td>📸 Photo Check-In (saved trip)</td><td>+50 XP</td><td>+50 PTS</td></tr>
+          <tr><td>🧩 Solve Slide Puzzle</td><td>—</td><td>+100 PTS</td></tr>
+          <tr><td>🃏 Complete Memory Match</td><td>—</td><td>+80 PTS</td></tr>
+          <tr><td>🔤 Solve Word Scramble</td><td>—</td><td>+60 PTS</td></tr>
+          <tr><td>📜 Complete a Daily Quest</td><td>Varies</td><td>Varies</td></tr>
+          <tr><td>📜 Complete a Weekly Quest</td><td>Varies</td><td>Varies</td></tr>
+          <tr><td>📜 Complete a Monthly Quest</td><td>Varies (High)</td><td>Varies (High)</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:28px 0 12px;">🎟️ Voucher Categories</h3>
+      <table class="quick-table">
+        <thead>
+          <tr><th>Category</th><th>Examples</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>🍔 Food &amp; Dining</td><td>El Union Coffee discount, local restaurant promos</td></tr>
+          <tr><td>🏄 Activities &amp; Surf</td><td>Surfboard rental discounts, water sport packages</td></tr>
+          <tr><td>🏨 Accommodations</td><td>Resort room discounts, eco-lodge vouchers</td></tr>
+          <tr><td>🎁 Gear &amp; Eco-Passes</td><td>Souvenir discounts, eco-park entry passes</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:28px 0 12px;">🧭 Bottom Navigation Icons</h3>
+      <table class="quick-table">
+        <thead>
+          <tr><th>Icon</th><th>Destination</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="icon-badge"><i class="fa-solid fa-gauge-high"></i> Dashboard</span></td><td>Home Screen</td><td>Stats, weather, categories, tourist spots</td></tr>
+          <tr><td><span class="icon-badge"><i class="fa-solid fa-map-location-dot"></i> Map</span></td><td>Explore Map</td><td>Interactive tourist spot map with filters</td></tr>
+          <tr><td><span class="icon-badge"><i class="fa-solid fa-route"></i> Itinerary</span></td><td>Trip Planner</td><td>Plan, save, and execute day trips</td></tr>
+          <tr><td><span class="icon-badge"><i class="fa-solid fa-trophy"></i> Rank</span></td><td>Leaderboard</td><td>Top explorers and your ranking</td></tr>
+          <tr><td><span class="icon-badge"><i class="fa-solid fa-user"></i> Profile</span></td><td>My Profile</td><td>Stats, history, badges, and account</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="manual-footer">
+    <div>
+      <p style="font-weight:700;color:var(--text-secondary);margin-bottom:4px;">Intan Elyu Tourism Management System</p>
+      <p>La Union, Philippines &mdash; Mobile App User Manual &copy; 2026</p>
+    </div>
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+      <div class="version-badge"><i class="fa-solid fa-code-branch"></i> Version 2026</div>
+      <div class="version-badge" style="background:rgba(52,199,89,0.08);border-color:rgba(52,199,89,0.25);color:var(--accent-green);"><i class="fa-solid fa-circle" style="font-size:8px;"></i> Up to Date</div>
+    </div>
+  </footer>
+
+</main>
+
+<script>
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('open');
+  }
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+
+  // Scrollspy
+  const sections = document.querySelectorAll('.section[id]');
+  const navItems = document.querySelectorAll('.nav-item');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navItems.forEach(item => {
+          item.classList.remove('active');
+          if (item.getAttribute('href') === '#' + id) item.classList.add('active');
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -60% 0px', threshold: 0 });
+  sections.forEach(s => observer.observe(s));
+
+  // Fade-in on scroll
+  const appearObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.04 });
+  document.querySelectorAll('.section').forEach((el, i) => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = `opacity 0.5s ease ${i * 0.04}s, transform 0.5s ease ${i * 0.04}s`;
+    appearObserver.observe(el);
+  });
+</script>
+</body>
+</html>

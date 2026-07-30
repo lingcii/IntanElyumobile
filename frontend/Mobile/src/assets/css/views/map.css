@@ -237,31 +237,27 @@
 /* ── Bottom Sheet ── */
 .bottom-sheet {
     position: absolute;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100% !important;
+    left: 12px;
+    right: 12px;
+    bottom: calc(85px + env(safe-area-inset-bottom));
     z-index: 990;
-    background: radial-gradient(circle at 50% 0%, rgba(30, 58, 138, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%);
+    background: radial-gradient(circle at 50% 0%, rgba(30, 58, 138, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
     backdrop-filter: blur(28px);
     -webkit-backdrop-filter: blur(28px);
     border: 1px solid rgba(56, 189, 248, 0.25);
-    border-bottom: none !important;
     box-shadow: none !important;
-    border-radius: 28px 28px 0 0 !important;
-    padding: 8px 20px calc(65px + env(safe-area-inset-bottom)) !important;
-    max-height: calc(100vh - 90px);
-    transform: translateY(100%);
+    border-radius: 28px;
+    padding: 8px 20px 18px;
+    max-height: calc(100vh - 120px);
     opacity: 0;
     pointer-events: none;
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+    transition: opacity 0.4s ease;
     will-change: transform;
 }
 
 .bottom-sheet.active {
-    transform: translateY(0) !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
+    opacity: 1;
+    pointer-events: auto;
 }
 
 /* Drag handle */
@@ -304,13 +300,14 @@
     transition: none !important;
 }
 
+/* ── Sheet Image ── */
 .sheet-img {
     width: 100% !important;
-    height: 100% !important;
-    border-radius: 18px !important;
+    height: 190px !important;
+    border-radius: 20px !important;
     object-fit: cover !important;
     object-position: center !important;
-    margin-bottom: 0 !important;
+    margin-bottom: 16px !important;
     box-shadow: none !important;
     display: block !important;
 }
