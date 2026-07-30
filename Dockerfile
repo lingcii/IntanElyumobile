@@ -1,5 +1,8 @@
 FROM php:8.3-cli
 
+# Allow composer to run as superuser in Docker container
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
@@ -24,10 +27,34 @@ WORKDIR /app
 # Copy repository files
 COPY . .
 
-# Move to backend directory and install PHP composer dependencies
-WORKDIR /app/backend
-RUN composer install --no-dev --optimize-autoloader
+# Ensure storage & cache directories exist with full permissions
+RUN if [ -d "backend" ]; then \
+        mkdir -p backend/storage/framework/sessions \
+                 backend/storage/framework/views \
+                 backend/storage/framework/cache/data \
+                 backend/storage/app/public/proof_images \
+                 backend/storage/logs \
+                 backend/bootstrap/cache && \
+        chmod -R 777 backend/storage backend/bootstrap/cache; \
+    else \
+        mkdir -p storage/framework/sessions \
+                 storage/framework/views \
+                 storage/framework/cache/data \
+                 storage/app/public/proof_images \
+                 storage/logs \
+                 bootstrap/cache && \
+        chmod -R 777 storage bootstrap/cache; \
+    fi
+
+# Run composer install where composer.json exists (either /app or /app/backend)
+RUN if [ -f "composer.json" ]; then \
+        composer install --no-dev --optimize-autoloader; \
+    elif [ -f "backend/composer.json" ]; then \
+        cd backend && composer install --no-dev --optimize-autoloader; \
+    else \
+        echo "composer.json not found"; exit 1; \
+    fi
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "php artisan storage:link && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"]
+CMD ["sh", "-c", "if [ -d 'backend' ]; then cd backend; fi && mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache/data storage/logs bootstrap/cache && chmod -R 777 storage bootstrap/cache && php artisan config:clear && php artisan cache:clear && php artisan migrate --force && php artisan storage:link && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"]

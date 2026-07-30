@@ -23,6 +23,13 @@ class Itinerary extends Model
         'total_cost' => 'decimal:2',
     ];
 
+    protected static function booted(): void
+    {
+        static::deleting(function (Itinerary $itinerary) {
+            ItineraryItem::where('itinerary_id', $itinerary->id)->delete();
+        });
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

@@ -45,6 +45,12 @@ include __DIR__ . '/../components/header.php';
             <p style="margin: 0; font-size: 12px; color: rgba(148, 163, 184, 0.8); line-height: 1.4;">
                 Rearrange the tiles to reveal the image of the famous Tangadan Waterfalls in San Gabriel! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.
             </p>
+
+            <!-- Target Reference Image Preview -->
+            <div style="margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 6px 12px; width: fit-content; margin-left: auto; margin-right: auto;">
+                <span style="font-size: 11px; color: rgba(226,232,240,0.8); font-weight: 700;">Target Goal:</span>
+                <img src="https://images.unsplash.com/photo-1544644181-1484b3fdfc62?w=300&auto=format&fit=crop&q=80" alt="Tangadan Falls Target" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover; border: 1.5px solid #38bdf8; box-shadow: 0 2px 8px rgba(56,189,248,0.3);">
+            </div>
             
             <!-- Moves and Timer info -->
             <div style="display: flex; justify-content: center; gap: 20px; margin-top: 14px;">
@@ -191,7 +197,7 @@ include __DIR__ . '/../components/header.php';
 .puzzle-tile {
     width: 100%;
     height: 100%;
-    background-image: url('https://raw.githubusercontent.com/Acekillersmile2131/Intan-Elyu/main/Tangadan_Falls_puzzle.jpg');
+    background-image: url('https://images.unsplash.com/photo-1544644181-1484b3fdfc62?w=600&auto=format&fit=crop&q=80');
     background-size: 300px 300px;
     background-repeat: no-repeat;
     cursor: pointer;

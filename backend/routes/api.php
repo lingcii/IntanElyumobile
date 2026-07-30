@@ -66,52 +66,50 @@ $serveFileHandler = function ($file) {
     }
     
     $disk = env('FILESYSTEM_DISK', 'public');
+    $r2Paths = array_unique(array_filter([
+        $cleanFile,
+        'tourist_spots/' . basename($cleanFile),
+        'avatars/' . basename($cleanFile),
+        'proof_images/' . basename($cleanFile),
+        basename($cleanFile),
+    ]));
+
     if (in_array($disk, ['r2', 's3'])) {
-        try {
-            if (\Illuminate\Support\Facades\Storage::disk($disk)->exists($cleanFile)) {
-                return redirect(\Illuminate\Support\Facades\Storage::disk($disk)->url($cleanFile));
-            }
-        } catch (\Throwable $e) {}
+        foreach ($r2Paths as $r2Path) {
+            try {
+                if (\Illuminate\Support\Facades\Storage::disk($disk)->exists($r2Path)) {
+                    return redirect(\Illuminate\Support\Facades\Storage::disk($disk)->url($r2Path));
+                }
+            } catch (\Throwable $e) {}
+        }
+    }
+
+    // Direct Cloudflare R2 Public Bucket redirect fallback for spot/avatar/proof uploads
+    $r2PublicBase = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev';
+    if (preg_match('#spot_|avatar_|proof_#i', $cleanFile)) {
+        $folder = preg_match('#avatar_#i', $cleanFile) ? 'avatars' : (preg_match('#proof_#i', $cleanFile) ? 'proof_images' : 'tourist_spots');
+        return redirect($r2PublicBase . '/' . $folder . '/' . basename($cleanFile));
     }
 
     abort(404);
 };
 
 Route::get('/image/{file}', $serveFileHandler)->where('file', '.+');
+Route::get('/serve/{file}', $serveFileHandler)->where('file', '.+');
 Route::get('/storage/{file}', $serveFileHandler)->where('file', '.+');
 
-// Backward-compatible route for legacy /api/serve-image.php?file=... URLs
-Route::get('/serve-image.php', function (\Illuminate\Http\Request $request) {
-    $file = $request->query('file');
+// Endpoint for api/serve?file=... or api/serve?id=... or api/serve?image_id=...
+Route::get('/serve', function (\Illuminate\Http\Request $request) use ($serveFileHandler) {
+    $file = $request->query('file') ?: $request->query('id') ?: $request->query('image_id');
     if (!$file) abort(404);
-    $file = rawurldecode(urldecode($file));
-    $base = storage_path('app/public');
-    
-    // Normalize lowercase municipalities/ to match the actual MUNICIPALITIES/ folder
-    $normalizedFile = preg_replace('#^municipalities/#i', 'MUNICIPALITIES/', $file);
-    
-    $paths = [
-        base_path('../frontend/Mobile/src/assets/img/' . $normalizedFile),
-        base_path('../frontend/Mobile/src/assets/img/upload_image/' . $file),
-        base_path('../frontend/Mobile/src/assets/img/' . $file),
-        $base . '/' . $file,
-        $base . '/tourist_spots/' . $file,
-        $base . '/upload_image/' . $file,
-        public_path('images/tourist_spots/' . $file),
-        public_path('storage/tourist_spots/' . $file),
-        public_path('uploads/tourist_spots/' . $file),
-        public_path('storage/upload_image/' . $file),
-        public_path('upload_image/' . $file),
-        base_path('../frontend/Mobile/src/assets/images/' . $file),
-    ];
-    
-    foreach ($paths as $path) {
-        if (file_exists($path)) {
-            return response()->file($path);
-        }
-    }
-    
-    abort(404);
+    return $serveFileHandler($file);
+});
+
+// Backward-compatible route for legacy /api/serve-image.php?file=... URLs
+Route::get('/serve-image.php', function (\Illuminate\Http\Request $request) use ($serveFileHandler) {
+    $file = $request->query('file') ?: $request->query('id') ?: $request->query('image_id');
+    if (!$file) abort(404);
+    return $serveFileHandler($file);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -158,10 +156,22 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
         ]);
 
         $spot = TouristSpot::findOrFail($id);
-        $path = $request->file('photo')->store('tourist_spots', 'public');
-        $fullUrl = asset('storage/' . $path);
+        $disk = 'r2';
+        try {
+            $path = \App\Helpers\ImageCompressor::compressAndStore($request->file('photo'), 'tourist_spots', 'r2', 'spot_', 1200, 80);
+        } catch (\Throwable $r2Err) {
+            $disk = env('FILESYSTEM_DISK', 'public');
+            $path = \App\Helpers\ImageCompressor::compressAndStore($request->file('photo'), 'tourist_spots', $disk, 'spot_', 1200, 80);
+        }
 
-        $spot->update(['photo_url' => 'storage/' . $path]);
+        if ($disk === 'r2') {
+            $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
+            $fullUrl = $r2PublicUrl . '/' . ltrim($path, '/');
+            $spot->update(['photo_url' => $fullUrl]);
+        } else {
+            $fullUrl = asset('storage/' . $path);
+            $spot->update(['photo_url' => 'storage/' . $path]);
+        }
 
         // Clear public map cache so mobile app gets the new photo immediately
         \Illuminate\Support\Facades\Cache::forget('map:public:spots');
@@ -193,8 +203,20 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
         ]);
 
         if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('tourist_spots', 'public');
-            $data['photo_url'] = 'storage/' . $path;
+            $disk = 'r2';
+            try {
+                $path = \App\Helpers\ImageCompressor::compressAndStore($request->file('photo'), 'tourist_spots', 'r2', 'spot_', 1200, 80);
+            } catch (\Throwable $r2Err) {
+                $disk = env('FILESYSTEM_DISK', 'public');
+                $path = \App\Helpers\ImageCompressor::compressAndStore($request->file('photo'), 'tourist_spots', $disk, 'spot_', 1200, 80);
+            }
+
+            if ($disk === 'r2') {
+                $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
+                $data['photo_url'] = $r2PublicUrl . '/' . ltrim($path, '/');
+            } else {
+                $data['photo_url'] = 'storage/' . $path;
+            }
         }
 
         $spot = TouristSpot::create($data);
@@ -204,6 +226,149 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
             'success' => true,
             'message' => 'Tourist spot created successfully!',
             'spot' => $spot
+        ]);
+    // Direct proof image upload endpoint to Cloudflare R2 bucket
+    Route::post('/proof-images/upload', function (\Illuminate\Http\Request $request) {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp,gif|max:10240',
+            'itinerary_item_id' => 'nullable|integer'
+        ]);
+
+        $file = $request->file('image');
+        $disk = 'r2';
+        try {
+            $path = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', 'r2', 'proof_12310909_', 1200, 80);
+        } catch (\Throwable $e) {
+            $disk = env('FILESYSTEM_DISK', 'public');
+            $path = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', $disk, 'proof_12310909_', 1200, 80);
+        }
+
+        if ($disk === 'r2') {
+            $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
+            $fullUrl = $r2PublicUrl . '/' . ltrim($path, '/');
+        } else {
+            $fullUrl = asset('storage/' . $path);
+        }
+
+        if ($request->filled('itinerary_item_id')) {
+            $item = \App\Models\ItineraryItem::find($request->input('itinerary_item_id'));
+            if ($item) {
+                $item->update([
+                    'proof_image'  => $fullUrl,
+                    'proof_status' => 'pending'
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success'     => true,
+            'message'     => 'Proof image uploaded to Cloudflare R2 successfully!',
+            'proof_image' => $fullUrl
+        ]);
+    });
+
+    // ── Admin Proof Check-ins Management (Cloudflare R2 stored photos) ──
+    Route::get('/proof-checkins', function (\Illuminate\Http\Request $request) {
+        $user = $request->user();
+        if ($user && $user->role === 'tourist') {
+            return response()->json(['error' => 'Forbidden: admin access required.'], 403);
+        }
+
+        $status = $request->query('status');
+        $query = \App\Models\ItineraryItem::with([
+            'itinerary.user:id,name,email,avatar',
+            'destination:id,name,municipality_id,category',
+            'destination.municipality:id,name'
+        ])
+        ->whereNotNull('proof_image')
+        ->latest();
+
+        if ($status) {
+            $query->where('proof_status', $status);
+        }
+
+        $items = $query->get()->map(function ($item) {
+            $tourist = $item->itinerary ? $item->itinerary->user : null;
+            $spot = $item->destination;
+            return [
+                'id'               => $item->id,
+                'itinerary_id'     => $item->itinerary_id,
+                'tourist_spot_id'  => $item->tourist_spot_id,
+                'tourist_name'     => $tourist->name ?? 'Tourist',
+                'tourist_email'    => $tourist->email ?? '',
+                'tourist_avatar'   => $tourist->avatar ?? null,
+                'spot_name'        => $spot->name ?? 'Tourist Spot',
+                'category'         => $spot->category ?? '',
+                'municipality'     => $spot && $spot->municipality ? $spot->municipality->name : '',
+                'proof_image'      => $item->proof_image,
+                'proof_status'     => $item->proof_status ?? ($item->is_visited ? 'approved' : 'pending'),
+                'is_visited'       => (bool) $item->is_visited,
+                'visited_at'       => $item->visited_at ? $item->visited_at->toIso8601String() : null,
+                'rejection_reason' => $item->rejection_reason,
+                'reviewed_at'      => $item->reviewed_at ? $item->reviewed_at->toIso8601String() : null,
+                'created_at'       => $item->created_at ? $item->created_at->toIso8601String() : null,
+            ];
+        });
+
+        return response()->json([
+            'success'  => true,
+            'checkins' => $items,
+        ]);
+    });
+
+    Route::post('/proof-checkins/{id}/approve', function (\Illuminate\Http\Request $request, $id) {
+        $user = $request->user();
+        if ($user && $user->role === 'tourist') {
+            return response()->json(['error' => 'Forbidden: admin access required.'], 403);
+        }
+
+        $item = \App\Models\ItineraryItem::findOrFail($id);
+        $item->update([
+            'proof_status' => 'approved',
+            'is_visited'   => true,
+            'visited_at'   => $item->visited_at ?? now(),
+            'reviewed_by' => $user->id ?? null,
+            'reviewed_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Proof check-in approved successfully! XP & Points awarded to tourist.',
+            'item'    => $item,
+        ]);
+    });
+
+    Route::post('/proof-checkins/{id}/reject', function (\Illuminate\Http\Request $request, $id) {
+        $user = $request->user();
+        if ($user && $user->role === 'tourist') {
+            return response()->json(['error' => 'Forbidden: admin access required.'], 403);
+        }
+
+        $reason = $request->input('reason', 'Photo proof was invalid or could not be verified.');
+        $item = \App\Models\ItineraryItem::findOrFail($id);
+        $item->update([
+            'proof_status'     => 'rejected',
+            'is_visited'       => false,
+            'rejection_reason' => $reason,
+            'reviewed_by'     => $user->id ?? null,
+            'reviewed_at'     => now(),
+        ]);
+
+        $tourist = $item->itinerary ? $item->itinerary->user : null;
+        $spot = $item->destination;
+        if ($tourist) {
+            \App\Models\Notification::createSafely(
+                $tourist->id,
+                'checkin_rejected',
+                'Photo Check-in Not Approved ❌',
+                "Your photo proof check-in at " . ($spot->name ?? 'destination') . " was not approved. Reason: {$reason}"
+            );
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Proof check-in rejected.',
+            'item'    => $item,
         ]);
     });
 });
@@ -427,6 +592,97 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
             $ids = $request->input('ids', []);
             \App\Models\TouristSpot::whereIn('id', $ids)->update(['status' => 'approved']);
             return response()->json(['success' => true]);
+        });
+
+        Route::get('/proof-checkins', function (\Illuminate\Http\Request $request) {
+            $status = $request->query('status');
+            $query = \App\Models\ItineraryItem::with([
+                'itinerary.user:id,name,email,avatar',
+                'destination:id,name,municipality_id,category',
+                'destination.municipality:id,name'
+            ])
+            ->whereNotNull('proof_image')
+            ->latest();
+
+            if ($status) {
+                $query->where('proof_status', $status);
+            }
+
+            $items = $query->get()->map(function ($item) {
+                $tourist = $item->itinerary ? $item->itinerary->user : null;
+                $spot = $item->destination;
+                return [
+                    'id'               => $item->id,
+                    'itinerary_id'     => $item->itinerary_id,
+                    'tourist_spot_id'  => $item->tourist_spot_id,
+                    'tourist_name'     => $tourist->name ?? 'Tourist',
+                    'tourist_email'    => $tourist->email ?? '',
+                    'tourist_avatar'   => $tourist->avatar ?? null,
+                    'spot_name'        => $spot->name ?? 'Tourist Spot',
+                    'category'         => $spot->category ?? '',
+                    'municipality'     => $spot && $spot->municipality ? $spot->municipality->name : '',
+                    'proof_image'      => $item->proof_image,
+                    'proof_status'     => $item->proof_status ?? ($item->is_visited ? 'approved' : 'pending'),
+                    'is_visited'       => (bool) $item->is_visited,
+                    'visited_at'       => $item->visited_at ? $item->visited_at->toIso8601String() : null,
+                    'rejection_reason' => $item->rejection_reason,
+                    'reviewed_at'      => $item->reviewed_at ? $item->reviewed_at->toIso8601String() : null,
+                    'created_at'       => $item->created_at ? $item->created_at->toIso8601String() : null,
+                ];
+            });
+
+            return response()->json([
+                'success'  => true,
+                'checkins' => $items,
+            ]);
+        });
+
+        Route::post('/proof-checkins/{id}/approve', function (\Illuminate\Http\Request $request, $id) {
+            $item = \App\Models\ItineraryItem::findOrFail($id);
+            $user = $request->user();
+            $item->update([
+                'proof_status' => 'approved',
+                'is_visited'   => true,
+                'visited_at'   => $item->visited_at ?? now(),
+                'reviewed_by' => $user->id ?? null,
+                'reviewed_at' => now(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Proof check-in approved successfully! XP & Points awarded to tourist.',
+                'item'    => $item,
+            ]);
+        });
+
+        Route::post('/proof-checkins/{id}/reject', function (\Illuminate\Http\Request $request, $id) {
+            $reason = $request->input('reason', 'Photo proof was invalid or could not be verified.');
+            $item = \App\Models\ItineraryItem::findOrFail($id);
+            $user = $request->user();
+            $item->update([
+                'proof_status'     => 'rejected',
+                'is_visited'       => false,
+                'rejection_reason' => $reason,
+                'reviewed_by'     => $user->id ?? null,
+                'reviewed_at'     => now(),
+            ]);
+
+            $tourist = $item->itinerary ? $item->itinerary->user : null;
+            $spot = $item->destination;
+            if ($tourist) {
+                \App\Models\Notification::createSafely(
+                    $tourist->id,
+                    'checkin_rejected',
+                    'Photo Check-in Not Approved ❌',
+                    "Your photo proof check-in at " . ($spot->name ?? 'destination') . " was not approved. Reason: {$reason}"
+                );
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Proof check-in rejected.',
+                'item'    => $item,
+            ]);
         });
     });
 }

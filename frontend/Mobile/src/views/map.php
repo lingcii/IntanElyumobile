@@ -98,21 +98,33 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     <div class="bottom-sheet" id="place-details-sheet">
         <div class="sheet-drag-handle" id="place-drag-handle"><span class="sheet-drag-dot"></span></div>
         <div class="draggable-content" id="place-details-scroll">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
-            <div style="flex:1; min-width:0;">
-                <h3 class="sheet-title" id="sheet-title">Destination Name</h3>
-                <p class="sheet-location" style="margin-bottom: 8px;"><i class="fa-solid fa-location-dot"></i><span id="sheet-location">Location details</span></p>
-                <div id="sheet-status-badge" style="display:none; margin-top: 4px; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #fff; background: #38bdf8; width: max-content;"></div>
-                <div id="sheet-open-badge" style="display:none; margin-top: 4px; padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; width: max-content;"></div>
+        <!-- Framed Destination Header -->
+        <div id="sheet-title-frame" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-radius:18px; padding:12px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+            <div style="flex:1; min-width:0; padding-right:12px;">
+                <h3 class="sheet-title" id="sheet-title" style="font-size:20px; font-weight:800; color:#ffffff; letter-spacing:-0.4px; margin:0 0 4px 0; line-height:1.25;">Destination Name</h3>
+                <p class="sheet-location" id="sheet-location-container" style="display:flex; align-items:center; gap:5px; margin:0; font-size:12px; color:#38bdf8; font-weight:600;">
+                    <i class="fa-solid fa-location-dot" style="color:#38bdf8; font-size:11px;"></i>
+                    <span id="sheet-location">Location details</span>
+                </p>
             </div>
-            <div style="display:flex; gap: 8px;">
-                <button onclick="window.closeSheet()" style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:rgba(148,163,184,0.9); font-size:14px; cursor:pointer; flex-shrink:0; transition:background 0.2s;">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
+            <button onclick="window.closeSheet()" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:rgba(248,250,252,0.9); font-size:13px; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
 
-        <img src="" alt="Place Image" class="sheet-img" id="sheet-img" style="width:100% !important; height:180px !important; object-fit:cover !important; object-position:center !important; border-radius:18px !important; display:block !important;">
+        <!-- Slidable Image Banner Carousel -->
+        <div id="sheet-slider-container" style="position:relative; width:100%; height:220px; border-radius:18px; overflow:hidden; margin-top:12px; margin-bottom:12px; background:#0f172a;">
+            <!-- Floating Overlay Badges -->
+            <div id="sheet-badges-overlay" style="position:absolute; top:12px; left:12px; z-index:10; display:flex; gap:6px; flex-wrap:wrap; pointer-events:none;">
+                <div id="sheet-category-badge" style="display:none; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff; background:rgba(56, 189, 248, 0.95); backdrop-filter:blur(8px);"></div>
+                <div id="sheet-status-badge" style="display:none; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff; background:rgba(52, 199, 89, 0.95); backdrop-filter:blur(8px);"></div>
+                <div id="sheet-open-badge" style="display:none; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff; background:rgba(52, 199, 89, 0.95); backdrop-filter:blur(8px);"></div>
+            </div>
+            <div id="sheet-slider-track" style="display:flex; width:100%; height:100%; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch;">
+                <img src="" alt="Place Image" class="sheet-img" id="sheet-img" style="flex:0 0 100%; min-width:100%; width:100%; max-width:100%; height:100% !important; object-fit:cover !important; object-position:center !important; border-radius:18px !important; scroll-snap-align:start; scroll-snap-stop:always; display:block !important; margin:0 !important; box-sizing:border-box !important;">
+            </div>
+            <div id="sheet-slider-dots" style="position:absolute; bottom:10px; left:50%; transform:translateX(-50%); display:none; gap:6px; background:rgba(0,0,0,0.5); backdrop-filter:blur(8px); padding:4px 10px; border-radius:20px; z-index:5; pointer-events:none;"></div>
+        </div>
 
         <!-- About This Location & Tourist Guide Details -->
         <div id="sheet-desc-container" style="margin-top:16px; margin-bottom:16px; display:none; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:16px;">
@@ -460,29 +472,37 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                         const pendingStr = localStorage.getItem('intan_elyu_pending_route');
                         if (pendingStr) {
                             localStorage.removeItem('intan_elyu_pending_route');
-                            const place = JSON.parse(pendingStr);
-                            const pLat = place.lat || place.latitude;
-                            const pLng = place.lng || place.longitude;
-                            if (pLat && pLng && !isNaN(parseFloat(pLat)) && !isNaN(parseFloat(pLng))) {
-                                window.mapInstance.flyTo({ center: [parseFloat(pLng), parseFloat(pLat)], zoom: 14, offset: [0, -160] });
-                                window.openSheet(place);
-                                setTimeout(() => {
-                                    const routeBtn = document.getElementById('btn-show-route');
-                                    if (routeBtn) routeBtn.click();
-                                }, 800);
-                            }
+                            try {
+                                const place = (window.safeJsonParse ? window.safeJsonParse(pendingStr, null) : JSON.parse(pendingStr));
+                                if (place) {
+                                    const pLat = place.lat || place.latitude;
+                                    const pLng = place.lng || place.longitude;
+                                    if (pLat && pLng && !isNaN(parseFloat(pLat)) && !isNaN(parseFloat(pLng))) {
+                                        window.mapInstance.flyTo({ center: [parseFloat(pLng), parseFloat(pLat)], zoom: 14, offset: [0, -160] });
+                                        window.openSheet(place);
+                                        setTimeout(() => {
+                                            const routeBtn = document.getElementById('btn-show-route');
+                                            if (routeBtn) routeBtn.click();
+                                        }, 800);
+                                    }
+                                }
+                            } catch (e) { console.error('Error parsing pending route:', e); }
                         }
 
                         const viewStr = localStorage.getItem('intan_elyu_view_destination');
                         if (viewStr) {
                             localStorage.removeItem('intan_elyu_view_destination');
-                            const place = JSON.parse(viewStr);
-                            const pLat = place.lat || place.latitude;
-                            const pLng = place.lng || place.longitude;
-                            if (pLat && pLng && !isNaN(parseFloat(pLat)) && !isNaN(parseFloat(pLng))) {
-                                window.mapInstance.flyTo({ center: [parseFloat(pLng), parseFloat(pLat)], zoom: 14, offset: [0, -160] });
-                                window.openSheet(place);
-                            }
+                            try {
+                                const place = (window.safeJsonParse ? window.safeJsonParse(viewStr, null) : JSON.parse(viewStr));
+                                if (place) {
+                                    const pLat = place.lat || place.latitude;
+                                    const pLng = place.lng || place.longitude;
+                                    if (pLat && pLng && !isNaN(parseFloat(pLat)) && !isNaN(parseFloat(pLng))) {
+                                        window.mapInstance.flyTo({ center: [parseFloat(pLng), parseFloat(pLat)], zoom: 14, offset: [0, -160] });
+                                        window.openSheet(place);
+                                    }
+                                }
+                            } catch (e) { console.error('Error parsing view destination:', e); }
                         }
                     }, 300);
                 }
@@ -934,6 +954,17 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             return 'fa-location-dot';
         }
 
+        function highlightMatch(text, query) {
+            if (!text) return '';
+            if (!query) return text;
+            const idx = text.toLowerCase().indexOf(query.toLowerCase());
+            if (idx === -1) return text;
+            const before = text.slice(0, idx);
+            const matched = text.slice(idx, idx + query.length);
+            const after = text.slice(idx + query.length);
+            return `${before}<mark class="search-highlight" style="background:rgba(56,189,248,0.22); color:#38bdf8; font-weight:700; padding:0 3px; border-radius:4px;">${matched}</mark>${after}`;
+        }
+
         function renderSuggestions(query) {
             if (!suggestionsEl) return;
             const q = (query || '').toLowerCase().trim();
@@ -957,17 +988,19 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             suggestionsEl.innerHTML = matches.map(loc => {
                 const color = getCatColor(loc.category);
                 const icon = getCatIcon(loc.category);
-                const muni = loc.municipality ? `<span class="suggestion-municipality">${loc.municipality}</span>` : '';
-                const detail = loc.category || '';
+                const highlightedName = highlightMatch(loc.name, q);
+                const subtitle = loc.municipality ? (loc.municipality + (loc.category ? ' • ' + loc.category : '')) : (loc.category || '');
+                const highlightedSubtitle = highlightMatch(subtitle, q);
+
                 return `
                     <div class="map-search-suggestion-item" data-id="${loc.id}" data-lat="${loc.lat}" data-lng="${loc.lng}">
                         <div class="suggestion-icon" style="background:${color}22; color:${color}; border:1px solid ${color}44;">
                             <i class="fa-solid ${icon}"></i>
                         </div>
-                        <div class="suggestion-info">
-                            <div class="suggestion-name">${loc.name} <span class="suggestion-category" style="color:${color};">${detail}</span></div>
+                        <div class="suggestion-info" style="flex:1; min-width:0; overflow:hidden;">
+                            <div class="suggestion-name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${highlightedName}</div>
+                            <div class="suggestion-sub" style="font-size:11px; opacity:0.75; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${highlightedSubtitle}</div>
                         </div>
-                        ${muni}
                     </div>
                 `;
             }).join('');
@@ -1437,18 +1470,33 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     };
 
     window.openSheet = function(locationData) {
+        if (!locationData) return;
+        window.currentDestinationForRoute = locationData;
         if (window.activePopup) {
             window.activePopup.remove();
         }
-        window.currentDestinationForRoute = locationData;
-        document.getElementById('sheet-title').textContent = locationData.name;
+        const titleEl = document.getElementById('sheet-title');
+        if (titleEl) titleEl.textContent = locationData.name || '';
         
         const locElement = document.getElementById('sheet-location');
-        if (locationData.location && locationData.location.trim() !== '') {
-            locElement.textContent = locationData.location;
-            locElement.parentElement.style.display = 'block';
-        } else {
-            locElement.parentElement.style.display = 'none';
+        const locContainer = document.getElementById('sheet-location-container');
+        const displayLoc = (locationData.location && locationData.location.trim() !== '') 
+            ? locationData.location 
+            : (locationData.municipality ? (locationData.municipality + ', La Union') : 'La Union, Philippines');
+
+        if (locElement && locContainer) {
+            locElement.textContent = displayLoc;
+            locContainer.style.display = 'flex';
+        }
+
+        const catBadge = document.getElementById('sheet-category-badge');
+        if (catBadge) {
+            if (locationData.category && locationData.category.trim() !== '') {
+                catBadge.style.display = 'inline-block';
+                catBadge.textContent = locationData.category;
+            } else {
+                catBadge.style.display = 'none';
+            }
         }
 
         const statusBadge = document.getElementById('sheet-status-badge');
@@ -1511,10 +1559,11 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             
             const token = localStorage.getItem('intan_elyu_token');
             if (token && !window.savedPlaceIdsFetched) {
-                fetch('/api/tourist/dashboard', {
+                fetch((window.backendUrl || '') + '/api/tourist/dashboard', {
                     headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
-                }).then(r => r.json()).then(d => {
-                    if (d.savedPlaces) {
+                }).then(r => r.ok ? r.text() : null).then(txt => {
+                    const d = txt ? window.safeJsonParse(txt, null) : null;
+                    if (d && d.savedPlaces) {
                         window.savedPlaceIds = d.savedPlaces.map(p => p.id);
                         window.savedPlaceIdsFetched = true;
                         if (window.savedPlaceIds.includes(window.currentDestinationForRoute.id)) {
@@ -1528,21 +1577,88 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         }
         
         const fallbackBanner = window.noImageFallback || 'assets/img/no_image.svg';
-        const imgPath = window.getDestImage(locationData, 600);
-        
-        const imgEl = document.getElementById('sheet-img');
-        if (imgEl) {
-            imgEl.style.display = 'block';
-            imgEl.src = (imgPath && imgPath !== window.noImageFallback) ? imgPath : fallbackBanner;
-            imgEl.onerror = function() { 
-                this.onerror = null; 
-                this.src = fallbackBanner; 
-                this.style.display = 'block'; 
-            };
+        const imagesList = (window.getDestImages ? window.getDestImages(locationData, 600) : [window.getDestImage(locationData, 600)]);
+        const track = document.getElementById('sheet-slider-track');
+        const dotsContainer = document.getElementById('sheet-slider-dots');
+
+        if (track) {
+            track.innerHTML = '';
+            track.scrollLeft = 0;
+
+            const finalImages = (imagesList && imagesList.length > 0) ? imagesList : [fallbackBanner];
+
+            finalImages.forEach((imgUrl, idx) => {
+                const img = document.createElement('img');
+                img.src = (imgUrl && imgUrl !== window.noImageFallback) ? imgUrl : fallbackBanner;
+                img.alt = locationData.name || 'Place Image';
+                img.className = 'sheet-img';
+                img.style.cssText = 'flex:0 0 100%; min-width:100%; width:100%; max-width:100%; height:100% !important; object-fit:cover !important; object-position:center !important; border-radius:18px !important; scroll-snap-align:start; scroll-snap-stop:always; display:block !important; margin:0 !important; box-sizing:border-box !important;';
+                img.onerror = function() {
+                    this.onerror = null;
+                    if (window.handleImgError) {
+                        window.handleImgError(this, locationData.name, locationData.municipality);
+                    } else {
+                        this.src = fallbackBanner;
+                    }
+                };
+                track.appendChild(img);
+            });
+
+            if (window.sheetSliderTimer) {
+                clearInterval(window.sheetSliderTimer);
+                window.sheetSliderTimer = null;
+            }
+
+            if (dotsContainer) {
+                if (finalImages.length > 1) {
+                    dotsContainer.style.display = 'flex';
+                    dotsContainer.innerHTML = finalImages.map((_, i) => 
+                        `<span class="slider-dot" data-index="${i}" style="width:${i === 0 ? '16px' : '6px'}; height:6px; border-radius:3px; background:${i === 0 ? '#38bdf8' : 'rgba(255,255,255,0.4)'}; transition:all 0.3s ease;"></span>`
+                    ).join('');
+
+                    track.onscroll = function() {
+                        const scrollPos = track.scrollLeft;
+                        const width = track.offsetWidth || 1;
+                        const activeIndex = Math.round(scrollPos / width);
+                        const dots = dotsContainer.querySelectorAll('.slider-dot');
+                        dots.forEach((dot, i) => {
+                            if (i === activeIndex) {
+                                dot.style.width = '16px';
+                                dot.style.background = '#38bdf8';
+                            } else {
+                                dot.style.width = '6px';
+                                dot.style.background = 'rgba(255,255,255,0.4)';
+                            }
+                        });
+                    };
+
+                    // Auto-slide interval timer (every 3.5s)
+                    window.sheetSliderTimer = setInterval(() => {
+                        if (!track) return;
+                        const width = track.offsetWidth || 1;
+                        const currentIdx = Math.round(track.scrollLeft / width);
+                        const nextIdx = (currentIdx + 1) % finalImages.length;
+                        track.scrollTo({
+                            left: nextIdx * width,
+                            behavior: 'smooth'
+                        });
+                    }, 3500);
+
+                    // Pause auto-slide on user touch
+                    const pauseAutoSlide = () => {
+                        if (window.sheetSliderTimer) {
+                            clearInterval(window.sheetSliderTimer);
+                            window.sheetSliderTimer = null;
+                        }
+                    };
+                    track.addEventListener('touchstart', pauseAutoSlide, { passive: true, once: true });
+                } else {
+                    dotsContainer.style.display = 'none';
+                    track.onscroll = null;
+                }
+            }
         }
         
-
-        const destName = locationData.name.toLowerCase();
 
         const warningEl = document.getElementById('vehicle-accessibility-warning');
         if (warningEl) {
@@ -1553,20 +1669,24 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             }
         }
 
-        let manualGuide = "From the town proper of " + (locationData.municipality || "La Union") + ", take a local tricycle heading to " + (locationData.location || "the barangay") + ". Ask the driver to drop you off at " + locationData.name + ".";
+        let manualGuide = "From the town proper of " + (locationData.municipality || "La Union") + ", take a local tricycle heading to " + (locationData.location || "the barangay") + ". Ask the driver to drop you off at " + (locationData.name || "this location") + ".";
         
-        document.getElementById('sheet-manual-guide').textContent = manualGuide;
+        const manualGuideEl = document.getElementById('sheet-manual-guide');
+        if (manualGuideEl) manualGuideEl.textContent = manualGuide;
         
-        document.getElementById('sheet-distance').textContent = 'Calculating...';
+        const distanceEl = document.getElementById('sheet-distance');
+        if (distanceEl) distanceEl.textContent = 'Calculating...';
 
         const hoursRow = document.getElementById('sheet-hours-row');
         const hoursEl = document.getElementById('sheet-hours');
-        if (locationData.opening_time && locationData.closing_time) {
-            hoursRow.style.display = 'flex';
-            const fmt = (t) => { const p = t.split(':'); const h = parseInt(p[0]), m = p[1]; return (h % 12 || 12) + ':' + m + (h < 12 ? ' AM' : ' PM'); };
-            hoursEl.textContent = fmt(locationData.opening_time) + ' — ' + fmt(locationData.closing_time);
-        } else {
-            hoursRow.style.display = 'none';
+        if (hoursRow && hoursEl) {
+            if (locationData.opening_time && locationData.closing_time) {
+                hoursRow.style.display = 'flex';
+                const fmt = (t) => { const p = t.split(':'); const h = parseInt(p[0]), m = p[1]; return (h % 12 || 12) + ':' + m + (h < 12 ? ' AM' : ' PM'); };
+                hoursEl.textContent = fmt(locationData.opening_time) + ' — ' + fmt(locationData.closing_time);
+            } else {
+                hoursRow.style.display = 'none';
+            }
         }
 
         if (window.getDeviceLocation) {
@@ -1577,45 +1697,45 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 const destLng = parseFloat(locationData.lng || locationData.longitude);
                 try {
                     const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${destLng},${destLat}?overview=false`);
-                    const routeData = await res.json();
-                    if (routeData.code === 'Ok' && routeData.routes.length > 0) {
+                    const text = await res.text();
+                    const routeData = window.safeJsonParse(text, null);
+                    if (routeData && routeData.code === 'Ok' && routeData.routes && routeData.routes.length > 0) {
                         const distanceKm = routeData.routes[0].distance / 1000;
-                        document.getElementById('sheet-distance').textContent = distanceKm.toFixed(1) + ' km';
+                        if (distanceEl) distanceEl.textContent = distanceKm.toFixed(1) + ' km';
                     } else {
-                        document.getElementById('sheet-distance').textContent = 'Unknown';
+                        if (distanceEl) distanceEl.textContent = 'Unknown';
                     }
                 } catch (e) {
-                    document.getElementById('sheet-distance').textContent = 'Unknown';
+                    if (distanceEl) distanceEl.textContent = 'Unknown';
                 }
             }).catch(() => {
-                document.getElementById('sheet-distance').textContent = 'Location needed';
+                if (distanceEl) distanceEl.textContent = 'Location needed';
             });
         }
-        if (locationData.description) {
-            document.getElementById('sheet-desc-container').style.display = 'block';
-            
-            const words = locationData.description.split(' ');
-            if (words.length > 40) {
-                document.getElementById('sheet-desc-short').textContent = words.slice(0, 40).join(' ') + '...';
-                document.getElementById('sheet-desc-full').textContent = locationData.description;
-                document.getElementById('btn-view-details').style.display = 'flex';
-                document.getElementById('sheet-desc-short').style.display = 'block';
-                document.getElementById('sheet-desc-full').style.display = 'none';
+
+        const descContainer = document.getElementById('sheet-desc-container');
+        const descShort = document.getElementById('sheet-desc-short');
+        const descFull = document.getElementById('sheet-desc-full');
+        const btnViewDetails = document.getElementById('btn-view-details');
+
+        if (descContainer) {
+            descContainer.style.display = 'block';
+            if (locationData.description) {
+                const words = locationData.description.split(' ');
+                if (words.length > 40) {
+                    if (descShort) descShort.textContent = words.slice(0, 40).join(' ') + '...';
+                    if (descFull) descFull.textContent = locationData.description;
+                } else {
+                    if (descShort) descShort.textContent = locationData.description;
+                    if (descFull) descFull.textContent = '';
+                }
             } else {
-                document.getElementById('sheet-desc-short').textContent = locationData.description;
-                document.getElementById('sheet-desc-full').textContent = '';
-                // Since it's short, maybe still allow expanding to see the Tourist Guide info
-                document.getElementById('btn-view-details').style.display = 'flex';
-                document.getElementById('sheet-desc-short').style.display = 'block';
-                document.getElementById('sheet-desc-full').style.display = 'none';
+                if (descShort) descShort.textContent = 'No description available.';
+                if (descFull) descFull.textContent = '';
             }
-        } else {
-            document.getElementById('sheet-desc-short').textContent = 'No description available.';
-            document.getElementById('sheet-desc-full').textContent = '';
-            document.getElementById('btn-view-details').style.display = 'flex';
-            document.getElementById('sheet-desc-short').style.display = 'block';
-            document.getElementById('sheet-desc-full').style.display = 'none';
-            document.getElementById('sheet-desc-container').style.display = 'block';
+            if (btnViewDetails) btnViewDetails.style.display = 'flex';
+            if (descShort) descShort.style.display = 'block';
+            if (descFull) descFull.style.display = 'none';
         }
         
         // Reset toggle state every time we open a sheet
@@ -1639,6 +1759,10 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     };
 
     window.closeSheet = function() {
+        if (window.sheetSliderTimer) {
+            clearInterval(window.sheetSliderTimer);
+            window.sheetSliderTimer = null;
+        }
         const placeSheet = document.getElementById('place-details-sheet');
         if (placeSheet.closeSheet) placeSheet.closeSheet();
         else placeSheet.classList.remove('active');
@@ -2027,8 +2151,9 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             if (!res.ok && token) {
                 res = await fetch(_backendBase + '/api/tourist/feedback?tourist_spot_id=' + spotId, { headers });
             }
-            const d = await res.json();
-            if (d.status === 'success') {
+            const text = await res.text();
+            const d = window.safeJsonParse(text, null);
+            if (d && d.status === 'success') {
                 // Render summary metrics
                 if (d.summary && d.summary.total_reviews > 0) {
                     const sm = d.summary;
@@ -2293,7 +2418,8 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 })
             });
 
-            const data = await response.json();
+            const text = await response.text();
+            const data = window.safeJsonParse(text, {});
             if (response.ok) {
                 if (typeof showToast === 'function') showToast("Thank you for your feedback! 🗣️");
                 window.closeWriteTestimonyModal();
@@ -2316,7 +2442,8 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             const res = await fetch((window.backendUrl || '') + '/api/public/map', {
                 headers: { 'Accept': 'application/json' }
             });
-            const data = await res.json();
+            const text = await res.text();
+            const data = window.safeJsonParse(text, null);
             if (!data || !data.destinations) return;
             const newIds = data.destinations.map(d => String(d.id)).sort().join(',');
             const oldIds = (window.allMapLocations || []).map(d => String(d.id)).sort().join(',');

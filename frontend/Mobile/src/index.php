@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+    @session_start();
+}
 
 // Extract view name safely - strip any extra query params appended to it
 $rawView = isset($_GET['view']) ? $_GET['view'] : 'splash';
@@ -64,9 +66,9 @@ if ($isAjax) {
                 ? 'http://localhost:8000' 
                 : (window.location.protocol + '//' + window.location.host + '/Intan-Elyu-Tourism-Management-System/backend/public');
         } else {
-            window.backendUrl = window.BACKEND_URL || 'https://api.intan-elyu.online';
+            window.backendUrl = window.BACKEND_URL || window.location.origin;
         }
-        window.GOOGLE_CLIENT_ID = '874613490302-qno8lkqoujur0db888hg72hogjv6cp5v.apps.googleusercontent.com';
+        window.GOOGLE_CLIENT_ID = '620598190857-37a0ucobfd4b3rct7ofti8rtvl3qt884.apps.googleusercontent.com';
     </script>
     <script src="assets/js/main.js?v=<?= time() ?>"></script>
 

@@ -95,7 +95,7 @@ if (is_dir($imgDir)) {
                 (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL');
             
             // Add a toggle favorite function inline for removal handling
-            const encodedDest = encodeURIComponent(JSON.stringify(dest).replace(/"/g, '&quot;'));
+            const encodedDest = encodeURIComponent(JSON.stringify(dest));
             html += `
                 <div class="trending-card" style="animation-delay:${i * 0.08}s" onclick="window.viewTrendingDest(${dest.id}, '${dest.name.replace(/'/g, "\\'")}', '${encodedDest}')">
                     ${dest.classification_status ? `<div class="badge" style="background:${badgeColor};">${badgeLabel}</div>` : ''}

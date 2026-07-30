@@ -30,6 +30,9 @@ class User extends Authenticatable
         'bio',
         'travel_preferences',
         'is_leaderboard_private',
+        'last_gps_lat',
+        'last_gps_lng',
+        'last_gps_ping_at',
     ];
 
     protected $hidden = [

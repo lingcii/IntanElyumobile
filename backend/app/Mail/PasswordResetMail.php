@@ -27,6 +27,7 @@ class PasswordResetMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
+            from: new \Illuminate\Mail\Mailables\Address('acekillersmile@gmail.com', 'Intan-Elyu Customer Support'),
             subject: '🔐 Reset Your Password - Intan Elyu',
         );
     }

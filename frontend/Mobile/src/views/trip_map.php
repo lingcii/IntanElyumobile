@@ -421,8 +421,8 @@ require_once __DIR__ . '/../components/header.php';
                 actionBtnHtml = `<div style="display:flex; align-items:center; gap:10px;">
                     ${proofThumbnail}
                     <div style="display:flex; flex-direction:column; gap:2px;">
-                        <span style="color:#34c759; font-weight:800; font-size:12px;"><i class="fa-solid fa-check-circle"></i> Visited & Verified</span>
-                        <button type="button" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (item.destination ? item.destination.id : '')}')" style="background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px; cursor:pointer; width:fit-content;">
+                        <span style="background:rgba(52,199,89,0.15); border:1px solid rgba(52,199,89,0.35); color:#34c759; font-weight:800; font-size:11px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Visited & Verified</span>
+                        <button type="button" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (item.destination ? item.destination.id : '')}')" style="background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px; cursor:pointer; width:fit-content; margin-top:2px;">
                             <i class="fa-solid fa-pen" style="margin-right:4px;"></i> Review Site
                         </button>
                     </div>
@@ -430,12 +430,15 @@ require_once __DIR__ . '/../components/header.php';
             } else if (item.proof_status === 'rejected') {
                 actionBtnHtml = `<div style="display:flex; align-items:center; gap:8px;">
                     ${proofThumbnail}
-                    <button onclick="event.stopPropagation(); window.currentCheckinItemId='${item.id}'; window.triggerMapCheckinModal()" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:#ffffff; border:none; padding:8px 12px; border-radius:100px; font-weight:800; font-size:11px; cursor:pointer;"><i class="fa-solid fa-camera" style="margin-right:4px;"></i> Re-upload Proof</button>
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <span style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.35); color:#ef4444; font-weight:800; font-size:11px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>
+                        <button onclick="event.stopPropagation(); window.currentCheckinItemId='${item.id}'; window.triggerMapCheckinModal()" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:#ffffff; border:none; padding:6px 10px; border-radius:100px; font-weight:800; font-size:10px; cursor:pointer;"><i class="fa-solid fa-camera" style="margin-right:4px;"></i> Re-upload Proof</button>
+                    </div>
                 </div>`;
             } else if (item.proof_image && (item.proof_status === 'pending' || !item.proof_status)) {
                 actionBtnHtml = `<div style="display:flex; align-items:center; gap:8px;">
                     ${proofThumbnail}
-                    <span style="color:#FF9500; font-weight:800; font-size:11px;"><i class="fa-solid fa-clock"></i> Pending Validation</span>
+                    <span style="background:rgba(255,149,0,0.15); border:1px solid rgba(255,149,0,0.35); color:#FF9500; font-weight:800; font-size:11px; padding:4px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-clock"></i> Pending Validation</span>
                 </div>`;
             } else if (isActive) {
                 actionBtnHtml = `<button onclick="event.stopPropagation(); window.currentCheckinItemId='${item.id}'; window.triggerMapCheckinModal()" style="background:linear-gradient(135deg, #38bdf8, #2563eb); color:#ffffff; border:none; padding:10px 16px; border-radius:100px; font-weight:800; font-size:12px; box-shadow:none; cursor:pointer;"><i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In (+50 XP)</button>`;

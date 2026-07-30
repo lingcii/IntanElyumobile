@@ -267,6 +267,10 @@ class ProfileController extends Controller
             $user->name = $request->input('name');
         }
 
+        if ($request->filled('email')) {
+            $user->email = strtolower(trim($request->input('email')));
+        }
+
         if ($request->has('phone') && Schema::hasColumn('users', 'phone')) {
             $user->phone = $request->input('phone');
         }
@@ -284,8 +288,33 @@ class ProfileController extends Controller
         }
 
         if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $user->avatar = 'storage/' . $path;
+            try {
+                $file = $request->file('avatar');
+                $disk = 'r2';
+
+                try {
+                    // Compress and store directly to Cloudflare R2 bucket
+                    $path = \App\Helpers\ImageCompressor::compressAndStore($file, 'avatars', 'r2', 'avatar_', 800, 80);
+                } catch (\Throwable $r2Exception) {
+                    \Illuminate\Support\Facades\Log::warning("R2 avatar store failed, fallback to public disk: " . $r2Exception->getMessage());
+                    $disk = env('FILESYSTEM_DISK', 'public');
+                    try {
+                        $path = \App\Helpers\ImageCompressor::compressAndStore($file, 'avatars', $disk, 'avatar_', 800, 80);
+                    } catch (\Throwable $diskErr) {
+                        $disk = 'public';
+                        $path = \App\Helpers\ImageCompressor::compressAndStore($file, 'avatars', 'public', 'avatar_', 800, 80);
+                    }
+                }
+
+                if (in_array($disk, ['r2', 's3'])) {
+                    $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
+                    $user->avatar = $r2PublicUrl . '/' . ltrim($path, '/');
+                } else {
+                    $user->avatar = 'storage/' . $path;
+                }
+            } catch (\Throwable $err) {
+                \Illuminate\Support\Facades\Log::error("Avatar upload failed: " . $err->getMessage());
+            }
         }
 
         if ($request->has('is_leaderboard_private') && Schema::hasColumn('users', 'is_leaderboard_private')) {

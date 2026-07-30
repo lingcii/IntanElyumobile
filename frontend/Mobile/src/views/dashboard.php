@@ -333,11 +333,29 @@ if (is_dir($imgDir)) {
         document.querySelectorAll('#dash-categories-list .category-card').forEach(card => card.classList.remove('active'));
         if (el) el.classList.add('active');
 
+        const matchesCategory = (cardCategory, cardName, targetCat) => {
+            if (targetCat === 'All') return true;
+            const c = (cardCategory || '').toLowerCase();
+            const n = (cardName || '').toLowerCase();
+            const combined = c + ' ' + n;
+            const t = targetCat.toLowerCase();
+
+            if (combined.includes(t)) return true;
+
+            if (t === 'beach' && (combined.includes('beach') || combined.includes('island') || combined.includes('coastal') || combined.includes('surf'))) return true;
+            if (t === 'mountains' && (combined.includes('mountain') || combined.includes('hiking') || combined.includes('hill') || combined.includes('peak') || combined.includes('viewpoint') || combined.includes('nature'))) return true;
+            if (t === 'lakes' && (combined.includes('lake') || combined.includes('fall') || combined.includes('waterfall') || combined.includes('river') || combined.includes('spring') || combined.includes('water'))) return true;
+            if (t === 'heritage' && (combined.includes('heritage') || combined.includes('historical') || combined.includes('church') || combined.includes('monument') || combined.includes('landmark') || combined.includes('museum') || combined.includes('cultural') || combined.includes('religious') || combined.includes('parish') || combined.includes('shrine'))) return true;
+            if (t.includes('food') && (combined.includes('food') || combined.includes('dining') || combined.includes('restaurant') || combined.includes('cafe') || combined.includes('bistro') || combined.includes('grill'))) return true;
+            if (t === 'nightlife' && (combined.includes('nightlife') || combined.includes('bar') || combined.includes('resort') || combined.includes('shopping') || combined.includes('festival') || combined.includes('club'))) return true;
+
+            return false;
+        };
+
         const filterContainer = (containerId, emptyMsg) => {
             const container = document.getElementById(containerId);
             if (!container) return;
 
-            // Remove existing filter empty state if any
             const oldEmpty = container.querySelector('.dash-filter-empty-state');
             if (oldEmpty) oldEmpty.remove();
 
@@ -346,12 +364,30 @@ if (is_dir($imgDir)) {
 
             for (let i = 0; i < children.length; i++) {
                 const child = children[i];
-                // Ignore initial loading or location prompt placeholders
-                if (child.innerText && (child.innerText.includes('Loading') || child.innerText.includes('Enable location'))) {
+                if (child.innerText && (child.innerText.includes('Loading') || child.innerText.includes('Enable location') || child.innerText.includes('Go to the map'))) {
                     continue;
                 }
-                const cardCat = (child.getAttribute('data-category') || child.innerText || '').toLowerCase();
-                if (cat === 'All' || cardCat.includes(cat.toLowerCase())) {
+
+                if (child.id === 'btn-view-more-rec' || child.id === 'rec-extras') {
+                    if (child.id === 'rec-extras') {
+                        Array.from(child.children).forEach(subChild => {
+                            const subCat = subChild.getAttribute('data-category') || '';
+                            const subName = subChild.querySelector('.fav-card-name, h4')?.innerText || '';
+                            if (matchesCategory(subCat, subName, cat)) {
+                                subChild.style.display = '';
+                                visibleCount++;
+                            } else {
+                                subChild.style.display = 'none';
+                            }
+                        });
+                    }
+                    continue;
+                }
+
+                const cardCat = child.getAttribute('data-category') || '';
+                const cardName = child.querySelector('.fav-card-name, h4')?.innerText || '';
+
+                if (matchesCategory(cardCat, cardName, cat)) {
                     child.style.display = '';
                     child.style.animation = 'none';
                     void child.offsetWidth;
@@ -371,8 +407,8 @@ if (is_dir($imgDir)) {
             }
         };
 
-        filterContainer('trending-container', 'No trending sites here.');
-        filterContainer('recommended-container', 'No recommended sites here.');
+        filterContainer('trending-container', 'No trending sites in this category.');
+        filterContainer('recommended-container', 'No recommended sites in this category.');
         filterContainer('near-me-container', 'No nearby sites found in this category.');
     };
 (async function dashboardInit() {
@@ -493,10 +529,11 @@ if (is_dir($imgDir)) {
                 data.trending.forEach(dest => {
                     const img = window.getDestImage(dest, 600);
                     const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
+                    const encodedDest = encodeURIComponent(JSON.stringify(dest));
                     trendingContainer.innerHTML += `
-                        <div class="fav-card" onclick="window.viewDestinationOnMap(encodeURIComponent(JSON.stringify(${JSON.stringify(dest).replace(/"/g, '&quot;')})))">
+                        <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                             ${badgeHtml}
-                            <img src="${img}" alt="${dest.name}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
+                            <img src="${img}" alt="${dest.name}" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
                             <div class="fav-card-overlay"><span class="fav-card-name">${dest.name}</span></div>
                             <i class="fa-solid fa-fire fav-heart" style="color: #ff9500; font-size: 14px;"></i>
                         </div>
@@ -520,10 +557,11 @@ if (is_dir($imgDir)) {
                 data.savedPlaces.forEach(dest => {
                     const img = window.getDestImage(dest, 600);
                     const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
+                    const encodedDest = encodeURIComponent(JSON.stringify(dest));
                     savedContainer.innerHTML += `
-                        <div class="fav-card" onclick="window.viewDestinationOnMap(encodeURIComponent(JSON.stringify(${JSON.stringify(dest).replace(/"/g, '&quot;')})))">
+                        <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                             ${badgeHtml}
-                            <img src="${img}" alt="${dest.name}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
+                            <img src="${img}" alt="${dest.name}" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
                             <div class="fav-card-overlay"><span class="fav-card-name">${dest.name}</span></div>
                             <i class="fa-solid fa-heart fav-heart" style="color: #ff3b30;" onclick="event.stopPropagation(); window.toggleFavorite(${dest.id}, this)"></i>
                         </div>
@@ -638,8 +676,9 @@ if (is_dir($imgDir)) {
                         const img = window.getDestImage(dest, 600);
                         const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
                         const distText = dest.distance < 1 ? '< 1 km' : dest.distance.toFixed(1) + ' km';
+                        const encodedDest = encodeURIComponent(JSON.stringify(dest));
                         nearContainer.innerHTML += `
-                            <div class="fav-card" onclick="window.viewDestinationOnMap(encodeURIComponent(JSON.stringify(${JSON.stringify(dest).replace(/"/g, '&quot;')})))">
+                            <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                                 ${badgeHtml}
                                 <img src="${img}" alt="${dest.name}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
                                 <div class="fav-card-overlay">
@@ -668,8 +707,9 @@ if (is_dir($imgDir)) {
         const rating = dest.rating ? parseFloat(dest.rating).toFixed(1) : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating).toFixed(1) : 'New');
         const desc = dest.description ? dest.description.substring(0, 150) + (dest.description.length > 150 ? '...' : '') : 'A beautiful destination waiting to be explored.';
         
-        return `
-            <div style="margin-bottom: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 18px; overflow: hidden; transition: all 0.3s ease;">
+                    const encodedDest = encodeURIComponent(JSON.stringify(dest));
+                    return `
+            <div data-category="${(dest.category || '').replace(/"/g, '&quot;')}" style="margin-bottom: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 18px; overflow: hidden; transition: all 0.3s ease;">
                 <div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.toggle-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.paddingTop = '14px'; content.style.paddingBottom = '14px'; content.style.maxHeight = (content.scrollHeight + 150) + 'px'; content.style.opacity = '1'; icon.style.transform = 'rotate(90deg)'; } else { content.style.maxHeight = '0px'; content.style.opacity = '0'; content.style.paddingTop = '0'; content.style.paddingBottom = '0'; icon.style.transform = 'rotate(0deg)'; }" style="cursor:pointer; display:flex; align-items:center; gap: 12px; padding: 12px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.05)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
                     <img src="${img}" alt="${dest.name}" style="width:60px; height:60px; border-radius:12px; object-fit:cover;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
                     <div style="flex:1; min-width:0;">
@@ -692,7 +732,7 @@ if (is_dir($imgDir)) {
                         ${dest.category ? `<span style="background:rgba(255,255,255,0.1); color:#fff; padding:4px 8px; border-radius:100px;">${dest.category}</span>` : ''}
                         ${dest.entrance_fee ? `<span style="background:rgba(56,189,248,0.1); color:#38bdf8; padding:4px 8px; border-radius:100px;">₱${dest.entrance_fee}</span>` : '<span style="background:rgba(52,199,89,0.1); color:#34c759; padding:4px 8px; border-radius:100px;">Free</span>'}
                     </div>
-                    <button onclick="window.viewDestinationOnMap(encodeURIComponent(JSON.stringify(${JSON.stringify(dest).replace(/"/g, '&quot;')})))" style="width:100%; margin-top:4px; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:10px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <button onclick="window.viewDestinationOnMap('${encodedDest}')" style="width:100%; margin-top:4px; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:10px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
                         <i class="fa-solid fa-map-location-dot"></i> View Details on Map
                     </button>
                 </div>
@@ -803,11 +843,11 @@ if (is_dir($imgDir)) {
 
                                     let proofBadge = '';
                                     if (item.is_visited || item.proof_status === 'approved') {
-                                        proofBadge = `<span style="font-size:10px; font-weight:800; color:#34c759; margin-left:auto;"><i class="fa-solid fa-circle-check"></i> Verified</span>`;
+                                        proofBadge = `<span style="font-size:10px; font-weight:800; color:#34c759; background:rgba(52,199,89,0.15); border:1px solid rgba(52,199,89,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Verified</span>`;
                                     } else if (item.proof_status === 'rejected') {
-                                        proofBadge = `<span style="font-size:10px; font-weight:800; color:#ef4444; margin-left:auto;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
+                                        proofBadge = `<span style="font-size:10px; font-weight:800; color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
                                     } else if (item.proof_image && (item.proof_status === 'pending' || !item.proof_status)) {
-                                        proofBadge = `<span style="font-size:10px; font-weight:800; color:#FF9500; margin-left:auto;"><i class="fa-solid fa-clock"></i> Pending</span>`;
+                                        proofBadge = `<span style="font-size:10px; font-weight:800; color:#FF9500; background:rgba(255,149,0,0.15); border:1px solid rgba(255,149,0,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-clock"></i> Pending</span>`;
                                     }
 
                                     destinationsHtml += `
@@ -1067,7 +1107,7 @@ window.toggleRecommendedMore = function() {
                     let html = '';
                     matches.forEach(dest => {
                         const img = window.getDestImage(dest, 150);
-                        const encodedDest = encodeURIComponent(JSON.stringify(dest).replace(/"/g, '&quot;'));
+                        const encodedDest = encodeURIComponent(JSON.stringify(dest));
                         const locName = dest.location || dest.municipality || 'La Union';
                         html += `
                             <div onclick="window.viewDestinationOnMap('${encodedDest}')" style="display:flex; align-items:center; gap:12px; padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer; transition:background 0.2s; border-radius:12px;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background=''">
@@ -1382,64 +1422,47 @@ window.toggleRecommendedMore = function() {
     }, 100);
 
     // =========================================================================
-    // ONBOARDING MODAL SEQUENCE CONTROLLER (Privacy -> Complete Profile -> 2FA)
+    // ONBOARDING MODAL CONTROLLER (Complete Profile)
     // =========================================================================
     window.initDashboardOnboarding = function() {
-        const isActive = sessionStorage.getItem('onboarding_active') === '1';
-        if (!isActive) return;
+        const showOb = sessionStorage.getItem('show_onboarding') || sessionStorage.getItem('onboarding_active');
+        if (!showOb) return;
 
-        const step = sessionStorage.getItem('onboarding_step') || '1';
-        const targetEmail = sessionStorage.getItem('pending_reg_email') || 'your email';
+        try {
+            const user = JSON.parse(localStorage.getItem('auth_user'));
+            const avatarImg = document.getElementById('onboard-avatar-preview');
+            if (user && avatarImg) {
+                if (user.avatar) {
+                    avatarImg.src = user.avatar;
+                } else if (user.name) {
+                    avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=38bdf8&color=fff`;
+                }
+            }
+        } catch (e) {}
 
-        const privacyModal = document.getElementById('onboard-privacy-modal');
         const profileModal = document.getElementById('onboard-profile-modal');
-        const twoFaModal = document.getElementById('onboard-2fa-modal');
-
-        if (privacyModal) privacyModal.style.display = 'none';
-        if (profileModal) profileModal.style.display = 'none';
-        if (twoFaModal) twoFaModal.style.display = 'none';
-
-        if (step === '1' && privacyModal) {
-            privacyModal.style.display = 'flex';
-        } else if (step === '2' && profileModal) {
-            profileModal.style.display = 'flex';
-        } else if (step === '3' && twoFaModal) {
-            twoFaModal.style.display = 'flex';
-            const emailEl = document.getElementById('onboard-target-email');
-            if (emailEl) emailEl.textContent = targetEmail;
-            setupOnboardOtpInputs();
-        }
+        if (profileModal) profileModal.style.display = 'flex';
     };
 
-    function setupOnboardOtpInputs() {
-        const boxes = document.querySelectorAll('.onboard-otp-box');
-        boxes.forEach((box, idx) => {
-            box.value = '';
-            box.oninput = (e) => {
-                if (e.target.value && idx < boxes.length - 1) {
-                    boxes[idx + 1].focus();
-                }
+    window.previewOnboardAvatar = function(event) {
+        const file = event.target?.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('onboard-avatar-preview');
+                if (img) img.src = e.target.result;
             };
-            box.onkeydown = (e) => {
-                if (e.key === 'Backspace' && !e.target.value && idx > 0) {
-                    boxes[idx - 1].focus();
-                }
-            };
-        });
-        if (boxes[0]) setTimeout(() => boxes[0].focus(), 200);
-    }
-
-    window.onboardAcceptPrivacy = function() {
-        const chk = document.getElementById('chk-onboard-privacy');
-        if (chk && !chk.checked) {
-            if (typeof showToast === 'function') showToast('Please accept the Privacy & Security terms to proceed.');
-            return;
+            reader.readAsDataURL(file);
         }
-        sessionStorage.setItem('onboarding_step', '2');
-        window.initDashboardOnboarding();
     };
 
     window.onboardSaveProfile = async function() {
+        const btn = document.getElementById('btn-onboard-save');
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+            btn.disabled = true;
+        }
+
         const phone = document.getElementById('onboard-phone')?.value || '';
         const home = document.getElementById('onboard-home')?.value || '';
         const bio = document.getElementById('onboard-bio')?.value || '';
@@ -1447,85 +1470,52 @@ window.toggleRecommendedMore = function() {
         const activeChips = Array.from(document.querySelectorAll('#onboard-pref-chips .pref-chip.active')).map(c => c.textContent.trim());
         const prefs = activeChips.join(', ');
 
+        const avatarInput = document.getElementById('onboard-avatar-input');
         const token = localStorage.getItem('intan_elyu_token');
-        if (token && (phone || home || bio || prefs)) {
+
+        const formData = new FormData();
+        formData.append('phone', phone);
+        formData.append('home_location', home);
+        formData.append('bio', bio);
+        formData.append('travel_preferences', prefs);
+
+        if (avatarInput && avatarInput.files && avatarInput.files[0]) {
+            formData.append('avatar', avatarInput.files[0]);
+        }
+
+        if (token) {
             try {
-                await fetch((window.backendUrl || 'https://api.intan-elyu.online') + '/api/tourist/profile', {
+                const res = await fetch((window.backendUrl || window.location.origin) + '/api/tourist/profile', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ phone, home_location: home, bio, travel_preferences: prefs })
+                    headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: formData
                 });
+                const data = await res.json();
+                if (data.user) {
+                    localStorage.setItem('auth_user', JSON.stringify(data.user));
+                    const headerAvatar = document.querySelector('.user-avatar, #user-avatar, .header-avatar');
+                    if (headerAvatar && data.user.avatar) headerAvatar.src = data.user.avatar;
+                }
             } catch (e) {}
         }
-        sessionStorage.setItem('onboarding_step', '3');
-        window.initDashboardOnboarding();
-    };
-
-    window.onboardSkipProfile = function() {
-        sessionStorage.setItem('onboarding_step', '3');
-        window.initDashboardOnboarding();
-    };
-
-    window.onboardSkip2FA = function() {
+        
+        sessionStorage.removeItem('show_onboarding');
         sessionStorage.removeItem('onboarding_active');
         sessionStorage.removeItem('onboarding_step');
         sessionStorage.removeItem('pending_reg_email');
-        const privacyModal = document.getElementById('onboard-privacy-modal');
         const profileModal = document.getElementById('onboard-profile-modal');
-        const twoFaModal = document.getElementById('onboard-2fa-modal');
-        if (privacyModal) privacyModal.style.display = 'none';
         if (profileModal) profileModal.style.display = 'none';
-        if (twoFaModal) twoFaModal.style.display = 'none';
-        if (typeof showToast === 'function') showToast('You can complete 2FA verification anytime from Settings.');
+        if (typeof showToast === 'function') showToast('Profile updated! Welcome to Intan Elyu!');
     };
 
-    window.onboardVerify2FA = async function() {
-        const email = sessionStorage.getItem('pending_reg_email') || '';
-        const boxes = document.querySelectorAll('.onboard-otp-box');
-        const otp = Array.from(boxes).map(b => b.value.trim()).join('');
-
-        if (otp.length < 6) {
-            if (typeof showToast === 'function') showToast('Please enter the full 6-digit 2FA code.');
-            return;
-        }
-
-        const btn = document.getElementById('btn-onboard-verify-2fa');
-        if (btn) {
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verifying...';
-            btn.disabled = true;
-        }
-
-        try {
-            const res = await fetch((window.backendUrl || 'https://api.intan-elyu.online') + '/api/auth/verify-otp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({ email, otp })
-            });
-            const data = await res.json();
-
-            if (!res.ok) {
-                throw new Error(data.message || 'Incorrect verification code.');
-            }
-
-            if (data.token && data.user) {
-                localStorage.setItem('intan_elyu_token', data.token);
-                localStorage.setItem('auth_user', JSON.stringify(data.user));
-            }
-
-            sessionStorage.removeItem('onboarding_active');
-            sessionStorage.removeItem('onboarding_step');
-            sessionStorage.removeItem('pending_reg_email');
-
-            if (typeof showToast === 'function') showToast('🎉 Account activated successfully! Welcome to Intan Elyu!');
-            
-            setTimeout(() => window.location.reload(), 500);
-        } catch (err) {
-            if (typeof showToast === 'function') showToast(err.message);
-            if (btn) {
-                btn.innerHTML = 'Verify Code & Activate Account <i class="fa-solid fa-circle-check"></i>';
-                btn.disabled = false;
-            }
-        }
+    window.onboardSkipProfile = function() {
+        sessionStorage.removeItem('show_onboarding');
+        sessionStorage.removeItem('onboarding_active');
+        sessionStorage.removeItem('onboarding_step');
+        sessionStorage.removeItem('pending_reg_email');
+        const profileModal = document.getElementById('onboard-profile-modal');
+        if (profileModal) profileModal.style.display = 'none';
+        if (typeof showToast === 'function') showToast('Welcome to your Dashboard!');
     };
 
     setTimeout(() => {
@@ -1535,45 +1525,30 @@ window.toggleRecommendedMore = function() {
     }, 200);
 </script>
 
-<!-- STEP 1: Privacy Policy & Security Terms Modal -->
-<div id="onboard-privacy-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(12px); z-index:999999; justify-content:center; align-items:center; padding:16px;">
-    <div style="background:#0f172a; border:1px solid rgba(56,189,248,0.3); border-radius:24px; width:100%; max-width:480px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.8); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
-        <div style="padding:20px 24px; background:linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.95)); border-bottom:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="margin:0; font-size:17px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
-                <i class="fa-solid fa-shield-halved" style="color:#38bdf8;"></i> Step 1 of 3 — Privacy & Security Terms
-            </h3>
-        </div>
-        <div style="padding:20px; overflow-y:auto; flex:1; font-size:13px; color:rgba(248,250,252,0.9); line-height:1.6;">
-            <p style="margin-top:0;">Welcome to <strong>Intan Elyu Tourism Management System</strong>! Before proceeding, please review and accept our Data Privacy & Security Policy.</p>
-            <h4 style="color:#38bdf8; margin:14px 0 6px 0; font-size:13px;">1. Information Collection</h4>
-            <p style="margin:0 0 10px 0; color:rgba(148,163,184,0.9);">We collect your account details (Name, Email, Preferences) and optional GPS coordinates to provide personalized travel itineraries and AR check-in features.</p>
-            <h4 style="color:#38bdf8; margin:14px 0 6px 0; font-size:13px;">2. Data Protection</h4>
-            <p style="margin:0 0 10px 0; color:rgba(148,163,184,0.9);">Your personal information is encrypted and strictly protected under the Republic Act No. 10173 (Data Privacy Act of 2012).</p>
-            <h4 style="color:#38bdf8; margin:14px 0 6px 0; font-size:13px;">3. 2FA Security Guarantee</h4>
-            <p style="margin:0; color:rgba(148,163,184,0.9);">Two-Factor Authentication is enforced to secure your tourist account against unauthorized access.</p>
-        </div>
-        <div style="padding:16px 20px; background:rgba(15,23,42,0.98); border-top:1px solid rgba(255,255,255,0.08); display:flex; flex-direction:column; gap:14px;">
-            <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:12px; color:#f8fafc; font-weight:600;">
-                <input type="checkbox" id="chk-onboard-privacy" class="circular-checkbox" style="width:18px; height:18px; accent-color:#38bdf8;">
-                <span>I have read and agree to the Privacy Policy & Security Terms.</span>
-            </label>
-            <button onclick="window.onboardAcceptPrivacy()" style="width:100%; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:12px; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
-                Accept Terms & Continue <i class="fa-solid fa-arrow-right"></i>
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- STEP 2: Complete Profile Modal -->
+<!-- Complete Profile Modal -->
 <div id="onboard-profile-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(12px); z-index:999999; justify-content:center; align-items:center; padding:16px;">
     <div style="background:#0f172a; border:1px solid rgba(56,189,248,0.3); border-radius:24px; width:100%; max-width:480px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.8); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
         <div style="padding:20px 24px; background:linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.95)); border-bottom:1px solid rgba(255,255,255,0.08);">
             <h3 style="margin:0 0 4px 0; font-size:17px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
-                <i class="fa-solid fa-user-gear" style="color:#fbbf24;"></i> Step 2 of 3 — Complete Your Profile
+                <i class="fa-solid fa-user-gear" style="color:#fbbf24;"></i> Complete Your Profile
             </h3>
             <p style="margin:0; font-size:12px; color:rgba(148,163,184,0.9);">Tell us a bit about yourself to personalize recommendations.</p>
         </div>
         <div style="padding:20px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:14px;">
+            <!-- Profile Avatar Picker -->
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; margin-bottom:4px;">
+                <div style="position:relative; width:84px; height:84px;">
+                    <img id="onboard-avatar-preview" src="https://ui-avatars.com/api/?name=User&background=38bdf8&color=fff" style="width:84px; height:84px; border-radius:50%; object-fit:cover; border:2.5px solid #38bdf8; box-shadow:0 6px 20px rgba(56,189,248,0.35);">
+                    <label for="onboard-avatar-input" style="position:absolute; bottom:2px; right:2px; width:28px; height:28px; background:#38bdf8; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:12px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.5); border:2px solid #0f172a; transition:transform 0.2s;">
+                        <i class="fa-solid fa-camera"></i>
+                    </label>
+                    <input type="file" id="onboard-avatar-input" accept="image/*" style="display:none;" onchange="window.previewOnboardAvatar(event)">
+                </div>
+                <span style="font-size:11px; font-weight:700; color:#38bdf8; cursor:pointer;" onclick="document.getElementById('onboard-avatar-input').click()">
+                    Add Profile Picture
+                </span>
+            </div>
+
             <div>
                 <label style="display:block; font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); margin-bottom:6px;">Mobile Phone Number</label>
                 <input type="text" id="onboard-phone" placeholder="0912 345 6789" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px 14px; color:#fff; font-size:13px; outline:none;">
@@ -1601,42 +1576,10 @@ window.toggleRecommendedMore = function() {
             <button onclick="window.onboardSkipProfile()" style="flex:1; background:transparent; border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.7); padding:12px; border-radius:12px; font-weight:700; font-size:12px; cursor:pointer;">
                 Skip for now
             </button>
-            <button onclick="window.onboardSaveProfile()" style="flex:2; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:12px; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
+            <button id="btn-onboard-save" onclick="window.onboardSaveProfile()" style="flex:2; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:12px; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
                 Save & Continue <i class="fa-solid fa-arrow-right"></i>
             </button>
         </div>
-    </div>
-</div>
-
-<!-- STEP 3: 2FA Verification Modal -->
-<div id="onboard-2fa-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(12px); z-index:999999; justify-content:center; align-items:center; padding:16px;">
-    <div style="background:#0f172a; border:1px solid rgba(56,189,248,0.3); border-radius:24px; width:100%; max-width:440px; padding:24px; display:flex; flex-direction:column; gap:16px; box-shadow:0 20px 50px rgba(0,0,0,0.8); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); text-align:center;">
-        <div style="width:56px; height:56px; border-radius:50%; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:24px; margin:0 auto;">
-            <i class="fa-solid fa-lock"></i>
-        </div>
-        <div>
-            <h3 style="margin:0 0 6px 0; font-size:18px; font-weight:800; color:#fff;">Step 3 of 3 — 2FA Security Code</h3>
-            <p style="margin:0; font-size:12px; color:rgba(148,163,184,0.9); line-height:1.4;">
-                Enter the 6-digit verification code sent to your email:<br>
-                <strong id="onboard-target-email" style="color:#38bdf8;">loading...</strong>
-            </p>
-        </div>
-
-        <div style="display:flex; justify-content:center; gap:8px; margin:10px 0;" id="onboard-otp-container">
-            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
-            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
-            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
-            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
-            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
-            <input type="text" maxlength="1" class="onboard-otp-box" style="width:42px; height:48px; text-align:center; font-size:20px; font-weight:800; color:#fff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px; outline:none;">
-        </div>
-
-        <button id="btn-onboard-verify-2fa" onclick="window.onboardVerify2FA()" style="width:100%; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:13px; border-radius:12px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
-            Verify Code & Activate Account <i class="fa-solid fa-circle-check"></i>
-        </button>
-        <button onclick="window.onboardSkip2FA()" style="width:100%; background:transparent; border:none; color:rgba(255,255,255,0.6); font-size:12px; font-weight:600; cursor:pointer; padding:6px; margin-top:2px; text-decoration:underline;">
-            Skip this for now
-        </button>
     </div>
 </div>
 

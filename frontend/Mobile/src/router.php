@@ -8,7 +8,7 @@ if (preg_match('/\.(css|js|png|jpg|jpeg|gif|svg|ico|json|woff|woff2|ttf|map)$/i'
     exit;
 }
 
-$backendUrl = 'http://127.0.0.1:8000';
+$backendUrl = getenv('BACKEND_URL') ?: (isset($_SERVER['HTTP_HOST']) && (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false) ? 'http://127.0.0.1:8000' : 'https://api.intan-elyu.online');
 $cacheDir = __DIR__ . '/assets/img/upload_image';
 
 function serveCachedImage($cachePath) {

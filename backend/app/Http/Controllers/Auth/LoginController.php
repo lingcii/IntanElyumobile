@@ -95,7 +95,7 @@ class LoginController extends Controller
                 }
 
                 // Verify audience (must match your Google Client ID)
-                $clientId = env('GOOGLE_CLIENT_ID', '874613490302-qno8lkqoujur0db888hg72hogjv6cp5v.apps.googleusercontent.com');
+                $clientId = env('GOOGLE_CLIENT_ID', '620598190857-37a0ucobfd4b3rct7ofti8rtvl3qt884.apps.googleusercontent.com');
                 if (!isset($payload->aud) || $payload->aud !== $clientId) {
                     return response()->json(['error' => 'Invalid token audience.'], 400);
                 }
@@ -206,18 +206,20 @@ class LoginController extends Controller
 
         if (!$user) {
             return response()->json([
-                'success' => true,
-                'email'   => $request->email,
-                'message' => 'If your email is registered, we have sent a reset code & link.'
-            ]);
+                'error' => 'This email address is not registered. Please create an account first.'
+            ], 404);
         }
 
         $token = \Illuminate\Support\Str::random(60);
         $tokenHash = hash('sha256', $token);
         $otpCode = sprintf('%06d', random_int(0, 999999));
 
-        // Always store OTP in Cache for fast, reliable in-app reset
+        // Always store OTP in Cache and User model for fast, reliable in-app reset
         \Illuminate\Support\Facades\Cache::put("pwd_reset_otp:{$user->email}", $otpCode, 900);
+        try {
+            $user->remember_token = 'otp_' . $otpCode;
+            $user->saveQuietly();
+        } catch (\Throwable $err) {}
 
         // Record in DB if table exists (safely guarded against missing table in remote DBs)
         try {
@@ -268,18 +270,20 @@ class LoginController extends Controller
         $email = $request->email;
         $otp = trim($request->otp);
 
-        $cachedOtp = \Illuminate\Support\Facades\Cache::get("pwd_reset_otp:{$email}");
-
-        if (!$cachedOtp || (string)$cachedOtp !== (string)$otp) {
-            return response()->json(['error' => 'Invalid or expired verification code.'], 400);
-        }
-
         $user = User::where('email', $email)->first();
         if (!$user) {
             return response()->json(['error' => 'User account not found.'], 404);
         }
 
+        $cachedOtp = \Illuminate\Support\Facades\Cache::get("pwd_reset_otp:{$email}");
+        $isValidOtp = ($cachedOtp && (string)$cachedOtp === (string)$otp) || ($user->remember_token === 'otp_' . $otp);
+
+        if (!$isValidOtp) {
+            return response()->json(['error' => 'Invalid or expired verification code.'], 400);
+        }
+
         $user->password = \Illuminate\Support\Facades\Hash::make($request->password);
+        $user->remember_token = null;
         $user->save();
 
         \Illuminate\Support\Facades\Cache::forget("pwd_reset_otp:{$email}");

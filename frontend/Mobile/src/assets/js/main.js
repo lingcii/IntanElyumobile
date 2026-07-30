@@ -5,9 +5,81 @@
 window.safeJsonParse = function (str, fallback = {}) {
     if (!str || str === 'undefined' || str === 'null' || str === 'NaN') return fallback;
     try {
-        return JSON.parse(str);
+        return typeof str === 'object' ? str : JSON.parse(str);
     } catch (e) {
         return fallback;
+    }
+};
+
+/**
+ * Asynchronous IndexedDB + localStorage Hybrid Storage Engine
+ */
+window.AppStorage = {
+    _dbPromise: null,
+
+    _getDB: function() {
+        if (!this._dbPromise) {
+            this._dbPromise = new Promise((resolve) => {
+                if (!window.indexedDB) {
+                    resolve(null);
+                    return;
+                }
+                const request = window.indexedDB.open('intan_elyu_app_storage', 1);
+                request.onupgradeneeded = function(e) {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('store')) {
+                        db.createObjectStore('store');
+                    }
+                };
+                request.onsuccess = function(e) { resolve(e.target.result); };
+                request.onerror = function() { resolve(null); };
+            });
+        }
+        return this._dbPromise;
+    },
+
+    getItem: async function(key, fallback = null) {
+        try {
+            const db = await this._getDB();
+            if (db) {
+                const val = await new Promise((resolve) => {
+                    const tx = db.transaction('store', 'readonly');
+                    const req = tx.objectStore('store').get(key);
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => resolve(undefined);
+                });
+                if (val !== undefined && val !== null) return val;
+            }
+        } catch (e) {}
+
+        const raw = localStorage.getItem(key);
+        return raw !== null ? raw : fallback;
+    },
+
+    setItem: async function(key, val) {
+        try {
+            const strVal = typeof val === 'string' ? val : JSON.stringify(val);
+            localStorage.setItem(key, strVal);
+        } catch (e) {}
+
+        try {
+            const db = await this._getDB();
+            if (db) {
+                const tx = db.transaction('store', 'readwrite');
+                tx.objectStore('store').put(val, key);
+            }
+        } catch (e) {}
+    },
+
+    removeItem: async function(key) {
+        try { localStorage.removeItem(key); } catch (e) {}
+        try {
+            const db = await this._getDB();
+            if (db) {
+                const tx = db.transaction('store', 'readwrite');
+                tx.objectStore('store').delete(key);
+            }
+        } catch (e) {}
     }
 };
 
@@ -21,16 +93,34 @@ window.setHtml = function (id, html) {
     if (el) el.innerHTML = (html !== undefined && html !== null) ? html : '';
 };
 
+window.getBackendUrl = function () {
+    var url = window.backendUrl || window.BACKEND_URL || (typeof window !== 'undefined' && window.location ? window.location.origin : '');
+    return (url || '').replace(/\/+$/, '');
+};
+
 window.getFullImageUrl = function (url) {
     if (!url) return window.placeholderImage || '';
     if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
         return url;
     }
-    const base = window.backendUrl || 'https://api.intan-elyu.online';
-    return base.replace(/\/+$/, '') + '/' + url.replace(/^\/+/, '');
+    const base = window.getBackendUrl();
+    const clean = url.replace(/^\/+/, '');
+    if (clean.startsWith('api/image/') || clean.startsWith('api/serve')) return base + '/' + clean;
+    return base + '/api/image/' + clean;
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Auto-invalidate stale caches from previous builds
+    const CACHE_VER = 'v1.0.5_r2_regex';
+    if (localStorage.getItem('intan_elyu_cache_ver') !== CACHE_VER) {
+        Object.keys(localStorage).forEach(k => {
+            if (k.startsWith('dashboard_') || k.startsWith('trending_') || k.startsWith('map_') || k.startsWith('spots_') || k.startsWith('destinations_') || k.includes('cache')) {
+                localStorage.removeItem(k);
+            }
+        });
+        localStorage.setItem('intan_elyu_cache_ver', CACHE_VER);
+    }
+
     // Global Auth Enforcement for Initial Direct Load
     const publicViews = ['splash', 'auth', 'reset-password'];
     if (!publicViews.includes(state.currentView) && !localStorage.getItem('intan_elyu_token')) {
@@ -686,13 +776,84 @@ document.addEventListener('error', function (e) {
  */
 window.getDestImage = function (dest, width) {
     if (!width) width = 600;
-    var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+    var backendUrl = window.getBackendUrl ? window.getBackendUrl() : (window.backendUrl || '').replace(/\/+$/, '');
+    var r2PublicBase = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev';
 
-    // Phase 1: Try local filesystem images (AVAILABLE_MUNI_IMAGES)
+    // Phase 1: Extract URL string from dest (photo_url, image, avatar, profile_picture)
+    var rawUrl = null;
+    if (typeof dest === 'string') {
+        rawUrl = dest;
+    } else if (dest && typeof dest === 'object') {
+        rawUrl = dest.photo_url || dest.image || dest.avatar || dest.profile_picture || null;
+    }
+
+    if (rawUrl && typeof rawUrl === 'string' && rawUrl.trim() !== '') {
+        var url = rawUrl.trim();
+
+        // 1. Data or Blob URIs
+        if (url.indexOf('data:') === 0 || url.indexOf('blob:') === 0) return url;
+
+        // 2. Full HTTP / HTTPS URLs — preserve intact if already an API / serve link
+        if (url.indexOf('http://') === 0 || url.indexOf('https://') === 0) {
+            if (url.includes('/api/serve') || url.includes('/api/image/')) {
+                return url;
+            }
+            try {
+                var parsed = new URL(url);
+                if (parsed.host.includes('r2.dev') || parsed.host.includes('r2.cloudflarestorage.com') || parsed.host.includes('cloudinary.com') || parsed.host.includes('unsplash.com') || parsed.host.includes('googleapis.com') || parsed.host.includes('ui-avatars.com')) {
+                    return url;
+                }
+            } catch (e) {}
+            return url;
+        }
+
+        // 3. Extract spot_xxx.jpg / png / webp filename if present -> fetch directly from Cloudflare R2 Bucket
+        var spotMatch = url.match(/(spot_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+        if (spotMatch && spotMatch[1]) {
+            return r2PublicBase + '/tourist_spots/' + spotMatch[1];
+        }
+
+        var avatarMatch = url.match(/(avatar_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+        if (avatarMatch && avatarMatch[1]) {
+            return r2PublicBase + '/avatars/' + avatarMatch[1];
+        }
+
+        var proofMatch = url.match(/(proof_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+        if (proofMatch && proofMatch[1]) {
+            return r2PublicBase + '/proof_images/' + proofMatch[1];
+        }
+
+        // 4. Relative API endpoints (e.g. /api/serve-image.php?file=..., /api/image/..., /api/serve...)
+        if (url.indexOf('/api/') === 0 || url.indexOf('api/') === 0) {
+            var cleanApi = url.indexOf('/') === 0 ? url : '/' + url;
+            return backendUrl + cleanApi;
+        }
+
+        // 4. Local asset paths
+        if (url.indexOf('assets/') === 0 || url.indexOf('/assets/') === 0) {
+            return (url.indexOf('/') === 0 ? '' : '/') + url;
+        }
+
+        // 5. Relative storage/upload paths
+        var cleanPath = url.replace(/^\/+/, '').replace(/^storage\//i, '');
+        return backendUrl + '/api/image/' + cleanPath;
+    }
+
+    // Phase 2: Fallback to local filesystem images (AVAILABLE_MUNI_IMAGES) if photo_url is missing
     if (window.AVAILABLE_MUNI_IMAGES && dest && dest.name) {
-        var munisToCheck = dest.municipality
-            ? [dest.municipality.toUpperCase()]
-            : Object.keys(window.AVAILABLE_MUNI_IMAGES);
+        var munisToCheck = [];
+        if (dest.municipality) {
+            var mClean = dest.municipality.toUpperCase().replace(/\s*TEST$/i, '').trim();
+            munisToCheck.push(mClean);
+            munisToCheck.push(dest.municipality.toUpperCase());
+        }
+        var allKeys = Object.keys(window.AVAILABLE_MUNI_IMAGES);
+        for (var k = 0; k < allKeys.length; k++) {
+            if (munisToCheck.indexOf(allKeys[k]) === -1) {
+                munisToCheck.push(allKeys[k]);
+            }
+        }
+
         var dNorm = dest.name.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
         var dWords = dNorm.split(/\s+/).filter(function (w) { return w.length > 2; });
         var bestMatch = null, bestScore = 0, bestMuni = null;
@@ -725,12 +886,10 @@ window.getDestImage = function (dest, width) {
                     bestScore = score;
                     bestMatch = img;
                     bestMuni = muni;
-                } else if (score === bestScore && score >= 10) {
-                    if (img.indexOf('1') !== -1 || img.toLowerCase().indexOf('one') !== -1) {
-                        bestMatch = img;
-                        bestMuni = muni;
-                    }
                 }
+            }
+            if (bestMatch && bestScore >= 100) {
+                return encodeURI('assets/img/MUNICIPALITIES/' + bestMuni + '/' + bestMatch);
             }
         }
         if (bestMatch) {
@@ -738,56 +897,51 @@ window.getDestImage = function (dest, width) {
         }
     }
 
-    // Phase 2: Extract URL string from string parameter or object (photo_url, image, avatar, profile_picture)
-    var url = null;
-    if (typeof dest === 'string') {
-        url = dest;
-    } else if (dest && typeof dest === 'object') {
-        url = dest.photo_url || dest.image || dest.avatar || dest.profile_picture || null;
+    // Phase 3: Final fallback stock image
+    return 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=' + width;
+};
+
+window.handleImgError = function (imgEl, spotName, muniName) {
+    if (!imgEl) return;
+    imgEl.onerror = null;
+    if (window.getDestImage && (spotName || muniName)) {
+        var fallback = window.getDestImage({ name: spotName || '', municipality: muniName || '', photo_url: null }, 600);
+        if (fallback && fallback !== imgEl.src && !fallback.includes('unsplash.com')) {
+            imgEl.src = fallback;
+            return;
+        }
     }
+    imgEl.src = window.noImageFallback || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';
+};
 
-    if (url) {
-        if (url.indexOf('data:') === 0 || url.indexOf('blob:') === 0) return url;
+/**
+ * Resolves an array of all images for a destination.
+ * If dest.images is provided, resolves each image; otherwise falls back to single image.
+ * @param {Object} dest
+ * @param {number} [width=600]
+ * @returns {Array<string>} Array of image URLs
+ */
+window.getDestImages = function (dest, width) {
+    if (!width) width = 600;
+    var list = [];
 
-        if (url.indexOf('serve-image.php') !== -1) {
-            if (url.indexOf('http') === 0) {
-                try {
-                    var parsed = new URL(url);
-                    if (parsed.host.includes('localhost') || parsed.host.includes('127.0.0.1') || parsed.host.includes('intan-elyu.online')) {
-                        return backendUrl + parsed.pathname + parsed.search;
-                    }
-                    return url;
-                } catch (e) { return url; }
-            }
-            return backendUrl + (url.indexOf('/') === 0 ? '' : '/') + url;
-        }
-
-        if (url.indexOf('assets/') === 0 || url.indexOf('/assets/') === 0) {
-            return (url.indexOf('/') === 0 ? '' : '/') + url;
-        }
-
-        if (url.indexOf('storage/') === 0 || url.indexOf('uploads/') === 0 || url.indexOf('avatars/') === 0 || url.indexOf('upload_image/') === 0 || url.indexOf('tourist_spots/') === 0) {
-            url = '/api/image/' + url;
-        } else if (url.indexOf('http') !== 0 && url.indexOf('/') !== 0) {
-            url = '/api/image/' + url;
-        }
-
-        // Strip domain prefixes if points to any backend domain (localhost, railway.app, intan-elyu.online)
-        if (url.indexOf('http') === 0) {
-            try {
-                var parsed = new URL(url);
-                if (parsed.host.includes('r2.cloudflarestorage.com') || parsed.host.includes('cloudinary.com') || parsed.host.includes('unsplash.com')) {
-                    return url;
+    if (dest && typeof dest === 'object') {
+        if (Array.isArray(dest.images) && dest.images.length > 0) {
+            dest.images.forEach(function(imgItem) {
+                var resolved = window.getDestImage(imgItem, width);
+                if (resolved && !list.includes(resolved) && resolved !== window.noImageFallback) {
+                    list.push(resolved);
                 }
-                url = parsed.pathname + parsed.search;
-            } catch (e) { return url; }
+            });
         }
-        if (url.indexOf('/') === 0) return backendUrl + url;
-        return backendUrl + '/' + url;
     }
 
-    // Phase 3: Placeholder
-    return window.placeholderImage || window.noImageFallback;
+    if (list.length === 0) {
+        var single = window.getDestImage(dest, width);
+        if (single) list.push(single);
+    }
+
+    return list;
 };
 
 window.noImageFallback = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" fill="none"><rect width="600" height="400" fill="%230F172A"/><rect x="2" y="2" width="596" height="396" rx="16" fill="url(%23bg_grad)" stroke="rgba(255,255,255,0.08)" stroke-width="2"/><defs><linearGradient id="bg_grad" x1="0" y1="0" x2="600" y2="400" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="%230F172A"/><stop offset="100%" stop-color="%231E293B"/></linearGradient></defs><circle cx="300" cy="165" r="44" fill="rgba(56,189,248,0.1)" stroke="%2338BDF8" stroke-width="2" stroke-dasharray="4 4"/><path d="M284 153H288L290.5 149H309.5L312 153H316C320.418 153 324 156.582 324 161V177C324 181.418 320.418 185 316 185H284C279.582 185 276 181.418 276 177V161C276 156.582 279.582 153 284 153Z" stroke="%2338BDF8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="300" cy="169" r="7" stroke="%2338BDF8" stroke-width="3"/><text x="300" y="240" text-anchor="middle" fill="%23F8FAFC" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="20" font-weight="800" letter-spacing="2">NO IMAGE ADDED</text><text x="300" y="268" text-anchor="middle" fill="%2394A3B8" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="500" letter-spacing="0.5">Destination photo coming soon</text></svg>';
