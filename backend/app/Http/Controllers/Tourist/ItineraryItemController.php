@@ -107,30 +107,22 @@ class ItineraryItemController extends Controller
             if ($request->hasFile('image')) {
                 try {
                     $file = $request->file('image');
+
+                    // 1. Always save a compressed WebP copy to local folder: backend/storage/app/public/proof_images/
+                    $localPath = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', 'public', 'proof_12310909_', 1200, 80);
+
+                    // 2. Also upload compressed WebP copy to Cloudflare R2 Bucket
                     $disk = 'r2';
-
                     try {
-                        // Compress and store directly to Cloudflare R2 bucket
-                        $path = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', 'r2', 'proof_12310909_', 1200, 80);
-                    } catch (\Throwable $r2Exception) {
-                        \Illuminate\Support\Facades\Log::warning("R2 disk store failed, attempting fallback disk: " . $r2Exception->getMessage());
-                        $disk = env('FILESYSTEM_DISK', 'public');
-                        try {
-                            $path = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', $disk, 'proof_12310909_', 1200, 80);
-                        } catch (\Throwable $diskException) {
-                            $disk = 'public';
-                            $path = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', 'public', 'proof_12310909_', 1200, 80);
-                        }
-                    }
-
-                    if (in_array($disk, ['r2', 's3'])) {
+                        $r2Path = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', 'r2', 'proof_12310909_', 1200, 80);
                         $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
-                        $itemData['proof_image'] = $r2PublicUrl . '/' . ltrim($path, '/');
-                    } else {
-                        $itemData['proof_image'] = 'storage/' . $path;
+                        $itemData['proof_image'] = $r2PublicUrl . '/' . ltrim($r2Path, '/');
+                    } catch (\Throwable $r2Exception) {
+                        \Illuminate\Support\Facades\Log::warning("R2 disk store failed, using local disk fallback: " . $r2Exception->getMessage());
+                        $itemData['proof_image'] = 'storage/' . $localPath;
                     }
                 } catch (\Throwable $imgErr) {
-                    \Illuminate\Support\Facades\Log::error("Failed to store proof image to R2: " . $imgErr->getMessage());
+                    \Illuminate\Support\Facades\Log::error("Failed to store proof image: " . $imgErr->getMessage());
                 }
             }
 
