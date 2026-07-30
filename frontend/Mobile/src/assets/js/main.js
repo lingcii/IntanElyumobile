@@ -802,7 +802,13 @@ window.getDestImage = function (dest, width) {
             return url;
         }
 
-        // 3. Extract spot_xxx.jpg / png / webp filename if present
+        // 3. Relative API endpoints (e.g. /api/serve-image.php?file=..., /api/image/..., /api/serve...)
+        if (url.indexOf('/api/') === 0 || url.indexOf('api/') === 0) {
+            var cleanApi = url.indexOf('/') === 0 ? url : '/' + url;
+            return backendUrl + cleanApi;
+        }
+
+        // 4. Extract spot_xxx.jpg / png / webp filename if present
         var spotMatch = url.match(/(spot_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
         if (spotMatch && spotMatch[1]) {
             return backendUrl + '/api/image/tourist_spots/' + spotMatch[1];
