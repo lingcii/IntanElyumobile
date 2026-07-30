@@ -156,11 +156,17 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
         ]);
 
         $spot = TouristSpot::findOrFail($id);
-        $disk = env('FILESYSTEM_DISK', 'public');
-        $path = \App\Helpers\ImageCompressor::compressAndStore($request->file('photo'), 'tourist_spots', $disk, 'spot_', 1200, 80);
+        $disk = 'r2';
+        try {
+            $path = \App\Helpers\ImageCompressor::compressAndStore($request->file('photo'), 'tourist_spots', 'r2', 'spot_', 1200, 80);
+        } catch (\Throwable $r2Err) {
+            $disk = env('FILESYSTEM_DISK', 'public');
+            $path = \App\Helpers\ImageCompressor::compressAndStore($request->file('photo'), 'tourist_spots', $disk, 'spot_', 1200, 80);
+        }
 
-        if (in_array($disk, ['r2', 's3'])) {
-            $fullUrl = \Illuminate\Support\Facades\Storage::disk($disk)->url($path);
+        if ($disk === 'r2') {
+            $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
+            $fullUrl = $r2PublicUrl . '/' . ltrim($path, '/');
             $spot->update(['photo_url' => $fullUrl]);
         } else {
             $fullUrl = asset('storage/' . $path);
@@ -197,10 +203,17 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
         ]);
 
         if ($request->hasFile('photo')) {
-            $disk = env('FILESYSTEM_DISK', 'public');
-            $path = \App\Helpers\ImageCompressor::compressAndStore($request->file('photo'), 'tourist_spots', $disk, 'spot_', 1200, 80);
-            if (in_array($disk, ['r2', 's3'])) {
-                $data['photo_url'] = \Illuminate\Support\Facades\Storage::disk($disk)->url($path);
+            $disk = 'r2';
+            try {
+                $path = \App\Helpers\ImageCompressor::compressAndStore($request->file('photo'), 'tourist_spots', 'r2', 'spot_', 1200, 80);
+            } catch (\Throwable $r2Err) {
+                $disk = env('FILESYSTEM_DISK', 'public');
+                $path = \App\Helpers\ImageCompressor::compressAndStore($request->file('photo'), 'tourist_spots', $disk, 'spot_', 1200, 80);
+            }
+
+            if ($disk === 'r2') {
+                $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
+                $data['photo_url'] = $r2PublicUrl . '/' . ltrim($path, '/');
             } else {
                 $data['photo_url'] = 'storage/' . $path;
             }
