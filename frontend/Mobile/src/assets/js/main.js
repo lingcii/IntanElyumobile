@@ -904,14 +904,14 @@ window.getDestImage = function (dest, width) {
 window.handleImgError = function (imgEl, spotName, muniName) {
     if (!imgEl) return;
     imgEl.onerror = null;
-    if (window.getDestImage && spotName) {
-        var fallback = window.getDestImage({ name: spotName, municipality: muniName, photo_url: null }, 600);
+    if (window.getDestImage && (spotName || muniName)) {
+        var fallback = window.getDestImage({ name: spotName || '', municipality: muniName || '', photo_url: null }, 600);
         if (fallback && fallback !== imgEl.src && !fallback.includes('unsplash.com')) {
             imgEl.src = fallback;
             return;
         }
     }
-    imgEl.src = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';
+    imgEl.src = window.noImageFallback || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';
 };
 
 /**

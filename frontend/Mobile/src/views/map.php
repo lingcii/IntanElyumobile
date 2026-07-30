@@ -1582,7 +1582,11 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 img.style.cssText = 'flex:0 0 100%; min-width:100%; width:100%; max-width:100%; height:100% !important; object-fit:cover !important; object-position:center !important; border-radius:18px !important; scroll-snap-align:start; scroll-snap-stop:always; display:block !important; margin:0 !important; box-sizing:border-box !important;';
                 img.onerror = function() {
                     this.onerror = null;
-                    this.src = fallbackBanner;
+                    if (window.handleImgError) {
+                        window.handleImgError(this, locationData.name, locationData.municipality);
+                    } else {
+                        this.src = fallbackBanner;
+                    }
                 };
                 track.appendChild(img);
             });
