@@ -807,21 +807,26 @@ window.getDestImage = function (dest, width) {
             return url;
         }
 
-        // 3. Relative API endpoints (e.g. /api/serve-image.php?file=..., /api/image/..., /api/serve...)
-        if (url.indexOf('/api/') === 0 || url.indexOf('api/') === 0) {
-            var cleanApi = url.indexOf('/') === 0 ? url : '/' + url;
-            return backendUrl + cleanApi;
-        }
-
-        // 4. Extract spot_xxx.jpg / png / webp filename if present
+        // 3. Extract spot_xxx.jpg / png / webp filename if present -> fetch directly from Cloudflare R2 Bucket
         var spotMatch = url.match(/(spot_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
         if (spotMatch && spotMatch[1]) {
-            return backendUrl + '/api/image/tourist_spots/' + spotMatch[1];
+            return r2PublicBase + '/tourist_spots/' + spotMatch[1];
         }
 
         var avatarMatch = url.match(/(avatar_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
         if (avatarMatch && avatarMatch[1]) {
-            return backendUrl + '/api/image/avatars/' + avatarMatch[1];
+            return r2PublicBase + '/avatars/' + avatarMatch[1];
+        }
+
+        var proofMatch = url.match(/(proof_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+        if (proofMatch && proofMatch[1]) {
+            return r2PublicBase + '/proof_images/' + proofMatch[1];
+        }
+
+        // 4. Relative API endpoints (e.g. /api/serve-image.php?file=..., /api/image/..., /api/serve...)
+        if (url.indexOf('/api/') === 0 || url.indexOf('api/') === 0) {
+            var cleanApi = url.indexOf('/') === 0 ? url : '/' + url;
+            return backendUrl + cleanApi;
         }
 
         // 4. Local asset paths

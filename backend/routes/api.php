@@ -66,14 +66,15 @@ $serveFileHandler = function ($file) {
     }
     
     $disk = env('FILESYSTEM_DISK', 'public');
+    $r2Paths = array_unique(array_filter([
+        $cleanFile,
+        'tourist_spots/' . basename($cleanFile),
+        'avatars/' . basename($cleanFile),
+        'proof_images/' . basename($cleanFile),
+        basename($cleanFile),
+    ]));
+
     if (in_array($disk, ['r2', 's3'])) {
-        // Try multiple path patterns to find the file in R2
-        $r2Paths = array_unique(array_filter([
-            $cleanFile,
-            'tourist_spots/' . basename($cleanFile),
-            preg_replace('#^storage/#i', '', $cleanFile),
-            basename($cleanFile),
-        ]));
         foreach ($r2Paths as $r2Path) {
             try {
                 if (\Illuminate\Support\Facades\Storage::disk($disk)->exists($r2Path)) {
@@ -81,6 +82,13 @@ $serveFileHandler = function ($file) {
                 }
             } catch (\Throwable $e) {}
         }
+    }
+
+    // Direct Cloudflare R2 Public Bucket redirect fallback for spot/avatar/proof uploads
+    $r2PublicBase = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev';
+    if (preg_match('#spot_|avatar_|proof_#i', $cleanFile)) {
+        $folder = preg_match('#avatar_#i', $cleanFile) ? 'avatars' : (preg_match('#proof_#i', $cleanFile) ? 'proof_images' : 'tourist_spots');
+        return redirect($r2PublicBase . '/' . $folder . '/' . basename($cleanFile));
     }
 
     abort(404);
@@ -98,37 +106,10 @@ Route::get('/serve', function (\Illuminate\Http\Request $request) use ($serveFil
 });
 
 // Backward-compatible route for legacy /api/serve-image.php?file=... URLs
-Route::get('/serve-image.php', function (\Illuminate\Http\Request $request) {
-    $file = $request->query('file');
+Route::get('/serve-image.php', function (\Illuminate\Http\Request $request) use ($serveFileHandler) {
+    $file = $request->query('file') ?: $request->query('id') ?: $request->query('image_id');
     if (!$file) abort(404);
-    $file = rawurldecode(urldecode($file));
-    $base = storage_path('app/public');
-    
-    // Normalize lowercase municipalities/ to match the actual MUNICIPALITIES/ folder
-    $normalizedFile = preg_replace('#^municipalities/#i', 'MUNICIPALITIES/', $file);
-    
-    $paths = [
-        base_path('../frontend/Mobile/src/assets/img/' . $normalizedFile),
-        base_path('../frontend/Mobile/src/assets/img/upload_image/' . $file),
-        base_path('../frontend/Mobile/src/assets/img/' . $file),
-        $base . '/' . $file,
-        $base . '/tourist_spots/' . $file,
-        $base . '/upload_image/' . $file,
-        public_path('images/tourist_spots/' . $file),
-        public_path('storage/tourist_spots/' . $file),
-        public_path('uploads/tourist_spots/' . $file),
-        public_path('storage/upload_image/' . $file),
-        public_path('upload_image/' . $file),
-        base_path('../frontend/Mobile/src/assets/images/' . $file),
-    ];
-    
-    foreach ($paths as $path) {
-        if (file_exists($path)) {
-            return response()->file($path);
-        }
-    }
-    
-    abort(404);
+    return $serveFileHandler($file);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
