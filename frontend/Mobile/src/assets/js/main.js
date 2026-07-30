@@ -94,18 +94,12 @@ window.setHtml = function (id, html) {
 };
 
 window.getBackendUrl = function () {
-    var url = window.backendUrl || window.BACKEND_URL;
-    if (!url || url.includes('app.intan-elyu.online')) {
-        url = 'https://api.intan-elyu.online';
-    }
-    return url.replace(/\/+$/, '');
+    var url = window.backendUrl || window.BACKEND_URL || (typeof window !== 'undefined' && window.location ? window.location.origin : '');
+    return (url || '').replace(/\/+$/, '');
 };
 
 window.getFullImageUrl = function (url) {
     if (!url) return window.placeholderImage || '';
-    if (url.includes('app.intan-elyu.online')) {
-        url = url.replace('app.intan-elyu.online', 'api.intan-elyu.online');
-    }
     if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
         return url;
     }
@@ -782,7 +776,7 @@ document.addEventListener('error', function (e) {
  */
 window.getDestImage = function (dest, width) {
     if (!width) width = 600;
-    var backendUrl = window.getBackendUrl ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+    var backendUrl = window.getBackendUrl ? window.getBackendUrl() : (window.backendUrl || '').replace(/\/+$/, '');
     var r2PublicBase = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev';
 
     // Phase 1: Extract URL string from dest (photo_url, image, avatar, profile_picture)
@@ -795,11 +789,6 @@ window.getDestImage = function (dest, width) {
 
     if (rawUrl && typeof rawUrl === 'string' && rawUrl.trim() !== '') {
         var url = rawUrl.trim();
-
-        // Fix accidental frontend domain pointing to API route
-        if (url.includes('app.intan-elyu.online')) {
-            url = url.replace('app.intan-elyu.online', 'api.intan-elyu.online');
-        }
 
         // 1. Data or Blob URIs
         if (url.indexOf('data:') === 0 || url.indexOf('blob:') === 0) return url;
