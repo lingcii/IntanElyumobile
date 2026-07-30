@@ -62,12 +62,12 @@ return [
 
         'r2' => [
             'driver' => 's3',
-            'key' => env('CLOUDFLARE_R2_ACCESS_KEY_ID'),
-            'secret' => env('CLOUDFLARE_R2_SECRET_ACCESS_KEY'),
+            'key' => env('CLOUDFLARE_R2_ACCESS_KEY_ID', '31a90def55e0cccf04ee418c401db0da'),
+            'secret' => env('CLOUDFLARE_R2_SECRET_ACCESS_KEY', 'e3054ea4f4094ea94abd21c0515ff270fb922f0d68f0600eb45a03b8be63da95'),
             'region' => 'auto',
-            'bucket' => env('CLOUDFLARE_R2_BUCKET'),
-            'url' => env('CLOUDFLARE_R2_URL'),
-            'endpoint' => env('CLOUDFLARE_R2_ENDPOINT'),
+            'bucket' => env('CLOUDFLARE_R2_BUCKET', 'intan-elyu-media'),
+            'url' => env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'),
+            'endpoint' => env('CLOUDFLARE_R2_ENDPOINT', 'https://c809f392dc7dd516e56dccabae15d546.r2.cloudflarestorage.com'),
             'use_path_style_endpoint' => env('CLOUDFLARE_R2_USE_PATH_STYLE_ENDPOINT', true),
             'throw' => false,
             'report' => false,
