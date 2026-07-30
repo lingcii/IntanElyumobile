@@ -788,58 +788,56 @@ window.getDestImage = function (dest, width) {
         // 1. Data or Blob URIs
         if (url.indexOf('data:') === 0 || url.indexOf('blob:') === 0) return url;
 
-        // Extract spot_xxx.jpg / png / webp filename if present anywhere in the URL or query params
+        // 2. Full HTTP / HTTPS URLs — preserve intact if already an API / serve link
+        if (url.indexOf('http://') === 0 || url.indexOf('https://') === 0) {
+            if (url.includes('/api/serve') || url.includes('/api/image/')) {
+                return url;
+            }
+            try {
+                var parsed = new URL(url);
+                if (parsed.host.includes('r2.dev') || parsed.host.includes('r2.cloudflarestorage.com') || parsed.host.includes('cloudinary.com') || parsed.host.includes('unsplash.com') || parsed.host.includes('googleapis.com') || parsed.host.includes('ui-avatars.com')) {
+                    return url;
+                }
+            } catch (e) {}
+            return url;
+        }
+
+        // 3. Extract spot_xxx.jpg / png / webp filename if present
         var spotMatch = url.match(/(spot_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
         if (spotMatch && spotMatch[1]) {
-            return r2PublicBase + '/tourist_spots/' + spotMatch[1];
+            return backendUrl + '/api/image/tourist_spots/' + spotMatch[1];
         }
 
         var avatarMatch = url.match(/(avatar_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
         if (avatarMatch && avatarMatch[1]) {
-            return r2PublicBase + '/avatars/' + avatarMatch[1];
+            return backendUrl + '/api/image/avatars/' + avatarMatch[1];
         }
 
-        // 2. Full HTTP / HTTPS URLs
-        if (url.indexOf('http://') === 0 || url.indexOf('https://') === 0) {
-            try {
-                var parsed = new URL(url);
-                // If it's Cloudflare R2, Cloudinary, Unsplash, Google, UI-Avatars etc., return directly
-                if (parsed.host.includes('r2.dev') || parsed.host.includes('r2.cloudflarestorage.com') || parsed.host.includes('cloudinary.com') || parsed.host.includes('unsplash.com') || parsed.host.includes('googleapis.com') || parsed.host.includes('ui-avatars.com')) {
-                    return url;
-                }
-                var pathname = parsed.pathname;
-                if (pathname.includes('/tourist_spots/') || pathname.includes('/avatars/') || pathname.includes('/proof_images/')) {
-                    var r2Path = pathname.replace(/^.*?\/(tourist_spots|avatars|proof_images)\//i, '$1/');
-                    return r2PublicBase + '/' + r2Path;
-                }
-                if (parsed.pathname.includes('/storage/') || parsed.pathname.includes('/api/image/')) {
-                    return backendUrl + parsed.pathname + parsed.search;
-                }
-                return url;
-            } catch (e) {
-                return url;
-            }
-        }
-
-        // 3. Local asset paths
+        // 4. Local asset paths
         if (url.indexOf('assets/') === 0 || url.indexOf('/assets/') === 0) {
             return (url.indexOf('/') === 0 ? '' : '/') + url;
         }
 
-        // 4. Relative storage/upload paths -> resolve directly to R2 public URL
+        // 5. Relative storage/upload paths
         var cleanPath = url.replace(/^\/+/, '').replace(/^storage\//i, '');
-        if (cleanPath.indexOf('tourist_spots/') === 0 || cleanPath.indexOf('avatars/') === 0 || cleanPath.indexOf('proof_images/') === 0 || cleanPath.indexOf('fare_matrices/') === 0) {
-            return r2PublicBase + '/' + cleanPath;
-        }
-
         return backendUrl + '/api/image/' + cleanPath;
     }
 
     // Phase 2: Fallback to local filesystem images (AVAILABLE_MUNI_IMAGES) if photo_url is missing
     if (window.AVAILABLE_MUNI_IMAGES && dest && dest.name) {
-        var munisToCheck = dest.municipality
-            ? [dest.municipality.toUpperCase()]
-            : Object.keys(window.AVAILABLE_MUNI_IMAGES);
+        var munisToCheck = [];
+        if (dest.municipality) {
+            var mClean = dest.municipality.toUpperCase().replace(/\s*TEST$/i, '').trim();
+            munisToCheck.push(mClean);
+            munisToCheck.push(dest.municipality.toUpperCase());
+        }
+        var allKeys = Object.keys(window.AVAILABLE_MUNI_IMAGES);
+        for (var k = 0; k < allKeys.length; k++) {
+            if (munisToCheck.indexOf(allKeys[k]) === -1) {
+                munisToCheck.push(allKeys[k]);
+            }
+        }
+
         var dNorm = dest.name.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
         var dWords = dNorm.split(/\s+/).filter(function (w) { return w.length > 2; });
         var bestMatch = null, bestScore = 0, bestMuni = null;
@@ -872,12 +870,10 @@ window.getDestImage = function (dest, width) {
                     bestScore = score;
                     bestMatch = img;
                     bestMuni = muni;
-                } else if (score === bestScore && score >= 10) {
-                    if (img.indexOf('1') !== -1 || img.toLowerCase().indexOf('one') !== -1) {
-                        bestMatch = img;
-                        bestMuni = muni;
-                    }
                 }
+            }
+            if (bestMatch && bestScore >= 100) {
+                return encodeURI('assets/img/MUNICIPALITIES/' + bestMuni + '/' + bestMatch);
             }
         }
         if (bestMatch) {
@@ -885,8 +881,21 @@ window.getDestImage = function (dest, width) {
         }
     }
 
-    // Phase 3: Final fallback placeholder
-    return window.placeholderImage || window.noImageFallback || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=' + width;
+    // Phase 3: Final fallback stock image
+    return 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=' + width;
+};
+
+window.handleImgError = function (imgEl, spotName, muniName) {
+    if (!imgEl) return;
+    imgEl.onerror = null;
+    if (window.getDestImage && spotName) {
+        var fallback = window.getDestImage({ name: spotName, municipality: muniName, photo_url: null }, 600);
+        if (fallback && fallback !== imgEl.src && !fallback.includes('unsplash.com')) {
+            imgEl.src = fallback;
+            return;
+        }
+    }
+    imgEl.src = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';
 };
 
 /**
