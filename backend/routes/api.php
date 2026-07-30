@@ -157,7 +157,7 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
 
         $spot = TouristSpot::findOrFail($id);
         $disk = env('FILESYSTEM_DISK', 'public');
-        $path = $request->file('photo')->store('tourist_spots', $disk);
+        $path = \App\Helpers\ImageCompressor::compressAndStore($request->file('photo'), 'tourist_spots', $disk, 'spot_', 1200, 80);
 
         if (in_array($disk, ['r2', 's3'])) {
             $fullUrl = \Illuminate\Support\Facades\Storage::disk($disk)->url($path);
@@ -198,7 +198,7 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
 
         if ($request->hasFile('photo')) {
             $disk = env('FILESYSTEM_DISK', 'public');
-            $path = $request->file('photo')->store('tourist_spots', $disk);
+            $path = \App\Helpers\ImageCompressor::compressAndStore($request->file('photo'), 'tourist_spots', $disk, 'spot_', 1200, 80);
             if (in_array($disk, ['r2', 's3'])) {
                 $data['photo_url'] = \Illuminate\Support\Facades\Storage::disk($disk)->url($path);
             } else {

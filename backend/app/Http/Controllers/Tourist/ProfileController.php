@@ -290,21 +290,19 @@ class ProfileController extends Controller
         if ($request->hasFile('avatar')) {
             try {
                 $file = $request->file('avatar');
-                $ext = $file->getClientOriginalExtension() ?: 'jpg';
-                $filename = 'avatar_' . random_int(100000, 999999) . '.' . $ext;
                 $disk = 'r2';
 
                 try {
-                    // Store directly to Cloudflare R2 bucket
-                    $path = $file->storeAs('avatars', $filename, 'r2');
+                    // Compress and store directly to Cloudflare R2 bucket
+                    $path = \App\Helpers\ImageCompressor::compressAndStore($file, 'avatars', 'r2', 'avatar_', 800, 80);
                 } catch (\Throwable $r2Exception) {
                     \Illuminate\Support\Facades\Log::warning("R2 avatar store failed, fallback to public disk: " . $r2Exception->getMessage());
                     $disk = env('FILESYSTEM_DISK', 'public');
                     try {
-                        $path = $file->storeAs('avatars', $filename, $disk);
+                        $path = \App\Helpers\ImageCompressor::compressAndStore($file, 'avatars', $disk, 'avatar_', 800, 80);
                     } catch (\Throwable $diskErr) {
                         $disk = 'public';
-                        $path = $file->storeAs('avatars', $filename, 'public');
+                        $path = \App\Helpers\ImageCompressor::compressAndStore($file, 'avatars', 'public', 'avatar_', 800, 80);
                     }
                 }
 
