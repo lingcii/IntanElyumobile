@@ -107,22 +107,19 @@ class ItineraryItemController extends Controller
             if ($request->hasFile('image')) {
                 try {
                     $file = $request->file('image');
-                    $ext = $file->getClientOriginalExtension() ?: 'jpg';
-                    $filename = 'proof_' . random_int(10000000, 99999999) . '.' . $ext;
-                    $targetPath = 'proof_images/' . $filename;
                     $disk = 'r2';
 
                     try {
-                        // Store directly to Cloudflare R2 bucket
-                        $path = $file->storeAs('proof_images', $filename, 'r2');
+                        // Compress and store directly to Cloudflare R2 bucket
+                        $path = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', 'r2', 'proof_', 1200, 80);
                     } catch (\Throwable $r2Exception) {
                         \Illuminate\Support\Facades\Log::warning("R2 disk store failed, attempting fallback disk: " . $r2Exception->getMessage());
                         $disk = env('FILESYSTEM_DISK', 'public');
                         try {
-                            $path = $file->storeAs('proof_images', $filename, $disk);
+                            $path = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', $disk, 'proof_', 1200, 80);
                         } catch (\Throwable $diskException) {
                             $disk = 'public';
-                            $path = $file->storeAs('proof_images', $filename, 'public');
+                            $path = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', 'public', 'proof_', 1200, 80);
                         }
                     }
 
