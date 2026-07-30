@@ -94,8 +94,17 @@ window.setHtml = function (id, html) {
 };
 
 window.getBackendUrl = function () {
-    var url = window.backendUrl || window.BACKEND_URL || (typeof window !== 'undefined' && window.location ? window.location.origin : '');
-    return (url || '').replace(/\/+$/, '');
+    var url = window.backendUrl || window.BACKEND_URL;
+    if (typeof window !== 'undefined' && window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+        return 'https://app.intan-elyu.online';
+    }
+    if (!url || url.indexOf('localhost') !== -1 || url.indexOf('127.0.0.1') !== -1 || url.indexOf('capacitor://') === 0 || url.indexOf('file://') === 0) {
+        if (typeof window !== 'undefined' && window.location && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            return window.location.origin.replace(/\/+$/, '');
+        }
+        return 'https://app.intan-elyu.online';
+    }
+    return (url || (typeof window !== 'undefined' && window.location ? window.location.origin : '')).replace(/\/+$/, '');
 };
 
 window.getFullImageUrl = function (url) {
