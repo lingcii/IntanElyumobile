@@ -227,44 +227,6 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
             'message' => 'Tourist spot created successfully!',
             'spot' => $spot
         ]);
-    // Direct proof image upload endpoint to Cloudflare R2 bucket
-    Route::post('/proof-images/upload', function (\Illuminate\Http\Request $request) {
-        $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,webp,gif|max:10240',
-            'itinerary_item_id' => 'nullable|integer'
-        ]);
-
-        $file = $request->file('image');
-        $disk = 'r2';
-        try {
-            $path = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', 'r2', 'proof_12310909_', 1200, 80);
-        } catch (\Throwable $e) {
-            $disk = env('FILESYSTEM_DISK', 'public');
-            $path = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', $disk, 'proof_12310909_', 1200, 80);
-        }
-
-        if ($disk === 'r2') {
-            $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
-            $fullUrl = $r2PublicUrl . '/' . ltrim($path, '/');
-        } else {
-            $fullUrl = asset('storage/' . $path);
-        }
-
-        if ($request->filled('itinerary_item_id')) {
-            $item = \App\Models\ItineraryItem::find($request->input('itinerary_item_id'));
-            if ($item) {
-                $item->update([
-                    'proof_image'  => $fullUrl,
-                    'proof_status' => 'pending'
-                ]);
-            }
-        }
-
-        return response()->json([
-            'success'     => true,
-            'message'     => 'Proof image uploaded to Cloudflare R2 successfully!',
-            'proof_image' => $fullUrl
-        ]);
     });
 
     // ── Admin Proof Check-ins Management (Cloudflare R2 stored photos) ──
