@@ -210,3 +210,140 @@ body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color
   animation-range: entry 10% cover 30%;
 }
 
+/* ============================================================
+ * Typographic Line Balancing & Stacking Context Isolation
+ * ============================================================ */
+
+/* Eliminate orphan words in headings & titles */
+h1, h2, h3, h4, h5, h6,
+.auth-top h1, .section-title, .fav-card-name, .sheet-title, .modal-title {
+  text-wrap: balance;
+}
+
+/* Prevent paragraph orphan words */
+p, .description, .body-text, .subtitle, .faq-answer {
+  text-wrap: pretty;
+}
+
+/* Stacking Context Isolation Helper (Prevents z-index traps) */
+.isolate-context {
+  isolation: isolate;
+}
+
+/* ============================================================
+ * Lumora Modern CSS Recipes (:user-invalid, Stagger, SVG Ring)
+ * ============================================================ */
+
+/* 1. Zero-JS Polite Validation (:user-invalid & :user-valid) */
+.auth-input:user-invalid, 
+input:user-invalid {
+  border-bottom-color: #f87171 !important;
+}
+
+.auth-input:user-valid, 
+input:user-valid {
+  border-bottom-color: #34d399 !important;
+}
+
+/* 2. Weightless Staggered List Entrance Animation */
+@keyframes fadeInUpStagger {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-item {
+  animation: fadeInUpStagger 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--stagger-index, 0) * 50ms);
+}
+
+/* 3. Circular SVG Progress Ring (12 o'clock start + rounded caps) */
+.progress-ring-svg {
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
+.progress-ring-circle {
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease-in-out;
+}
+
+/* ============================================================
+ * 60 / 30 / 10 UI Color Ratio Tokens & Utility Classes
+ * ============================================================ */
+
+:root {
+  --ratio-60-neutral: #0B0F19;     /* 60% Page Background Canvas */
+  --ratio-30-secondary: #141C2E;   /* 30% Structural Surface Panels & Cards */
+  --ratio-10-accent: #38BDF8;      /* 10% Focal CTA Accent */
+}
+
+.bg-canvas-60 { 
+  background-color: var(--ratio-60-neutral) !important; 
+}
+
+.panel-surface-30 { 
+  background-color: var(--ratio-30-secondary) !important; 
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.btn-cta-accent-10 {
+  background: var(--ratio-10-accent) !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  box-shadow: 0 8px 24px rgba(56, 189, 248, 0.25) !important;
+  border: none !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.btn-cta-accent-10:active {
+  transform: scale(0.96) !important;
+}
+
+/* ============================================================
+ * Lumora CSS Grid Accordion (0fr -> 1fr) & Empty State Utilities
+ * ============================================================ */
+
+/* 1. Zero-Jank CSS Grid Accordion Transition (0fr -> 1fr) */
+.accordion-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.accordion-wrapper.is-open {
+  grid-template-rows: 1fr;
+}
+
+.accordion-wrapper > .accordion-inner {
+  overflow: hidden;
+}
+
+/* 2. Premium Designed Empty State Card Utility */
+.empty-state-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 24px;
+  background: var(--ratio-30-secondary, #141C2E);
+  border-radius: var(--radius-card-outer, 24px);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  gap: 12px;
+}
+
+.empty-state-icon {
+  font-size: 42px;
+  margin-bottom: 4px;
+  background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+
