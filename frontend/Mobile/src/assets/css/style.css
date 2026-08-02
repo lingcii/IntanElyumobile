@@ -27,6 +27,20 @@
   --gamify-yellow: #EAB308;
   --accent-green: #10B981;
   --accent-red: #EF4444;
+  /* Concentric Corner Design Tokens (Formula: inner = outer - padding) */
+  --radius-card-outer: 24px;
+  --card-padding-md: 14px;
+  --card-padding-sm: 10px;
+  --radius-card-inner-md: calc(var(--radius-card-outer) - var(--card-padding-md)); /* 10px */
+  --radius-card-inner-sm: calc(var(--radius-card-outer) - var(--card-padding-sm)); /* 14px */
+
+  --radius-sheet-outer: 28px;
+  --sheet-padding: 16px;
+  --radius-sheet-inner: calc(var(--radius-sheet-outer) - var(--sheet-padding)); /* 12px */
+
+  --radius-modal-outer: 24px;
+  --modal-padding: 16px;
+  --radius-modal-inner: calc(var(--radius-modal-outer) - var(--modal-padding)); /* 8px */
 }
 
 /* Fallback for legacy CSS engines that do not support OKLCH color-mix */
@@ -45,6 +59,28 @@
 
 .text-subtle {
   color: var(--color-text-subtle, #64748B) !important;
+}
+
+/* Concentric Corner Utility Helpers (Concentric curves: inner = outer - padding) */
+.concentric-card {
+  border-radius: var(--radius-card-outer) !important;
+  padding: var(--card-padding-md) !important;
+}
+
+.concentric-card > .concentric-inner,
+.concentric-card img,
+.concentric-card .card-badge {
+  border-radius: var(--radius-card-inner-md) !important;
+}
+
+.concentric-sheet {
+  border-radius: var(--radius-sheet-outer) var(--radius-sheet-outer) 0 0 !important;
+  padding: var(--sheet-padding) !important;
+}
+
+.concentric-sheet #sheet-slider-track,
+.concentric-sheet .sheet-img {
+  border-radius: var(--radius-sheet-inner) !important;
 }
 
 /* Global Style Base */
