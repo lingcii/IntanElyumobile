@@ -88,15 +88,17 @@
                     <div class="input-group">
                         <i class="fa-solid fa-mobile-screen"></i>
                         <input type="email" id="reg-email" class="auth-input" placeholder="Email Address" required oninput="validateRegisterFormInline()">
+                        <i id="reg-email-status-icon" class="fa-solid field-status-icon"></i>
                     </div>
-                    <div id="reg-email-hint" class="input-field-hint" style="display: none; margin-bottom: 8px;"></div>
+                    <div id="reg-email-hint" class="input-field-hint" style="display: none;"></div>
 
                     <div class="input-group">
                         <i class="fa-solid fa-lock"></i>
                         <input type="password" id="reg-password" class="auth-input" placeholder="Create Password" required oninput="validateRegisterFormInline()">
+                        <i id="reg-password-status-icon" class="fa-solid field-status-icon password-offset"></i>
                         <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('reg-password', this)"></i>
                     </div>
-                    <div id="reg-password-hint" class="input-field-hint" style="display: none; margin-bottom: 8px;"></div>
+                    <div id="reg-password-hint" class="input-field-hint" style="display: none;"></div>
                     
                     <div style="font-size: 11px; color: rgba(255,255,255,0.85); margin: 10px 0 16px 4px; display: flex; align-items: center; gap: 8px;">
                         <input type="checkbox" id="reg-privacy-checkbox" class="circular-checkbox" style="cursor: pointer;" required>
@@ -907,37 +909,48 @@
 
     window.validateRegisterFormInline = function() {
         const emailEl = document.getElementById('reg-email');
+        const emailIcon = document.getElementById('reg-email-status-icon');
         const emailHint = document.getElementById('reg-email-hint');
+
         const pwdEl = document.getElementById('reg-password');
+        const pwdIcon = document.getElementById('reg-password-status-icon');
         const pwdHint = document.getElementById('reg-password-hint');
 
-        if (emailEl && emailHint) {
+        if (emailEl) {
             const val = emailEl.value.trim();
             if (val.length === 0) {
-                emailHint.innerHTML = '';
-                emailHint.style.display = 'none';
+                if (emailIcon) emailIcon.className = 'fa-solid field-status-icon';
+                if (emailHint) { emailHint.innerHTML = ''; emailHint.style.display = 'none'; }
             } else {
-                emailHint.style.display = 'block';
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (emailRegex.test(val)) {
-                    emailHint.innerHTML = '<span style="color:#34d399; font-size:11px; font-weight:600; display:flex; align-items:center; gap:4px; margin-top:3px;"><i class="fa-solid fa-circle-check"></i> Valid email format</span>';
+                    if (emailIcon) emailIcon.className = 'fa-solid fa-circle-check field-status-icon valid';
+                    if (emailHint) { emailHint.innerHTML = ''; emailHint.style.display = 'none'; }
                 } else {
-                    emailHint.innerHTML = '<span style="color:#f87171; font-size:11px; font-weight:600; display:flex; align-items:center; gap:4px; margin-top:3px;"><i class="fa-solid fa-circle-xmark"></i> Enter a valid email (e.g. name@domain.com)</span>';
+                    if (emailIcon) emailIcon.className = 'fa-solid fa-circle-xmark field-status-icon invalid';
+                    if (emailHint) {
+                        emailHint.style.display = 'block';
+                        emailHint.innerHTML = '<span style="color:#f87171;"><i class="fa-solid fa-circle-exclamation" style="margin-right:3px;"></i> Enter a valid email address</span>';
+                    }
                 }
             }
         }
 
-        if (pwdEl && pwdHint) {
+        if (pwdEl) {
             const pwd = pwdEl.value;
             if (pwd.length === 0) {
-                pwdHint.innerHTML = '';
-                pwdHint.style.display = 'none';
+                if (pwdIcon) pwdIcon.className = 'fa-solid field-status-icon password-offset';
+                if (pwdHint) { pwdHint.innerHTML = ''; pwdHint.style.display = 'none'; }
             } else {
-                pwdHint.style.display = 'block';
                 if (pwd.length >= 8) {
-                    pwdHint.innerHTML = '<span style="color:#34d399; font-size:11px; font-weight:600; display:flex; align-items:center; gap:4px; margin-top:3px;"><i class="fa-solid fa-circle-check"></i> Password looks good — 8+ characters ✔</span>';
+                    if (pwdIcon) pwdIcon.className = 'fa-solid fa-circle-check field-status-icon password-offset valid';
+                    if (pwdHint) { pwdHint.innerHTML = ''; pwdHint.style.display = 'none'; }
                 } else {
-                    pwdHint.innerHTML = '<span style="color:#f87171; font-size:11px; font-weight:600; display:flex; align-items:center; gap:4px; margin-top:3px;"><i class="fa-solid fa-circle-xmark"></i> Password needs at least 8 characters (' + pwd.length + '/8)</span>';
+                    if (pwdIcon) pwdIcon.className = 'fa-solid fa-circle-xmark field-status-icon password-offset invalid';
+                    if (pwdHint) {
+                        pwdHint.style.display = 'block';
+                        pwdHint.innerHTML = '<span style="color:#f87171;"><i class="fa-solid fa-circle-exclamation" style="margin-right:3px;"></i> Password needs 8+ characters (' + pwd.length + '/8)</span>';
+                    }
                 }
             }
         }

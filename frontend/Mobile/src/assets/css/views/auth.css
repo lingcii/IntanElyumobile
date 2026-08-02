@@ -321,15 +321,47 @@ body[data-view="auth"] {
     transition: background-color 5000s ease-in-out 0s;
 }
 
-.auth-input::placeholder {
-    color: #64748b;
-}
-
 .input-group i.password-toggle {
     left: auto;
     right: 4px;
     cursor: pointer;
     pointer-events: auto;
+}
+
+/* Inline Field Validation Badges & Microcopy */
+.input-group .field-status-icon {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    opacity: 0;
+}
+
+.input-group .field-status-icon.password-offset {
+    right: 32px;
+}
+
+.input-group .field-status-icon.valid {
+    opacity: 1;
+    color: #34d399;
+}
+
+.input-group .field-status-icon.invalid {
+    opacity: 1;
+    color: #f87171;
+}
+
+.input-field-hint {
+    font-size: 10.5px;
+    font-weight: 600;
+    margin-top: 3px;
+    margin-bottom: 6px;
+    padding-left: 4px;
+    line-height: 1.3;
+    transition: all 0.2s ease;
 }
 
 /* Forgot Password Link */
