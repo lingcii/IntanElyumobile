@@ -77,25 +77,26 @@
             <!-- Panel 2: Register -->
             <div class="form-panel register-form">
                 <form id="form-register" onsubmit="handleRegisterSubmit(event)">
-                    <div style="display: flex; gap: 10px;">
-                        <div class="input-group" style="flex: 1;">
-                            <i class="fa-regular fa-user"></i>
-                            <input type="text" id="reg-first-name" class="auth-input" placeholder="First Name" required>
-                        </div>
-                        <div class="input-group" style="flex: 1;">
-                            <i class="fa-regular fa-user"></i>
-                            <input type="text" id="reg-last-name" class="auth-input" placeholder="Last Name" required>
-                        </div>
+                    <div class="input-group">
+                        <i class="fa-regular fa-user"></i>
+                        <input type="text" id="reg-first-name" class="auth-input" placeholder="First Name" required oninput="validateRegisterFormInline()">
+                    </div>
+                    <div class="input-group">
+                        <i class="fa-regular fa-user"></i>
+                        <input type="text" id="reg-last-name" class="auth-input" placeholder="Last Name" required oninput="validateRegisterFormInline()">
                     </div>
                     <div class="input-group">
                         <i class="fa-solid fa-mobile-screen"></i>
-                        <input type="email" id="reg-email" class="auth-input" placeholder="Email Address" required>
+                        <input type="email" id="reg-email" class="auth-input" placeholder="Email Address" required oninput="validateRegisterFormInline()">
                     </div>
+                    <div id="reg-email-hint" class="input-field-hint" style="display: none; margin-bottom: 8px;"></div>
+
                     <div class="input-group">
                         <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="reg-password" class="auth-input" placeholder="Create Password" required>
+                        <input type="password" id="reg-password" class="auth-input" placeholder="Create Password" required oninput="validateRegisterFormInline()">
                         <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('reg-password', this)"></i>
                     </div>
+                    <div id="reg-password-hint" class="input-field-hint" style="display: none; margin-bottom: 8px;"></div>
                     
                     <div style="font-size: 11px; color: rgba(255,255,255,0.85); margin: 10px 0 16px 4px; display: flex; align-items: center; gap: 8px;">
                         <input type="checkbox" id="reg-privacy-checkbox" class="circular-checkbox" style="cursor: pointer;" required>
@@ -904,8 +905,47 @@
         }
     };
 
+    window.validateRegisterFormInline = function() {
+        const emailEl = document.getElementById('reg-email');
+        const emailHint = document.getElementById('reg-email-hint');
+        const pwdEl = document.getElementById('reg-password');
+        const pwdHint = document.getElementById('reg-password-hint');
+
+        if (emailEl && emailHint) {
+            const val = emailEl.value.trim();
+            if (val.length === 0) {
+                emailHint.innerHTML = '';
+                emailHint.style.display = 'none';
+            } else {
+                emailHint.style.display = 'block';
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (emailRegex.test(val)) {
+                    emailHint.innerHTML = '<span style="color:#34d399; font-size:11px; font-weight:600; display:flex; align-items:center; gap:4px; margin-top:3px;"><i class="fa-solid fa-circle-check"></i> Valid email format</span>';
+                } else {
+                    emailHint.innerHTML = '<span style="color:#f87171; font-size:11px; font-weight:600; display:flex; align-items:center; gap:4px; margin-top:3px;"><i class="fa-solid fa-circle-xmark"></i> Enter a valid email (e.g. name@domain.com)</span>';
+                }
+            }
+        }
+
+        if (pwdEl && pwdHint) {
+            const pwd = pwdEl.value;
+            if (pwd.length === 0) {
+                pwdHint.innerHTML = '';
+                pwdHint.style.display = 'none';
+            } else {
+                pwdHint.style.display = 'block';
+                if (pwd.length >= 8) {
+                    pwdHint.innerHTML = '<span style="color:#34d399; font-size:11px; font-weight:600; display:flex; align-items:center; gap:4px; margin-top:3px;"><i class="fa-solid fa-circle-check"></i> Password looks good — 8+ characters ✔</span>';
+                } else {
+                    pwdHint.innerHTML = '<span style="color:#f87171; font-size:11px; font-weight:600; display:flex; align-items:center; gap:4px; margin-top:3px;"><i class="fa-solid fa-circle-xmark"></i> Password needs at least 8 characters (' + pwd.length + '/8)</span>';
+                }
+            }
+        }
+    };
+
     window.handleRegisterSubmit = async function(e) {
         if (e) e.preventDefault();
+        window.validateRegisterFormInline();
         const pwd = document.getElementById('reg-password')?.value || '';
         const firstName = (document.getElementById('reg-first-name')?.value || '').trim();
         const lastName = (document.getElementById('reg-last-name')?.value || '').trim();
@@ -917,8 +957,24 @@
             return;
         }
 
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            const emailHint = document.getElementById('reg-email-hint');
+            if (emailHint) {
+                emailHint.style.display = 'block';
+                emailHint.innerHTML = '<span style="color:#f87171; font-size:11px; font-weight:600; display:flex; align-items:center; gap:4px; margin-top:3px;"><i class="fa-solid fa-circle-xmark"></i> Enter a valid email (e.g. name@domain.com)</span>';
+            }
+            document.getElementById('reg-email')?.focus();
+            return;
+        }
+
         if (pwd.length < 8) {
-            if (typeof showToast === 'function') showToast('Password must be at least 8 characters long.');
+            const pwdHint = document.getElementById('reg-password-hint');
+            if (pwdHint) {
+                pwdHint.style.display = 'block';
+                pwdHint.innerHTML = '<span style="color:#f87171; font-size:11px; font-weight:600; display:flex; align-items:center; gap:4px; margin-top:3px;"><i class="fa-solid fa-circle-xmark"></i> Password needs at least 8 characters</span>';
+            }
+            document.getElementById('reg-password')?.focus();
             return;
         }
 
