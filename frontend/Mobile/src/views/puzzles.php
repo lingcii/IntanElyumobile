@@ -41,15 +41,15 @@ include __DIR__ . '/../components/header.php';
     <!-- SLIDING PUZZLE TAB -->
     <div id="game-tab-puzzle" class="game-tab-content">
         <div style="background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 16px; margin-bottom: 16px; text-align: center;">
-            <h3 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800;">Tangadan Falls Slide Puzzle</h3>
-            <p style="margin: 0; font-size: 12px; color: rgba(148, 163, 184, 0.8); line-height: 1.4;">
+            <h3 id="puzzle-title" style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800;">Tangadan Falls Slide Puzzle</h3>
+            <p id="puzzle-desc" style="margin: 0; font-size: 12px; color: rgba(148, 163, 184, 0.8); line-height: 1.4;">
                 Rearrange the tiles to reveal the image of the famous Tangadan Waterfalls in San Gabriel! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.
             </p>
 
             <!-- Target Reference Image Preview -->
             <div style="margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 6px 12px; width: fit-content; margin-left: auto; margin-right: auto;">
                 <span style="font-size: 11px; color: rgba(226,232,240,0.8); font-weight: 700;">Target Goal:</span>
-                <img src="https://images.unsplash.com/photo-1544644181-1484b3fdfc62?w=300&auto=format&fit=crop&q=80" alt="Tangadan Falls Target" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover; border: 1.5px solid #38bdf8; box-shadow: 0 2px 8px rgba(56,189,248,0.3);">
+                <img id="puzzle-target-img" src="https://images.unsplash.com/photo-1544644181-1484b3fdfc62?w=300&auto=format&fit=crop&q=80" alt="Tangadan Falls Target" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover; border: 1.5px solid #38bdf8; box-shadow: 0 2px 8px rgba(56,189,248,0.3);">
             </div>
             
             <!-- Moves and Timer info -->
@@ -413,8 +413,42 @@ function switchGameTab(tabName) {
 }
 
 // ----------------------------------------------------
-// SLIDING PUZZLE LOGIC
+// SLIDING PUZZLE LOGIC (Randomized La Union Spot Images)
 // ----------------------------------------------------
+const PUZZLE_IMAGES = [
+    {
+        name: "Tangadan Falls",
+        location: "San Gabriel",
+        image: "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?w=600&auto=format&fit=crop&q=80",
+        desc: 'Rearrange the tiles to reveal the image of the famous Tangadan Waterfalls in San Gabriel! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.'
+    },
+    {
+        name: "Urbiztondo Surfing Beach",
+        location: "San Juan",
+        image: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=600&auto=format&fit=crop&q=80",
+        desc: 'Rearrange the tiles to reveal the vibrant waves of Urbiztondo Surfing Beach in San Juan! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.'
+    },
+    {
+        name: "Ma-Cho Temple",
+        location: "San Fernando",
+        image: "https://images.unsplash.com/photo-1548013146-72479768bada?w=600&auto=format&fit=crop&q=80",
+        desc: 'Rearrange the tiles to reveal the majestic Taoist Ma-Cho Temple in San Fernando! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.'
+    },
+    {
+        name: "Pebble Beach & Baluarte",
+        location: "Luna",
+        image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&auto=format&fit=crop&q=80",
+        desc: 'Rearrange the tiles to reveal the historic Baluarte Watchtower on Pebble Beach in Luna! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.'
+    },
+    {
+        name: "Bauang Grape Farms",
+        location: "Bauang",
+        image: "https://images.unsplash.com/photo-1560493676-04071c5f467b?w=600&auto=format&fit=crop&q=80",
+        desc: 'Rearrange the tiles to reveal the lush grape vineyards of Lomboy Farms in Bauang! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.'
+    }
+];
+
+let currentPuzzleItem = PUZZLE_IMAGES[0];
 let tiles = [];
 let moves = 0;
 let timeSec = 0;
@@ -435,6 +469,20 @@ function initPuzzle() {
             return;
         }
     } catch(e) {}
+
+    // Select a random puzzle image (preferring a new one)
+    const randomIdx = Math.floor(Math.random() * PUZZLE_IMAGES.length);
+    currentPuzzleItem = PUZZLE_IMAGES[randomIdx];
+
+    // Update Title, Description, and Target Goal Thumbnail
+    const titleEl = document.getElementById('puzzle-title');
+    const descEl = document.getElementById('puzzle-desc');
+    const targetImgEl = document.getElementById('puzzle-target-img');
+
+    if (titleEl) titleEl.textContent = currentPuzzleItem.name + ' Slide Puzzle';
+    if (descEl) descEl.innerHTML = currentPuzzleItem.desc;
+    if (targetImgEl) targetImgEl.src = currentPuzzleItem.image;
+
     moves = 0;
     timeSec = 0;
     puzzleSolved = false;
@@ -486,6 +534,8 @@ function renderPuzzleBoard() {
             div.className = 'puzzle-tile puzzle-empty';
         } else {
             div.className = 'puzzle-tile';
+            div.style.backgroundImage = `url('${currentPuzzleItem.image}')`;
+            div.style.backgroundSize = '300px 300px';
             const x = (val % 3) * 100;
             const y = Math.floor(val / 3) * 100;
             div.style.backgroundPosition = `-${x}px -${y}px`;
