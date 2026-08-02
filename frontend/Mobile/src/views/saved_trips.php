@@ -316,7 +316,7 @@ $backRoute = 'itinerary';
                                                 <span style="color:#34c759; font-size:12px; font-weight:800; display:block;">
                                                     <i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Visited & Verified
                                                 </span>
-                                                <span style="font-size:10px; color:rgba(226,232,240,0.6);">Confirmed in Database</span>
+                                                <span style="font-size:10px; color:rgba(226,232,240,0.6);">Your Trip has been Confirmed!</span>
                                             </div>
                                         </div>
                                         <button type="button" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (dest ? dest.id : '')}')" style="background:linear-gradient(135deg, rgba(56,189,248,0.15), rgba(37,99,235,0.25)); border:1px solid rgba(56,189,248,0.35); color:#38bdf8; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(56,189,248,0.2); flex-shrink:0;">
