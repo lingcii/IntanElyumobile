@@ -41,6 +41,26 @@
   --radius-modal-outer: 24px;
   --modal-padding: 16px;
   --radius-modal-inner: calc(var(--radius-modal-outer) - var(--modal-padding)); /* 8px */
+
+  /* Rule #1: Systematic 4px/8px Spacing Scale */
+  --space-3xs: 2px;
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* Rule #2: Proximity & Grouping Gaps */
+  --gap-tight: 4px;    /* Icon + Label, Title + Subtitle */
+  --gap-group: 8px;    /* Items in same component */
+  --gap-section: 20px; /* Separate content blocks */
+  --gap-layout: 32px;  /* Major page sections */
+
+  /* Rule #3: Generous Whitespace Padding */
+  --padding-card-generous: 20px 24px;
+  --padding-modal-generous: 24px;
 }
 
 /* Fallback for legacy CSS engines that do not support OKLCH color-mix */
@@ -81,6 +101,19 @@
 .concentric-sheet #sheet-slider-track,
 .concentric-sheet .sheet-img {
   border-radius: var(--radius-sheet-inner) !important;
+}
+
+/* Layout Spacing & Grouping Utilities (Rule #1, #2, #3) */
+.gap-tight { gap: var(--gap-tight, 4px) !important; }
+.gap-group { gap: var(--gap-group, 8px) !important; }
+.gap-section { gap: var(--gap-section, 20px) !important; }
+
+.stacked-tight { display: flex; flex-direction: column; gap: var(--gap-tight, 4px); }
+.stacked-group { display: flex; flex-direction: column; gap: var(--gap-group, 8px); }
+.stacked-section { display: flex; flex-direction: column; gap: var(--gap-section, 20px); }
+
+.card-whitespace-generous {
+  padding: var(--padding-card-generous, 20px 24px) !important;
 }
 
 /* Global Style Base */
