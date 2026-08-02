@@ -3,7 +3,10 @@
   --color-bg-base: #0B0F19;
   --color-bg-card: #141C2E;
   --color-text-main: #FFFFFF;
-  --color-text-muted: #94A3B8;
+
+  /* Dynamic derived text colors (OKLCH Color Mix - "Derive it, don't guess") */
+  --color-text-muted: color-mix(in oklch, var(--color-text-main, #FFFFFF), var(--color-bg-base, #0B0F19) 35%);
+  --color-text-subtle: color-mix(in oklch, var(--color-text-main, #FFFFFF), var(--color-bg-base, #0B0F19) 50%);
 
   /* Primary Brand (Blue) */
   --color-blue-primary: #2563EB;
@@ -18,12 +21,30 @@
   --bg-dark-base: #0B0F19;
   --bg-card-surface: #141C2E;
   --text-primary: #FFFFFF;
-  --text-secondary: #94A3B8;
+  --text-secondary: color-mix(in oklch, var(--text-primary, #FFFFFF), var(--bg-dark-base, #0B0F19) 35%);
   --brand-primary: #2563EB;
   --brand-light: #60A5FA;
   --gamify-yellow: #EAB308;
   --accent-green: #10B981;
   --accent-red: #EF4444;
+}
+
+/* Fallback for legacy CSS engines that do not support OKLCH color-mix */
+@supports not (color: color-mix(in oklch, #ffffff, #0b0f19 35%)) {
+  :root {
+    --color-text-muted: #94A3B8;
+    --color-text-subtle: #64748B;
+    --text-secondary: #94A3B8;
+  }
+}
+
+/* Global Dynamic Text Utilities */
+.text-muted, .text-secondary {
+  color: var(--color-text-muted, #94A3B8) !important;
+}
+
+.text-subtle {
+  color: var(--color-text-subtle, #64748B) !important;
 }
 
 /* Global Style Base */
