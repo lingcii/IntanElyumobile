@@ -752,4 +752,51 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     Route::get('/quests/my-completions', [QuestController::class, 'myCompletions']);
     Route::get('/quests/{id}/generate', [QuestController::class, 'generate']);
     Route::post('/quests/{id}/start', [QuestController::class, 'startQuest']);
+
+    // Puzzle Tourist Spot Images from Database
+    Route::get('/puzzles/spots', function () {
+        try {
+            $spots = \App\Models\TouristSpot::with('municipality')
+                ->whereNotNull('photo_url')
+                ->where('photo_url', '!=', '')
+                ->where(function($q) {
+                    $q->whereNull('status')->orWhere('status', 'approved');
+                })
+                ->inRandomOrder()
+                ->limit(20)
+                ->get();
+
+            $formatted = $spots->map(function ($spot) {
+                $pUrl = $spot->photo_url;
+                if ($pUrl) {
+                    if (str_contains($pUrl, 'file=')) {
+                        $parts = parse_url($pUrl);
+                        parse_str($parts['query'] ?? '', $query);
+                        if (!empty($query['file'])) {
+                            $pUrl = '/api/image/' . ltrim($query['file'], '/');
+                        }
+                    } else if (!str_starts_with($pUrl, 'http') && !str_starts_with($pUrl, '/')) {
+                        $pUrl = '/api/image/' . $pUrl;
+                    }
+                }
+                
+                $munName = $spot->municipality ? $spot->municipality->name : 'La Union';
+
+                return [
+                    'id' => $spot->id,
+                    'name' => $spot->name,
+                    'location' => $munName,
+                    'image' => $pUrl,
+                    'desc' => "Rearrange the tiles to reveal the image of {$spot->name} in {$munName}! Solve to earn <strong style=\"color: #38bdf8;\">+100 Points</strong>."
+                ];
+            });
+
+            return response()->json([
+                'status' => 'success',
+                'spots' => $formatted
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    });
 });

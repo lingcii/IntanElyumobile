@@ -449,10 +449,38 @@ const PUZZLE_IMAGES = [
 ];
 
 let currentPuzzleItem = PUZZLE_IMAGES[0];
+let dbPuzzleSpots = [];
 let tiles = [];
 let moves = 0;
 let timeSec = 0;
 let puzzleSolved = false;
+
+async function fetchDatabasePuzzleSpots() {
+    try {
+        const url = (window.backendUrl || '').replace(/\/+$/, '') + '/api/puzzles/spots';
+        const res = await fetch(url, { headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' } });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.status === 'success' && Array.isArray(data.spots) && data.spots.length > 0) {
+                dbPuzzleSpots = data.spots.map(s => {
+                    let imgUrl = s.image;
+                    if (imgUrl && !imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) {
+                        imgUrl = (window.backendUrl || '').replace(/\/+$/, '') + imgUrl;
+                    }
+                    return {
+                        name: s.name,
+                        location: s.location,
+                        image: imgUrl,
+                        desc: s.desc
+                    };
+                });
+            }
+        }
+    } catch(e) {
+        console.warn('Could not fetch database puzzle spots:', e);
+    }
+}
+fetchDatabasePuzzleSpots();
 
 // Clear any lingering interval from a prior IIFE run (SPA AJAX re-execution)
 if (window._puzzleTimerInterval) clearInterval(window._puzzleTimerInterval);
@@ -470,9 +498,10 @@ function initPuzzle() {
         }
     } catch(e) {}
 
-    // Select a random puzzle image (preferring a new one)
-    const randomIdx = Math.floor(Math.random() * PUZZLE_IMAGES.length);
-    currentPuzzleItem = PUZZLE_IMAGES[randomIdx];
+    // Select a random puzzle image from database pool (or fallback static pool)
+    const pool = (dbPuzzleSpots && dbPuzzleSpots.length > 0) ? dbPuzzleSpots : PUZZLE_IMAGES;
+    const randomIdx = Math.floor(Math.random() * pool.length);
+    currentPuzzleItem = pool[randomIdx];
 
     // Update Title, Description, and Target Goal Thumbnail
     const titleEl = document.getElementById('puzzle-title');
