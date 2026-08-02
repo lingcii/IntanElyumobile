@@ -468,6 +468,37 @@ function copyVoucherCode() {
     });
 }
 
+async function fetchLiveDatabaseVouchers() {
+    try {
+        const url = (window.backendUrl || '').replace(/\/+$/, '') + '/api/vouchers';
+        const res = await fetch(url, { headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' } });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.status === 'success' && Array.isArray(data.data) && data.data.length > 0) {
+                const dbVouchers = data.data.map(v => ({
+                    id: 'db_' + v.id,
+                    dbId: v.id,
+                    title: v.title,
+                    category: v.category || 'Food & Dining',
+                    partner: v.partner || 'LUPTO Admin',
+                    location: v.location || 'La Union',
+                    badge: v.badge || 'SPECIAL OFFER',
+                    pointsCost: v.pointsCost || 100,
+                    icon: 'fa-gift',
+                    color: '#38bdf8',
+                    code: v.code || 'ELYU-PROMO',
+                    expires: v.expires || '2026-12-31',
+                    description: v.description || 'Redeem present code at checkout.'
+                }));
+                vouchersData = [...dbVouchers, ...vouchersData];
+                renderDiscounts();
+            }
+        }
+    } catch(e) {
+        console.warn('Could not load live database vouchers:', e);
+    }
+}
+
 // Expose global functions
 window.filterDiscounts = filterDiscounts;
 window.openVoucherModal = openVoucherModal;
@@ -476,5 +507,6 @@ window.copyVoucherCode = copyVoucherCode;
 window.renderDiscounts = renderDiscounts;
 
 renderDiscounts();
+fetchLiveDatabaseVouchers();
 })();
 </script>

@@ -738,11 +738,14 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     Route::post('/feedback', [FeedbackController::class, 'store']);
 
     // Points & Vouchers
+    Route::get('/vouchers', [\App\Http\Controllers\VoucherController::class, 'index']);
+    Route::get('/fares', [\App\Http\Controllers\FareController::class, 'index']);
     Route::get('/points/balance', [PointsController::class, 'getBalance']);
     Route::post('/points/puzzle', [PointsController::class, 'awardPuzzlePoints']);
     Route::post('/points/trivia', [PointsController::class, 'awardTriviaPoints']);
     Route::post('/points/minigame', [PointsController::class, 'awardMiniGamePoints']);
     Route::post('/points/redeem', [PointsController::class, 'redeem']);
+    Route::post('/points/redeem-voucher', [\App\Http\Controllers\VoucherController::class, 'redeemVoucher']);
 
     // Quests & Gamification
     Route::get('/quests', [QuestController::class, 'index']);
