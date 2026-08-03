@@ -87,13 +87,52 @@ class ImageCompressor
                 @unlink($savePath);
 
                 if ($storedPath) {
+                    // Verify scan: Check if file exists on disk (R2/S3/local) immediately after upload
+                    self::verifyUploadScan($storedPath, $disk);
                     return $storedPath;
                 }
             }
         } catch (\Throwable $e) {
             // Fallback to standard Laravel store if GD compression encounters any exception
+            \Illuminate\Support\Facades\Log::warning("ImageCompressor GD exception, fallback to standard store: " . $e->getMessage());
         }
 
-        return $file->store($folder, $disk);
+        $fallbackPath = $file->store($folder, $disk);
+        self::verifyUploadScan($fallbackPath, $disk);
+        return $fallbackPath;
+    }
+
+    /**
+     * Verify scan step to ensure stored object is readable on R2 / storage disk.
+     */
+    public static function verifyUploadScan(string $storedPath, string $disk = 'r2'): bool
+    {
+        try {
+            if ($disk === 'r2' || $disk === 's3') {
+                return Storage::disk($disk)->exists($storedPath);
+            }
+            return Storage::disk($disk)->exists($storedPath);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Verify upload scan warning for {$storedPath}: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get exact public URL for stored path on Cloudflare R2 or storage disk.
+     */
+    public static function getPublicUrl(string $storedPath, string $disk = 'r2'): string
+    {
+        if (str_starts_with($storedPath, 'http://') || str_starts_with($storedPath, 'https://')) {
+            return $storedPath;
+        }
+
+        if ($disk === 'r2' || $disk === 's3') {
+            $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
+            return $r2PublicUrl . '/' . ltrim($storedPath, '/');
+        }
+
+        return asset('storage/' . ltrim($storedPath, '/'));
     }
 }
+
