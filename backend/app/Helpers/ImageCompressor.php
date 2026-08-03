@@ -70,19 +70,22 @@ class ImageCompressor
                     $image = $resized;
                 }
 
+                // Generate clean 9-digit numeric ID filename (e.g. proof_123810928.jpg / spot_123810928.webp)
+                $numericId = rand(100000000, 999999999);
+
                 // Prefer WebP format if supported by PHP GD, otherwise fallback to JPEG
                 if (function_exists('imagewebp')) {
-                    $filename = $prefix . uniqid() . '.webp';
+                    $filename = $prefix . $numericId . '.webp';
                     $savePath = sys_get_temp_dir() . '/' . $filename;
                     imagewebp($image, $savePath, $quality);
                 } else {
-                    $filename = $prefix . uniqid() . '.jpg';
+                    $filename = $prefix . $numericId . '.jpg';
                     $savePath = sys_get_temp_dir() . '/' . $filename;
                     imagejpeg($image, $savePath, $quality);
                 }
                 imagedestroy($image);
 
-                // Upload compressed file to Cloudflare R2 / storage disk
+                // Upload compressed file to Cloudflare R2 / storage disk with clean filename
                 $storedPath = Storage::disk($disk)->putFileAs($folder, new File($savePath), $filename);
                 @unlink($savePath);
 
@@ -93,11 +96,16 @@ class ImageCompressor
                 }
             }
         } catch (\Throwable $e) {
-            // Fallback to standard Laravel store if GD compression encounters any exception
-            \Illuminate\Support\Facades\Log::warning("ImageCompressor GD exception, fallback to standard store: " . $e->getMessage());
+            // Fallback to standard store if GD compression encounters any exception
+            \Illuminate\Support\Facades\Log::warning("ImageCompressor GD exception, fallback to store: " . $e->getMessage());
         }
 
-        $fallbackPath = $file->store($folder, $disk);
+        // Fallback using clean 9-digit numeric ID filename
+        $numericId = rand(100000000, 999999999);
+        $ext = strtolower($file->getClientOriginalExtension() ?: $file->guessExtension() ?: 'jpg');
+        $fallbackFilename = $prefix . $numericId . '.' . $ext;
+        $fallbackPath = Storage::disk($disk)->putFileAs($folder, $file, $fallbackFilename);
+
         self::verifyUploadScan($fallbackPath, $disk);
         return $fallbackPath;
     }
