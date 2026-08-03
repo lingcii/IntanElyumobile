@@ -14,7 +14,6 @@ use App\Http\Controllers\Tourist\ItineraryItemController;
 use App\Http\Controllers\Tourist\NotificationController;
 use App\Http\Controllers\Tourist\FeedbackController;
 use App\Http\Controllers\Tourist\PointsController;
-use App\Http\Controllers\Tourist\QuestController;
 use App\Http\Controllers\WeatherController;
 use App\Http\Controllers\VehicleController;
 use App\Models\TouristSpot;
@@ -890,7 +889,6 @@ Route::prefix('public')->group(function () {
     Route::get('/municipalities', [MapController::class, 'publicMunicipalities']);
     Route::get('/leaderboard',    [LeaderboardController::class, 'index']);
     Route::get('/feedback',       [FeedbackController::class, 'index']);
-    Route::get('/quests',         [QuestController::class, 'index']);
     Route::get('/weather',        [WeatherController::class, 'getWeather']);
 });
 Route::get('/vehicles', [VehicleController::class, 'index']);
@@ -979,12 +977,6 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     Route::post('/points/minigame', [PointsController::class, 'awardMiniGamePoints']);
     Route::post('/points/redeem', [PointsController::class, 'redeem']);
     Route::post('/points/redeem-voucher', [\App\Http\Controllers\VoucherController::class, 'redeemVoucher']);
-
-    // Quests & Gamification
-    Route::get('/quests', [QuestController::class, 'index']);
-    Route::get('/quests/my-completions', [QuestController::class, 'myCompletions']);
-    Route::get('/quests/{id}/generate', [QuestController::class, 'generate']);
-    Route::post('/quests/{id}/start', [QuestController::class, 'startQuest']);
 
     // Puzzle Tourist Spot Images from Database
     Route::get('/puzzles/spots', function () {

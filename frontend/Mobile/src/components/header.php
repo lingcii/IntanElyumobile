@@ -140,10 +140,6 @@
         <div>
             <div style="font-size: 10px; font-weight: 800; color: rgba(148,163,184,0.6); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding-left: 6px;">Discover & Explore</div>
             <div style="display: flex; flex-direction: column; gap: 4px;">
-                <a href="#" onclick="toggleSidebar(); navigateTo('quests'); return false;" style="color: #f1f5f9; text-decoration: none; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); transition: all 0.2s;">
-                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(245,158,11,0.15); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-scroll" style="color: #f59e0b; font-size: 14px;"></i></span>
-                    Quests & Challenges
-                </a>
                 <a href="#" onclick="toggleSidebar(); navigateTo('trending'); return false;" style="color: #f1f5f9; text-decoration: none; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); transition: all 0.2s;">
                     <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(239,68,68,0.15); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-fire" style="color: #ef4444; font-size: 14px;"></i></span>
                     Trending Sites
