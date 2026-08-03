@@ -858,6 +858,12 @@ $activeTab = 'itinerary';
     window.openSaveModal = function() {
         const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
 
+        // Populate dynamic fuel price from Railway DB
+        const fuelInput = document.getElementById('fuel-price');
+        if (fuelInput && window.fuelPrice) {
+            fuelInput.value = window.fuelPrice;
+        }
+
         // Auto-detect transport type from selected vehicles
         const veh = draft.find(p => p.transport_type);
         if (veh) {
