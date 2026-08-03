@@ -16,6 +16,7 @@ use App\Http\Controllers\Tourist\FeedbackController;
 use App\Http\Controllers\Tourist\PointsController;
 use App\Http\Controllers\Tourist\QuestController;
 use App\Http\Controllers\WeatherController;
+use App\Http\Controllers\VehicleController;
 use App\Models\TouristSpot;
 use Illuminate\Support\Facades\Route;
 
@@ -885,12 +886,14 @@ Route::prefix('public')->group(function () {
     Route::get('/map',            [MapController::class, 'publicMapData']);
     Route::get('/test', function() { return response()->json(['message' => 'test']); });
     Route::get('/fares',          [MapController::class, 'publicFares']);
+    Route::get('/vehicles',       [VehicleController::class, 'index']);
     Route::get('/municipalities', [MapController::class, 'publicMunicipalities']);
     Route::get('/leaderboard',    [LeaderboardController::class, 'index']);
     Route::get('/feedback',       [FeedbackController::class, 'index']);
     Route::get('/quests',         [QuestController::class, 'index']);
     Route::get('/weather',        [WeatherController::class, 'getWeather']);
 });
+Route::get('/vehicles', [VehicleController::class, 'index']);
 Route::get('/weather', [WeatherController::class, 'getWeather']);
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -969,6 +972,7 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     // Points & Vouchers
     Route::get('/vouchers', [\App\Http\Controllers\VoucherController::class, 'index']);
     Route::get('/fares', [\App\Http\Controllers\FareController::class, 'index']);
+    Route::get('/vehicles', [VehicleController::class, 'index']);
     Route::get('/points/balance', [PointsController::class, 'getBalance']);
     Route::post('/points/puzzle', [PointsController::class, 'awardPuzzlePoints']);
     Route::post('/points/trivia', [PointsController::class, 'awardTriviaPoints']);

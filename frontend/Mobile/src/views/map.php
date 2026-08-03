@@ -390,10 +390,14 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
         const regionDataPromise = fetch('assets/la_union_municipalities.json').then(r => r.json()).catch(e => console.error("Region fetch error:", e));
 
-        // Fetch fare rates from DB
+        // Fetch fare rates and vehicle data from Railway DB
         const faresPromise = fetch(_backendBase + '/api/public/fares', {
             headers: { 'Accept': 'application/json' }
-        }).then(r => r.json()).then(d => { window.fareData = d.fares || {}; }).catch(e => console.error("Fares fetch error:", e));
+        }).then(r => r.json()).then(d => { 
+            window.fareData = d.fares || {}; 
+            window.vehicleData = d.vehicles || []; 
+            window.fuelPrice = d.fuel_price || 65.0;
+        }).catch(e => console.error("Fares fetch error:", e));
 
         const style = {
             "version": 8,
@@ -1991,28 +1995,57 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         };
  
         const dbFare = (type) => window.getFareFromMatrix(type, distanceKm);
+
+        const getDbVehicle = (searchName) => {
+            if (window.vehicleData && Array.isArray(window.vehicleData)) {
+                return window.vehicleData.find(v => v.name.toLowerCase().includes(searchName.toLowerCase()) || searchName.toLowerCase().includes(v.name.toLowerCase()));
+            }
+            return null;
+        };
+
+        const trikeInfo = getDbVehicle('Tricycle');
+        const jeepInfo  = getDbVehicle('Jeepney');
+        const busInfo   = getDbVehicle('Bus');
+        const taxiInfo  = getDbVehicle('Taxi');
+        const carInfo   = getDbVehicle('Private Car') || getDbVehicle('Car');
+
+        const trikeIcon = trikeInfo?.icon || 'fa-motorcycle';
+        const jeepIcon  = jeepInfo?.icon  || 'fa-bus';
+        const busIcon   = busInfo?.icon   || 'fa-bus-alt';
+        const taxiIcon  = taxiInfo?.icon  || 'fa-taxi';
+        const carIcon   = carInfo?.icon   || 'fa-car';
+
+        const trikeDesc = trikeInfo?.description || 'Fits narrow roads, best for short trips';
+        const jeepDesc  = jeepInfo?.description  || 'Main roads / highways only';
+        const busDesc   = busInfo?.description   || 'Main roads / highways — best for long distance';
+        const taxiDesc  = taxiInfo?.description  || 'Main roads / highways — metered fare';
+        const carDesc   = carInfo?.description   || 'Cannot go on tight/narrow roads';
+
+        const carKml = carInfo?.fuel_efficiency_kml ? parseFloat(carInfo.fuel_efficiency_kml) : 12.0;
+        const currentFuelPrice = window.fuelPrice || 65.0;
+
         if (tightRoads) {
             const trikeFare = dbFare('Tricycle') ?? Math.round(20 + (Math.max(0, distanceKm - 1) * 10));
-            faresHtml += createCard('Tricycle', 'fa-motorcycle', 'var(--secondary-color)', 'Only vehicle that fits narrow/tight roads', trikeFare, '24/7 (Night Rates 10PM+)');
+            faresHtml += createCard('Tricycle', trikeIcon, 'var(--secondary-color)', trikeInfo?.description || 'Only vehicle that fits narrow/tight roads', trikeFare, '24/7 (Night Rates 10PM+)');
         } else {
             if (distanceKm <= 5) {
                 const trikeFare = dbFare('Tricycle') ?? Math.round(20 + (Math.max(0, distanceKm - 1) * 10));
-                faresHtml += createCard('Tricycle', 'fa-motorcycle', 'var(--secondary-color)', 'Fits narrow roads, best for short trips', trikeFare, '24/7 (Night Rates 10PM+)');
+                faresHtml += createCard('Tricycle', trikeIcon, 'var(--secondary-color)', trikeDesc, trikeFare, '24/7 (Night Rates 10PM+)');
             }
             if (distanceKm >= 2) {
                 const taxiFare = Math.round(40 + (distanceKm * 13));
-                faresHtml += createCard('Taxi', 'fa-taxi', '#f97316', 'Main roads / highways — metered fare', taxiFare, '24/7 Service');
+                faresHtml += createCard('Taxi', taxiIcon, '#f97316', taxiDesc, taxiFare, '24/7 Service');
             }
             if (distanceKm >= 3 && distanceKm <= 20) {
                 const jeepFare = dbFare('Jeepney') ?? Math.round(15 + (distanceKm * 2.5));
-                faresHtml += createCard('Jeepney', 'fa-bus', '#f59e0b', 'Main roads / highways only', jeepFare, '6:00 AM - 8:00 PM');
+                faresHtml += createCard('Jeepney', jeepIcon, '#f59e0b', jeepDesc, jeepFare, '6:00 AM - 8:00 PM');
             }
             if (distanceKm > 15) {
                 const busFare = dbFare('Bus') ?? Math.round(20 + (distanceKm * 1.8));
-                faresHtml += createCard('Bus', 'fa-bus', '#ef4444', 'Main roads / highways — best for long distance', busFare, '4:00 AM - 11:00 PM');
+                faresHtml += createCard('Bus', busIcon, '#ef4444', busDesc, busFare, '4:00 AM - 11:00 PM');
             }
-            const ownCarFare = Math.max(10, Math.round((distanceKm / 12) * 65));
-            faresHtml += createCard('Own Car (Fuel Est.)', 'fa-car', '#34d399', 'Cannot go on tight/narrow roads', ownCarFare, 'Anytime');
+            const ownCarFare = Math.max(10, Math.round((distanceKm / carKml) * currentFuelPrice));
+            faresHtml += createCard('Own Car (Fuel Est.)', carIcon, '#34d399', carDesc, ownCarFare, 'Anytime');
         }
         document.getElementById('fare-list').innerHTML = faresHtml;
         setupVehicleSelection();
