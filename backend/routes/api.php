@@ -889,9 +889,11 @@ Route::prefix('public')->group(function () {
     Route::get('/municipalities', [MapController::class, 'publicMunicipalities']);
     Route::get('/leaderboard',    [LeaderboardController::class, 'index']);
     Route::get('/feedback',       [FeedbackController::class, 'index']);
+    Route::get('/vouchers',       [\App\Http\Controllers\VoucherController::class, 'index']);
     Route::get('/weather',        [WeatherController::class, 'getWeather']);
 });
 Route::get('/vehicles', [VehicleController::class, 'index']);
+Route::get('/vouchers', [\App\Http\Controllers\VoucherController::class, 'index']);
 Route::get('/weather', [WeatherController::class, 'getWeather']);
 
 // ─────────────────────────────────────────────────────────────────────────────
