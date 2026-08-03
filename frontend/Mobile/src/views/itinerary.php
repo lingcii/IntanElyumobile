@@ -227,13 +227,14 @@ $activeTab = 'itinerary';
         <script>
         window.selectTransportMode = function(el) {
             const val = el.getAttribute('data-val');
-            const isPrivate = (val === 'own_car' || val === 'taxi');
+            const privateKeys = ['own_car', 'taxi', 'motorcycle', 'van'];
+            const isPrivate = privateKeys.includes(val);
 
             if (isPrivate) {
                 // Private: single-select only
                 document.querySelectorAll('.transport-option').forEach(opt => {
                     const oVal = opt.getAttribute('data-val');
-                    if (oVal === 'own_car' || oVal === 'taxi') {
+                    if (privateKeys.includes(oVal)) {
                         opt.classList.remove('active');
                     }
                 });
@@ -363,6 +364,7 @@ $activeTab = 'itinerary';
     }).then(r => r.json()).then(d => { 
         window.fareData = d.fares || {}; 
         window.vehicleData = d.vehicles || []; 
+        window.vehicleTypes = d.vehicle_types || [];
         window.fuelPrice = d.fuel_price || 65.0; 
     }).catch(e => console.error("Fares fetch error:", e));
 
@@ -1341,6 +1343,122 @@ $activeTab = 'itinerary';
         window.updateDonutChart('main-budget-donut', transCost, foodCost, actCost);
     };
 
+    window.renderRailwayVehicleOptions = function(type) {
+        const slider = document.getElementById('transport-slider');
+        if (!slider) return;
+
+        let optionsList = [];
+
+        if (window.vehicleTypes && Array.isArray(window.vehicleTypes) && window.vehicleTypes.length > 0) {
+            const isPrivate = type === 'private';
+            const categoryFilter = isPrivate ? 'Private Vehicle' : 'Public Vehicle';
+            const matchedTypes = window.vehicleTypes.filter(vt => vt.category === categoryFilter);
+
+            const iconMap = {
+                'TAXI': 'fa-taxi',
+                'UVE': 'fa-van-shuttle',
+                'PUB_Regular': 'fa-bus',
+                'PUB_Aircon': 'fa-bus-simple',
+                'MPUJ': 'fa-bus',
+                'TPUJ': 'fa-truck-pickup',
+                'Tricycle': 'fa-motorcycle',
+                'Car': 'fa-car',
+                'Motorcycle': 'fa-motorcycle',
+                'Van': 'fa-shuttle-van'
+            };
+
+            const keyMap = {
+                'TAXI': 'taxi',
+                'UVE': 'mini_bus',
+                'PUB_Regular': 'private_bus',
+                'PUB_Aircon': 'private_bus',
+                'MPUJ': 'jeepney',
+                'TPUJ': 'jeepney',
+                'Tricycle': 'tricycle',
+                'Car': 'own_car',
+                'Motorcycle': 'motorcycle',
+                'Van': 'mini_bus'
+            };
+
+            const labelMap = {
+                'TAXI': 'Taxi',
+                'UVE': 'UV Express',
+                'PUB_Regular': 'Regular Bus',
+                'PUB_Aircon': 'Aircon Bus',
+                'MPUJ': 'Modern Jeepney',
+                'TPUJ': 'Traditional Jeepney',
+                'Tricycle': 'Tricycle',
+                'Car': 'Own Car',
+                'Motorcycle': 'Motorcycle',
+                'Van': 'Van'
+            };
+
+            optionsList = matchedTypes.map(vt => ({
+                val: keyMap[vt.name] || vt.name.toLowerCase(),
+                name: labelMap[vt.name] || vt.name,
+                icon: iconMap[vt.name] || 'fa-car'
+            }));
+        } else if (window.vehicleData && Array.isArray(window.vehicleData) && window.vehicleData.length > 0) {
+            const isPrivate = type === 'private';
+            optionsList = window.vehicleData.filter(v => {
+                const isPriv = ['Private Car', 'Taxi', 'Motorcycle', 'Van'].includes(v.name);
+                return isPrivate ? isPriv : !isPriv;
+            }).map(v => {
+                const keyMap = {
+                    'Tricycle': 'tricycle', 'Jeepney': 'jeepney', 'Bus': 'private_bus',
+                    'Van': 'mini_bus', 'Taxi': 'taxi', 'Motorcycle': 'motorcycle', 'Private Car': 'own_car'
+                };
+                return {
+                    val: keyMap[v.name] || v.name.toLowerCase().replace(/\s+/g, '_'),
+                    name: v.name,
+                    icon: v.icon || 'fa-car'
+                };
+            });
+        }
+
+        if (optionsList.length === 0) {
+            if (type === 'private') {
+                optionsList = [
+                    { val: 'own_car', name: 'Own Car', icon: 'fa-car' },
+                    { val: 'taxi', name: 'Taxi', icon: 'fa-taxi' },
+                    { val: 'van', name: 'Van', icon: 'fa-shuttle-van' },
+                    { val: 'motorcycle', name: 'Motorcycle', icon: 'fa-motorcycle' }
+                ];
+            } else {
+                optionsList = [
+                    { val: 'private_bus', name: 'Bus', icon: 'fa-bus' },
+                    { val: 'mini_bus', name: 'Mini Bus / UVE', icon: 'fa-van-shuttle' },
+                    { val: 'lutrampco', name: 'LUTRAMPCO', icon: 'fa-bus-simple' },
+                    { val: 'jeepney', name: 'Jeepney', icon: 'fa-truck-pickup' },
+                    { val: 'tricycle', name: 'Tricycle', icon: 'fa-motorcycle' }
+                ];
+            }
+        }
+
+        const unique = [];
+        const seen = new Set();
+        optionsList.forEach(opt => {
+            if (!seen.has(opt.val)) {
+                seen.add(opt.val);
+                unique.push(opt);
+            }
+        });
+
+        const currentSelected = (document.getElementById('trip-transport').value || '').split(',').filter(Boolean);
+
+        let html = '';
+        unique.forEach(opt => {
+            const isActive = currentSelected.includes(opt.val) ? 'active' : '';
+            html += `
+            <div class="transport-option ${isActive}" data-val="${opt.val}" onclick="window.selectTransportMode(this)">
+                <i class="fa-solid ${opt.icon}"></i>
+                <span>${opt.name}</span>
+            </div>`;
+        });
+
+        slider.innerHTML = html;
+    };
+
     window.setTransportType = function(type) {
         const btnPublic = document.getElementById('btn-trans-public');
         const btnPrivate = document.getElementById('btn-trans-private');
@@ -1369,36 +1487,22 @@ $activeTab = 'itinerary';
             wrapper.style.animation = 'smoothReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards';
         }
         
-        const isPrivate = type === 'private';
-        const options = document.querySelectorAll('.transport-option');
-        let selectedHidden = false;
+        // Dynamically render vehicle options from Railway DB!
+        window.renderRailwayVehicleOptions(type);
         
-        options.forEach(opt => {
-            const val = opt.getAttribute('data-val');
-            const optIsPrivate = (val === 'own_car' || val === 'taxi');
-            
-            if (isPrivate === optIsPrivate) {
-                opt.style.display = 'flex';
+        const fuelPanel = document.getElementById('own-car-fuel-panel');
+        const isCarSelected = (document.getElementById('trip-transport').value || '').includes('own_car');
+        if (fuelPanel) {
+            if (isCarSelected) {
+                fuelPanel.style.maxHeight = '200px';
+                fuelPanel.style.opacity = '1';
             } else {
-                opt.style.display = 'none';
-                if (opt.classList.contains('active')) {
-                    opt.classList.remove('active');
-                    selectedHidden = true;
-                }
-            }
-        });
-        
-        if (selectedHidden) {
-            document.getElementById('trip-transport').value = '';
-            
-            const fuelPanel = document.getElementById('own-car-fuel-panel');
-            if (fuelPanel) {
                 fuelPanel.style.maxHeight = '0';
                 fuelPanel.style.opacity = '0';
             }
-            
-            if (window.calculateModalBudget) window.calculateModalBudget();
         }
+        
+        if (window.calculateModalBudget) window.calculateModalBudget();
     };
 
     // Global GPS Tracker Listener
