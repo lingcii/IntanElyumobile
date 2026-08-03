@@ -1357,8 +1357,11 @@ $activeTab = 'itinerary';
 
         if (window.vehicleTypes && Array.isArray(window.vehicleTypes) && window.vehicleTypes.length > 0) {
             const isPrivate = type === 'private';
-            const categoryFilter = isPrivate ? 'Private Vehicle' : 'Public Vehicle';
-            const matchedTypes = window.vehicleTypes.filter(vt => vt.category === categoryFilter);
+            const privateNames = ['Car', 'Motorcycle', 'Van', 'TAXI'];
+            const matchedTypes = window.vehicleTypes.filter(vt => {
+                const isPriv = privateNames.includes(vt.name);
+                return isPrivate ? isPriv : !isPriv;
+            });
 
             const iconMap = {
                 'TAXI': 'fa-taxi',
@@ -1406,8 +1409,9 @@ $activeTab = 'itinerary';
             }));
         } else if (window.vehicleData && Array.isArray(window.vehicleData) && window.vehicleData.length > 0) {
             const isPrivate = type === 'private';
+            const privateNames = ['Private Car', 'Taxi', 'Motorcycle', 'Van'];
             optionsList = window.vehicleData.filter(v => {
-                const isPriv = ['Private Car', 'Taxi', 'Motorcycle', 'Van'].includes(v.name);
+                const isPriv = privateNames.includes(v.name);
                 return isPrivate ? isPriv : !isPriv;
             }).map(v => {
                 const keyMap = {
