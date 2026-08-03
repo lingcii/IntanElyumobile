@@ -34,7 +34,7 @@ class MapController extends Controller
                 ->with('municipality:id,name')
                 ->with('images')
                 ->get(['id', 'name', 'category', 'municipality_id', 'latitude', 'longitude',
-                       'entrance_fee', 'photo_url', 'description', 'opening_time', 'closing_time',
+                       'entrance_fee', 'environmental_fee', 'photo_url', 'description', 'opening_time', 'closing_time',
                        'is_maintenance', 'rating', 'visits', 'classification_status'])
                 ->map(function ($spot) use ($spotVehicleMap) {
                     $imageUrl = $spot->photo_url;
@@ -65,6 +65,7 @@ class MapController extends Controller
                         'lat'                   => $spot->latitude,
                         'lng'                   => $spot->longitude,
                         'entrance_fee'          => $spot->entrance_fee,
+                        'environmental_fee'     => $spot->environmental_fee,
                         'photo_url'             => $imageUrl,
                         'images'                => $imagesList,
                         'description'           => $spot->description,

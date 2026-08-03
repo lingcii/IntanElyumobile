@@ -784,9 +784,15 @@ $activeTab = 'itinerary';
                     }
                 }
             }
+        // Sum Entrance Fees & Environmental Fees across all destinations in draft
+        let feesTotal = 0;
+        draft.forEach(p => {
+            const entrance = parseFloat(p.entrance_fee || p.entranceFee || p.fee || 0);
+            const env = parseFloat(p.environmental_fee || p.environmentalFee || p.envFee || 0);
+            feesTotal += (isNaN(entrance) ? 0 : entrance) + (isNaN(env) ? 0 : env);
         });
 
-        const estimatedCost = transCost;
+        const estimatedCost = transCost + feesTotal;
 
         // Show the card
         if (detailsDiv.style.display !== 'block') {
