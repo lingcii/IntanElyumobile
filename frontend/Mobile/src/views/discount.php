@@ -139,106 +139,7 @@ $backRoute = 'dashboard';
 <script>
 (function() {
 let activeCategory = 'All';
-let vouchersData = [
-    {
-        id: 1,
-        title: "15% OFF at El Union Coffee",
-        category: "Food & Dining",
-        partner: "El Union Coffee",
-        location: "San Juan, La Union",
-        badge: "15% OFF",
-        pointsCost: 150,
-        icon: "fa-mug-hot",
-        color: "#f59e0b",
-        code: "ELYU-COFFEE-15",
-        expires: "2026-08-15",
-        description: "Get 15% discount on all espresso drinks and cold brews at El Union Coffee in Urbiztondo, San Juan."
-    },
-    {
-        id: 2,
-        title: "Free 30-Min Surfboard Rental",
-        category: "Activities",
-        partner: "San Juan Surf School",
-        location: "Urbiztondo Beach, San Juan",
-        badge: "FREE RENTAL",
-        pointsCost: 250,
-        icon: "fa-water",
-        color: "#38bdf8",
-        code: "ELYU-SURF-30M",
-        expires: "2026-09-30",
-        description: "Enjoy a free 30-minute surfboard rental or extension with any certified instructor lesson."
-    },
-    {
-        id: 3,
-        title: "₱100 Food Voucher at Tagpuan",
-        category: "Food & Dining",
-        partner: "Tagpuan sa San Juan",
-        location: "San Juan, La Union",
-        badge: "₱100 VOUCHER",
-        pointsCost: 200,
-        icon: "fa-utensils",
-        color: "#ef4444",
-        code: "TAGPUAN-100V",
-        expires: "2026-08-31",
-        description: "₱100 off your total bill when ordering rice bowls or pares at Tagpuan sa San Juan."
-    },
-    {
-        id: 4,
-        title: "20% OFF Room Rate at Kahuna",
-        category: "Accommodations",
-        partner: "Kahuna Beach Resort",
-        location: "San Juan, La Union",
-        badge: "20% OFF",
-        pointsCost: 500,
-        icon: "fa-hotel",
-        color: "#a855f7",
-        code: "KAHUNA-STAY20",
-        expires: "2026-10-31",
-        description: "Get 20% discount on weekday Deluxe and Ocean View room bookings at Kahuna Beach Resort & Spa."
-    },
-    {
-        id: 5,
-        title: "Tangadan Falls Environmental Pass",
-        category: "Souvenirs",
-        partner: "San Gabriel Tourism",
-        location: "San Gabriel, La Union",
-        badge: "ECO-PASS",
-        pointsCost: 100,
-        icon: "fa-ticket",
-        color: "#34d399",
-        code: "TANGADAN-FREE",
-        expires: "2026-12-31",
-        description: "Waiver pass for the local eco-tourism environmental fee at Tangadan Waterfalls."
-    },
-    {
-        id: 6,
-        title: "Free Grape Picking Basket Entry",
-        category: "Activities",
-        partner: "Lomboy Farms",
-        location: "Bauang, La Union",
-        badge: "FREE ENTRY",
-        pointsCost: 180,
-        icon: "fa-wine-glass-full",
-        color: "#ec4899",
-        code: "LOMBOY-GRAPES",
-        expires: "2026-08-20",
-        description: "Free entrance and vineyard tour basket fee at Lomboy Farms in Bauang."
-    },
-    {
-        id: 7,
-        title: "25% OFF La Union Souvenir Pass",
-        category: "Souvenirs",
-        partner: "Provincial Tourism (LUPTO)",
-        location: "Mabanag Hall, San Fernando",
-        badge: "25% OFF PASS",
-        pointsCost: 300,
-        icon: "fa-gift",
-        color: "#f97316",
-        code: "ELYU-PASS-25",
-        expires: "2026-11-15",
-        description: "Get 25% discount on all official La Union souvenir crafts and products at the Capitol Tourism Center."
-    }
-];
+let vouchersData = [];
 
 function getExpiryInfo(dateStr) {
     const now = new Date();
@@ -477,14 +378,14 @@ async function fetchLiveDatabaseVouchers() {
         });
         if (res.ok) {
             const data = await res.json();
-            if (data.status === 'success' && Array.isArray(data.data) && data.data.length > 0) {
+            if (data.status === 'success' && Array.isArray(data.data)) {
                 const categoryMap = {
                     'percentage': 'Food & Dining',
                     'fixed': 'Souvenirs',
                     'General': 'Food & Dining'
                 };
 
-                const dbVouchers = data.data.map(v => ({
+                vouchersData = data.data.map(v => ({
                     id: 'db_' + v.id,
                     dbId: v.id,
                     title: v.title,
@@ -499,10 +400,6 @@ async function fetchLiveDatabaseVouchers() {
                     expires: v.expires || '2026-12-31',
                     description: v.description || 'Present voucher code at merchant checkout.'
                 }));
-
-                const existingDbIds = new Set(vouchersData.map(v => v.dbId).filter(Boolean));
-                const newVouchers = dbVouchers.filter(v => !existingDbIds.has(v.dbId));
-                vouchersData = [...newVouchers, ...vouchersData];
                 renderDiscounts();
             }
         }
