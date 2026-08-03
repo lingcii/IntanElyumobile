@@ -109,12 +109,12 @@ class ItineraryItemController extends Controller
                     $file = $request->file('image');
 
                     // 1. Always save a compressed WebP copy to local folder: backend/storage/app/public/proof_images/
-                    $localPath = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', 'public', 'proof_12310909_', 1200, 80);
+                    $localPath = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', 'public', 'proof_', 1200, 80);
 
                     // 2. Also upload compressed WebP copy to Cloudflare R2 Bucket
                     $disk = 'r2';
                     try {
-                        $r2Path = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', 'r2', 'proof_12310909_', 1200, 80);
+                        $r2Path = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', 'r2', 'proof_', 1200, 80);
                         $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
                         $itemData['proof_image'] = $r2PublicUrl . '/' . ltrim($r2Path, '/');
                     } catch (\Throwable $r2Exception) {

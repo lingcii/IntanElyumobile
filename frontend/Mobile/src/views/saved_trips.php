@@ -192,7 +192,20 @@ $backRoute = 'itinerary';
                     renderSavedTrips(itineraries);
                 } else {
                     const list = document.getElementById('saved-trips-list');
-                    if(list) list.innerHTML = '<p style="text-align:center; color:#999; margin-top: 20px;">Failed to load saved trips.</p>';
+                    if (list) {
+                        list.innerHTML = `
+                            <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px;">
+                                <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                                    <i class="fa-solid fa-circle-exclamation" style="font-size: 32px; color: #ef4444;"></i>
+                                </div>
+                                <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff;">Unable to Load Trips</h3>
+                                <p style="margin: 0; font-size: 13px; color: rgba(148,163,184,0.9); line-height: 1.45; max-width: 260px;">Please check your connection and try refreshing.</p>
+                                <button type="button" class="btn-cta-accent-10" onclick="if(typeof window.loadSavedTrips==='function') window.loadSavedTrips(true);" style="margin-top: 10px; padding: 12px 24px; border-radius: 100px; font-size: 14px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <i class="fa-solid fa-rotate"></i> Retry
+                                </button>
+                            </div>
+                        `;
+                    }
                 }
             },
             forceRefresh,
@@ -205,15 +218,30 @@ $backRoute = 'itinerary';
         
         if (!list) return;
 
+        const emptyStateHtml = `
+            <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px;">
+                <div style="width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, rgba(56,189,248,0.15) 0%, rgba(129,140,248,0.2) 100%); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; border: 1px solid rgba(56,189,248,0.25); box-shadow: 0 8px 24px rgba(56,189,248,0.15);">
+                    <i class="fa-solid fa-compass-drafting" style="font-size: 32px; color: #38bdf8;"></i>
+                </div>
+                <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff; text-wrap: balance;">No Saved Trips Yet</h3>
+                <p style="margin: 0; font-size: 13px; color: rgba(148,163,184,0.9); line-height: 1.45; max-width: 260px; text-wrap: pretty;">
+                    Your adventure starts here! Explore La Union tourist spots and plan your personalized itinerary.
+                </p>
+                <button type="button" class="btn-cta-accent-10" onclick="if(typeof window.navigateTo==='function') window.navigateTo('itinerary');" style="margin-top: 10px; padding: 12px 24px; border-radius: 100px; font-size: 14px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <i class="fa-solid fa-plus"></i> Create New Trip
+                </button>
+            </div>
+        `;
+
         if (!itineraries || itineraries.length === 0) {
-            list.innerHTML = '<p style="text-align:center; color:#999; margin-top: 20px;">No saved trips found.</p>';
+            list.innerHTML = emptyStateHtml;
             return;
         }
 
         const activeItineraries = itineraries.filter(trip => trip.status !== 'completed');
 
         if (activeItineraries.length === 0) {
-            list.innerHTML = '<p style="text-align:center; color:#999; margin-top: 20px;">No active trips found.</p>';
+            list.innerHTML = emptyStateHtml;
             return;
         }
 
@@ -281,14 +309,19 @@ $backRoute = 'itinerary';
                                 ${(dest && (dest.accessible_by_private_vehicle === 0 || dest.accessible_by_private_vehicle === false)) ? `<div style="background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.2); border-radius:10px; padding:8px 12px; display:flex; gap:8px; align-items:flex-start; margin-top:4px;"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; font-size:13px; margin-top:2px;"></i><div><h5 style="margin:0 0 2px 0; font-size:11px; font-weight:800; color:#ef4444; text-transform:uppercase;">Inaccessible by Private Car</h5><p style="margin:0; font-size:10px; color:rgba(226,232,240,0.8); line-height:1.3;">Prepare to hike or use specialized local transport.</p></div></div>` : ''}
 
                                 ${isVisited || item.proof_status === 'approved' ? 
-                                    `<div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
-                                        ${proofImgHtml}
-                                        <div>
-                                            <span style="color:#34c759; font-size:12px; font-weight:800; display:block;">
-                                                <i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Visited & Verified
-                                            </span>
-                                            <span style="font-size:10px; color:rgba(226,232,240,0.6);">Confirmed in Database</span>
+                                    `<div style="display:flex; align-items:center; justify-space-between; gap:10px; margin-top:4px;">
+                                        <div style="display:flex; align-items:center; gap:10px;">
+                                            ${proofImgHtml}
+                                            <div>
+                                                <span style="color:#34c759; font-size:12px; font-weight:800; display:block;">
+                                                    <i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Visited & Verified
+                                                </span>
+                                                <span style="font-size:10px; color:rgba(226,232,240,0.6);">Your Trip has been Confirmed!</span>
+                                            </div>
                                         </div>
+                                        <button type="button" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (dest ? dest.id : '')}')" style="background:linear-gradient(135deg, rgba(56,189,248,0.15), rgba(37,99,235,0.25)); border:1px solid rgba(56,189,248,0.35); color:#38bdf8; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(56,189,248,0.2); flex-shrink:0;">
+                                            <i class="fa-solid fa-pen" style="font-size:10px;"></i> Review
+                                        </button>
                                     </div>` : 
                                     (item.proof_status === 'rejected' ? 
                                         `<div style="display:flex; flex-direction:column; gap:6px; margin-top:4px;">
@@ -636,10 +669,12 @@ $backRoute = 'itinerary';
                 window.fetchSavedTrips(true);
 
                 // Show Trip Completed modal with Review buttons for visited spots
-                const visitedItems = data.visited_items || [];
-                if (visitedItems.length > 0) {
-                    showTripCompletionReviewModal(visitedItems);
+                let visitedItems = data.visited_items || data.visited_spots || [];
+                if (!visitedItems || visitedItems.length === 0) {
+                    // Fallback to itinerary items if API returns empty list
+                    visitedItems = data.itinerary?.items || data.items || [];
                 }
+                showTripCompletionReviewModal(visitedItems);
             } else {
                 if (typeof showToast === 'function') showToast(data.message || "Failed to complete trip.");
             }

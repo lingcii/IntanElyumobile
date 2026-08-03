@@ -357,10 +357,14 @@ $activeTab = 'itinerary';
         });
     };
 
-    // Fetch fare rates from DB
+    // Fetch fare rates and vehicle data from Railway DB
     fetch(backendUrl + '/api/public/fares', {
         headers: { 'Accept': 'application/json' }
-    }).then(r => r.json()).then(d => { window.fareData = d.fares || {}; }).catch(e => console.error("Fares fetch error:", e));
+    }).then(r => r.json()).then(d => { 
+        window.fareData = d.fares || {}; 
+        window.vehicleData = d.vehicles || []; 
+        window.fuelPrice = d.fuel_price || 65.0; 
+    }).catch(e => console.error("Fares fetch error:", e));
 
     window.getFareFromMatrix = function(vehicleType, distanceKm) {
         if (!window.fareData) return null;

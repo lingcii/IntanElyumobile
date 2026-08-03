@@ -70,30 +70,77 @@ class ImageCompressor
                     $image = $resized;
                 }
 
+                // Generate clean 9-digit numeric ID filename (e.g. proof_123810928.jpg / spot_123810928.webp)
+                $numericId = rand(100000000, 999999999);
+
                 // Prefer WebP format if supported by PHP GD, otherwise fallback to JPEG
                 if (function_exists('imagewebp')) {
-                    $filename = $prefix . uniqid() . '.webp';
+                    $filename = $prefix . $numericId . '.webp';
                     $savePath = sys_get_temp_dir() . '/' . $filename;
                     imagewebp($image, $savePath, $quality);
                 } else {
-                    $filename = $prefix . uniqid() . '.jpg';
+                    $filename = $prefix . $numericId . '.jpg';
                     $savePath = sys_get_temp_dir() . '/' . $filename;
                     imagejpeg($image, $savePath, $quality);
                 }
                 imagedestroy($image);
 
-                // Upload compressed file to Cloudflare R2 / storage disk
+                // Upload compressed file to Cloudflare R2 / storage disk with clean filename
                 $storedPath = Storage::disk($disk)->putFileAs($folder, new File($savePath), $filename);
                 @unlink($savePath);
 
                 if ($storedPath) {
+                    // Verify scan: Check if file exists on disk (R2/S3/local) immediately after upload
+                    self::verifyUploadScan($storedPath, $disk);
                     return $storedPath;
                 }
             }
         } catch (\Throwable $e) {
-            // Fallback to standard Laravel store if GD compression encounters any exception
+            // Fallback to standard store if GD compression encounters any exception
+            \Illuminate\Support\Facades\Log::warning("ImageCompressor GD exception, fallback to store: " . $e->getMessage());
         }
 
-        return $file->store($folder, $disk);
+        // Fallback using clean 9-digit numeric ID filename
+        $numericId = rand(100000000, 999999999);
+        $ext = strtolower($file->getClientOriginalExtension() ?: $file->guessExtension() ?: 'jpg');
+        $fallbackFilename = $prefix . $numericId . '.' . $ext;
+        $fallbackPath = Storage::disk($disk)->putFileAs($folder, $file, $fallbackFilename);
+
+        self::verifyUploadScan($fallbackPath, $disk);
+        return $fallbackPath;
+    }
+
+    /**
+     * Verify scan step to ensure stored object is readable on R2 / storage disk.
+     */
+    public static function verifyUploadScan(string $storedPath, string $disk = 'r2'): bool
+    {
+        try {
+            if ($disk === 'r2' || $disk === 's3') {
+                return Storage::disk($disk)->exists($storedPath);
+            }
+            return Storage::disk($disk)->exists($storedPath);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Verify upload scan warning for {$storedPath}: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get exact public URL for stored path on Cloudflare R2 or storage disk.
+     */
+    public static function getPublicUrl(string $storedPath, string $disk = 'r2'): string
+    {
+        if (str_starts_with($storedPath, 'http://') || str_starts_with($storedPath, 'https://')) {
+            return $storedPath;
+        }
+
+        if ($disk === 'r2' || $disk === 's3') {
+            $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
+            return $r2PublicUrl . '/' . ltrim($storedPath, '/');
+        }
+
+        return asset('storage/' . ltrim($storedPath, '/'));
     }
 }
+

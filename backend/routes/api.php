@@ -16,6 +16,7 @@ use App\Http\Controllers\Tourist\FeedbackController;
 use App\Http\Controllers\Tourist\PointsController;
 use App\Http\Controllers\Tourist\QuestController;
 use App\Http\Controllers\WeatherController;
+use App\Http\Controllers\VehicleController;
 use App\Models\TouristSpot;
 use Illuminate\Support\Facades\Route;
 
@@ -144,8 +145,91 @@ Route::prefix('auth')->group(function () {
 //  ADMIN API (spot photo upload & management) — Protected by auth + role check
 // ─────────────────────────────────────────────────────────────────────────────
 Route::prefix('admin')->middleware('tourist.auth')->group(function () {
+    // ── Scan & Verify Cloudflare R2 images against Railway Database ──
+    Route::match(['get', 'post'], '/spots/scan-r2', function (\Illuminate\Http\Request $request) {
+        $user = $request->user();
+        if ($user && $user->role === 'tourist') {
+            return response()->json(['error' => 'Forbidden: admin access required.'], 403);
+        }
+
+        $doRepair = $request->input('repair', true);
+        $spots = TouristSpot::all();
+        $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
+        
+        $results = [];
+        $verifiedCount = 0;
+        $repairedCount = 0;
+        $missingCount = 0;
+
+        foreach ($spots as $spot) {
+            $rawPhoto = $spot->getRawOriginal('photo_url');
+            $r2Path = null;
+
+            if ($rawPhoto) {
+                if (preg_match('#(tourist_spots/[^/]+)#i', $rawPhoto, $m)) {
+                    $r2Path = $m[1];
+                } elseif (preg_match('#(spot_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))#i', $rawPhoto, $m)) {
+                    $r2Path = 'tourist_spots/' . $m[1];
+                }
+            }
+
+            $existsOnR2 = false;
+            if ($r2Path) {
+                try {
+                    $existsOnR2 = \Illuminate\Support\Facades\Storage::disk('r2')->exists($r2Path);
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning("R2 Scan Check exception for {$r2Path}: " . $e->getMessage());
+                }
+            }
+
+            $status = 'missing';
+            $finalUrl = $rawPhoto;
+
+            if ($existsOnR2) {
+                $fullR2Url = $r2PublicUrl . '/' . ltrim($r2Path, '/');
+                $finalUrl = $fullR2Url;
+                if ($rawPhoto !== $fullR2Url && $doRepair) {
+                    $spot->update(['photo_url' => $fullR2Url]);
+                    $status = 'repaired';
+                    $repairedCount++;
+                } else {
+                    $status = 'verified';
+                    $verifiedCount++;
+                }
+            } else {
+                $missingCount++;
+            }
+
+            $results[] = [
+                'spot_id'    => $spot->id,
+                'spot_name'  => $spot->name,
+                'photo_url'  => $finalUrl,
+                'r2_path'    => $r2Path,
+                'r2_exists'  => $existsOnR2,
+                'scan_state' => $status,
+            ];
+        }
+
+        // Flush map caches so latest scanned URLs are visible right away
+        \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:5');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:10');
+
+        return response()->json([
+            'success'   => true,
+            'message'   => 'Cloudflare R2 & Railway DB image scan complete.',
+            'summary'   => [
+                'total_spots' => count($spots),
+                'verified'    => $verifiedCount,
+                'repaired'    => $repairedCount,
+                'missing'     => $missingCount,
+            ],
+            'details'   => $results,
+        ]);
+    });
+
     Route::post('/spots/{id}/photo', function (\Illuminate\Http\Request $request, $id) {
-        // Only allow admin-level roles (picto, lupto, municipal MTOs)
+        // Only allow admin-level roles
         $user = $request->user();
         if ($user->role === 'tourist') {
             return response()->json(['error' => 'Forbidden: admin access required.'], 403);
@@ -164,23 +248,76 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
             $path = \App\Helpers\ImageCompressor::compressAndStore($request->file('photo'), 'tourist_spots', $disk, 'spot_', 1200, 80);
         }
 
+        $r2Scanned = false;
         if ($disk === 'r2') {
             $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
             $fullUrl = $r2PublicUrl . '/' . ltrim($path, '/');
             $spot->update(['photo_url' => $fullUrl]);
+            $r2Scanned = \App\Helpers\ImageCompressor::verifyUploadScan($path, 'r2');
         } else {
             $fullUrl = asset('storage/' . $path);
             $spot->update(['photo_url' => 'storage/' . $path]);
         }
 
-        // Clear public map cache so mobile app gets the new photo immediately
+        // Clear public map cache so mobile app & frontend get the new photo immediately
         \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:5');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:10');
 
         return response()->json([
             'success' => true,
-            'message' => 'Photo uploaded successfully!',
+            'message' => 'Photo uploaded and scanned successfully on Cloudflare R2!',
             'photo_url' => $fullUrl,
-            'spot' => $spot
+            'r2_scanned' => $r2Scanned,
+            'spot' => $spot->fresh()
+        ]);
+    });
+
+    Route::match(['post', 'put'], '/spots/{id}', function (\Illuminate\Http\Request $request, $id) {
+        $user = $request->user();
+        if ($user->role === 'tourist') {
+            return response()->json(['error' => 'Forbidden: admin access required.'], 403);
+        }
+
+        $spot = TouristSpot::findOrFail($id);
+        $data = $request->validate([
+            'name' => 'nullable|string',
+            'municipality_id' => 'nullable|integer',
+            'category' => 'nullable|string',
+            'entrance_fee' => 'nullable|numeric',
+            'description' => 'nullable|string',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
+            'status' => 'nullable|string',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:10240'
+        ]);
+
+        if ($request->hasFile('photo')) {
+            $disk = 'r2';
+            try {
+                $path = \App\Helpers\ImageCompressor::compressAndStore($request->file('photo'), 'tourist_spots', 'r2', 'spot_', 1200, 80);
+            } catch (\Throwable $r2Err) {
+                $disk = env('FILESYSTEM_DISK', 'public');
+                $path = \App\Helpers\ImageCompressor::compressAndStore($request->file('photo'), 'tourist_spots', $disk, 'spot_', 1200, 80);
+            }
+
+            if ($disk === 'r2') {
+                $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
+                $data['photo_url'] = $r2PublicUrl . '/' . ltrim($path, '/');
+            } else {
+                $data['photo_url'] = 'storage/' . $path;
+            }
+        }
+
+        $spot->update(array_filter($data, function($val) { return $val !== null; }));
+
+        \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:5');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tourist spot updated successfully!',
+            'spot' => $spot->fresh()
         ]);
     });
 
@@ -220,12 +357,31 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
         }
 
         $spot = TouristSpot::create($data);
+
+        // Upload any extra gallery photos to Cloudflare R2 and save in Railway DB
+        if ($request->hasFile('photos')) {
+            $extraPhotos = $request->file('photos');
+            if (is_array($extraPhotos)) {
+                foreach ($extraPhotos as $extraPhoto) {
+                    try {
+                        $ePath = \App\Helpers\ImageCompressor::compressAndStore($extraPhoto, 'tourist_spots', 'r2', 'spot_', 1200, 80);
+                        $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
+                        \App\Models\TouristSpotImage::create([
+                            'spot_id' => $spot->id,
+                            'photo_url' => $r2PublicUrl . '/' . ltrim($ePath, '/'),
+                        ]);
+                    } catch (\Throwable $e) {}
+                }
+            }
+        }
+
         \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:5');
 
         return response()->json([
             'success' => true,
             'message' => 'Tourist spot created successfully!',
-            'spot' => $spot
+            'spot' => $spot->fresh()
         ]);
     });
 
@@ -367,6 +523,80 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
         Route::get('/tourist-spots', function () {
             $spots = \App\Models\TouristSpot::with('municipality')->get();
             return response()->json($spots);
+        });
+
+        Route::post('/tourist-spots', function (\Illuminate\Http\Request $request) {
+            $data = $request->validate([
+                'name' => 'required|string',
+                'municipality_id' => 'required|integer',
+                'category' => 'required|string',
+                'entrance_fee' => 'nullable|numeric',
+                'description' => 'nullable|string',
+                'latitude' => 'required|numeric',
+                'longitude' => 'required|numeric',
+                'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:10240'
+            ]);
+
+            if ($request->hasFile('photo')) {
+                $disk = 'r2';
+                try {
+                    $path = \App\Helpers\ImageCompressor::compressAndStore($request->file('photo'), 'tourist_spots', 'r2', 'spot_', 1200, 80);
+                } catch (\Throwable $r2Err) {
+                    $disk = env('FILESYSTEM_DISK', 'public');
+                    $path = \App\Helpers\ImageCompressor::compressAndStore($request->file('photo'), 'tourist_spots', $disk, 'spot_', 1200, 80);
+                }
+
+                if ($disk === 'r2') {
+                    $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
+                    $data['photo_url'] = $r2PublicUrl . '/' . ltrim($path, '/');
+                } else {
+                    $data['photo_url'] = 'storage/' . $path;
+                }
+            }
+
+            $spot = \App\Models\TouristSpot::create($data);
+            \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+            \Illuminate\Support\Facades\Cache::forget('trending:top:5');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tourist spot created & uploaded to Cloudflare R2 successfully!',
+                'spot' => $spot->fresh()
+            ]);
+        });
+
+        Route::post('/tourist-spots/{id}/photo', function (\Illuminate\Http\Request $request, $id) {
+            $request->validate([
+                'photo' => 'required|image|mimes:jpeg,png,jpg,webp,gif|max:10240'
+            ]);
+
+            $spot = \App\Models\TouristSpot::findOrFail($id);
+            $disk = 'r2';
+            try {
+                $path = \App\Helpers\ImageCompressor::compressAndStore($request->file('photo'), 'tourist_spots', 'r2', 'spot_', 1200, 80);
+            } catch (\Throwable $r2Err) {
+                $disk = env('FILESYSTEM_DISK', 'public');
+                $path = \App\Helpers\ImageCompressor::compressAndStore($request->file('photo'), 'tourist_spots', $disk, 'spot_', 1200, 80);
+            }
+
+            if ($disk === 'r2') {
+                $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
+                $fullUrl = $r2PublicUrl . '/' . ltrim($path, '/');
+                $spot->update(['photo_url' => $fullUrl]);
+            } else {
+                $fullUrl = asset('storage/' . $path);
+                $spot->update(['photo_url' => 'storage/' . $path]);
+            }
+
+            \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+            \Illuminate\Support\Facades\Cache::forget('trending:top:5');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Spot photo uploaded to Cloudflare R2 & synced to Railway DB!',
+                'photo_url' => $fullUrl,
+                'spot' => $spot->fresh()
+            ]);
         });
 
         Route::get('/users', function () {
@@ -656,12 +886,14 @@ Route::prefix('public')->group(function () {
     Route::get('/map',            [MapController::class, 'publicMapData']);
     Route::get('/test', function() { return response()->json(['message' => 'test']); });
     Route::get('/fares',          [MapController::class, 'publicFares']);
+    Route::get('/vehicles',       [VehicleController::class, 'index']);
     Route::get('/municipalities', [MapController::class, 'publicMunicipalities']);
     Route::get('/leaderboard',    [LeaderboardController::class, 'index']);
     Route::get('/feedback',       [FeedbackController::class, 'index']);
     Route::get('/quests',         [QuestController::class, 'index']);
     Route::get('/weather',        [WeatherController::class, 'getWeather']);
 });
+Route::get('/vehicles', [VehicleController::class, 'index']);
 Route::get('/weather', [WeatherController::class, 'getWeather']);
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -738,15 +970,66 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     Route::post('/feedback', [FeedbackController::class, 'store']);
 
     // Points & Vouchers
+    Route::get('/vouchers', [\App\Http\Controllers\VoucherController::class, 'index']);
+    Route::get('/fares', [\App\Http\Controllers\FareController::class, 'index']);
+    Route::get('/vehicles', [VehicleController::class, 'index']);
     Route::get('/points/balance', [PointsController::class, 'getBalance']);
     Route::post('/points/puzzle', [PointsController::class, 'awardPuzzlePoints']);
     Route::post('/points/trivia', [PointsController::class, 'awardTriviaPoints']);
     Route::post('/points/minigame', [PointsController::class, 'awardMiniGamePoints']);
     Route::post('/points/redeem', [PointsController::class, 'redeem']);
+    Route::post('/points/redeem-voucher', [\App\Http\Controllers\VoucherController::class, 'redeemVoucher']);
 
     // Quests & Gamification
     Route::get('/quests', [QuestController::class, 'index']);
     Route::get('/quests/my-completions', [QuestController::class, 'myCompletions']);
     Route::get('/quests/{id}/generate', [QuestController::class, 'generate']);
     Route::post('/quests/{id}/start', [QuestController::class, 'startQuest']);
+
+    // Puzzle Tourist Spot Images from Database
+    Route::get('/puzzles/spots', function () {
+        try {
+            $spots = \App\Models\TouristSpot::with('municipality')
+                ->whereNotNull('photo_url')
+                ->where('photo_url', '!=', '')
+                ->where(function($q) {
+                    $q->whereNull('status')->orWhere('status', 'approved');
+                })
+                ->inRandomOrder()
+                ->limit(20)
+                ->get();
+
+            $formatted = $spots->map(function ($spot) {
+                $pUrl = $spot->photo_url;
+                if ($pUrl) {
+                    if (str_contains($pUrl, 'file=')) {
+                        $parts = parse_url($pUrl);
+                        parse_str($parts['query'] ?? '', $query);
+                        if (!empty($query['file'])) {
+                            $pUrl = '/api/image/' . ltrim($query['file'], '/');
+                        }
+                    } else if (!str_starts_with($pUrl, 'http') && !str_starts_with($pUrl, '/')) {
+                        $pUrl = '/api/image/' . $pUrl;
+                    }
+                }
+                
+                $munName = $spot->municipality ? $spot->municipality->name : 'La Union';
+
+                return [
+                    'id' => $spot->id,
+                    'name' => $spot->name,
+                    'location' => $munName,
+                    'image' => $pUrl,
+                    'desc' => "Rearrange the tiles to reveal the image of {$spot->name} in {$munName}! Solve to earn <strong style=\"color: #38bdf8;\">+100 Points</strong>."
+                ];
+            });
+
+            return response()->json([
+                'status' => 'success',
+                'spots' => $formatted
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    });
 });

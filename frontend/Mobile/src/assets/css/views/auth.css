@@ -321,15 +321,105 @@ body[data-view="auth"] {
     transition: background-color 5000s ease-in-out 0s;
 }
 
-.auth-input::placeholder {
-    color: #64748b;
-}
-
 .input-group i.password-toggle {
     left: auto;
     right: 4px;
     cursor: pointer;
     pointer-events: auto;
+}
+
+/* Inline Field Validation Badges & Microcopy */
+.input-group i.field-status-icon {
+    left: auto !important;
+    right: 10px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    font-size: 15px !important;
+    width: auto !important;
+    pointer-events: none !important;
+    transition: opacity 0.2s ease, transform 0.2s ease !important;
+    opacity: 0;
+    z-index: 5;
+}
+
+.input-group i.field-status-icon.password-offset {
+    left: auto !important;
+    right: 36px !important;
+}
+
+.input-group i.field-status-icon.valid {
+    opacity: 1 !important;
+    color: #34d399 !important;
+}
+
+.input-group i.field-status-icon.invalid {
+    opacity: 1 !important;
+    color: #f87171 !important;
+}
+
+.input-field-hint {
+    font-size: 10.5px;
+    font-weight: 600;
+    margin-top: 3px;
+    margin-bottom: 6px;
+    padding-left: 4px;
+    line-height: 1.3;
+    transition: all 0.2s ease;
+}
+
+/* ============================================================
+ * Lumora Live Password Strength Meter (Width + Color Score)
+ * ============================================================ */
+.pwd-strength-wrapper {
+    width: 100%;
+    transition: all 0.25s ease;
+}
+
+.pwd-strength-segments {
+    display: flex;
+    gap: 5px;
+    height: 4px;
+    width: 100%;
+    margin-top: 6px;
+}
+
+.pwd-segment {
+    flex: 1;
+    height: 100%;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Segment color states driven by data-score */
+.pwd-strength-wrapper[data-score="1"] .pwd-segment.seg-1 { background: #f87171; }
+
+.pwd-strength-wrapper[data-score="2"] .pwd-segment.seg-1,
+.pwd-strength-wrapper[data-score="2"] .pwd-segment.seg-2 { background: #fb923c; }
+
+.pwd-strength-wrapper[data-score="3"] .pwd-segment.seg-1,
+.pwd-strength-wrapper[data-score="3"] .pwd-segment.seg-2,
+.pwd-strength-wrapper[data-score="3"] .pwd-segment.seg-3 { background: #facc15; }
+
+.pwd-strength-wrapper[data-score="4"] .pwd-segment.seg-1,
+.pwd-strength-wrapper[data-score="4"] .pwd-segment.seg-2,
+.pwd-strength-wrapper[data-score="4"] .pwd-segment.seg-3,
+.pwd-strength-wrapper[data-score="4"] .pwd-segment.seg-4 { background: #34d399; }
+
+.pwd-chk-item {
+    color: rgba(148, 163, 184, 0.65);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.25s ease;
+}
+
+.pwd-chk-item.passed {
+    color: #34d399 !important;
+}
+
+.pwd-chk-item.passed i {
+    color: #34d399 !important;
 }
 
 /* Forgot Password Link */

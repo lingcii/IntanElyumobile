@@ -77,24 +77,44 @@
             <!-- Panel 2: Register -->
             <div class="form-panel register-form">
                 <form id="form-register" onsubmit="handleRegisterSubmit(event)">
-                    <div style="display: flex; gap: 10px;">
-                        <div class="input-group" style="flex: 1;">
-                            <i class="fa-regular fa-user"></i>
-                            <input type="text" id="reg-first-name" class="auth-input" placeholder="First Name" required>
-                        </div>
-                        <div class="input-group" style="flex: 1;">
-                            <i class="fa-regular fa-user"></i>
-                            <input type="text" id="reg-last-name" class="auth-input" placeholder="Last Name" required>
-                        </div>
+                    <div class="input-group">
+                        <i class="fa-regular fa-user"></i>
+                        <input type="text" id="reg-first-name" class="auth-input" placeholder="First Name" required oninput="validateRegisterFormInline()">
+                    </div>
+                    <div class="input-group">
+                        <i class="fa-regular fa-user"></i>
+                        <input type="text" id="reg-last-name" class="auth-input" placeholder="Last Name" required oninput="validateRegisterFormInline()">
                     </div>
                     <div class="input-group">
                         <i class="fa-solid fa-mobile-screen"></i>
-                        <input type="email" id="reg-email" class="auth-input" placeholder="Email Address" required>
+                        <input type="email" id="reg-email" class="auth-input" placeholder="Email Address" required oninput="validateRegisterFormInline()">
+                        <i id="reg-email-status-icon" class="fa-solid field-status-icon"></i>
                     </div>
+                    <div id="reg-email-hint" class="input-field-hint" style="display: none;"></div>
+
                     <div class="input-group">
                         <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="reg-password" class="auth-input" placeholder="Create Password" required>
+                        <input type="password" id="reg-password" class="auth-input" placeholder="Create Password" required oninput="validateRegisterFormInline()">
+                        <i id="reg-password-status-icon" class="fa-solid field-status-icon password-offset"></i>
                         <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('reg-password', this)"></i>
+                    </div>
+                    <div id="pwd-strength-container" class="pwd-strength-wrapper" style="display: none; margin-top: 6px; margin-bottom: 12px;" data-score="0">
+                        <div class="pwd-strength-segments">
+                            <div class="pwd-segment seg-1"></div>
+                            <div class="pwd-segment seg-2"></div>
+                            <div class="pwd-segment seg-3"></div>
+                            <div class="pwd-segment seg-4"></div>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-space-between; margin-top: 6px; font-size: 11px; font-weight: 700;">
+                            <span id="pwd-strength-label" style="color: #94a3b8; transition: color 0.2s ease;">Password Strength</span>
+                            <span id="pwd-strength-score" style="color: rgba(148, 163, 184, 0.7); font-size: 10px;">0/4</span>
+                        </div>
+                        <div class="pwd-checklist" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; font-size: 10.5px; font-weight: 600;">
+                            <span id="chk-len8" class="pwd-chk-item"><i class="fa-solid fa-circle" style="font-size: 6px; vertical-align: middle;"></i> 8+ chars</span>
+                            <span id="chk-num" class="pwd-chk-item"><i class="fa-solid fa-circle" style="font-size: 6px; vertical-align: middle;"></i> a number</span>
+                            <span id="chk-cap" class="pwd-chk-item"><i class="fa-solid fa-circle" style="font-size: 6px; vertical-align: middle;"></i> a capital</span>
+                            <span id="chk-sym" class="pwd-chk-item"><i class="fa-solid fa-circle" style="font-size: 6px; vertical-align: middle;"></i> a symbol</span>
+                        </div>
                     </div>
                     
                     <div style="font-size: 11px; color: rgba(255,255,255,0.85); margin: 10px 0 16px 4px; display: flex; align-items: center; gap: 8px;">
@@ -904,8 +924,88 @@
         }
     };
 
+    window.validateRegisterFormInline = function() {
+        const emailEl = document.getElementById('reg-email');
+        const emailIcon = document.getElementById('reg-email-status-icon');
+        const emailHint = document.getElementById('reg-email-hint');
+
+        const pwdEl = document.getElementById('reg-password');
+        const pwdIcon = document.getElementById('reg-password-status-icon');
+        const pwdHint = document.getElementById('reg-password-hint');
+
+        if (emailEl) {
+            const val = emailEl.value.trim();
+            if (val.length === 0) {
+                if (emailIcon) emailIcon.className = 'fa-solid field-status-icon';
+                if (emailHint) { emailHint.innerHTML = ''; emailHint.style.display = 'none'; }
+            } else {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (emailRegex.test(val)) {
+                    if (emailIcon) emailIcon.className = 'fa-solid fa-circle-check field-status-icon valid';
+                    if (emailHint) { emailHint.innerHTML = ''; emailHint.style.display = 'none'; }
+                } else {
+                    if (emailIcon) emailIcon.className = 'fa-solid fa-circle-xmark field-status-icon invalid';
+                    if (emailHint) {
+                        emailHint.style.display = 'block';
+                        emailHint.innerHTML = '<span style="color:#f87171;"><i class="fa-solid fa-circle-exclamation" style="margin-right:3px;"></i> Enter a valid email address</span>';
+                    }
+                }
+            }
+        }
+
+        if (pwdEl) {
+            const pwd = pwdEl.value;
+            const container = document.getElementById('pwd-strength-container');
+            const label = document.getElementById('pwd-strength-label');
+            const scoreEl = document.getElementById('pwd-strength-score');
+
+            const chkLen8 = document.getElementById('chk-len8');
+            const chkNum = document.getElementById('chk-num');
+            const chkCap = document.getElementById('chk-cap');
+            const chkSym = document.getElementById('chk-sym');
+
+            if (pwd.length === 0) {
+                if (pwdIcon) pwdIcon.className = 'fa-solid field-status-icon password-offset';
+                if (container) container.style.display = 'none';
+            } else {
+                if (container) container.style.display = 'block';
+
+                const len8 = pwd.length >= 8;
+                const hasNum = /\d/.test(pwd);
+                const hasCap = /[A-Z]/.test(pwd);
+                const hasSym = /[^A-Za-z0-9]/.test(pwd);
+
+                const score = [len8, hasNum, hasCap, hasSym].filter(Boolean).length;
+                if (container) container.dataset.score = score;
+                if (scoreEl) scoreEl.textContent = score + '/4';
+
+                // Update checklist item styles
+                if (chkLen8) chkLen8.className = 'pwd-chk-item' + (len8 ? ' passed' : '');
+                if (chkNum) chkNum.className = 'pwd-chk-item' + (hasNum ? ' passed' : '');
+                if (chkCap) chkCap.className = 'pwd-chk-item' + (hasCap ? ' passed' : '');
+                if (chkSym) chkSym.className = 'pwd-chk-item' + (hasSym ? ' passed' : '');
+
+                // Label and status icon update
+                const labels = ['Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+                const colors = ['#f87171', '#f87171', '#fb923c', '#facc15', '#34d399'];
+                
+                if (label) {
+                    label.textContent = labels[score] || 'Password Strength';
+                    label.style.color = colors[score] || '#94a3b8';
+                }
+
+                if (score >= 3 && len8) {
+                    if (pwdIcon) pwdIcon.className = 'fa-solid fa-circle-check field-status-icon password-offset valid';
+                } else {
+                    if (pwdIcon) pwdIcon.className = 'fa-solid fa-circle-xmark field-status-icon password-offset invalid';
+                }
+            }
+        }
+    };
+
     window.handleRegisterSubmit = async function(e) {
         if (e) e.preventDefault();
+        window.validateRegisterFormInline();
         const pwd = document.getElementById('reg-password')?.value || '';
         const firstName = (document.getElementById('reg-first-name')?.value || '').trim();
         const lastName = (document.getElementById('reg-last-name')?.value || '').trim();
@@ -917,8 +1017,24 @@
             return;
         }
 
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            const emailHint = document.getElementById('reg-email-hint');
+            if (emailHint) {
+                emailHint.style.display = 'block';
+                emailHint.innerHTML = '<span style="color:#f87171; font-size:11px; font-weight:600; display:flex; align-items:center; gap:4px; margin-top:3px;"><i class="fa-solid fa-circle-xmark"></i> Enter a valid email (e.g. name@domain.com)</span>';
+            }
+            document.getElementById('reg-email')?.focus();
+            return;
+        }
+
         if (pwd.length < 8) {
-            if (typeof showToast === 'function') showToast('Password must be at least 8 characters long.');
+            const pwdHint = document.getElementById('reg-password-hint');
+            if (pwdHint) {
+                pwdHint.style.display = 'block';
+                pwdHint.innerHTML = '<span style="color:#f87171; font-size:11px; font-weight:600; display:flex; align-items:center; gap:4px; margin-top:3px;"><i class="fa-solid fa-circle-xmark"></i> Password needs at least 8 characters</span>';
+            }
+            document.getElementById('reg-password')?.focus();
             return;
         }
 

@@ -18,6 +18,15 @@ class MapController extends Controller
     public function publicMapData(): JsonResponse
     {
         $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots', 30, function () {
+            $spotVehicleMap = [];
+            try {
+                $spotVehicleMap = \Illuminate\Support\Facades\DB::table('tourist_spot_vehicle_type')
+                    ->join('vehicle_types', 'tourist_spot_vehicle_type.vehicle_type_id', '=', 'vehicle_types.id')
+                    ->select('tourist_spot_vehicle_type.tourist_spot_id', 'vehicle_types.name')
+                    ->get()
+                    ->groupBy('tourist_spot_id');
+            } catch (\Throwable $e) {}
+
             return TouristSpot::where(function($q) {
                     $q->whereIn('status', ['approved', 'active', 'published', 'EXIST', 'exist', 'pending'])
                       ->orWhereNull('status');
@@ -27,7 +36,7 @@ class MapController extends Controller
                 ->get(['id', 'name', 'category', 'municipality_id', 'latitude', 'longitude',
                        'entrance_fee', 'photo_url', 'description', 'opening_time', 'closing_time',
                        'is_maintenance', 'rating', 'visits', 'classification_status'])
-                ->map(function ($spot) {
+                ->map(function ($spot) use ($spotVehicleMap) {
                     $imageUrl = $spot->photo_url;
                     if (!$imageUrl && $spot->images->isNotEmpty()) {
                         $imageUrl = $spot->images->first()->photo_url;
@@ -43,6 +52,11 @@ class MapController extends Controller
                             }
                         }
                     }
+
+                    $vehiclesList = isset($spotVehicleMap[$spot->id])
+                        ? $spotVehicleMap[$spot->id]->pluck('name')->unique()->values()->toArray()
+                        : [];
+
                     return [
                         'id'                    => $spot->id,
                         'name'                  => $spot->name,
@@ -60,6 +74,7 @@ class MapController extends Controller
                         'rating'                => $spot->rating,
                         'visits'                => $spot->visits,
                         'classification_status' => $spot->classification_status,
+                        'accessible_vehicles'   => $vehiclesList,
                     ];
                 })->values()->toArray();  // toArray() stores a plain array in cache — safe to serialize
         });
@@ -94,7 +109,7 @@ class MapController extends Controller
 
     /**
      * GET /api/public/fares
-     * Returns latest active fare rates per vehicle type for the mobile app.
+     * Returns latest active fare rates per vehicle type and vehicle data from Railway DB for the mobile app.
      */
     public function publicFares(): JsonResponse
     {
@@ -132,6 +147,26 @@ class MapController extends Controller
             return $result;
         });
 
-        return response()->json(['success' => true, 'fares' => $fares]);
+        $vehicles = \Illuminate\Support\Facades\Cache::remember('public:vehicles', 300, function () {
+            return \App\Models\Vehicle::where('is_active', true)->get();
+        });
+
+        $fuelPrice = \Illuminate\Support\Facades\Cache::remember('system:fuel_price', 300, function () {
+            return \Illuminate\Support\Facades\DB::table('system_settings')
+                ->where('key', 'fuel_price')
+                ->value('value') ?? '65.00';
+        });
+
+        $vehicleTypes = \Illuminate\Support\Facades\Cache::remember('public:vehicle_types', 300, function () {
+            return \Illuminate\Support\Facades\DB::table('vehicle_types')->get();
+        });
+
+        return response()->json([
+            'success'       => true,
+            'fares'         => $fares,
+            'vehicles'      => $vehicles,
+            'vehicle_types' => $vehicleTypes,
+            'fuel_price'    => (float) $fuelPrice
+        ]);
     }
 }

@@ -79,8 +79,19 @@ class TouristSpot extends Model
             return $value;
         }
 
-        return asset(ltrim($value, '/'));
+        // If filename/relative path is for a spot image, resolve directly to Cloudflare R2 public bucket
+        $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
+        $clean = ltrim($value, '/');
+        if (preg_match('#^tourist_spots/#i', $clean)) {
+            return $r2PublicUrl . '/' . $clean;
+        }
+        if (preg_match('#^spot_#i', $clean)) {
+            return $r2PublicUrl . '/tourist_spots/' . $clean;
+        }
+
+        return asset($clean);
     }
+
 
     public function audits()
     {
