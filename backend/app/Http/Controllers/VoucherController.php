@@ -21,14 +21,11 @@ class VoucherController extends Controller
         try {
             $query = Voucher::with('municipality');
 
-            // If requested by tourist app, only show active/unexpired vouchers
-            if ($request->boolean('active_only', true)) {
-                $query->where('status', 'active')
-                      ->where(function($q) {
-                          $q->whereNull('expires_at')
-                            ->orWhere('expires_at', '>=', now());
-                      });
-            }
+            // Include active vouchers created by Admin in Railway DB
+            $query->where(function($q) {
+                $q->where('status', 'active')
+                  ->orWhereNull('status');
+            });
 
             $vouchers = $query->latest()->get();
 
