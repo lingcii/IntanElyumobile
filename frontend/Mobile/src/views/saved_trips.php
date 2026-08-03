@@ -808,19 +808,6 @@ $backRoute = 'itinerary';
             });
 
             if (res.ok) {
-                // Deactivate any quest timer matching the deleted trip title
-                const activeTimers = JSON.parse(localStorage.getItem('active_quests_timers') || '{}');
-                let updated = false;
-                Object.keys(activeTimers).forEach(qId => {
-                    if (deletedTitle.toLowerCase().includes((activeTimers[qId].questName || '').toLowerCase())) {
-                        delete activeTimers[qId];
-                        updated = true;
-                    }
-                });
-                if (updated) {
-                    localStorage.setItem('active_quests_timers', JSON.stringify(activeTimers));
-                }
-
                 if (typeof showToast === 'function') showToast("Trip deleted successfully.");
                 if (element) {
                     element.style.transition = 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)';

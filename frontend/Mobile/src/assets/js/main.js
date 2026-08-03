@@ -223,7 +223,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
                 // Toggle bottom nav visibility
                 const bottomNav = document.getElementById('bottom-navigation');
-                const noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'quests'];
+                const noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings'];
                 if (bottomNav) {
                     bottomNav.classList.toggle('nav-hidden', noNavViews.includes(viewName));
                 }
@@ -1037,9 +1037,7 @@ window.openBadgeModal = function (name, description, isUnlocked, category, icon)
         : 'background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.3); border:1px dashed rgba(255,255,255,0.15); filter:grayscale(1);';
 
     const actionButton = !isUnlocked
-        ? isQuest
-            ? `<button onclick="window.closeBadgeModal(); if(typeof navigateTo === 'function') navigateTo('quests');" style="width:100%; margin-top:16px; padding:12px; border-radius:100px; border:none; background:linear-gradient(135deg,#6366f1,#38bdf8); color:#fff; font-weight:800; font-size:13px; cursor:pointer;"><i class="fa-solid fa-compass" style="margin-right:6px;"></i>Go to Quests & Expeditions</button>`
-            : `<button onclick="window.closeBadgeModal(); if(typeof navigateTo === 'function') navigateTo('map');" style="width:100%; margin-top:16px; padding:12px; border-radius:100px; border:none; background:linear-gradient(135deg,#10b981,#059669); color:#fff; font-weight:800; font-size:13px; cursor:pointer;"><i class="fa-solid fa-map-location-dot" style="margin-right:6px;"></i>Explore Destinations</button>`
+        ? `<button onclick="window.closeBadgeModal(); if(typeof navigateTo === 'function') navigateTo('map');" style="width:100%; margin-top:16px; padding:12px; border-radius:100px; border:none; background:linear-gradient(135deg,#10b981,#059669); color:#fff; font-weight:800; font-size:13px; cursor:pointer;"><i class="fa-solid fa-map-location-dot" style="margin-right:6px;"></i>Explore Destinations</button>`
         : `<button onclick="window.closeBadgeModal()" style="width:100%; margin-top:16px; padding:12px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#e2e8f0; font-weight:700; font-size:13px; cursor:pointer;">Close</button>`;
 
     const safeDesc = (description || 'Complete activities in La Union to unlock this badge.').replace(/'/g, "&apos;").replace(/"/g, "&quot;");
