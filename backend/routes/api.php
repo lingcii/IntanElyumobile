@@ -23,10 +23,11 @@ use Illuminate\Support\Facades\Route;
 // Catch-all OPTIONS route to guarantee CORS headers on preflight requests
 Route::options('/{any}', function (\Illuminate\Http\Request $request) {
     $origin = $request->header('Origin') ?: '*';
+    $reqHeaders = $request->header('Access-Control-Request-Headers') ?: 'Content-Type, Authorization, X-Requested-With, X-CSRF-TOKEN, Accept, Origin, ngrok-skip-browser-warning, *';
     return response('', 200)
         ->header('Access-Control-Allow-Origin', $origin)
         ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
-        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-CSRF-TOKEN, Accept, Origin')
+        ->header('Access-Control-Allow-Headers', $reqHeaders)
         ->header('Access-Control-Allow-Credentials', 'true')
         ->header('Access-Control-Max-Age', '86400');
 })->where('any', '.*');
