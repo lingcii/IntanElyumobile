@@ -164,7 +164,7 @@ $puzzleSpotsHandler = function () {
     }
 };
 
-Route::match(['get', 'options'], '/puzzles/spots', $puzzleSpotsHandler);
+Route::match(['GET', 'POST', 'OPTIONS'], '/puzzles/spots', $puzzleSpotsHandler);
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Auth (public)
@@ -1035,5 +1035,5 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     Route::post('/points/redeem-voucher', [\App\Http\Controllers\VoucherController::class, 'redeemVoucher']);
 
     // Puzzle Tourist Spot Images from Database
-    Route::match(['get', 'options'], '/puzzles/spots', $puzzleSpotsHandler);
+    Route::match(['GET', 'POST', 'OPTIONS'], '/puzzles/spots', $puzzleSpotsHandler);
 });

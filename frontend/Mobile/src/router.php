@@ -111,9 +111,20 @@ if (strpos($path, '/api/') === 0) {
 
     $headers = getallheaders();
     $curlHeaders = [];
+    $hasAuth = false;
     foreach ($headers as $key => $value) {
         if (strtolower($key) !== 'host') {
             $curlHeaders[] = "$key: $value";
+        }
+        if (strtolower($key) === 'authorization') {
+            $hasAuth = true;
+        }
+    }
+    if (!$hasAuth) {
+        if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+            $curlHeaders[] = "Authorization: " . $_SERVER['HTTP_AUTHORIZATION'];
+        } else if (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+            $curlHeaders[] = "Authorization: " . $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
         }
     }
     curl_setopt($ch, CURLOPT_HTTPHEADER, $curlHeaders);
