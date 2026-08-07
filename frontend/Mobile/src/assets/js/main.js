@@ -95,16 +95,21 @@ window.setHtml = function (id, html) {
 
 window.getBackendUrl = function () {
     var url = window.backendUrl || window.BACKEND_URL;
+    if (url && !url.includes('app.intan-elyu.online')) {
+        return url.replace(/\/+$/, '');
+    }
     if (typeof window !== 'undefined' && window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
-        return 'https://app.intan-elyu.online';
+        return 'https://api.intan-elyu.online';
     }
-    if (!url || url.indexOf('localhost') !== -1 || url.indexOf('127.0.0.1') !== -1 || url.indexOf('capacitor://') === 0 || url.indexOf('file://') === 0) {
-        if (typeof window !== 'undefined' && window.location && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-            return window.location.origin.replace(/\/+$/, '');
+    if (typeof window !== 'undefined' && window.location) {
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            if (window.location.port === '3000') return 'http://localhost:8000';
+            if (window.location.pathname.includes('/Intan-Elyu-Tourism-Management-System/')) {
+                return window.location.protocol + '//' + window.location.host + '/Intan-Elyu-Tourism-Management-System/backend/public';
+            }
         }
-        return 'https://app.intan-elyu.online';
     }
-    return (url || (typeof window !== 'undefined' && window.location ? window.location.origin : '')).replace(/\/+$/, '');
+    return 'https://api.intan-elyu.online';
 };
 
 window.getFullImageUrl = function (url) {

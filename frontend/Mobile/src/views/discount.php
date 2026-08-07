@@ -372,7 +372,7 @@ function copyVoucherCode() {
 
 async function fetchLiveDatabaseVouchers() {
     try {
-        const baseUrl = (window.backendUrl || '').replace(/\/+$/, '');
+        const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
         const res = await fetch(baseUrl + '/api/public/vouchers', {
             headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
         });

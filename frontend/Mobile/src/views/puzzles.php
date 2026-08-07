@@ -49,7 +49,7 @@ include __DIR__ . '/../components/header.php';
             <!-- Target Reference Image Preview -->
             <div style="margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 6px 12px; width: fit-content; margin-left: auto; margin-right: auto;">
                 <span style="font-size: 11px; color: rgba(226,232,240,0.8); font-weight: 700;">Target Goal:</span>
-                <img id="puzzle-target-img" src="https://images.unsplash.com/photo-1544644181-1484b3fdfc62?w=300&auto=format&fit=crop&q=80" alt="Tangadan Falls Target" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover; border: 1.5px solid #38bdf8; box-shadow: 0 2px 8px rgba(56,189,248,0.3);">
+                <img id="puzzle-target-img" src="https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a68655d7a28a.jpg" alt="Tangadan Falls Target" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover; border: 1.5px solid #38bdf8; box-shadow: 0 2px 8px rgba(56,189,248,0.3);">
             </div>
             
             <!-- Moves and Timer info -->
@@ -197,7 +197,6 @@ include __DIR__ . '/../components/header.php';
 .puzzle-tile {
     width: 100%;
     height: 100%;
-    background-image: url('https://images.unsplash.com/photo-1544644181-1484b3fdfc62?w=600&auto=format&fit=crop&q=80');
     background-size: 300px 300px;
     background-repeat: no-repeat;
     cursor: pointer;
@@ -366,7 +365,7 @@ button:active, .trivia-option-btn:active {
 async function loadGamePoints() {
     try {
         const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token');
-        const _baseUrl = window.backendUrl || '';
+        const _baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
         const r = await fetch(_baseUrl + '/api/tourist/points/balance', {
             headers: { 'Authorization': 'Bearer ' + token }
         });
@@ -413,38 +412,34 @@ function switchGameTab(tabName) {
 }
 
 // ----------------------------------------------------
-// SLIDING PUZZLE LOGIC (Randomized La Union Spot Images)
+// SLIDING PUZZLE LOGIC (Randomized La Union Spot Images from Cloudflare R2)
 // ----------------------------------------------------
+const R2_PUBLIC_BASE = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/';
+
 const PUZZLE_IMAGES = [
     {
         name: "Tangadan Falls",
         location: "San Gabriel",
-        image: "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?w=600&auto=format&fit=crop&q=80",
+        image: R2_PUBLIC_BASE + "spot_6a68655d7a28a.jpg",
         desc: 'Rearrange the tiles to reveal the image of the famous Tangadan Waterfalls in San Gabriel! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.'
     },
     {
-        name: "Urbiztondo Surfing Beach",
+        name: "Immuki Island",
+        location: "Balaoan",
+        image: R2_PUBLIC_BASE + "spot_6a686f4d0f48b.jpg",
+        desc: 'Rearrange the tiles to reveal the crystal clear lagoons of Immuki Island in Balaoan! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.'
+    },
+    {
+        name: "San Juan Surfing Beach",
         location: "San Juan",
-        image: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=600&auto=format&fit=crop&q=80",
-        desc: 'Rearrange the tiles to reveal the vibrant waves of Urbiztondo Surfing Beach in San Juan! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.'
+        image: R2_PUBLIC_BASE + "spot_6a7020e362474.jpg",
+        desc: 'Rearrange the tiles to reveal the vibrant waves of San Juan Surfing Beach! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.'
     },
     {
-        name: "Ma-Cho Temple",
-        location: "San Fernando",
-        image: "https://images.unsplash.com/photo-1548013146-72479768bada?w=600&auto=format&fit=crop&q=80",
-        desc: 'Rearrange the tiles to reveal the majestic Taoist Ma-Cho Temple in San Fernando! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.'
-    },
-    {
-        name: "Pebble Beach & Baluarte",
-        location: "Luna",
-        image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&auto=format&fit=crop&q=80",
-        desc: 'Rearrange the tiles to reveal the historic Baluarte Watchtower on Pebble Beach in Luna! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.'
-    },
-    {
-        name: "Bauang Grape Farms",
-        location: "Bauang",
-        image: "https://images.unsplash.com/photo-1560493676-04071c5f467b?w=600&auto=format&fit=crop&q=80",
-        desc: 'Rearrange the tiles to reveal the lush grape vineyards of Lomboy Farms in Bauang! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.'
+        name: "Agoo Eco Fun World",
+        location: "Agoo",
+        image: R2_PUBLIC_BASE + "spot_6a689fe582fe5.jpg",
+        desc: 'Rearrange the tiles to reveal the lush pine trees of Agoo Eco Fun World! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.'
     }
 ];
 
@@ -457,15 +452,28 @@ let puzzleSolved = false;
 
 async function fetchDatabasePuzzleSpots() {
     try {
-        const url = (window.backendUrl || '').replace(/\/+$/, '') + '/api/puzzles/spots';
-        const res = await fetch(url, { headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' } });
+        const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token');
+        const headers = { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const _baseUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+        let res = await fetch(_baseUrl + '/api/puzzles/spots', { headers });
+        if (!res.ok) {
+            res = await fetch(_baseUrl + '/api/tourist/puzzles/spots', { headers });
+        }
+
         if (res.ok) {
             const data = await res.json();
             if (data.status === 'success' && Array.isArray(data.spots) && data.spots.length > 0) {
                 dbPuzzleSpots = data.spots.map(s => {
                     let imgUrl = s.image;
-                    if (imgUrl && !imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) {
-                        imgUrl = (window.backendUrl || '').replace(/\/+$/, '') + imgUrl;
+                    if (typeof window.resolveImageUrl === 'function') {
+                        imgUrl = window.resolveImageUrl(imgUrl);
+                    } else if (imgUrl && imgUrl.includes('spot_')) {
+                        const m = imgUrl.match(/(spot_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+                        if (m) imgUrl = R2_PUBLIC_BASE + m[1];
+                    } else if (imgUrl && !imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) {
+                        imgUrl = _baseUrl + imgUrl;
                     }
                     return {
                         name: s.name,
@@ -474,6 +482,8 @@ async function fetchDatabasePuzzleSpots() {
                         desc: s.desc
                     };
                 });
+                // Update active puzzle with live database R2 spot images once loaded
+                initPuzzle();
             }
         }
     } catch(e) {
@@ -932,7 +942,7 @@ async function submitScrambleAnswers() {
 async function claimMiniGamePoints(gameType) {
     try {
         const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token');
-        const _baseUrl = window.backendUrl || '';
+        const _baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
 
         // If generic minigame endpoint, call minigame API
         let endpoint = '/api/tourist/points/minigame';
