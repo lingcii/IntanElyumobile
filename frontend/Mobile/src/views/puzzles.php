@@ -453,10 +453,10 @@ let puzzleSolved = false;
 async function fetchDatabasePuzzleSpots() {
     try {
         const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token');
-        const headers = { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' };
+        const headers = { 'Accept': 'application/json' };
         if (token) headers['Authorization'] = 'Bearer ' + token;
 
-        const _baseUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+        const _baseUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || window.location.origin)).replace(/\/+$/, '');
         let res = await fetch(_baseUrl + '/api/puzzles/spots', { headers });
         if (!res.ok) {
             res = await fetch(_baseUrl + '/api/tourist/puzzles/spots', { headers });
