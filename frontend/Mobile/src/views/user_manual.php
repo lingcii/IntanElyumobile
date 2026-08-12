@@ -7,7 +7,7 @@ $backRoute = 'settings';
 
 <style>
 .user-manual-page {
-    padding-top: max(calc(env(safe-area-inset-top) + 55px), 90px);
+    padding-top: max(calc(env(safe-area-inset-top) + 75px), 115px);
     padding-left: 16px;
     padding-right: 16px;
     padding-bottom: 80px;
@@ -15,6 +15,10 @@ $backRoute = 'settings';
     font-family: 'Inter', sans-serif;
     max-width: 800px;
     margin: 0 auto;
+}
+
+#bottom-navigation {
+    display: none !important;
 }
 
 .manual-hero {
@@ -326,20 +330,20 @@ $backRoute = 'settings';
 
         <!-- Section Navigation Chips -->
         <div class="manual-nav-chips">
-            <a href="#section-overview" class="manual-chip active">Overview</a>
-            <a href="#section-splash" class="manual-chip">1. Splash</a>
-            <a href="#section-auth" class="manual-chip">2. Login</a>
-            <a href="#section-dashboard" class="manual-chip">3. Dashboard</a>
-            <a href="#section-map" class="manual-chip">4. Map</a>
-            <a href="#section-itinerary" class="manual-chip">5. Itinerary</a>
-            <a href="#section-checkin" class="manual-chip">6. AR Check-In</a>
-            <a href="#section-quests" class="manual-chip">7. Quests</a>
-            <a href="#section-gamezone" class="manual-chip">8. Games</a>
-            <a href="#section-leaderboard" class="manual-chip">9. Leaderboard</a>
-            <a href="#section-vouchers" class="manual-chip">10. Vouchers</a>
-            <a href="#section-profile" class="manual-chip">11. Profile</a>
-            <a href="#section-settings" class="manual-chip">12. Settings</a>
-            <a href="#section-quickref" class="manual-chip">XP Guide</a>
+            <button type="button" onclick="scrollToSection('section-overview', this)" class="manual-chip active">Overview</button>
+            <button type="button" onclick="scrollToSection('section-splash', this)" class="manual-chip">1. Splash</button>
+            <button type="button" onclick="scrollToSection('section-auth', this)" class="manual-chip">2. Login</button>
+            <button type="button" onclick="scrollToSection('section-dashboard', this)" class="manual-chip">3. Dashboard</button>
+            <button type="button" onclick="scrollToSection('section-map', this)" class="manual-chip">4. Map</button>
+            <button type="button" onclick="scrollToSection('section-itinerary', this)" class="manual-chip">5. Itinerary</button>
+            <button type="button" onclick="scrollToSection('section-checkin', this)" class="manual-chip">6. AR Check-In</button>
+            <button type="button" onclick="scrollToSection('section-quests', this)" class="manual-chip">7. Quests</button>
+            <button type="button" onclick="scrollToSection('section-gamezone', this)" class="manual-chip">8. Games</button>
+            <button type="button" onclick="scrollToSection('section-leaderboard', this)" class="manual-chip">9. Leaderboard</button>
+            <button type="button" onclick="scrollToSection('section-vouchers', this)" class="manual-chip">10. Vouchers</button>
+            <button type="button" onclick="scrollToSection('section-profile', this)" class="manual-chip">11. Profile</button>
+            <button type="button" onclick="scrollToSection('section-settings', this)" class="manual-chip">12. Settings</button>
+            <button type="button" onclick="scrollToSection('section-quickref', this)" class="manual-chip">XP Guide</button>
         </div>
     </div>
 
@@ -781,6 +785,23 @@ $backRoute = 'settings';
         };
     }
 })();
+
+window.scrollToSection = function(sectionId, btn) {
+    if (btn) {
+        document.querySelectorAll('.manual-chip').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+    }
+    const el = document.getElementById(sectionId);
+    if (el) {
+        const headerOffset = 95;
+        const elementPosition = el.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+        });
+    }
+};
 
 window.filterManual = function(query) {
     const q = (query || '').toLowerCase().trim();

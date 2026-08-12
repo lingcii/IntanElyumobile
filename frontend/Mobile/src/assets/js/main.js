@@ -226,7 +226,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
                 // Toggle bottom nav visibility
                 const bottomNav = document.getElementById('bottom-navigation');
-                const noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings'];
+                const noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual'];
                 if (bottomNav) {
                     bottomNav.classList.toggle('nav-hidden', noNavViews.includes(viewName));
                 }
