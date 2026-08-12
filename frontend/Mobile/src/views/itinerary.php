@@ -784,6 +784,8 @@ $activeTab = 'itinerary';
                     }
                 }
             }
+        });
+
         // Sum Entrance Fees & Environmental Fees across all destinations in draft
         let feesTotal = 0;
         draft.forEach(p => {

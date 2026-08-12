@@ -2,6 +2,19 @@
 $uri = $_SERVER['REQUEST_URI'];
 $path = parse_url($uri, PHP_URL_PATH);
 
+// Serve user_manual_mobile.html directly if requested
+if (strpos($path, 'user_manual_mobile.html') !== false) {
+    $manualPath = __DIR__ . '/user_manual_mobile.html';
+    if (!file_exists($manualPath)) {
+        $manualPath = dirname(__DIR__, 2) . '/user_manual_mobile.html';
+    }
+    if (file_exists($manualPath)) {
+        header('Content-Type: text/html; charset=utf-8');
+        readfile($manualPath);
+        exit;
+    }
+}
+
 // Return clean 404 for missing static assets to prevent HTML syntax errors in CSS/JS
 if (preg_match('/\.(css|js|png|jpg|jpeg|gif|svg|ico|json|woff|woff2|ttf|map)$/i', $path) && !file_exists(__DIR__ . $path)) {
     http_response_code(404);
