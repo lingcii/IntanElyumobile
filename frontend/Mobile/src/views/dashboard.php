@@ -648,6 +648,9 @@ if (is_dir($imgDir)) {
         if (savedContainer) {
             savedContainer.innerHTML = '';
             if (data.savedPlaces && data.savedPlaces.length > 0) {
+                savedContainer.style.paddingLeft = '';
+                savedContainer.style.paddingRight = '';
+                savedContainer.style.margin = '';
                 const savedList = data.savedPlaces;
                 savedList.forEach(dest => {
                     const img = window.getDestImage(dest, 600);
@@ -664,11 +667,14 @@ if (is_dir($imgDir)) {
                 });
                 window.initLoopingFocusCarousel('saved-places-container');
             } else {
+                savedContainer.style.paddingLeft = '0';
+                savedContainer.style.paddingRight = '0';
+                savedContainer.style.margin = '0';
                 savedContainer.innerHTML = `
-                    <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; margin: 0 16px;">
-                        <i class="fa-solid fa-map-location-dot" style="font-size: 32px; color: rgba(56,189,248,0.4);"></i>
-                        <div style="color: rgba(148,163,184,0.8); font-size: 14px; line-height: 1.4;">Go to the map to save some places!</div>
-                        <button onclick="window.location.href='?view=map'" style="background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; border: none; padding: 11px 22px; border-radius: 100px; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(56,189,248,0.3);">
+                    <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: rgba(15,23,42,0.6); border: 1px solid rgba(56,189,248,0.15); border-radius: 20px; box-sizing: border-box;">
+                        <i class="fa-solid fa-map-location-dot" style="font-size: 32px; color: #38bdf8;"></i>
+                        <div style="color: rgba(148,163,184,0.9); font-size: 14px; font-weight: 600; line-height: 1.4;">Go to the map to save some places!</div>
+                        <button onclick="window.location.href='?view=map'" style="background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; border: none; padding: 11px 24px; border-radius: 100px; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(56,189,248,0.3); cursor: pointer; white-space: nowrap;">
                             <i class="fa-solid fa-location-arrow"></i> Open Map
                         </button>
                     </div>
@@ -1014,10 +1020,10 @@ if (is_dir($imgDir)) {
                         }
                     } else {
                         tripsContainer.innerHTML = `
-                            <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px;">
-                                <i class="fa-solid fa-route" style="font-size: 32px; color: rgba(56,189,248,0.4);"></i>
-                                <div style="color: rgba(148,163,184,0.8); font-size: 14px; line-height: 1.4;">No saved trips yet.</div>
-                                <button onclick="navigateTo('itinerary')" style="background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; border: none; padding: 11px 22px; border-radius: 100px; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(56,189,248,0.3);">
+                            <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: rgba(15,23,42,0.6); border: 1px solid rgba(56,189,248,0.15); border-radius: 20px; box-sizing: border-box;">
+                                <i class="fa-solid fa-route" style="font-size: 32px; color: #38bdf8;"></i>
+                                <div style="color: rgba(148,163,184,0.9); font-size: 14px; font-weight: 600; line-height: 1.4;">No saved trips yet.</div>
+                                <button onclick="navigateTo('itinerary')" style="background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; border: none; padding: 11px 24px; border-radius: 100px; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(56,189,248,0.3); cursor: pointer; white-space: nowrap;">
                                     <i class="fa-solid fa-plus"></i> Plan a Trip
                                 </button>
                             </div>
@@ -1348,10 +1354,10 @@ window.toggleRecommendedMore = function() {
                         const tripsContainer = document.getElementById('saved-trips-container');
                         if (tripsContainer && tripsContainer.children.length === 0) {
                             tripsContainer.innerHTML = `
-                                <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px;">
-                                    <i class="fa-solid fa-route" style="font-size: 32px; color: rgba(56,189,248,0.4);"></i>
-                                    <div style="color: rgba(148,163,184,0.8); font-size: 14px; line-height: 1.4;">No saved trips yet.</div>
-                                    <button onclick="navigateTo('itinerary')" style="background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; border: none; padding: 11px 22px; border-radius: 100px; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(56,189,248,0.3);">
+                                <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: rgba(15,23,42,0.6); border: 1px solid rgba(56,189,248,0.15); border-radius: 20px; box-sizing: border-box;">
+                                    <i class="fa-solid fa-route" style="font-size: 32px; color: #38bdf8;"></i>
+                                    <div style="color: rgba(148,163,184,0.9); font-size: 14px; font-weight: 600; line-height: 1.4;">No saved trips yet.</div>
+                                    <button onclick="navigateTo('itinerary')" style="background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; border: none; padding: 11px 24px; border-radius: 100px; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(56,189,248,0.3); cursor: pointer; white-space: nowrap;">
                                         <i class="fa-solid fa-plus"></i> Plan a Trip
                                     </button>
                                 </div>
