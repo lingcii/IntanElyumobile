@@ -41,7 +41,7 @@ $backRoute = 'dashboard';
 
     <div class="terms-card">
         <h3><i class="fa-solid fa-envelope"></i> Contact</h3>
-        <p>For questions about these terms or your privacy, reach out to us at <strong style="color: #38bdf8;">support@intan-elyu.online</strong></p>
+        <p>For questions about these terms or your privacy, reach out to us at <strong style="color: #38bdf8;">acekillersmile@gmail.com</strong></p>
     </div>
 </div>
 
