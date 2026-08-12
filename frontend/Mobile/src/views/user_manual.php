@@ -7,7 +7,10 @@ $backRoute = 'settings';
 
 <style>
 .user-manual-page {
-    padding: 16px 16px 80px 16px;
+    padding-top: max(calc(env(safe-area-inset-top) + 55px), 90px);
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-bottom: 80px;
     color: #f8fafc;
     font-family: 'Inter', sans-serif;
     max-width: 800px;
