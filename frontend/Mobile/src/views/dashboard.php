@@ -402,9 +402,14 @@ if (is_dir($imgDir)) {
             }
 
             if (cat !== 'All' && visibleCount === 0) {
+                container.style.paddingLeft = '0';
+                container.style.paddingRight = '0';
+                container.style.marginLeft = '0';
+                container.style.marginRight = '0';
+                
                 const emptyDiv = document.createElement('div');
                 emptyDiv.className = 'dash-filter-empty-state';
-                emptyDiv.style.cssText = 'padding: 24px 16px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: rgba(15,23,42,0.6); border: 1px solid rgba(56,189,248,0.15); border-radius: 20px; margin: 4px 0; font-size: 13px; color: rgba(148,163,184,0.9); font-weight: 600; box-sizing: border-box; animation: filterFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;';
+                emptyDiv.style.cssText = 'padding: 24px 16px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: rgba(15,23,42,0.6); border: 1px solid rgba(56,189,248,0.15); border-radius: 20px; font-size: 13px; color: rgba(148,163,184,0.9); font-weight: 600; box-sizing: border-box; animation: filterFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;';
                 emptyDiv.innerHTML = `<i class="fa-solid fa-compass" style="font-size: 24px; color: #38bdf8; margin-bottom: 2px;"></i><span>${emptyMsg}</span>`;
                 
                 const btnMore = container.querySelector('#btn-view-more-rec');
@@ -414,6 +419,11 @@ if (is_dir($imgDir)) {
                 } else {
                     container.appendChild(emptyDiv);
                 }
+            } else {
+                container.style.paddingLeft = '';
+                container.style.paddingRight = '';
+                container.style.marginLeft = '';
+                container.style.marginRight = '';
             }
         };
 

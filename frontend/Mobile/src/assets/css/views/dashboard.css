@@ -341,6 +341,13 @@
     background: transparent !important;
 }
 
+.favorites-row:has(.dash-filter-empty-state) {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
 /* Favorite & Trending Card — Scale Focus Effect */
 .fav-card {
     min-width: 175px;
