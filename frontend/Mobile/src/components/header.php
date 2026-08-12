@@ -162,6 +162,9 @@
                 <a href="#" onclick="toggleSidebar(); navigateTo('settings'); return false;" style="color: #cbd5e1; text-decoration: none; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 12px; transition: all 0.2s;">
                     <i class="fa-solid fa-gear" style="color: #94a3b8; width: 20px; text-align: center;"></i> Settings
                 </a>
+                <a href="#" onclick="toggleSidebar(); navigateTo('user_manual'); return false;" style="color: #cbd5e1; text-decoration: none; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 12px; transition: all 0.2s;">
+                    <i class="fa-solid fa-book-open" style="color: #38bdf8; width: 20px; text-align: center;"></i> User Manual
+                </a>
                 <a href="#" onclick="toggleSidebar(); navigateTo('help'); return false;" style="color: #cbd5e1; text-decoration: none; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 12px; transition: all 0.2s;">
                     <i class="fa-solid fa-circle-question" style="color: #94a3b8; width: 20px; text-align: center;"></i> Help & FAQ
                 </a>

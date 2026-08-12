@@ -148,7 +148,7 @@ if ($isAjax) {
         </main>
         
         <?php
-        $noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings'];
+        $noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual'];
         $navHiddenClass = in_array($view, $noNavViews) ? 'nav-hidden' : '';
         ?>
         <div id="bottom-navigation" class="<?= $navHiddenClass ?>">

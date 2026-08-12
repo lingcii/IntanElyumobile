@@ -172,7 +172,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     if (state.isNavigating) return;
 
     // Global Auth Enforcement: Ensure user is logged in
-    const publicViews = ['splash', 'auth', 'about', 'terms', 'reset-password'];
+    const publicViews = ['splash', 'auth', 'about', 'terms', 'reset-password', 'user_manual'];
     if (!publicViews.includes(viewName) && !localStorage.getItem('intan_elyu_token')) {
         viewName = 'auth';
     }
