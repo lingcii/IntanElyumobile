@@ -729,15 +729,9 @@ if (is_dir($imgDir)) {
         const nearContainer = document.getElementById('near-me-container');
         if (!nearContainer) return;
 
-        if (!userLat || !userLng) {
-            nearContainer.innerHTML = `
-                <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; margin: 0 16px;">
-                    <i class="fa-solid fa-location-crosshairs" style="font-size: 32px; color: rgba(56,189,248,0.4);"></i>
-                    <div style="color: rgba(148,163,184,0.8); font-size: 14px; line-height: 1.4;">Enable location access to see spots near you.</div>
-                </div>
-            `;
-            return;
-        }
+        // Default fallback: San Fernando, La Union center if GPS unavailable
+        const currentLat = (userLat && !isNaN(parseFloat(userLat))) ? parseFloat(userLat) : 16.6159;
+        const currentLng = (userLng && !isNaN(parseFloat(userLng))) ? parseFloat(userLng) : 120.3209;
 
         const cacheKey = 'public_map_data';
         await window.useCache(
@@ -754,33 +748,42 @@ if (is_dir($imgDir)) {
                 }
                 let spots = data.destinations || [];
                 spots.forEach(spot => {
-                    var sLat = spot.latitude || spot.lat;
-                    var sLng = spot.longitude || spot.lng;
-                    if (sLat && sLng) {
-                        spot.distance = getDistance(userLat, userLng, sLat, sLng);
+                    var sLat = parseFloat(spot.latitude || spot.lat);
+                    var sLng = parseFloat(spot.longitude || spot.lng);
+                    if (!isNaN(sLat) && !isNaN(sLng)) {
+                        spot.distance = getDistance(currentLat, currentLng, sLat, sLng);
                     } else {
                         spot.distance = 999999;
                     }
                 });
 
+                // Sort all spots by distance ascending
                 spots.sort((a, b) => a.distance - b.distance);
-                const nearSpots = spots.filter(s => s.distance < 2);
+                const nearSpots = spots.filter(s => s.distance < 999900);
 
                 if (nearSpots.length > 0) {
                     nearContainer.innerHTML = '';
-                    const nearList = nearSpots.slice(0, 5);
+                    const nearList = nearSpots.slice(0, 8);
                     nearList.forEach(dest => {
                         const img = window.getDestImage(dest, 600);
                         const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
-                        const distText = dest.distance < 1 ? '< 1 km' : dest.distance.toFixed(1) + ' km';
+                        
+                        let distText = '';
+                        if (dest.distance < 1) {
+                            const meters = Math.max(50, Math.round(dest.distance * 1000));
+                            distText = `${meters} m away`;
+                        } else {
+                            distText = `${dest.distance.toFixed(1)} km away`;
+                        }
+
                         const encodedDest = encodeURIComponent(JSON.stringify(dest));
                         nearContainer.innerHTML += `
                             <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                                 ${badgeHtml}
-                                <img src="${img}" alt="${dest.name}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
+                                <img src="${img}" alt="${dest.name}" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
                                 <div class="fav-card-overlay">
                                     <span class="fav-card-name">${dest.name}</span>
-                                    <span style="display:block; font-size:10px; color:#38bdf8; margin-top:2px; font-weight:700;"><i class="fa-solid fa-location-arrow"></i> ${distText} away</span>
+                                    <span style="display:block; font-size:10px; color:#38bdf8; margin-top:2px; font-weight:700;"><i class="fa-solid fa-location-arrow"></i> ${distText}</span>
                                 </div>
                             </div>
                         `;
