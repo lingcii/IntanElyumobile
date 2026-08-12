@@ -452,15 +452,15 @@ if (is_dir($imgDir)) {
                 closestCard.classList.add('active-card');
             }
 
-            // Seamless set-width infinite loop calculation
-            if (cards.length >= 6) {
+            // Seamless set-width infinite loop calculation (only when NOT smooth scrolling via click)
+            if (cards.length >= 6 && !container._isSmoothScrolling) {
                 const itemCount = Math.floor(cards.length / 3);
                 const cardSpan = cards[1].offsetLeft - cards[0].offsetLeft;
                 if (cardSpan > 0 && itemCount > 0) {
                     const setWidth = cardSpan * itemCount;
-                    if (container.scrollLeft >= setWidth * 2 - 20) {
+                    if (container.scrollLeft >= setWidth * 2 - 10) {
                         container.scrollLeft -= setWidth;
-                    } else if (container.scrollLeft <= setWidth * 0.3) {
+                    } else if (container.scrollLeft <= setWidth * 0.2) {
                         container.scrollLeft += setWidth;
                     }
                 }
@@ -472,10 +472,13 @@ if (is_dir($imgDir)) {
         if (!container._focusCarouselInited) {
             container._focusCarouselInited = true;
 
-            // Click capture: clicking a shrinked card smoothly scrolls it to center focus
+            // Click capture: clicking a shrinked card smoothly scrolls its middle-set twin card to center
             container.addEventListener('click', (e) => {
                 const card = e.target.closest('.fav-card');
                 if (!card) return;
+
+                const cards = Array.from(container.querySelectorAll('.fav-card'));
+                const cardIndex = cards.indexOf(card);
 
                 const containerRect = container.getBoundingClientRect();
                 const containerCenter = containerRect.left + containerRect.width / 2;
@@ -487,8 +490,29 @@ if (is_dir($imgDir)) {
                     e.preventDefault();
                     e.stopPropagation();
 
-                    const scrollDelta = cardCenter - containerCenter;
+                    // Map clicked card to middle set B twin card so smooth scroll stays safely away from container bounds
+                    let targetCard = card;
+                    if (cards.length >= 6) {
+                        const itemCount = Math.floor(cards.length / 3);
+                        const middleIndex = (cardIndex % itemCount) + itemCount;
+                        if (cards[middleIndex]) {
+                            targetCard = cards[middleIndex];
+                        }
+                    }
+
+                    const targetCardRect = targetCard.getBoundingClientRect();
+                    const targetCardCenter = targetCardRect.left + targetCardRect.width / 2;
+                    const scrollDelta = targetCardCenter - containerCenter;
+
+                    container._isSmoothScrolling = true;
+                    if (container._smoothTimer) clearTimeout(container._smoothTimer);
+
                     container.scrollBy({ left: scrollDelta, behavior: 'smooth' });
+
+                    container._smoothTimer = setTimeout(() => {
+                        container._isSmoothScrolling = false;
+                        updateCardScales();
+                    }, 450);
                 }
             }, true);
 
