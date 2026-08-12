@@ -81,7 +81,7 @@ $backRoute = 'dashboard';
 
         <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; margin-bottom: 16px;">
             <i class="fa-solid fa-envelope" style="color: #38bdf8; font-size: 16px;"></i>
-            <span style="font-size: 14px; font-weight: 600; color: #38bdf8; font-family: monospace;">acekillersmile@gmail.com</span>
+            <span style="font-size: 14px; font-weight: 600; color: #38bdf8; font-family: monospace;">support@intan-elyu.online</span>
         </div>
 
         <div style="display: flex; gap: 10px;">
