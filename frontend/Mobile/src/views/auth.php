@@ -118,7 +118,7 @@
                     </div>
                     
                     <div style="font-size: 11px; color: rgba(255,255,255,0.85); margin: 10px 0 16px 4px; display: flex; align-items: center; gap: 8px;">
-                        <input type="checkbox" id="reg-privacy-checkbox" class="circular-checkbox" style="cursor: pointer;" required>
+                        <input type="checkbox" id="reg-privacy-checkbox" class="circular-checkbox" style="cursor: pointer;">
                         <label for="reg-privacy-checkbox" id="reg-privacy-label" style="cursor: pointer; margin: 0; line-height: 1.35;">
                             I agree to the <a href="#" id="link-terms-privacy" onclick="openPrivacyPolicyModal(event)" style="color: #38bdf8; font-weight: 700; text-decoration: underline; cursor: pointer;">Terms & Privacy Policy</a>.
                         </label>
