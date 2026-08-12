@@ -111,8 +111,8 @@ window.toggleFaq = function(el) {
 };
 
 window.copySupportEmail = function() {
-    navigator.clipboard.writeText('acekillersmile@gmail.com').then(() => {
-        if (typeof showToast === 'function') showToast('Copied acekillersmile@gmail.com to clipboard! 📋');
+    navigator.clipboard.writeText('support@intan-elyu.online').then(() => {
+        if (typeof showToast === 'function') showToast('Copied support@intan-elyu.online to clipboard! 📋');
     });
 };
 
