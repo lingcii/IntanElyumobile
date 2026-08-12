@@ -411,6 +411,77 @@ if (is_dir($imgDir)) {
         filterContainer('recommended-container', 'No recommended sites in this category.');
         filterContainer('near-me-container', 'No nearby sites found in this category.');
     };
+
+    window.initLoopingFocusCarousel = function(containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        let isTicking = false;
+
+        function updateCardScales() {
+            const cards = container.querySelectorAll('.fav-card');
+            if (cards.length === 0) return;
+
+            const containerRect = container.getBoundingClientRect();
+            const containerCenter = containerRect.left + containerRect.width / 2;
+
+            let closestCard = null;
+            let minDistance = Infinity;
+
+            cards.forEach(card => {
+                const cardRect = card.getBoundingClientRect();
+                const cardCenter = cardRect.left + cardRect.width / 2;
+                const dist = Math.abs(cardCenter - containerCenter);
+
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestCard = card;
+                }
+
+                const maxDist = containerRect.width * 0.42;
+                const ratio = Math.max(0, 1 - dist / maxDist);
+                const scale = 0.84 + (ratio * 0.22);
+                const opacity = 0.60 + (ratio * 0.40);
+
+                card.style.transform = `scale(${scale.toFixed(3)}) translate3d(0,0,0)`;
+                card.style.opacity = opacity.toFixed(2);
+            });
+
+            cards.forEach(c => c.classList.remove('active-card'));
+            if (closestCard) {
+                closestCard.classList.add('active-card');
+            }
+
+            // Infinite loop scroll wrapping
+            const maxScroll = container.scrollWidth - container.clientWidth;
+            if (maxScroll > 100) {
+                if (container.scrollLeft <= 5) {
+                    container.scrollLeft = Math.floor(maxScroll * 0.5);
+                } else if (container.scrollLeft >= maxScroll - 5) {
+                    container.scrollLeft = Math.floor(maxScroll * 0.25);
+                }
+            }
+
+            isTicking = false;
+        }
+
+        if (!container._focusCarouselInited) {
+            container._focusCarouselInited = true;
+            container.addEventListener('scroll', () => {
+                if (!isTicking) {
+                    requestAnimationFrame(updateCardScales);
+                    isTicking = true;
+                }
+            }, { passive: true });
+        }
+
+        requestAnimationFrame(() => {
+            updateCardScales();
+            setTimeout(updateCardScales, 150);
+            setTimeout(updateCardScales, 500);
+        });
+    };
+
 (async function dashboardInit() {
     const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
     const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
@@ -521,12 +592,15 @@ if (is_dir($imgDir)) {
         if (document.getElementById('dash-stat-places')) document.getElementById('dash-stat-places').textContent = (data.stats && data.stats.placesVisited) ? data.stats.placesVisited : 0;
         if (document.getElementById('dash-stat-xp')) document.getElementById('dash-stat-xp').textContent = xp.toLocaleString();
 
-        // Populate Trending Spots (Top 3)
+        // Populate Trending Spots (Top 3 with Infinite Carousel Loop)
         const trendingContainer = document.getElementById('trending-container');
         if (trendingContainer) {
             trendingContainer.innerHTML = '';
             if (data.trending && data.trending.length > 0) {
-                data.trending.forEach(dest => {
+                const trendingList = (data.trending.length > 1) 
+                    ? [...data.trending, ...data.trending, ...data.trending] 
+                    : data.trending;
+                trendingList.forEach(dest => {
                     const img = window.getDestImage(dest, 600);
                     const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
                     const encodedDest = encodeURIComponent(JSON.stringify(dest));
@@ -539,6 +613,7 @@ if (is_dir($imgDir)) {
                         </div>
                     `;
                 });
+                window.initLoopingFocusCarousel('trending-container');
             } else {
                 trendingContainer.innerHTML = `
                     <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; margin: 0 16px;">
@@ -554,7 +629,10 @@ if (is_dir($imgDir)) {
         if (savedContainer) {
             savedContainer.innerHTML = '';
             if (data.savedPlaces && data.savedPlaces.length > 0) {
-                data.savedPlaces.forEach(dest => {
+                const savedList = (data.savedPlaces.length > 1) 
+                    ? [...data.savedPlaces, ...data.savedPlaces, ...data.savedPlaces] 
+                    : data.savedPlaces;
+                savedList.forEach(dest => {
                     const img = window.getDestImage(dest, 600);
                     const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
                     const encodedDest = encodeURIComponent(JSON.stringify(dest));
@@ -567,6 +645,7 @@ if (is_dir($imgDir)) {
                         </div>
                     `;
                 });
+                window.initLoopingFocusCarousel('saved-places-container');
             } else {
                 savedContainer.innerHTML = `
                     <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; margin: 0 16px;">
@@ -672,7 +751,10 @@ if (is_dir($imgDir)) {
 
                 if (nearSpots.length > 0) {
                     nearContainer.innerHTML = '';
-                    nearSpots.slice(0, 5).forEach(dest => {
+                    const nearList = (nearSpots.length > 1) 
+                        ? [...nearSpots.slice(0, 5), ...nearSpots.slice(0, 5), ...nearSpots.slice(0, 5)] 
+                        : nearSpots.slice(0, 5);
+                    nearList.forEach(dest => {
                         const img = window.getDestImage(dest, 600);
                         const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
                         const distText = dest.distance < 1 ? '< 1 km' : dest.distance.toFixed(1) + ' km';
@@ -688,6 +770,7 @@ if (is_dir($imgDir)) {
                             </div>
                         `;
                     });
+                    window.initLoopingFocusCarousel('near-me-container');
                 } else {
                     nearContainer.innerHTML = `
                         <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; margin: 0 16px;">

@@ -317,15 +317,17 @@
     color: #ffffff;
 }
 
-/* Horizontal Scroll Cards Row */
+/* Horizontal Scroll Cards Row with Center Snap */
 .favorites-row {
     display: flex;
-    gap: 14px;
+    align-items: center;
+    gap: 16px;
     overflow-x: auto;
-    padding-bottom: 8px;
+    padding-top: 15px;
+    padding-bottom: 25px;
     margin: 0 -16px;
-    padding-left: 16px;
-    padding-right: 16px;
+    padding-left: calc(50vw - 90px);
+    padding-right: calc(50vw - 90px);
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
 }
@@ -334,24 +336,35 @@
     display: none;
 }
 
-/* Favorite & Trending Card */
+/* Favorite & Trending Card — Scale Focus Effect */
 .fav-card {
     min-width: 175px;
     width: 175px;
-    height: 230px;
+    height: 235px;
     border-radius: 22px;
     position: relative;
     overflow: hidden;
-    scroll-snap-align: start;
+    scroll-snap-align: center;
     cursor: pointer;
     border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
     flex-shrink: 0;
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+    will-change: transform, opacity;
+    transform: scale(0.85) translate3d(0, 0, 0);
+    opacity: 0.65;
+    transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.fav-card.active-card {
+    transform: scale(1.06) translate3d(0, 0, 0) !important;
+    opacity: 1 !important;
+    z-index: 10;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 20px rgba(56, 189, 248, 0.3) !important;
+    border-color: rgba(56, 189, 248, 0.6) !important;
 }
 
 .fav-card:active {
-    transform: scale(0.96);
+    transform: scale(0.96) !important;
 }
 
 .fav-card img {
