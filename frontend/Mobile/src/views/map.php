@@ -836,25 +836,40 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         const container = document.getElementById('map-categories-container');
         if (!container) return;
 
-        const categories = [...new Set(window.allMapLocations.map(loc => loc.category).filter(Boolean))];
+        const rawCats = [];
+        (window.allMapLocations || []).forEach(loc => {
+            if (!loc.category) return;
+            const parts = String(loc.category).split(/[,/]/);
+            parts.forEach(p => {
+                const trimmed = p.trim();
+                if (trimmed) rawCats.push(trimmed);
+            });
+        });
+
+        const uniqueCats = [...new Set(rawCats)];
         let html = `<div class="category-pill active" onclick="filterCategory('All', this)">All</div>`;
-        categories.forEach(cat => {
-            html += `<div class="category-pill" onclick="filterCategory('${cat}', this)">${cat}</div>`;
+        uniqueCats.forEach(cat => {
+            const safeCat = cat.replace(/'/g, "\\'");
+            html += `<div class="category-pill" onclick="filterCategory('${safeCat}', this)">${cat}</div>`;
         });
         container.innerHTML = html;
     }
 
     window.filterCategory = function(category, element) {
         document.querySelectorAll('.category-pill').forEach(pill => pill.classList.remove('active'));
-        if(element) element.classList.add('active');
+        if (element) element.classList.add('active');
 
         const searchInput = document.getElementById('map-search-input');
         const searchText = searchInput ? searchInput.value.toLowerCase() : '';
+        const targetCat = (category || '').toLowerCase();
         
-        const filtered = window.allMapLocations.filter(loc => {
+        const filtered = (window.allMapLocations || []).filter(loc => {
             const name = loc.name ? loc.name.toLowerCase() : '';
             const location = loc.location ? loc.location.toLowerCase() : '';
-            return (name.includes(searchText) || location.includes(searchText)) && (category === 'All' || loc.category === category);
+            const locCat = loc.category ? loc.category.toLowerCase() : '';
+            const matchesSearch = (name.includes(searchText) || location.includes(searchText) || locCat.includes(searchText));
+            const matchesCat = (targetCat === 'all' || locCat.includes(targetCat));
+            return matchesSearch && matchesCat;
         });
         
         window.renderMarkers(filtered);
