@@ -729,9 +729,18 @@ if (is_dir($imgDir)) {
         const nearContainer = document.getElementById('near-me-container');
         if (!nearContainer) return;
 
-        // Default fallback: San Fernando, La Union center if GPS unavailable
-        const currentLat = (userLat && !isNaN(parseFloat(userLat))) ? parseFloat(userLat) : 16.6159;
-        const currentLng = (userLng && !isNaN(parseFloat(userLng))) ? parseFloat(userLng) : 120.3209;
+        if (!userLat || !userLng) {
+            nearContainer.innerHTML = `
+                <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; margin: 0 16px;">
+                    <i class="fa-solid fa-location-crosshairs" style="font-size: 32px; color: rgba(56,189,248,0.4);"></i>
+                    <div style="color: rgba(148,163,184,0.8); font-size: 14px; line-height: 1.4;">Enable location access to see spots within 2 km of you.</div>
+                </div>
+            `;
+            return;
+        }
+
+        const uLat = parseFloat(userLat);
+        const uLng = parseFloat(userLng);
 
         const cacheKey = 'public_map_data';
         await window.useCache(
@@ -751,20 +760,20 @@ if (is_dir($imgDir)) {
                     var sLat = parseFloat(spot.latitude || spot.lat);
                     var sLng = parseFloat(spot.longitude || spot.lng);
                     if (!isNaN(sLat) && !isNaN(sLng)) {
-                        spot.distance = getDistance(currentLat, currentLng, sLat, sLng);
+                        spot.distance = getDistance(uLat, uLng, sLat, sLng);
                     } else {
                         spot.distance = 999999;
                     }
                 });
 
-                // Sort all spots by distance ascending
+                // Strictly filter only spots within 2 km radius of user location
+                const MAX_RADIUS_KM = 2.0;
                 spots.sort((a, b) => a.distance - b.distance);
-                const nearSpots = spots.filter(s => s.distance < 999900);
+                const nearSpots = spots.filter(s => s.distance <= MAX_RADIUS_KM);
 
                 if (nearSpots.length > 0) {
                     nearContainer.innerHTML = '';
-                    const nearList = nearSpots.slice(0, 8);
-                    nearList.forEach(dest => {
+                    nearSpots.forEach(dest => {
                         const img = window.getDestImage(dest, 600);
                         const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
                         
@@ -793,7 +802,7 @@ if (is_dir($imgDir)) {
                     nearContainer.innerHTML = `
                         <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; margin: 0 16px;">
                             <i class="fa-solid fa-location-dot" style="font-size: 32px; color: rgba(56,189,248,0.4);"></i>
-                            <div style="color: rgba(148,163,184,0.8); font-size: 14px; line-height: 1.4;">There are no spots near you right now.</div>
+                            <div style="color: rgba(148,163,184,0.8); font-size: 14px; line-height: 1.4;">There are no tourist spots within 2 km of your current location.</div>
                         </div>
                     `;
                 }
