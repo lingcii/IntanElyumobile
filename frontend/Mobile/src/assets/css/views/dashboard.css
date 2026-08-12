@@ -330,10 +330,15 @@
     padding-right: calc(50vw - 90px);
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
 }
 
 .favorites-row::-webkit-scrollbar {
-    display: none;
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
 }
 
 /* Favorite & Trending Card — Scale Focus Effect */

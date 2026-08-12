@@ -452,13 +452,17 @@ if (is_dir($imgDir)) {
                 closestCard.classList.add('active-card');
             }
 
-            // Infinite loop scroll wrapping
-            const maxScroll = container.scrollWidth - container.clientWidth;
-            if (maxScroll > 100) {
-                if (container.scrollLeft <= 5) {
-                    container.scrollLeft = Math.floor(maxScroll * 0.5);
-                } else if (container.scrollLeft >= maxScroll - 5) {
-                    container.scrollLeft = Math.floor(maxScroll * 0.25);
+            // Seamless set-width infinite loop calculation
+            if (cards.length >= 6) {
+                const itemCount = Math.floor(cards.length / 3);
+                const cardSpan = cards[1].offsetLeft - cards[0].offsetLeft;
+                if (cardSpan > 0 && itemCount > 0) {
+                    const setWidth = cardSpan * itemCount;
+                    if (container.scrollLeft >= setWidth * 2 - 20) {
+                        container.scrollLeft -= setWidth;
+                    } else if (container.scrollLeft <= setWidth * 0.3) {
+                        container.scrollLeft += setWidth;
+                    }
                 }
             }
 
@@ -476,6 +480,14 @@ if (is_dir($imgDir)) {
         }
 
         requestAnimationFrame(() => {
+            const cards = container.querySelectorAll('.fav-card');
+            if (cards.length >= 6) {
+                const itemCount = Math.floor(cards.length / 3);
+                const cardSpan = cards[1].offsetLeft - cards[0].offsetLeft;
+                if (cardSpan > 0 && container.scrollLeft < 50) {
+                    container.scrollLeft = cardSpan * itemCount;
+                }
+            }
             updateCardScales();
             setTimeout(updateCardScales, 150);
             setTimeout(updateCardScales, 500);
