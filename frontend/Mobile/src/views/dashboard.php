@@ -369,6 +369,9 @@ if (is_dir($imgDir)) {
                 }
 
                 if (child.id === 'btn-view-more-rec' || child.id === 'rec-extras') {
+                    if (child.id === 'btn-view-more-rec') {
+                        child.style.display = (cat === 'All') ? '' : 'none';
+                    }
                     if (child.id === 'rec-extras') {
                         Array.from(child.children).forEach(subChild => {
                             const subCat = subChild.getAttribute('data-category') || '';
@@ -403,7 +406,14 @@ if (is_dir($imgDir)) {
                 emptyDiv.className = 'dash-filter-empty-state';
                 emptyDiv.style.cssText = 'padding: 24px 16px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: rgba(15,23,42,0.6); border: 1px solid rgba(56,189,248,0.15); border-radius: 20px; margin: 4px 0; font-size: 13px; color: rgba(148,163,184,0.9); font-weight: 600; box-sizing: border-box; animation: filterFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;';
                 emptyDiv.innerHTML = `<i class="fa-solid fa-compass" style="font-size: 24px; color: #38bdf8; margin-bottom: 2px;"></i><span>${emptyMsg}</span>`;
-                container.appendChild(emptyDiv);
+                
+                const btnMore = container.querySelector('#btn-view-more-rec');
+                if (btnMore) {
+                    btnMore.style.display = 'none';
+                    container.insertBefore(emptyDiv, btnMore);
+                } else {
+                    container.appendChild(emptyDiv);
+                }
             }
         };
 
