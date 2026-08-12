@@ -440,8 +440,8 @@ if (is_dir($imgDir)) {
 
                 const maxDist = containerRect.width * 0.42;
                 const ratio = Math.max(0, 1 - dist / maxDist);
-                const scale = 0.84 + (ratio * 0.22);
-                const opacity = 0.60 + (ratio * 0.40);
+                const scale = 0.88 + (ratio * 0.12);
+                const opacity = 0.70 + (ratio * 0.30);
 
                 card.style.transform = `scale(${scale.toFixed(3)}) translate3d(0,0,0)`;
                 card.style.opacity = opacity.toFixed(2);
