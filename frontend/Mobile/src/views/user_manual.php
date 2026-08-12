@@ -330,20 +330,20 @@ $backRoute = 'settings';
 
         <!-- Section Navigation Chips -->
         <div class="manual-nav-chips">
-            <button type="button" onclick="scrollToSection('section-overview', this)" class="manual-chip active">Overview</button>
-            <button type="button" onclick="scrollToSection('section-splash', this)" class="manual-chip">1. Splash</button>
-            <button type="button" onclick="scrollToSection('section-auth', this)" class="manual-chip">2. Login</button>
-            <button type="button" onclick="scrollToSection('section-dashboard', this)" class="manual-chip">3. Dashboard</button>
-            <button type="button" onclick="scrollToSection('section-map', this)" class="manual-chip">4. Map</button>
-            <button type="button" onclick="scrollToSection('section-itinerary', this)" class="manual-chip">5. Itinerary</button>
-            <button type="button" onclick="scrollToSection('section-checkin', this)" class="manual-chip">6. AR Check-In</button>
-            <button type="button" onclick="scrollToSection('section-quests', this)" class="manual-chip">7. Quests</button>
-            <button type="button" onclick="scrollToSection('section-gamezone', this)" class="manual-chip">8. Games</button>
-            <button type="button" onclick="scrollToSection('section-leaderboard', this)" class="manual-chip">9. Leaderboard</button>
-            <button type="button" onclick="scrollToSection('section-vouchers', this)" class="manual-chip">10. Vouchers</button>
-            <button type="button" onclick="scrollToSection('section-profile', this)" class="manual-chip">11. Profile</button>
-            <button type="button" onclick="scrollToSection('section-settings', this)" class="manual-chip">12. Settings</button>
-            <button type="button" onclick="scrollToSection('section-quickref', this)" class="manual-chip">XP Guide</button>
+            <button type="button" onclick="selectManualChip('', this)" class="manual-chip active">Overview</button>
+            <button type="button" onclick="selectManualChip('Splash Screen', this)" class="manual-chip">1. Splash</button>
+            <button type="button" onclick="selectManualChip('Login & Registration', this)" class="manual-chip">2. Login</button>
+            <button type="button" onclick="selectManualChip('Dashboard', this)" class="manual-chip">3. Dashboard</button>
+            <button type="button" onclick="selectManualChip('Explore Map', this)" class="manual-chip">4. Map</button>
+            <button type="button" onclick="selectManualChip('Itinerary Planner', this)" class="manual-chip">5. Itinerary</button>
+            <button type="button" onclick="selectManualChip('AR Check-In', this)" class="manual-chip">6. AR Check-In</button>
+            <button type="button" onclick="selectManualChip('Quests & Challenges', this)" class="manual-chip">7. Quests</button>
+            <button type="button" onclick="selectManualChip('GameZone Mini-Games', this)" class="manual-chip">8. Games</button>
+            <button type="button" onclick="selectManualChip('Leaderboard & Ranks', this)" class="manual-chip">9. Leaderboard</button>
+            <button type="button" onclick="selectManualChip('Discounts & Vouchers', this)" class="manual-chip">10. Vouchers</button>
+            <button type="button" onclick="selectManualChip('My Profile', this)" class="manual-chip">11. Profile</button>
+            <button type="button" onclick="selectManualChip('Settings & Security', this)" class="manual-chip">12. Settings</button>
+            <button type="button" onclick="selectManualChip('Quick Reference', this)" class="manual-chip">XP Guide</button>
         </div>
     </div>
 
@@ -786,21 +786,16 @@ $backRoute = 'settings';
     }
 })();
 
-window.scrollToSection = function(sectionId, btn) {
+window.selectManualChip = function(keyword, btn) {
     if (btn) {
         document.querySelectorAll('.manual-chip').forEach(c => c.classList.remove('active'));
         btn.classList.add('active');
     }
-    const el = document.getElementById(sectionId);
-    if (el) {
-        const headerOffset = 95;
-        const elementPosition = el.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-        window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth'
-        });
+    const searchInput = document.getElementById('manual-search');
+    if (searchInput) {
+        searchInput.value = keyword;
     }
+    window.filterManual(keyword);
 };
 
 window.filterManual = function(query) {
