@@ -425,7 +425,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                     "id": "background",
                     "type": "background",
                     "paint": {
-                        "background-color": "#0a0f1c"
+                        "background-color": "#eef2f6"
                     }
                 },
                 {
@@ -449,6 +449,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             center: [120.3167, 16.6159],
             zoom: 11,
             pitch: 0,
+            fadeDuration: 0,
             attributionControl: false
         });
 
@@ -460,10 +461,8 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
         // window.mapInstance.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
 
-        // Add 3D Terrain and Region Mask
+        // Map Load Initialization
         window.mapInstance.on('load', async () => {
-            window.mapInstance.setTerrain({ "source": "terrain", "exaggeration": 1.5 });
-
             // Render markers immediately
             try {
                 const data = await mapDataPromise;
@@ -513,17 +512,6 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             } catch (error) {
                 console.error("Map data processing error:", error);
             }
-
-            try {
-                window.mapInstance.setSky({
-                    'sky-color': '#0a0f1c',
-                    'horizon-color': '#0a0f1c',
-                    'sky-horizon-blend': 0,
-                    'horizon-fog-blend': 0,
-                    'fog-color': '#0a0f1c',
-                    'atmosphere-blend': 0
-                });
-            } catch (skyErr) { console.error("setSky error:", skyErr); }
 
             try {
                 // Wait for the parallel region data fetch
@@ -723,11 +711,14 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                     let hoveredId = null;
                     window.mapInstance.on('mousemove', 'municipality-fill', (e) => {
                         if (e.features.length > 0) {
-                            if (hoveredId !== null) {
-                                window.mapInstance.setFeatureState({ source: 'municipality-zones', id: hoveredId }, { hover: false });
+                            const nextId = e.features[0].id;
+                            if (hoveredId !== nextId) {
+                                if (hoveredId !== null) {
+                                    window.mapInstance.setFeatureState({ source: 'municipality-zones', id: hoveredId }, { hover: false });
+                                }
+                                hoveredId = nextId;
+                                window.mapInstance.setFeatureState({ source: 'municipality-zones', id: hoveredId }, { hover: true });
                             }
-                            hoveredId = e.features[0].id;
-                            window.mapInstance.setFeatureState({ source: 'municipality-zones', id: hoveredId }, { hover: true });
                         }
                     });
                     window.mapInstance.on('mouseleave', 'municipality-fill', () => {
@@ -792,28 +783,15 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             }
 
             const container = document.createElement('div');
+            container.style.cssText = 'will-change:transform; transform:translate3d(0,0,0); backface-visibility:hidden;';
             
             const el = document.createElement('div');
             el.className = 'custom-map-marker';
-            el.style.width = '32px';
-            el.style.height = '32px';
-            el.style.backgroundColor = '#FFFFFF';
-            el.style.border = `2px solid ${catColor}`;
-            el.style.borderRadius = '50%';
-            el.style.display = 'flex';
-            el.style.alignItems = 'center';
-            el.style.justifyContent = 'center';
-            el.style.color = catColor;
-            el.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
-            el.style.cursor = 'pointer';
-            el.style.transition = 'transform 0.2s';
+            el.style.cssText = `width:32px; height:32px; background-color:#FFFFFF; border:2px solid ${catColor}; border-radius:50%; display:flex; align-items:center; justify-content:center; color:${catColor}; box-shadow:0 4px 8px rgba(0,0,0,0.15); cursor:pointer; will-change:transform; transform:translate3d(0,0,0); backface-visibility:hidden; contain:layout style;`;
             
             el.innerHTML = `<i class="fa-solid ${iconClass}" style="font-size:14px;"></i>`;
             
             container.appendChild(el);
-            
-            container.addEventListener('mouseenter', () => el.style.transform = 'scale(1.2)');
-            container.addEventListener('mouseleave', () => el.style.transform = 'scale(1)');
             
             container.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -1256,12 +1234,16 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 if (is3D) {
                     btn3d.style.background = 'var(--primary-color)';
                     btn3d.style.color = 'white';
-                    window.mapInstance.easeTo({ pitch: 65, bearing: -20, duration: 1000 });
+                    window.mapInstance.setTerrain({ "source": "terrain", "exaggeration": 1.2 });
+                    window.mapInstance.easeTo({ pitch: 60, bearing: -20, duration: 800 });
                     showToast("3D Terrain View Enabled");
                 } else {
                     btn3d.style.background = '#1E3A8A';
                     btn3d.style.color = '#ffffff';
-                    window.mapInstance.easeTo({ pitch: 0, bearing: 0, duration: 1000 });
+                    window.mapInstance.easeTo({ pitch: 0, bearing: 0, duration: 800 });
+                    setTimeout(() => {
+                        try { window.mapInstance.setTerrain(null); } catch(e) {}
+                    }, 800);
                     showToast("2D View Restored");
                 }
                 const sheet = document.getElementById('place-details-sheet');

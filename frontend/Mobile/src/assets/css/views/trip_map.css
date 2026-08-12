@@ -8,7 +8,7 @@
 
 .map-container { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; overflow: hidden; }
 
-#tourist-map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; background-color: #0a0f1c; }
+#tourist-map, #trip-map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; background-color: #eef2f6; }
 
 /* ── Floating Search Bar ── */
 .map-floating-header {

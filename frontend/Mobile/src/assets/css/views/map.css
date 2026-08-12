@@ -27,7 +27,7 @@
     width: 100%;
     height: 100%;
     z-index: 1;
-    background-color: #090d16;
+    background-color: #eef2f6;
     border: none !important;
     outline: none !important;
 }
@@ -506,3 +506,25 @@
 .maplibregl-ctrl-group, .leaflet-control-zoom {
     display: none !important;
 }
+
+/* ── Hardware Acceleration & Optimization for Map Markers & Canvas ── */
+.maplibregl-canvas-container,
+.maplibregl-canvas {
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+}
+
+.custom-map-marker {
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+    contain: layout style;
+}
+
+.custom-map-marker:hover,
+.custom-map-marker:active {
+    transform: scale(1.15) translate3d(0, 0, 0);
+}
+

@@ -164,6 +164,11 @@ require_once __DIR__ . '/../components/header.php';
             },
             "layers": [
                 {
+                    "id": "background",
+                    "type": "background",
+                    "paint": { "background-color": "#eef2f6" }
+                },
+                {
                     "id": "base-map",
                     "type": "raster",
                     "source": "osm",
@@ -179,15 +184,13 @@ require_once __DIR__ . '/../components/header.php';
             zoom: 10,
             pitch: 0,
             bearing: 0,
+            fadeDuration: 0,
             attributionControl: false
         });
 
         // tripMap.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
 
         tripMap.on('load', async () => {
-            tripMap.setTerrain({ "source": "terrain", "exaggeration": 1.5 });
-
-            tripMap.setTerrain({ "source": "terrain", "exaggeration": 1.5 });
             loadTripData();
         });
     }
