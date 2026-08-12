@@ -472,6 +472,21 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                     renderMarkers(window.allMapLocations);
 
                     setTimeout(() => {
+                        const filterCat = localStorage.getItem('intan_elyu_filter_category');
+                        if (filterCat) {
+                            localStorage.removeItem('intan_elyu_filter_category');
+                            const pills = document.querySelectorAll('.category-pill');
+                            let matchedPill = null;
+                            pills.forEach(p => {
+                                if (p.textContent.trim().toLowerCase() === filterCat.trim().toLowerCase()) {
+                                    matchedPill = p;
+                                }
+                            });
+                            window.filterCategory(filterCat, matchedPill);
+                        }
+                    }, 100);
+
+                    setTimeout(() => {
                         const pendingStr = localStorage.getItem('intan_elyu_pending_route');
                         if (pendingStr) {
                             localStorage.removeItem('intan_elyu_pending_route');
@@ -832,6 +847,44 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         });
     }
 
+    function matchesCategoryFilter(loc, targetCat) {
+        if (!targetCat || targetCat === 'All') return true;
+        const t = targetCat.toLowerCase().trim();
+        const c = (loc.category || '').toLowerCase();
+        const n = (loc.name || '').toLowerCase();
+        const d = (loc.description || '').toLowerCase();
+        const combined = `${c} ${n} ${d}`;
+
+        if (combined.includes(t)) return true;
+
+        if (t.includes('cultural') || t.includes('heritage')) {
+            return combined.includes('culture') || combined.includes('cultural') || combined.includes('heritage') || combined.includes('historic') || combined.includes('museum') || combined.includes('church') || combined.includes('shrine') || combined.includes('landmark') || combined.includes('monument');
+        }
+        if (t.includes('resort') || t.includes('stay') || t.includes('hotel')) {
+            return combined.includes('resort') || combined.includes('hotel') || combined.includes('stay') || combined.includes('inn') || combined.includes('lodge') || combined.includes('accommodation');
+        }
+        if (t.includes('shopping') || t.includes('market')) {
+            return combined.includes('shopping') || combined.includes('market') || combined.includes('mall') || combined.includes('store') || combined.includes('pasalubong');
+        }
+        if (t.includes('festival') || t.includes('event')) {
+            return combined.includes('festival') || combined.includes('event') || combined.includes('plaza') || combined.includes('venue');
+        }
+        if (t.includes('beach') || t.includes('surf')) {
+            return combined.includes('beach') || combined.includes('surf') || combined.includes('coastal') || combined.includes('island') || combined.includes('cove');
+        }
+        if (t.includes('mountain') || t.includes('nature') || t.includes('park')) {
+            return combined.includes('mountain') || combined.includes('hiking') || combined.includes('nature') || combined.includes('park') || combined.includes('hill') || combined.includes('trail') || combined.includes('peak') || combined.includes('viewpoint');
+        }
+        if (t.includes('water') || t.includes('fall') || t.includes('river') || t.includes('lake')) {
+            return combined.includes('waterfall') || combined.includes('fall') || combined.includes('river') || combined.includes('lake') || combined.includes('spring');
+        }
+        if (t.includes('food') || t.includes('dining') || t.includes('restaurant')) {
+            return combined.includes('food') || combined.includes('dining') || combined.includes('restaurant') || combined.includes('cafe') || combined.includes('bistro') || combined.includes('eatery');
+        }
+
+        return false;
+    }
+
     function setupFilters() {
         const container = document.getElementById('map-categories-container');
         if (!container) return;
@@ -861,14 +914,13 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
         const searchInput = document.getElementById('map-search-input');
         const searchText = searchInput ? searchInput.value.toLowerCase() : '';
-        const targetCat = (category || '').toLowerCase();
         
         const filtered = (window.allMapLocations || []).filter(loc => {
             const name = loc.name ? loc.name.toLowerCase() : '';
             const location = loc.location ? loc.location.toLowerCase() : '';
             const locCat = loc.category ? loc.category.toLowerCase() : '';
             const matchesSearch = (name.includes(searchText) || location.includes(searchText) || locCat.includes(searchText));
-            const matchesCat = (targetCat === 'all' || locCat.includes(targetCat));
+            const matchesCat = matchesCategoryFilter(loc, category);
             return matchesSearch && matchesCat;
         });
         
@@ -878,7 +930,18 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         if (validFiltered.length > 0 && window.mapInstance) {
             const bounds = new maplibregl.LngLatBounds();
             validFiltered.forEach(loc => bounds.extend([parseFloat(loc.lng), parseFloat(loc.lat)]));
-            window.mapInstance.fitBounds(bounds, { padding: 50, duration: 1000, maxZoom: 15 });
+            
+            // UI padding: top 150px (search header + categories), bottom 120px (bottom nav bar), left/right 40px
+            window.mapInstance.fitBounds(bounds, {
+                padding: { top: 150, bottom: 120, left: 40, right: 40 },
+                maxZoom: 14,
+                duration: 800
+            });
+            if (typeof showToast === 'function' && category !== 'All') {
+                showToast(`Showing ${validFiltered.length} spot${validFiltered.length !== 1 ? 's' : ''} for ${category}`);
+            }
+        } else if (category !== 'All' && typeof showToast === 'function') {
+            showToast(`No spots found for ${category}`);
         }
     };
 
