@@ -452,33 +452,16 @@ if (is_dir($imgDir)) {
                 closestCard.classList.add('active-card');
             }
 
-            // Seamless set-width infinite loop calculation (only when NOT smooth scrolling via click)
-            if (cards.length >= 6 && !container._isSmoothScrolling) {
-                const itemCount = Math.floor(cards.length / 3);
-                const cardSpan = cards[1].offsetLeft - cards[0].offsetLeft;
-                if (cardSpan > 0 && itemCount > 0) {
-                    const setWidth = cardSpan * itemCount;
-                    if (container.scrollLeft >= setWidth * 2 - 10) {
-                        container.scrollLeft -= setWidth;
-                    } else if (container.scrollLeft <= setWidth * 0.2) {
-                        container.scrollLeft += setWidth;
-                    }
-                }
-            }
-
             isTicking = false;
         }
 
         if (!container._focusCarouselInited) {
             container._focusCarouselInited = true;
 
-            // Click capture: clicking a shrinked card smoothly scrolls its middle-set twin card to center
+            // Click capture: clicking a shrinked card smoothly scrolls it to center
             container.addEventListener('click', (e) => {
                 const card = e.target.closest('.fav-card');
                 if (!card) return;
-
-                const cards = Array.from(container.querySelectorAll('.fav-card'));
-                const cardIndex = cards.indexOf(card);
 
                 const containerRect = container.getBoundingClientRect();
                 const containerCenter = containerRect.left + containerRect.width / 2;
@@ -490,29 +473,8 @@ if (is_dir($imgDir)) {
                     e.preventDefault();
                     e.stopPropagation();
 
-                    // Map clicked card to middle set B twin card so smooth scroll stays safely away from container bounds
-                    let targetCard = card;
-                    if (cards.length >= 6) {
-                        const itemCount = Math.floor(cards.length / 3);
-                        const middleIndex = (cardIndex % itemCount) + itemCount;
-                        if (cards[middleIndex]) {
-                            targetCard = cards[middleIndex];
-                        }
-                    }
-
-                    const targetCardRect = targetCard.getBoundingClientRect();
-                    const targetCardCenter = targetCardRect.left + targetCardRect.width / 2;
-                    const scrollDelta = targetCardCenter - containerCenter;
-
-                    container._isSmoothScrolling = true;
-                    if (container._smoothTimer) clearTimeout(container._smoothTimer);
-
+                    const scrollDelta = cardCenter - containerCenter;
                     container.scrollBy({ left: scrollDelta, behavior: 'smooth' });
-
-                    container._smoothTimer = setTimeout(() => {
-                        container._isSmoothScrolling = false;
-                        updateCardScales();
-                    }, 450);
                 }
             }, true);
 
@@ -525,14 +487,6 @@ if (is_dir($imgDir)) {
         }
 
         requestAnimationFrame(() => {
-            const cards = container.querySelectorAll('.fav-card');
-            if (cards.length >= 6) {
-                const itemCount = Math.floor(cards.length / 3);
-                const cardSpan = cards[1].offsetLeft - cards[0].offsetLeft;
-                if (cardSpan > 0 && container.scrollLeft < 50) {
-                    container.scrollLeft = cardSpan * itemCount;
-                }
-            }
             updateCardScales();
             setTimeout(updateCardScales, 150);
             setTimeout(updateCardScales, 500);
@@ -649,14 +603,12 @@ if (is_dir($imgDir)) {
         if (document.getElementById('dash-stat-places')) document.getElementById('dash-stat-places').textContent = (data.stats && data.stats.placesVisited) ? data.stats.placesVisited : 0;
         if (document.getElementById('dash-stat-xp')) document.getElementById('dash-stat-xp').textContent = xp.toLocaleString();
 
-        // Populate Trending Spots (Top 3 with Infinite Carousel Loop)
+        // Populate Trending Spots
         const trendingContainer = document.getElementById('trending-container');
         if (trendingContainer) {
             trendingContainer.innerHTML = '';
             if (data.trending && data.trending.length > 0) {
-                const trendingList = (data.trending.length > 1) 
-                    ? [...data.trending, ...data.trending, ...data.trending] 
-                    : data.trending;
+                const trendingList = data.trending;
                 trendingList.forEach(dest => {
                     const img = window.getDestImage(dest, 600);
                     const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
@@ -686,9 +638,7 @@ if (is_dir($imgDir)) {
         if (savedContainer) {
             savedContainer.innerHTML = '';
             if (data.savedPlaces && data.savedPlaces.length > 0) {
-                const savedList = (data.savedPlaces.length > 1) 
-                    ? [...data.savedPlaces, ...data.savedPlaces, ...data.savedPlaces] 
-                    : data.savedPlaces;
+                const savedList = data.savedPlaces;
                 savedList.forEach(dest => {
                     const img = window.getDestImage(dest, 600);
                     const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
@@ -808,9 +758,7 @@ if (is_dir($imgDir)) {
 
                 if (nearSpots.length > 0) {
                     nearContainer.innerHTML = '';
-                    const nearList = (nearSpots.length > 1) 
-                        ? [...nearSpots.slice(0, 5), ...nearSpots.slice(0, 5), ...nearSpots.slice(0, 5)] 
-                        : nearSpots.slice(0, 5);
+                    const nearList = nearSpots.slice(0, 5);
                     nearList.forEach(dest => {
                         const img = window.getDestImage(dest, 600);
                         const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
