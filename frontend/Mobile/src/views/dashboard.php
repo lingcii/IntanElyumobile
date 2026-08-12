@@ -471,6 +471,27 @@ if (is_dir($imgDir)) {
 
         if (!container._focusCarouselInited) {
             container._focusCarouselInited = true;
+
+            // Click capture: clicking a shrinked card smoothly scrolls it to center focus
+            container.addEventListener('click', (e) => {
+                const card = e.target.closest('.fav-card');
+                if (!card) return;
+
+                const containerRect = container.getBoundingClientRect();
+                const containerCenter = containerRect.left + containerRect.width / 2;
+                const cardRect = card.getBoundingClientRect();
+                const cardCenter = cardRect.left + cardRect.width / 2;
+                const offsetFromCenter = Math.abs(cardCenter - containerCenter);
+
+                if (offsetFromCenter > 35) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const scrollDelta = cardCenter - containerCenter;
+                    container.scrollBy({ left: scrollDelta, behavior: 'smooth' });
+                }
+            }, true);
+
             container.addEventListener('scroll', () => {
                 if (!isTicking) {
                     requestAnimationFrame(updateCardScales);
