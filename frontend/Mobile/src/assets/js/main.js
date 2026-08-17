@@ -155,9 +155,21 @@ document.addEventListener('DOMContentLoaded', () => {
     initCurrentView();
 });
 
+// Extract initial view name from query param (?view=...) or URL path (/download)
+function getInitialViewName() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('view')) return params.get('view');
+    const pathSegs = window.location.pathname.split('/').filter(Boolean);
+    const lastSeg = pathSegs.length > 0 ? pathSegs[pathSegs.length - 1] : '';
+    if (lastSeg && lastSeg !== 'index.php' && !lastSeg.includes('.')) {
+        return lastSeg;
+    }
+    return 'splash';
+}
+
 // App State
 const state = {
-    currentView: new URLSearchParams(window.location.search).get('view') || 'splash',
+    currentView: getInitialViewName(),
     isNavigating: false
 };
 

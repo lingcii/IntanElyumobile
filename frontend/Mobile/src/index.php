@@ -3,8 +3,18 @@ if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
     @session_start();
 }
 
-// Extract view name safely - strip any extra query params appended to it
-$rawView = isset($_GET['view']) ? $_GET['view'] : 'splash';
+// Extract view name safely - from $_GET['view'] or URI path (e.g. /download)
+$rawView = 'splash';
+if (isset($_GET['view'])) {
+    $rawView = $_GET['view'];
+} else {
+    $requestUri = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+    $pathSegments = array_values(array_filter(explode('/', $requestUri)));
+    $lastSegment = end($pathSegments);
+    if ($lastSegment && $lastSegment !== 'index.php' && !str_contains($lastSegment, '.')) {
+        $rawView = $lastSegment;
+    }
+}
 $view = preg_replace('/[^a-zA-Z0-9_]/', '', strtok($rawView, '&'));
 $destinationId = isset($_GET['id']) ? (int) $_GET['id'] : null;
 $isAjax = (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') || isset($_GET['ajax']);
