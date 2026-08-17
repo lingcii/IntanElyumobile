@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Global Auth Enforcement for Initial Direct Load
-    const publicViews = ['splash', 'auth', 'reset-password'];
+    const publicViews = ['splash', 'auth', 'download', 'reset-password'];
     if (!publicViews.includes(state.currentView) && !localStorage.getItem('intan_elyu_token')) {
         navigateTo('auth');
         return;
@@ -172,7 +172,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     if (state.isNavigating) return;
 
     // Global Auth Enforcement: Ensure user is logged in
-    const publicViews = ['splash', 'auth', 'about', 'terms', 'reset-password', 'user_manual'];
+    const publicViews = ['splash', 'auth', 'download', 'about', 'terms', 'reset-password', 'user_manual'];
     if (!publicViews.includes(viewName) && !localStorage.getItem('intan_elyu_token')) {
         viewName = 'auth';
     }
