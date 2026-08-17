@@ -27,6 +27,12 @@ class LeaderboardController extends Controller
                     u.id                                              AS user_id,
                     u.name                                            AS name,
                     COALESCE(NULLIF(u.name, ''), CONCAT('Explorer #', u.id)) AS full_name,
+                    u.email                                           AS email,
+                    u.avatar                                          AS avatar,
+                    u.home_location                                   AS home_location,
+                    u.home_location                                   AS municipality,
+                    u.bio                                             AS bio,
+                    COALESCE(u.is_leaderboard_private, 0)             AS is_leaderboard_private,
                     u.last_activity                                   AS last_activity_date,
                     COALESCE(u.xp, 0)                                 AS total_points,
                     GREATEST(
@@ -44,7 +50,7 @@ class LeaderboardController extends Controller
                             u.created_at                               ASC
                     ) AS `rank`
                 FROM users u
-                WHERE u.role = 'tourist' AND u.status = 'active'
+                WHERE u.role = 'tourist' AND (u.status = 'active' OR u.status IS NULL)
             )
         ";
     }
@@ -68,33 +74,49 @@ class LeaderboardController extends Controller
         ];
         $orderSql = $orderMap[$sortBy] ?? $orderMap['points_desc'];
 
-        $cacheKey = "leaderboard:index:v2:{$search}:{$sortBy}:{$limit}:{$offset}";
-
         $myRank = null;
+        $me = null;
         $user = $request->user();
         if ($user) {
             try {
                 $myRankRow = DB::selectOne(
-                    $this->rankedCte() . "SELECT `rank` FROM ranked WHERE user_id = ?",
+                    $this->rankedCte() . "SELECT * FROM ranked WHERE user_id = ?",
                     [$user->id]
                 );
                 if ($myRankRow) {
                     $myRank = (int) $myRankRow->rank;
+                    $meRows = $this->castRows([(array) $myRankRow]);
+                    $me = $meRows[0] ?? null;
                 }
             } catch (\Throwable $e) {}
         }
 
         // Live ranked query computed directly on demand for the leaderboards
         $cachedData = $this->queryFromLiveCte($search, $orderSql, $limit, $offset);
+        $rows = $this->castRows($cachedData['rows']);
+
+        $totalTourists = (int) ($cachedData['total'] ?? count($rows));
+        $highestPoints = count($rows) > 0 ? (int) ($rows[0]['total_points'] ?? 0) : 0;
+        $totalActivities = (int) array_sum(array_column($rows, 'completed_activities'));
 
         return response()->json([
-            'success' => true,
-            'myRank'  => $myRank,
-            'my_rank' => $myRank,
-            'users'   => $this->castRows($cachedData['rows']),
-            'total'   => $cachedData['total'],
-            'offset'  => $offset,
-            'limit'   => $limit,
+            'success'          => true,
+            'myRank'           => $myRank,
+            'my_rank'          => $myRank,
+            'me'               => $me,
+            'users'            => $rows,
+            'leaders'          => $rows,
+            'total'            => $totalTourists,
+            'total_tourists'   => $totalTourists,
+            'highest_points'   => $highestPoints,
+            'total_activities' => $totalActivities,
+            'stats'            => [
+                'total_tourists'   => $totalTourists,
+                'highest_points'   => $highestPoints,
+                'total_activities' => $totalActivities,
+            ],
+            'offset'           => $offset,
+            'limit'            => $limit,
         ]);
     }
 
@@ -164,17 +186,31 @@ class LeaderboardController extends Controller
     {
         return array_map(function ($r) {
             $r = (object) $r;
-            $displayName = "Explorer #{$r->user_id}";
+            $isPrivate = (bool) ($r->is_leaderboard_private ?? false);
+            $realName = !empty($r->name) ? $r->name : "Explorer #{$r->user_id}";
+            $displayName = $isPrivate ? "Private Explorer" : $realName;
 
             return [
+                'id'                   => (int) $r->user_id,
                 'user_id'              => (int) $r->user_id,
                 'name'                 => $displayName,
                 'full_name'            => $displayName,
-                'last_activity_date'   => $r->last_activity_date ?: null,
-                'total_points'         => (int) $r->total_points,
-                'completed_activities' => (int) $r->completed_activities,
+                'real_name'            => $realName,
+                'avatar'               => $isPrivate ? null : ($r->avatar ?? null),
+                'home_location'        => $isPrivate ? null : ($r->home_location ?? null),
+                'municipality'         => $isPrivate ? null : ($r->municipality ?? $r->home_location ?? null),
+                'bio'                  => $isPrivate ? null : ($r->bio ?? null),
+                'is_leaderboard_private' => $isPrivate,
+                'last_activity_date'   => $r->last_activity_date ?? null,
+                'total_points'         => (int) ($r->total_points ?? 0),
+                'total_xp'             => (int) ($r->total_points ?? 0),
+                'xp'                   => (int) ($r->total_points ?? 0),
+                'completed_activities' => (int) ($r->completed_activities ?? 0),
+                'activities'           => (int) ($r->completed_activities ?? 0),
+                'places_visited'       => (int) ($r->completed_activities ?? 0),
+                'level'                => (int) (floor(((int) ($r->total_points ?? 0)) / 1000) + 1),
                 'rank'                 => (int) $r->rank,
-                'points_since'         => $r->points_since,
+                'points_since'         => $r->points_since ?? null,
             ];
         }, $rows);
     }

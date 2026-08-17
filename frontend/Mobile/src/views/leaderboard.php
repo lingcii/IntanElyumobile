@@ -146,8 +146,9 @@ $activeTab = 'leaderboard';
                     banner.style.display = 'flex';
                     const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
                     const myId = me ? (me.id || me.user_id) : (authUser.id || authUser.user_id || '');
+                    const myName = me ? (me.name || me.full_name) : (authUser.name || authUser.full_name || '');
                     if (titleEl) {
-                        titleEl.textContent = myId ? `Explorer #${myId}` : 'Your Standing';
+                        titleEl.textContent = myName || (myId ? `Explorer #${myId}` : 'Your Standing');
                     }
                     if (rankCircle) {
                         if (myRank && myRank < 999) {
@@ -207,6 +208,9 @@ $activeTab = 'leaderboard';
 
     function getUserDisplayName(user) {
         if (user.is_leaderboard_private) return 'Private Explorer';
+        if (user.name && user.name.trim() !== '') return user.name;
+        if (user.full_name && user.full_name.trim() !== '') return user.full_name;
+        if (user.real_name && user.real_name.trim() !== '') return user.real_name;
         const idToUse = user.user_id || user.id || 0;
         return `Explorer #${idToUse}`;
     }
