@@ -332,6 +332,7 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
+    transition: padding 0.3s ease, margin 0.3s ease;
 }
 
 .favorites-row::-webkit-scrollbar {
@@ -341,11 +342,23 @@
     background: transparent !important;
 }
 
+/* Empty / Loading Container Reset for .favorites-row across all viewports */
+.favorites-row.is-empty,
+.favorites-row:has(.dash-empty-state),
+.favorites-row:has(.dash-loading-state),
 .favorites-row:has(.dash-filter-empty-state) {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
+    padding-top: 6px !important;
+    padding-bottom: 12px !important;
+    overflow-x: visible !important;
+    scroll-snap-type: none !important;
+    box-sizing: border-box !important;
 }
 
 /* Favorite & Trending Card — Scale Focus Effect */
@@ -591,3 +604,157 @@
 .fav-card.filter-animating {
     animation: filterFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* ============================================================
+ * Dashboard Empty & Loading State Styles (Fully Responsive)
+ * ============================================================ */
+
+/* Premium Glassmorphic Empty Card */
+.dash-empty-state {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 24px 18px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: linear-gradient(145deg, rgba(20, 30, 48, 0.65) 0%, rgba(15, 23, 42, 0.85) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(56, 189, 248, 0.18);
+    border-radius: 22px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    animation: dashEmptyFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    margin: 0 !important;
+}
+
+@keyframes dashEmptyFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.dash-empty-icon-wrap {
+    width: 50px;
+    height: 50px;
+    border-radius: 16px;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, rgba(56, 189, 248, 0.05) 100%);
+    border: 1px solid rgba(56, 189, 248, 0.28);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: #38bdf8;
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+    margin-bottom: 2px;
+    flex-shrink: 0;
+}
+
+.dash-empty-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: #f8fafc;
+    letter-spacing: -0.2px;
+    line-height: 1.3;
+    margin: 0;
+}
+
+.dash-empty-desc {
+    font-size: 13px;
+    color: rgba(148, 163, 184, 0.85);
+    line-height: 1.45;
+    max-width: 380px;
+    margin: 0 auto;
+    text-wrap: pretty;
+}
+
+.dash-empty-btn {
+    margin-top: 6px;
+    padding: 10px 22px;
+    border-radius: 100px;
+    font-size: 12.5px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+    color: #ffffff !important;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 16px rgba(56, 189, 248, 0.35);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, opacity 0.2s ease;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.dash-empty-btn:active {
+    transform: scale(0.96);
+    box-shadow: 0 2px 8px rgba(56, 189, 248, 0.25);
+}
+
+.dash-empty-btn:hover {
+    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.45);
+    color: #ffffff !important;
+}
+
+/* Loading State Card */
+.dash-loading-state {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 22px 18px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
+    color: rgba(148, 163, 184, 0.85);
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0 !important;
+}
+
+.dash-loading-state i {
+    color: #38bdf8;
+    font-size: 15px;
+}
+
+/* Responsive Styles for Tablets & Desktops */
+@media (min-width: 600px) {
+    .favorites-row:not(.is-empty) {
+        padding-left: 0;
+        padding-right: 0;
+        margin-left: 0;
+        margin-right: 0;
+        gap: 20px;
+    }
+    .dash-empty-state {
+        padding: 30px 24px;
+        gap: 12px;
+    }
+    .dash-empty-title {
+        font-size: 16px;
+    }
+    .dash-empty-desc {
+        font-size: 14px;
+        max-width: 460px;
+    }
+    .dash-empty-icon-wrap {
+        width: 56px;
+        height: 56px;
+        font-size: 24px;
+    }
+}
+

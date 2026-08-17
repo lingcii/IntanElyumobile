@@ -200,9 +200,10 @@ if (is_dir($imgDir)) {
             <h3>Trending Sites</h3>
             <a href="javascript:void(0);" onclick="navigateTo('trending')">See All</a>
         </div>
-        <div class="favorites-row" id="trending-container">
-            <div style="padding: 20px; width: 100%; text-align: center; color: rgba(255,255,255,0.5); font-size: 14px;">
-                <i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Loading trending sites...
+        <div class="favorites-row is-empty" id="trending-container">
+            <div class="dash-loading-state">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>Loading trending sites...</span>
             </div>
         </div>
     </div>
@@ -217,8 +218,9 @@ if (is_dir($imgDir)) {
         </div>
         
         <div id="saved-trips-container">
-            <div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.5); font-size: 14px; background: rgba(255,255,255,0.02); border-radius: 15px;">
-                <i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Loading Saved Trips...
+            <div class="dash-loading-state">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>Loading Saved Trips...</span>
             </div>
         </div>
     </div>
@@ -229,9 +231,10 @@ if (is_dir($imgDir)) {
             <h3>Saved Places</h3>
             <a href="javascript:void(0);" onclick="navigateTo('saved_places')">See All</a>
         </div>
-        <div class="favorites-row" id="saved-places-container">
-            <div style="padding: 20px; width: 100%; text-align: center; color: rgba(255,255,255,0.5); font-size: 14px;">
-                <i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Loading Saved Places...
+        <div class="favorites-row is-empty" id="saved-places-container">
+            <div class="dash-loading-state">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>Loading Saved Places...</span>
             </div>
         </div>  
     </div>
@@ -242,8 +245,9 @@ if (is_dir($imgDir)) {
             <h3>Recommended For You</h3>
         </div>
         <div id="recommended-container">
-            <div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.5); font-size: 14px;">
-                <i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Loading Recommendations...
+            <div class="dash-loading-state">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>Loading Recommendations...</span>
             </div>
         </div>
     </div>
@@ -254,9 +258,10 @@ if (is_dir($imgDir)) {
             <h3>Near Me</h3>
             <a href="javascript:void(0);" onclick="navigateTo('map')">See Map</a>
         </div>
-        <div class="favorites-row" id="near-me-container">
-            <div style="padding: 20px; width: 100%; text-align: center; color: rgba(255,255,255,0.5); font-size: 14px;">
-                <i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Finding spots near you...
+        <div class="favorites-row is-empty" id="near-me-container">
+            <div class="dash-loading-state">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>Finding spots near you...</span>
             </div>
         </div>
     </div>
@@ -337,15 +342,21 @@ if (is_dir($imgDir)) {
             }
 
             if (cat !== 'All' && visibleCount === 0) {
+                container.classList.add('is-empty');
                 container.style.paddingLeft = '0';
                 container.style.paddingRight = '0';
                 container.style.marginLeft = '0';
                 container.style.marginRight = '0';
                 
                 const emptyDiv = document.createElement('div');
-                emptyDiv.className = 'dash-filter-empty-state';
-                emptyDiv.style.cssText = 'padding: 24px 16px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: rgba(15,23,42,0.6); border: 1px solid rgba(56,189,248,0.15); border-radius: 20px; font-size: 13px; color: rgba(148,163,184,0.9); font-weight: 600; box-sizing: border-box; animation: filterFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;';
-                emptyDiv.innerHTML = `<i class="fa-solid fa-compass" style="font-size: 24px; color: #38bdf8; margin-bottom: 2px;"></i><span>${emptyMsg}</span>`;
+                emptyDiv.className = 'dash-filter-empty-state dash-empty-state';
+                emptyDiv.innerHTML = `
+                    <div class="dash-empty-icon-wrap">
+                        <i class="fa-solid fa-compass"></i>
+                    </div>
+                    <div class="dash-empty-title">${emptyMsg}</div>
+                    <div class="dash-empty-desc">Try selecting another category or tap All to view all destinations.</div>
+                `;
                 
                 const btnMore = container.querySelector('#btn-view-more-rec');
                 if (btnMore) {
@@ -355,10 +366,14 @@ if (is_dir($imgDir)) {
                     container.appendChild(emptyDiv);
                 }
             } else {
-                container.style.paddingLeft = '';
-                container.style.paddingRight = '';
-                container.style.marginLeft = '';
-                container.style.marginRight = '';
+                const hasVisibleCards = Array.from(container.children).some(c => c.classList.contains('fav-card') && c.style.display !== 'none');
+                if (hasVisibleCards) {
+                    container.classList.remove('is-empty');
+                    container.style.paddingLeft = '';
+                    container.style.paddingRight = '';
+                    container.style.marginLeft = '';
+                    container.style.marginRight = '';
+                }
             }
         };
 
@@ -563,6 +578,11 @@ if (is_dir($imgDir)) {
         if (trendingContainer) {
             trendingContainer.innerHTML = '';
             if (data.trending && data.trending.length > 0) {
+                trendingContainer.classList.remove('is-empty');
+                trendingContainer.style.paddingLeft = '';
+                trendingContainer.style.paddingRight = '';
+                trendingContainer.style.marginLeft = '';
+                trendingContainer.style.marginRight = '';
                 const trendingList = data.trending;
                 trendingList.forEach(dest => {
                     const img = window.getDestImage(dest, 600);
@@ -579,10 +599,18 @@ if (is_dir($imgDir)) {
                 });
                 window.initLoopingFocusCarousel('trending-container');
             } else {
+                trendingContainer.classList.add('is-empty');
+                trendingContainer.style.paddingLeft = '0';
+                trendingContainer.style.paddingRight = '0';
+                trendingContainer.style.marginLeft = '0';
+                trendingContainer.style.marginRight = '0';
                 trendingContainer.innerHTML = `
-                    <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; margin: 0 16px;">
-                        <i class="fa-solid fa-fire-flame-curved" style="font-size: 32px; color: rgba(56,189,248,0.4);"></i>
-                        <div style="color: rgba(148,163,184,0.8); font-size: 14px; line-height: 1.4;">No trending spots right now.</div>
+                    <div class="dash-empty-state">
+                        <div class="dash-empty-icon-wrap">
+                            <i class="fa-solid fa-fire-flame-curved"></i>
+                        </div>
+                        <div class="dash-empty-title">No Trending Spots</div>
+                        <div class="dash-empty-desc">Check back soon for popular attractions and trending activities in La Union.</div>
                     </div>
                 `;
             }
@@ -593,9 +621,11 @@ if (is_dir($imgDir)) {
         if (savedContainer) {
             savedContainer.innerHTML = '';
             if (data.savedPlaces && data.savedPlaces.length > 0) {
+                savedContainer.classList.remove('is-empty');
                 savedContainer.style.paddingLeft = '';
                 savedContainer.style.paddingRight = '';
-                savedContainer.style.margin = '';
+                savedContainer.style.marginLeft = '';
+                savedContainer.style.marginRight = '';
                 const savedList = data.savedPlaces;
                 savedList.forEach(dest => {
                     const img = window.getDestImage(dest, 600);
@@ -612,14 +642,19 @@ if (is_dir($imgDir)) {
                 });
                 window.initLoopingFocusCarousel('saved-places-container');
             } else {
+                savedContainer.classList.add('is-empty');
                 savedContainer.style.paddingLeft = '0';
                 savedContainer.style.paddingRight = '0';
-                savedContainer.style.margin = '0';
+                savedContainer.style.marginLeft = '0';
+                savedContainer.style.marginRight = '0';
                 savedContainer.innerHTML = `
-                    <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: rgba(15,23,42,0.6); border: 1px solid rgba(56,189,248,0.15); border-radius: 20px; box-sizing: border-box;">
-                        <i class="fa-solid fa-map-location-dot" style="font-size: 32px; color: #38bdf8;"></i>
-                        <div style="color: rgba(148,163,184,0.9); font-size: 14px; font-weight: 600; line-height: 1.4;">Go to the map to save some places!</div>
-                        <button onclick="window.location.href='?view=map'" style="background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; border: none; padding: 11px 24px; border-radius: 100px; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(56,189,248,0.3); cursor: pointer; white-space: nowrap;">
+                    <div class="dash-empty-state">
+                        <div class="dash-empty-icon-wrap">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                        </div>
+                        <div class="dash-empty-title">No Saved Places Yet</div>
+                        <div class="dash-empty-desc">Discover destinations on the map and tap the heart icon to save your favorite spots.</div>
+                        <button type="button" onclick="navigateTo('map')" class="dash-empty-btn">
                             <i class="fa-solid fa-location-arrow"></i> Open Map
                         </button>
                     </div>
@@ -681,10 +716,21 @@ if (is_dir($imgDir)) {
         if (!nearContainer) return;
 
         if (!userLat || !userLng) {
+            nearContainer.classList.add('is-empty');
+            nearContainer.style.paddingLeft = '0';
+            nearContainer.style.paddingRight = '0';
+            nearContainer.style.marginLeft = '0';
+            nearContainer.style.marginRight = '0';
             nearContainer.innerHTML = `
-                <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; margin: 0 16px;">
-                    <i class="fa-solid fa-location-crosshairs" style="font-size: 32px; color: rgba(56,189,248,0.4);"></i>
-                    <div style="color: rgba(148,163,184,0.8); font-size: 14px; line-height: 1.4;">Enable location access to see spots within 2 km of you.</div>
+                <div class="dash-empty-state">
+                    <div class="dash-empty-icon-wrap">
+                        <i class="fa-solid fa-location-crosshairs"></i>
+                    </div>
+                    <div class="dash-empty-title">Location Access Needed</div>
+                    <div class="dash-empty-desc">Enable location access to discover tourist spots within 2 km of your current location.</div>
+                    <button type="button" onclick="if(window.locateMeForWeather) window.locateMeForWeather();" class="dash-empty-btn">
+                        <i class="fa-solid fa-location-arrow"></i> Enable Location
+                    </button>
                 </div>
             `;
             return;
@@ -703,7 +749,23 @@ if (is_dir($imgDir)) {
             },
             (data) => {
                 if (!data) {
-                    nearContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.5); font-size: 14px;">Error loading nearby spots.</div>';
+                    nearContainer.classList.add('is-empty');
+                    nearContainer.style.paddingLeft = '0';
+                    nearContainer.style.paddingRight = '0';
+                    nearContainer.style.marginLeft = '0';
+                    nearContainer.style.marginRight = '0';
+                    nearContainer.innerHTML = `
+                        <div class="dash-empty-state">
+                            <div class="dash-empty-icon-wrap">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                            <div class="dash-empty-title">Unable to Load Nearby Spots</div>
+                            <div class="dash-empty-desc">Could not load spots at this moment. Please check your connection.</div>
+                            <button type="button" onclick="loadNearMe(window.userCurrentCoords?.lat, window.userCurrentCoords?.lng)" class="dash-empty-btn">
+                                <i class="fa-solid fa-rotate-right"></i> Retry
+                            </button>
+                        </div>
+                    `;
                     return;
                 }
                 let spots = data.destinations || [];
@@ -723,6 +785,11 @@ if (is_dir($imgDir)) {
                 const nearSpots = spots.filter(s => s.distance <= MAX_RADIUS_KM);
 
                 if (nearSpots.length > 0) {
+                    nearContainer.classList.remove('is-empty');
+                    nearContainer.style.paddingLeft = '';
+                    nearContainer.style.paddingRight = '';
+                    nearContainer.style.marginLeft = '';
+                    nearContainer.style.marginRight = '';
                     nearContainer.innerHTML = '';
                     nearSpots.forEach(dest => {
                         const img = window.getDestImage(dest, 600);
@@ -750,10 +817,21 @@ if (is_dir($imgDir)) {
                     });
                     window.initLoopingFocusCarousel('near-me-container');
                 } else {
+                    nearContainer.classList.add('is-empty');
+                    nearContainer.style.paddingLeft = '0';
+                    nearContainer.style.paddingRight = '0';
+                    nearContainer.style.marginLeft = '0';
+                    nearContainer.style.marginRight = '0';
                     nearContainer.innerHTML = `
-                        <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; margin: 0 16px;">
-                            <i class="fa-solid fa-location-dot" style="font-size: 32px; color: rgba(56,189,248,0.4);"></i>
-                            <div style="color: rgba(148,163,184,0.8); font-size: 14px; line-height: 1.4;">There are no tourist spots within 2 km of your current location.</div>
+                        <div class="dash-empty-state">
+                            <div class="dash-empty-icon-wrap">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <div class="dash-empty-title">No Spots Within 2 km</div>
+                            <div class="dash-empty-desc">There are no tourist spots within 2 km of your current location. Explore all attractions across La Union on the map.</div>
+                            <button type="button" onclick="navigateTo('map')" class="dash-empty-btn">
+                                <i class="fa-solid fa-map-location-dot"></i> Explore Map
+                            </button>
                         </div>
                     `;
                 }
@@ -965,10 +1043,13 @@ if (is_dir($imgDir)) {
                         }
                     } else {
                         tripsContainer.innerHTML = `
-                            <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: rgba(15,23,42,0.6); border: 1px solid rgba(56,189,248,0.15); border-radius: 20px; box-sizing: border-box;">
-                                <i class="fa-solid fa-route" style="font-size: 32px; color: #38bdf8;"></i>
-                                <div style="color: rgba(148,163,184,0.9); font-size: 14px; font-weight: 600; line-height: 1.4;">No saved trips yet.</div>
-                                <button onclick="navigateTo('itinerary')" style="background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; border: none; padding: 11px 24px; border-radius: 100px; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(56,189,248,0.3); cursor: pointer; white-space: nowrap;">
+                            <div class="dash-empty-state">
+                                <div class="dash-empty-icon-wrap">
+                                    <i class="fa-solid fa-route"></i>
+                                </div>
+                                <div class="dash-empty-title">No Saved Trips Yet</div>
+                                <div class="dash-empty-desc">Create custom itineraries and explore recommended routes for your La Union adventure.</div>
+                                <button type="button" onclick="navigateTo('itinerary')" class="dash-empty-btn">
                                     <i class="fa-solid fa-plus"></i> Plan a Trip
                                 </button>
                             </div>
@@ -1023,17 +1104,19 @@ window.toggleFavorite = function(destId, element) {
                 if (container) {
                     let hasCards = Array.from(container.children).some(c => c.classList.contains('fav-card') && c.style.pointerEvents !== 'none');
                     if (!hasCards) {
+                        container.classList.add('is-empty');
+                        container.style.paddingLeft = '0';
+                        container.style.paddingRight = '0';
+                        container.style.marginLeft = '0';
+                        container.style.marginRight = '0';
                         container.innerHTML = `
-                            <style>
-                            @keyframes popInEmptyState {
-                                0% { opacity: 0; transform: scale(0.9); }
-                                100% { opacity: 1; transform: scale(1); }
-                            }
-                            </style>
-                            <div style="animation: popInEmptyState 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; margin: 0 16px;">
-                                <i class="fa-solid fa-map-location-dot" style="font-size: 32px; color: rgba(56,189,248,0.4);"></i>
-                                <div style="color: rgba(148,163,184,0.8); font-size: 14px; line-height: 1.4;">Go to the map to save some places!</div>
-                                <button onclick="window.location.href='?view=map'" style="background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; border: none; padding: 11px 22px; border-radius: 100px; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(56,189,248,0.3);">
+                            <div class="dash-empty-state">
+                                <div class="dash-empty-icon-wrap">
+                                    <i class="fa-solid fa-map-location-dot"></i>
+                                </div>
+                                <div class="dash-empty-title">No Saved Places Yet</div>
+                                <div class="dash-empty-desc">Discover destinations on the map and tap the heart icon to save your favorite spots.</div>
+                                <button type="button" onclick="navigateTo('map')" class="dash-empty-btn">
                                     <i class="fa-solid fa-location-arrow"></i> Open Map
                                 </button>
                             </div>

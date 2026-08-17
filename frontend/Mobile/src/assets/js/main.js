@@ -17,7 +17,7 @@ window.safeJsonParse = function (str, fallback = {}) {
 window.AppStorage = {
     _dbPromise: null,
 
-    _getDB: function() {
+    _getDB: function () {
         if (!this._dbPromise) {
             this._dbPromise = new Promise((resolve) => {
                 if (!window.indexedDB) {
@@ -25,20 +25,20 @@ window.AppStorage = {
                     return;
                 }
                 const request = window.indexedDB.open('intan_elyu_app_storage', 1);
-                request.onupgradeneeded = function(e) {
+                request.onupgradeneeded = function (e) {
                     const db = e.target.result;
                     if (!db.objectStoreNames.contains('store')) {
                         db.createObjectStore('store');
                     }
                 };
-                request.onsuccess = function(e) { resolve(e.target.result); };
-                request.onerror = function() { resolve(null); };
+                request.onsuccess = function (e) { resolve(e.target.result); };
+                request.onerror = function () { resolve(null); };
             });
         }
         return this._dbPromise;
     },
 
-    getItem: async function(key, fallback = null) {
+    getItem: async function (key, fallback = null) {
         try {
             const db = await this._getDB();
             if (db) {
@@ -50,17 +50,17 @@ window.AppStorage = {
                 });
                 if (val !== undefined && val !== null) return val;
             }
-        } catch (e) {}
+        } catch (e) { }
 
         const raw = localStorage.getItem(key);
         return raw !== null ? raw : fallback;
     },
 
-    setItem: async function(key, val) {
+    setItem: async function (key, val) {
         try {
             const strVal = typeof val === 'string' ? val : JSON.stringify(val);
             localStorage.setItem(key, strVal);
-        } catch (e) {}
+        } catch (e) { }
 
         try {
             const db = await this._getDB();
@@ -68,18 +68,18 @@ window.AppStorage = {
                 const tx = db.transaction('store', 'readwrite');
                 tx.objectStore('store').put(val, key);
             }
-        } catch (e) {}
+        } catch (e) { }
     },
 
-    removeItem: async function(key) {
-        try { localStorage.removeItem(key); } catch (e) {}
+    removeItem: async function (key) {
+        try { localStorage.removeItem(key); } catch (e) { }
         try {
             const db = await this._getDB();
             if (db) {
                 const tx = db.transaction('store', 'readwrite');
                 tx.objectStore('store').delete(key);
             }
-        } catch (e) {}
+        } catch (e) { }
     }
 };
 
@@ -840,7 +840,7 @@ window.getDestImage = function (dest, width) {
                     if (parsed.host.includes('r2.dev') || parsed.host.includes('r2.cloudflarestorage.com') || parsed.host.includes('cloudinary.com') || parsed.host.includes('unsplash.com') || parsed.host.includes('googleapis.com') || parsed.host.includes('ui-avatars.com')) {
                         return url;
                     }
-                } catch (e) {}
+                } catch (e) { }
                 return url;
             }
         }
@@ -965,7 +965,7 @@ window.getDestImages = function (dest, width) {
 
     if (dest && typeof dest === 'object') {
         if (Array.isArray(dest.images) && dest.images.length > 0) {
-            dest.images.forEach(function(imgItem) {
+            dest.images.forEach(function (imgItem) {
                 var resolved = window.getDestImage(imgItem, width);
                 if (resolved && !list.includes(resolved) && resolved !== window.noImageFallback) {
                     list.push(resolved);

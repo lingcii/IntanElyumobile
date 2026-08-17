@@ -74,9 +74,15 @@ if (is_dir($imgDir)) {
         if (!list) return;
         if (!spots.length) {
             list.innerHTML = `
-                <div style="padding:40px 20px; text-align:center; color:rgba(255,255,255,0.4);">
-                    <i class="fa-solid fa-fire-flame-curved" style="font-size:40px; margin-bottom:12px; display:block;"></i>
-                    No trending sites right now.
+                <div class="dash-empty-state" style="margin-top: 24px !important;">
+                    <div class="dash-empty-icon-wrap">
+                        <i class="fa-solid fa-fire-flame-curved"></i>
+                    </div>
+                    <div class="dash-empty-title">No Trending Sites</div>
+                    <div class="dash-empty-desc">Check back soon for newly popular attractions and trending destinations in La Union.</div>
+                    <button type="button" onclick="navigateTo('map')" class="dash-empty-btn">
+                        <i class="fa-solid fa-location-arrow"></i> Explore Map
+                    </button>
                 </div>
             `;
             return;
