@@ -57,7 +57,7 @@
     .logo-inner {
       width: 100%; height: 100%;
       border-radius: 50%;
-      background: #0f172a;
+      background: #ffffff;
       display: flex; align-items: center; justify-content: center;
       overflow: hidden;
     }
@@ -293,7 +293,7 @@
 
   <!-- DOWNLOAD CARD -->
   <div class="download-card">
-    <a href="downloads/intan-elyu.apk" class="download-btn" id="download-btn">
+    <a href="https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk" class="download-btn" id="download-btn" target="_blank" rel="noopener">
       <i class="fab fa-android"></i>
       Download APK for Android
     </a>
@@ -350,36 +350,6 @@
     </div>
   </div>
 
-  <!-- REQUIREMENTS -->
-  <div class="req-row">
-    <div class="req-card">
-      <i class="fab fa-android" style="color:#34c759;"></i>
-      <h4>Android 7.0+</h4>
-      <p>Nougat or higher</p>
-    </div>
-    <div class="req-card">
-      <i class="fa-solid fa-wifi" style="color:#38bdf8;"></i>
-      <h4>Internet Required</h4>
-      <p>For full features</p>
-    </div>
-    <div class="req-card">
-      <i class="fa-solid fa-camera" style="color:#a78bfa;"></i>
-      <h4>Camera Access</h4>
-      <p>For AR Check-in</p>
-    </div>
-    <div class="req-card">
-      <i class="fa-solid fa-location-dot" style="color:#ef4444;"></i>
-      <h4>GPS Location</h4>
-      <p>For maps &amp; check-in</p>
-    </div>
-  </div>
-
-  <!-- WARNING -->
-  <div class="warning-card">
-    <i class="fa-solid fa-circle-info"></i>
-    <p>This APK is for <strong>panel review and testing</strong> purposes. The app connects to the Intan Elyu cloud server. Make sure you have an active internet connection.</p>
-  </div>
-
   <!-- FOOTER -->
   <div class="footer">
     <p>Intan Elyu Tourism Management System &copy; 2026<br>La Union, Philippines</p>
@@ -387,19 +357,13 @@
 
 </div>
 
-<!-- QR Code Generator (lightweight, no dependencies) -->
+<!-- QR Code Generator -->
 <script>
 (function(){
-  // Minimal QR Code generator
-  // Uses the Google Charts API for simplicity
-  var currentUrl = window.location.href;
-  var downloadUrl = currentUrl.replace('download.html', 'downloads/intan-elyu.apk')
-                               .replace('download.php', 'downloads/intan-elyu.apk');
-  // If we're at a root path, construct it
-  if (!downloadUrl.includes('downloads/intan-elyu.apk')) {
-    var base = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
-    downloadUrl = base + 'downloads/intan-elyu.apk';
-  }
+  var downloadUrl = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk';
+
+  var btn = document.getElementById('download-btn');
+  if (btn) btn.href = downloadUrl;
 
   var canvas = document.getElementById('qr-canvas');
   var size = 180;

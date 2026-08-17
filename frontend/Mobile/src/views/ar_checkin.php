@@ -144,7 +144,7 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
 
 <script>
 (function() {
-    const backendUrl = window.backendUrl || 'https://replaced-reporters-cleveland-feature.trycloudflare.com';
+    const backendUrl = window.getBackendUrl ? window.getBackendUrl() : (window.backendUrl || window.location.origin);
     const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
     const headers = { 'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
     
