@@ -99,14 +99,6 @@ $activeTab = 'itinerary';
         <div id="draft-map-container"
             style="height: 260px; width:100%; border-radius: 20px; overflow: hidden; border:1px solid rgba(56, 189, 248, 0.25); position:relative; background:#0f172a; box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
             <div id="itinerary-map" style="width:100%; height:100%;"></div>
-
-            <!-- Locate Me Floating Button -->
-            <button onclick="window.routeToMyLocation()"
-                style="position: absolute; bottom: 10px; right: 10px; width: 36px; height: 36px; background: rgba(30, 58, 138, 0.9); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 1000; cursor: pointer; transition: transform 0.2s, background 0.2s;"
-                onmousedown="this.style.transform='scale(0.9)';" onmouseup="this.style.transform='scale(1)';"
-                onmouseleave="this.style.transform='scale(1)';">
-                <i class="fa-solid fa-crosshairs"></i>
-            </button>
         </div>
 
         <!-- Map Route Stats -->
