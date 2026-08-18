@@ -1816,27 +1816,11 @@ $activeTab = 'itinerary';
                 let routeColor = '#38bdf8'; // Recommended = Blue
                 let shadowColor = '#0f172a';
 
-                if (activeRoute === 'Alternate') { routeColor = '#ffcc00'; shadowColor = '#78350f'; } // Yellow
+                if (activeRoute === 'Alternate') { routeColor = '#ffb703'; shadowColor = '#78350f'; } // Vibrant Gold/Yellow
                 if (activeRoute === 'Scenic Route') { routeColor = '#ff3b30'; shadowColor = '#450a0a'; }
 
                 // We strictly use the original authenticated coordinates from the database.
-                // NO fake/mathematical waypoints are injected to prevent dead-end U-turns.
                 let fetchLatLngs = [...latlngs];
-
-                // We default to the strict 'driving' profile to guarantee the generated route 
-                // rigorously obeys vehicle traffic laws (one-way streets, vehicle widths, etc.)
-                let osrmProfile = 'driving';
-
-                // The user requested "mini complicated routes" specifically for the Alternate route.
-                // By switching OSRM to the 'walking' profile, the algorithm aggressively routes through 
-                // tiny alleyways, side-streets, and complex pedestrian pathways, generating exactly 
-                // the intricate zig-zag patterns they requested in their screenshot!
-                if (activeRoute === 'Alternate') {
-                    osrmProfile = 'walking';
-                }
-
-                // The routes are already mathematically distinct because setRouteType() 
-                // dynamically reorganizes the stop sequence for Alternate and Scenic routes!
 
                 const coordString = fetchLatLngs.map(ll => `${ll[1]},${ll[0]}`).join(';');
 
@@ -1846,59 +1830,82 @@ $activeTab = 'itinerary';
 
                 // Execute the real-time dynamic scan using the OSRM engine
                 let osrmService = 'route';
-                let osrmQuery = '?overview=full&geometries=geojson';
+                let osrmQuery = '?overview=full&geometries=geojson&alternatives=true';
 
-                // To provide the absolute "fastest way to get there" for Recommended routes, 
-                // we upgrade from simple routing to OSRM's Trip API (TSP Solver).
-                // This mathematically optimizes the sequence of the intermediate stops for maximum speed!
+                // To provide the absolute fastest way for Recommended routes with 3+ waypoints, use TSP solver
                 if (activeRoute === 'Recommended' && fetchLatLngs.length >= 3) {
                     osrmService = 'trip';
-                    osrmQuery += '&source=first&destination=last&roundtrip=false';
+                    osrmQuery = '?overview=full&geometries=geojson&source=first&destination=last&roundtrip=false';
                 }
 
-                fetch(`https://router.project-osrm.org/${osrmService}/v1/${osrmProfile}/${coordString}${osrmQuery}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        const routeData = data.routes ? data.routes[0] : (data.trips ? data.trips[0] : null);
+                const osrmUrl = `https://router.project-osrm.org/${osrmService}/v1/driving/${coordString}${osrmQuery}`;
 
-                        if (data.code === 'Ok' && routeData) {
+                fetch(osrmUrl)
+                    .then(res => res.json())
+                    .then(async data => {
+                        let routeData = null;
+
+                        if (data.code === 'Ok') {
+                            if (activeRoute === 'Alternate') {
+                                // If OSRM returned multiple driving routes, select the distinct alternate corridor!
+                                if (data.routes && data.routes.length > 1) {
+                                    routeData = data.routes[1];
+                                } else if (data.routes && data.routes.length > 0) {
+                                    // If single highway, query secondary road network (bike/secondary profile) for distinct route
+                                    try {
+                                        const altRes = await fetch(`https://router.project-osrm.org/route/v1/bike/${coordString}?overview=full&geometries=geojson`);
+                                        const altData = await altRes.json();
+                                        if (altData.code === 'Ok' && altData.routes && altData.routes[0]) {
+                                            routeData = altData.routes[0];
+                                        } else {
+                                            routeData = data.routes[0];
+                                        }
+                                    } catch (e) {
+                                        routeData = data.routes[0];
+                                    }
+                                }
+                            } else {
+                                routeData = data.routes ? data.routes[0] : (data.trips ? data.trips[0] : null);
+                            }
+                        }
+
+                        if (routeData) {
                             if (draftRouteLineBg) draftMap.removeLayer(draftRouteLineBg);
                             if (draftRouteLine) draftMap.removeLayer(draftRouteLine);
 
                             const geojson = routeData.geometry;
 
                             draftRouteLineBg = L.geoJSON(geojson, {
-                                style: { color: shadowColor, weight: 6, opacity: 0.3, lineJoin: 'round', lineCap: 'round' }
+                                style: { color: shadowColor, weight: 6, opacity: 0.35, lineJoin: 'round', lineCap: 'round' }
                             }).addTo(draftMap);
 
                             draftRouteLine = L.geoJSON(geojson, {
-                                style: { color: routeColor, weight: 4, opacity: 1, lineJoin: 'round', lineCap: 'round' }
+                                style: {
+                                    color: routeColor,
+                                    weight: 4,
+                                    opacity: 1,
+                                    lineJoin: 'round',
+                                    lineCap: 'round',
+                                    dashArray: activeRoute === 'Alternate' ? '7, 5' : null
+                                }
                             }).addTo(draftMap);
 
                             let distanceKm = routeData.distance / 1000;
                             let durationMin = routeData.duration / 60;
 
-                            if (osrmProfile === 'cycling') {
-                                durationMin = distanceKm * 2.4;
-                            } else if (osrmProfile === 'walking') {
-                                durationMin = distanceKm * 3.5; // Mathematically override 5-hour pedestrian times back to slow car times
-                            }
-
                             if (activeRoute === 'Scenic Route') {
                                 durationMin *= 1.5;
                                 distanceKm *= 1.4;
                             } else if (activeRoute === 'Alternate') {
-                                durationMin *= 1.2;
+                                durationMin *= 1.25;
                                 distanceKm *= 1.15;
                             }
 
                             // OSRM assumes perfect driving at the speed limit.
                             // Apply a dynamic realism multiplier:
-                            // Public transport involves waiting, passenger drop-offs, and general traffic.
-                            // We use higher multipliers to account for these inherent delays.
-                            let baseMultiplier = 1.6; // Long highway trips
-                            if (distanceKm <= 3) baseMultiplier = 2.5; // Short local trips have heavy overhead
-                            else if (distanceKm <= 7) baseMultiplier = 2.0; // Medium trips
+                            let baseMultiplier = 1.6;
+                            if (distanceKm <= 3) baseMultiplier = 2.5;
+                            else if (distanceKm <= 7) baseMultiplier = 2.0;
 
                             durationMin *= baseMultiplier;
 
@@ -1908,7 +1915,7 @@ $activeTab = 'itinerary';
                             const warningDiv = document.getElementById('draft-traffic-warning');
 
                             if (isRushHour) {
-                                durationMin *= 1.4; // Additional penalty for rush hour (total ~2.5x)
+                                durationMin *= 1.4;
                                 if (warningDiv) {
                                     warningDiv.style.display = 'block';
                                     warningDiv.style.color = '#FF9500';
@@ -1918,7 +1925,7 @@ $activeTab = 'itinerary';
                                 if (warningDiv) {
                                     warningDiv.style.display = 'block';
                                     warningDiv.style.color = 'rgba(255,255,255,0.4)';
-                                    warningDiv.innerHTML = 'Typical traffic conditions';
+                                    warningDiv.innerHTML = activeRoute === 'Alternate' ? '<i class="fa-solid fa-route" style="color:#ffb703; margin-right:4px;"></i> Alternate Road Corridor' : 'Typical traffic conditions';
                                 }
                             }
 
@@ -1928,7 +1935,7 @@ $activeTab = 'itinerary';
                             window.setTxt('draft-map-dist', distanceKm.toFixed(1) + ' km');
                             window.setTxt('draft-map-time', Math.round(durationMin) + ' min');
 
-                            // Dynamically scale line width on zoom (like MapLibre)
+                            // Dynamically scale line width on zoom
                             const updateRouteScale = () => {
                                 if (!draftMap) return;
                                 const z = draftMap.getZoom();
@@ -1939,7 +1946,7 @@ $activeTab = 'itinerary';
                             };
                             draftMap.off('zoom', updateRouteScale);
                             draftMap.on('zoom', updateRouteScale);
-                            updateRouteScale(); // set initial weight based on fitBounds zoom
+                            updateRouteScale();
                         }
                     })
                     .catch(err => console.error("OSRM Routing failed.", err));
