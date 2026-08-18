@@ -1156,7 +1156,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 } catch (e) {
                     console.warn("Location error:", e);
                     if (typeof showToast === 'function') {
-                        showToast("Browser blocked GPS access. Select your town below.");
+                        showToast("GPS access denied. Select your town below or allow location permission.");
                     }
                     if (typeof window.openLocationPickerModal === 'function') {
                         window.openLocationPickerModal();

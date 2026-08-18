@@ -931,7 +931,7 @@ window.openLocationPickerModal = function() {
                     <i class="fa-solid fa-location-arrow"></i> Use Live Device GPS
                 </button>
                 <div style="font-size:10px; color:rgba(255,255,255,0.6); text-align:center; margin-top:6px;">
-                    Ensure location permission is allowed in your browser settings (🔒 icon near URL).
+                    Ensure device GPS is turned on and location permission is granted for Intan Elyu.
                 </div>
             </div>
             <div style="padding:14px 20px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:8px;">
@@ -979,7 +979,7 @@ window.acquireGpsFromModal = async function() {
     } catch(err) {
         console.warn("Modal GPS request failed:", err);
         if (typeof showToast === 'function') {
-            showToast("GPS Permission Denied. Please choose a town below or allow location in browser.");
+            showToast("GPS Permission Denied. Please enable Location in app settings or choose a town below.");
         }
     } finally {
         if (btn) btn.innerHTML = origHtml;

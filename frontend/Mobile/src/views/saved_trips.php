@@ -548,7 +548,7 @@ $backRoute = 'itinerary';
         }
 
         if (!navigator.geolocation) {
-            if (typeof showToast === 'function') showToast('Geolocation is not supported by your browser.');
+            if (typeof showToast === 'function') showToast('Geolocation is not supported by your device.');
             return;
         }
 
