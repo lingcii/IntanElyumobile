@@ -126,6 +126,13 @@ if (is_dir($imgDir)) {
                 // Invalidate caches
                 const cacheKey = 'saved_places_' + (token ? token.substring(0, 10) : '');
                 localStorage.removeItem(cacheKey);
+                
+                try {
+                    let savedIds = JSON.parse(localStorage.getItem('intan_elyu_saved_place_ids') || '[]');
+                    savedIds = savedIds.filter(item => item != id);
+                    localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(savedIds));
+                } catch(e) {}
+
                 // Also clear dashboard data caches
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);

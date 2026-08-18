@@ -1494,6 +1494,32 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     initDraggableSheet('place-details-sheet', 'place-drag-handle');
 
 
+    window.isPlaceSaved = function(destId) {
+        if (!destId) return false;
+        try {
+            const savedIds = JSON.parse(localStorage.getItem('intan_elyu_saved_place_ids') || '[]');
+            return savedIds.some(id => id == destId);
+        } catch(e) {
+            return false;
+        }
+    };
+
+    window.updateSheetFavButton = function(isSaved) {
+        const favBtn = document.getElementById('sheet-fav-btn');
+        if (!favBtn) return;
+        if (isSaved) {
+            favBtn.style.color = '#ff3b30';
+            favBtn.style.background = 'rgba(255, 59, 48, 0.15)';
+            favBtn.style.borderColor = 'rgba(255, 59, 48, 0.35)';
+            favBtn.innerHTML = '<i class="fa-solid fa-heart" style="color:#ff3b30;"></i>';
+        } else {
+            favBtn.style.color = 'rgba(255, 255, 255, 0.4)';
+            favBtn.style.background = 'rgba(255, 255, 255, 0.07)';
+            favBtn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+            favBtn.innerHTML = '<i class="fa-solid fa-heart" style="color:rgba(255,255,255,0.4);"></i>';
+        }
+    };
+
     window.toggleMapFavorite = function(element) {
         if (!window.currentDestinationForRoute) return;
         const destId = window.currentDestinationForRoute.id;
@@ -1503,30 +1529,49 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             return;
         }
         
-        // Save original state for reverting
-        const originalColor = element.style.color;
-        const wasRed = originalColor === 'rgb(255, 59, 48)' || originalColor === '#ff3b30';
+        let savedIds = [];
+        try {
+            savedIds = JSON.parse(localStorage.getItem('intan_elyu_saved_place_ids') || '[]');
+        } catch(e) {}
         
-        // 1. INSTANT OPTIMISTIC UPDATE (Zero Delay)
-        // Trigger pop animation
-        element.classList.remove('heart-pop-anim');
-        void element.offsetWidth; // trigger reflow
-        element.classList.add('heart-pop-anim');
+        const wasSaved = savedIds.some(id => id == destId);
+        const willBeSaved = !wasSaved;
 
-        if (wasRed) {
-            element.style.color = 'rgba(255,255,255,0.4)';
-            if (typeof showToast === 'function') showToast('Removed from Saved Places');
-            if (window.savedPlaceIds) {
-                window.savedPlaceIds = window.savedPlaceIds.filter(id => id !== destId);
-            }
+        // 1. Update localStorage instantly
+        if (willBeSaved) {
+            if (!savedIds.some(id => id == destId)) savedIds.push(destId);
         } else {
-            element.style.color = '#ff3b30';
-            if (typeof showToast === 'function') showToast('Added to Saved Places');
-            if (!window.savedPlaceIds) window.savedPlaceIds = [];
-            if (!window.savedPlaceIds.includes(destId)) window.savedPlaceIds.push(destId);
+            savedIds = savedIds.filter(id => id != destId);
+        }
+        localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(savedIds));
+
+        // 2. Instant UI update with pop animation & red fading/filling
+        element.classList.remove('heart-pop-anim');
+        void element.offsetWidth;
+        element.classList.add('heart-pop-anim');
+        window.updateSheetFavButton(willBeSaved);
+
+        if (typeof showToast === 'function') {
+            showToast(willBeSaved ? 'Added to Saved Places' : 'Removed from Saved Places');
         }
 
-        // 2. BACKGROUND NETWORK REQUEST
+        // 3. Clear cached dashboard data so other views reflect the change immediately
+        const tokenPrefix = token ? token.substring(0, 10) : '';
+        localStorage.removeItem('saved_places_' + tokenPrefix);
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('dashboard_data_')) {
+                const cached = JSON.parse(localStorage.getItem(key) || '{}');
+                if (cached.savedPlaces && Array.isArray(cached.savedPlaces)) {
+                    if (!willBeSaved) {
+                        cached.savedPlaces = cached.savedPlaces.filter(p => p.id != destId);
+                    }
+                    localStorage.setItem(key, JSON.stringify(cached));
+                }
+            }
+        }
+
+        // 4. Background network request
         const _backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
         fetch(_backendUrl + '/api/tourist/destinations/' + destId + '/favorite', {
             method: 'POST',
@@ -1535,30 +1580,8 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 'Accept': 'application/json',
                 'Authorization': 'Bearer ' + token,
             }
-        }).then(r => {
-            // Invalidate saved places & dashboard caches so other views reflect the change
-            const tokenPrefix = token ? token.substring(0, 10) : '';
-            localStorage.removeItem('saved_places_' + tokenPrefix);
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.startsWith('dashboard_data_')) {
-                    localStorage.removeItem(key);
-                    i--;
-                }
-            }
         }).catch(e => {
-            // Revert on error
-            if (typeof showToast === 'function') showToast('Error updating favorite');
-            element.style.color = originalColor;
-            
-            if (wasRed) {
-                if (!window.savedPlaceIds) window.savedPlaceIds = [];
-                if (!window.savedPlaceIds.includes(destId)) window.savedPlaceIds.push(destId);
-            } else {
-                if (window.savedPlaceIds) {
-                    window.savedPlaceIds = window.savedPlaceIds.filter(id => id !== destId);
-                }
-            }
+            console.warn('Background favorite sync error:', e);
         });
     };
 
@@ -1644,31 +1667,24 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             }
         }
 
-        const favBtn = document.getElementById('sheet-fav-btn');
-        if (favBtn) {
-            if (window.savedPlaceIds && window.savedPlaceIds.includes(locationData.id)) {
-                favBtn.style.color = '#ff3b30';
-            } else {
-                favBtn.style.color = 'rgba(255,255,255,0.4)';
-            }
-            
-            const token = localStorage.getItem('intan_elyu_token');
-            if (token && !window.savedPlaceIdsFetched) {
-                fetch((window.backendUrl || '') + '/api/tourist/dashboard', {
-                    headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
-                }).then(r => r.ok ? r.text() : null).then(txt => {
-                    const d = txt ? window.safeJsonParse(txt, null) : null;
-                    if (d && d.savedPlaces) {
-                        window.savedPlaceIds = d.savedPlaces.map(p => p.id);
-                        window.savedPlaceIdsFetched = true;
-                        if (window.savedPlaceIds.includes(window.currentDestinationForRoute.id)) {
-                            favBtn.style.color = '#ff3b30';
-                        } else {
-                            favBtn.style.color = 'rgba(255,255,255,0.4)';
-                        }
+        // Sync heart button state (red if saved, faded if unsaved)
+        window.updateSheetFavButton(window.isPlaceSaved(locationData.id));
+        
+        const token = localStorage.getItem('intan_elyu_token');
+        if (token && !window.savedPlaceIdsFetched) {
+            fetch((window.backendUrl || '') + '/api/tourist/dashboard', {
+                headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
+            }).then(r => r.ok ? r.text() : null).then(txt => {
+                const d = txt ? window.safeJsonParse(txt, null) : null;
+                if (d && d.savedPlaces) {
+                    const ids = d.savedPlaces.map(p => p.id);
+                    localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(ids));
+                    window.savedPlaceIdsFetched = true;
+                    if (window.currentDestinationForRoute) {
+                        window.updateSheetFavButton(window.isPlaceSaved(window.currentDestinationForRoute.id));
                     }
-                }).catch(e => console.error(e));
-            }
+                }
+            }).catch(e => console.error(e));
         }
         
         const fallbackBanner = window.noImageFallback || 'assets/img/no_image.svg';

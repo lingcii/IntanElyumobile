@@ -634,6 +634,11 @@ if (is_dir($imgDir)) {
         if (savedContainer) {
             savedContainer.innerHTML = '';
             if (data.savedPlaces && data.savedPlaces.length > 0) {
+                try {
+                    const savedIds = data.savedPlaces.map(p => p.id);
+                    localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(savedIds));
+                } catch(e) {}
+
                 savedContainer.classList.remove('is-empty');
                 savedContainer.style.paddingLeft = '';
                 savedContainer.style.paddingRight = '';
@@ -1151,6 +1156,14 @@ window.toggleFavorite = function(destId, element) {
         const tokenPrefix = token ? token.substring(0, 10) : '';
         localStorage.removeItem('saved_places_' + tokenPrefix);
         
+        let savedIds = JSON.parse(localStorage.getItem('intan_elyu_saved_place_ids') || '[]');
+        if (isRemoving) {
+            savedIds = savedIds.filter(id => id != destId);
+        } else {
+            if (!savedIds.some(id => id == destId)) savedIds.push(destId);
+        }
+        localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(savedIds));
+
         for (let i = 0; i < localStorage.length; i++) {
             const k = localStorage.key(i);
             if (k && k.startsWith('dashboard_data_')) {
