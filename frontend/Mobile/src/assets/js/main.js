@@ -702,8 +702,13 @@ window.startLocationWatch = function () {
     );
 };
 
-// Request high-accuracy hardware GPS location from the device
-window.requestPreciseLocation = async function (forceFresh = true) {
+// Request high-accuracy hardware GPS location from the device with Progressive Fallback
+window.requestPreciseLocation = async function (forceFresh = false) {
+    // 0. If we already have a real verified GPS fix and not forcing cold fresh, return it immediately
+    if (!forceFresh && window.currentGPSSource === 'gps' && window.currentGPSLat && window.currentGPSLng) {
+        return { lat: window.currentGPSLat, lng: window.currentGPSLng, source: 'gps', accuracy: window.currentGPSAccuracy || 10 };
+    }
+
     // 1. If running under Capacitor native runtime, use Capacitor Geolocation plugin
     if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
         try {
@@ -717,8 +722,8 @@ window.requestPreciseLocation = async function (forceFresh = true) {
                 }
                 const pos = await Geolocation.getCurrentPosition({
                     enableHighAccuracy: true,
-                    timeout: 15000,
-                    maximumAge: forceFresh ? 0 : 3000
+                    timeout: 20000,
+                    maximumAge: 10000
                 });
                 if (pos && pos.coords) {
                     const lat = pos.coords.latitude;
@@ -741,58 +746,74 @@ window.requestPreciseLocation = async function (forceFresh = true) {
         }
     }
 
-    // 2. Standard HTML5 Geolocation API
+    // 2. Standard HTML5 Geolocation API with Progressive Fallback (Warm Cache -> High Accuracy -> Network)
     if (navigator.geolocation) {
-        const tryHighAccuracy = () => new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-                enableHighAccuracy: true,
-                timeout: 12000,
-                maximumAge: forceFresh ? 0 : 5000
-            });
+        const getPositionPromise = (options) => new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, options);
         });
 
-        const tryStandardAccuracy = () => new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-                enableHighAccuracy: false,
-                timeout: 12000,
-                maximumAge: forceFresh ? 0 : 15000
-            });
-        });
+        let pos = null;
 
+        // Pass 1: Try quick warm cache (instant if device recently had a fix)
         try {
-            let pos;
+            pos = await getPositionPromise({
+                enableHighAccuracy: true,
+                timeout: 2500,
+                maximumAge: 60000
+            });
+        } catch (e) {
+            // Warm cache not available, proceed to live request
+        }
+
+        // Pass 2: Request high-accuracy GPS with generous 20-second timeout
+        if (!pos) {
             try {
-                pos = await tryHighAccuracy();
-            } catch (err1) {
-                if (err1.code === 2 || err1.code === 3) {
-                    pos = await tryStandardAccuracy();
+                pos = await getPositionPromise({
+                    enableHighAccuracy: true,
+                    timeout: 20000,
+                    maximumAge: 10000
+                });
+            } catch (err2) {
+                // Pass 3: If high accuracy timed out or is weak indoors, fallback to network/cell/Wi-Fi positioning
+                if (err2.code === 2 || err2.code === 3) {
+                    console.log("High accuracy GPS timed out, trying network/Wi-Fi positioning...");
+                    try {
+                        pos = await getPositionPromise({
+                            enableHighAccuracy: false,
+                            timeout: 20000,
+                            maximumAge: 30000
+                        });
+                    } catch (err3) {
+                        // If all timed out but we have a previous GPS in memory, use it
+                        if (window.currentGPSLat && window.currentGPSLng) {
+                            return { lat: window.currentGPSLat, lng: window.currentGPSLng, source: window.currentGPSSource || 'gps', accuracy: window.currentGPSAccuracy || 20 };
+                        }
+                        throw err3;
+                    }
                 } else {
-                    throw err1;
+                    throw err2;
                 }
             }
+        }
 
-            if (pos && pos.coords) {
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
-                const accuracy = pos.coords.accuracy || 15;
-                window.currentGPSLat = lat;
-                window.currentGPSLng = lng;
-                window.myLat = lat;
-                window.myLng = lng;
-                window.currentGPSSource = 'gps';
-                window.currentGPSAccuracy = accuracy;
-                document.dispatchEvent(new CustomEvent('gpsUpdated', {
-                    detail: { lat, lng, accuracy, source: 'gps', altitude: pos.coords.altitude, speed: pos.coords.speed }
-                }));
-                return { lat, lng, source: 'gps', accuracy };
-            }
-        } catch (err) {
-            console.warn("HTML5 geolocation failed:", err && err.message);
-            throw err;
+        if (pos && pos.coords) {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            const accuracy = pos.coords.accuracy || 15;
+            window.currentGPSLat = lat;
+            window.currentGPSLng = lng;
+            window.myLat = lat;
+            window.myLng = lng;
+            window.currentGPSSource = 'gps';
+            window.currentGPSAccuracy = accuracy;
+            document.dispatchEvent(new CustomEvent('gpsUpdated', {
+                detail: { lat, lng, accuracy, source: 'gps', altitude: pos.coords.altitude, speed: pos.coords.speed }
+            }));
+            return { lat, lng, source: 'gps', accuracy };
         }
     }
 
-    throw new Error('Geolocation not supported by device/browser');
+    throw new Error('Geolocation not supported by device');
 };
 
 // Fast-track location: returns real GPS if available, else requests it
@@ -844,7 +865,7 @@ window.resolveUserLocation = async function (forceFresh = false) {
 
 // La Union towns catalog for instant manual location picking
 window.LA_UNION_TOWNS = [
-    { name: 'San Juan (Surfing Capital)', lat: 16.6755, lng: 120.3392, icon: '🏄', desc: 'Urbiztondo Beach, Surf Spots & Cafes' },
+    { name: 'San Juan (Surfing Capital)', lat: 16.6755, lng: 120.3392, icon: '🏄', desc: 'Urbiztondo Beach, Gearlan St., Surf Spots & Cafes' },
     { name: 'San Fernando City (Capitol)', lat: 16.6159, lng: 120.3167, icon: '🏛️', desc: 'City Center, Poro Point & Malls' },
     { name: 'Bauang', lat: 16.5312, lng: 120.3340, icon: '🍇', desc: 'Grape Farms, Beaches & Resorts' },
     { name: 'San Gabriel', lat: 16.6853, lng: 120.4042, icon: '🌊', desc: 'Tangadan Falls & Highland Nature' },
@@ -968,9 +989,9 @@ window.closeLocationPickerModal = function() {
 window.acquireGpsFromModal = async function() {
     const btn = document.getElementById('btn-modal-gps-acquire');
     const origHtml = btn ? btn.innerHTML : '';
-    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Requesting GPS Permission...';
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Getting your location...';
     try {
-        const loc = await window.requestPreciseLocation(true);
+        const loc = await window.requestPreciseLocation(false);
         if (loc && loc.lat && loc.lng) {
             localStorage.removeItem('intan_elyu_manual_loc');
             if (typeof showToast === 'function') showToast("Live GPS Locked 📍");
@@ -979,7 +1000,13 @@ window.acquireGpsFromModal = async function() {
     } catch(err) {
         console.warn("Modal GPS request failed:", err);
         if (typeof showToast === 'function') {
-            showToast("GPS Permission Denied. Please enable Location in app settings or choose a town below.");
+            if (err && err.code === 3) {
+                showToast("GPS signal timed out. Please ensure Location/GPS is ON on your device or pick a town below.");
+            } else if (err && err.code === 1) {
+                showToast("Location Permission Denied. Please enable Location in app settings or choose a town below.");
+            } else {
+                showToast("Could not acquire GPS. Please choose a town below.");
+            }
         }
     } finally {
         if (btn) btn.innerHTML = origHtml;
