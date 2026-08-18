@@ -557,9 +557,9 @@ $backRoute = 'itinerary';
         btn.disabled = true;
 
         const options = {
-            enableHighAccuracy: false,
+            enableHighAccuracy: true,
             timeout: 15000,
-            maximumAge: 60000
+            maximumAge: 0
         };
 
         const doSubmitCheckin = async (lat, lng) => {
@@ -583,14 +583,19 @@ $backRoute = 'itinerary';
                     body: formData
                 });
 
-                const result = await response.json();
-
-                if (response.ok) {
-                    if (typeof showToast === 'function') showToast(result.message || 'Checked in! 🌟 Earned +50 XP & Points');
-                    closeCheckinModal();
-                    window.fetchSavedTrips(true);
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    if (typeof showToast === 'function') showToast(data.message || 'Check-in verified successfully! 🎉');
+                    window.closeCheckinModal();
+                    // Play confetti or XP animation if available
+                    if (window.confetti) {
+                        window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
+                    }
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1200);
                 } else {
-                    if (typeof showToast === 'function') showToast(result.message || 'Check-in failed.');
+                    if (typeof showToast === 'function') showToast(data.message || 'Check-in failed. Please ensure you are at the spot!');
                     btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo';
                     btn.disabled = false;
                 }
@@ -602,18 +607,39 @@ $backRoute = 'itinerary';
             }
         };
 
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                doSubmitCheckin(position.coords.latitude, position.coords.longitude);
-            },
-            (error) => {
-                console.warn('GPS error, using fallback location:', error);
-                if (typeof showToast === 'function') showToast('GPS timeout. Using approximate location...');
-                // Fallback to La Union default coordinates if GPS times out
-                doSubmitCheckin(16.6159, 120.3209);
-            },
-            options
-        );
+        if (typeof window.requestPreciseLocation === 'function') {
+            window.requestPreciseLocation(true).then(loc => {
+                if (loc && loc.lat && loc.lng) {
+                    doSubmitCheckin(loc.lat, loc.lng);
+                } else {
+                    throw new Error("No coordinates");
+                }
+            }).catch(() => {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        doSubmitCheckin(position.coords.latitude, position.coords.longitude);
+                    },
+                    (error) => {
+                        console.warn('GPS error, using fallback location:', error);
+                        if (typeof showToast === 'function') showToast('GPS timeout. Using approximate location...');
+                        doSubmitCheckin(window.myLat || 16.6159, window.myLng || 120.3209);
+                    },
+                    options
+                );
+            });
+        } else {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    doSubmitCheckin(position.coords.latitude, position.coords.longitude);
+                },
+                (error) => {
+                    console.warn('GPS error, using fallback location:', error);
+                    if (typeof showToast === 'function') showToast('GPS timeout. Using approximate location...');
+                    doSubmitCheckin(window.myLat || 16.6159, window.myLng || 120.3209);
+                },
+                options
+            );
+        }
     };
 
     window.markTripCompleted = function(id) {

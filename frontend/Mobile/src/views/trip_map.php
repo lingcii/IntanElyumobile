@@ -153,21 +153,31 @@ require_once __DIR__ . '/../components/header.php';
     window.myLat = window.myLat || window.currentGPSLat || null;
     window.myLng = window.myLng || window.currentGPSLng || null;
 
-    if ((!window.myLat || !window.myLng) && navigator.geolocation && localStorage.getItem('intan_elyu_loc_enabled') !== 'false') {
+    if (typeof window.requestPreciseLocation === 'function') {
+        window.requestPreciseLocation(false).then(loc => {
+            if (loc && loc.lat && loc.lng) {
+                window.myLat = loc.lat;
+                window.myLng = loc.lng;
+            }
+        }).catch(err => {
+            console.warn("Direct GPS attempt in trip_map:", err && err.message);
+        });
+    } else if ((!window.myLat || !window.myLng) && navigator.geolocation && localStorage.getItem('intan_elyu_loc_enabled') !== 'false') {
         navigator.geolocation.getCurrentPosition(
             function(pos) {
                 window.myLat = pos.coords.latitude;
                 window.myLng = pos.coords.longitude;
                 window.currentGPSLat = pos.coords.latitude;
                 window.currentGPSLng = pos.coords.longitude;
+                window.currentGPSSource = 'gps';
                 document.dispatchEvent(new CustomEvent('gpsUpdated', {
-                    detail: { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy }
+                    detail: { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy, source: 'gps' }
                 }));
             },
             function(err) {
                 console.warn("Direct GPS attempt in trip_map:", err && err.message);
             },
-            { enableHighAccuracy: false, timeout: 12000, maximumAge: 30000 }
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
         );
     }
 
@@ -894,31 +904,40 @@ require_once __DIR__ . '/../components/header.php';
     });
 
     window.locateTripUser = async function() {
-        const curLat = window.myLat || window.currentGPSLat;
-        const curLng = window.myLng || window.currentGPSLng;
+        const btn = document.getElementById('btn-trip-locate-me');
+        const icon = btn ? btn.querySelector('i') || btn : null;
+        const origClass = icon ? icon.className : '';
+        if (icon) icon.className = 'fa-solid fa-spinner fa-spin';
+        if (typeof showToast === 'function') showToast("Acquiring precise GPS location...");
 
-        if (tripMap && curLat && curLng) {
-            tripMap.flyTo({ center: [curLng, curLat], zoom: 15, duration: 1200 });
-            if (typeof showToast === 'function') showToast("Centered on your location");
-        } else {
-            if (typeof showToast === 'function') showToast("Locating your position...");
+        try {
             let loc = null;
-            if (typeof window.resolveUserLocation === 'function') {
-                loc = await window.resolveUserLocation();
+            if (typeof window.requestPreciseLocation === 'function') {
+                loc = await window.requestPreciseLocation(true);
+            } else if (typeof window.resolveUserLocation === 'function') {
+                loc = await window.resolveUserLocation(true);
             }
-            if (!loc) {
-                loc = { lat: 16.6159, lng: 120.3167 };
+
+            if (loc && loc.lat && loc.lng && !isNaN(loc.lat) && !isNaN(loc.lng)) {
                 window.myLat = loc.lat;
                 window.myLng = loc.lng;
                 window.currentGPSLat = loc.lat;
                 window.currentGPSLng = loc.lng;
-                document.dispatchEvent(new CustomEvent('gpsUpdated', {
-                    detail: { lat: loc.lat, lng: loc.lng, accuracy: 10000, source: 'fallback' }
-                }));
+
+                if (tripMap) {
+                    tripMap.flyTo({ center: [parseFloat(loc.lng), parseFloat(loc.lat)], zoom: 15, duration: 1200 });
+                }
+                if (typeof showToast === 'function') {
+                    showToast(loc.source === 'gps' || window.currentGPSSource === 'gps' ? "Centered on your precise GPS location 📍" : "Centered on your estimated location");
+                }
+            } else {
+                throw new Error("Could not acquire coordinates");
             }
-            if (tripMap) {
-                tripMap.flyTo({ center: [loc.lng, loc.lat], zoom: 15, duration: 1200 });
-            }
+        } catch (e) {
+            console.warn("Trip locate error:", e);
+            if (typeof showToast === 'function') showToast("Location access denied or unavailable. Please enable device GPS.");
+        } finally {
+            if (icon) icon.className = origClass || 'fa-solid fa-location-crosshairs';
         }
     };
 

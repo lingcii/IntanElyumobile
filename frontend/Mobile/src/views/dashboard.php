@@ -480,22 +480,31 @@ if (is_dir($imgDir)) {
 
     if (!token) return;
 
-    let lat = null, lng = null;
-    try {
-        if ("geolocation" in navigator) {
-            const pos = await new Promise((res, rej) => {
-                // Use cached location (maximumAge: 1 hour) and give it 5s instead of 3s
-                navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: false, timeout: 5000, maximumAge: 3600000 });
-            });
-            if (pos && pos.coords) {
-                lat = pos.coords.latitude;
-                lng = pos.coords.longitude;
+    let lat = window.currentGPSLat || null, lng = window.currentGPSLng || null;
+    if (!lat || !lng || window.currentGPSSource !== 'gps') {
+        try {
+            if (typeof window.requestPreciseLocation === 'function') {
+                const loc = await window.requestPreciseLocation(false);
+                if (loc && loc.lat && loc.lng) {
+                    lat = loc.lat;
+                    lng = loc.lng;
+                }
+            } else if ("geolocation" in navigator) {
+                const pos = await new Promise((res, rej) => {
+                    navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 });
+                });
+                if (pos && pos.coords) {
+                    lat = pos.coords.latitude;
+                    lng = pos.coords.longitude;
+                    window.currentGPSLat = lat;
+                    window.currentGPSLng = lng;
+                    window.currentGPSSource = 'gps';
+                }
             }
-        }
-    } catch(e) {
-        // Suppress timeout error (code 3) as it is a safe fallback scenario
-        if (e && e.code !== 3) {
-            console.log("Location access issue (handled):", e.message);
+        } catch(e) {
+            if (e && e.code !== 3) {
+                console.log("Location access issue (handled):", e.message);
+            }
         }
     }
 
@@ -1487,13 +1496,16 @@ window.toggleRecommendedMore = function() {
                     const lat = pos.coords.latitude;
                     const lng = pos.coords.longitude;
                     window.userCurrentCoords = { lat, lng };
+                    window.currentGPSLat = lat;
+                    window.currentGPSLng = lng;
+                    window.currentGPSSource = 'gps';
                     window.fetchWeather(lat, lng, 'My Location', true);
                 },
                 (err) => {
                     console.warn('GPS location failed, using IP fallback:', err);
                     fallbackToIp();
                 },
-                { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
+                { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
             );
         } else {
             fallbackToIp();

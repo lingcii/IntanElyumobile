@@ -946,56 +946,26 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     };
 
     function setupEventListeners() {
-        window.getDeviceLocation = async () => {
+        window.getDeviceLocation = async (forceFresh = true) => {
+            if (typeof window.requestPreciseLocation === 'function') {
+                try {
+                    const loc = await window.requestPreciseLocation(forceFresh);
+                    if (loc && loc.lat && loc.lng) {
+                        return { coords: { latitude: loc.lat, longitude: loc.lng, accuracy: loc.accuracy || 10, source: 'gps' } };
+                    }
+                } catch (e) {
+                    console.warn("requestPreciseLocation failed:", e && e.message);
+                }
+            }
             if (typeof window.resolveUserLocation === 'function') {
-                const loc = await window.resolveUserLocation();
-                if (loc) return { coords: { latitude: loc.lat, longitude: loc.lng, accuracy: 5000, source: loc.source } };
+                const loc = await window.resolveUserLocation(forceFresh);
+                if (loc) return { coords: { latitude: loc.lat, longitude: loc.lng, accuracy: loc.source === 'gps' ? 10 : 5000, source: loc.source } };
             }
             if (typeof window.fastLocation === 'function') {
                 const fast = await window.fastLocation();
                 if (fast) return { coords: { latitude: fast.lat, longitude: fast.lng, accuracy: 5000, source: fast.source } };
             }
-            if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
-                try {
-                    const Geolocation = (window.Capacitor.Plugins && window.Capacitor.Plugins.Geolocation) || 
-                                      (window.Capacitor.registerPlugin ? window.Capacitor.registerPlugin('Geolocation') : null);
-                    
-                    if (!Geolocation) throw new Error("Geolocation plugin not loaded in Capacitor");
-
-                    const perm = await Geolocation.checkPermissions();
-                    if (perm.location !== 'granted') {
-                        const req = await Geolocation.requestPermissions();
-                        if (req.location !== 'granted') throw new Error('Permission denied by user');
-                    }
-                    const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: false, maximumAge: 60000, timeout: 50000 });
-                    return pos;
-                } catch (e) {
-                    if (typeof window.resolveUserLocation === 'function') {
-                        const fallbackLoc = await window.resolveUserLocation(true);
-                        return { coords: { latitude: fallbackLoc.lat, longitude: fallbackLoc.lng, accuracy: 10000, source: fallbackLoc.source } };
-                    }
-                    return { coords: { latitude: 16.6159, longitude: 120.3167, accuracy: 10000, source: 'fallback' } };
-                }
-            } else {
-                return new Promise((resolve) => {
-                    if ("geolocation" in navigator) {
-                        navigator.geolocation.getCurrentPosition(
-                            (position) => resolve(position), 
-                            async () => {
-                                if (typeof window.resolveUserLocation === 'function') {
-                                    const fallbackLoc = await window.resolveUserLocation(true);
-                                    resolve({ coords: { latitude: fallbackLoc.lat, longitude: fallbackLoc.lng, accuracy: 10000, source: fallbackLoc.source } });
-                                } else {
-                                    resolve({ coords: { latitude: 16.6159, longitude: 120.3167, accuracy: 10000, source: 'fallback' } });
-                                }
-                            }, 
-                            { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
-                        );
-                    } else {
-                        resolve({ coords: { latitude: 16.6159, longitude: 120.3167, accuracy: 10000, source: 'fallback' } });
-                    }
-                });
-            }
+            return { coords: { latitude: 16.6159, longitude: 120.3167, accuracy: 10000, source: 'fallback' } };
         };
 
         const searchInput = document.getElementById('map-search-input');
@@ -1160,26 +1130,40 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         const locateBtn = document.getElementById('btn-locate-me');
         if (locateBtn) {
             locateBtn.addEventListener('click', async () => {
-                const curLat = window.currentGPSLat || window.myLat;
-                const curLng = window.currentGPSLng || window.myLng;
-                if (curLat && curLng && window.mapInstance) {
-                    window.mapInstance.flyTo({ center: [curLng, curLat], zoom: 15, duration: 1200 });
-                    if (typeof showToast === 'function') showToast("Centered on your location");
-                } else {
-                    if (typeof showToast === 'function') showToast("Locating your position...");
-                    try {
-                        const position = await window.getDeviceLocation();
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-                        if (window.mapInstance) {
-                            window.mapInstance.flyTo({ center: [lng, lat], zoom: 15, duration: 1200 });
+                const icon = locateBtn.querySelector('i') || locateBtn;
+                const origIconClass = icon.className;
+                icon.className = 'fa-solid fa-spinner fa-spin';
+                if (typeof showToast === 'function') showToast("Acquiring precise GPS location...");
+
+                try {
+                    const position = await window.getDeviceLocation(true);
+                    const lat = position && position.coords ? position.coords.latitude : null;
+                    const lng = position && position.coords ? position.coords.longitude : null;
+                    const isGps = position && position.coords && (position.coords.source === 'gps' || window.currentGPSSource === 'gps');
+
+                    if (window.mapInstance && lat && lng && !isNaN(lat) && !isNaN(lng)) {
+                        window.mapInstance.flyTo({ center: [parseFloat(lng), parseFloat(lat)], zoom: 15, duration: 1200 });
+
+                        // Ensure user marker is updated
+                        if (window.userMarker) {
+                            window.userMarker.setLngLat([lng, lat]);
+                        } else {
+                            const el = document.createElement('div');
+                            el.innerHTML = `<div style="background:#007AFF; width:20px; height:20px; border-radius:50%; border:3px solid white; box-shadow:0 0 0 5px rgba(0,122,255,0.3);"></div>`;
+                            window.userMarker = new maplibregl.Marker({element: el}).setLngLat([lng, lat]).addTo(window.mapInstance);
                         }
-                    } catch (e) {
-                        console.warn("Location error:", e);
-                        if (window.mapInstance) {
-                            window.mapInstance.flyTo({ center: [120.3167, 16.6159], zoom: 15, duration: 1200 });
+
+                        if (typeof showToast === 'function') {
+                            showToast(isGps ? "Centered on your precise GPS location 📍" : "Centered on your estimated location");
                         }
+                    } else {
+                        throw new Error("Unable to determine coordinates");
                     }
+                } catch (e) {
+                    console.warn("Location error:", e);
+                    if (typeof showToast === 'function') showToast("Location access denied or unavailable. Please enable device GPS.");
+                } finally {
+                    icon.className = origIconClass || 'fa-solid fa-location-crosshairs';
                 }
             });
         }
@@ -1188,7 +1172,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         document.addEventListener('gpsUpdated', function(e) {
             const lat = e.detail.lat;
             const lng = e.detail.lng;
-            if (window.mapInstance) {
+            if (window.mapInstance && lat && lng) {
                 if (window.userMarker) {
                     window.userMarker.setLngLat([lng, lat]);
                 } else {
@@ -1263,7 +1247,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             }, 8000);
         }
 
-        // Auto-check on load in case GPS already acquired globally
+        // Auto-check on load in case GPS already acquired globally or request precise fix
         setTimeout(() => {
             if (window.currentGPSLat && window.currentGPSLng && window.mapInstance) {
                 document.dispatchEvent(new CustomEvent('gpsUpdated', { 
@@ -1272,9 +1256,12 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                         lng: window.currentGPSLng,
                         accuracy: window.currentGPSAccuracy || null,
                         altitude: window.currentGPSAltitude || null,
-                        speed: window.currentGPSSpeed || null
+                        speed: window.currentGPSSpeed || null,
+                        source: window.currentGPSSource || 'gps'
                     } 
                 }));
+            } else if (typeof window.requestPreciseLocation === 'function') {
+                window.requestPreciseLocation(false).catch(() => {});
             }
         }, 500);
 

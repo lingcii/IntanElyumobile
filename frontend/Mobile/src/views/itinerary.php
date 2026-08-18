@@ -335,12 +335,34 @@ $activeTab = 'itinerary';
 (function() {
     var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
 
-    // Synchronize GPS state immediately or resolve via multi-tier fallback
+    // Synchronize GPS state immediately or resolve via high-accuracy hardware GPS
     window.myLat = window.myLat || window.currentGPSLat || null;
     window.myLng = window.myLng || window.currentGPSLng || null;
 
-    if (!window.myLat || !window.myLng) {
-        if (typeof window.resolveUserLocation === 'function') {
+    if (!window.myLat || !window.myLng || window.currentGPSSource !== 'gps') {
+        if (typeof window.requestPreciseLocation === 'function') {
+            window.requestPreciseLocation(false).then(loc => {
+                if (loc && loc.lat && loc.lng) {
+                    window.myLat = loc.lat;
+                    window.myLng = loc.lng;
+                    window.currentGPSLat = loc.lat;
+                    window.currentGPSLng = loc.lng;
+                    if (window.renderItinerary) window.renderItinerary();
+                }
+            }).catch(() => {
+                if (typeof window.resolveUserLocation === 'function') {
+                    window.resolveUserLocation().then(loc => {
+                        if (loc) {
+                            window.myLat = loc.lat;
+                            window.myLng = loc.lng;
+                            window.currentGPSLat = loc.lat;
+                            window.currentGPSLng = loc.lng;
+                            if (window.renderItinerary) window.renderItinerary();
+                        }
+                    });
+                }
+            });
+        } else if (typeof window.resolveUserLocation === 'function') {
             window.resolveUserLocation().then(loc => {
                 if (loc) {
                     window.myLat = loc.lat;
@@ -750,31 +772,34 @@ $activeTab = 'itinerary';
             mapContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
         
-        const curLat = window.myLat || window.currentGPSLat;
-        const curLng = window.myLng || window.currentGPSLng;
+        if (typeof showToast === 'function') showToast("Acquiring precise GPS location...");
+        let loc = null;
+        if (typeof window.requestPreciseLocation === 'function') {
+            try {
+                loc = await window.requestPreciseLocation(true);
+            } catch (e) {
+                console.warn("Precise GPS in itinerary locate:", e);
+            }
+        }
+        if (!loc && typeof window.resolveUserLocation === 'function') {
+            loc = await window.resolveUserLocation(true);
+        }
 
-        if (typeof draftMap !== 'undefined' && draftMap && curLat && curLng) {
-            draftMap.flyTo([curLat, curLng], 16, { animate: true, duration: 1.5 });
-            if (window.myDraftMarker) window.myDraftMarker.openPopup();
-        } else {
-            if (typeof showToast === 'function') showToast("Locating your position...");
-            let loc = null;
-            if (typeof window.resolveUserLocation === 'function') {
-                loc = await window.resolveUserLocation();
-            }
-            if (!loc) {
-                loc = { lat: 16.6159, lng: 120.3167 };
-                window.myLat = loc.lat;
-                window.myLng = loc.lng;
-                window.currentGPSLat = loc.lat;
-                window.currentGPSLng = loc.lng;
-                document.dispatchEvent(new CustomEvent('gpsUpdated', {
-                    detail: { lat: loc.lat, lng: loc.lng, accuracy: 10000, source: 'fallback' }
-                }));
-            }
+        if (loc && loc.lat && loc.lng) {
+            window.myLat = loc.lat;
+            window.myLng = loc.lng;
+            window.currentGPSLat = loc.lat;
+            window.currentGPSLng = loc.lng;
+
             if (typeof draftMap !== 'undefined' && draftMap) {
                 draftMap.flyTo([loc.lat, loc.lng], 16, { animate: true, duration: 1.5 });
-                if (window.myDraftMarker) window.myDraftMarker.openPopup();
+                if (window.myDraftMarker) {
+                    window.myDraftMarker.setLatLng([loc.lat, loc.lng]);
+                    window.myDraftMarker.openPopup();
+                }
+            }
+            if (typeof showToast === 'function') {
+                showToast(loc.source === 'gps' || window.currentGPSSource === 'gps' ? "Centered on your precise GPS location 📍" : "Centered on your estimated location");
             }
         }
     };

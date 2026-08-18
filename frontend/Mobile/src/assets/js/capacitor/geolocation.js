@@ -73,7 +73,7 @@ var capacitorGeolocationPluginCapacitor = (function (exports, core, synapse) {
                     resolve(this.augmentPosition(pos, false));
                 }, (err) => {
                     reject(err);
-                }, Object.assign({ enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }, options));
+                }, Object.assign({ enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }, options));
             });
         }
         async watchPosition(options, callback) {
@@ -81,7 +81,7 @@ var capacitorGeolocationPluginCapacitor = (function (exports, core, synapse) {
                 callback(this.augmentPosition(pos, true));
             }, (err) => {
                 callback(null, err);
-            }, Object.assign({ enableHighAccuracy: false, timeout: 10000, maximumAge: 0, minimumUpdateInterval: 5000 }, options));
+            }, Object.assign({ enableHighAccuracy: true, timeout: 15000, maximumAge: 0, minimumUpdateInterval: 5000 }, options));
             return `${id}`;
         }
         async clearWatch(options) {

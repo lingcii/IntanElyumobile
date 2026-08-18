@@ -635,18 +635,14 @@ window.startLocationWatch = function () {
 
     window.intanElyuLocationWatchId = navigator.geolocation.watchPosition(
         (position) => {
-            // Throttle GPS processing to once every 3 seconds to prevent massive UI lagginess
-            const now = Date.now();
-            if (now - lastGpsProcessTime < 3000) return;
-            lastGpsProcessTime = now;
-
             const currentLat = position.coords.latitude;
             const currentLng = position.coords.longitude;
             const accuracy = position.coords.accuracy;
             const altitude = position.coords.altitude;
             const speed = position.coords.speed;
 
-            // Globally store for all maps (itinerary, trip map, etc.)
+            // Mark as true verified GPS
+            window.currentGPSSource = 'gps';
             window.currentGPSLat = currentLat;
             window.currentGPSLng = currentLng;
             window.myLat = currentLat;
@@ -655,43 +651,48 @@ window.startLocationWatch = function () {
             window.currentGPSAltitude = altitude;
             window.currentGPSSpeed = speed;
 
-            // Broadcast dynamic update inside requestAnimationFrame to prevent layout thrashing
+            // Broadcast dynamic update for real-time map tracking
             requestAnimationFrame(() => {
-                document.dispatchEvent(new CustomEvent('gpsUpdated', { detail: { lat: currentLat, lng: currentLng, accuracy, altitude, speed } }));
+                document.dispatchEvent(new CustomEvent('gpsUpdated', { detail: { lat: currentLat, lng: currentLng, accuracy, altitude, speed, source: 'gps' } }));
             });
 
-            // Check active itineraries
-            const savedTrips = window.savedTripsData || [];
+            // Throttle background notification/itinerary checks to once every 3 seconds
+            const now = Date.now();
+            if (now - lastGpsProcessTime >= 3000) {
+                lastGpsProcessTime = now;
 
-            savedTrips.forEach(trip => {
-                // We only care about active/ongoing trips
-                if (trip.status === 'active' && trip.items) {
-                    trip.items.forEach(item => {
-                        if (item.is_visited) return;
+                // Check active itineraries
+                const savedTrips = window.savedTripsData || [];
+                savedTrips.forEach(trip => {
+                    // We only care about active/ongoing trips
+                    if (trip.status === 'active' && trip.items) {
+                        trip.items.forEach(item => {
+                            if (item.is_visited) return;
 
-                        const dest = item.destination;
-                        if (!dest || !dest.lat || !dest.lng) return;
+                            const dest = item.destination;
+                            if (!dest || !dest.lat || !dest.lng) return;
 
-                        // Calculate distance
-                        const dist = calculateDistance(currentLat, currentLng, parseFloat(dest.lat), parseFloat(dest.lng));
+                            // Calculate distance
+                            const dist = calculateDistance(currentLat, currentLng, parseFloat(dest.lat), parseFloat(dest.lng));
 
-                        // If within 500 meters and haven't alerted yet
-                        if (dist <= 500 && !lastAlertedItems[item.id]) {
-                            // Fire Notification
-                            if (localStorage.getItem('intan_elyu_push_enabled') !== 'false') {
-                                window.showInAppNotification(
-                                    "Destination Nearby!",
-                                    `You are near ${dest.name}! Open the app to check in and earn XP.`
-                                );
+                            // If within 500 meters and haven't alerted yet
+                            if (dist <= 500 && !lastAlertedItems[item.id]) {
+                                // Fire Notification
+                                if (localStorage.getItem('intan_elyu_push_enabled') !== 'false') {
+                                    window.showInAppNotification(
+                                        "Destination Nearby!",
+                                        `You are near ${dest.name}! Open the app to check in and earn XP.`
+                                    );
+                                }
+
+                                // Save state so we don't spam
+                                lastAlertedItems[item.id] = true;
+                                localStorage.setItem('intan_elyu_alerted_items', JSON.stringify(lastAlertedItems));
                             }
-
-                            // Save state so we don't spam
-                            lastAlertedItems[item.id] = true;
-                            localStorage.setItem('intan_elyu_alerted_items', JSON.stringify(lastAlertedItems));
-                        }
-                    });
-                }
-            });
+                        });
+                    }
+                });
+            }
         },
         (error) => {
             // Suppress harmless timeout errors (code 3) and permission denied errors (code 1)
@@ -700,54 +701,119 @@ window.startLocationWatch = function () {
                 console.warn("Global Location watch error:", error);
             }
         },
-        { enableHighAccuracy: false, maximumAge: 10000, timeout: 30000 }
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 }
     );
 };
 
-// Fast-track location: cached GPS -> IP geolocation -> GPS fallback
-window.fastLocation = function () {
-    const lat = window.currentGPSLat || window.myLat;
-    const lng = window.currentGPSLng || window.myLng;
-    if (lat && lng) {
-        return Promise.resolve({ lat, lng });
-    }
-    return window.resolveUserLocation();
-};
-
-// Multi-tier user location resolver (GPS -> IP Geolocation -> La Union Fallback)
-window.resolveUserLocation = async function (forceIP = false) {
-    const cachedLat = window.currentGPSLat || window.myLat;
-    const cachedLng = window.currentGPSLng || window.myLng;
-    if (!forceIP && cachedLat && cachedLng) {
-        return { lat: cachedLat, lng: cachedLng, source: 'cached' };
+// Request high-accuracy hardware GPS location from the device
+window.requestPreciseLocation = async function (forceFresh = true) {
+    if (localStorage.getItem('intan_elyu_loc_enabled') === 'false') {
+        throw new Error('Location services disabled by user preference');
     }
 
-    // Tier 1: Try HTML5 Geolocation
-    if (!forceIP && navigator.geolocation && localStorage.getItem('intan_elyu_loc_enabled') !== 'false') {
+    // 1. If running under Capacitor native runtime, use Capacitor Geolocation plugin
+    if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
         try {
-            const pos = await new Promise((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject, {
+            const Geolocation = (window.Capacitor.Plugins && window.Capacitor.Plugins.Geolocation) || 
+                              (window.Capacitor.registerPlugin ? window.Capacitor.registerPlugin('Geolocation') : null);
+            if (Geolocation) {
+                const perm = await Geolocation.checkPermissions();
+                if (perm.location !== 'granted') {
+                    const req = await Geolocation.requestPermissions();
+                    if (req.location !== 'granted') throw new Error('Permission denied');
+                }
+                const pos = await Geolocation.getCurrentPosition({
                     enableHighAccuracy: true,
-                    timeout: 8000,
-                    maximumAge: 30000
+                    timeout: 15000,
+                    maximumAge: forceFresh ? 0 : 5000
                 });
-            });
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            window.currentGPSLat = lat;
-            window.currentGPSLng = lng;
-            window.myLat = lat;
-            window.myLng = lng;
-            document.dispatchEvent(new CustomEvent('gpsUpdated', {
-                detail: { lat, lng, accuracy: pos.coords.accuracy, source: 'gps' }
-            }));
-            return { lat, lng, source: 'gps' };
+                if (pos && pos.coords) {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    const accuracy = pos.coords.accuracy || 10;
+                    window.currentGPSLat = lat;
+                    window.currentGPSLng = lng;
+                    window.myLat = lat;
+                    window.myLng = lng;
+                    window.currentGPSSource = 'gps';
+                    window.currentGPSAccuracy = accuracy;
+                    document.dispatchEvent(new CustomEvent('gpsUpdated', {
+                        detail: { lat, lng, accuracy, source: 'gps', altitude: pos.coords.altitude, speed: pos.coords.speed }
+                    }));
+                    return { lat, lng, source: 'gps', accuracy };
+                }
+            }
         } catch (e) {
-            console.warn("HTML5 Geolocation denied/unavailable. Falling back to IP Geolocation:", e && e.message);
+            console.warn("Capacitor precise geolocation error:", e);
         }
     }
 
-    // Tier 2: IP-based Geolocation via ipwho.is
+    // 2. Standard HTML5 Geolocation API with high accuracy
+    if (navigator.geolocation) {
+        return new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    const accuracy = pos.coords.accuracy || 10;
+                    window.currentGPSLat = lat;
+                    window.currentGPSLng = lng;
+                    window.myLat = lat;
+                    window.myLng = lng;
+                    window.currentGPSSource = 'gps';
+                    window.currentGPSAccuracy = accuracy;
+                    document.dispatchEvent(new CustomEvent('gpsUpdated', {
+                        detail: { lat, lng, accuracy, source: 'gps', altitude: pos.coords.altitude, speed: pos.coords.speed }
+                    }));
+                    resolve({ lat, lng, source: 'gps', accuracy });
+                },
+                (err) => {
+                    console.warn("HTML5 precise geolocation failed:", err && err.message);
+                    reject(err);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: forceFresh ? 0 : 5000
+                }
+            );
+        });
+    }
+
+    throw new Error('Geolocation not supported by device/browser');
+};
+
+// Fast-track location: cached GPS -> fresh GPS -> IP geolocation -> La Union fallback
+window.fastLocation = function () {
+    if (window.currentGPSSource === 'gps' && window.currentGPSLat && window.currentGPSLng) {
+        return Promise.resolve({ lat: window.currentGPSLat, lng: window.currentGPSLng, source: 'gps' });
+    }
+    return window.resolveUserLocation(false);
+};
+
+// Multi-tier user location resolver (GPS -> IP Geolocation -> La Union Fallback)
+window.resolveUserLocation = async function (forceFresh = false) {
+    // If we already have a real verified GPS fix and not forcing fresh, return it
+    if (!forceFresh && window.currentGPSSource === 'gps' && window.currentGPSLat && window.currentGPSLng) {
+        return { lat: window.currentGPSLat, lng: window.currentGPSLng, source: 'gps' };
+    }
+
+    // Tier 1: Try precise GPS first
+    try {
+        const precise = await window.requestPreciseLocation(forceFresh);
+        if (precise && precise.lat && precise.lng) {
+            return precise;
+        }
+    } catch (e) {
+        console.warn("Precise GPS acquisition failed, checking fallback:", e && e.message);
+    }
+
+    // If we already have any cached coordinates (e.g. from previous IP) and not forcing fresh, return them
+    if (!forceFresh && window.currentGPSLat && window.currentGPSLng) {
+        return { lat: window.currentGPSLat, lng: window.currentGPSLng, source: window.currentGPSSource || 'cached' };
+    }
+
+    // Tier 2: IP-based Geolocation via ipwho.is (marked explicitly as source: 'ip')
     try {
         const ipRes = await fetch('https://ipwho.is/?fields=latitude,longitude,city,region,success', { cache: 'no-store' });
         if (ipRes.ok) {
@@ -755,13 +821,16 @@ window.resolveUserLocation = async function (forceIP = false) {
             if (data && data.success && data.latitude && data.longitude) {
                 const lat = data.latitude;
                 const lng = data.longitude;
-                window.currentGPSLat = lat;
-                window.currentGPSLng = lng;
-                window.myLat = lat;
-                window.myLng = lng;
-                document.dispatchEvent(new CustomEvent('gpsUpdated', {
-                    detail: { lat, lng, accuracy: 5000, source: 'ip', city: data.city, region: data.region }
-                }));
+                if (window.currentGPSSource !== 'gps') {
+                    window.currentGPSLat = lat;
+                    window.currentGPSLng = lng;
+                    window.myLat = lat;
+                    window.myLng = lng;
+                    window.currentGPSSource = 'ip';
+                    document.dispatchEvent(new CustomEvent('gpsUpdated', {
+                        detail: { lat, lng, accuracy: 5000, source: 'ip', city: data.city, region: data.region }
+                    }));
+                }
                 return { lat, lng, source: 'ip', city: data.city, region: data.region };
             }
         }
@@ -777,13 +846,16 @@ window.resolveUserLocation = async function (forceIP = false) {
             if (data && data.latitude && data.longitude) {
                 const lat = data.latitude;
                 const lng = data.longitude;
-                window.currentGPSLat = lat;
-                window.currentGPSLng = lng;
-                window.myLat = lat;
-                window.myLng = lng;
-                document.dispatchEvent(new CustomEvent('gpsUpdated', {
-                    detail: { lat, lng, accuracy: 5000, source: 'ip', city: data.city, region: data.region }
-                }));
+                if (window.currentGPSSource !== 'gps') {
+                    window.currentGPSLat = lat;
+                    window.currentGPSLng = lng;
+                    window.myLat = lat;
+                    window.myLng = lng;
+                    window.currentGPSSource = 'ip';
+                    document.dispatchEvent(new CustomEvent('gpsUpdated', {
+                        detail: { lat, lng, accuracy: 5000, source: 'ip', city: data.city, region: data.region }
+                    }));
+                }
                 return { lat, lng, source: 'ip', city: data.city, region: data.region };
             }
         }
@@ -791,16 +863,19 @@ window.resolveUserLocation = async function (forceIP = false) {
         console.warn("Secondary IP Geolocation failed:", err && err.message);
     }
 
-    // Tier 4: San Fernando, La Union Heart Fallback
+    // Tier 4: San Fernando, La Union Fallback
     const fallbackLat = 16.6159;
     const fallbackLng = 120.3167;
-    window.currentGPSLat = fallbackLat;
-    window.currentGPSLng = fallbackLng;
-    window.myLat = fallbackLat;
-    window.myLng = fallbackLng;
-    document.dispatchEvent(new CustomEvent('gpsUpdated', {
-        detail: { lat: fallbackLat, lng: fallbackLng, accuracy: 10000, source: 'fallback', city: 'San Fernando', region: 'La Union' }
-    }));
+    if (window.currentGPSSource !== 'gps') {
+        window.currentGPSLat = fallbackLat;
+        window.currentGPSLng = fallbackLng;
+        window.myLat = fallbackLat;
+        window.myLng = fallbackLng;
+        window.currentGPSSource = 'fallback';
+        document.dispatchEvent(new CustomEvent('gpsUpdated', {
+            detail: { lat: fallbackLat, lng: fallbackLng, accuracy: 10000, source: 'fallback', city: 'San Fernando', region: 'La Union' }
+        }));
+    }
     return { lat: fallbackLat, lng: fallbackLng, source: 'fallback', city: 'San Fernando', region: 'La Union' };
 };
 
