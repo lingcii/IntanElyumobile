@@ -68,10 +68,6 @@ $activeTab = 'itinerary';
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px; padding-top: 16px;" class="stagger-1">
         <h2 style="margin:0; font-size:22px; font-weight:800; letter-spacing:-0.5px;">Draft Plan</h2>
         <div style="display:flex; align-items:center; gap: 8px;">
-            <!-- Clear All Draft Stops Button -->
-            <button id="btn-clear-draft" onclick="window.clearAllItinerary()" style="display:none; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); color:#ef4444; font-weight:700; height:32px; padding:0 12px; border-radius:20px; font-size:12px; cursor:pointer; align-items:center; gap:4px; box-sizing:border-box;">
-                <i class="fa-solid fa-trash-can"></i> Clear
-            </button>
             <!-- Saved Trips Button (Small) -->
             <button onclick="navigateTo('saved_trips')" style="background: rgba(37, 99, 235, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; font-weight:700; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; box-sizing: border-box; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 <i class="fa-solid fa-bookmark" style="margin-right:6px;"></i> Saved Trips
@@ -475,8 +471,6 @@ $activeTab = 'itinerary';
         const fab = document.getElementById('btn-save-itinerary');
         const mapWrapper = document.getElementById('draft-map-wrapper');
         
-        const clearBtn = document.getElementById('btn-clear-draft');
-        
         document.getElementById('itinerary-count').innerText = draft.length;
 
         if (draft.length === 0) {
@@ -487,14 +481,12 @@ $activeTab = 'itinerary';
             emptyState.style.animation = 'cardFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards';
             fab.style.display = 'none';
             if (mapWrapper) mapWrapper.style.display = 'none';
-            if (clearBtn) clearBtn.style.display = 'none';
             return;
         }
 
         emptyState.style.display = 'none';
         fab.style.display = 'flex';
         if (mapWrapper) mapWrapper.style.display = 'block';
-        if (clearBtn) clearBtn.style.display = 'inline-flex';
         
         let html = '';
 

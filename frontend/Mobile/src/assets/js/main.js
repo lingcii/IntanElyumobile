@@ -633,79 +633,85 @@ window.startLocationWatch = function () {
     let lastAlertedItems = JSON.parse(localStorage.getItem('intan_elyu_alerted_items') || '{}');
     let lastGpsProcessTime = 0;
 
-    window.intanElyuLocationWatchId = navigator.geolocation.watchPosition(
-        (position) => {
-            const currentLat = position.coords.latitude;
-            const currentLng = position.coords.longitude;
-            const accuracy = position.coords.accuracy;
-            const altitude = position.coords.altitude;
-            const speed = position.coords.speed;
+    const onPos = (position) => {
+        const currentLat = position.coords.latitude;
+        const currentLng = position.coords.longitude;
+        const accuracy = position.coords.accuracy;
+        const altitude = position.coords.altitude;
+        const speed = position.coords.speed;
 
-            // Mark as true verified GPS
-            window.currentGPSSource = 'gps';
-            window.currentGPSLat = currentLat;
-            window.currentGPSLng = currentLng;
-            window.myLat = currentLat;
-            window.myLng = currentLng;
-            window.currentGPSAccuracy = accuracy;
-            window.currentGPSAltitude = altitude;
-            window.currentGPSSpeed = speed;
+        // Mark as true verified GPS / device location
+        window.currentGPSSource = 'gps';
+        window.currentGPSLat = currentLat;
+        window.currentGPSLng = currentLng;
+        window.myLat = currentLat;
+        window.myLng = currentLng;
+        window.currentGPSAccuracy = accuracy;
+        window.currentGPSAltitude = altitude;
+        window.currentGPSSpeed = speed;
 
-            // Broadcast dynamic update for real-time map tracking
-            requestAnimationFrame(() => {
-                document.dispatchEvent(new CustomEvent('gpsUpdated', { detail: { lat: currentLat, lng: currentLng, accuracy, altitude, speed, source: 'gps' } }));
-            });
+        // Broadcast dynamic update for real-time map tracking
+        requestAnimationFrame(() => {
+            document.dispatchEvent(new CustomEvent('gpsUpdated', { detail: { lat: currentLat, lng: currentLng, accuracy, altitude, speed, source: 'gps' } }));
+        });
 
-            // Throttle background notification/itinerary checks to once every 3 seconds
-            const now = Date.now();
-            if (now - lastGpsProcessTime >= 3000) {
-                lastGpsProcessTime = now;
+        // Throttle background notification/itinerary checks to once every 3 seconds
+        const now = Date.now();
+        if (now - lastGpsProcessTime >= 3000) {
+            lastGpsProcessTime = now;
 
-                // Check active itineraries
-                const savedTrips = window.savedTripsData || [];
-                savedTrips.forEach(trip => {
-                    // We only care about active/ongoing trips
-                    if (trip.status === 'active' && trip.items) {
-                        trip.items.forEach(item => {
-                            if (item.is_visited) return;
+            // Check active itineraries
+            const savedTrips = window.savedTripsData || [];
+            savedTrips.forEach(trip => {
+                if (trip.status === 'active' && trip.items) {
+                    trip.items.forEach(item => {
+                        if (item.is_visited) return;
 
-                            const dest = item.destination;
-                            if (!dest || !dest.lat || !dest.lng) return;
+                        const dest = item.destination;
+                        if (!dest || !dest.lat || !dest.lng) return;
 
-                            // Calculate distance
-                            const dist = calculateDistance(currentLat, currentLng, parseFloat(dest.lat), parseFloat(dest.lng));
+                        const dist = calculateDistance(currentLat, currentLng, parseFloat(dest.lat), parseFloat(dest.lng));
 
-                            // If within 500 meters and haven't alerted yet
-                            if (dist <= 500 && !lastAlertedItems[item.id]) {
-                                // Fire Notification
-                                if (localStorage.getItem('intan_elyu_push_enabled') !== 'false') {
-                                    window.showInAppNotification(
-                                        "Destination Nearby!",
-                                        `You are near ${dest.name}! Open the app to check in and earn XP.`
-                                    );
-                                }
-
-                                // Save state so we don't spam
-                                lastAlertedItems[item.id] = true;
-                                localStorage.setItem('intan_elyu_alerted_items', JSON.stringify(lastAlertedItems));
+                        if (dist <= 500 && !lastAlertedItems[item.id]) {
+                            if (localStorage.getItem('intan_elyu_push_enabled') !== 'false') {
+                                window.showInAppNotification(
+                                    "Destination Nearby!",
+                                    `You are near ${dest.name}! Open the app to check in and earn XP.`
+                                );
                             }
-                        });
-                    }
-                });
+                            lastAlertedItems[item.id] = true;
+                            localStorage.setItem('intan_elyu_alerted_items', JSON.stringify(lastAlertedItems));
+                        }
+                    });
+                }
+            });
+        }
+    };
+
+    const onErr = (error) => {
+        // If high accuracy GPS times out or is unavailable (e.g. desktop/laptop), retry with standard network positioning
+        if (error.code === 2 || error.code === 3) {
+            if (window.intanElyuLocationWatchId) {
+                navigator.geolocation.clearWatch(window.intanElyuLocationWatchId);
+                window.intanElyuLocationWatchId = navigator.geolocation.watchPosition(
+                    onPos,
+                    (e2) => { if (e2.code !== 3 && e2.code !== 1) console.warn("Network location watch error:", e2); },
+                    { enableHighAccuracy: false, maximumAge: 10000, timeout: 20000 }
+                );
             }
-        },
-        (error) => {
-            // Suppress harmless timeout errors (code 3) and permission denied errors (code 1)
-            // from polluting the console when location access is denied or delayed.
-            if (error.code !== 3 && error.code !== 1) {
-                console.warn("Global Location watch error:", error);
-            }
-        },
-        { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 }
+        } else if (error.code !== 3 && error.code !== 1) {
+            console.warn("Global Location watch error:", error);
+        }
+    };
+
+    window.intanElyuLocationWatchId = navigator.geolocation.watchPosition(
+        onPos,
+        onErr,
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
     );
 };
 
-// Request high-accuracy hardware GPS location from the device
+// Request high-accuracy hardware GPS location from the device with smart fallback
 window.requestPreciseLocation = async function (forceFresh = true) {
     if (localStorage.getItem('intan_elyu_loc_enabled') === 'false') {
         throw new Error('Location services disabled by user preference');
@@ -748,36 +754,56 @@ window.requestPreciseLocation = async function (forceFresh = true) {
         }
     }
 
-    // 2. Standard HTML5 Geolocation API with high accuracy
+    // 2. Standard HTML5 Geolocation API (Dual-pass: GPS Satellites -> Wi-Fi/Network Positioning)
     if (navigator.geolocation) {
-        return new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    const lat = pos.coords.latitude;
-                    const lng = pos.coords.longitude;
-                    const accuracy = pos.coords.accuracy || 10;
-                    window.currentGPSLat = lat;
-                    window.currentGPSLng = lng;
-                    window.myLat = lat;
-                    window.myLng = lng;
-                    window.currentGPSSource = 'gps';
-                    window.currentGPSAccuracy = accuracy;
-                    document.dispatchEvent(new CustomEvent('gpsUpdated', {
-                        detail: { lat, lng, accuracy, source: 'gps', altitude: pos.coords.altitude, speed: pos.coords.speed }
-                    }));
-                    resolve({ lat, lng, source: 'gps', accuracy });
-                },
-                (err) => {
-                    console.warn("HTML5 precise geolocation failed:", err && err.message);
-                    reject(err);
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 15000,
-                    maximumAge: forceFresh ? 0 : 5000
-                }
-            );
+        const tryHighAccuracy = () => new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: true,
+                timeout: 8000,
+                maximumAge: forceFresh ? 0 : 10000
+            });
         });
+
+        const tryStandardAccuracy = () => new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: false,
+                timeout: 10000,
+                maximumAge: forceFresh ? 0 : 30000
+            });
+        });
+
+        try {
+            let pos;
+            try {
+                pos = await tryHighAccuracy();
+            } catch (err1) {
+                if (err1.code === 2 || err1.code === 3) {
+                    console.log("High accuracy GPS timed out or unavailable, trying Wi-Fi/Network positioning...");
+                    pos = await tryStandardAccuracy();
+                } else {
+                    throw err1;
+                }
+            }
+
+            if (pos && pos.coords) {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                const accuracy = pos.coords.accuracy || 20;
+                window.currentGPSLat = lat;
+                window.currentGPSLng = lng;
+                window.myLat = lat;
+                window.myLng = lng;
+                window.currentGPSSource = 'gps';
+                window.currentGPSAccuracy = accuracy;
+                document.dispatchEvent(new CustomEvent('gpsUpdated', {
+                    detail: { lat, lng, accuracy, source: 'gps', altitude: pos.coords.altitude, speed: pos.coords.speed }
+                }));
+                return { lat, lng, source: 'gps', accuracy };
+            }
+        } catch (err) {
+            console.warn("HTML5 geolocation failed:", err && err.message);
+            throw err;
+        }
     }
 
     throw new Error('Geolocation not supported by device/browser');

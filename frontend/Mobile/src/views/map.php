@@ -1174,17 +1174,35 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         }
 
         // Real-time GPS Tracker Hook with Proximity Auto-Pop Trigger
+        let _hasAutoCenteredGPS = false;
         document.addEventListener('gpsUpdated', function(e) {
             const lat = e.detail.lat;
             const lng = e.detail.lng;
+            const isRealGps = (e.detail.source === 'gps' || window.currentGPSSource === 'gps');
             if (window.mapInstance && lat && lng) {
                 if (window.userMarker) {
                     window.userMarker.setLngLat([lng, lat]);
                 } else {
                     const el = document.createElement('div');
-                    el.innerHTML = `<div style="background:#007AFF; width:20px; height:20px; border-radius:50%; border:3px solid white; box-shadow:0 0 0 5px rgba(0,122,255,0.3);"></div>`;
+                    el.className = 'user-gps-tracking-marker';
+                    el.innerHTML = `
+                        <div style="position:relative; width:22px; height:22px; display:flex; align-items:center; justify-content:center;">
+                            <div style="position:absolute; width:36px; height:36px; border-radius:50%; background:rgba(56,189,248,0.35); animation:pulse 2s infinite;"></div>
+                            <div style="position:relative; background:#0284c7; width:20px; height:20px; border-radius:50%; border:3px solid #ffffff; box-shadow:0 0 12px rgba(2,132,199,0.8); z-index:2;"></div>
+                        </div>
+                    `;
                     window.userMarker = new maplibregl.Marker({element: el}).setLngLat([lng, lat]).addTo(window.mapInstance);
                 }
+
+                // If this is the first live GPS signal, smoothly center the map on the user's real position
+                if (isRealGps && !_hasAutoCenteredGPS) {
+                    _hasAutoCenteredGPS = true;
+                    window.mapInstance.flyTo({ center: [parseFloat(lng), parseFloat(lat)], zoom: 15, duration: 1200 });
+                    if (typeof showToast === 'function') {
+                        showToast("📍 Live GPS Tracking Active");
+                    }
+                }
+
                 checkProximityAutoPop(lat, lng);
             }
         });
