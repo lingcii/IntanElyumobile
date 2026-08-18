@@ -430,6 +430,10 @@ if (is_dir($imgDir)) {
 
             // Click capture: clicking a shrinked card smoothly scrolls it to center
             container.addEventListener('click', (e) => {
+                if (e.target.closest('.fav-heart') || e.target.closest('.fav-card-overlay i')) {
+                    return; // Allow heart button clicks to proceed without carousel interception!
+                }
+
                 const card = e.target.closest('.fav-card');
                 if (!card) return;
 
@@ -1079,40 +1083,41 @@ window.toggleFavorite = function(destId, element) {
     var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
     
     const card = element.closest('.fav-card');
-    const isSavedContainer = card && card.parentElement && card.parentElement.id === 'saved-places-container';
+    const isSavedContainer = card && (card.closest('#saved-places-container') !== null);
     
-    // Save original state for reverting
-    const originalColor = element.style.color;
-    const wasRed = originalColor === 'rgb(255, 59, 48)' || originalColor === '#ff3b30';
+    // Check if currently favorited
+    const isSolid = element.classList.contains('fa-solid');
+    const colorStyle = element.style.color || '';
+    const isRed = isSolid && (colorStyle === '#ff3b30' || colorStyle.includes('255, 59, 48') || colorStyle.includes('255,59,48'));
+    const isRemoving = isSavedContainer || isRed;
     
-    // 1. INSTANT OPTIMISTIC UPDATE (Zero Delay)
-    // Trigger pop animation
+    // 1. INSTANT OPTIMISTIC UPDATE
     element.classList.remove('heart-pop-anim');
     void element.offsetWidth; // trigger reflow
     element.classList.add('heart-pop-anim');
 
-    if (wasRed) {
+    if (isRemoving) {
         element.style.color = 'rgba(255,255,255,0.4)';
         element.classList.remove('fa-solid');
         element.classList.add('fa-regular');
         if (typeof showToast === 'function') showToast('Removed from Saved Places');
         
-        if (isSavedContainer) {
-            card.style.transition = 'opacity 0.3s, transform 0.3s, width 0.3s, padding 0.3s, margin 0.3s';
+        if (isSavedContainer && card) {
+            card.style.transition = 'opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s ease, padding 0.3s ease, margin 0.3s ease';
             card.style.opacity = '0';
             card.style.transform = 'scale(0.8)';
             card.style.width = '0px';
+            card.style.minWidth = '0px';
             card.style.marginRight = '0px';
             card.style.padding = '0px';
-            card.style.pointerEvents = 'none'; // prevent clicks while shrinking
+            card.style.pointerEvents = 'none';
             
-            // Remove from DOM immediately after animation
             setTimeout(() => {
                 card.remove();
                 const container = document.getElementById('saved-places-container');
                 if (container) {
-                    let hasCards = Array.from(container.children).some(c => c.classList.contains('fav-card') && c.style.pointerEvents !== 'none');
-                    if (!hasCards) {
+                    const remainingCards = Array.from(container.children).filter(c => c.classList.contains('fav-card') && c.style.pointerEvents !== 'none');
+                    if (remainingCards.length === 0) {
                         container.classList.add('is-empty');
                         container.style.paddingLeft = '0';
                         container.style.paddingRight = '0';
@@ -1141,6 +1146,25 @@ window.toggleFavorite = function(destId, element) {
         if (typeof showToast === 'function') showToast('Added to Saved Places');
     }
 
+    // Update local cached dashboard and saved places state
+    try {
+        const tokenPrefix = token ? token.substring(0, 10) : '';
+        localStorage.removeItem('saved_places_' + tokenPrefix);
+        
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith('dashboard_data_')) {
+                const cached = JSON.parse(localStorage.getItem(k) || '{}');
+                if (cached.savedPlaces && Array.isArray(cached.savedPlaces)) {
+                    if (isRemoving) {
+                        cached.savedPlaces = cached.savedPlaces.filter(p => p.id != destId);
+                    }
+                    localStorage.setItem(k, JSON.stringify(cached));
+                }
+            }
+        }
+    } catch(e) {}
+
     // 2. BACKGROUND NETWORK REQUEST
     fetch(backendUrl + '/api/tourist/destinations/' + destId + '/favorite', {
         method: 'POST',
@@ -1149,31 +1173,8 @@ window.toggleFavorite = function(destId, element) {
             'Accept': 'application/json',
             'Authorization': 'Bearer ' + token
         }
-    }).then(r => {
-        // Invalidate caches so saved_places view reflects the change
-        const tokenPrefix = token ? token.substring(0, 10) : '';
-        localStorage.removeItem('saved_places_' + tokenPrefix);
     }).catch(e => {
-        // Revert on error
-        if (typeof showToast === 'function') showToast('Error updating favorite');
-        element.style.color = originalColor;
-        
-        if (wasRed) {
-            element.classList.remove('fa-regular');
-            element.classList.add('fa-solid');
-        } else {
-            element.classList.remove('fa-solid');
-            element.classList.add('fa-regular');
-        }
-        
-        if (isSavedContainer && wasRed) {
-            card.style.opacity = '1';
-            card.style.transform = 'scale(1)';
-            card.style.width = '';
-            card.style.marginRight = '';
-            card.style.padding = '';
-            card.style.pointerEvents = 'auto';
-        }
+        console.warn('Background favorite sync error:', e);
     });
 };
 
