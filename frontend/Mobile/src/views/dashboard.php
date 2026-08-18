@@ -1021,11 +1021,11 @@ if (is_dir($imgDir)) {
                             }
 
                             tripsHtml += `
-                                <div class="trip-swipe-container" data-trip-id="${trip.id}" style="margin-bottom: 14px; position: relative; overflow: hidden; border-radius: 20px;">
+                                <div class="trip-swipe-container" data-trip-id="${trip.id}" style="margin-bottom: 14px; position: relative; overflow: hidden; border-radius: 20px; -webkit-mask-image: -webkit-radial-gradient(white, black); mask-image: radial-gradient(white, black); isolation: isolate; contain: paint;">
                                     <div class="trip-swipe-bg" style="position: absolute; top: 0; right: 0; bottom: 0; width: 85px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 0 20px 20px 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 800; gap: 4px; z-index: 1; transform: translateX(85px); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
                                         <i class="fa-solid fa-trash-can"></i> Delete
                                     </div>
-                                    <div class="trip-swipe-content" style="position: relative; z-index: 2; transition: transform 0.2s ease, border-radius 0.2s ease; background: linear-gradient(135deg, rgba(30, 41, 59, 0.65) 0%, rgba(15, 23, 42, 0.88) 100%); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.3);">
+                                    <div class="trip-swipe-content" style="position: relative; z-index: 2; transition: transform 0.2s ease, border-radius 0.2s ease, border-color 0.2s ease; background: linear-gradient(135deg, rgba(30, 41, 59, 0.65) 0%, rgba(15, 23, 42, 0.88) 100%); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.3);">
                                         <div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.toggle-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.paddingTop = '14px'; content.style.paddingBottom = '16px'; content.style.maxHeight = (content.scrollHeight + 50) + 'px'; content.style.opacity = '1'; icon.style.transform = 'rotate(90deg)'; } else { content.style.maxHeight = '0px'; content.style.opacity = '0'; content.style.paddingTop = '0'; content.style.paddingBottom = '0'; icon.style.transform = 'rotate(0deg)'; }" style="cursor:pointer; display:flex; align-items:center; gap: 14px; padding: 16px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.05)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
                                             <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(56, 189, 248, 0.14); border: 1px solid rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 14px rgba(56,189,248,0.25);">
                                                 <i class="fa-solid fa-map-location-dot" style="color: #38bdf8; font-size: 20px;"></i>
@@ -1341,17 +1341,19 @@ window.toggleRecommendedMore = function() {
                     const translate = Math.min(diff, 85);
                     content.style.transform = `translateX(-${translate}px)`;
                     content.style.borderRadius = translate > 5 ? '20px 0 0 20px' : '20px';
+                    content.style.borderRightColor = translate > 5 ? 'transparent' : '';
                     if (bg) bg.style.transform = `translateX(${85 - translate}px)`;
                 } else if (diff < -5) {
                     content.style.transform = 'translateX(0px)';
                     content.style.borderRadius = '20px';
+                    content.style.borderRightColor = '';
                     if (bg) bg.style.transform = 'translateX(85px)';
                 }
             };
 
             const handleEnd = () => {
                 if (!isSwiping) return;
-                content.style.transition = 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.2s ease';
+                content.style.transition = 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.2s ease, border-color 0.2s ease';
                 if (bg) bg.style.transition = 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)';
                 const diff = startX - currentX;
                 if (diff > 60 && moved) {
@@ -1360,6 +1362,7 @@ window.toggleRecommendedMore = function() {
                 } else {
                     content.style.transform = 'translateX(0px)';
                     content.style.borderRadius = '20px';
+                    content.style.borderRightColor = '';
                     if (bg) bg.style.transform = 'translateX(85px)';
                 }
                 startX = 0;

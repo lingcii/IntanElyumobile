@@ -209,16 +209,46 @@ body[data-view="itinerary"] {
     animation: cardFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Timeline Stop Card Swipe Content */
+/* Timeline Stop Card Swipe Container & Content */
+.swipe-container {
+    position: relative !important;
+    overflow: hidden !important;
+    border-radius: 20px !important;
+    -webkit-mask-image: -webkit-radial-gradient(white, black) !important;
+    mask-image: radial-gradient(white, black) !important;
+    isolation: isolate !important;
+    contain: paint !important;
+}
+
+.swipe-delete-bg {
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 80px !important;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    border-radius: 0 20px 20px 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #fff !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    gap: 4px !important;
+    z-index: 1 !important;
+}
+
 .swipe-content {
+    position: relative !important;
+    z-index: 2 !important;
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.85) 100%) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
     border: 1px solid rgba(56, 189, 248, 0.25) !important;
-    border-radius: 22px !important;
+    border-radius: 20px;
     padding: 18px 20px !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
-    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
+    transition: transform 0.2s ease, border-radius 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 
 .swipe-content .time-label {

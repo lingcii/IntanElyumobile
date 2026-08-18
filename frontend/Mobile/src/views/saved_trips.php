@@ -263,14 +263,14 @@ $backRoute = 'itinerary';
 
             const safeTitle = trip.title ? trip.title.replace(/"/g, '&quot;').replace(/'/g, "\\'") : 'Saved Trip';
             html += `
-            <div class="trip-swipe-container" data-trip-id="${trip.id}" data-trip-title="${safeTitle}" style="position:relative; overflow:hidden; border-radius:24px; margin-bottom:20px;">
+            <div class="trip-swipe-container" data-trip-id="${trip.id}" data-trip-title="${safeTitle}" style="position:relative; overflow:hidden; border-radius:24px; -webkit-mask-image:-webkit-radial-gradient(white, black); mask-image:radial-gradient(white, black); isolation:isolate; contain:paint; margin-bottom:20px;">
                 <!-- Red Delete Action Button (Slides smoothly in tandem from right wall) -->
                 <div class="trip-swipe-bg" onclick="window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}')" style="position:absolute; top:0; right:0; bottom:0; width:95px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 24px 24px 0; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:13px; font-weight:800; gap:6px; z-index:1; cursor:pointer; transform:translateX(95px); transition:transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
                     <i class="fa-solid fa-trash-can"></i> Delete
                 </div>
                 
                 <!-- Rich Glassmorphic Front Card Content (Overlays z-index 2) -->
-                <div class="trip-swipe-content" style="position:relative; z-index:2; background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 24px; padding: 22px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(56, 189, 248, 0.08);">
+                <div class="trip-swipe-content" style="position:relative; z-index:2; background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 24px; padding: 22px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease, border-color 0.25s ease; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(56, 189, 248, 0.08);">
                     <h3 style="margin: 0 0 6px 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">${trip.title}</h3>
                     <p style="font-size: 13px; color: rgba(226, 232, 240, 0.85); margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                         <span><i class="fa-regular fa-calendar" style="color: #38bdf8; margin-right: 4px;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}</span> 
@@ -897,10 +897,12 @@ $backRoute = 'itinerary';
                     const moveX = Math.min(diff, 95);
                     content.style.transform = `translateX(-${moveX}px)`;
                     content.style.borderRadius = moveX > 5 ? '24px 0 0 24px' : '24px';
+                    content.style.borderRightColor = moveX > 5 ? 'transparent' : '';
                     if (bg) bg.style.transform = `translateX(${95 - moveX}px)`;
                 } else if (diff < -5) {
                     content.style.transform = 'translateX(0px)';
                     content.style.borderRadius = '24px';
+                    content.style.borderRightColor = '';
                     if (bg) bg.style.transform = 'translateX(95px)';
                 }
             };
@@ -915,17 +917,20 @@ $backRoute = 'itinerary';
                     // Full swipe across -> Trigger confirmation modal directly!
                     content.style.transform = 'translateX(-95px)';
                     content.style.borderRadius = '24px 0 0 24px';
+                    content.style.borderRightColor = 'transparent';
                     if (bg) bg.style.transform = 'translateX(0px)';
                     window.confirmDeleteSavedTrip(tripId, container, tripTitle);
                 } else if (moved && diff > 35) {
                     // Partial swipe -> Reveal red delete action button
                     content.style.transform = 'translateX(-95px)';
                     content.style.borderRadius = '24px 0 0 24px';
+                    content.style.borderRightColor = 'transparent';
                     if (bg) bg.style.transform = 'translateX(0px)';
                 } else {
                     // Slight drag or tap -> Snap closed
                     content.style.transform = 'translateX(0px)';
                     content.style.borderRadius = '24px';
+                    content.style.borderRightColor = '';
                     if (bg) bg.style.transform = 'translateX(95px)';
                 }
 
