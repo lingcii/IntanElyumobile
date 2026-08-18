@@ -618,13 +618,6 @@ window.toggleLocationServices = function (enabled) {
 
 window.startLocationWatch = function () {
     if (!navigator.geolocation) return;
-    if (localStorage.getItem('intan_elyu_loc_enabled') === 'false') {
-        if (window.intanElyuLocationWatchId) {
-            navigator.geolocation.clearWatch(window.intanElyuLocationWatchId);
-            window.intanElyuLocationWatchId = null;
-        }
-        return;
-    }
 
     if (window.intanElyuLocationWatchId) {
         navigator.geolocation.clearWatch(window.intanElyuLocationWatchId);
@@ -640,7 +633,7 @@ window.startLocationWatch = function () {
         const altitude = position.coords.altitude;
         const speed = position.coords.speed;
 
-        // Mark as true verified GPS / device location
+        // Mark as real verified GPS
         window.currentGPSSource = 'gps';
         window.currentGPSLat = currentLat;
         window.currentGPSLng = currentLng;
@@ -660,7 +653,6 @@ window.startLocationWatch = function () {
         if (now - lastGpsProcessTime >= 3000) {
             lastGpsProcessTime = now;
 
-            // Check active itineraries
             const savedTrips = window.savedTripsData || [];
             savedTrips.forEach(trip => {
                 if (trip.status === 'active' && trip.items) {
@@ -689,7 +681,6 @@ window.startLocationWatch = function () {
     };
 
     const onErr = (error) => {
-        // If high accuracy GPS times out or is unavailable (e.g. desktop/laptop), retry with standard network positioning
         if (error.code === 2 || error.code === 3) {
             if (window.intanElyuLocationWatchId) {
                 navigator.geolocation.clearWatch(window.intanElyuLocationWatchId);
@@ -699,24 +690,20 @@ window.startLocationWatch = function () {
                     { enableHighAccuracy: false, maximumAge: 10000, timeout: 20000 }
                 );
             }
-        } else if (error.code !== 3 && error.code !== 1) {
-            console.warn("Global Location watch error:", error);
+        } else if (error.code === 1) {
+            console.warn("Location permission denied by browser. Please allow location in browser site settings.");
         }
     };
 
     window.intanElyuLocationWatchId = navigator.geolocation.watchPosition(
         onPos,
         onErr,
-        { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+        { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
     );
 };
 
-// Request high-accuracy hardware GPS location from the device with smart fallback
+// Request high-accuracy hardware GPS location from the device
 window.requestPreciseLocation = async function (forceFresh = true) {
-    if (localStorage.getItem('intan_elyu_loc_enabled') === 'false') {
-        throw new Error('Location services disabled by user preference');
-    }
-
     // 1. If running under Capacitor native runtime, use Capacitor Geolocation plugin
     if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
         try {
@@ -731,7 +718,7 @@ window.requestPreciseLocation = async function (forceFresh = true) {
                 const pos = await Geolocation.getCurrentPosition({
                     enableHighAccuracy: true,
                     timeout: 15000,
-                    maximumAge: forceFresh ? 0 : 5000
+                    maximumAge: forceFresh ? 0 : 3000
                 });
                 if (pos && pos.coords) {
                     const lat = pos.coords.latitude;
@@ -754,21 +741,21 @@ window.requestPreciseLocation = async function (forceFresh = true) {
         }
     }
 
-    // 2. Standard HTML5 Geolocation API (Dual-pass: GPS Satellites -> Wi-Fi/Network Positioning)
+    // 2. Standard HTML5 Geolocation API
     if (navigator.geolocation) {
         const tryHighAccuracy = () => new Promise((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(resolve, reject, {
                 enableHighAccuracy: true,
-                timeout: 8000,
-                maximumAge: forceFresh ? 0 : 10000
+                timeout: 12000,
+                maximumAge: forceFresh ? 0 : 5000
             });
         });
 
         const tryStandardAccuracy = () => new Promise((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(resolve, reject, {
                 enableHighAccuracy: false,
-                timeout: 10000,
-                maximumAge: forceFresh ? 0 : 30000
+                timeout: 12000,
+                maximumAge: forceFresh ? 0 : 15000
             });
         });
 
@@ -778,7 +765,6 @@ window.requestPreciseLocation = async function (forceFresh = true) {
                 pos = await tryHighAccuracy();
             } catch (err1) {
                 if (err1.code === 2 || err1.code === 3) {
-                    console.log("High accuracy GPS timed out or unavailable, trying Wi-Fi/Network positioning...");
                     pos = await tryStandardAccuracy();
                 } else {
                     throw err1;
@@ -788,7 +774,7 @@ window.requestPreciseLocation = async function (forceFresh = true) {
             if (pos && pos.coords) {
                 const lat = pos.coords.latitude;
                 const lng = pos.coords.longitude;
-                const accuracy = pos.coords.accuracy || 20;
+                const accuracy = pos.coords.accuracy || 15;
                 window.currentGPSLat = lat;
                 window.currentGPSLng = lng;
                 window.myLat = lat;
@@ -809,23 +795,7 @@ window.requestPreciseLocation = async function (forceFresh = true) {
     throw new Error('Geolocation not supported by device/browser');
 };
 
-// Purge stale Baguio ISP gateway cache immediately on script load
-(function purgeBaguioCache() {
-    function isBaguio(lat, lng) {
-        const lt = parseFloat(lat);
-        const lg = parseFloat(lng);
-        return (!isNaN(lt) && !isNaN(lg) && lt >= 16.36 && lt <= 16.46 && lg >= 120.54 && lg <= 120.64);
-    }
-    if (isBaguio(window.currentGPSLat, window.currentGPSLng) || isBaguio(window.myLat, window.myLng)) {
-        window.currentGPSLat = null;
-        window.currentGPSLng = null;
-        window.myLat = null;
-        window.myLng = null;
-        window.currentGPSSource = null;
-    }
-})();
-
-// Fast-track location: cached GPS -> fresh GPS -> manual town -> La Union fallback
+// Fast-track location: returns real GPS if available, else requests it
 window.fastLocation = function () {
     if (window.currentGPSSource === 'gps' && window.currentGPSLat && window.currentGPSLng) {
         return Promise.resolve({ lat: window.currentGPSLat, lng: window.currentGPSLng, source: 'gps' });
@@ -833,24 +803,24 @@ window.fastLocation = function () {
     return window.resolveUserLocation(false);
 };
 
-// Multi-tier user location resolver (GPS -> User Manual Pick -> San Fernando, La Union Fallback)
+// Pure real location resolver (No fake mock locations)
 window.resolveUserLocation = async function (forceFresh = false) {
     // If we already have a real verified GPS fix and not forcing fresh, return it
     if (!forceFresh && window.currentGPSSource === 'gps' && window.currentGPSLat && window.currentGPSLng) {
         return { lat: window.currentGPSLat, lng: window.currentGPSLng, source: 'gps' };
     }
 
-    // Tier 1: Try precise hardware GPS
+    // Try real hardware GPS
     try {
         const precise = await window.requestPreciseLocation(forceFresh);
         if (precise && precise.lat && precise.lng) {
             return precise;
         }
     } catch (e) {
-        console.warn("Precise GPS acquisition failed or was blocked by browser:", e && e.message);
+        console.warn("Live GPS acquisition error:", e && e.message);
     }
 
-    // Tier 2: Check if user previously selected a manual town in Elyu
+    // Check if user manually saved a location
     try {
         const manualLocStr = localStorage.getItem('intan_elyu_manual_loc');
         if (manualLocStr) {
@@ -869,18 +839,7 @@ window.resolveUserLocation = async function (forceFresh = false) {
         }
     } catch(e) {}
 
-    // Tier 3: Heart of Elyu (San Fernando City, La Union Fallback)
-    const fallbackLat = 16.6159;
-    const fallbackLng = 120.3167;
-    window.currentGPSLat = fallbackLat;
-    window.currentGPSLng = fallbackLng;
-    window.myLat = fallbackLat;
-    window.myLng = fallbackLng;
-    window.currentGPSSource = 'fallback';
-    document.dispatchEvent(new CustomEvent('gpsUpdated', {
-        detail: { lat: fallbackLat, lng: fallbackLng, accuracy: 10000, source: 'fallback', city: 'San Fernando', region: 'La Union' }
-    }));
-    return { lat: fallbackLat, lng: fallbackLng, source: 'fallback', city: 'San Fernando', region: 'La Union' };
+    return null;
 };
 
 // La Union towns catalog for instant manual location picking

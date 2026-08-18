@@ -948,24 +948,18 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     function setupEventListeners() {
         window.getDeviceLocation = async (forceFresh = true) => {
             if (typeof window.requestPreciseLocation === 'function') {
-                try {
-                    const loc = await window.requestPreciseLocation(forceFresh);
-                    if (loc && loc.lat && loc.lng) {
-                        return { coords: { latitude: loc.lat, longitude: loc.lng, accuracy: loc.accuracy || 10, source: 'gps' } };
-                    }
-                } catch (e) {
-                    console.warn("requestPreciseLocation failed:", e && e.message);
+                const loc = await window.requestPreciseLocation(forceFresh);
+                if (loc && loc.lat && loc.lng) {
+                    return { coords: { latitude: loc.lat, longitude: loc.lng, accuracy: loc.accuracy || 10, source: 'gps' } };
                 }
             }
             if (typeof window.resolveUserLocation === 'function') {
                 const loc = await window.resolveUserLocation(forceFresh);
-                if (loc) return { coords: { latitude: loc.lat, longitude: loc.lng, accuracy: loc.source === 'gps' ? 10 : 5000, source: loc.source } };
+                if (loc && loc.lat && loc.lng) {
+                    return { coords: { latitude: loc.lat, longitude: loc.lng, accuracy: loc.source === 'gps' ? 10 : 5000, source: loc.source } };
+                }
             }
-            if (typeof window.fastLocation === 'function') {
-                const fast = await window.fastLocation();
-                if (fast) return { coords: { latitude: fast.lat, longitude: fast.lng, accuracy: 5000, source: fast.source } };
-            }
-            return { coords: { latitude: 16.6159, longitude: 120.3167, accuracy: 10000, source: 'fallback' } };
+            throw new Error("Device GPS location unavailable. Please grant location permissions in browser.");
         };
 
         const searchInput = document.getElementById('map-search-input');
