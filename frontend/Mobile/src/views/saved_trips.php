@@ -265,7 +265,7 @@ $backRoute = 'itinerary';
             html += `
             <div class="trip-swipe-container" data-trip-id="${trip.id}" data-trip-title="${safeTitle}" style="position:relative; overflow:hidden; border-radius:24px; -webkit-mask-image:-webkit-radial-gradient(white, black); mask-image:radial-gradient(white, black); isolation:isolate; contain:paint; margin-bottom:20px;">
                 <!-- Red Delete Action Button (Slides smoothly in tandem from right wall) -->
-                <div class="trip-swipe-bg" onclick="window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}')" style="position:absolute; top:0; right:0; bottom:0; width:95px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 24px 24px 0; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:13px; font-weight:800; gap:6px; z-index:1; cursor:pointer; transform:translateX(95px); transition:transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
+                <div class="trip-swipe-bg" onclick="window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}')" style="position:absolute; top:0; right:0; bottom:0; width:95px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 24px 24px 0; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:13px; font-weight:800; gap:6px; z-index:1; cursor:pointer; opacity:0; pointer-events:none; transform:translateX(95px); transition:transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;">
                     <i class="fa-solid fa-trash-can"></i> Delete
                 </div>
                 
@@ -808,7 +808,17 @@ $backRoute = 'itinerary';
         const container = window._pendingDeleteTripContainer;
         if (container) {
             const content = container.querySelector('.trip-swipe-content');
-            if (content) { content.style.transform = 'translateX(0px)'; content.style.borderRadius = '24px'; }
+            const bg = container.querySelector('.trip-swipe-bg');
+            if (content) {
+                content.style.transform = 'translateX(0px)';
+                content.style.borderRadius = '24px';
+                content.style.borderRightColor = '';
+            }
+            if (bg) {
+                bg.style.transform = 'translateX(95px)';
+                bg.style.opacity = '0';
+                bg.style.pointerEvents = 'none';
+            }
         }
 
         window._pendingDeleteTripId = null;
@@ -898,19 +908,27 @@ $backRoute = 'itinerary';
                     content.style.transform = `translateX(-${moveX}px)`;
                     content.style.borderRadius = moveX > 5 ? '24px 0 0 24px' : '24px';
                     content.style.borderRightColor = moveX > 5 ? 'transparent' : '';
-                    if (bg) bg.style.transform = `translateX(${95 - moveX}px)`;
+                    if (bg) {
+                        bg.style.opacity = '1';
+                        bg.style.pointerEvents = 'auto';
+                        bg.style.transform = `translateX(${95 - moveX}px)`;
+                    }
                 } else if (diff < -5) {
                     content.style.transform = 'translateX(0px)';
                     content.style.borderRadius = '24px';
                     content.style.borderRightColor = '';
-                    if (bg) bg.style.transform = 'translateX(95px)';
+                    if (bg) {
+                        bg.style.opacity = '0';
+                        bg.style.pointerEvents = 'none';
+                        bg.style.transform = 'translateX(95px)';
+                    }
                 }
             };
 
             const handleEnd = () => {
                 if (!isSwiping) return;
                 content.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease';
-                if (bg) bg.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+                if (bg) bg.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease';
 
                 const diff = startX - currentX;
                 if (moved && diff > 90) {
@@ -918,20 +936,32 @@ $backRoute = 'itinerary';
                     content.style.transform = 'translateX(-95px)';
                     content.style.borderRadius = '24px 0 0 24px';
                     content.style.borderRightColor = 'transparent';
-                    if (bg) bg.style.transform = 'translateX(0px)';
+                    if (bg) {
+                        bg.style.opacity = '1';
+                        bg.style.pointerEvents = 'auto';
+                        bg.style.transform = 'translateX(0px)';
+                    }
                     window.confirmDeleteSavedTrip(tripId, container, tripTitle);
                 } else if (moved && diff > 35) {
                     // Partial swipe -> Reveal red delete action button
                     content.style.transform = 'translateX(-95px)';
                     content.style.borderRadius = '24px 0 0 24px';
                     content.style.borderRightColor = 'transparent';
-                    if (bg) bg.style.transform = 'translateX(0px)';
+                    if (bg) {
+                        bg.style.opacity = '1';
+                        bg.style.pointerEvents = 'auto';
+                        bg.style.transform = 'translateX(0px)';
+                    }
                 } else {
                     // Slight drag or tap -> Snap closed
                     content.style.transform = 'translateX(0px)';
                     content.style.borderRadius = '24px';
                     content.style.borderRightColor = '';
-                    if (bg) bg.style.transform = 'translateX(95px)';
+                    if (bg) {
+                        bg.style.opacity = '0';
+                        bg.style.pointerEvents = 'none';
+                        bg.style.transform = 'translateX(95px)';
+                    }
                 }
 
                 startX = 0;

@@ -1022,7 +1022,7 @@ if (is_dir($imgDir)) {
 
                             tripsHtml += `
                                 <div class="trip-swipe-container" data-trip-id="${trip.id}" style="margin-bottom: 14px; position: relative; overflow: hidden; border-radius: 20px; -webkit-mask-image: -webkit-radial-gradient(white, black); mask-image: radial-gradient(white, black); isolation: isolate; contain: paint;">
-                                    <div class="trip-swipe-bg" style="position: absolute; top: 0; right: 0; bottom: 0; width: 85px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 0 20px 20px 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 800; gap: 4px; z-index: 1; transform: translateX(85px); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+                                    <div class="trip-swipe-bg" style="position: absolute; top: 0; right: 0; bottom: 0; width: 85px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 0 20px 20px 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 800; gap: 4px; z-index: 1; opacity: 0; pointer-events: none; transform: translateX(85px); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;">
                                         <i class="fa-solid fa-trash-can"></i> Delete
                                     </div>
                                     <div class="trip-swipe-content" style="position: relative; z-index: 2; transition: transform 0.2s ease, border-radius 0.2s ease, border-color 0.2s ease; background: linear-gradient(135deg, rgba(30, 41, 59, 0.65) 0%, rgba(15, 23, 42, 0.88) 100%); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.3);">
@@ -1342,19 +1342,27 @@ window.toggleRecommendedMore = function() {
                     content.style.transform = `translateX(-${translate}px)`;
                     content.style.borderRadius = translate > 5 ? '20px 0 0 20px' : '20px';
                     content.style.borderRightColor = translate > 5 ? 'transparent' : '';
-                    if (bg) bg.style.transform = `translateX(${85 - translate}px)`;
+                    if (bg) {
+                        bg.style.opacity = '1';
+                        bg.style.pointerEvents = 'auto';
+                        bg.style.transform = `translateX(${85 - translate}px)`;
+                    }
                 } else if (diff < -5) {
                     content.style.transform = 'translateX(0px)';
                     content.style.borderRadius = '20px';
                     content.style.borderRightColor = '';
-                    if (bg) bg.style.transform = 'translateX(85px)';
+                    if (bg) {
+                        bg.style.opacity = '0';
+                        bg.style.pointerEvents = 'none';
+                        bg.style.transform = 'translateX(85px)';
+                    }
                 }
             };
 
             const handleEnd = () => {
                 if (!isSwiping) return;
                 content.style.transition = 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.2s ease, border-color 0.2s ease';
-                if (bg) bg.style.transition = 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)';
+                if (bg) bg.style.transition = 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease';
                 const diff = startX - currentX;
                 if (diff > 60 && moved) {
                     const id = container.dataset.tripId;
@@ -1363,7 +1371,11 @@ window.toggleRecommendedMore = function() {
                     content.style.transform = 'translateX(0px)';
                     content.style.borderRadius = '20px';
                     content.style.borderRightColor = '';
-                    if (bg) bg.style.transform = 'translateX(85px)';
+                    if (bg) {
+                        bg.style.opacity = '0';
+                        bg.style.pointerEvents = 'none';
+                        bg.style.transform = 'translateX(85px)';
+                    }
                 }
                 startX = 0;
                 currentX = 0;
@@ -1421,7 +1433,9 @@ window.toggleRecommendedMore = function() {
                 }
             } else {
                 const content = element ? element.querySelector('.trip-swipe-content') : null;
-                if (content) { content.style.transform = 'translateX(0px)'; content.style.borderRadius = '20px'; }
+                const bg = element ? element.querySelector('.trip-swipe-bg') : null;
+                if (content) { content.style.transform = 'translateX(0px)'; content.style.borderRadius = '20px'; content.style.borderRightColor = ''; }
+                if (bg) { bg.style.transform = 'translateX(85px)'; bg.style.opacity = '0'; bg.style.pointerEvents = 'none'; }
             }
         } catch (e) {
             console.error('Error deleting itinerary', e);

@@ -742,7 +742,7 @@ $activeTab = 'itinerary';
             <div class="timeline-item ${isNextStop ? 'is-next-stop' : ''}" draggable="true" data-index="${index}" data-id="${place.id}" style="animation-delay: ${(index + 1) * 0.08}s">
                 <div class="timeline-dot"></div>
                 <div class="swipe-container" style="position:relative; overflow:hidden; border-radius:20px; -webkit-mask-image:-webkit-radial-gradient(white, black); mask-image:radial-gradient(white, black); isolation:isolate; contain:paint;">
-                    <div class="swipe-delete-bg" style="position:absolute; top:0; right:0; bottom:0; width:80px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 20px 20px 0; display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800; gap:4px; transform:translateX(100%); z-index:1;"><i class="fa-solid fa-trash-can"></i> Delete</div>
+                    <div class="swipe-delete-bg" style="position:absolute; top:0; right:0; bottom:0; width:80px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 20px 20px 0; display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800; gap:4px; transform:translateX(100%); z-index:1; opacity:0; pointer-events:none; transition:transform 0.2s ease, opacity 0.2s ease;"><i class="fa-solid fa-trash-can"></i> Delete</div>
                     <div class="swipe-content" style="position:relative; z-index:2; transition:transform 0.2s ease, border-radius 0.2s ease, border-color 0.2s ease; border-radius:20px; padding:16px;">
                         <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px;">
                             <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
@@ -899,12 +899,16 @@ $activeTab = 'itinerary';
                     content.style.transform = `translateX(-${translate}px)`;
                     content.style.borderRadius = translate > 5 ? '20px 0 0 20px' : '20px';
                     content.style.borderRightColor = translate > 5 ? 'transparent' : '';
-                    if (bg) bg.style.transform = `translateX(${80 - translate}px)`;
+                    if (bg) {
+                        bg.style.opacity = '1';
+                        bg.style.pointerEvents = 'auto';
+                        bg.style.transform = `translateX(${80 - translate}px)`;
+                    }
                 }, { passive: true });
 
                 content.addEventListener('touchend', (e) => {
                     content.style.transition = 'transform 0.2s ease, border-radius 0.2s ease';
-                    if (bg) bg.style.transition = 'transform 0.2s ease';
+                    if (bg) bg.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
                     const diff = startX - currentX;
                     if (diff > 60 && isSwiping) {
                         const id = item.dataset.id;
@@ -913,7 +917,11 @@ $activeTab = 'itinerary';
                         content.style.transform = '';
                         content.style.borderRadius = '20px';
                         content.style.borderRightColor = '';
-                        if (bg) bg.style.transform = 'translateX(100%)';
+                        if (bg) {
+                            bg.style.opacity = '0';
+                            bg.style.pointerEvents = 'none';
+                            bg.style.transform = 'translateX(100%)';
+                        }
                     }
                     startX = 0;
                     currentX = 0;
