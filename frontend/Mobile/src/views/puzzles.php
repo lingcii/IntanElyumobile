@@ -41,15 +41,15 @@ include __DIR__ . '/../components/header.php';
     <!-- SLIDING PUZZLE TAB -->
     <div id="game-tab-puzzle" class="game-tab-content">
         <div style="background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 16px; margin-bottom: 16px; text-align: center;">
-            <h3 id="puzzle-title" style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800;">Tangadan Falls Slide Puzzle</h3>
+            <h3 id="puzzle-title" style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800;">Immuki Island Slide Puzzle</h3>
             <p id="puzzle-desc" style="margin: 0; font-size: 12px; color: rgba(148, 163, 184, 0.8); line-height: 1.4;">
-                Rearrange the tiles to reveal the image of the famous Tangadan Waterfalls in San Gabriel! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.
+                Rearrange the tiles to reveal the crystal clear lagoons of Immuki Island in Balaoan! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.
             </p>
 
             <!-- Target Reference Image Preview -->
             <div style="margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 6px 12px; width: fit-content; margin-left: auto; margin-right: auto;">
                 <span style="font-size: 11px; color: rgba(226,232,240,0.8); font-weight: 700;">Target Goal:</span>
-                <img id="puzzle-target-img" src="https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a68655d7a28a.jpg" alt="Tangadan Falls Target" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover; border: 1.5px solid #38bdf8; box-shadow: 0 2px 8px rgba(56,189,248,0.3);">
+                <img id="puzzle-target-img" src="https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a686f4d0f48b.jpg" alt="Immuki Island Target" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover; border: 1.5px solid #38bdf8; box-shadow: 0 2px 8px rgba(56,189,248,0.3);">
             </div>
             
             <!-- Moves and Timer info -->
@@ -418,22 +418,10 @@ const R2_PUBLIC_BASE = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tour
 
 const PUZZLE_IMAGES = [
     {
-        name: "Tangadan Falls",
-        location: "San Gabriel",
-        image: R2_PUBLIC_BASE + "spot_6a68655d7a28a.jpg",
-        desc: 'Rearrange the tiles to reveal the image of the famous Tangadan Waterfalls in San Gabriel! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.'
-    },
-    {
         name: "Immuki Island",
         location: "Balaoan",
         image: R2_PUBLIC_BASE + "spot_6a686f4d0f48b.jpg",
         desc: 'Rearrange the tiles to reveal the crystal clear lagoons of Immuki Island in Balaoan! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.'
-    },
-    {
-        name: "San Juan Surfing Beach",
-        location: "San Juan",
-        image: R2_PUBLIC_BASE + "spot_6a7020e362474.jpg",
-        desc: 'Rearrange the tiles to reveal the vibrant waves of San Juan Surfing Beach! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.'
     },
     {
         name: "Agoo Eco Fun World",
@@ -630,9 +618,9 @@ const triviaData = [
     },
     {
         id: 2,
-        question: "What is the name of the famous multi-tiered waterfalls located in San Gabriel, La Union?",
-        options: ["Balay Anito Falls", "Occalong Falls", "Tangadan Falls", "Tuddingan Falls"],
-        correct: 2,
+        question: "What is the famous historical Spanish watchtower located along the coastline of Luna, La Union?",
+        options: ["Baluarte Watchtower", "Poro Point Lighthouse", "Ma-Cho Temple", "Pindangan Ruins"],
+        correct: 0,
         selected: null
     },
     {
@@ -852,7 +840,7 @@ const scrambleData = [
         id: 2,
         scrambled: "GABERIL NAS",
         answer: "SAN GABRIEL",
-        hint: "Home of the majestic Tangadan Waterfalls"
+        hint: "Known for scenic mountain trails and highland nature"
     },
     {
         id: 3,

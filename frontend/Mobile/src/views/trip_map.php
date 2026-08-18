@@ -24,6 +24,11 @@ require_once __DIR__ . '/../components/header.php';
 
 <div id="trip-map" style="width: 100%; height: 100vh; background: #0a0f1c;"></div>
 
+<!-- Floating Locate Me Button -->
+<div class="btn-locate-me animate-slide-up" id="btn-trip-locate-me" style="position: absolute; bottom: 180px; right: 16px; width: 44px; height: 44px; border-radius: 14px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(56, 189, 248, 0.35); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 18px; z-index: 1000; cursor: pointer; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);" onclick="window.locateTripUser()">
+    <i class="fa-solid fa-crosshairs"></i>
+</div>
+
 <!-- Floating Destination Conveyor Carousel -->
 <div id="trip-conveyor-wrapper" style="position: absolute; bottom: max(env(safe-area-inset-bottom), 16px); left: 0; right: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 12px; pointer-events: none; width: 100%; box-sizing: border-box; overflow: hidden;">
     
@@ -144,6 +149,27 @@ require_once __DIR__ . '/../components/header.php';
 (function() {
     var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
     var tripMap;
+
+    window.myLat = window.myLat || window.currentGPSLat || null;
+    window.myLng = window.myLng || window.currentGPSLng || null;
+
+    if ((!window.myLat || !window.myLng) && navigator.geolocation && localStorage.getItem('intan_elyu_loc_enabled') !== 'false') {
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                window.myLat = pos.coords.latitude;
+                window.myLng = pos.coords.longitude;
+                window.currentGPSLat = pos.coords.latitude;
+                window.currentGPSLng = pos.coords.longitude;
+                document.dispatchEvent(new CustomEvent('gpsUpdated', {
+                    detail: { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy }
+                }));
+            },
+            function(err) {
+                console.warn("Direct GPS attempt in trip_map:", err && err.message);
+            },
+            { enableHighAccuracy: false, timeout: 12000, maximumAge: 30000 }
+        );
+    }
 
     function initTripMap() {
         const style = {
@@ -866,6 +892,35 @@ require_once __DIR__ . '/../components/header.php';
             if (window.currentTripItems) plotTrip(window.currentTripItems, window.currentRouteType);
         }, 2000);
     });
+
+    window.locateTripUser = async function() {
+        const curLat = window.myLat || window.currentGPSLat;
+        const curLng = window.myLng || window.currentGPSLng;
+
+        if (tripMap && curLat && curLng) {
+            tripMap.flyTo({ center: [curLng, curLat], zoom: 15, duration: 1200 });
+            if (typeof showToast === 'function') showToast("Centered on your location");
+        } else {
+            if (typeof showToast === 'function') showToast("Locating your position...");
+            let loc = null;
+            if (typeof window.resolveUserLocation === 'function') {
+                loc = await window.resolveUserLocation();
+            }
+            if (!loc) {
+                loc = { lat: 16.6159, lng: 120.3167 };
+                window.myLat = loc.lat;
+                window.myLng = loc.lng;
+                window.currentGPSLat = loc.lat;
+                window.currentGPSLng = loc.lng;
+                document.dispatchEvent(new CustomEvent('gpsUpdated', {
+                    detail: { lat: loc.lat, lng: loc.lng, accuracy: 10000, source: 'fallback' }
+                }));
+            }
+            if (tripMap) {
+                tripMap.flyTo({ center: [loc.lng, loc.lat], zoom: 15, duration: 1200 });
+            }
+        }
+    };
 
     initTripMap();
 })();

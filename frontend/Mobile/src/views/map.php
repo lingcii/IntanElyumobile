@@ -947,6 +947,10 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
     function setupEventListeners() {
         window.getDeviceLocation = async () => {
+            if (typeof window.resolveUserLocation === 'function') {
+                const loc = await window.resolveUserLocation();
+                if (loc) return { coords: { latitude: loc.lat, longitude: loc.lng, accuracy: 5000, source: loc.source } };
+            }
             if (typeof window.fastLocation === 'function') {
                 const fast = await window.fastLocation();
                 if (fast) return { coords: { latitude: fast.lat, longitude: fast.lng, accuracy: 5000, source: fast.source } };
@@ -966,18 +970,29 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                     const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: false, maximumAge: 60000, timeout: 50000 });
                     return pos;
                 } catch (e) {
-                    throw new Error("Native location error: " + e.message);
+                    if (typeof window.resolveUserLocation === 'function') {
+                        const fallbackLoc = await window.resolveUserLocation(true);
+                        return { coords: { latitude: fallbackLoc.lat, longitude: fallbackLoc.lng, accuracy: 10000, source: fallbackLoc.source } };
+                    }
+                    return { coords: { latitude: 16.6159, longitude: 120.3167, accuracy: 10000, source: 'fallback' } };
                 }
             } else {
-                return new Promise((resolve, reject) => {
+                return new Promise((resolve) => {
                     if ("geolocation" in navigator) {
                         navigator.geolocation.getCurrentPosition(
                             (position) => resolve(position), 
-                            () => reject(new Error("Location denied by browser")), 
-                            { enableHighAccuracy: false, timeout: 50000, maximumAge: 60000 }
+                            async () => {
+                                if (typeof window.resolveUserLocation === 'function') {
+                                    const fallbackLoc = await window.resolveUserLocation(true);
+                                    resolve({ coords: { latitude: fallbackLoc.lat, longitude: fallbackLoc.lng, accuracy: 10000, source: fallbackLoc.source } });
+                                } else {
+                                    resolve({ coords: { latitude: 16.6159, longitude: 120.3167, accuracy: 10000, source: 'fallback' } });
+                                }
+                            }, 
+                            { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
                         );
                     } else {
-                        reject(new Error("Geolocation not supported"));
+                        resolve({ coords: { latitude: 16.6159, longitude: 120.3167, accuracy: 10000, source: 'fallback' } });
                     }
                 });
             }
@@ -1144,17 +1159,27 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
         const locateBtn = document.getElementById('btn-locate-me');
         if (locateBtn) {
-            locateBtn.addEventListener('click', () => {
-                showToast("Locating...");
-                if (window.currentGPSLat && window.currentGPSLng && window.mapInstance) {
-                    window.mapInstance.flyTo({ center: [window.currentGPSLng, window.currentGPSLat], zoom: 15 });
+            locateBtn.addEventListener('click', async () => {
+                const curLat = window.currentGPSLat || window.myLat;
+                const curLng = window.currentGPSLng || window.myLng;
+                if (curLat && curLng && window.mapInstance) {
+                    window.mapInstance.flyTo({ center: [curLng, curLat], zoom: 15, duration: 1200 });
+                    if (typeof showToast === 'function') showToast("Centered on your location");
                 } else {
-                    const handleLocation = (position) => {
+                    if (typeof showToast === 'function') showToast("Locating your position...");
+                    try {
+                        const position = await window.getDeviceLocation();
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
-                        window.mapInstance.flyTo({ center: [lng, lat], zoom: 15 });
-                    };
-                    window.getDeviceLocation().then(handleLocation).catch(e => showToast(e.message));
+                        if (window.mapInstance) {
+                            window.mapInstance.flyTo({ center: [lng, lat], zoom: 15, duration: 1200 });
+                        }
+                    } catch (e) {
+                        console.warn("Location error:", e);
+                        if (window.mapInstance) {
+                            window.mapInstance.flyTo({ center: [120.3167, 16.6159], zoom: 15, duration: 1200 });
+                        }
+                    }
                 }
             });
         }

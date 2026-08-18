@@ -68,6 +68,10 @@ $activeTab = 'itinerary';
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px; padding-top: 16px;" class="stagger-1">
         <h2 style="margin:0; font-size:22px; font-weight:800; letter-spacing:-0.5px;">Draft Plan</h2>
         <div style="display:flex; align-items:center; gap: 8px;">
+            <!-- Clear All Draft Stops Button -->
+            <button id="btn-clear-draft" onclick="window.clearAllItinerary()" style="display:none; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); color:#ef4444; font-weight:700; height:32px; padding:0 12px; border-radius:20px; font-size:12px; cursor:pointer; align-items:center; gap:4px; box-sizing:border-box;">
+                <i class="fa-solid fa-trash-can"></i> Clear
+            </button>
             <!-- Saved Trips Button (Small) -->
             <button onclick="navigateTo('saved_trips')" style="background: rgba(37, 99, 235, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; font-weight:700; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; box-sizing: border-box; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 <i class="fa-solid fa-bookmark" style="margin-right:6px;"></i> Saved Trips
@@ -331,6 +335,53 @@ $activeTab = 'itinerary';
 (function() {
     var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
 
+    // Synchronize GPS state immediately or resolve via multi-tier fallback
+    window.myLat = window.myLat || window.currentGPSLat || null;
+    window.myLng = window.myLng || window.currentGPSLng || null;
+
+    if (!window.myLat || !window.myLng) {
+        if (typeof window.resolveUserLocation === 'function') {
+            window.resolveUserLocation().then(loc => {
+                if (loc) {
+                    window.myLat = loc.lat;
+                    window.myLng = loc.lng;
+                    window.currentGPSLat = loc.lat;
+                    window.currentGPSLng = loc.lng;
+                    if (window.renderItinerary) window.renderItinerary();
+                }
+            });
+        }
+    }
+
+    // Helper to calculate distance and estimated driving travel time
+    window.getDistanceAndETA = function(destLat, destLng) {
+        const curLat = window.myLat || window.currentGPSLat;
+        const curLng = window.myLng || window.currentGPSLng;
+        if (!curLat || !curLng || !destLat || !destLng) return null;
+
+        const lat1 = parseFloat(curLat);
+        const lon1 = parseFloat(curLng);
+        const lat2 = parseFloat(destLat);
+        const lon2 = parseFloat(destLng);
+        if (isNaN(lat1) || isNaN(lon1) || isNaN(lat2) || isNaN(lon2)) return null;
+
+        const p = 0.017453292519943295;
+        const c = Math.cos;
+        const a = 0.5 - c((lat2 - lat1) * p)/2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p))/2;
+        const distKm = 12742 * Math.asin(Math.sqrt(a));
+
+        // Average realistic province speed ~30 km/h with traffic
+        let durationMin = Math.round((distKm / 30) * 60);
+        if (durationMin < 1) durationMin = 1;
+
+        return {
+            distanceKm: distKm,
+            distanceText: distKm < 1 ? Math.round(distKm * 1000) + ' m' : distKm.toFixed(1) + ' km',
+            durationMin: durationMin,
+            durationText: durationMin >= 60 ? `${Math.floor(durationMin / 60)}h ${durationMin % 60}m` : `${durationMin} mins`
+        };
+    };
+
     // ---- Custom confirm modal (replaces native confirm) ----
     window.showConfirmModal = function(msg) {
         // Prevent stacking multiple confirm modals
@@ -402,6 +453,8 @@ $activeTab = 'itinerary';
         const fab = document.getElementById('btn-save-itinerary');
         const mapWrapper = document.getElementById('draft-map-wrapper');
         
+        const clearBtn = document.getElementById('btn-clear-draft');
+        
         document.getElementById('itinerary-count').innerText = draft.length;
 
         if (draft.length === 0) {
@@ -412,40 +465,100 @@ $activeTab = 'itinerary';
             emptyState.style.animation = 'cardFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards';
             fab.style.display = 'none';
             if (mapWrapper) mapWrapper.style.display = 'none';
+            if (clearBtn) clearBtn.style.display = 'none';
             return;
         }
 
         emptyState.style.display = 'none';
         fab.style.display = 'flex';
         if (mapWrapper) mapWrapper.style.display = 'block';
+        if (clearBtn) clearBtn.style.display = 'inline-flex';
         
         let html = '';
+
+        // Render Starting Point (Your Location) Card at the top of the timeline
+        const hasGPS = (window.myLat && window.myLng);
+        const startingStatus = hasGPS 
+            ? `<i class="fa-solid fa-circle-dot" style="color:#10b981; font-size:9px;"></i> Real-time GPS Locked` 
+            : `<i class="fa-solid fa-spinner fa-spin" style="color:#f59e0b; font-size:9px;"></i> Acquiring GPS position...`;
+
+        html += `
+        <div class="starting-point-item stagger-1" onclick="window.routeToMyLocation()">
+            <div class="starting-point-card">
+                <div class="starting-point-icon-box">
+                    <i class="fa-solid fa-location-crosshairs"></i>
+                    <div class="starting-point-pulse"></div>
+                </div>
+                <div class="starting-point-info">
+                    <div class="starting-point-label"><i class="fa-solid fa-play" style="font-size:8px;"></i> Starting Point</div>
+                    <h3 class="starting-point-title">Your Current Location</h3>
+                    <div class="starting-point-status" id="itinerary-starting-status">${startingStatus}</div>
+                </div>
+                <button type="button" onclick="event.stopPropagation(); window.routeToMyLocation();" style="background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; font-size:11px; font-weight:800; padding:6px 12px; border-radius:100px; cursor:pointer; display:flex; align-items:center; gap:4px; flex-shrink:0;">
+                    <i class="fa-solid fa-crosshairs"></i> Locate
+                </button>
+            </div>
+            <div class="timeline-route-connector"></div>
+        </div>`;
 
         draft.forEach((place, index) => {
             const hour = 9 + Math.floor(((index + 1) * 90) / 60);
             const min = ((index + 1) * 90) % 60;
             const timeStr = `${hour > 12 ? hour - 12 : hour}:${min === 0 ? '00' : min} ${hour >= 12 ? 'PM' : 'AM'}`;
 
+            const isNextStop = (index === 0);
+            let nextStopBadge = '';
+            let nextStopEtaHtml = '';
+
+            if (isNextStop) {
+                nextStopBadge = `<span class="badge-next-stop"><i class="fa-solid fa-location-dot"></i> NEXT STOP</span>`;
+                const lat = place.lat || place.latitude;
+                const lng = place.lng || place.longitude;
+                const eta = window.getDistanceAndETA(lat, lng);
+                if (eta) {
+                    nextStopEtaHtml = `
+                    <div class="next-stop-distance-chip" id="itinerary-next-eta">
+                        <i class="fa-solid fa-route" style="color:#38bdf8;"></i> 
+                        <span>${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>
+                    </div>`;
+                } else {
+                    nextStopEtaHtml = `
+                    <div class="next-stop-distance-chip" id="itinerary-next-eta">
+                        <i class="fa-solid fa-location-arrow" style="color:#38bdf8;"></i> 
+                        <span>First destination on your itinerary route</span>
+                    </div>`;
+                }
+            }
+
             html += `
-            <div class="timeline-item" draggable="true" data-index="${index}" data-id="${place.id}" style="animation-delay: ${(index + 1) * 0.1}s">
+            <div class="timeline-item ${isNextStop ? 'is-next-stop' : ''}" draggable="true" data-index="${index}" data-id="${place.id}" style="animation-delay: ${(index + 1) * 0.1}s">
                 <div class="timeline-dot"></div>
-                <div class="swipe-container" style="position:relative; overflow:hidden; border-radius:16px;">
-                    <div class="swipe-delete-bg" style="position:absolute; top:0; right:0; bottom:0; width:80px; background:#ef4444; border-radius:0 16px 16px 0; display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:700; gap:4px; transform:translateX(100%);"><i class="fa-solid fa-trash"></i> Delete</div>
-                    <div class="swipe-content" style="position:relative; z-index:1; transition:transform 0.2s ease; background:rgba(255,255,255,0.04); border-radius:16px; padding:14px;">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span class="time-label" style="flex:1;">Stop ${index + 1} &bull; Approx ${timeStr}</span>
-                            <i class="fa-solid fa-grip-vertical" style="color:rgba(148,163,184,0.3); font-size:14px; cursor:grab; touch-action:none;"></i>
+                <div class="swipe-container" style="position:relative; overflow:hidden; border-radius:20px;">
+                    <div class="swipe-delete-bg" style="position:absolute; top:0; right:0; bottom:0; width:80px; background:#ef4444; border-radius:0 20px 20px 0; display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:700; gap:4px; transform:translateX(100%);"><i class="fa-solid fa-trash"></i> Delete</div>
+                    <div class="swipe-content" style="position:relative; z-index:1; transition:transform 0.2s ease; border-radius:20px; padding:16px;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px;">
+                            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                <span class="time-label">Stop ${index + 1} &bull; Approx ${timeStr}</span>
+                                ${nextStopBadge}
+                            </div>
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <button type="button" onclick="event.stopPropagation(); window.removeItineraryItem('${place.id}');" title="Remove stop" style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.25); color:#ef4444; border-radius:8px; cursor:pointer; font-size:11px; padding:4px 8px; display:inline-flex; align-items:center; gap:3px;">
+                                    <i class="fa-solid fa-trash-can" style="font-size:10px;"></i>
+                                </button>
+                                <i class="fa-solid fa-grip-vertical" style="color:rgba(148,163,184,0.4); font-size:14px; cursor:grab; touch-action:none;"></i>
+                            </div>
                         </div>
                         <h3 class="place-name">${place.name}</h3>
-                        <p style="font-size:12px; color:rgba(255,255,255,0.6); margin: 4px 0 8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+                        <p style="font-size:12px; color:rgba(255,255,255,0.7); margin: 4px 0 8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.4;">
                             ${place.description && place.description !== 'null' ? place.description : (place.category && place.category !== 'null' ? place.category : 'A beautiful destination to explore in La Union.')}
                         </p>
                         <div class="place-details">
                             <i class="fa-solid fa-location-dot"></i>
                             <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                ${place.location && place.location !== 'null' ? place.location : (place.address && place.address !== 'null' ? place.address : 'San Fernando, La Union')}
+                                ${place.location && place.location !== 'null' ? place.location : (place.address && place.address !== 'null' ? place.address : (place.municipality ? place.municipality + ', La Union' : 'San Fernando, La Union'))}
                             </span>
                         </div>
+                        ${nextStopEtaHtml}
                         ${place.selected_vehicles && place.selected_vehicles.length > 0 ? `<div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:8px;">${place.selected_vehicles.map(v => `<span style="padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; background:rgba(56,189,248,0.1); color:#38bdf8; border:1px solid rgba(56,189,248,0.2);"><i class="fa-solid fa-car" style="margin-right:3px;font-size:9px;"></i>${v}</span>`).join('')}</div>` : ''}
                     </div>
                 </div>
@@ -605,6 +718,13 @@ $activeTab = 'itinerary';
         draft = draft.filter(item => item.id.toString() !== id.toString());
         localStorage.setItem('intan_elyu_draft_itinerary', JSON.stringify(draft));
         window.renderItinerary();
+        if (typeof showToast === 'function') showToast("Destination removed from itinerary");
+    };
+
+    window.clearAllItinerary = function() {
+        localStorage.removeItem('intan_elyu_draft_itinerary');
+        window.renderItinerary();
+        if (typeof showToast === 'function') showToast("Itinerary cleared");
     };
 
     window.showMyLocation = function() {
@@ -620,7 +740,7 @@ $activeTab = 'itinerary';
         }
     };
     
-    window.routeToMyLocation = function() {
+    window.routeToMyLocation = async function() {
         const mapContainer = document.getElementById('draft-map-wrapper');
         if (mapContainer) {
             if (mapContainer.style.display === 'none' || mapContainer.style.display === '') {
@@ -628,10 +748,33 @@ $activeTab = 'itinerary';
                 if (typeof draftMap !== 'undefined' && draftMap) draftMap.invalidateSize();
             }
             mapContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            
-            // Only fly if we actually have a real GPS lock!
-            if (typeof draftMap !== 'undefined' && draftMap && window.myLat && window.myLng) {
-                draftMap.flyTo([window.myLat, window.myLng], 16, { animate: true, duration: 1.5 });
+        }
+        
+        const curLat = window.myLat || window.currentGPSLat;
+        const curLng = window.myLng || window.currentGPSLng;
+
+        if (typeof draftMap !== 'undefined' && draftMap && curLat && curLng) {
+            draftMap.flyTo([curLat, curLng], 16, { animate: true, duration: 1.5 });
+            if (window.myDraftMarker) window.myDraftMarker.openPopup();
+        } else {
+            if (typeof showToast === 'function') showToast("Locating your position...");
+            let loc = null;
+            if (typeof window.resolveUserLocation === 'function') {
+                loc = await window.resolveUserLocation();
+            }
+            if (!loc) {
+                loc = { lat: 16.6159, lng: 120.3167 };
+                window.myLat = loc.lat;
+                window.myLng = loc.lng;
+                window.currentGPSLat = loc.lat;
+                window.currentGPSLng = loc.lng;
+                document.dispatchEvent(new CustomEvent('gpsUpdated', {
+                    detail: { lat: loc.lat, lng: loc.lng, accuracy: 10000, source: 'fallback' }
+                }));
+            }
+            if (typeof draftMap !== 'undefined' && draftMap) {
+                draftMap.flyTo([loc.lat, loc.lng], 16, { animate: true, duration: 1.5 });
+                if (window.myDraftMarker) window.myDraftMarker.openPopup();
             }
         }
     };
@@ -639,33 +782,63 @@ $activeTab = 'itinerary';
     // Real-time dynamic GPS listener
     let _gpsUpdateTimeout = null;
     document.addEventListener('gpsUpdated', function(e) {
+        const lat = e.detail.lat;
+        const lng = e.detail.lng;
+        window.myLat = lat;
+        window.myLng = lng;
+        window.currentGPSLat = lat;
+        window.currentGPSLng = lng;
+
+        // Update Starting Point status text live
+        const startStatusEl = document.getElementById('itinerary-starting-status');
+        if (startStatusEl) {
+            startStatusEl.innerHTML = `<i class="fa-solid fa-circle-dot" style="color:#10b981; font-size:9px;"></i> Real-time GPS Locked`;
+        }
+
+        // Update Next Stop distance & ETA live in timeline
+        const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+        if (draft.length > 0) {
+            const nextPlace = draft[0];
+            const pLat = nextPlace.lat || nextPlace.latitude;
+            const pLng = nextPlace.lng || nextPlace.longitude;
+            const eta = window.getDistanceAndETA(pLat, pLng);
+            const nextEtaEl = document.getElementById('itinerary-next-eta');
+            if (nextEtaEl && eta) {
+                nextEtaEl.innerHTML = `<i class="fa-solid fa-route" style="color:#38bdf8;"></i> <span>${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>`;
+            }
+        }
+
         if (typeof draftMap !== 'undefined' && draftMap) {
-            if (window.myDraftMarker) {
+            if (window.myDraftMarker && draftMap.hasLayer(window.myDraftMarker)) {
                 // Smoothly animate the marker to the new physical coordinate
-                window.myDraftMarker.setLatLng([e.detail.lat, e.detail.lng]);
+                window.myDraftMarker.setLatLng([lat, lng]);
             } else {
-                // First time GPS lock achieved, dynamically inject the marker!
+                // Dynamically create and inject the glowing GPS user marker
                 const myIconHtml = `
-                    <div style="width: 32px; height: 32px; background-color: #FFFFFF; border: 2px solid #ff9500; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ff9500; box-shadow: 0 4px 8px rgba(0,0,0,0.15);">
-                        <i class="fa-solid fa-location-crosshairs" style="font-size:14px;"></i>
+                    <div class="gps-user-marker-icon">
+                        <div class="gps-user-marker-wave"></div>
+                        <div class="gps-user-marker-inner">
+                            <i class="fa-solid fa-location-crosshairs" style="font-size:14px;"></i>
+                        </div>
                     </div>
                 `;
                 const myIcon = L.divIcon({
                     className: 'custom-leaflet-marker',
                     html: myIconHtml,
-                    iconSize: [32, 32],
-                    iconAnchor: [16, 16]
+                    iconSize: [36, 36],
+                    iconAnchor: [18, 18]
                 });
-                window.myDraftMarker = L.marker([e.detail.lat, e.detail.lng], {icon: myIcon}).addTo(draftMap);
+                window.myDraftMarker = L.marker([lat, lng], {icon: myIcon, zIndexOffset: 1000})
+                    .addTo(draftMap)
+                    .bindPopup('<b>📍 Your Current Location</b><br><span style="font-size:11px;color:#64748b;">Starting Point of Itinerary</span>');
                 if (typeof draftMarkers !== 'undefined') draftMarkers.push(window.myDraftMarker);
             }
             
-            // Recalculate the route to connect the blue line to the new physical GPS location
-            // Debounce it to prevent spamming the OSRM routing server on every micro-movement
+            // Recalculate the route to connect the path to the new physical GPS location
             clearTimeout(_gpsUpdateTimeout);
             _gpsUpdateTimeout = setTimeout(() => {
-                const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
-                if (window.initDraftMap) window.initDraftMap(draft, false);
+                const currentDraft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+                if (window.initDraftMap) window.initDraftMap(currentDraft, false);
             }, 2000);
         }
     });
@@ -683,8 +856,8 @@ $activeTab = 'itinerary';
             const place = draft.find(item => item.id.toString() === id.toString());
             
             if (place && typeof draftMap !== 'undefined' && draftMap) {
-                let lat = place.lat || 16.6159;
-                let lng = place.lng || 120.3167;
+                let lat = place.lat || place.latitude || 16.6159;
+                let lng = place.lng || place.longitude || 120.3167;
                 draftMap.flyTo([parseFloat(lat), parseFloat(lng)], 16, { animate: true, duration: 1.5 });
             }
         }
@@ -1084,51 +1257,73 @@ $activeTab = 'itinerary';
         draftMarkers.forEach(m => draftMap.removeLayer(m));
         if (draftRouteLineBg) draftMap.removeLayer(draftRouteLineBg);
         if (draftRouteLine) draftMap.removeLayer(draftRouteLine);
+        if (window.myDraftMarker && draftMap) draftMap.removeLayer(window.myDraftMarker);
+        window.myDraftMarker = null;
         draftMarkers = [];
         
         let latlngs = [];
         
         // Add a global 'My Location' indicator.
-        // We DO NOT use fallback coordinates. We strictly rely on real-time GPS locks.
+        // We strictly rely on real-time GPS locks.
         if (window.myLat && window.myLng) {
             latlngs.push([window.myLat, window.myLng]);
             const myIconHtml = `
-                <div style="width: 32px; height: 32px; background-color: #FFFFFF; border: 2px solid #ff9500; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ff9500; box-shadow: 0 4px 8px rgba(0,0,0,0.15);">
-                    <i class="fa-solid fa-location-crosshairs" style="font-size:14px;"></i>
+                <div class="gps-user-marker-icon">
+                    <div class="gps-user-marker-wave"></div>
+                    <div class="gps-user-marker-inner">
+                        <i class="fa-solid fa-location-crosshairs" style="font-size:14px;"></i>
+                    </div>
                 </div>
             `;
             const myIcon = L.divIcon({
                 className: 'custom-leaflet-marker',
                 html: myIconHtml,
-                iconSize: [32, 32],
-                iconAnchor: [16, 16]
+                iconSize: [36, 36],
+                iconAnchor: [18, 18]
             });
-            window.myDraftMarker = L.marker([window.myLat, window.myLng], {icon: myIcon}).addTo(draftMap);
+            window.myDraftMarker = L.marker([window.myLat, window.myLng], {icon: myIcon, zIndexOffset: 1000})
+                .addTo(draftMap)
+                .bindPopup('<b>📍 Your Current Location</b><br><span style="font-size:11px;color:#64748b;">Starting Point of Itinerary</span>');
             draftMarkers.push(window.myDraftMarker);
         }
 
         draft.forEach((place, index) => {
             // Skip place if it has no valid coordinates in the database
-            if (!place.lat || !place.lng) return;
+            const pLat = place.lat || place.latitude;
+            const pLng = place.lng || place.longitude;
+            if (!pLat || !pLng) return;
             
-            let lat = parseFloat(place.lat);
-            let lng = parseFloat(place.lng);
+            let lat = parseFloat(pLat);
+            let lng = parseFloat(pLng);
             
             const ll = [lat, lng];
             latlngs.push(ll);
             
-            const stopIconHtml = `
-                <div style="width: 32px; height: 32px; background-color: #FFFFFF; border: 2px solid #38bdf8; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #38bdf8; box-shadow: 0 4px 8px rgba(0,0,0,0.15); cursor: pointer; transition: transform 0.2s;" onmouseenter="this.style.transform='scale(1.2)'" onmouseleave="this.style.transform='scale(1)'">
-                    <span style="font-size:14px; font-weight:800;">${index+1}</span>
-                </div>
-            `;
+            let stopIconHtml = '';
+            if (index === 0) {
+                // Next Stop prominent visual pin
+                stopIconHtml = `
+                    <div class="next-stop-marker-inner" style="cursor: pointer;" onmouseenter="this.style.transform='scale(1.2)'" onmouseleave="this.style.transform='scale(1)'" title="Next Stop: ${place.name}">
+                        <i class="fa-solid fa-flag" style="font-size:13px;"></i>
+                    </div>
+                `;
+            } else {
+                stopIconHtml = `
+                    <div style="width: 32px; height: 32px; background-color: #FFFFFF; border: 2px solid #38bdf8; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #38bdf8; box-shadow: 0 4px 8px rgba(0,0,0,0.15); cursor: pointer; transition: transform 0.2s;" onmouseenter="this.style.transform='scale(1.2)'" onmouseleave="this.style.transform='scale(1)'">
+                        <span style="font-size:14px; font-weight:800;">${index+1}</span>
+                    </div>
+                `;
+            }
+
             const stopIcon = L.divIcon({
                 className: 'custom-leaflet-marker',
                 html: stopIconHtml,
-                iconSize: [32, 32],
-                iconAnchor: [16, 16]
+                iconSize: index === 0 ? [36, 36] : [32, 32],
+                iconAnchor: index === 0 ? [18, 18] : [16, 16]
             });
-            const marker = L.marker(ll, {icon: stopIcon}).addTo(draftMap);
+            const marker = L.marker(ll, {icon: stopIcon})
+                .addTo(draftMap)
+                .bindPopup(`<b>${index === 0 ? '🚀 NEXT STOP: ' : 'Stop ' + (index + 1) + ': '}${place.name}</b><br><span style="font-size:11px; color:#64748b;">${place.location || place.address || (place.municipality ? place.municipality + ', La Union' : 'La Union')}</span>`);
             draftMarkers.push(marker);
         });
         
@@ -1516,23 +1711,6 @@ $activeTab = 'itinerary';
         
         if (window.calculateModalBudget) window.calculateModalBudget();
     };
-
-    // Global GPS Tracker Listener
-    document.addEventListener('gpsUpdated', (e) => {
-        const { lat, lng } = e.detail;
-        
-        // Update the 'My Location' tracker variable globally used by initDraftMap
-        window.myLat = lat;
-        window.myLng = lng;
-        
-        if (window.draftMap && window.myIcon) {
-            // Find and update the existing blue dot marker if it exists in draftMarkers
-            let myMarker = window.draftMarkers ? window.draftMarkers.find(m => m.options.icon === window.myIcon) : null;
-            if (myMarker) {
-                myMarker.setLatLng([lat, lng]);
-            }
-        }
-    });
 
     // Initial render on load
     if (window.renderItinerary) {

@@ -282,9 +282,11 @@ $backRoute = 'itinerary';
                     
                 let unvisitedCount = 0;
                 if (trip.items && trip.items.length) {
+                    const firstUnvisitedIdx = trip.items.findIndex(i => !i.is_visited);
                     trip.items.forEach((item, index) => {
                         const dest = item.destination;
                         const isVisited = item.is_visited;
+                        const isNextStop = (!isVisited && index === firstUnvisitedIdx);
                         if (!isVisited) unvisitedCount++;
 
                         let proofImgHtml = '';
@@ -299,11 +301,12 @@ $backRoute = 'itinerary';
                         }
 
                         html += `
-                        <div class="timeline-item ${isVisited ? 'completed' : ''}" style="margin-bottom: 12px;">
+                        <div class="timeline-item ${isVisited ? 'completed' : (isNextStop ? 'is-next-stop' : '')}" style="margin-bottom: 12px;">
                             <div class="timeline-dot"></div>
-                            <div class="timeline-content" style="padding:14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; display:flex; flex-direction:column; gap:8px;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
+                            <div class="timeline-content" style="padding:14px; background: rgba(255,255,255,0.04); border: 1px solid ${isNextStop ? 'rgba(56,189,248,0.5)' : 'rgba(255,255,255,0.08)'}; border-radius: 16px; display:flex; flex-direction:column; gap:8px;">
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                     <h4 style="margin:0; font-size:15px; font-weight:800; color:#ffffff;">${dest ? dest.name : 'Unknown Destination'}</h4>
+                                    ${isNextStop ? `<span style="padding: 2px 8px; border-radius: 100px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: linear-gradient(135deg, #0284c7, #0369a1);"><i class="fa-solid fa-location-dot" style="font-size:8px;"></i> Next Stop</span>` : ''}
                                     ${(dest && dest.classification_status) ? `<span style="padding: 2px 8px; border-radius: 100px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')};">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
                                 </div>
                                 ${(dest && (dest.accessible_by_private_vehicle === 0 || dest.accessible_by_private_vehicle === false)) ? `<div style="background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.2); border-radius:10px; padding:8px 12px; display:flex; gap:8px; align-items:flex-start; margin-top:4px;"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; font-size:13px; margin-top:2px;"></i><div><h5 style="margin:0 0 2px 0; font-size:11px; font-weight:800; color:#ef4444; text-transform:uppercase;">Inaccessible by Private Car</h5><p style="margin:0; font-size:10px; color:rgba(226,232,240,0.8); line-height:1.3;">Prepare to hike or use specialized local transport.</p></div></div>` : ''}

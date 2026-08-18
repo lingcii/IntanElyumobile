@@ -649,6 +649,8 @@ window.startLocationWatch = function () {
             // Globally store for all maps (itinerary, trip map, etc.)
             window.currentGPSLat = currentLat;
             window.currentGPSLng = currentLng;
+            window.myLat = currentLat;
+            window.myLng = currentLng;
             window.currentGPSAccuracy = accuracy;
             window.currentGPSAltitude = altitude;
             window.currentGPSSpeed = speed;
@@ -704,10 +706,102 @@ window.startLocationWatch = function () {
 
 // Fast-track location: cached GPS -> IP geolocation -> GPS fallback
 window.fastLocation = function () {
-    if (window.currentGPSLat && window.currentGPSLng) {
-        return Promise.resolve({ lat: window.currentGPSLat, lng: window.currentGPSLng });
+    const lat = window.currentGPSLat || window.myLat;
+    const lng = window.currentGPSLng || window.myLng;
+    if (lat && lng) {
+        return Promise.resolve({ lat, lng });
     }
-    return Promise.resolve(null);
+    return window.resolveUserLocation();
+};
+
+// Multi-tier user location resolver (GPS -> IP Geolocation -> La Union Fallback)
+window.resolveUserLocation = async function (forceIP = false) {
+    const cachedLat = window.currentGPSLat || window.myLat;
+    const cachedLng = window.currentGPSLng || window.myLng;
+    if (!forceIP && cachedLat && cachedLng) {
+        return { lat: cachedLat, lng: cachedLng, source: 'cached' };
+    }
+
+    // Tier 1: Try HTML5 Geolocation
+    if (!forceIP && navigator.geolocation && localStorage.getItem('intan_elyu_loc_enabled') !== 'false') {
+        try {
+            const pos = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                    enableHighAccuracy: true,
+                    timeout: 8000,
+                    maximumAge: 30000
+                });
+            });
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            window.currentGPSLat = lat;
+            window.currentGPSLng = lng;
+            window.myLat = lat;
+            window.myLng = lng;
+            document.dispatchEvent(new CustomEvent('gpsUpdated', {
+                detail: { lat, lng, accuracy: pos.coords.accuracy, source: 'gps' }
+            }));
+            return { lat, lng, source: 'gps' };
+        } catch (e) {
+            console.warn("HTML5 Geolocation denied/unavailable. Falling back to IP Geolocation:", e && e.message);
+        }
+    }
+
+    // Tier 2: IP-based Geolocation via ipwho.is
+    try {
+        const ipRes = await fetch('https://ipwho.is/?fields=latitude,longitude,city,region,success', { cache: 'no-store' });
+        if (ipRes.ok) {
+            const data = await ipRes.json();
+            if (data && data.success && data.latitude && data.longitude) {
+                const lat = data.latitude;
+                const lng = data.longitude;
+                window.currentGPSLat = lat;
+                window.currentGPSLng = lng;
+                window.myLat = lat;
+                window.myLng = lng;
+                document.dispatchEvent(new CustomEvent('gpsUpdated', {
+                    detail: { lat, lng, accuracy: 5000, source: 'ip', city: data.city, region: data.region }
+                }));
+                return { lat, lng, source: 'ip', city: data.city, region: data.region };
+            }
+        }
+    } catch (err) {
+        console.warn("Primary IP Geolocation failed:", err && err.message);
+    }
+
+    // Tier 3: Secondary IP Geolocation via ipapi.co
+    try {
+        const ipRes2 = await fetch('https://ipapi.co/json/', { cache: 'no-store' });
+        if (ipRes2.ok) {
+            const data = await ipRes2.json();
+            if (data && data.latitude && data.longitude) {
+                const lat = data.latitude;
+                const lng = data.longitude;
+                window.currentGPSLat = lat;
+                window.currentGPSLng = lng;
+                window.myLat = lat;
+                window.myLng = lng;
+                document.dispatchEvent(new CustomEvent('gpsUpdated', {
+                    detail: { lat, lng, accuracy: 5000, source: 'ip', city: data.city, region: data.region }
+                }));
+                return { lat, lng, source: 'ip', city: data.city, region: data.region };
+            }
+        }
+    } catch (err) {
+        console.warn("Secondary IP Geolocation failed:", err && err.message);
+    }
+
+    // Tier 4: San Fernando, La Union Heart Fallback
+    const fallbackLat = 16.6159;
+    const fallbackLng = 120.3167;
+    window.currentGPSLat = fallbackLat;
+    window.currentGPSLng = fallbackLng;
+    window.myLat = fallbackLat;
+    window.myLng = fallbackLng;
+    document.dispatchEvent(new CustomEvent('gpsUpdated', {
+        detail: { lat: fallbackLat, lng: fallbackLng, accuracy: 10000, source: 'fallback', city: 'San Fernando', region: 'La Union' }
+    }));
+    return { lat: fallbackLat, lng: fallbackLng, source: 'fallback', city: 'San Fernando', region: 'La Union' };
 };
 
 // Haversine formula
@@ -722,10 +816,14 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c; // Distance in m
 }
+window.calculateDistance = calculateDistance;
 
-// Start watching on load automatically
+// Start watching on load automatically and resolve initial location
 document.addEventListener('DOMContentLoaded', () => {
     window.startLocationWatch();
+    if (!window.currentGPSLat || !window.currentGPSLng) {
+        window.resolveUserLocation();
+    }
 });
 
 // View Itinerary from map's "Added to Itinerary!" confirmation modal
