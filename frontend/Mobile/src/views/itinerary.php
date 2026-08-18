@@ -464,16 +464,27 @@ $activeTab = 'itinerary';
         return parseFloat(match.regular_fare);
     };
 
-    window.renderItinerary = function() {
-        const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+    window.currentRouteType = window.currentRouteType || 'recommended';
+
+    window.getEffectiveDraft = function() {
+        let draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+        if (draft.length > 1 && window.currentRouteType === 'alternate') {
+            return [...draft].reverse();
+        }
+        return draft;
+    };
+
+    window.renderItinerary = function(skipMap = false) {
+        const draft = window.getEffectiveDraft();
+        const rawDraft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
         const timeline = document.getElementById('itinerary-timeline');
         const emptyState = document.getElementById('itinerary-empty-state');
         const fab = document.getElementById('btn-save-itinerary');
         const mapWrapper = document.getElementById('draft-map-wrapper');
         
-        document.getElementById('itinerary-count').innerText = draft.length;
+        document.getElementById('itinerary-count').innerText = rawDraft.length;
 
-        if (draft.length === 0) {
+        if (rawDraft.length === 0) {
             timeline.innerHTML = '';
             emptyState.style.display = 'flex';
             emptyState.style.animation = 'none';
@@ -487,6 +498,19 @@ $activeTab = 'itinerary';
         emptyState.style.display = 'none';
         fab.style.display = 'flex';
         if (mapWrapper) mapWrapper.style.display = 'block';
+
+        // Sync active class on route toggle buttons
+        const recBtn = document.getElementById('btn-route-rec');
+        const altBtn = document.getElementById('btn-route-alt');
+        if (recBtn && altBtn) {
+            if (window.currentRouteType === 'alternate') {
+                recBtn.classList.remove('active');
+                altBtn.classList.add('active');
+            } else {
+                altBtn.classList.remove('active');
+                recBtn.classList.add('active');
+            }
+        }
         
         let html = '';
 
@@ -545,7 +569,7 @@ $activeTab = 'itinerary';
             }
 
             html += `
-            <div class="timeline-item ${isNextStop ? 'is-next-stop' : ''}" draggable="true" data-index="${index}" data-id="${place.id}" style="animation-delay: ${(index + 1) * 0.1}s">
+            <div class="timeline-item ${isNextStop ? 'is-next-stop' : ''}" draggable="true" data-index="${index}" data-id="${place.id}" style="animation-delay: ${(index + 1) * 0.08}s">
                 <div class="timeline-dot"></div>
                 <div class="swipe-container" style="position:relative; overflow:hidden; border-radius:20px;">
                     <div class="swipe-delete-bg" style="position:absolute; top:0; right:0; bottom:0; width:80px; background:#ef4444; border-radius:0 20px 20px 0; display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:700; gap:4px; transform:translateX(100%);"><i class="fa-solid fa-trash"></i> Delete</div>
@@ -582,9 +606,11 @@ $activeTab = 'itinerary';
         timeline.innerHTML = html;
         setupDragAndDrop(draft);
         
-        window._renderTimeout = setTimeout(() => {
-            if (window.initDraftMap) window.initDraftMap(draft);
-        }, 100);
+        if (!skipMap) {
+            window._renderTimeout = setTimeout(() => {
+                if (window.initDraftMap) window.initDraftMap(draft);
+            }, 100);
+        }
     };
 
     function setupDragAndDrop(draft) {
@@ -616,10 +642,11 @@ $activeTab = 'itinerary';
                 if (dragIndex === null) return;
                 const targetIndex = parseInt(item.dataset.index);
                 if (dragIndex === targetIndex) return;
-                let d = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+                let d = [...window.getEffectiveDraft()];
                 const [removed] = d.splice(dragIndex, 1);
                 d.splice(targetIndex, 0, removed);
                 localStorage.setItem('intan_elyu_draft_itinerary', JSON.stringify(d));
+                window.currentRouteType = 'recommended';
                 window.renderItinerary();
             });
 
@@ -662,10 +689,11 @@ $activeTab = 'itinerary';
                 if (target) {
                     const targetIndex = parseInt(target.dataset.index);
                     if (dragIndex !== targetIndex) {
-                        let d = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+                        let d = [...window.getEffectiveDraft()];
                         const [removed] = d.splice(dragIndex, 1);
                         d.splice(targetIndex, 0, removed);
                         localStorage.setItem('intan_elyu_draft_itinerary', JSON.stringify(d));
+                        window.currentRouteType = 'recommended';
                         window.renderItinerary();
                     }
                 }
@@ -1056,7 +1084,7 @@ $activeTab = 'itinerary';
     };
 
     window.openSaveModal = function() {
-        const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+        const draft = window.getEffectiveDraft();
 
         // Populate dynamic fuel price from Railway DB
         const fuelInput = document.getElementById('fuel-price');
@@ -1120,7 +1148,7 @@ $activeTab = 'itinerary';
         const budget = budgetStr ? parseFloat(budgetStr) : null;
         if (!title) return showToast("Please enter a trip name");
 
-        const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+        const draft = window.getEffectiveDraft();
         if (draft.length === 0) return showToast("Your itinerary is empty!");
 
         const transport = document.getElementById('trip-transport').value;
@@ -1177,7 +1205,7 @@ $activeTab = 'itinerary';
         const destinations = draft.map(place => place.id);
 
         try {
-            const activeRouteType = document.querySelector('.btn-route-type.active')?.innerText || 'Recommended';
+            const activeRouteType = document.querySelector('.btn-route-type.active')?.innerText || (window.currentRouteType === 'alternate' ? 'Alternate' : 'Recommended');
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
             if (!token) {
                 btn.innerHTML = 'Save Trip';
@@ -1496,30 +1524,36 @@ $activeTab = 'itinerary';
             clearTimeout(window._renderTimeout);
             window._renderTimeout = null;
         }
+        window.currentRouteType = type;
         document.querySelectorAll('.btn-route-type').forEach(el => el.classList.remove('active'));
-        btn.classList.add('active');
-        
-        // Get original draft without mutating localStorage
-        let draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
-        
-        if (draft.length > 1 && type === 'alternate') {
-            draft.reverse();
+        if (btn) btn.classList.add('active');
+        else {
+            const targetBtn = document.getElementById(type === 'alternate' ? 'btn-route-alt' : 'btn-route-rec');
+            if (targetBtn) targetBtn.classList.add('active');
         }
         
-        // Save user's viewport before re-rendering so we can restore it afterwards,
-        // preventing any side effect (flyTo animation, invalidateSize, etc.) from changing the view.
+        const draft = window.getEffectiveDraft();
+        
+        // Save user's viewport before re-rendering so we can restore it afterwards
         var _savedCenter = null, _savedZoom = null;
         if (typeof draftMap !== 'undefined' && draftMap) {
             _savedCenter = draftMap.getCenter();
             _savedZoom = draftMap.getZoom();
         }
         
-        // Re-render map with the new route sequence, but DO NOT reset the user's zoom/pan position!
+        // Re-render map with the new route sequence
         window.initDraftMap(draft, false);
         
         // Restore the user's exact viewport immediately after re-rendering
         if (_savedCenter !== null && _savedZoom !== null && typeof draftMap !== 'undefined' && draftMap) {
             draftMap.setView(_savedCenter, _savedZoom, { animate: false });
+        }
+
+        // Re-render the timeline stops to reflect the new stop sequence!
+        window.renderItinerary(true);
+
+        if (typeof showToast === 'function') {
+            showToast(type === 'alternate' ? "🔀 Switched to Alternate Route — Stop sequence reversed" : "✨ Switched to Recommended Route — Optimal stop sequence");
         }
     };
     

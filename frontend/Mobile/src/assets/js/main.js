@@ -712,8 +712,8 @@ window.requestPreciseLocation = async function (forceFresh = false) {
     // 1. If running under Capacitor native runtime, use Capacitor Geolocation plugin
     if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
         try {
-            const Geolocation = (window.Capacitor.Plugins && window.Capacitor.Plugins.Geolocation) || 
-                              (window.Capacitor.registerPlugin ? window.Capacitor.registerPlugin('Geolocation') : null);
+            const Geolocation = (window.Capacitor.Plugins && window.Capacitor.Plugins.Geolocation) ||
+                (window.Capacitor.registerPlugin ? window.Capacitor.registerPlugin('Geolocation') : null);
             if (Geolocation) {
                 const perm = await Geolocation.checkPermissions();
                 if (perm.location !== 'granted') {
@@ -858,32 +858,32 @@ window.resolveUserLocation = async function (forceFresh = false) {
                 return { lat: manual.lat, lng: manual.lng, source: 'manual', name: manual.name };
             }
         }
-    } catch(e) {}
+    } catch (e) { }
 
     return null;
 };
 
 // La Union towns catalog for instant manual location picking
 window.LA_UNION_TOWNS = [
-    { name: 'San Juan (Surfing Capital)', lat: 16.6755, lng: 120.3392, icon: '🏄', desc: 'Urbiztondo Beach, Gearlan St., Surf Spots & Cafes' },
-    { name: 'San Fernando City (Capitol)', lat: 16.6159, lng: 120.3167, icon: '🏛️', desc: 'City Center, Poro Point & Malls' },
-    { name: 'Bauang', lat: 16.5312, lng: 120.3340, icon: '🍇', desc: 'Grape Farms, Beaches & Resorts' },
-    { name: 'San Gabriel', lat: 16.6853, lng: 120.4042, icon: '🌊', desc: 'Tangadan Falls & Highland Nature' },
-    { name: 'Bacnotan', lat: 16.7197, lng: 120.3541, icon: '🐝', desc: 'Apiary, Surfing & Coastal Views' },
-    { name: 'Luna', lat: 16.8575, lng: 120.3778, icon: '🏖️', desc: 'Pebble Beach, Baluarte & Ruins' },
-    { name: 'Balaoan', lat: 16.8222, lng: 120.4000, icon: '🏝️', desc: 'Immuki Island & Eco Tourism' },
-    { name: 'Agoo', lat: 16.3214, lng: 120.3653, icon: '⛪', desc: 'Basilica Minore & Eco-Fun Park' },
-    { name: 'Aringay', lat: 16.3939, lng: 120.3592, icon: '🚇', desc: 'Centennial Tunnel & Eco Park' },
-    { name: 'Caba', lat: 16.4318, lng: 120.3394, icon: '🌾', desc: 'Bamboo Crafts, Agri-Tourism' },
-    { name: 'Naguilian', lat: 16.5322, lng: 120.3956, icon: '🏺', desc: 'Basi Wine & Scenic Foothills' },
-    { name: 'Pugo', lat: 16.3167, lng: 120.4667, icon: '🧗', desc: 'Pugad Adventure & Tapuakan River' },
-    { name: 'Tubao', lat: 16.3458, lng: 120.4128, icon: '🌿', desc: 'Mount Franciscan & Grotto' },
-    { name: 'Santo Tomas', lat: 16.2844, lng: 120.3872, icon: '🐟', desc: 'Damortis & Coastal Fishing' },
-    { name: 'Rosario', lat: 16.2300, lng: 120.4850, icon: '⛩️', desc: 'Southern Gateway & Canopy' },
-    { name: 'Santol', lat: 16.7667, lng: 120.4500, icon: '🌲', desc: 'Highland Waterfalls & Mountains' }
+    { name: 'San Juan (Surfing Capital)', lat: 16.6755, lng: 120.3392, icon: '', desc: 'Urbiztondo Beach, Gearlan St., Surf Spots & Cafes' },
+    { name: 'San Fernando City (Capitol)', lat: 16.6159, lng: 120.3167, icon: '', desc: 'City Center, Poro Point & Malls' },
+    { name: 'Bauang', lat: 16.5312, lng: 120.3340, icon: '', desc: 'Grape Farms, Beaches & Resorts' },
+    { name: 'San Gabriel', lat: 16.6853, lng: 120.4042, icon: '', desc: 'Tangadan Falls & Highland Nature' },
+    { name: 'Bacnotan', lat: 16.7197, lng: 120.3541, icon: '', desc: 'Apiary, Surfing & Coastal Views' },
+    { name: 'Luna', lat: 16.8575, lng: 120.3778, icon: '', desc: 'Pebble Beach, Baluarte & Ruins' },
+    { name: 'Balaoan', lat: 16.8222, lng: 120.4000, icon: '', desc: 'Immuki Island & Eco Tourism' },
+    { name: 'Agoo', lat: 16.3214, lng: 120.3653, icon: '', desc: 'Basilica Minore & Eco-Fun Park' },
+    { name: 'Aringay', lat: 16.3939, lng: 120.3592, icon: '', desc: 'Centennial Tunnel & Eco Park' },
+    { name: 'Caba', lat: 16.4318, lng: 120.3394, icon: '', desc: 'Bamboo Crafts, Agri-Tourism' },
+    { name: 'Naguilian', lat: 16.5322, lng: 120.3956, icon: '', desc: 'Basi Wine & Scenic Foothills' },
+    { name: 'Pugo', lat: 16.3167, lng: 120.4667, icon: '', desc: 'Pugad Adventure & Tapuakan River' },
+    { name: 'Tubao', lat: 16.3458, lng: 120.4128, icon: '', desc: 'Mount Franciscan & Grotto' },
+    { name: 'Santo Tomas', lat: 16.2844, lng: 120.3872, icon: '', desc: 'Damortis & Coastal Fishing' },
+    { name: 'Rosario', lat: 16.2300, lng: 120.4850, icon: '', desc: 'Southern Gateway & Canopy' },
+    { name: 'Santol', lat: 16.7667, lng: 120.4500, icon: '', desc: 'Highland Waterfalls & Mountains' }
 ];
 
-window.setManualLocation = function(lat, lng, name) {
+window.setManualLocation = function (lat, lng, name) {
     const pLat = parseFloat(lat);
     const pLng = parseFloat(lng);
     if (isNaN(pLat) || isNaN(pLng)) return;
@@ -925,16 +925,16 @@ window.setManualLocation = function(lat, lng, name) {
     window.closeLocationPickerModal();
 };
 
-window.openLocationPickerModal = function() {
+window.openLocationPickerModal = function () {
     let modal = document.getElementById('location-picker-modal');
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'location-picker-modal';
         modal.style.cssText = "position:fixed; top:0; left:0; right:0; bottom:0; z-index:11000; background:rgba(0,0,0,0.65); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; padding:16px; opacity:0; transition:opacity 0.25s ease;";
-        
+
         const content = document.createElement('div');
         content.style.cssText = "background:linear-gradient(135deg, rgba(15,23,42,0.98), rgba(30,41,59,0.98)); border:1px solid rgba(56,189,248,0.3); border-radius:24px; width:100%; max-width:420px; max-height:85vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7);";
-        
+
         content.innerHTML = `
             <div style="padding:18px 20px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
                 <div>
@@ -978,7 +978,7 @@ window.openLocationPickerModal = function() {
     requestAnimationFrame(() => { modal.style.opacity = '1'; });
 };
 
-window.closeLocationPickerModal = function() {
+window.closeLocationPickerModal = function () {
     const modal = document.getElementById('location-picker-modal');
     if (modal) {
         modal.style.opacity = '0';
@@ -986,7 +986,7 @@ window.closeLocationPickerModal = function() {
     }
 };
 
-window.acquireGpsFromModal = async function() {
+window.acquireGpsFromModal = async function () {
     const btn = document.getElementById('btn-modal-gps-acquire');
     const origHtml = btn ? btn.innerHTML : '';
     if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Getting your location...';
@@ -997,7 +997,7 @@ window.acquireGpsFromModal = async function() {
             if (typeof showToast === 'function') showToast("Live GPS Locked 📍");
             window.closeLocationPickerModal();
         }
-    } catch(err) {
+    } catch (err) {
         console.warn("Modal GPS request failed:", err);
         if (typeof showToast === 'function') {
             if (err && err.code === 3) {
