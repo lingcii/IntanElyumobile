@@ -600,27 +600,45 @@ $activeTab = 'itinerary';
         window.getFareFromMatrix = function (vehicleType, distanceKm) {
             if (!window.fareData) return null;
             const keyMap = {
-                'Tricycle': 'tricycle', 'Jeepney': 'jeepney', 'Bus': 'private_bus',
-                'Taxi': 'taxi', 'Own Car': 'own_car',
-                'bus': 'private_bus', 'jeepney': 'jeepney', 'tricycle': 'tricycle',
-                'taxi': 'taxi', 'own_car': 'own_car',
-                'lutrampco': 'lutrampco', 'private_bus': 'private_bus',
-                'mini_bus': 'mini_bus', 'van': 'van',
+                'Tricycle': 'tricycle', 'tricycle': 'tricycle',
+                'Jeepney': 'jeepney', 'jeepney': 'jeepney', 'PUJ_Ordinary': 'jeepney',
+                'Bus': 'private_bus', 'bus': 'private_bus', 'private_bus': 'private_bus', 'public_bus': 'private_bus', 'PUB_Aircon': 'private_bus', 'PUB_Ordinary': 'private_bus',
+                'LUTRAMPCO': 'lutrampco', 'lutrampco': 'lutrampco',
+                'Mini Bus': 'mini_bus', 'mini_bus': 'mini_bus', 'van': 'mini_bus', 'Van': 'mini_bus', 'uve': 'mini_bus', 'PUJ_Aircon': 'mini_bus',
+                'Taxi': 'taxi', 'taxi': 'taxi',
+                'Own Car': 'own_car', 'own_car': 'own_car'
             };
-            const key = keyMap[vehicleType];
-            if (!key) return null;
-            if (key === 'own_car' || key === 'taxi') return null;
-            const fareEntry = window.fareData[key];
-            if (!fareEntry || !fareEntry.rates || fareEntry.rates.length === 0) return null;
-            const rates = fareEntry.rates;
+            const key = keyMap[vehicleType] || (vehicleType ? vehicleType.toLowerCase().replace(/\s+/g, '_') : '');
+            if (!key || key === 'own_car') return null;
+
+            // Search in fareData with fallback keys
+            let fareEntry = window.fareData[key] || window.fareData[vehicleType];
+            if (!fareEntry && (key === 'private_bus' || key === 'bus' || key === 'public_bus')) {
+                fareEntry = window.fareData['private_bus'] || window.fareData['bus'] || window.fareData['PUB_Aircon'] || window.fareData['PUB_Ordinary'];
+            }
+            if (!fareEntry && (key === 'mini_bus' || key === 'van' || key === 'uve')) {
+                fareEntry = window.fareData['mini_bus'] || window.fareData['van'] || window.fareData['PUJ_Aircon'];
+            }
+            if (!fareEntry && key === 'lutrampco') {
+                fareEntry = window.fareData['lutrampco'] || window.fareData['PUB_Ordinary'] || window.fareData['jeepney'];
+            }
+
+            if (!fareEntry || !fareEntry.rates) return null;
+            const rates = Array.isArray(fareEntry.rates) ? fareEntry.rates : Object.values(fareEntry.rates);
+            if (!rates || rates.length === 0) return null;
+
+            const dKm = parseFloat(distanceKm) || 0;
             let match = null;
             for (let i = rates.length - 1; i >= 0; i--) {
-                if (parseFloat(rates[i].distance_km) <= distanceKm) {
-                    match = rates[i];
+                const r = rates[i];
+                if (r && r.distance_km != null && parseFloat(r.distance_km) <= dKm) {
+                    match = r;
                     break;
                 }
             }
-            if (!match) match = rates[0];
+            if (!match) match = rates.find(r => r && r.regular_fare != null) || rates[0];
+            if (!match || match.regular_fare == null) return null;
+
             return parseFloat(match.regular_fare);
         };
 
@@ -1124,7 +1142,25 @@ $activeTab = 'itinerary';
             // Transport cost — sum across all selected modes with realistic commuter rates
             let transCost = 0;
             const modes = transport ? transport.split(',').filter(Boolean) : [];
-            const distKm = window._draftDistanceKm || 0;
+            let distKm = window._draftDistanceKm || 0;
+            if (distKm <= 0 && draft.length > 0) {
+                let totalD = 0;
+                const pts = [];
+                if (window.myLat && window.myLng) pts.push([parseFloat(window.myLat), parseFloat(window.myLng)]);
+                draft.forEach(p => {
+                    const lat = parseFloat(p.lat || p.latitude);
+                    const lng = parseFloat(p.lng || p.longitude);
+                    if (!isNaN(lat) && !isNaN(lng)) pts.push([lat, lng]);
+                });
+                for (let i = 0; i < pts.length - 1; i++) {
+                    const lat1 = pts[i][0], lon1 = pts[i][1];
+                    const lat2 = pts[i + 1][0], lon2 = pts[i + 1][1];
+                    const p = 0.017453292519943295;
+                    const a = 0.5 - Math.cos((lat2 - lat1) * p) / 2 + Math.cos(lat1 * p) * Math.cos(lat2 * p) * (1 - Math.cos((lon2 - lon1) * p)) / 2;
+                    totalD += (12742 * Math.asin(Math.sqrt(a))) * 1.25;
+                }
+                distKm = Math.max(1, totalD);
+            }
             modes.forEach(mode => {
                 if (mode === 'own_car') {
                     const fuelPrice = parseFloat(document.getElementById('fuel-price')?.value) || 65;
@@ -1529,7 +1565,25 @@ $activeTab = 'itinerary';
 
             let totalTransCost = 0;
             const modes = transport ? transport.split(',').filter(Boolean) : [];
-            const distKm = window._draftDistanceKm || 0;
+            let distKm = window._draftDistanceKm || 0;
+            if (distKm <= 0 && draft.length > 0) {
+                let totalD = 0;
+                const pts = [];
+                if (window.myLat && window.myLng) pts.push([parseFloat(window.myLat), parseFloat(window.myLng)]);
+                draft.forEach(p => {
+                    const lat = parseFloat(p.lat || p.latitude);
+                    const lng = parseFloat(p.lng || p.longitude);
+                    if (!isNaN(lat) && !isNaN(lng)) pts.push([lat, lng]);
+                });
+                for (let i = 0; i < pts.length - 1; i++) {
+                    const lat1 = pts[i][0], lon1 = pts[i][1];
+                    const lat2 = pts[i + 1][0], lon2 = pts[i + 1][1];
+                    const p = 0.017453292519943295;
+                    const a = 0.5 - Math.cos((lat2 - lat1) * p) / 2 + Math.cos(lat1 * p) * Math.cos(lat2 * p) * (1 - Math.cos((lon2 - lon1) * p)) / 2;
+                    totalD += (12742 * Math.asin(Math.sqrt(a))) * 1.25;
+                }
+                distKm = Math.max(1, totalD);
+            }
             modes.forEach(mode => {
                 if (mode === 'own_car') {
                     const fuelPrice = parseFloat(document.getElementById('fuel-price')?.value) || 65;
