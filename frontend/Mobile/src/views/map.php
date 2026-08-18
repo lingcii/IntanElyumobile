@@ -1161,9 +1161,14 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                     }
                 } catch (e) {
                     console.warn("Location error:", e);
-                    if (typeof showToast === 'function') showToast("Location access denied or unavailable. Please enable device GPS.");
+                    if (typeof showToast === 'function') {
+                        showToast("Browser blocked GPS access. Select your town below.");
+                    }
+                    if (typeof window.openLocationPickerModal === 'function') {
+                        window.openLocationPickerModal();
+                    }
                 } finally {
-                    icon.className = origIconClass || 'fa-solid fa-location-crosshairs';
+                    icon.className = origIconClass || 'fa-solid fa-crosshairs';
                 }
             });
         }

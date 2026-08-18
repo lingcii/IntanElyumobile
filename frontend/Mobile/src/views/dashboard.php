@@ -1474,23 +1474,32 @@ window.toggleRecommendedMore = function() {
         if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot fa-spin" style="color:#38bdf8; margin-right:4px;"></i> Detecting location...`;
         if (descEl) descEl.textContent = 'Acquiring location...';
 
-        const fallbackToIp = () => {
-            fetch('https://ipapi.co/json/')
-                .then(r => r.json())
-                .then(ipData => {
-                    if (ipData && ipData.latitude && ipData.longitude) {
-                        const locName = (ipData.city || ipData.region || 'La Union') + ', ' + (ipData.region || 'Philippines');
-                        window.fetchWeather(ipData.latitude, ipData.longitude, locName, true);
-                    } else {
-                        window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
+        const fallbackToLocal = () => {
+            try {
+                const manual = localStorage.getItem('intan_elyu_manual_loc');
+                if (manual) {
+                    const parsed = JSON.parse(manual);
+                    if (parsed && parsed.lat && parsed.lng) {
+                        window.fetchWeather(parsed.lat, parsed.lng, parsed.name || 'La Union', false);
+                        return;
                     }
-                })
-                .catch(() => {
-                    window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
-                });
+                }
+            } catch(e) {}
+            window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
         };
 
-        if ("geolocation" in navigator) {
+        if (typeof window.requestPreciseLocation === 'function') {
+            window.requestPreciseLocation(true).then(loc => {
+                if (loc && loc.lat && loc.lng) {
+                    window.userCurrentCoords = { lat: loc.lat, lng: loc.lng };
+                    window.fetchWeather(loc.lat, loc.lng, 'My Location 📍', true);
+                } else {
+                    fallbackToLocal();
+                }
+            }).catch(() => {
+                fallbackToLocal();
+            });
+        } else if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
                     const lat = pos.coords.latitude;
@@ -1499,16 +1508,16 @@ window.toggleRecommendedMore = function() {
                     window.currentGPSLat = lat;
                     window.currentGPSLng = lng;
                     window.currentGPSSource = 'gps';
-                    window.fetchWeather(lat, lng, 'My Location', true);
+                    window.fetchWeather(lat, lng, 'My Location 📍', true);
                 },
                 (err) => {
-                    console.warn('GPS location failed, using IP fallback:', err);
-                    fallbackToIp();
+                    console.warn('GPS location failed/denied, using local fallback:', err);
+                    fallbackToLocal();
                 },
                 { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
             );
         } else {
-            fallbackToIp();
+            fallbackToLocal();
         }
     };
 

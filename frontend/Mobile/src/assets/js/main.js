@@ -783,7 +783,23 @@ window.requestPreciseLocation = async function (forceFresh = true) {
     throw new Error('Geolocation not supported by device/browser');
 };
 
-// Fast-track location: cached GPS -> fresh GPS -> IP geolocation -> La Union fallback
+// Purge stale Baguio ISP gateway cache immediately on script load
+(function purgeBaguioCache() {
+    function isBaguio(lat, lng) {
+        const lt = parseFloat(lat);
+        const lg = parseFloat(lng);
+        return (!isNaN(lt) && !isNaN(lg) && lt >= 16.36 && lt <= 16.46 && lg >= 120.54 && lg <= 120.64);
+    }
+    if (isBaguio(window.currentGPSLat, window.currentGPSLng) || isBaguio(window.myLat, window.myLng)) {
+        window.currentGPSLat = null;
+        window.currentGPSLng = null;
+        window.myLat = null;
+        window.myLng = null;
+        window.currentGPSSource = null;
+    }
+})();
+
+// Fast-track location: cached GPS -> fresh GPS -> manual town -> La Union fallback
 window.fastLocation = function () {
     if (window.currentGPSSource === 'gps' && window.currentGPSLat && window.currentGPSLng) {
         return Promise.resolve({ lat: window.currentGPSLat, lng: window.currentGPSLng, source: 'gps' });
@@ -791,92 +807,198 @@ window.fastLocation = function () {
     return window.resolveUserLocation(false);
 };
 
-// Multi-tier user location resolver (GPS -> IP Geolocation -> La Union Fallback)
+// Multi-tier user location resolver (GPS -> User Manual Pick -> San Fernando, La Union Fallback)
 window.resolveUserLocation = async function (forceFresh = false) {
     // If we already have a real verified GPS fix and not forcing fresh, return it
     if (!forceFresh && window.currentGPSSource === 'gps' && window.currentGPSLat && window.currentGPSLng) {
         return { lat: window.currentGPSLat, lng: window.currentGPSLng, source: 'gps' };
     }
 
-    // Tier 1: Try precise GPS first
+    // Tier 1: Try precise hardware GPS
     try {
         const precise = await window.requestPreciseLocation(forceFresh);
         if (precise && precise.lat && precise.lng) {
             return precise;
         }
     } catch (e) {
-        console.warn("Precise GPS acquisition failed, checking fallback:", e && e.message);
+        console.warn("Precise GPS acquisition failed or was blocked by browser:", e && e.message);
     }
 
-    // If we already have any cached coordinates (e.g. from previous IP) and not forcing fresh, return them
-    if (!forceFresh && window.currentGPSLat && window.currentGPSLng) {
-        return { lat: window.currentGPSLat, lng: window.currentGPSLng, source: window.currentGPSSource || 'cached' };
-    }
-
-    // Tier 2: IP-based Geolocation via ipwho.is (marked explicitly as source: 'ip')
+    // Tier 2: Check if user previously selected a manual town in Elyu
     try {
-        const ipRes = await fetch('https://ipwho.is/?fields=latitude,longitude,city,region,success', { cache: 'no-store' });
-        if (ipRes.ok) {
-            const data = await ipRes.json();
-            if (data && data.success && data.latitude && data.longitude) {
-                const lat = data.latitude;
-                const lng = data.longitude;
-                if (window.currentGPSSource !== 'gps') {
-                    window.currentGPSLat = lat;
-                    window.currentGPSLng = lng;
-                    window.myLat = lat;
-                    window.myLng = lng;
-                    window.currentGPSSource = 'ip';
-                    document.dispatchEvent(new CustomEvent('gpsUpdated', {
-                        detail: { lat, lng, accuracy: 5000, source: 'ip', city: data.city, region: data.region }
-                    }));
-                }
-                return { lat, lng, source: 'ip', city: data.city, region: data.region };
+        const manualLocStr = localStorage.getItem('intan_elyu_manual_loc');
+        if (manualLocStr) {
+            const manual = JSON.parse(manualLocStr);
+            if (manual && manual.lat && manual.lng) {
+                window.currentGPSLat = manual.lat;
+                window.currentGPSLng = manual.lng;
+                window.myLat = manual.lat;
+                window.myLng = manual.lng;
+                window.currentGPSSource = 'manual';
+                document.dispatchEvent(new CustomEvent('gpsUpdated', {
+                    detail: { lat: manual.lat, lng: manual.lng, accuracy: 10, source: 'manual', name: manual.name }
+                }));
+                return { lat: manual.lat, lng: manual.lng, source: 'manual', name: manual.name };
             }
         }
-    } catch (err) {
-        console.warn("Primary IP Geolocation failed:", err && err.message);
-    }
+    } catch(e) {}
 
-    // Tier 3: Secondary IP Geolocation via ipapi.co
-    try {
-        const ipRes2 = await fetch('https://ipapi.co/json/', { cache: 'no-store' });
-        if (ipRes2.ok) {
-            const data = await ipRes2.json();
-            if (data && data.latitude && data.longitude) {
-                const lat = data.latitude;
-                const lng = data.longitude;
-                if (window.currentGPSSource !== 'gps') {
-                    window.currentGPSLat = lat;
-                    window.currentGPSLng = lng;
-                    window.myLat = lat;
-                    window.myLng = lng;
-                    window.currentGPSSource = 'ip';
-                    document.dispatchEvent(new CustomEvent('gpsUpdated', {
-                        detail: { lat, lng, accuracy: 5000, source: 'ip', city: data.city, region: data.region }
-                    }));
-                }
-                return { lat, lng, source: 'ip', city: data.city, region: data.region };
-            }
-        }
-    } catch (err) {
-        console.warn("Secondary IP Geolocation failed:", err && err.message);
-    }
-
-    // Tier 4: San Fernando, La Union Fallback
+    // Tier 3: Heart of Elyu (San Fernando City, La Union Fallback)
     const fallbackLat = 16.6159;
     const fallbackLng = 120.3167;
-    if (window.currentGPSSource !== 'gps') {
-        window.currentGPSLat = fallbackLat;
-        window.currentGPSLng = fallbackLng;
-        window.myLat = fallbackLat;
-        window.myLng = fallbackLng;
-        window.currentGPSSource = 'fallback';
-        document.dispatchEvent(new CustomEvent('gpsUpdated', {
-            detail: { lat: fallbackLat, lng: fallbackLng, accuracy: 10000, source: 'fallback', city: 'San Fernando', region: 'La Union' }
-        }));
-    }
+    window.currentGPSLat = fallbackLat;
+    window.currentGPSLng = fallbackLng;
+    window.myLat = fallbackLat;
+    window.myLng = fallbackLng;
+    window.currentGPSSource = 'fallback';
+    document.dispatchEvent(new CustomEvent('gpsUpdated', {
+        detail: { lat: fallbackLat, lng: fallbackLng, accuracy: 10000, source: 'fallback', city: 'San Fernando', region: 'La Union' }
+    }));
     return { lat: fallbackLat, lng: fallbackLng, source: 'fallback', city: 'San Fernando', region: 'La Union' };
+};
+
+// La Union towns catalog for instant manual location picking
+window.LA_UNION_TOWNS = [
+    { name: 'San Juan (Surfing Capital)', lat: 16.6755, lng: 120.3392, icon: '🏄', desc: 'Urbiztondo Beach, Surf Spots & Cafes' },
+    { name: 'San Fernando City (Capitol)', lat: 16.6159, lng: 120.3167, icon: '🏛️', desc: 'City Center, Poro Point & Malls' },
+    { name: 'Bauang', lat: 16.5312, lng: 120.3340, icon: '🍇', desc: 'Grape Farms, Beaches & Resorts' },
+    { name: 'San Gabriel', lat: 16.6853, lng: 120.4042, icon: '🌊', desc: 'Tangadan Falls & Highland Nature' },
+    { name: 'Bacnotan', lat: 16.7197, lng: 120.3541, icon: '🐝', desc: 'Apiary, Surfing & Coastal Views' },
+    { name: 'Luna', lat: 16.8575, lng: 120.3778, icon: '🏖️', desc: 'Pebble Beach, Baluarte & Ruins' },
+    { name: 'Balaoan', lat: 16.8222, lng: 120.4000, icon: '🏝️', desc: 'Immuki Island & Eco Tourism' },
+    { name: 'Agoo', lat: 16.3214, lng: 120.3653, icon: '⛪', desc: 'Basilica Minore & Eco-Fun Park' },
+    { name: 'Aringay', lat: 16.3939, lng: 120.3592, icon: '🚇', desc: 'Centennial Tunnel & Eco Park' },
+    { name: 'Caba', lat: 16.4318, lng: 120.3394, icon: '🌾', desc: 'Bamboo Crafts, Agri-Tourism' },
+    { name: 'Naguilian', lat: 16.5322, lng: 120.3956, icon: '🏺', desc: 'Basi Wine & Scenic Foothills' },
+    { name: 'Pugo', lat: 16.3167, lng: 120.4667, icon: '🧗', desc: 'Pugad Adventure & Tapuakan River' },
+    { name: 'Tubao', lat: 16.3458, lng: 120.4128, icon: '🌿', desc: 'Mount Franciscan & Grotto' },
+    { name: 'Santo Tomas', lat: 16.2844, lng: 120.3872, icon: '🐟', desc: 'Damortis & Coastal Fishing' },
+    { name: 'Rosario', lat: 16.2300, lng: 120.4850, icon: '⛩️', desc: 'Southern Gateway & Canopy' },
+    { name: 'Santol', lat: 16.7667, lng: 120.4500, icon: '🌲', desc: 'Highland Waterfalls & Mountains' }
+];
+
+window.setManualLocation = function(lat, lng, name) {
+    const pLat = parseFloat(lat);
+    const pLng = parseFloat(lng);
+    if (isNaN(pLat) || isNaN(pLng)) return;
+
+    window.currentGPSLat = pLat;
+    window.currentGPSLng = pLng;
+    window.myLat = pLat;
+    window.myLng = pLng;
+    window.currentGPSSource = 'manual';
+
+    localStorage.setItem('intan_elyu_manual_loc', JSON.stringify({ lat: pLat, lng: pLng, name: name || 'Selected Location' }));
+
+    document.dispatchEvent(new CustomEvent('gpsUpdated', {
+        detail: { lat: pLat, lng: pLng, accuracy: 10, source: 'manual', name: name || 'Selected Location' }
+    }));
+
+    if (typeof showToast === 'function') {
+        showToast(`📍 Location set to ${name || 'Selected Spot'}`);
+    }
+
+    if (window.mapInstance) {
+        window.mapInstance.flyTo({ center: [pLng, pLat], zoom: 14, duration: 1000 });
+        if (window.userMarker) {
+            window.userMarker.setLngLat([pLng, pLat]);
+        }
+    }
+    if (typeof draftMap !== 'undefined' && draftMap) {
+        draftMap.flyTo([pLat, pLng], 15);
+        if (window.myDraftMarker) {
+            window.myDraftMarker.setLatLng([pLat, pLng]);
+        }
+    }
+    if (typeof tripMap !== 'undefined' && tripMap) {
+        tripMap.flyTo({ center: [pLng, pLat], zoom: 15 });
+        if (window.tripGpsMarker) {
+            window.tripGpsMarker.setLngLat([pLng, pLat]);
+        }
+    }
+    window.closeLocationPickerModal();
+};
+
+window.openLocationPickerModal = function() {
+    let modal = document.getElementById('location-picker-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'location-picker-modal';
+        modal.style.cssText = "position:fixed; top:0; left:0; right:0; bottom:0; z-index:11000; background:rgba(0,0,0,0.65); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; padding:16px; opacity:0; transition:opacity 0.25s ease;";
+        
+        const content = document.createElement('div');
+        content.style.cssText = "background:linear-gradient(135deg, rgba(15,23,42,0.98), rgba(30,41,59,0.98)); border:1px solid rgba(56,189,248,0.3); border-radius:24px; width:100%; max-width:420px; max-height:85vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7);";
+        
+        content.innerHTML = `
+            <div style="padding:18px 20px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
+                <div>
+                    <h3 style="margin:0; font-size:16px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-location-crosshairs" style="color:#38bdf8;"></i> Select Your Location
+                    </h3>
+                    <span style="font-size:11px; color:rgba(148,163,184,0.9);">Choose your town or acquire device GPS</span>
+                </div>
+                <button onclick="window.closeLocationPickerModal()" style="background:rgba(255,255,255,0.08); border:none; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div style="padding:14px 20px; background:rgba(56,189,248,0.06); border-bottom:1px solid rgba(56,189,248,0.15); flex-shrink:0;">
+                <button id="btn-modal-gps-acquire" onclick="window.acquireGpsFromModal()" style="width:100%; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:11px 16px; border-radius:14px; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 14px rgba(56,189,248,0.35);">
+                    <i class="fa-solid fa-location-arrow"></i> Use Live Device GPS
+                </button>
+                <div style="font-size:10px; color:rgba(255,255,255,0.6); text-align:center; margin-top:6px;">
+                    Ensure location permission is allowed in your browser settings (🔒 icon near URL).
+                </div>
+            </div>
+            <div style="padding:14px 20px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:8px;">
+                <div style="font-size:11px; font-weight:700; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">
+                    Or Choose La Union Municipality:
+                </div>
+                ${window.LA_UNION_TOWNS.map(t => `
+                    <div onclick="window.setManualLocation(${t.lat}, ${t.lng}, '${t.name.replace(/'/g, "\\'")}')" style="display:flex; align-items:center; gap:12px; padding:10px 14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:14px; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.background='rgba(56,189,248,0.15)'; this.style.borderColor='rgba(56,189,248,0.4)';" onmouseout="this.style.background='rgba(255,255,255,0.04)'; this.style.borderColor='rgba(255,255,255,0.08)';">
+                        <span style="font-size:20px; width:28px; text-align:center;">${t.icon}</span>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-size:13px; font-weight:700; color:#fff;">${t.name}</div>
+                            <div style="font-size:11px; color:rgba(148,163,184,0.8);">${t.desc}</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right" style="color:rgba(255,255,255,0.3); font-size:11px;"></i>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => { modal.style.opacity = '1'; });
+};
+
+window.closeLocationPickerModal = function() {
+    const modal = document.getElementById('location-picker-modal');
+    if (modal) {
+        modal.style.opacity = '0';
+        setTimeout(() => { modal.style.display = 'none'; }, 250);
+    }
+};
+
+window.acquireGpsFromModal = async function() {
+    const btn = document.getElementById('btn-modal-gps-acquire');
+    const origHtml = btn ? btn.innerHTML : '';
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Requesting GPS Permission...';
+    try {
+        const loc = await window.requestPreciseLocation(true);
+        if (loc && loc.lat && loc.lng) {
+            localStorage.removeItem('intan_elyu_manual_loc');
+            if (typeof showToast === 'function') showToast("Live GPS Locked 📍");
+            window.closeLocationPickerModal();
+        }
+    } catch(err) {
+        console.warn("Modal GPS request failed:", err);
+        if (typeof showToast === 'function') {
+            showToast("GPS Permission Denied. Please choose a town below or allow location in browser.");
+        }
+    } finally {
+        if (btn) btn.innerHTML = origHtml;
+    }
 };
 
 // Haversine formula

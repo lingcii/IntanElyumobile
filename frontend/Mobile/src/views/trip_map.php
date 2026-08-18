@@ -935,7 +935,12 @@ require_once __DIR__ . '/../components/header.php';
             }
         } catch (e) {
             console.warn("Trip locate error:", e);
-            if (typeof showToast === 'function') showToast("Location access denied or unavailable. Please enable device GPS.");
+            if (typeof showToast === 'function') {
+                showToast("GPS blocked or unavailable. Select your town below.");
+            }
+            if (typeof window.openLocationPickerModal === 'function') {
+                window.openLocationPickerModal();
+            }
         } finally {
             if (icon) icon.className = origClass || 'fa-solid fa-location-crosshairs';
         }
