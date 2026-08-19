@@ -450,10 +450,17 @@ class LoginController extends Controller
             }
         } catch (\Throwable $th) {}
 
+        $authToken = null;
+        try {
+            $authToken = $user->createToken('auth_token')->plainTextToken;
+        } catch (\Throwable $t) {}
+
         return response()->json([
             'success' => true,
+            'token'   => $authToken,
+            'user'    => $user,
             'email'   => $email,
-            'message' => 'Your password has been reset successfully!'
+            'message' => 'Your password has been reset successfully! Logging you in...'
         ]);
     }
 
@@ -493,9 +500,14 @@ class LoginController extends Controller
         }
 
         $user = User::where('email', $request->email)->first();
+        $authToken = null;
         if ($user) {
             $user->password = \Illuminate\Support\Facades\Hash::make($request->password);
             $user->save();
+
+            try {
+                $authToken = $user->createToken('auth_token')->plainTextToken;
+            } catch (\Throwable $t) {}
         }
 
         try {
@@ -504,7 +516,9 @@ class LoginController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Your password has been reset successfully.'
+            'token'   => $authToken,
+            'user'    => $user,
+            'message' => 'Your password has been reset successfully! Proceeding into the app...'
         ]);
     }
 }

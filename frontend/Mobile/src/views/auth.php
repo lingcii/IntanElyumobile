@@ -1678,9 +1678,18 @@
                 await new Promise(r => setTimeout(r, minSpinnerTime - elapsedTime));
             }
 
+            if (data.token) {
+                localStorage.setItem('intan_elyu_token', data.token);
+                if (window.AppStorage) window.AppStorage.setItem('intan_elyu_token', data.token);
+            }
+            if (data.user) {
+                localStorage.setItem('auth_user', JSON.stringify(data.user));
+                if (window.AppStorage) window.AppStorage.setItem('auth_user', data.user);
+            }
+
             // Animate checkmark success in modal
             if (titleEl) titleEl.textContent = 'Password Reset Successfully!';
-            if (subEl) subEl.textContent = 'You can now sign in with your new password';
+            if (subEl) subEl.textContent = 'Entering dashboard...';
             if (spinnerSvg) spinnerSvg.style.display = 'none';
             if (checkmarkIcon) checkmarkIcon.style.display = 'block';
 
@@ -1696,8 +1705,12 @@
                     btn.disabled = false;
                 }
                 
-                hideForgotPassword();
-            }, 1800);
+                if (typeof navigateTo === 'function') {
+                    navigateTo('dashboard', true, true);
+                } else {
+                    window.location.href = 'index.php?view=dashboard';
+                }
+            }, 1500);
 
         } catch (error) {
             console.error('Reset Password OTP Error:', error);

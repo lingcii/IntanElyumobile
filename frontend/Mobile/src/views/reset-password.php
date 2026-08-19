@@ -126,19 +126,44 @@ function togglePasswordVisibility(inputId, iconEl) {
                 throw new Error(data.message || data.error || 'Failed to reset password.');
             }
 
-            if (typeof showToast === 'function') showToast('Password reset successfully! Redirecting to login...', 'success');
+            if (data.token) {
+                localStorage.setItem('intan_elyu_token', data.token);
+                if (window.AppStorage) window.AppStorage.setItem('intan_elyu_token', data.token);
+            }
+            if (data.user) {
+                localStorage.setItem('auth_user', JSON.stringify(data.user));
+                if (window.AppStorage) window.AppStorage.setItem('auth_user', data.user);
+            }
+
+            if (typeof showToast === 'function') {
+                showToast('Password reset successfully! Proceeding into the app...', 'success');
+            }
             
             setTimeout(() => {
-                const cleanUrl = new URL(window.location.origin + window.location.pathname);
-                cleanUrl.searchParams.set('view', 'auth');
-                window.history.replaceState({ view: 'auth' }, '', cleanUrl);
-                
-                if (typeof navigateTo === 'function') {
-                    navigateTo('auth');
-                } else {
-                    window.location.href = cleanUrl.toString();
+                const isApk = navigator.userAgent.includes('IntanElyuAPK') || !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+
+                // If on Android mobile browser, try deep link return to APK
+                if (!isApk && /android/i.test(navigator.userAgent)) {
+                    try {
+                        const directUrl = 'intanelyu://?view=dashboard&token=' + encodeURIComponent(data.token || '') + '&user=' + encodeURIComponent(JSON.stringify(data.user || {}));
+                        window.location.href = directUrl;
+                        setTimeout(() => {
+                            if (typeof navigateTo === 'function') {
+                                navigateTo('dashboard', true, true);
+                            } else {
+                                window.location.href = 'index.php?view=dashboard';
+                            }
+                        }, 1200);
+                        return;
+                    } catch (e) {}
                 }
-            }, 1800);
+
+                if (typeof navigateTo === 'function') {
+                    navigateTo('dashboard', true, true);
+                } else {
+                    window.location.href = 'index.php?view=dashboard';
+                }
+            }, 1200);
 
         } catch (error) {
             console.error('Reset Password Error:', error);
