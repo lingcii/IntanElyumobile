@@ -864,35 +864,49 @@
         }
     }
 
-    function showForgotPassword(e) {
-        if(e) e.preventDefault();
+    window.showForgotPassword = function(e) {
+        if (e) e.preventDefault();
         
         // Hide tabs
-        tabsContainer.style.display = 'none';
+        if (tabsContainer) tabsContainer.style.display = 'none';
         
-        // Reset forgot form
-        document.getElementById('fp-form-state').style.display = 'block';
-        document.getElementById('fp-success-state').style.display = 'none';
-        document.getElementById('fp-email').value = '';
+        // Reset forgot form steps
+        const formState = document.getElementById('fp-form-state');
+        const codeState = document.getElementById('fp-code-state');
+        const pwdState = document.getElementById('fp-password-state');
+        const emailInput = document.getElementById('fp-email');
+
+        if (formState) formState.style.display = 'block';
+        if (codeState) codeState.style.display = 'none';
+        if (pwdState) pwdState.style.display = 'none';
+        if (emailInput) emailInput.value = '';
         
         const btn = document.getElementById('fp-btn');
-        btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
-        btn.disabled = false;
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
+            btn.disabled = false;
+        }
 
-        wrapper.classList.remove('show-register');
-        wrapper.classList.add('show-forgot');
-        updateTitleWithTransition('Account Recovery');
-    }
+        if (wrapper) {
+            wrapper.classList.remove('show-register');
+            wrapper.classList.add('show-forgot');
+        }
+        if (typeof updateTitleWithTransition === 'function') {
+            updateTitleWithTransition('Account Recovery');
+        }
+    };
 
-    function hideForgotPassword(e) {
-        if(e) e.preventDefault();
+    window.hideForgotPassword = function(e) {
+        if (e) e.preventDefault();
         // Restore tabs
-        tabsContainer.style.display = 'flex';
-        wrapper.classList.remove('show-forgot', 'show-register');
-        tabRegister.classList.remove('active');
-        tabLogin.classList.add('active');
-        updateTitleWithTransition('Welcome to Elyu');
-    }
+        if (tabsContainer) tabsContainer.style.display = 'flex';
+        if (wrapper) wrapper.classList.remove('show-forgot', 'show-register');
+        if (tabRegister) tabRegister.classList.remove('active');
+        if (tabLogin) tabLogin.classList.add('active');
+        if (typeof updateTitleWithTransition === 'function') {
+            updateTitleWithTransition('Welcome to Elyu');
+        }
+    };
 
     function togglePasswordVisibility(inputId, iconElement) {
         const input = document.getElementById(inputId);
