@@ -1406,6 +1406,17 @@
             const data = await response.json();
             
             if (!response.ok) {
+                if (data.is_google_user) {
+                    if (modal) {
+                        modal.classList.remove('active');
+                        setTimeout(() => { modal.style.display = 'none'; }, 300);
+                    }
+                    if (typeof showToast === 'function') showToast(data.error || 'Please sign in with Google.', 'info');
+                    setTimeout(() => {
+                        window.toggleForgotPassword(false);
+                    }, 2000);
+                    return;
+                }
                 throw new Error(data.error || data.message || 'Failed to send reset code.');
             }
 

@@ -26,9 +26,12 @@ class PasswordResetMail extends Mailable
      */
     public function envelope(): Envelope
     {
+        $fromAddress = config('mail.from.address', 'acekillersmile@gmail.com');
+        $fromName = config('mail.from.name', 'Intan-Elyu Customer Support');
+
         return new Envelope(
-            from: new \Illuminate\Mail\Mailables\Address('acekillersmile@gmail.com', 'Intan-Elyu Customer Support'),
-            subject: '🔐 Reset Your Password - Intan Elyu',
+            from: new \Illuminate\Mail\Mailables\Address($fromAddress, $fromName),
+            subject: '🔐 ' . ($this->otpCode ? $this->otpCode . ' - ' : '') . 'Reset Your Password - Intan Elyu',
         );
     }
 

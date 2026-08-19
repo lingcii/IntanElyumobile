@@ -210,11 +210,19 @@ class LoginController extends Controller
             ], 404);
         }
 
+        // Check if user account was created exclusively with Google Sign-In
+        if (!empty($user->google_id) && empty($user->password)) {
+            return response()->json([
+                'is_google_user' => true,
+                'error' => 'This account is linked with Google Sign-In and does not use a password. Please sign in directly with the "Sign in with Google" button.'
+            ], 400);
+        }
+
         $token = \Illuminate\Support\Str::random(60);
         $tokenHash = hash('sha256', $token);
-        $otpCode = sprintf('%06d', random_int(0, 999999));
+        $otpCode = sprintf('%06d', random_int(100000, 999999));
 
-        // Always store OTP in Cache and User model for fast, reliable in-app reset
+        // Always store OTP in Cache and User model for fast, reliable in-app reset (15 min expiration)
         \Illuminate\Support\Facades\Cache::put("pwd_reset_otp:{$user->email}", $otpCode, 900);
         try {
             $user->remember_token = 'otp_' . $otpCode;
@@ -237,22 +245,19 @@ class LoginController extends Controller
             \Illuminate\Support\Facades\Log::warning('frontend_password_resets table DB record skip: ' . $th->getMessage());
         }
 
+        $mailSent = false;
         try {
             \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\PasswordResetMail($user, $token, $otpCode));
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('PasswordResetMail failed for user #' . $user->id . ': ' . $e->getMessage());
-            // Return success anyway so OTP reset via cache is still possible for the user
-            return response()->json([
-                'success' => true,
-                'email'   => $user->email,
-                'message' => 'Reset code & link sent successfully to your email.'
-            ]);
+            $mailSent = true;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('PasswordResetMail failed for user #' . $user->id . ' (' . $user->email . '): ' . $e->getMessage());
         }
 
         return response()->json([
-            'success' => true,
-            'email'   => $user->email,
-            'message' => 'Reset code & link sent successfully to your email.'
+            'success'   => true,
+            'email'     => $user->email,
+            'mail_sent' => $mailSent,
+            'message'   => 'Security reset code & link sent successfully to your email.'
         ]);
     }
 
