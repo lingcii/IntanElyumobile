@@ -15,6 +15,11 @@ class TouristSpot extends Model
         'barangay',
         'category',
         'entrance_fee',
+        'environmental_fee',
+        'fee_types',
+        'route_guide',
+        'tour_guide_notice',
+        'accessible_by_private_vehicle',
         'description',
         'photo_url',
         'latitude',
@@ -29,12 +34,15 @@ class TouristSpot extends Model
     ];
 
     protected $casts = [
-        'entrance_fee'   => 'float',
-        'latitude'       => 'float',
-        'longitude'      => 'float',
-        'is_maintenance' => 'boolean',
-        'visits'         => 'integer',
-        'rating'         => 'float',
+        'entrance_fee'                  => 'float',
+        'environmental_fee'             => 'float',
+        'fee_types'                     => 'array',
+        'accessible_by_private_vehicle' => 'boolean',
+        'latitude'                      => 'float',
+        'longitude'                     => 'float',
+        'is_maintenance'                => 'boolean',
+        'visits'                        => 'integer',
+        'rating'                        => 'float',
     ];
 
     public static array $VALID_CATEGORIES = [
@@ -65,6 +73,11 @@ class TouristSpot extends Model
     public function images()
     {
         return $this->hasMany(TouristSpotImage::class, 'spot_id')->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function serviceCenters()
+    {
+        return $this->belongsToMany(ServiceCenter::class, 'tourist_spot_service_center', 'tourist_spot_id', 'service_center_id');
     }
 
     public function getPhotoUrlAttribute($value)

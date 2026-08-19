@@ -149,6 +149,22 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 </div>
             </div>
 
+            <!-- Site Fee Summary Banner -->
+            <div id="sheet-fees-card" class="dest-fees-card" style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:10px 14px; margin-bottom:10px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:34px; height:34px; border-radius:10px; background:rgba(16,185,129,0.12); color:#34d399; border:1px solid rgba(52,211,153,0.25); display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;">
+                        <i class="fa-solid fa-ticket"></i>
+                    </div>
+                    <div style="display:flex; flex-direction:column;">
+                        <span style="font-size:10px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px;">Site Fees</span>
+                        <span id="sheet-fee-main-text" style="font-size:13px; font-weight:800; color:#f8fafc;">Free Admission</span>
+                    </div>
+                </div>
+                <div id="sheet-fee-breakdown-tags" style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                    <!-- Injected via JS: e.g. Entrance: ₱50 | Environmental: ₱20 -->
+                </div>
+            </div>
+
             <!-- About This Location & Travel Details -->
             <div id="sheet-desc-container" class="dest-info-card" style="display:none;">
                 <div id="vehicle-accessibility-warning" class="dest-warning-card" style="display:none;">
@@ -172,7 +188,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                     <div id="expanded-details" class="dest-expanded-wrapper" style="display:none;">
                         
                         <!-- Route Guide -->
-                        <div class="dest-guide-box">
+                        <div class="dest-guide-box" id="sheet-route-guide-box">
                             <div class="dest-guide-title">
                                 <i class="fa-solid fa-signs-post"></i> Route Guide
                             </div>
@@ -180,23 +196,27 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                         </div>
 
                         <!-- Tour Guide Notice -->
-                        <div class="dest-advisory-box">
+                        <div class="dest-advisory-box" id="sheet-tour-guide-box">
                             <div class="dest-advisory-title">
                                 <i class="fa-solid fa-circle-info"></i> Tour Guide Notice
                             </div>
-                            <p class="dest-advisory-text">Some destinations may require a tour guide for entry or navigation. The system only provides informational notices about this requirement; it does not offer, book, or arrange tour guide services directly.</p>
+                            <p id="sheet-tour-guide-text" class="dest-advisory-text">Some destinations may require a tour guide for entry or navigation. The system only provides informational notices about this requirement; it does not offer, book, or arrange tour guide services directly.</p>
                         </div>
 
                         <!-- Service Center & Assistance -->
                         <div class="dest-support-box">
                             <div class="dest-support-header">
                                 <span style="font-size:12px; font-weight:800; color:#38bdf8; display:flex; align-items:center; gap:6px;">
-                                    <i class="fa-solid fa-headset"></i> Tourist Support & Assistance
+                                    <i class="fa-solid fa-headset"></i> Tourist Support & Service Centers
                                 </span>
-                                <span class="dest-support-badge">LUPTO / MTO</span>
+                                <span class="dest-support-badge" id="sheet-support-badge">LUPTO / MTO</span>
                             </div>
+                            
+                            <!-- Dynamic Service Centers list -->
+                            <div id="sheet-service-centers-container" style="display:none; margin-bottom:8px;"></div>
+
                             <div class="dest-contacts-list">
-                                <div class="dest-contact-row">
+                                <div class="dest-contact-row" id="sheet-service-phone-row">
                                     <span class="dest-contact-label"><i class="fa-solid fa-phone" style="font-size:10px;"></i> Service Hotline:</span>
                                     <span class="dest-contact-val"><a id="sheet-service-phone" href="tel:+630728882454">+63 (072) 888-2454</a></span>
                                 </div>
@@ -1773,6 +1793,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         }
         
 
+        // 1. Accessibility Warning
         const warningEl = document.getElementById('vehicle-accessibility-warning');
         if (warningEl) {
             if (locationData.accessible_by_private_vehicle === false || locationData.accessible_by_private_vehicle === 0) {
@@ -1782,10 +1803,79 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             }
         }
 
-        let manualGuide = "From the town proper of " + (locationData.municipality || "La Union") + ", take a local tricycle heading to " + (locationData.location || "the barangay") + ". Ask the driver to drop you off at " + (locationData.name || "this location") + ".";
-        
+        // 2. Fees & Pricing Breakdown
+        const feeMainText = document.getElementById('sheet-fee-main-text');
+        const feeTags = document.getElementById('sheet-fee-breakdown-tags');
+        if (feeMainText && feeTags) {
+            const entranceFee = parseFloat(locationData.entrance_fee || 0);
+            const environmentalFee = parseFloat(locationData.environmental_fee || 0);
+            const feeTypes = Array.isArray(locationData.fee_types) ? locationData.fee_types : [];
+            const hasEntrance = feeTypes.includes('entrance') || feeTypes.includes('Entrance Fee') || entranceFee > 0;
+            const hasEnvironmental = feeTypes.includes('environmental') || feeTypes.includes('Environmental Fee') || environmentalFee > 0;
+
+            let tagsHtml = '';
+            if (hasEntrance && entranceFee > 0) {
+                tagsHtml += `<span style="font-size:11px; font-weight:800; background:rgba(56,189,248,0.12); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); padding:3px 8px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-ticket" style="font-size:10px;"></i> Entrance: ₱${entranceFee.toFixed(2)}</span>`;
+            }
+            if (hasEnvironmental && environmentalFee > 0) {
+                tagsHtml += `<span style="font-size:11px; font-weight:800; background:rgba(52,211,153,0.12); color:#34d399; border:1px solid rgba(52,211,153,0.3); padding:3px 8px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-leaf" style="font-size:10px;"></i> Envi: ₱${environmentalFee.toFixed(2)}</span>`;
+            }
+
+            if (tagsHtml !== '') {
+                const total = (hasEntrance ? entranceFee : 0) + (hasEnvironmental ? environmentalFee : 0);
+                feeMainText.textContent = total > 0 ? `₱${total.toFixed(2)} Total Fees` : 'Free Admission';
+                feeTags.innerHTML = tagsHtml;
+            } else {
+                feeMainText.textContent = 'Free Admission';
+                feeTags.innerHTML = `<span style="font-size:10.5px; font-weight:800; background:rgba(52,211,153,0.15); color:#34d399; border:1px solid rgba(52,211,153,0.3); padding:3px 8px; border-radius:8px;">No Entrance Fee</span>`;
+            }
+        }
+
+        // 3. Route Guide
         const manualGuideEl = document.getElementById('sheet-manual-guide');
-        if (manualGuideEl) manualGuideEl.textContent = manualGuide;
+        if (manualGuideEl) {
+            let manualGuide = (locationData.route_guide && locationData.route_guide.trim())
+                ? locationData.route_guide.trim()
+                : ("From the town proper of " + (locationData.municipality || "La Union") + ", take a local tricycle heading to " + (locationData.barangay || locationData.location || "the barangay") + ". Ask the driver to drop you off at " + (locationData.name || "this location") + ".");
+            manualGuideEl.textContent = manualGuide;
+        }
+
+        // 4. Tour Guide Notice
+        const tourGuideTextEl = document.getElementById('sheet-tour-guide-text');
+        if (tourGuideTextEl) {
+            let tourGuideNotice = (locationData.tour_guide_notice && locationData.tour_guide_notice.trim())
+                ? locationData.tour_guide_notice.trim()
+                : "Some destinations may require a tour guide for entry or navigation. The system only provides informational notices about this requirement; it does not offer, book, or arrange tour guide services directly.";
+            tourGuideTextEl.textContent = tourGuideNotice;
+        }
+
+        // 5. Service Centers & Support
+        const scContainer = document.getElementById('sheet-service-centers-container');
+        const supportBadgeEl = document.getElementById('sheet-support-badge');
+        if (scContainer) {
+            if (locationData.service_centers && locationData.service_centers.length > 0) {
+                scContainer.style.display = 'flex';
+                scContainer.style.flexDirection = 'column';
+                scContainer.style.gap = '6px';
+                if (supportBadgeEl) supportBadgeEl.textContent = `${locationData.service_centers.length} Service Center${locationData.service_centers.length > 1 ? 's' : ''}`;
+                scContainer.innerHTML = locationData.service_centers.map(sc => `
+                    <div style="background:rgba(56,189,248,0.06); border:1px solid rgba(56,189,248,0.2); border-radius:12px; padding:8px 10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                            <span style="font-size:12px; font-weight:800; color:#38bdf8; display:flex; align-items:center; gap:5px;">
+                                <i class="fa-solid fa-building-flag" style="font-size:11px;"></i> ${sc.name}
+                            </span>
+                            <span style="font-size:9.5px; font-weight:700; color:#94a3b8; background:rgba(255,255,255,0.08); padding:1px 6px; border-radius:4px;">${sc.type || 'Terminal'}</span>
+                        </div>
+                        ${sc.address ? `<div style="font-size:11px; color:rgba(226,232,240,0.85); margin-bottom:2px;"><i class="fa-solid fa-location-dot" style="font-size:10px; color:#38bdf8; margin-right:4px;"></i>${sc.address}</div>` : ''}
+                        ${sc.contact_number ? `<div style="font-size:11px; color:#34d399; font-weight:700;"><i class="fa-solid fa-phone" style="font-size:10px; margin-right:4px;"></i><a href="tel:${sc.contact_number}" style="color:#34d399; text-decoration:none;">${sc.contact_number}</a></div>` : ''}
+                    </div>
+                `).join('');
+            } else {
+                scContainer.style.display = 'none';
+                scContainer.innerHTML = '';
+                if (supportBadgeEl) supportBadgeEl.textContent = 'LUPTO / MTO';
+            }
+        }
         
         const distanceEl = document.getElementById('sheet-distance');
         if (distanceEl) distanceEl.textContent = 'Calculating...';

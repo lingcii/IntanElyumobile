@@ -27,16 +27,44 @@ class MapController extends Controller
                     ->groupBy('tourist_spot_id');
             } catch (\Throwable $e) {}
 
+            $spotServiceCenterMap = [];
+            try {
+                $serviceCenters = \Illuminate\Support\Facades\DB::table('tourist_spot_service_center')
+                    ->join('service_centers', 'tourist_spot_service_center.service_center_id', '=', 'service_centers.id')
+                    ->select(
+                        'tourist_spot_service_center.tourist_spot_id',
+                        'service_centers.id',
+                        'service_centers.name',
+                        'service_centers.type',
+                        'service_centers.contact_number',
+                        'service_centers.address',
+                        'service_centers.description'
+                    )
+                    ->get();
+                
+                foreach ($serviceCenters as $sc) {
+                    $spotServiceCenterMap[$sc->tourist_spot_id][] = [
+                        'id'             => $sc->id,
+                        'name'           => $sc->name,
+                        'type'           => $sc->type,
+                        'contact_number' => $sc->contact_number,
+                        'address'        => $sc->address,
+                        'description'    => $sc->description,
+                    ];
+                }
+            } catch (\Throwable $e) {}
+
             return TouristSpot::where(function($q) {
                     $q->whereIn('status', ['approved', 'active', 'published', 'EXIST', 'exist', 'pending'])
                       ->orWhereNull('status');
                 })
                 ->with('municipality:id,name')
                 ->with('images')
-                ->get(['id', 'name', 'category', 'municipality_id', 'latitude', 'longitude',
-                       'entrance_fee', 'environmental_fee', 'photo_url', 'description', 'opening_time', 'closing_time',
+                ->get(['id', 'name', 'category', 'municipality_id', 'barangay', 'latitude', 'longitude',
+                       'entrance_fee', 'environmental_fee', 'fee_types', 'route_guide', 'tour_guide_notice',
+                       'accessible_by_private_vehicle', 'photo_url', 'description', 'opening_time', 'closing_time',
                        'is_maintenance', 'rating', 'visits', 'classification_status'])
-                ->map(function ($spot) use ($spotVehicleMap) {
+                ->map(function ($spot) use ($spotVehicleMap, $spotServiceCenterMap) {
                     $imageUrl = $spot->photo_url;
                     if (!$imageUrl && $spot->images->isNotEmpty()) {
                         $imageUrl = $spot->images->first()->photo_url;
@@ -57,25 +85,37 @@ class MapController extends Controller
                         ? $spotVehicleMap[$spot->id]->pluck('name')->unique()->values()->toArray()
                         : [];
 
+                    $feeTypes = $spot->fee_types;
+                    if (is_string($feeTypes)) {
+                        $decoded = json_decode($feeTypes, true);
+                        $feeTypes = is_array($decoded) ? $decoded : [];
+                    }
+
                     return [
-                        'id'                    => $spot->id,
-                        'name'                  => $spot->name,
-                        'category'              => $spot->category,
-                        'municipality'          => $spot->municipality?->name,
-                        'lat'                   => $spot->latitude,
-                        'lng'                   => $spot->longitude,
-                        'entrance_fee'          => $spot->entrance_fee,
-                        'environmental_fee'     => $spot->environmental_fee,
-                        'photo_url'             => $imageUrl,
-                        'images'                => $imagesList,
-                        'description'           => $spot->description,
-                        'opening_time'          => $spot->opening_time,
-                        'closing_time'          => $spot->closing_time,
-                        'is_maintenance'        => $spot->is_maintenance,
-                        'rating'                => $spot->rating,
-                        'visits'                => $spot->visits,
-                        'classification_status' => $spot->classification_status,
-                        'accessible_vehicles'   => $vehiclesList,
+                        'id'                            => $spot->id,
+                        'name'                          => $spot->name,
+                        'category'                      => $spot->category,
+                        'municipality'                  => $spot->municipality?->name,
+                        'barangay'                      => $spot->barangay,
+                        'lat'                           => $spot->latitude,
+                        'lng'                           => $spot->longitude,
+                        'entrance_fee'                  => (float) ($spot->entrance_fee ?? 0),
+                        'environmental_fee'             => (float) ($spot->environmental_fee ?? 0),
+                        'fee_types'                     => $feeTypes ?? [],
+                        'route_guide'                   => $spot->route_guide,
+                        'tour_guide_notice'             => $spot->tour_guide_notice,
+                        'accessible_by_private_vehicle' => (bool) ($spot->accessible_by_private_vehicle ?? 1),
+                        'service_centers'               => $spotServiceCenterMap[$spot->id] ?? [],
+                        'photo_url'                     => $imageUrl,
+                        'images'                        => $imagesList,
+                        'description'                   => $spot->description,
+                        'opening_time'                  => $spot->opening_time,
+                        'closing_time'                  => $spot->closing_time,
+                        'is_maintenance'                => $spot->is_maintenance,
+                        'rating'                        => $spot->rating,
+                        'visits'                        => $spot->visits,
+                        'classification_status'         => $spot->classification_status,
+                        'accessible_vehicles'           => $vehiclesList,
                     ];
                 })->values()->toArray();  // toArray() stores a plain array in cache — safe to serialize
         });
