@@ -133,7 +133,7 @@ $activeTab = 'leaderboard';
             url = backendUrl + '/api/tourist/leaderboard';
         }
 
-        const cacheKey = 'leaderboard_data_v9_' + (token ? token.substring(0, 10) : 'public');
+        const cacheKey = 'leaderboard_data_v10_' + (token ? token.substring(0, 10) : 'public');
         const fetchCache = window.useCache || (async (key, fetcher, renderer) => { const d = await fetcher(); if(renderer) renderer(d); return d; });
 
         await fetchCache(
