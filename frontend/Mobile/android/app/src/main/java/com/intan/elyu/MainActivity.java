@@ -1,7 +1,9 @@
 package com.intan.elyu;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.webkit.GeolocationPermissions;
@@ -32,6 +34,8 @@ public class MainActivity extends BridgeActivity {
                 settings.setGeolocationDatabasePath(getFilesDir().getPath());
                 settings.setDomStorageEnabled(true);
                 settings.setDatabaseEnabled(true);
+                settings.setJavaScriptEnabled(true);
+                settings.setJavaScriptCanOpenWindowsAutomatically(true);
 
                 String ua = settings.getUserAgentString();
                 if (ua != null) {
@@ -46,6 +50,43 @@ public class MainActivity extends BridgeActivity {
                         callback.invoke(origin, true, false);
                     }
                 });
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        handleIntent(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent intent) {
+        if (intent == null || intent.getData() == null) return;
+        Uri data = intent.getData();
+        String uriStr = data.toString();
+        
+        try {
+            if (this.bridge != null && this.bridge.getWebView() != null) {
+                WebView webView = this.bridge.getWebView();
+                
+                if (uriStr.startsWith("intanelyu://") || uriStr.startsWith("com.intan.elyu://")) {
+                    String queryOrPath = "";
+                    if (uriStr.contains("?")) {
+                        queryOrPath = uriStr.substring(uriStr.indexOf("?"));
+                    } else if (uriStr.contains("#")) {
+                        queryOrPath = uriStr.substring(uriStr.indexOf("#"));
+                    }
+                    final String targetUrl = "https://app.intan-elyu.online/index.php" + queryOrPath;
+                    webView.post(() -> webView.loadUrl(targetUrl));
+                } else if (uriStr.contains("app.intan-elyu.online")) {
+                    final String targetUrl = uriStr;
+                    webView.post(() -> webView.loadUrl(targetUrl));
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

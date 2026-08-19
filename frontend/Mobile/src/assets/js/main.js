@@ -131,6 +131,30 @@ window.initGoogleOAuthHandler = function () {
     const rawHash = window.location.hash || '';
     const rawSearch = window.location.search || '';
 
+    // 1. Check for direct token handoff (?token=...&user=...) from mobile browser to APK
+    const searchParams = new URLSearchParams(rawSearch.startsWith('?') ? rawSearch.substring(1) : rawSearch);
+    const directToken = searchParams.get('token');
+    const directUser = searchParams.get('user');
+
+    if (directToken) {
+        localStorage.setItem('intan_elyu_token', directToken);
+        if (directUser) {
+            try {
+                const parsedUser = typeof directUser === 'object' ? directUser : JSON.parse(directUser);
+                localStorage.setItem('auth_user', JSON.stringify(parsedUser));
+                if (window.AppStorage) window.AppStorage.setItem('auth_user', parsedUser);
+            } catch (e) { }
+        }
+        if (window.AppStorage) window.AppStorage.setItem('intan_elyu_token', directToken);
+
+        if (window.history && window.history.replaceState) {
+            window.history.replaceState({}, document.title, window.location.pathname + '?view=dashboard');
+        }
+        if (typeof showToast === 'function') showToast('🎉 Logged in successfully!', 'success');
+        navigateTo('dashboard', true, true);
+        return;
+    }
+
     const hasAccessToken = rawHash.includes('access_token=') || rawSearch.includes('access_token=');
     const hasIdToken = rawHash.includes('id_token=') || rawSearch.includes('id_token=');
     const hasError = rawHash.includes('error=') || rawSearch.includes('error=');
@@ -227,6 +251,11 @@ window.initGoogleOAuthHandler = function () {
                 window.AppStorage.setItem('intan_elyu_token', data.token);
             }
 
+            const isCapacitorNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+            const isAndroidBrowser = !isCapacitorNative && /Android/i.test(navigator.userAgent);
+            const intentUrl = `intent://app.intan-elyu.online/index.php?token=${encodeURIComponent(data.token)}&user=${encodeURIComponent(JSON.stringify(data.user))}#Intent;scheme=https;package=com.intan.elyu;end`;
+            const customSchemeUrl = `intanelyu://auth?token=${encodeURIComponent(data.token)}&user=${encodeURIComponent(JSON.stringify(data.user))}`;
+
             const currentOverlay = document.getElementById('global-oauth-overlay');
             if (currentOverlay) {
                 currentOverlay.innerHTML = `
@@ -234,8 +263,21 @@ window.initGoogleOAuthHandler = function () {
                         <i class="fa-solid fa-check" style="font-size:30px; color:#34c759;"></i>
                     </div>
                     <h3 style="margin:0; font-size:19px; font-weight:700; color:#fff;">Welcome${data.user?.name ? ', ' + data.user.name : ''}!</h3>
-                    <p style="margin:0; font-size:13.5px; color:rgba(255,255,255,0.7);">Redirecting to dashboard...</p>
+                    <p style="margin:0; font-size:13.5px; color:rgba(255,255,255,0.7);">${isAndroidBrowser ? 'Returning to Intan Elyu App...' : 'Redirecting to dashboard...'}</p>
+                    ${isAndroidBrowser ? `<a href="${intentUrl}" id="btn-open-apk-link" style="display:inline-flex; align-items:center; gap:8px; margin-top:12px; padding:12px 24px; background:#38bdf8; color:#0a0a0e; font-weight:700; font-size:14px; border-radius:50px; text-decoration:none; box-shadow:0 4px 20px rgba(56,189,248,0.45); cursor:pointer;"><i class="fa-solid fa-mobile-screen-button"></i> Open in Intan Elyu App</a>` : ''}
                 `;
+            }
+
+            // If running in external Android browser, immediately launch the APK
+            if (isAndroidBrowser) {
+                try {
+                    window.location.href = intentUrl;
+                    setTimeout(() => {
+                        try { window.location.href = customSchemeUrl; } catch (e) { }
+                    }, 600);
+                } catch (e) {
+                    console.warn('Could not launch APK intent:', e);
+                }
             }
 
             setTimeout(() => {
@@ -247,7 +289,7 @@ window.initGoogleOAuthHandler = function () {
                 }
                 window._isProcessingGoogleOAuth = false;
                 navigateTo('dashboard', true, true);
-            }, 1200);
+            }, isAndroidBrowser ? 2500 : 1200);
         })
         .catch(err => {
             console.error('Google OAuth Handshake Error:', err);

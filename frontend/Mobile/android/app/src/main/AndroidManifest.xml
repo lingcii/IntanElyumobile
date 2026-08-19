@@ -19,6 +19,23 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- Custom URL Scheme Filters for OAuth Return (com.intan.elyu:// and intanelyu://) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="com.intan.elyu" />
+                <data android:scheme="intanelyu" />
+            </intent-filter>
+
+            <!-- Deep Link / App Link for app.intan-elyu.online -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="app.intan-elyu.online" />
+            </intent-filter>
         </activity>
 
         <provider
