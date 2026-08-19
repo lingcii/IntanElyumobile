@@ -1,5 +1,7 @@
 <?php
 // Password Reset View
+$token = $_GET['token'] ?? '';
+$email = $_GET['email'] ?? '';
 ?>
 <link rel="stylesheet" href="assets/css/views/auth.css?v=<?= time() ?>">
 <div class="auth-container">
@@ -25,6 +27,15 @@
         <div class="forms-wrapper" style="padding: 0 20px; max-width: 380px; margin: 0 auto;">
             <div class="form-panel" style="width:100%; display:block; opacity:1; transform:none;">
                 <form id="form-reset-password" onsubmit="handleResetPassword(event)">
+                    <input type="hidden" id="reset-token" value="<?= htmlspecialchars($token, ENT_QUOTES) ?>">
+                    <input type="hidden" id="reset-email" value="<?= htmlspecialchars($email, ENT_QUOTES) ?>">
+
+                    <?php if (!empty($email)): ?>
+                    <p style="text-align: center; color: rgba(255,255,255,0.7); font-size: 13px; margin-bottom: 20px;">
+                        Resetting password for <strong style="color: #38bdf8;"><?= htmlspecialchars($email) ?></strong>
+                    </p>
+                    <?php endif; ?>
+
                     <div class="input-group" style="margin-bottom: 20px;">
                         <i class="fa-solid fa-lock"></i>
                         <input type="password" id="reset-password-val" class="auth-input" placeholder="New Password (min 8 chars)" required minlength="8">
@@ -66,15 +77,12 @@ function togglePasswordVisibility(inputId, iconEl) {
 
 (function() {
     const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
-    const email = params.get('email');
+    const token = document.getElementById('reset-token')?.value || params.get('token') || '';
+    const email = document.getElementById('reset-email')?.value || params.get('email') || '';
     const backendUrl = (typeof window.getBackendUrl === 'function') ? window.getBackendUrl() : (window.backendUrl || window.location.origin);
 
     if (!token || !email) {
-        if (typeof showToast === 'function') showToast('Invalid or missing password reset token.');
-        setTimeout(() => {
-            if (typeof navigateTo === 'function') navigateTo('auth');
-        }, 2500);
+        console.warn('Token or email query parameter missing from URL.');
     }
 
     window.handleResetPassword = async function(e) {
