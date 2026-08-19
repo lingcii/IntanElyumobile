@@ -1020,9 +1020,10 @@ if (is_dir($imgDir)) {
                                 destinationsHtml = '<div style="font-size:12px; color:rgba(255,255,255,0.5); font-style:italic; text-align:center; padding:10px 0;">No destinations added yet.</div>';
                             }
 
+                            const safeTitle = (trip.title || 'Trip').replace(/'/g, "\\'");
                             tripsHtml += `
-                                <div class="trip-swipe-container" data-trip-id="${trip.id}" style="margin-bottom: 14px; position: relative; overflow: hidden; border-radius: 20px; -webkit-mask-image: -webkit-radial-gradient(white, black); mask-image: radial-gradient(white, black); isolation: isolate; contain: paint;">
-                                    <div class="trip-swipe-bg" style="position: absolute; top: 0; right: 0; bottom: 0; width: 85px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 0 20px 20px 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 800; gap: 4px; z-index: 1; opacity: 0; pointer-events: none; transform: translateX(85px); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;">
+                                <div class="trip-swipe-container" data-trip-id="${trip.id}" data-trip-title="${safeTitle}" style="margin-bottom: 14px; position: relative; overflow: hidden; border-radius: 20px; -webkit-mask-image: -webkit-radial-gradient(white, black); mask-image: radial-gradient(white, black); isolation: isolate; contain: paint;">
+                                    <div class="trip-swipe-bg" onclick="window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}')" style="position: absolute; top: 0; right: 0; bottom: 0; width: 85px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 0 20px 20px 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 800; gap: 4px; z-index: 1; opacity: 0; pointer-events: none; transform: translateX(85px); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease; cursor: pointer;">
                                         <i class="fa-solid fa-trash-can"></i> Delete
                                     </div>
                                     <div class="trip-swipe-content" style="position: relative; z-index: 2; transition: transform 0.2s ease, border-radius 0.2s ease, border-color 0.2s ease; background: linear-gradient(135deg, rgba(30, 41, 59, 0.65) 0%, rgba(15, 23, 42, 0.88) 100%); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.3);">
@@ -1361,13 +1362,34 @@ window.toggleRecommendedMore = function() {
 
             const handleEnd = () => {
                 if (!isSwiping) return;
-                content.style.transition = 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.2s ease, border-color 0.2s ease';
-                if (bg) bg.style.transition = 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease';
+                content.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.2s ease, border-color 0.2s ease';
+                if (bg) bg.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease';
                 const diff = startX - currentX;
-                if (diff > 60 && moved) {
-                    const id = container.dataset.tripId;
-                    if (id) window.deleteSavedTrip(id, container);
+                const tripId = container.dataset.tripId;
+                const tripTitle = container.dataset.tripTitle || '';
+                if (diff > 75 && moved) {
+                    // Full swipe across -> Reveal red button & trigger confirmation modal
+                    content.style.transform = 'translateX(-85px)';
+                    content.style.borderRadius = '20px 0 0 20px';
+                    content.style.borderRightColor = 'transparent';
+                    if (bg) {
+                        bg.style.opacity = '1';
+                        bg.style.pointerEvents = 'auto';
+                        bg.style.transform = 'translateX(0px)';
+                    }
+                    window.confirmDeleteSavedTrip(tripId, container, tripTitle);
+                } else if (diff > 30 && moved) {
+                    // Partial swipe -> Reveal red delete button for tap
+                    content.style.transform = 'translateX(-85px)';
+                    content.style.borderRadius = '20px 0 0 20px';
+                    content.style.borderRightColor = 'transparent';
+                    if (bg) {
+                        bg.style.opacity = '1';
+                        bg.style.pointerEvents = 'auto';
+                        bg.style.transform = 'translateX(0px)';
+                    }
                 } else {
+                    // Tap or small drag -> Snap closed
                     content.style.transform = 'translateX(0px)';
                     content.style.borderRadius = '20px';
                     content.style.borderRightColor = '';
@@ -1393,10 +1415,63 @@ window.toggleRecommendedMore = function() {
         });
     };
 
-    window.deleteSavedTrip = async function(id, element) {
+    window.confirmDeleteSavedTrip = function(id, container, title) {
+        window._pendingDeleteTripId = id;
+        window._pendingDeleteTripContainer = container;
+        window._pendingDeleteTripTitle = title || container?.dataset?.tripTitle || '';
+
+        const modal = document.getElementById('delete-trip-modal');
+        const textEl = document.getElementById('delete-trip-title-text');
+        if (textEl) {
+            const displayTitle = window._pendingDeleteTripTitle || 'this trip';
+            textEl.textContent = `Are you sure you want to delete "${displayTitle}"? All saved itinerary items will be removed.`;
+        }
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    };
+
+    window.closeDeleteTripModal = function() {
+        const modal = document.getElementById('delete-trip-modal');
+        if (modal) modal.style.display = 'none';
+
+        // Snap swiped container back closed
+        const container = window._pendingDeleteTripContainer;
+        if (container) {
+            const content = container.querySelector('.trip-swipe-content');
+            const bg = container.querySelector('.trip-swipe-bg');
+            if (content) {
+                content.style.transform = 'translateX(0px)';
+                content.style.borderRadius = '20px';
+                content.style.borderRightColor = '';
+            }
+            if (bg) {
+                bg.style.opacity = '0';
+                bg.style.pointerEvents = 'none';
+                bg.style.transform = 'translateX(85px)';
+            }
+        }
+
+        window._pendingDeleteTripId = null;
+        window._pendingDeleteTripContainer = null;
+        window._pendingDeleteTripTitle = null;
+    };
+
+    window.executeConfirmDeleteTrip = async function() {
+        const id = window._pendingDeleteTripId;
+        const element = window._pendingDeleteTripContainer;
+        const btn = document.getElementById('btn-confirm-delete-trip');
         const token = localStorage.getItem('intan_elyu_token');
-        if (!token) return;
-        
+        if (!id || !token) {
+            window.closeDeleteTripModal();
+            return;
+        }
+
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
+            btn.disabled = true;
+        }
+
         try {
             const res = await fetch(window.backendUrl + '/api/tourist/itineraries/' + id, {
                 method: 'DELETE',
@@ -1431,14 +1506,19 @@ window.toggleRecommendedMore = function() {
                         }
                     }, 300);
                 }
+                if (typeof showToast === 'function') showToast("Trip deleted successfully.");
             } else {
-                const content = element ? element.querySelector('.trip-swipe-content') : null;
-                const bg = element ? element.querySelector('.trip-swipe-bg') : null;
-                if (content) { content.style.transform = 'translateX(0px)'; content.style.borderRadius = '20px'; content.style.borderRightColor = ''; }
-                if (bg) { bg.style.transform = 'translateX(85px)'; bg.style.opacity = '0'; bg.style.pointerEvents = 'none'; }
+                if (typeof showToast === 'function') showToast("Failed to delete trip.");
             }
         } catch (e) {
             console.error('Error deleting itinerary', e);
+            if (typeof showToast === 'function') showToast("Error deleting trip.");
+        } finally {
+            if (btn) {
+                btn.innerHTML = 'Delete';
+                btn.disabled = false;
+            }
+            window.closeDeleteTripModal();
         }
     };
 
@@ -1720,6 +1800,24 @@ window.toggleRecommendedMore = function() {
         }
     }, 200);
 </script>
+
+<!-- Delete Trip Confirmation Modal -->
+<div id="delete-trip-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.8); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center;">
+    <div style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); border:1px solid rgba(239, 68, 68, 0.35); border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:0 24px 60px rgba(0,0,0,0.6), 0 0 30px rgba(239, 68, 68, 0.2); text-align:center;">
+        <i class="fa-solid fa-trash-can" style="font-size:32px; color:#ef4444; margin-bottom:10px; display:block;"></i>
+        <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Delete Saved Trip?</h3>
+        <p id="delete-trip-title-text" style="font-size:13px; color:rgba(226, 232, 240, 0.8); margin-bottom:22px; line-height:1.5;">Are you sure you want to delete this trip? All saved itinerary items will be removed.</p>
+
+        <div style="display:flex; gap:10px;">
+            <button type="button" style="flex:1; padding:13px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#e2e8f0; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeDeleteTripModal()">
+                Cancel
+            </button>
+            <button type="button" id="btn-confirm-delete-trip" style="flex:1; padding:13px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border:1px solid rgba(255,255,255,0.2); color:#ffffff; border-radius:14px; box-shadow:0 4px 16px rgba(239,68,68,0.4); cursor:pointer;" onclick="window.executeConfirmDeleteTrip()">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
 
 <!-- Complete Profile Modal -->
 <div id="onboard-profile-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(12px); z-index:999999; justify-content:center; align-items:center; padding:16px;">
