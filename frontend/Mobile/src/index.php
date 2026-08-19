@@ -3,6 +3,34 @@ if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
     @session_start();
 }
 
+// Direct APK Binary Streaming Handler
+if (
+    (isset($_GET['action']) && $_GET['action'] === 'download_apk') ||
+    (isset($_GET['download']) && $_GET['download'] === 'apk') ||
+    (strpos($_SERVER['REQUEST_URI'] ?? '', 'intan-elyu.apk') !== false && !isset($_GET['view']))
+) {
+    $apkPath = __DIR__ . '/downloads/intan-elyu.apk';
+    if (!file_exists($apkPath)) {
+        $apkPath = dirname(__DIR__) . '/public/downloads/intan-elyu.apk';
+    }
+    if (file_exists($apkPath)) {
+        while (ob_get_level()) { ob_end_clean(); }
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/vnd.android.package-archive');
+        header('Content-Disposition: attachment; filename="intan-elyu.apk"');
+        header('Content-Transfer-Encoding: binary');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize($apkPath));
+        readfile($apkPath);
+        exit;
+    } else {
+        header('Location: https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk');
+        exit;
+    }
+}
+
 // Extract view name safely - from $_GET['view'] or URI path (e.g. /download)
 $rawView = 'splash';
 if (isset($_GET['view'])) {

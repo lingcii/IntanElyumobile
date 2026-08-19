@@ -288,7 +288,7 @@ $hideBottomNav = true;
 
   <!-- DOWNLOAD CARD -->
   <div class="download-card">
-    <a href="downloads/intan-elyu.apk" download="intan-elyu.apk" class="download-btn" id="download-btn">
+    <a href="index.php?action=download_apk" download="intan-elyu.apk" class="download-btn" id="download-btn">
       <i class="fab fa-android"></i>
       Download APK for Android
     </a>
@@ -296,6 +296,9 @@ $hideBottomNav = true;
       <span><i class="fa-solid fa-file-zipper"></i> APK File</span>
       <span><i class="fa-solid fa-hard-drive"></i> ~8.8 MB</span>
       <span><i class="fa-solid fa-lock"></i> Signed Release</span>
+    </div>
+    <div style="margin-top: 12px; font-size: 12px; color: rgba(148,163,184,0.75);">
+      Having trouble? <a href="https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk" target="_blank" rel="noopener" style="color: #38bdf8; font-weight: 600; text-decoration: underline;">Download via Cloud Mirror (R2)</a>
     </div>
   </div>
 
@@ -355,7 +358,7 @@ $hideBottomNav = true;
 <!-- QR Code Generator -->
 <script>
 (function(){
-  var directUrl = (window.location.origin || 'https://app.intan-elyu.online') + '/downloads/intan-elyu.apk';
+  var directUrl = (window.location.origin || 'https://app.intan-elyu.online') + '/index.php?action=download_apk';
   var downloadUrl = directUrl;
 
   // Update download button

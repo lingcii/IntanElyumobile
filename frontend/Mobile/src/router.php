@@ -15,6 +15,30 @@ if (strpos($path, 'user_manual_mobile.html') !== false) {
     }
 }
 
+// Serve APK binary files directly
+if (strpos($path, 'intan-elyu.apk') !== false || strpos($path, '.apk') !== false) {
+    $apkPath = __DIR__ . '/downloads/intan-elyu.apk';
+    if (!file_exists($apkPath)) {
+        $apkPath = dirname(__DIR__) . '/public/downloads/intan-elyu.apk';
+    }
+    if (file_exists($apkPath)) {
+        while (ob_get_level()) { ob_end_clean(); }
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/vnd.android.package-archive');
+        header('Content-Disposition: attachment; filename="intan-elyu.apk"');
+        header('Content-Transfer-Encoding: binary');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize($apkPath));
+        readfile($apkPath);
+        exit;
+    } else {
+        header('Location: https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk');
+        exit;
+    }
+}
+
 // Return clean 404 for missing static assets to prevent HTML syntax errors in CSS/JS
 if (preg_match('/\.(css|js|png|jpg|jpeg|gif|svg|ico|json|woff|woff2|ttf|map)$/i', $path) && !file_exists(__DIR__ . $path)) {
     http_response_code(404);
