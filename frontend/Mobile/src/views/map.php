@@ -2336,7 +2336,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                         const stars = '★'.repeat(fb.rating || 0) + '☆'.repeat(5 - (fb.rating || 0));
                         const date = new Date(fb.created_at).toLocaleDateString();
                         const policyHtml = fb.policy_recommendation ? `
-                            <div style="background:rgba(56,189,248,0.06); border-left:2px solid #38bdf8; padding:8px 10px; border-radius:4px; margin-top:8px; font-size:11px;">
+                            <div style="background:rgba(56,189,248,0.06); border:1px solid rgba(56,189,248,0.18); padding:8px 10px; border-radius:10px; margin-top:8px; font-size:11px;">
                                 <strong style="display:block; font-size:10px; color:#38bdf8; text-transform:uppercase; margin-bottom:2px;">Policy Recommendation:</strong>
                                 <span style="color:rgba(255,255,255,0.85);">${fb.policy_recommendation}</span>
                             </div>` : '';
