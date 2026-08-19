@@ -815,8 +815,8 @@ if (is_dir($imgDir)) {
                         
                         let distText = '';
                         if (dest.distance < 1) {
-                            const meters = Math.max(50, Math.round(dest.distance * 1000));
-                            distText = `${meters} m away`;
+                            const meters = Math.max(10, Math.round(dest.distance * 1000));
+                            distText = `${meters}m away`;
                         } else {
                             distText = `${dest.distance.toFixed(1)} km away`;
                         }
