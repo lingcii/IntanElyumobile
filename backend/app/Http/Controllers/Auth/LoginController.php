@@ -246,18 +246,105 @@ class LoginController extends Controller
         }
 
         $mailSent = false;
+        $mailError = null;
+
+        // Attempt 1: Default configured mailer (Port 465 SSL)
         try {
             \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\PasswordResetMail($user, $token, $otpCode));
             $mailSent = true;
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('PasswordResetMail failed for user #' . $user->id . ' (' . $user->email . '): ' . $e->getMessage());
+        } catch (\Throwable $e1) {
+            $mailError = $e1->getMessage();
+            \Illuminate\Support\Facades\Log::warning("Primary SMTP (465 SSL) failed for {$user->email}: " . $mailError . ". Retrying on Port 587 TLS...");
+
+            // Attempt 2: Alternative Port 587 TLS with explicit credentials
+            try {
+                $altMailer = app('mail.manager')->build([
+                    'transport'  => 'smtp',
+                    'host'       => 'smtp.gmail.com',
+                    'port'       => 587,
+                    'encryption' => 'tls',
+                    'username'   => 'acekillersmile@gmail.com',
+                    'password'   => 'egnrijvxdqdanlwc',
+                    'timeout'    => 20,
+                ]);
+                $altMailer->to($user->email)->send(new \App\Mail\PasswordResetMail($user, $token, $otpCode));
+                $mailSent = true;
+            } catch (\Throwable $e2) {
+                $mailError = $e2->getMessage();
+                \Illuminate\Support\Facades\Log::error("Both Port 465 and Port 587 failed for {$user->email}: " . $mailError);
+            }
+        }
+
+        if (!$mailSent) {
+            return response()->json([
+                'success'      => false,
+                'mail_sent'    => false,
+                'error'        => 'Email delivery failed. ' . (str_contains($mailError ?? '', 'BadCredentials') ? 'Gmail rejected credentials. Please verify Google App Password.' : ($mailError ?? 'Mail server unavailable.')),
+                'error_detail' => $mailError,
+            ], 500);
         }
 
         return response()->json([
             'success'   => true,
             'email'     => $user->email,
-            'mail_sent' => $mailSent,
+            'mail_sent' => true,
             'message'   => 'Security reset code & link sent successfully to your email.'
+        ]);
+    }
+
+    /**
+     * GET /api/auth/test-email?to=...
+     * Direct diagnostic tool to test and display live SMTP connection output
+     */
+    public function testEmail(Request $request): JsonResponse
+    {
+        $to = $request->query('to', 'acekillersmile@gmail.com');
+        $results = [];
+
+        // Test 1: Port 465 SSL
+        try {
+            $mailer465 = app('mail.manager')->build([
+                'transport'  => 'smtp',
+                'host'       => 'smtp.gmail.com',
+                'port'       => 465,
+                'encryption' => 'ssl',
+                'username'   => 'acekillersmile@gmail.com',
+                'password'   => 'egnrijvxdqdanlwc',
+                'timeout'    => 15,
+            ]);
+            $mailer465->raw("This is a live test email from Intan Elyu (Port 465 SSL) sent at " . now(), function ($m) use ($to) {
+                $m->to($to)->subject('🧪 Intan Elyu SMTP Test (Port 465 SSL)');
+                $m->from('acekillersmile@gmail.com', 'Intan-Elyu Customer Support');
+            });
+            $results['port_465_ssl'] = 'SUCCESS: Email delivered to ' . $to;
+        } catch (\Throwable $e) {
+            $results['port_465_ssl'] = 'FAILED: ' . $e->getMessage();
+        }
+
+        // Test 2: Port 587 TLS
+        try {
+            $mailer587 = app('mail.manager')->build([
+                'transport'  => 'smtp',
+                'host'       => 'smtp.gmail.com',
+                'port'       => 587,
+                'encryption' => 'tls',
+                'username'   => 'acekillersmile@gmail.com',
+                'password'   => 'egnrijvxdqdanlwc',
+                'timeout'    => 15,
+            ]);
+            $mailer587->raw("This is a live test email from Intan Elyu (Port 587 TLS) sent at " . now(), function ($m) use ($to) {
+                $m->to($to)->subject('🧪 Intan Elyu SMTP Test (Port 587 TLS)');
+                $m->from('acekillersmile@gmail.com', 'Intan-Elyu Customer Support');
+            });
+            $results['port_587_tls'] = 'SUCCESS: Email delivered to ' . $to;
+        } catch (\Throwable $e) {
+            $results['port_587_tls'] = 'FAILED: ' . $e->getMessage();
+        }
+
+        return response()->json([
+            'status'  => 'Diagnostic complete',
+            'target'  => $to,
+            'results' => $results
         ]);
     }
 

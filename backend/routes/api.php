@@ -137,6 +137,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/validate-reset-otp',  [LoginController::class, 'validateResetOtp']);
     Route::post('/reset-password',      [LoginController::class, 'resetPassword']);
     Route::post('/reset-password-otp',  [LoginController::class, 'resetPasswordWithOtp']);
+    Route::get('/test-email',           [LoginController::class, 'testEmail']);
 
     Route::get('/google/redirect', function () {
         return response()->json([
