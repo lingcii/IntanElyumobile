@@ -149,10 +149,11 @@
 
             <!-- Panel 3: Forgot Password -->
             <div class="form-panel forgot-form">
-                <a href="#" class="back-link" onclick="hideForgotPassword(event)">
+                <a href="#" class="back-link" id="fp-back-link" onclick="handleFpBack(event)">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </a>
 
+                <!-- Step 1: Enter Email -->
                 <div id="fp-form-state">
                     <div class="fp-header">
                         <h3>Reset Password</h3>
@@ -171,16 +172,17 @@
                     </form>
                 </div>
 
-                <div id="fp-success-state" style="display: none; text-align: center; padding: 10px 0;">
+                <!-- Step 2: Enter 6-Digit Code -->
+                <div id="fp-code-state" style="display: none; text-align: center; padding: 6px 0;">
                     <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 20px; margin: 0 auto 10px auto;">
                         <i class="fa-solid fa-paper-plane"></i>
                     </div>
                     <h3 style="margin: 0 0 4px 0; color: white; font-size: 18px; font-weight: 800;">Reset Code Sent</h3>
                     <p style="color: rgba(255,255,255,0.7); font-size: 12px; margin: 0 0 16px 0;">We sent a 6-digit reset code to <br><strong id="fp-target-email" style="color: #38bdf8; font-family: monospace;"></strong></p>
 
-                    <form id="form-fp-reset" onsubmit="handleResetPasswordOtp(event)">
+                    <form id="form-fp-verify-code" onsubmit="handleVerifyFpCode(event)">
                         <!-- 6 Individual Digit Input Boxes -->
-                        <div class="otp-boxes-container" style="margin: 14px 0 16px 0;">
+                        <div class="otp-boxes-container" style="margin: 18px 0 20px 0;">
                             <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" oninput="handleFpOtpBoxInput(this, 0)" onkeydown="handleFpOtpBoxKeydown(this, event, 0)" onpaste="handleFpOtpPaste(event)">
                             <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleFpOtpBoxInput(this, 1)" onkeydown="handleFpOtpBoxKeydown(this, event, 1)" onpaste="handleFpOtpPaste(event)">
                             <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleFpOtpBoxInput(this, 2)" onkeydown="handleFpOtpBoxKeydown(this, event, 2)" onpaste="handleFpOtpPaste(event)">
@@ -188,6 +190,30 @@
                             <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleFpOtpBoxInput(this, 4)" onkeydown="handleFpOtpBoxKeydown(this, event, 4)" onpaste="handleFpOtpPaste(event)">
                             <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleFpOtpBoxInput(this, 5)" onkeydown="handleFpOtpBoxKeydown(this, event, 5)" onpaste="handleFpOtpPaste(event)">
                         </div>
+
+                        <button type="submit" id="fp-verify-btn" class="btn-circle-submit" style="margin-bottom: 14px;">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+
+                        <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 10px;">
+                            Didn't receive email? 
+                            <button type="button" id="fp-resend-btn" onclick="handleResendFpEmail(event)" style="background: none; border: none; color: #38bdf8; font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0;">
+                                Resend Code
+                            </button>
+                            <span id="fp-countdown-text" style="display: none; color: #f59e0b; font-weight: 700;">(Resend in <span id="fp-countdown-sec">45</span>s)</span>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Step 3: Enter New Password -->
+                <div id="fp-password-state" style="display: none; text-align: center; padding: 6px 0;">
+                    <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 20px; margin: 0 auto 10px auto;">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <h3 style="margin: 0 0 4px 0; color: white; font-size: 18px; font-weight: 800;">Create New Password</h3>
+                    <p style="color: rgba(255,255,255,0.7); font-size: 12px; margin: 0 0 20px 0;">Enter your new password below.</p>
+
+                    <form id="form-fp-password" onsubmit="handleResetPasswordSubmit(event)">
                         <div class="input-group" style="margin-bottom: 16px;">
                             <i class="fa-solid fa-lock"></i>
                             <input type="password" id="fp-new-password" class="auth-input" placeholder="New Password (min 8 chars)" minlength="8" required>
@@ -199,17 +225,9 @@
                             <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('fp-confirm-password', this)"></i>
                         </div>
 
-                        <button type="submit" id="fp-reset-btn" class="btn-circle-submit" style="margin-bottom: 14px;">
+                        <button type="submit" id="fp-password-btn" class="btn-circle-submit" style="margin-bottom: 10px;">
                             <i class="fa-solid fa-check"></i>
                         </button>
-
-                        <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 10px;">
-                            Didn't receive email? 
-                            <button type="button" id="fp-resend-btn" onclick="handleResendFpEmail(event)" style="background: none; border: none; color: #38bdf8; font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0;">
-                                Resend Code
-                            </button>
-                            <span id="fp-countdown-text" style="display: none; color: #f59e0b; font-weight: 700;">(Resend in <span id="fp-countdown-sec">45</span>s)</span>
-                        </div>
                     </form>
                 </div>
             </div>
@@ -1443,7 +1461,8 @@
                 if (targetEmailEl) targetEmailEl.textContent = data.email || email;
 
                 document.getElementById('fp-form-state').style.display = 'none';
-                document.getElementById('fp-success-state').style.display = 'block';
+                document.getElementById('fp-password-state').style.display = 'none';
+                document.getElementById('fp-code-state').style.display = 'block';
                 if (typeof showToast === 'function') showToast('Security reset code sent to ' + (data.email || email));
                 startFpResendTimer();
                 
@@ -1464,6 +1483,25 @@
                 btn.innerHTML = oldHtml;
                 btn.disabled = false;
             }
+        }
+    };
+
+    window._verifiedFpOtp = '';
+
+    window.handleFpBack = function(e) {
+        if (e) e.preventDefault();
+        const pwdState = document.getElementById('fp-password-state');
+        const codeState = document.getElementById('fp-code-state');
+        const formState = document.getElementById('fp-form-state');
+
+        if (pwdState && pwdState.style.display === 'block') {
+            pwdState.style.display = 'none';
+            if (codeState) codeState.style.display = 'block';
+        } else if (codeState && codeState.style.display === 'block') {
+            codeState.style.display = 'none';
+            if (formState) formState.style.display = 'block';
+        } else {
+            window.hideForgotPassword(e);
         }
     };
 
@@ -1499,16 +1537,72 @@
         window.handleForgotPassword(null);
     };
 
-    window.handleResetPasswordOtp = async function(e) {
-        e.preventDefault();
+    window.handleVerifyFpCode = async function(e) {
+        if (e) e.preventDefault();
         const email = document.getElementById('fp-target-email').textContent || document.getElementById('fp-email').value;
         const boxes = document.querySelectorAll('.fp-otp-box');
         const otp = Array.from(boxes).map(b => b.value).join('');
+
+        if (otp.length < 6) {
+            if (typeof showToast === 'function') showToast('Please enter all 6 digits of your reset code.');
+            return;
+        }
+
+        const btn = document.getElementById('fp-verify-btn');
+        const oldHtml = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+            btn.disabled = true;
+        }
+
+        try {
+            const response = await fetch(backendUrl + '/api/auth/validate-reset-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ email: email, otp: otp })
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || data.message || 'Invalid or expired code.');
+            }
+
+            window._verifiedFpOtp = otp;
+            if (typeof showToast === 'function') showToast('Code verified! Please create your new password.', 'success');
+
+            document.getElementById('fp-code-state').style.display = 'none';
+            document.getElementById('fp-password-state').style.display = 'block';
+            
+            const newPwdInput = document.getElementById('fp-new-password');
+            if (newPwdInput) {
+                newPwdInput.value = '';
+                newPwdInput.focus();
+            }
+            const confirmPwdInput = document.getElementById('fp-confirm-password');
+            if (confirmPwdInput) confirmPwdInput.value = '';
+
+        } catch (error) {
+            console.error('Code validation error:', error);
+            if (typeof showToast === 'function') showToast(error.message);
+        } finally {
+            if (btn) {
+                btn.innerHTML = oldHtml;
+                btn.disabled = false;
+            }
+        }
+    };
+
+    window.handleResetPasswordSubmit = async function(e) {
+        if (e) e.preventDefault();
+        const email = document.getElementById('fp-target-email').textContent || document.getElementById('fp-email').value;
+        const otp = window._verifiedFpOtp || Array.from(document.querySelectorAll('.fp-otp-box')).map(b => b.value).join('');
         const newPassword = document.getElementById('fp-new-password').value;
         const confirmPassword = document.getElementById('fp-confirm-password').value;
 
-        if (otp.length < 6) {
-            if (typeof showToast === 'function') showToast('Please enter all 6 digits of your security code.');
+        if (!otp || otp.length < 6) {
+            if (typeof showToast === 'function') showToast('Security code missing. Please verify code again.');
+            document.getElementById('fp-password-state').style.display = 'none';
+            document.getElementById('fp-code-state').style.display = 'block';
             return;
         }
 
@@ -1528,14 +1622,14 @@
         const spinnerSvg = document.getElementById('modal-spinner-svg');
         const checkmarkIcon = document.getElementById('modal-checkmark-icon');
 
-        const btn = document.getElementById('fp-reset-btn');
+        const btn = document.getElementById('fp-password-btn');
         const oldHtml = btn ? btn.innerHTML : '';
         if (btn) {
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
             btn.disabled = true;
         }
 
-        // Show full-screen loading modal with active CSS transition
+        // Show full-screen loading modal
         if (modal) {
             modal.style.display = 'flex';
             setTimeout(() => { modal.classList.add('active'); }, 10);
@@ -1564,9 +1658,8 @@
                 throw new Error(data.error || data.message || 'Failed to reset password.');
             }
 
-            // Guarantee spinner stays visible for at least 5 seconds
             const elapsedTime = Date.now() - startTime;
-            const minSpinnerTime = 5000;
+            const minSpinnerTime = 3000;
             if (elapsedTime < minSpinnerTime) {
                 await new Promise(r => setTimeout(r, minSpinnerTime - elapsedTime));
             }
@@ -1582,14 +1675,6 @@
                     modal.classList.remove('active');
                     setTimeout(() => { modal.style.display = 'none'; }, 300);
                 }
-                if (typeof showToast === 'function') showToast('🎉 Password reset successfully! Please sign in.');
-                
-                // Auto fill email into login form
-                const loginEmailInput = document.getElementById('login-email');
-                if (loginEmailInput) loginEmailInput.value = email;
-                
-                // Clear inputs and return back to Login tab
-                boxes.forEach(b => b.value = '');
                 document.getElementById('fp-new-password').value = '';
                 document.getElementById('fp-confirm-password').value = '';
                 if (btn) {

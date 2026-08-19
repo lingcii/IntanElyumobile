@@ -134,6 +134,7 @@ Route::prefix('auth')->group(function () {
     Route::get('/check',     [SessionController::class, 'check']);
     Route::post('/google',   [LoginController::class,   'googleLogin']);
     Route::post('/forgot-password',     [LoginController::class, 'sendResetLinkEmail']);
+    Route::post('/validate-reset-otp',  [LoginController::class, 'validateResetOtp']);
     Route::post('/reset-password',      [LoginController::class, 'resetPassword']);
     Route::post('/reset-password-otp',  [LoginController::class, 'resetPasswordWithOtp']);
 

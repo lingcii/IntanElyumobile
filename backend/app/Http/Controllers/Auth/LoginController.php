@@ -262,6 +262,38 @@ class LoginController extends Controller
     }
 
     /**
+     * POST /api/auth/validate-reset-otp
+     */
+    public function validateResetOtp(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'otp'   => 'required|string',
+        ]);
+
+        $email = $request->email;
+        $otp = trim($request->otp);
+
+        $user = User::where('email', $email)->first();
+        if (!$user) {
+            return response()->json(['error' => 'User account not found.'], 404);
+        }
+
+        $cachedOtp = \Illuminate\Support\Facades\Cache::get("pwd_reset_otp:{$email}");
+        $isValidOtp = ($cachedOtp && (string)$cachedOtp === (string)$otp) || ($user->remember_token === 'otp_' . $otp);
+
+        if (!$isValidOtp) {
+            return response()->json(['error' => 'Invalid or expired verification code.'], 400);
+        }
+
+        return response()->json([
+            'success' => true,
+            'email'   => $email,
+            'message' => 'Verification code confirmed.'
+        ]);
+    }
+
+    /**
      * POST /api/auth/reset-password-otp
      */
     public function resetPasswordWithOtp(Request $request): JsonResponse

@@ -20,11 +20,11 @@ return [
 
         'smtp' => [
             'transport' => 'smtp',
-            'scheme' => env('MAIL_SCHEME', null),
+            'scheme' => env('MAIL_SCHEME', 'smtps'),
             'url' => env('MAIL_URL'),
             'host' => env('MAIL_HOST', 'smtp.gmail.com'),
-            'port' => (int) env('MAIL_PORT', 587),
-            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
+            'port' => (int) env('MAIL_PORT', 465),
+            'encryption' => env('MAIL_ENCRYPTION', 'ssl'),
             'username' => env('MAIL_USERNAME', 'acekillersmile@gmail.com'),
             'password' => env('MAIL_PASSWORD', 'egnrijvxdqdanlwc'),
             'timeout' => 30,
