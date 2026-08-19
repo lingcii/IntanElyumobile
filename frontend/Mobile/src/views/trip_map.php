@@ -374,53 +374,53 @@ require_once __DIR__ . '/../components/header.php';
                     bounds.extend([lng, lat]);
 
                     let iconHtml = '';
-                    let labelHtml = '';
 
                     if (item.is_visited) {
-                        // VISITED - Green Checkmark
+                        // VISITED - Green Checkmark + Glassmorphic Tag
                         iconHtml = `
-                            <div style="background: #10b981; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; border: 3px solid #ffffff; box-shadow: none;">
-                                <i class="fa-solid fa-check"></i>
-                            </div>
-                        `;
-                        labelHtml = `
-                            <div style="background: rgba(16,185,129,0.8); color: white; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; white-space: nowrap; margin-top: 4px; border: 1px solid rgba(255,255,255,0.2); box-shadow: none; text-align: center; text-decoration: line-through;">
-                                ${dest.name}
+                            <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+                                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(16,185,129,0.4); z-index: 2;">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <div style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); z-index: 1;">
+                                    <span style="color: rgba(226, 232, 240, 0.7); font-size: 11px; font-weight: 600; text-decoration: line-through;">${dest.name}</span>
+                                </div>
                             </div>
                         `;
                     } else if (idx === activeIndex) {
-                        // ACTIVE - Glowing Blue Number
+                        // ACTIVE - Glowing Blue Number + Next Stop Tag
                         iconHtml = `
-                            <div style="background: #38bdf8; color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; border: 3px solid #ffffff; box-shadow: none; animation: pulse 2s infinite;">
-                                ${idx + 1}
-                            </div>
-                        `;
-                        labelHtml = `
-                            <div style="background: #0f172a; color: #38bdf8; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; white-space: nowrap; margin-top: 4px; border: 1px solid #38bdf8; box-shadow: none; text-align: center;">
-                                Next: ${dest.name}
+                            <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+                                <div style="background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); color: #ffffff; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px; border: 2.5px solid #ffffff; box-shadow: 0 0 20px rgba(56, 189, 248, 0.65); z-index: 2;">
+                                    ${idx + 1}
+                                </div>
+                                <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.96) 0%, rgba(15, 23, 42, 0.98) 100%); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1.5px solid rgba(56, 189, 248, 0.4); border-radius: 12px; padding: 5px 10px; margin-top: 6px; display: flex; align-items: center; gap: 6px; box-shadow: 0 8px 20px rgba(0,0,0,0.5); z-index: 1;">
+                                    <span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.4px;">Next</span>
+                                    <span style="color: #ffffff; font-size: 12px; font-weight: 700; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${dest.name}</span>
+                                </div>
                             </div>
                         `;
                     } else {
-                        // LOCKED - Grey Padlock
+                        // LOCKED - Grey Padlock + Stop Number
                         iconHtml = `
-                            <div style="background: #94a3b8; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; border: 3px solid #ffffff; box-shadow: none; opacity: 0.8;">
-                                <i class="fa-solid fa-lock"></i>
-                            </div>
-                        `;
-                        labelHtml = `
-                            <div style="background: rgba(148,163,184,0.8); color: white; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; white-space: nowrap; margin-top: 4px; border: 1px solid rgba(255,255,255,0.2); box-shadow: none; text-align: center; opacity: 0.8;">
-                                Locked
+                            <div style="display: flex; flex-direction: column; align-items: center; opacity: 0.85; cursor: pointer;">
+                                <div style="background: #475569; color: #ffffff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; border: 2px solid rgba(255,255,255,0.4); box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 2;">
+                                    <i class="fa-solid fa-lock" style="font-size: 10px;"></i>
+                                </div>
+                                <div style="background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 8px; padding: 3px 8px; margin-top: 4px; z-index: 1;">
+                                    <span style="color: rgba(148, 163, 184, 0.9); font-size: 10px; font-weight: 600;">Stop ${idx + 1}</span>
+                                </div>
                             </div>
                         `;
                     }
 
                     const el = document.createElement('div');
-                    el.innerHTML = iconHtml + labelHtml;
+                    el.innerHTML = iconHtml;
                     el.style.display = 'flex';
                     el.style.flexDirection = 'column';
                     el.style.alignItems = 'center';
 
-                    const m = new maplibregl.Marker({ element: el, anchor: 'top' })
+                    const m = new maplibregl.Marker({ element: el, anchor: 'center' })
                         .setLngLat([lng, lat])
                         .addTo(tripMap);
                     
@@ -622,12 +622,16 @@ require_once __DIR__ . '/../components/header.php';
 
                             const etaEl = document.createElement('div');
                             etaEl.innerHTML = `
-                                <div style="background: white; border: 1px solid #e2e8f0; padding: 6px 10px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 13px; font-weight: 800; color: #0f172a; display: flex; flex-direction: column; align-items: center; white-space: nowrap;">
-                                    <div style="display: flex; align-items: center; gap: 6px;">
-                                        ${iconHtml} <span style="font-size: 15px;">${Math.round(legDurMin)} min</span>
+                                <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.96) 0%, rgba(15, 23, 42, 0.98) 100%); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1.5px solid rgba(56, 189, 248, 0.4); padding: 6px 12px; border-radius: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 16px rgba(56,189,248,0.2); display: flex; align-items: center; gap: 8px; color: #ffffff; white-space: nowrap; pointer-events: none; transform: translateY(-4px);">
+                                    <div style="width: 26px; height: 26px; border-radius: 8px; background: rgba(56, 189, 248, 0.18); border: 1px solid rgba(56, 189, 248, 0.35); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 12px; flex-shrink: 0;">
+                                        ${iconHtml}
                                     </div>
-                                    <div style="font-size: 11px; color: #64748b; margin-top: 2px; font-weight: 600;">
-                                        ${legDistKm < 1 ? Math.round(legDistKm * 1000) + ' m' : legDistKm.toFixed(1) + ' km'}
+                                    <div style="display: flex; flex-direction: column; line-height: 1.15;">
+                                        <div style="display: flex; align-items: baseline; gap: 3px;">
+                                            <span style="font-size: 13px; font-weight: 800; color: #ffffff;">${Math.round(legDurMin)}</span>
+                                            <span style="font-size: 10px; font-weight: 700; color: #38bdf8;">min</span>
+                                        </div>
+                                        <span style="font-size: 10px; font-weight: 600; color: rgba(226, 232, 240, 0.75);">${legDistKm < 1 ? Math.round(legDistKm * 1000) + ' m' : legDistKm.toFixed(1) + ' km'}</span>
                                     </div>
                                 </div>
                             `;
