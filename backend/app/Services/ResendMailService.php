@@ -20,14 +20,11 @@ class ResendMailService
             return ['success' => false, 'error' => 'RESEND_API_KEY environment variable not configured'];
         }
 
-        // If from is not set, use custom verified domain if set or fallback to onboarding@resend.dev
+        // Set default verified sender address
         if (!$from) {
-            $configuredFrom = env('MAIL_FROM_ADDRESS');
-            if ($configuredFrom && str_contains($configuredFrom, 'intan-elyu.online')) {
-                $from = 'Intan Elyu Support <' . $configuredFrom . '>';
-            } else {
-                $from = 'Intan Elyu <onboarding@resend.dev>';
-            }
+            $configuredFrom = env('MAIL_FROM_ADDRESS', 'support@intan-elyu.online');
+            $fromName = env('MAIL_FROM_NAME', 'Intan Elyu Support');
+            $from = $fromName . ' <' . $configuredFrom . '>';
         }
 
         $payload = [

@@ -94,8 +94,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'acekillersmile@gmail.com'),
-        'name' => env('MAIL_FROM_NAME', 'Intan-Elyu Customer Support'),
+        'address' => env('MAIL_FROM_ADDRESS', 'support@intan-elyu.online'),
+        'name' => env('MAIL_FROM_NAME', 'Intan Elyu Support'),
     ],
 
 ];
