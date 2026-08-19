@@ -69,4 +69,26 @@ public class MainActivity extends BridgeActivity {
             }
         }
     }
+
+    @Override
+    public void onBackPressed() {
+        try {
+            if (this.bridge != null && this.bridge.getWebView() != null) {
+                WebView webView = this.bridge.getWebView();
+                String currentUrl = webView.getUrl();
+                if (currentUrl != null && (currentUrl.contains("accounts.google.com") || currentUrl.contains("google.com"))) {
+                    if (webView.canGoBack()) {
+                        webView.goBack();
+                        return;
+                    } else {
+                        webView.loadUrl("https://app.intan-elyu.online/index.php?view=auth");
+                        return;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        super.onBackPressed();
+    }
 }

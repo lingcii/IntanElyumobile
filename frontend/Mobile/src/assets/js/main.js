@@ -121,7 +121,151 @@ window.getFullImageUrl = function (url) {
     return base + '/api/image/' + clean;
 };
 
+/**
+ * Global Google OAuth 2.0 Direct Handler
+ * Handles access_token / id_token returned via Google OAuth redirect across all views & platforms (APK / Web)
+ */
+window._isProcessingGoogleOAuth = false;
+
+window.initGoogleOAuthHandler = function () {
+    const rawHash = window.location.hash || '';
+    const rawSearch = window.location.search || '';
+
+    const hasAccessToken = rawHash.includes('access_token=') || rawSearch.includes('access_token=');
+    const hasIdToken = rawHash.includes('id_token=') || rawSearch.includes('id_token=');
+    const hasError = rawHash.includes('error=') || rawSearch.includes('error=');
+
+    if (!hasAccessToken && !hasIdToken && !hasError) {
+        return;
+    }
+
+    if (window._isProcessingGoogleOAuth) return;
+    window._isProcessingGoogleOAuth = true;
+
+    const rawParams = rawHash.startsWith('#') ? rawHash.substring(1) : (rawSearch.startsWith('?') ? rawSearch.substring(1) : (rawHash || rawSearch));
+    const params = new URLSearchParams(rawParams);
+
+    // Clean hash from URL so the raw access token is not retained in browser history
+    if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname + '?view=auth');
+    }
+
+    if (hasError) {
+        window._isProcessingGoogleOAuth = false;
+        const errorDesc = params.get('error_description') || params.get('error') || 'Google sign-in was cancelled.';
+        console.warn('Google OAuth returned error:', errorDesc);
+        if (typeof showToast === 'function') showToast(errorDesc, 'error');
+        navigateTo('auth', true, false);
+        return;
+    }
+
+    const accessToken = params.get('access_token');
+    const idToken = params.get('id_token');
+
+    if (!accessToken && !idToken) {
+        window._isProcessingGoogleOAuth = false;
+        return;
+    }
+
+    // Display global full-screen OAuth loader
+    const showOverlay = () => {
+        let overlay = document.getElementById('global-oauth-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'global-oauth-overlay';
+            overlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(10,10,14,0.94); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; color:#fff; font-family:Inter,sans-serif; text-align:center; padding:20px; box-sizing:border-box;';
+            overlay.innerHTML = `
+                <div style="width:68px; height:68px; border-radius:50%; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.35); display:flex; align-items:center; justify-content:center; box-shadow:0 0 28px rgba(56,189,248,0.3);">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size:28px; color:#38bdf8;"></i>
+                </div>
+                <h3 style="margin:0; font-size:19px; font-weight:700; color:#fff;">Logging in with Google...</h3>
+                <p style="margin:0; font-size:13.5px; color:rgba(255,255,255,0.7);">Authenticating your account, please wait</p>
+            `;
+            document.body ? document.body.appendChild(overlay) : document.addEventListener('DOMContentLoaded', () => document.body.appendChild(overlay));
+        }
+        return overlay;
+    };
+
+    const overlay = showOverlay();
+
+    // Retrieve profile info using OAuth access token
+    const fetchProfile = accessToken
+        ? fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${accessToken}` } }).then(r => r.json())
+        : Promise.resolve(null);
+
+    fetchProfile
+        .then(profile => {
+            let payload = {};
+            if (profile && profile.email) {
+                payload = {
+                    email: profile.email,
+                    name: profile.name || (profile.given_name + ' ' + (profile.family_name || '')).trim(),
+                    google_id: 'g_' + profile.sub,
+                    avatar: profile.picture
+                };
+            } else if (idToken) {
+                payload = { credential: idToken };
+            } else {
+                throw new Error('Unable to retrieve profile from Google.');
+            }
+
+            const backend = (typeof window.getBackendUrl === 'function') ? window.getBackendUrl() : (window.backendUrl || 'https://app.intan-elyu.online');
+            return fetch(backend + '/api/auth/google', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+        })
+        .then(async res => {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || data.message || 'Google authentication failed.');
+
+            localStorage.setItem('auth_user', JSON.stringify(data.user));
+            localStorage.setItem('intan_elyu_token', data.token);
+            if (window.AppStorage) {
+                window.AppStorage.setItem('auth_user', data.user);
+                window.AppStorage.setItem('intan_elyu_token', data.token);
+            }
+
+            const currentOverlay = document.getElementById('global-oauth-overlay');
+            if (currentOverlay) {
+                currentOverlay.innerHTML = `
+                    <div style="width:68px; height:68px; border-radius:50%; background:rgba(52,199,89,0.15); border:1px solid rgba(52,199,89,0.4); display:flex; align-items:center; justify-content:center; box-shadow:0 0 28px rgba(52,199,89,0.35);">
+                        <i class="fa-solid fa-check" style="font-size:30px; color:#34c759;"></i>
+                    </div>
+                    <h3 style="margin:0; font-size:19px; font-weight:700; color:#fff;">Welcome${data.user?.name ? ', ' + data.user.name : ''}!</h3>
+                    <p style="margin:0; font-size:13.5px; color:rgba(255,255,255,0.7);">Redirecting to dashboard...</p>
+                `;
+            }
+
+            setTimeout(() => {
+                const ov = document.getElementById('global-oauth-overlay');
+                if (ov) {
+                    ov.style.transition = 'opacity 0.3s ease';
+                    ov.style.opacity = '0';
+                    setTimeout(() => ov.remove(), 300);
+                }
+                window._isProcessingGoogleOAuth = false;
+                navigateTo('dashboard', true, true);
+            }, 1200);
+        })
+        .catch(err => {
+            console.error('Google OAuth Handshake Error:', err);
+            window._isProcessingGoogleOAuth = false;
+            const ov = document.getElementById('global-oauth-overlay');
+            if (ov) ov.remove();
+            if (typeof showToast === 'function') showToast(err.message || 'Google sign-in failed.', 'error');
+            navigateTo('auth', true, false);
+        });
+};
+
+// Check for Google OAuth token immediately on script execution
+window.initGoogleOAuthHandler();
+
 document.addEventListener('DOMContentLoaded', () => {
+    // Check again once DOM is ready if not already handled
+    window.initGoogleOAuthHandler();
+
     // Auto-invalidate stale caches from previous builds
     const CACHE_VER = 'v1.0.5_r2_regex';
     if (localStorage.getItem('intan_elyu_cache_ver') !== CACHE_VER) {
@@ -133,11 +277,13 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('intan_elyu_cache_ver', CACHE_VER);
     }
 
-    // Global Auth Enforcement for Initial Direct Load
-    const publicViews = ['splash', 'auth', 'download', 'reset-password'];
-    if (!publicViews.includes(state.currentView) && !localStorage.getItem('intan_elyu_token')) {
-        navigateTo('auth');
-        return;
+    // Global Auth Enforcement for Initial Direct Load (skip if OAuth handshake in progress)
+    if (!window._isProcessingGoogleOAuth) {
+        const publicViews = ['splash', 'auth', 'download', 'reset-password'];
+        if (!publicViews.includes(state.currentView) && !localStorage.getItem('intan_elyu_token')) {
+            navigateTo('auth');
+            return;
+        }
     }
 
     // Initialize history state for the initial load so the back button works correctly

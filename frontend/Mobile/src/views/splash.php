@@ -43,6 +43,13 @@
 <script>
     // Simulate loading and check authentication
     setTimeout(() => {
+        const rawHash = window.location.hash || '';
+        const rawSearch = window.location.search || '';
+        if (window._isProcessingGoogleOAuth || rawHash.includes('access_token=') || rawHash.includes('id_token=') || rawSearch.includes('access_token=') || rawSearch.includes('id_token=')) {
+            // OAuth redirect in progress, let main.js handle it
+            return;
+        }
+
         const splashMain = document.getElementById('splash-main');
         const token = localStorage.getItem('intan_elyu_token');
         

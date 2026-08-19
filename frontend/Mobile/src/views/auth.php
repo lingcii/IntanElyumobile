@@ -1604,6 +1604,8 @@
     };
 
     window.triggerGoogleLogin = function(event) {
+        if (event && event.preventDefault) event.preventDefault();
+
         const googleBtns = document.querySelectorAll('.btn-google');
         googleBtns.forEach((btn) => {
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connecting to Google...';
@@ -1625,76 +1627,19 @@
             return;
         }
 
-        // 1. Try Google OAuth2 Token Client (In-App popup/overlay for APK & Web)
-        if (window.google && window.google.accounts && window.google.accounts.oauth2) {
-            try {
-                const tokenClient = window.google.accounts.oauth2.initTokenClient({
-                    client_id: clientId,
-                    scope: 'email profile openid',
-                    callback: (tokenResponse) => {
-                        if (tokenResponse && tokenResponse.access_token) {
-                            fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                                headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-                            })
-                            .then(res => res.json())
-                            .then(profile => {
-                                if (profile && profile.email) {
-                                    window.handleCredentialResponse({ profile: profile }, resetBtns);
-                                } else {
-                                    throw new Error('Unable to fetch profile from Google.');
-                                }
-                            })
-                            .catch(err => {
-                                console.error('Google Userinfo Error:', err);
-                                resetBtns();
-                                if (typeof showToast === 'function') showToast('Google login failed.');
-                            });
-                        } else {
-                            resetBtns();
-                        }
-                    },
-                    error_callback: (err) => {
-                        console.warn("Google OAuth popup error, falling back:", err);
-                        performFallbackRedirect();
-                    }
-                });
-                tokenClient.requestAccessToken({ prompt: 'select_account' });
-                return;
-            } catch (e) {
-                console.warn("OAuth2 initTokenClient exception:", e);
-            }
+        // Direct Google OAuth 2.0 Authorization Redirection (Universal for Android APK, WebViews & Web)
+        let redirectUri = window.location.origin + window.location.pathname;
+        if (!redirectUri.endsWith('.php') && !redirectUri.endsWith('/')) {
+            redirectUri += '/index.php';
+        } else if (redirectUri.endsWith('/')) {
+            redirectUri += 'index.php';
         }
 
-        // 2. Try Google One Tap prompt
-        if (window.google && window.google.accounts && window.google.accounts.id) {
-            try {
-                window.google.accounts.id.initialize({
-                    client_id: clientId,
-                    callback: function(response) {
-                        window.handleCredentialResponse(response, resetBtns);
-                    }
-                });
-                window.google.accounts.id.prompt((notification) => {
-                    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                        performFallbackRedirect();
-                    }
-                });
-                return;
-            } catch (e) {
-                console.warn("GSI prompt exception:", e);
-            }
-        }
-
-        performFallbackRedirect();
-
-        function performFallbackRedirect() {
-            let redirectUri = window.location.origin + window.location.pathname;
-            if (!redirectUri.endsWith('.php') && !redirectUri.endsWith('/')) {
-                redirectUri += '/';
-            }
-            const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile%20openid&prompt=select_account`;
-            window.location.href = googleAuthUrl;
-        }
+        const stateObj = { timestamp: Date.now(), returnView: 'auth' };
+        const stateStr = encodeURIComponent(JSON.stringify(stateObj));
+        const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile%20openid&prompt=select_account&state=${stateStr}`;
+        
+        window.location.href = googleAuthUrl;
     };
 
     window.handleCredentialResponse = async function(response, onDone) {
@@ -1712,7 +1657,8 @@
                 };
             }
 
-            const fetchRes = await fetch(backendUrl + '/api/auth/google', {
+            const backend = (typeof window.getBackendUrl === 'function') ? window.getBackendUrl() : (window.backendUrl || 'https://app.intan-elyu.online');
+            const fetchRes = await fetch(backend + '/api/auth/google', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify(payloadData)
@@ -1725,6 +1671,10 @@
             
             localStorage.setItem('auth_user', JSON.stringify(data.user));
             localStorage.setItem('intan_elyu_token', data.token);
+            if (window.AppStorage) {
+                window.AppStorage.setItem('auth_user', data.user);
+                window.AppStorage.setItem('intan_elyu_token', data.token);
+            }
             
             showLoginSuccessModal(data.user);
         } catch (error) {
@@ -1737,71 +1687,15 @@
                 });
             }
             if (typeof showToast === 'function') showToast(error.message);
-            window.openAuthCancelModal(error.message || 'Google sign-in could not be completed.');
+            if (typeof window.openAuthCancelModal === 'function') {
+                window.openAuthCancelModal(error.message || 'Google sign-in could not be completed.');
+            }
         }
     };
 
     (function checkGoogleOAuthRedirect() {
-        const hash = window.location.hash || window.location.search;
-        if (hash && (hash.includes('access_token=') || hash.includes('id_token='))) {
-            const rawParams = hash.startsWith('#') ? hash.substring(1) : (hash.startsWith('?') ? hash.substring(1) : hash);
-            const params = new URLSearchParams(rawParams);
-            const accessToken = params.get('access_token');
-            if (accessToken) {
-                // Clean URL hash so token is not left in history
-                if (window.history && window.history.replaceState) {
-                    window.history.replaceState({}, document.title, window.location.pathname + '?view=auth');
-                }
-
-                // If running in external browser on Android, trigger Android Intent handoff back to APK package
-                const isCapacitorNative = !!(window.Capacitor && window.Capacitor.isNativePlatform());
-                if (!isCapacitorNative && /Android/i.test(navigator.userAgent)) {
-                    try {
-                        const intentUrl = 'intent://app.intan-elyu.online/index.php#access_token=' + encodeURIComponent(accessToken) + '#Intent;scheme=https;package=com.intan.elyu;end';
-                        window.location.href = intentUrl;
-                    } catch(e) {}
-                }
-
-                // Show full-screen loading modal immediately
-                const modal = document.getElementById('login-success-modal');
-                const titleEl = document.getElementById('login-modal-title');
-                const subEl = document.getElementById('login-success-user-name');
-                const spinnerSvg = document.getElementById('modal-spinner-svg');
-                const checkmarkIcon = document.getElementById('modal-checkmark-icon');
-                
-                if (modal) modal.style.display = 'flex';
-                if (titleEl) titleEl.textContent = 'Logging in with Google...';
-                if (subEl) subEl.textContent = 'Authenticating your account';
-                if (spinnerSvg) spinnerSvg.style.display = 'block';
-                if (checkmarkIcon) checkmarkIcon.style.display = 'none';
-
-                const googleBtns = document.querySelectorAll('.btn-google');
-                googleBtns.forEach(btn => {
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Logging in with Google...';
-                    btn.disabled = true;
-                });
-
-                fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                    headers: { Authorization: `Bearer ${accessToken}` }
-                })
-                .then(res => res.json())
-                .then(profile => {
-                    if (profile && profile.email) {
-                        window.handleCredentialResponse({ profile: profile });
-                    } else {
-                        throw new Error('Unable to retrieve profile from Google.');
-                    }
-                })
-                .catch(err => {
-                    console.error('Google OAuth redirect error:', err);
-                    if (modal) modal.style.display = 'none';
-                    googleBtns.forEach(btn => {
-                        btn.innerHTML = '<span>Sign in with Google</span>';
-                        btn.disabled = false;
-                    });
-                    if (typeof showToast === 'function') showToast('Google login failed. Please try again.');
-                });
-            }
+        if (typeof window.initGoogleOAuthHandler === 'function') {
+            window.initGoogleOAuthHandler();
         }
     })();
 </script>
