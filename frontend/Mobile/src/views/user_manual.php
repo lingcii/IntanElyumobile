@@ -337,12 +337,11 @@ $backRoute = 'settings';
             <button type="button" onclick="selectManualChip('Explore Map', this)" class="manual-chip">4. Map</button>
             <button type="button" onclick="selectManualChip('Itinerary Planner', this)" class="manual-chip">5. Itinerary</button>
             <button type="button" onclick="selectManualChip('AR Check-In', this)" class="manual-chip">6. AR Check-In</button>
-            <button type="button" onclick="selectManualChip('Quests & Challenges', this)" class="manual-chip">7. Quests</button>
-            <button type="button" onclick="selectManualChip('GameZone Mini-Games', this)" class="manual-chip">8. Games</button>
-            <button type="button" onclick="selectManualChip('Leaderboard & Ranks', this)" class="manual-chip">9. Leaderboard</button>
-            <button type="button" onclick="selectManualChip('Discounts & Vouchers', this)" class="manual-chip">10. Vouchers</button>
-            <button type="button" onclick="selectManualChip('My Profile', this)" class="manual-chip">11. Profile</button>
-            <button type="button" onclick="selectManualChip('Settings & Security', this)" class="manual-chip">12. Settings</button>
+            <button type="button" onclick="selectManualChip('GameZone Mini-Games', this)" class="manual-chip">7. Games</button>
+            <button type="button" onclick="selectManualChip('Leaderboard & Ranks', this)" class="manual-chip">8. Leaderboard</button>
+            <button type="button" onclick="selectManualChip('Discounts & Vouchers', this)" class="manual-chip">9. Vouchers</button>
+            <button type="button" onclick="selectManualChip('My Profile', this)" class="manual-chip">10. Profile</button>
+            <button type="button" onclick="selectManualChip('Settings & Security', this)" class="manual-chip">11. Settings</button>
             <button type="button" onclick="selectManualChip('Quick Reference', this)" class="manual-chip">XP Guide</button>
         </div>
     </div>
@@ -360,12 +359,12 @@ $backRoute = 'settings';
             Intan Elyu provides smart interactive maps, AI-assisted itinerary planning, AR location verification, mini-games, and local merchant voucher rewards.
         </p>
         <div class="grid-cards">
-            <div class="grid-card-item"><div class="grid-card-icon">🗺️</div><h4>Explore Map</h4><p>Discover spots, beaches, and heritage sites with GPS navigation.</p></div>
-            <div class="grid-card-item"><div class="grid-card-icon">📅</div><h4>Itinerary Planner</h4><p>Build trips with live transport fares and route optimization.</p></div>
-            <div class="grid-card-item"><div class="grid-card-icon">📸</div><h4>AR Check-In</h4><p>Scan your location & photo proof to earn +50 XP per spot.</p></div>
-            <div class="grid-card-item"><div class="grid-card-icon">🎮</div><h4>GameZone</h4><p>Play Slide Puzzle, Memory Match, and Word Scramble for points.</p></div>
-            <div class="grid-card-item"><div class="grid-card-icon">🏆</div><h4>Leaderboard</h4><p>Compete across La Union and claim top explorer title.</p></div>
-            <div class="grid-card-item"><div class="grid-card-icon">🎟️</div><h4>Vouchers</h4><p>Redeem XP & Points for local dining, surf, and hotel discounts.</p></div>
+            <div class="grid-card-item"><h4>Explore Map</h4><p>Discover spots, beaches, and heritage sites with GPS navigation.</p></div>
+            <div class="grid-card-item"><h4>Itinerary Planner</h4><p>Build trips with live transport fares and route optimization.</p></div>
+            <div class="grid-card-item"><h4>AR Check-In</h4><p>Scan your location & photo proof to earn +50 XP per spot.</p></div>
+            <div class="grid-card-item"><h4>GameZone</h4><p>Play Slide Puzzle, Memory Match, and Word Scramble for points.</p></div>
+            <div class="grid-card-item"><h4>Leaderboard</h4><p>Compete across La Union and claim top explorer title.</p></div>
+            <div class="grid-card-item"><h4>Vouchers</h4><p>Redeem XP & Points for local dining, surf, and hotel discounts.</p></div>
         </div>
     </div>
 
@@ -559,32 +558,7 @@ $backRoute = 'settings';
         </div>
     </div>
 
-    <!-- STEP 7: QUESTS -->
-    <div class="manual-section" id="section-quests">
-        <div class="manual-section-header">
-            <div class="manual-section-icon purple"><i class="fa-solid fa-scroll"></i></div>
-            <div>
-                <h2 class="manual-section-title">Step 7 &mdash; Quests &amp; Challenges</h2>
-                <p class="manual-section-sub">Daily, weekly, and monthly explorer challenges</p>
-            </div>
-        </div>
-        <div class="step-card">
-            <div class="step-num">1</div>
-            <div class="step-content">
-                <div class="step-title">View Active Quests</div>
-                <div class="step-desc">Check active challenges (e.g., *"Visit 3 San Juan Spots"*, *"Complete 1 Trip"*).</div>
-            </div>
-        </div>
-        <div class="step-card">
-            <div class="step-num">2</div>
-            <div class="step-content">
-                <div class="step-title">Claim Reward Points</div>
-                <div class="step-desc">When progress reaches 100%, tap <strong>Claim Quest Reward</strong> for bonus XP and Points.</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- STEP 8: GAMEZONE -->
+    <!-- STEP 7: GAMEZONE -->
     <div class="manual-section" id="section-gamezone">
         <div class="manual-section-header">
             <div class="manual-section-icon blue"><i class="fa-solid fa-gamepad"></i></div>
@@ -616,7 +590,7 @@ $backRoute = 'settings';
         </div>
     </div>
 
-    <!-- STEP 9: LEADERBOARD -->
+    <!-- STEP 8: LEADERBOARD -->
     <div class="manual-section" id="section-leaderboard">
         <div class="manual-section-header">
             <div class="manual-section-icon yellow"><i class="fa-solid fa-trophy"></i></div>
@@ -641,7 +615,7 @@ $backRoute = 'settings';
         </div>
     </div>
 
-    <!-- STEP 10: DISCOUNTS -->
+    <!-- STEP 9: DISCOUNTS -->
     <div class="manual-section" id="section-vouchers">
         <div class="manual-section-header">
             <div class="manual-section-icon green"><i class="fa-solid fa-tags"></i></div>
@@ -666,7 +640,7 @@ $backRoute = 'settings';
         </div>
     </div>
 
-    <!-- STEP 11: PROFILE -->
+    <!-- STEP 10: PROFILE -->
     <div class="manual-section" id="section-profile">
         <div class="manual-section-header">
             <div class="manual-section-icon blue"><i class="fa-solid fa-user-circle"></i></div>
@@ -691,12 +665,12 @@ $backRoute = 'settings';
         </div>
     </div>
 
-    <!-- STEP 12: SETTINGS -->
+    <!-- STEP 11: SETTINGS -->
     <div class="manual-section" id="section-settings">
         <div class="manual-section-header">
             <div class="manual-section-icon red"><i class="fa-solid fa-sliders"></i></div>
             <div>
-                <h2 class="manual-section-title">Step 12 &mdash; Settings &amp; Security</h2>
+                <h2 class="manual-section-title">Step 11 &mdash; Settings &amp; Security</h2>
                 <p class="manual-section-sub">Preferences, 2FA security, language, and account actions</p>
             </div>
         </div>
@@ -742,29 +716,24 @@ $backRoute = 'settings';
             </thead>
             <tbody>
                 <tr>
-                    <td>📸 AR / Photo Check-In</td>
+                    <td>AR / Photo Check-In</td>
                     <td><strong style="color:#38bdf8;">+50 XP</strong></td>
                     <td><strong style="color:#38bdf8;">+50 PTS</strong></td>
                 </tr>
                 <tr>
-                    <td>🧩 Solve Slide Puzzle</td>
+                    <td>Solve Slide Puzzle</td>
                     <td>—</td>
                     <td><strong style="color:#34c759;">+100 PTS</strong></td>
                 </tr>
                 <tr>
-                    <td>🃏 Complete Memory Match</td>
+                    <td>Complete Memory Match</td>
                     <td>—</td>
                     <td><strong style="color:#34c759;">+80 PTS</strong></td>
                 </tr>
                 <tr>
-                    <td>🔤 Solve Word Scramble</td>
+                    <td>Solve Word Scramble</td>
                     <td>—</td>
                     <td><strong style="color:#34c759;">+60 PTS</strong></td>
-                </tr>
-                <tr>
-                    <td>📜 Daily Quest Completion</td>
-                    <td><strong style="color:#38bdf8;">+100 XP</strong></td>
-                    <td><strong style="color:#34c759;">+150 PTS</strong></td>
                 </tr>
             </tbody>
         </table>

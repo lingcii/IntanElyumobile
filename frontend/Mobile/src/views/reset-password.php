@@ -85,6 +85,15 @@ $email = $_GET['email'] ?? '';
         const backendUrl = (typeof window.getBackendUrl === 'function') ? window.getBackendUrl() : (window.backendUrl || window.location.origin);
         const isApk = navigator.userAgent.includes('IntanElyuAPK') || !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 
+        window.handleResetBack = function (e) {
+            if (e) e.preventDefault();
+            if (typeof navigateTo === 'function') {
+                navigateTo('auth', true, true);
+            } else {
+                window.location.href = 'index.php?view=auth' + (email ? '&email=' + encodeURIComponent(email) : '');
+            }
+        };
+
         window.launchInApk = function () {
             const customScheme = 'intanelyu://?view=reset-password&token=' + encodeURIComponent(token) + '&email=' + encodeURIComponent(email);
             const intentUrl = 'intent://app.intan-elyu.online/?view=reset-password&token=' + encodeURIComponent(token) + '&email=' + encodeURIComponent(email) + '#Intent;scheme=https;package=com.intan.elyu;end;';
@@ -147,32 +156,28 @@ $email = $_GET['email'] ?? '';
                     throw new Error(data.message || data.error || 'Failed to reset password.');
                 }
 
-                if (data.token) {
-                    localStorage.setItem('intan_elyu_token', data.token);
-                    if (window.AppStorage) window.AppStorage.setItem('intan_elyu_token', data.token);
-                }
-                if (data.user) {
-                    localStorage.setItem('auth_user', JSON.stringify(data.user));
-                    if (window.AppStorage) window.AppStorage.setItem('auth_user', data.user);
+                // Store prefill email for login credentials screen
+                if (email) {
+                    sessionStorage.setItem('login_prefill_email', email);
                 }
 
                 if (typeof showToast === 'function') {
-                    showToast('Password reset successfully! Proceeding into the app...', 'success');
+                    showToast('Password changed successfully! Please log in with your new credentials.', 'success');
                 }
 
                 setTimeout(() => {
                     const isApk = navigator.userAgent.includes('IntanElyuAPK') || !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 
-                    // If on Android mobile browser, try deep link return to APK
+                    // If on Android mobile browser, try deep link return to APK on auth view
                     if (!isApk && /android/i.test(navigator.userAgent)) {
                         try {
-                            const directUrl = 'intanelyu://?view=dashboard&token=' + encodeURIComponent(data.token || '') + '&user=' + encodeURIComponent(JSON.stringify(data.user || {}));
+                            const directUrl = 'intanelyu://?view=auth&email=' + encodeURIComponent(email || '');
                             window.location.href = directUrl;
                             setTimeout(() => {
                                 if (typeof navigateTo === 'function') {
-                                    navigateTo('dashboard', true, true);
+                                    navigateTo('auth', true, true);
                                 } else {
-                                    window.location.href = 'index.php?view=dashboard';
+                                    window.location.href = 'index.php?view=auth' + (email ? '&email=' + encodeURIComponent(email) : '');
                                 }
                             }, 1200);
                             return;
@@ -180,9 +185,9 @@ $email = $_GET['email'] ?? '';
                     }
 
                     if (typeof navigateTo === 'function') {
-                        navigateTo('dashboard', true, true);
+                        navigateTo('auth', true, true);
                     } else {
-                        window.location.href = 'index.php?view=dashboard';
+                        window.location.href = 'index.php?view=auth' + (email ? '&email=' + encodeURIComponent(email) : '');
                     }
                 }, 1200);
 

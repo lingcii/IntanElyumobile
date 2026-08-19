@@ -98,159 +98,153 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     <div class="bottom-sheet" id="place-details-sheet">
         <div class="sheet-drag-handle" id="place-drag-handle"><span class="sheet-drag-dot"></span></div>
         <div class="draggable-content" id="place-details-scroll">
-        <!-- Framed Destination Header -->
-        <div id="sheet-title-frame" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-radius:18px; padding:12px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
-            <div style="flex:1; min-width:0; padding-right:12px;">
-                <h3 class="sheet-title" id="sheet-title" style="font-size:20px; font-weight:800; color:#ffffff; letter-spacing:-0.4px; margin:0 0 4px 0; line-height:1.25;">Destination Name</h3>
-                <p class="sheet-location" id="sheet-location-container" style="display:flex; align-items:center; gap:5px; margin:0; font-size:12px; color:#38bdf8; font-weight:600;">
-                    <i class="fa-solid fa-location-dot" style="color:#38bdf8; font-size:11px;"></i>
-                    <span id="sheet-location">Location details</span>
-                </p>
+            
+            <!-- Destination Header -->
+            <div class="dest-sheet-header" id="sheet-title-frame">
+                <div class="dest-sheet-header-main">
+                    <h3 class="sheet-title" id="sheet-title">Destination Name</h3>
+                    <p class="sheet-location" id="sheet-location-container">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span id="sheet-location">Location details</span>
+                    </p>
+                </div>
+                <button type="button" class="dest-sheet-close-btn" onclick="window.closeSheet()" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
-            <button onclick="window.closeSheet()" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:rgba(248,250,252,0.9); font-size:13px; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
 
-        <!-- Slidable Image Banner Carousel -->
-        <div id="sheet-slider-container" style="position:relative; width:100%; height:220px; border-radius:18px; overflow:hidden; margin-top:12px; margin-bottom:12px; background:#0f172a;">
-            <!-- Floating Overlay Badges -->
-            <div id="sheet-badges-overlay" style="position:absolute; top:12px; left:12px; z-index:10; display:flex; gap:6px; flex-wrap:wrap; pointer-events:none;">
-                <div id="sheet-category-badge" style="display:none; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff; background:rgba(56, 189, 248, 0.95); backdrop-filter:blur(8px);"></div>
-                <div id="sheet-status-badge" style="display:none; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff; background:rgba(52, 199, 89, 0.95); backdrop-filter:blur(8px);"></div>
-                <div id="sheet-open-badge" style="display:none; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff; background:rgba(52, 199, 89, 0.95); backdrop-filter:blur(8px);"></div>
+            <!-- Slidable Image Banner Carousel -->
+            <div id="sheet-slider-container" class="dest-slider-container">
+                <!-- Floating Overlay Badges -->
+                <div id="sheet-badges-overlay" class="dest-badges-overlay">
+                    <div id="sheet-category-badge" class="dest-cat-badge-wrap" style="display:none;"></div>
+                    <div id="sheet-status-badge" class="sheet-status-pill" style="display:none;"></div>
+                    <div id="sheet-open-badge" class="sheet-open-pill" style="display:none;"></div>
+                </div>
+                <div id="sheet-slider-track" class="dest-slider-track">
+                    <img src="" alt="Place Image" class="sheet-img" id="sheet-img">
+                </div>
+                <div id="sheet-slider-dots" class="dest-slider-dots" style="display:none;"></div>
             </div>
-            <div id="sheet-slider-track" style="display:flex; width:100%; height:100%; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch;">
-                <img src="" alt="Place Image" class="sheet-img" id="sheet-img" style="flex:0 0 100%; min-width:100%; width:100%; max-width:100%; height:100% !important; object-fit:cover !important; object-position:center !important; border-radius:18px !important; scroll-snap-align:start; scroll-snap-stop:always; display:block !important; margin:0 !important; box-sizing:border-box !important;">
-            </div>
-            <div id="sheet-slider-dots" style="position:absolute; bottom:10px; left:50%; transform:translateX(-50%); display:none; gap:6px; background:rgba(0,0,0,0.5); backdrop-filter:blur(8px); padding:4px 10px; border-radius:20px; z-index:5; pointer-events:none;"></div>
-        </div>
 
-        <!-- About This Location & Tourist Guide Details -->
-        <div id="sheet-desc-container" style="margin-top:16px; margin-bottom:16px; display:none; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:16px;">
-            <div id="vehicle-accessibility-warning" style="display:none; background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.2); border-radius:12px; padding:12px; margin-bottom:12px;">
-                <div style="display:flex; align-items:flex-start; gap:8px;">
-                    <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; margin-top:2px;"></i>
-                    <div>
-                        <h5 style="margin:0 0 4px 0; font-size:12px; font-weight:700; color:#ef4444; text-transform:uppercase; letter-spacing:0.5px;">Inaccessible by Private Car</h5>
-                        <p style="margin:0; font-size:11px; color:rgba(248,250,252,0.8); line-height:1.4;">Prepare to hike or use specialized local transport to reach this destination.</p>
+            <!-- Quick Stats Grid (Distance & Visiting Hours) -->
+            <div class="dest-quick-stats-grid">
+                <div class="quick-stat-card">
+                    <div class="quick-stat-icon blue">
+                        <i class="fa-solid fa-route"></i>
+                    </div>
+                    <div class="quick-stat-info">
+                        <span class="quick-stat-label">Distance</span>
+                        <span class="quick-stat-value" id="sheet-distance">Calculating...</span>
                     </div>
                 </div>
-            </div>
-            <div id="sheet-desc-animator" style="overflow:hidden;">
-                <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
-                    <div style="width:30px; height:30px; border-radius:10px; background:rgba(56,189,248,0.15); display:flex; align-items:center; justify-content:center; border:1px solid rgba(56,189,248,0.2);">
-                        <i class="fa-solid fa-book-open" style="color:#38bdf8; font-size:13px;"></i>
-                    </div>
-                    <h5 style="margin:0; font-size:12px; font-weight:800; letter-spacing:1px; color:#f8fafc; text-transform:uppercase;">About this location</h5>
-                </div>
-            
-            <p id="sheet-desc-short" style="font-size:13px; color:rgba(248,250,252,0.8); line-height:1.6; margin:0; font-weight:400; letter-spacing:0.3px;"></p>
-            <p id="sheet-desc-full" style="font-size:13px; color:rgba(248,250,252,0.8); line-height:1.6; margin:0; display:none; font-weight:400; letter-spacing:0.3px;"></p>
-            
-            
-            <style>
-                .btn-details-active:active { transform: scale(0.97); }
-                .selected-vehicle { border-color: #38bdf8 !important; background: rgba(56,189,248,0.08) !important; }
-                .selected-vehicle .vehicle-check { border-color: #38bdf8 !important; background: #38bdf8; }
-                .selected-vehicle .vehicle-check i { opacity: 1 !important; }
-                .disabled-vehicle { opacity: 0.35; pointer-events: none; }
-            </style>
-
-            <!-- Expanded Info (hidden initially) -->
-            <div id="expanded-details" style="display:none; flex-direction:column; margin-top:16px; padding-top:16px; border-top:1px dashed rgba(255,255,255,0.1);">
-                <h4 style="margin:0 0 10px; font-size:11px; font-weight:800; letter-spacing:1px; color:rgba(148,163,184,0.7); text-transform:uppercase;">Location Info</h4>
-
-                <div class="map-info-row">
-                    <span class="map-info-label">
-                        <i class="fa-solid fa-location-arrow"></i>
-                        Distance
-                    </span>
-                    <span class="map-info-value" id="sheet-distance">Calculating...</span>
-                </div>
-
-                <div class="map-info-row" id="sheet-hours-row" style="display:none;">
-                    <span class="map-info-label">
+                <div class="quick-stat-card" id="sheet-hours-stat-card">
+                    <div class="quick-stat-icon emerald">
                         <i class="fa-regular fa-clock"></i>
-                        Hours
-                    </span>
-                    <span class="map-info-value" id="sheet-hours">--</span>
+                    </div>
+                    <div class="quick-stat-info">
+                        <span class="quick-stat-label">Hours</span>
+                        <span class="quick-stat-value" id="sheet-hours">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About This Location & Travel Details -->
+            <div id="sheet-desc-container" class="dest-info-card" style="display:none;">
+                <div id="vehicle-accessibility-warning" class="dest-warning-card" style="display:none;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div>
+                        <h6>Inaccessible by Private Car</h6>
+                        <p>Prepare to hike or use specialized local transport to reach this destination.</p>
+                    </div>
                 </div>
 
-                <div style="margin-top: 10px; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
-                    <h5 style="margin: 0 0 6px; font-size: 10px; color: rgba(148,163,184,0.7); text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-map" style="margin-right: 4px;"></i> Route Guide</h5>
-                    <p id="sheet-manual-guide" style="margin: 0; font-size: 13px; color: #e2e8f0; line-height: 1.5;"></p>
-                </div>
-                <div style="margin-top: 10px; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
-                    <h5 style="margin: 0 0 6px; font-size: 10px; color: rgba(148,163,184,0.7); text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-circle-info" style="margin-right: 4px;"></i> Tour Guide Notice</h5>
-                    <p style="margin: 0; font-size: 12px; color: #f59e0b; line-height: 1.5;">Some destinations may require a tour guide for entry or navigation. The system only provides informational notices about this requirement; it does not offer, book, or arrange tour guide services directly.</p>
-                </div>
+                <div id="sheet-desc-animator" style="overflow:hidden;">
+                    <div class="dest-section-header">
+                        <div class="dest-section-icon"><i class="fa-solid fa-compass"></i></div>
+                        <h5 class="dest-section-title">About this destination</h5>
+                    </div>
+                
+                    <p id="sheet-desc-short" class="dest-desc-text"></p>
+                    <p id="sheet-desc-full" class="dest-desc-text" style="display:none;"></p>
 
-                <!-- Service Center & Tourist Assistance Details -->
-                <div style="margin-top: 10px; background: rgba(56,189,248,0.04); padding: 12px; border-radius: 12px; border: 1px solid rgba(56,189,248,0.15);">
-                    <h5 style="margin: 0 0 8px; font-size: 10px; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: space-between;">
-                        <span><i class="fa-solid fa-headset" style="margin-right: 4px;"></i> Service Center & Tourist Assistance</span>
-                        <span style="font-size: 9px; background: rgba(56,189,248,0.15); padding: 2px 6px; border-radius: 4px; color: #38bdf8; font-weight: 700;">LUPTO / MTO</span>
-                    </h5>
-                    <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: #e2e8f0;">
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <span style="color: rgba(148,163,184,0.75);"><i class="fa-solid fa-phone" style="margin-right: 4px; font-size: 10px;"></i> Service Hotline:</span>
-                            <span id="sheet-service-phone" style="font-weight: 700; color: #38bdf8;">+63 (072) 888-2454</span>
+                    <!-- Expanded Details -->
+                    <div id="expanded-details" class="dest-expanded-wrapper" style="display:none;">
+                        
+                        <!-- Route Guide -->
+                        <div class="dest-guide-box">
+                            <div class="dest-guide-title">
+                                <i class="fa-solid fa-signs-post"></i> Route Guide
+                            </div>
+                            <p id="sheet-manual-guide" class="dest-guide-text"></p>
                         </div>
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <span style="color: rgba(148,163,184,0.75);"><i class="fa-solid fa-clock" style="margin-right: 4px; font-size: 10px;"></i> Service Hours:</span>
-                            <span id="sheet-service-hours" style="font-weight: 600;">8:00 AM - 5:00 PM (Daily)</span>
+
+                        <!-- Tour Guide Notice -->
+                        <div class="dest-advisory-box">
+                            <div class="dest-advisory-title">
+                                <i class="fa-solid fa-circle-info"></i> Tour Guide Notice
+                            </div>
+                            <p class="dest-advisory-text">Some destinations may require a tour guide for entry or navigation. The system only provides informational notices about this requirement; it does not offer, book, or arrange tour guide services directly.</p>
                         </div>
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <span style="color: rgba(148,163,184,0.75);"><i class="fa-solid fa-kit-medical" style="margin-right: 4px; font-size: 10px;"></i> Emergency & Medical:</span>
-                            <span style="font-weight: 600; color: #34d399;">MDRRMO / Call 911</span>
+
+                        <!-- Service Center & Assistance -->
+                        <div class="dest-support-box">
+                            <div class="dest-support-header">
+                                <span style="font-size:12px; font-weight:800; color:#38bdf8; display:flex; align-items:center; gap:6px;">
+                                    <i class="fa-solid fa-headset"></i> Tourist Support & Assistance
+                                </span>
+                                <span class="dest-support-badge">LUPTO / MTO</span>
+                            </div>
+                            <div class="dest-contacts-list">
+                                <div class="dest-contact-row">
+                                    <span class="dest-contact-label"><i class="fa-solid fa-phone" style="font-size:10px;"></i> Service Hotline:</span>
+                                    <span class="dest-contact-val"><a id="sheet-service-phone" href="tel:+630728882454">+63 (072) 888-2454</a></span>
+                                </div>
+                                <div class="dest-contact-row">
+                                    <span class="dest-contact-label"><i class="fa-solid fa-clock" style="font-size:10px;"></i> Service Hours:</span>
+                                    <span class="dest-contact-val" id="sheet-service-hours">8:00 AM - 5:00 PM (Daily)</span>
+                                </div>
+                                <div class="dest-contact-row">
+                                    <span class="dest-contact-label"><i class="fa-solid fa-kit-medical" style="font-size:10px; color:#34d399;"></i> Emergency / Medical:</span>
+                                    <span class="dest-contact-val emergency"><a href="tel:911">MDRRMO / Call 911</a></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Testimonies Section -->
+                        <div id="sheet-testimonies-section" style="display:none; margin-top:14px; padding-top:14px; border-top:1px dashed rgba(255,255,255,0.08);">
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                                <h4 style="margin:0; font-size:12.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff;">Tourist Testimonies</h4>
+                                <span style="font-size:10px; font-weight:700; color:#38bdf8; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.25); padding:3px 8px; border-radius:6px;">
+                                    <i class="fa-solid fa-shield-halved" style="margin-right:3px;"></i> Verified Reviews
+                                </span>
+                            </div>
+                            <div id="testimonies-summary-metrics" style="display:none;"></div>
+                            <div id="testimonies-list-container" style="display:flex; flex-direction:column; gap:8px;">
+                                <div style="font-size:12px; color:rgba(255,255,255,0.45); text-align:center; padding:12px 0;">No testimonies yet. Be the first to share!</div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Testimonies & Policy Recommendations Section -->
-                <div id="sheet-testimonies-section" style="display:none; margin-top:16px; padding-top:16px; border-top:1px dashed rgba(255,255,255,0.1); text-align: left;">
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
-                        <h4 style="margin:0; font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff;">Tourist Testimonies</h4>
-                        <span style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.45); background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:6px;">
-                            <i class="fa-solid fa-shield-halved" style="color:#38bdf8; margin-right:4px;"></i> Verified Visitor Reviews
-                        </span>
-                    </div>
+                <button id="btn-view-details" class="dest-toggle-btn" onclick="window.toggleFullDetails()">
+                    <span id="details-btn-text">View Full Details</span>
+                    <i class="fa-solid fa-chevron-down" id="details-chevron" style="transition:transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);"></i>
+                </button>
+            </div>
 
-                    <!-- Aggregated Ratings / Crowd / Cleanliness / Safety metrics display -->
-                    <div id="testimonies-summary-metrics" style="display:none; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:14px; padding:12px; margin-bottom:16px; font-size:11px; color:rgba(255,255,255,0.7);">
-                        <!-- Populated dynamically via JS -->
-                    </div>
+            <!-- Action Buttons -->
+            <div class="sheet-btn-row">
+                <button id="btn-add-itinerary" onclick="window.addToItinerary()" class="btn-add-itinerary-premium">
+                    <i class="fa-solid fa-calendar-plus"></i> Add to Itinerary
+                </button>
+                <button id="sheet-fav-btn" onclick="window.toggleMapFavorite(this)" class="btn-sheet-fav" aria-label="Save to favorites">
+                    <i class="fa-solid fa-heart"></i>
+                </button>
+            </div>
 
-                    <!-- List of testimonies -->
-                    <div id="testimonies-list-container" style="display:flex; flex-direction:column; gap:10px;">
-                        <div style="font-size:12px; color:rgba(255,255,255,0.4); text-align:center; padding:10px;">No testimonies yet. Be the first to share!</div>
-                    </div>
-                </div>
-            </div> <!-- End sheet-desc-animator -->
-
-            <button id="btn-view-details" class="btn-details-active" onclick="window.toggleFullDetails()" style="background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.15); border-radius:12px; width:100%; color:#38bdf8; font-size:13px; font-weight:700; padding:12px 0; margin-top:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:background 0.2s, transform 0.1s;">
-                <span id="details-btn-text">View Full Details</span>
-                <i class="fa-solid fa-chevron-down" id="details-chevron" style="transition:transform 0.3s ease;"></i>
-            </button>
         </div>
-
-        <!-- Action Buttons -->
-        <div class="sheet-btn-row" style="display: flex; gap: 8px; margin-top: 14px;">
-            <button id="btn-add-itinerary" onclick="window.addToItinerary()" style="flex: 1; padding: 0 10px; font-size: 13px; height: 46px; background: linear-gradient(135deg, #34c759, #00a844); border: none; border-radius: 14px; color: #fff; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: opacity 0.2s, transform 0.1s;">
-                <i class="fa-solid fa-calendar-plus"></i> Add to Itinerary
-            </button>
-            <button id="sheet-fav-btn" onclick="window.toggleMapFavorite(this)" style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); width:46px; height:46px; border-radius:14px; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.4); font-size:16px; cursor:pointer; flex-shrink:0; transition:color 0.2s, background 0.2s;">
-                <i class="fa-solid fa-heart"></i>
-            </button>
-        </div>
-
     </div>
-</div>
-
-
-
-
 </div>
 
 <!-- Itinerary Add Confirmation Dialog -->
@@ -1609,9 +1603,17 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
         const catBadge = document.getElementById('sheet-category-badge');
         if (catBadge) {
+            catBadge.innerHTML = '';
             if (locationData.category && locationData.category.trim() !== '') {
-                catBadge.style.display = 'inline-block';
-                catBadge.textContent = locationData.category;
+                const cats = locationData.category.split(',').map(c => c.trim()).filter(Boolean);
+                cats.slice(0, 3).forEach(cat => {
+                    const pill = document.createElement('span');
+                    pill.className = 'sheet-tag-pill';
+                    const formatted = cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase();
+                    pill.innerHTML = `<i class="fa-solid fa-tag" style="font-size:8px; opacity:0.8; margin-right:3px;"></i>${formatted}`;
+                    catBadge.appendChild(pill);
+                });
+                catBadge.style.display = 'flex';
             } else {
                 catBadge.style.display = 'none';
             }
@@ -1620,16 +1622,16 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         const statusBadge = document.getElementById('sheet-status-badge');
         if (statusBadge) {
             if (locationData.classification_status) {
-                statusBadge.style.display = 'inline-block';
+                statusBadge.style.display = 'inline-flex';
                 if (locationData.classification_status === 'EXIST') {
-                    statusBadge.style.background = '#34c759';
-                    statusBadge.textContent = 'EXISTING';
+                    statusBadge.className = 'sheet-status-pill status-exist';
+                    statusBadge.innerHTML = '<i class="fa-solid fa-circle-check" style="font-size:8px; margin-right:3px;"></i>Existing';
                 } else if (locationData.classification_status === 'EMERGE') {
-                    statusBadge.style.background = '#38bdf8';
-                    statusBadge.textContent = 'EMERGING';
+                    statusBadge.className = 'sheet-status-pill status-emerge';
+                    statusBadge.innerHTML = '<i class="fa-solid fa-sparkles" style="font-size:8px; margin-right:3px;"></i>Emerging';
                 } else if (locationData.classification_status === 'POTENTIAL') {
-                    statusBadge.style.background = '#f59e0b';
-                    statusBadge.textContent = 'POTENTIAL';
+                    statusBadge.className = 'sheet-status-pill status-potential';
+                    statusBadge.innerHTML = '<i class="fa-solid fa-compass" style="font-size:8px; margin-right:3px;"></i>Potential';
                 } else {
                     statusBadge.style.display = 'none';
                 }
@@ -1638,7 +1640,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             }
         }
 
-        // Open/Closed badge
+        // Open/Closed badge with pulse indicator
         const openBadge = document.getElementById('sheet-open-badge');
         if (openBadge) {
             if (locationData.opening_time && locationData.closing_time) {
@@ -1650,17 +1652,17 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 const closeMinutes = parseInt(closeParts[0]) * 60 + parseInt(closeParts[1]);
 
                 if (locationData.is_maintenance) {
-                    openBadge.style.display = 'inline-block';
-                    openBadge.style.background = '#ef4444';
-                    openBadge.textContent = 'Under Maintenance';
+                    openBadge.style.display = 'inline-flex';
+                    openBadge.className = 'sheet-open-pill status-maint';
+                    openBadge.innerHTML = '<span class="pulse-dot dot-amber"></span>Maintenance';
                 } else if (currentMinutes >= openMinutes && currentMinutes < closeMinutes) {
-                    openBadge.style.display = 'inline-block';
-                    openBadge.style.background = '#34c759';
-                    openBadge.textContent = 'Open Now';
+                    openBadge.style.display = 'inline-flex';
+                    openBadge.className = 'sheet-open-pill status-open';
+                    openBadge.innerHTML = '<span class="pulse-dot dot-green"></span>Open Now';
                 } else {
-                    openBadge.style.display = 'inline-block';
-                    openBadge.style.background = '#ef4444';
-                    openBadge.textContent = 'Closed';
+                    openBadge.style.display = 'inline-flex';
+                    openBadge.className = 'sheet-open-pill status-closed';
+                    openBadge.innerHTML = '<span class="pulse-dot dot-red"></span>Closed';
                 }
             } else {
                 openBadge.style.display = 'none';
@@ -1703,7 +1705,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 img.src = (imgUrl && imgUrl !== window.noImageFallback) ? imgUrl : fallbackBanner;
                 img.alt = locationData.name || 'Place Image';
                 img.className = 'sheet-img';
-                img.style.cssText = 'flex:0 0 100%; min-width:100%; width:100%; max-width:100%; height:100% !important; object-fit:cover !important; object-position:center !important; border-radius:18px !important; scroll-snap-align:start; scroll-snap-stop:always; display:block !important; margin:0 !important; box-sizing:border-box !important;';
+                img.style.cssText = 'flex:0 0 100%; min-width:100%; width:100%; max-width:100%; height:100% !important; object-fit:cover !important; object-position:center !important; border-radius:20px !important; scroll-snap-align:start; scroll-snap-stop:always; display:block !important; margin:0 !important; box-sizing:border-box !important;';
                 img.onerror = function() {
                     this.onerror = null;
                     if (window.handleImgError) {
@@ -1774,7 +1776,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         const warningEl = document.getElementById('vehicle-accessibility-warning');
         if (warningEl) {
             if (locationData.accessible_by_private_vehicle === false || locationData.accessible_by_private_vehicle === 0) {
-                warningEl.style.display = 'block';
+                warningEl.style.display = 'flex';
             } else {
                 warningEl.style.display = 'none';
             }
@@ -1788,16 +1790,22 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         const distanceEl = document.getElementById('sheet-distance');
         if (distanceEl) distanceEl.textContent = 'Calculating...';
 
-        const hoursRow = document.getElementById('sheet-hours-row');
+        const hoursCard = document.getElementById('sheet-hours-stat-card');
         const hoursEl = document.getElementById('sheet-hours');
-        if (hoursRow && hoursEl) {
+        if (hoursEl) {
             if (locationData.opening_time && locationData.closing_time) {
-                hoursRow.style.display = 'flex';
+                if (hoursCard) hoursCard.style.display = 'flex';
                 const fmt = (t) => { const p = t.split(':'); const h = parseInt(p[0]), m = p[1]; return (h % 12 || 12) + ':' + m + (h < 12 ? ' AM' : ' PM'); };
                 hoursEl.textContent = fmt(locationData.opening_time) + ' — ' + fmt(locationData.closing_time);
             } else {
-                hoursRow.style.display = 'none';
+                if (hoursCard) hoursCard.style.display = 'none';
             }
+        }
+
+        const servicePhoneEl = document.getElementById('sheet-service-phone');
+        if (servicePhoneEl && locationData.service_phone) {
+            servicePhoneEl.textContent = locationData.service_phone;
+            servicePhoneEl.href = 'tel:' + locationData.service_phone.replace(/[^0-9+]/g, '');
         }
 
         if (window.getDeviceLocation) {

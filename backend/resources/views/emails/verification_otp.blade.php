@@ -17,7 +17,7 @@
     <table class="main-table" align="center">
         <tr>
             <td class="header">
-                <h1 style="margin:0; font-size:24px; font-weight:800;">🌴 Intan Elyu Verification</h1>
+                <h1 style="margin:0; font-size:24px; font-weight:800;">Intan Elyu Verification</h1>
             </td>
         </tr>
         <tr>

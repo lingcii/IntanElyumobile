@@ -1445,7 +1445,7 @@
                     }
                     if (typeof showToast === 'function') showToast(data.error || 'Please sign in with Google.', 'info');
                     setTimeout(() => {
-                        window.toggleForgotPassword(false);
+                        window.hideForgotPassword();
                     }, 2000);
                     return;
                 }
@@ -1678,18 +1678,9 @@
                 await new Promise(r => setTimeout(r, minSpinnerTime - elapsedTime));
             }
 
-            if (data.token) {
-                localStorage.setItem('intan_elyu_token', data.token);
-                if (window.AppStorage) window.AppStorage.setItem('intan_elyu_token', data.token);
-            }
-            if (data.user) {
-                localStorage.setItem('auth_user', JSON.stringify(data.user));
-                if (window.AppStorage) window.AppStorage.setItem('auth_user', data.user);
-            }
-
             // Animate checkmark success in modal
-            if (titleEl) titleEl.textContent = 'Password Reset Successfully!';
-            if (subEl) subEl.textContent = 'Entering dashboard...';
+            if (titleEl) titleEl.textContent = 'Password Changed Successfully!';
+            if (subEl) subEl.textContent = 'Please log in with your new credentials';
             if (spinnerSvg) spinnerSvg.style.display = 'none';
             if (checkmarkIcon) checkmarkIcon.style.display = 'block';
 
@@ -1698,17 +1689,44 @@
                     modal.classList.remove('active');
                     setTimeout(() => { modal.style.display = 'none'; }, 300);
                 }
+
+                // Clear and reset forgot password form fields and state
                 document.getElementById('fp-new-password').value = '';
                 document.getElementById('fp-confirm-password').value = '';
+                const fpEmailEl = document.getElementById('fp-email');
+                if (fpEmailEl) fpEmailEl.value = '';
+                window._verifiedFpOtp = '';
+                const fpBoxes = document.querySelectorAll('.fp-otp-box');
+                fpBoxes.forEach(b => b.value = '');
+
+                const formState = document.getElementById('fp-form-state');
+                const codeState = document.getElementById('fp-code-state');
+                const pwdState = document.getElementById('fp-password-state');
+                if (formState) formState.style.display = 'block';
+                if (codeState) codeState.style.display = 'none';
+                if (pwdState) pwdState.style.display = 'none';
+
                 if (btn) {
                     btn.innerHTML = oldHtml;
                     btn.disabled = false;
                 }
-                
-                if (typeof navigateTo === 'function') {
-                    navigateTo('dashboard', true, true);
-                } else {
-                    window.location.href = 'index.php?view=dashboard';
+
+                // Switch back to Login Credentials tab / panel
+                window.hideForgotPassword();
+
+                // Pre-fill email in Login Credentials
+                const loginEmailEl = document.getElementById('login-email');
+                if (loginEmailEl && email) {
+                    loginEmailEl.value = email;
+                }
+                const loginPwdEl = document.getElementById('login-password');
+                if (loginPwdEl) {
+                    loginPwdEl.value = '';
+                    loginPwdEl.focus();
+                }
+
+                if (typeof showToast === 'function') {
+                    showToast('Password changed successfully! Please log in with your new credentials.', 'success');
                 }
             }, 1500);
 
@@ -1819,6 +1837,20 @@
     (function checkGoogleOAuthRedirect() {
         if (typeof window.initGoogleOAuthHandler === 'function') {
             window.initGoogleOAuthHandler();
+        }
+    })();
+
+    (function checkPrefillEmail() {
+        const params = new URLSearchParams(window.location.search);
+        const prefillEmail = sessionStorage.getItem('login_prefill_email') || params.get('email');
+        if (prefillEmail) {
+            const loginEmailEl = document.getElementById('login-email');
+            if (loginEmailEl) {
+                loginEmailEl.value = prefillEmail;
+                const loginPwdEl = document.getElementById('login-password');
+                if (loginPwdEl) loginPwdEl.focus();
+            }
+            sessionStorage.removeItem('login_prefill_email');
         }
     })();
 </script>
