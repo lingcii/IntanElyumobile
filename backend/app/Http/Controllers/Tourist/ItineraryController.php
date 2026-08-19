@@ -375,3 +375,4 @@ class ItineraryController extends Controller
         ]);
     }
 }
+

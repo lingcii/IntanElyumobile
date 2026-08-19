@@ -279,13 +279,13 @@ $backRoute = 'itinerary';
                     <div class="timeline-collapsible" id="timeline-${trip.id}">
                         <div class="timeline-inner">
                             <div class="timeline">`;
-                    
-                let unvisitedCount = 0;
+                                  let unvisitedCount = 0;
+                const isTripCompleted = (trip.status === 'completed');
                 if (trip.items && trip.items.length) {
-                    const firstUnvisitedIdx = trip.items.findIndex(i => !i.is_visited);
+                    const firstUnvisitedIdx = trip.items.findIndex(i => !(i.is_visited || i.proof_status === 'approved' || i.proof_image));
                     trip.items.forEach((item, index) => {
                         const dest = item.destination;
-                        const isVisited = item.is_visited;
+                        const isVisited = Boolean(item.is_visited || item.proof_status === 'approved' || item.proof_image);
                         const isNextStop = (!isVisited && index === firstUnvisitedIdx);
                         if (!isVisited) unvisitedCount++;
 
@@ -345,9 +345,9 @@ $backRoute = 'itinerary';
                                             `<div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
                                                 ${proofImgHtml}
                                                 <div>
-                                                     <span style="background:rgba(255,149,0,0.15); border:1px solid rgba(255,149,0,0.35); color:#FF9500; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
-                                                         <i class="fa-solid fa-clock"></i> Pending Confirmation
-                                                     </span>
+                                                    <span style="background:rgba(255,149,0,0.15); border:1px solid rgba(255,149,0,0.35); color:#FF9500; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
+                                                        <i class="fa-solid fa-clock"></i> Pending Confirmation
+                                                    </span>
                                                     <span style="font-size:10px; color:rgba(226,232,240,0.6); display:block; margin-top:4px;">Awaiting Validation</span>
                                                 </div>
                                             </div>` : 
@@ -375,9 +375,14 @@ $backRoute = 'itinerary';
 
                 // Start / Complete button wrapper
                 html += `<div class="start-collapsible" id="start-wrapper-${trip.id}">`;
-                if (unvisitedCount === 0 && trip.items && trip.items.length > 0) {
+                if (isTripCompleted) {
                     html += `
-                    <button class="btn-primary" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; box-shadow: 0 4px 16px rgba(16,185,129,0.35); cursor: pointer;" onclick="window.markTripCompleted('${trip.id}')">
+                    <button class="btn-primary" style="width:100%; white-space:nowrap; background: rgba(16,185,129,0.18); border: 1px solid rgba(16,185,129,0.4); color: #34c759; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: default;" disabled>
+                        <i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> Completed
+                    </button>`;
+                } else if (unvisitedCount === 0 && trip.items && trip.items.length > 0) {
+                    html += `
+                    <button class="btn-primary" id="btn-complete-trip-${trip.id}" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; box-shadow: 0 4px 16px rgba(16,185,129,0.35); cursor: pointer;" onclick="window.markTripCompleted('${trip.id}')">
                         <i class="fa-solid fa-flag-checkered" style="margin-right:6px;"></i> Complete
                     </button>`;
                 } else {
@@ -431,6 +436,58 @@ $backRoute = 'itinerary';
         setTimeout(() => {
             window.location.href = '?view=trip_map&trip_id=' + tripId;
         }, 1000);
+    };
+
+    window.markTripCompleted = async function(tripId) {
+        const btn = document.getElementById('btn-complete-trip-' + tripId);
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Completing...';
+            btn.disabled = true;
+        }
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+        try {
+            const response = await fetch(backendUrl + '/api/tourist/itineraries/' + tripId + '/complete', {
+                method: 'PATCH',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true',
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+            const data = await response.json();
+            if (response.ok) {
+                if (typeof showToast === 'function') showToast(data.message || 'Congratulations! Trip completed.');
+                if (window.confetti) {
+                    window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                }
+                // Invalidate cached saved trips
+                if (token) {
+                    localStorage.removeItem('saved_trips_' + token.substring(0, 10));
+                    localStorage.removeItem('dashboard_trips_' + token.substring(0, 10));
+                }
+                setTimeout(() => {
+                    if (typeof window.fetchSavedTrips === 'function') {
+                        window.fetchSavedTrips(true);
+                    } else {
+                        window.location.reload();
+                    }
+                }, 600);
+            } else {
+                if (typeof showToast === 'function') showToast(data.message || 'Failed to complete trip.');
+                if (btn) {
+                    btn.innerHTML = '<i class="fa-solid fa-flag-checkered" style="margin-right:6px;"></i> Complete';
+                    btn.disabled = false;
+                }
+            }
+        } catch (e) {
+            console.error('Error completing trip:', e);
+            if (typeof showToast === 'function') showToast('Network error. Please try again.');
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-flag-checkered" style="margin-right:6px;"></i> Complete';
+                btn.disabled = false;
+            }
+        }
     };
 
     window.openCheckinModal = function(itemId) {

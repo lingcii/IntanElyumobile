@@ -358,7 +358,7 @@ require_once __DIR__ . '/../components/header.php';
         if (window.tripMarkers) window.tripMarkers.forEach(m => m.remove());
         window.tripMarkers = [];
 
-        const activeIndex = items.findIndex(i => !i.is_visited);
+        const activeIndex = items.findIndex(i => !(i.is_visited || i.proof_status === 'approved' || i.proof_image));
 
         items.forEach((item, idx) => {
             const dest = item.destination;
@@ -374,8 +374,9 @@ require_once __DIR__ . '/../components/header.php';
                     bounds.extend([lng, lat]);
 
                     let iconHtml = '';
+                    const isVisited = Boolean(item.is_visited || item.proof_status === 'approved' || item.proof_image);
 
-                    if (item.is_visited) {
+                    if (isVisited) {
                         // VISITED - Green Checkmark + Glassmorphic Tag
                         iconHtml = `
                             <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
@@ -436,7 +437,7 @@ require_once __DIR__ . '/../components/header.php';
             if (!dest) return;
             const lat = parseFloat(dest.lat || dest.latitude);
             const lng = parseFloat(dest.lng || dest.longitude);
-            const isVisited = item.is_visited;
+            const isVisited = Boolean(item.is_visited || item.proof_status === 'approved' || item.proof_image);
             const isActive = idx === activeIndex;
 
             let badgeHtml = '';
