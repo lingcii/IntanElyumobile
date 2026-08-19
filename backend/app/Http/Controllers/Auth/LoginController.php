@@ -247,31 +247,50 @@ class LoginController extends Controller
 
         $mailSent = false;
         $mailError = null;
+        $mailable = new \App\Mail\PasswordResetMail($user, $token, $otpCode);
+        $subject = "🔐 {$otpCode} - Reset Your Password - Intan Elyu";
 
-        // Attempt 1: Default configured mailer (Port 465 SSL)
+        // Priority 1: Resend HTTPS API (Port 443 — 100% Railway & Cloud compatible)
         try {
-            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\PasswordResetMail($user, $token, $otpCode));
-            $mailSent = true;
-        } catch (\Throwable $e1) {
-            $mailError = $e1->getMessage();
-            \Illuminate\Support\Facades\Log::warning("Primary SMTP (465 SSL) failed for {$user->email}: " . $mailError . ". Retrying on Port 587 TLS...");
-
-            // Attempt 2: Alternative Port 587 TLS with explicit credentials
-            try {
-                $altMailer = app('mail.manager')->build([
-                    'transport'  => 'smtp',
-                    'host'       => 'smtp.gmail.com',
-                    'port'       => 587,
-                    'encryption' => 'tls',
-                    'username'   => 'acekillersmile@gmail.com',
-                    'password'   => 'egnrijvxdqdanlwc',
-                    'timeout'    => 20,
-                ]);
-                $altMailer->to($user->email)->send(new \App\Mail\PasswordResetMail($user, $token, $otpCode));
+            $renderedHtml = $mailable->render();
+            $resendResult = \App\Services\ResendMailService::send($user->email, $subject, $renderedHtml);
+            if ($resendResult['success']) {
                 $mailSent = true;
-            } catch (\Throwable $e2) {
-                $mailError = $e2->getMessage();
-                \Illuminate\Support\Facades\Log::error("Both Port 465 and Port 587 failed for {$user->email}: " . $mailError);
+                \Illuminate\Support\Facades\Log::info("Password reset email sent to {$user->email} via Resend HTTPS API (id: {$resendResult['id']})");
+            } else {
+                $mailError = 'Resend: ' . $resendResult['error'];
+                \Illuminate\Support\Facades\Log::warning("Resend HTTPS send notice for {$user->email}: {$mailError}. Falling back to SMTP...");
+            }
+        } catch (\Throwable $rErr) {
+            $mailError = 'Resend error: ' . $rErr->getMessage();
+            \Illuminate\Support\Facades\Log::warning("Resend exception: " . $mailError);
+        }
+
+        // Priority 2: SMTP Port 465 SSL / Port 587 TLS fallback (if on host with open SMTP ports)
+        if (!$mailSent) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($user->email)->send($mailable);
+                $mailSent = true;
+            } catch (\Throwable $e1) {
+                $mailError = $e1->getMessage();
+                \Illuminate\Support\Facades\Log::warning("Primary SMTP (465 SSL) failed for {$user->email}: " . $mailError . ". Retrying on Port 587 TLS...");
+
+                try {
+                    $altMailer = app('mail.manager')->build([
+                        'transport'  => 'smtp',
+                        'host'       => 'smtp.gmail.com',
+                        'port'       => 587,
+                        'encryption' => 'tls',
+                        'username'   => 'acekillersmile@gmail.com',
+                        'password'   => 'egnrijvxdqdanlwc',
+                        'timeout'    => 20,
+                    ]);
+                    $altMailer->to($user->email)->send($mailable);
+                    $mailSent = true;
+                } catch (\Throwable $e2) {
+                    $mailError = $e2->getMessage();
+                    \Illuminate\Support\Facades\Log::error("All mail dispatch attempts failed for {$user->email}: " . $mailError);
+                }
             }
         }
 
@@ -294,14 +313,27 @@ class LoginController extends Controller
 
     /**
      * GET /api/auth/test-email?to=...
-     * Direct diagnostic tool to test and display live SMTP connection output
+     * Direct diagnostic tool to test and display live email output across Resend HTTPS & SMTP
      */
     public function testEmail(Request $request): JsonResponse
     {
         $to = $request->query('to', 'acekillersmile@gmail.com');
         $results = [];
 
-        // Test 1: Port 465 SSL
+        // Test 1: Resend HTTPS API (Port 443)
+        try {
+            $html = '<div style="font-family:sans-serif;padding:20px;background:#0f172a;color:#fff;border-radius:12px;"><h2>Intan Elyu Diagnostic Email</h2><p>Delivered via <strong>Resend HTTPS API (Port 443 — 100% Railway compatible)</strong> at ' . now() . '</p></div>';
+            $resend = \App\Services\ResendMailService::send($to, '🧪 Intan Elyu Resend HTTPS Test', $html);
+            if ($resend['success']) {
+                $results['resend_https_api'] = 'SUCCESS: Delivered (id: ' . $resend['id'] . ')';
+            } else {
+                $results['resend_https_api'] = 'NOTICE: ' . $resend['error'];
+            }
+        } catch (\Throwable $e) {
+            $results['resend_https_api'] = 'FAILED: ' . $e->getMessage();
+        }
+
+        // Test 2: Port 465 SSL
         try {
             $mailer465 = app('mail.manager')->build([
                 'transport'  => 'smtp',
@@ -310,15 +342,15 @@ class LoginController extends Controller
                 'encryption' => 'ssl',
                 'username'   => 'acekillersmile@gmail.com',
                 'password'   => 'egnrijvxdqdanlwc',
-                'timeout'    => 15,
+                'timeout'    => 10,
             ]);
-            $mailer465->raw("This is a live test email from Intan Elyu (Port 465 SSL) sent at " . now(), function ($m) use ($to) {
+            $mailer465->raw("Live test email via Port 465 SSL sent at " . now(), function ($m) use ($to) {
                 $m->to($to)->subject('🧪 Intan Elyu SMTP Test (Port 465 SSL)');
                 $m->from('acekillersmile@gmail.com', 'Intan-Elyu Customer Support');
             });
-            $results['port_465_ssl'] = 'SUCCESS: Email delivered to ' . $to;
+            $results['smtp_port_465_ssl'] = 'SUCCESS: Email delivered to ' . $to;
         } catch (\Throwable $e) {
-            $results['port_465_ssl'] = 'FAILED: ' . $e->getMessage();
+            $results['smtp_port_465_ssl'] = 'FAILED: ' . $e->getMessage();
         }
 
         // Test 2: Port 587 TLS
