@@ -4,49 +4,13 @@ $token = $_GET['token'] ?? '';
 $email = $_GET['email'] ?? '';
 ?>
 <link rel="stylesheet" href="assets/css/views/auth.css?v=<?= time() ?>">
-<style>
-.back-btn-circle {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 16px;
-    z-index: 20;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-.back-btn-circle:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: scale(1.06);
-}
-.back-btn-circle:active {
-    transform: scale(0.95);
-}
-</style>
-
 <div class="auth-container">
     <!-- Top Blue Section -->
-    <div class="auth-top" style="position: relative;">
-        <!-- Back Button -->
-        <button type="button" class="back-btn-circle" onclick="handleResetBack()" aria-label="Go Back">
-            <i class="fa-solid fa-arrow-left"></i>
-        </button>
-
+    <div class="auth-top">
         <div class="logo-container">
-            <img src="assets/img/logo.png" alt="Intan Elyu Logo">
+            <img id="auth-logo-img" src="assets/img/logo.png" alt="Intan Elyu Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%; display: block;">
         </div>
-        <h1 id="reset-title">Reset Password</h1>
+        <h1 id="reset-title" style="color: #ffffff; font-weight: 800;">Welcome to Elyu</h1>
         
         <!-- Animated Seamless SVG Wave -->
         <div class="wave-bottom">
@@ -59,38 +23,35 @@ $email = $_GET['email'] ?? '';
     </div>
     
     <!-- Bottom Section -->
-    <div class="auth-bottom" style="padding-top: 36px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+    <div class="auth-bottom">
         <div class="forms-wrapper" style="padding: 0 20px; width: 100%; max-width: 350px; margin: 0 auto;">
-            <div class="form-panel" style="width:100%; display:block; opacity:1; transform:none;">
+            <div class="form-panel forgot-form" style="width:100%; display:block; opacity:1; transform:none;">
+                <a href="#" class="back-link" onclick="handleResetBack(event)">
+                    <i class="fa-solid fa-arrow-left"></i> Back
+                </a>
+
+                <div class="fp-header" style="margin-bottom: 24px; text-align: center;">
+                    <h3 style="font-size: 22px; font-weight: 800; color: #ffffff; margin-bottom: 6px;">Reset Password</h3>
+                    <p style="font-size: 13px; color: #94a3b8;">Create a new password for your account<?php if (!empty($email)): ?><br><strong style="color: #38bdf8; font-family: monospace;"><?= htmlspecialchars($email) ?></strong><?php endif; ?></p>
+                </div>
+
                 <form id="form-reset-password" onsubmit="handleResetPassword(event)">
                     <input type="hidden" id="reset-token" value="<?= htmlspecialchars($token, ENT_QUOTES) ?>">
                     <input type="hidden" id="reset-email" value="<?= htmlspecialchars($email, ENT_QUOTES) ?>">
-
-                    <?php if (!empty($email)): ?>
-                    <p style="text-align: center; color: rgba(255,255,255,0.7); font-size: 13px; margin-bottom: 16px;">
-                        Resetting password for <strong style="color: #38bdf8;"><?= htmlspecialchars($email) ?></strong>
-                    </p>
-                    <?php endif; ?>
-
-                    <div id="apk-launch-box" style="margin-bottom: 20px; text-align: center;">
-                        <button type="button" onclick="launchInApk()" style="width: 100%; background: linear-gradient(135deg, #0284c7, #2563eb); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 12px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 15px rgba(2,132,199,0.4); display: flex; align-items: center; justify-content: center; gap: 8px;">
-                            <i class="fa-solid fa-mobile-screen"></i> Open in Intan Elyu APK
-                        </button>
-                    </div>
 
                     <div class="input-group" style="margin-bottom: 20px;">
                         <i class="fa-solid fa-lock"></i>
                         <input type="password" id="reset-password-val" class="auth-input" placeholder="New Password (min 8 chars)" required minlength="8">
                         <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('reset-password-val', this)"></i>
                     </div>
-                    <div class="input-group" style="margin-bottom: 24px;">
+                    <div class="input-group" style="margin-bottom: 28px;">
                         <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="reset-password-confirm" class="auth-input" placeholder="Confirm Password" required minlength="8">
+                        <input type="password" id="reset-password-confirm" class="auth-input" placeholder="Confirm New Password" required minlength="8">
                         <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('reset-password-confirm', this)"></i>
                     </div>
                     
-                    <button type="submit" id="btn-submit-reset" class="btn-circle-submit" style="margin: 20px auto 0 auto; display: flex; align-items: center; justify-content: center;">
-                        <i class="fa-solid fa-check"></i>
+                    <button type="submit" id="btn-submit-reset" class="btn-circle-submit">
+                        <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 </form>
             </div>
@@ -99,147 +60,138 @@ $email = $_GET['email'] ?? '';
 </div>
 
 <script>
-function togglePasswordVisibility(inputId, iconEl) {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-    if (input.type === 'password') {
-        input.type = 'text';
-        if (iconEl) {
-            iconEl.classList.remove('fa-eye');
-            iconEl.classList.add('fa-eye-slash');
-        }
-    } else {
-        input.type = 'password';
-        if (iconEl) {
-            iconEl.classList.remove('fa-eye-slash');
-            iconEl.classList.add('fa-eye');
-        }
-    }
-}
-
-(function() {
-    window.handleResetBack = function(e) {
-        if (e) e.preventDefault();
-        if (typeof navigateTo === 'function') {
-            navigateTo('auth');
+    function togglePasswordVisibility(inputId, iconEl) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        if (input.type === 'password') {
+            input.type = 'text';
+            if (iconEl) {
+                iconEl.classList.remove('fa-eye');
+                iconEl.classList.add('fa-eye-slash');
+            }
         } else {
-            window.location.href = 'index.php?view=auth';
+            input.type = 'password';
+            if (iconEl) {
+                iconEl.classList.remove('fa-eye-slash');
+                iconEl.classList.add('fa-eye');
+            }
         }
-    };
-
-    const params = new URLSearchParams(window.location.search);
-    const token = document.getElementById('reset-token')?.value || params.get('token') || '';
-    const email = document.getElementById('reset-email')?.value || params.get('email') || '';
-    const backendUrl = (typeof window.getBackendUrl === 'function') ? window.getBackendUrl() : (window.backendUrl || window.location.origin);
-    const isApk = navigator.userAgent.includes('IntanElyuAPK') || !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
-
-    window.launchInApk = function() {
-        const customScheme = 'intanelyu://?view=reset-password&token=' + encodeURIComponent(token) + '&email=' + encodeURIComponent(email);
-        const intentUrl = 'intent://app.intan-elyu.online/?view=reset-password&token=' + encodeURIComponent(token) + '&email=' + encodeURIComponent(email) + '#Intent;scheme=https;package=com.intan.elyu;end;';
-        window.location.href = customScheme;
-        setTimeout(() => {
-            try { window.location.href = intentUrl; } catch(e) {}
-        }, 500);
-    };
-
-    const apkBox = document.getElementById('apk-launch-box');
-    if (apkBox && isApk) {
-        apkBox.style.display = 'none';
-    } else if (!isApk && (params.get('open_app') === '1' || /android/i.test(navigator.userAgent))) {
-        // Auto-attempt launch into APK
-        window.launchInApk();
     }
 
-    if (!token || !email) {
-        console.warn('Token or email query parameter missing from URL.');
-    }
+    (function () {
+        const params = new URLSearchParams(window.location.search);
+        const token = document.getElementById('reset-token')?.value || params.get('token') || '';
+        const email = document.getElementById('reset-email')?.value || params.get('email') || '';
+        const backendUrl = (typeof window.getBackendUrl === 'function') ? window.getBackendUrl() : (window.backendUrl || window.location.origin);
+        const isApk = navigator.userAgent.includes('IntanElyuAPK') || !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 
-    window.handleResetPassword = async function(e) {
-        e.preventDefault();
-        
-        const password = document.getElementById('reset-password-val').value;
-        const confirmPassword = document.getElementById('reset-password-confirm').value;
-
-        if (password.length < 8) {
-            if (typeof showToast === 'function') showToast('Password must be at least 8 characters long.');
-            return;
-        }
-
-        if (password !== confirmPassword) {
-            if (typeof showToast === 'function') showToast('Passwords do not match. Please verify.');
-            return;
-        }
-
-        const btn = document.getElementById('btn-submit-reset');
-        const oldHtml = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-        btn.disabled = true;
-
-        try {
-            const response = await fetch(backendUrl + '/api/auth/reset-password', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    token: token,
-                    email: email,
-                    password: password,
-                    password_confirmation: confirmPassword
-                })
-            });
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || data.error || 'Failed to reset password.');
-            }
-
-            if (data.token) {
-                localStorage.setItem('intan_elyu_token', data.token);
-                if (window.AppStorage) window.AppStorage.setItem('intan_elyu_token', data.token);
-            }
-            if (data.user) {
-                localStorage.setItem('auth_user', JSON.stringify(data.user));
-                if (window.AppStorage) window.AppStorage.setItem('auth_user', data.user);
-            }
-
-            if (typeof showToast === 'function') {
-                showToast('Password reset successfully! Proceeding into the app...', 'success');
-            }
-            
+        window.launchInApk = function () {
+            const customScheme = 'intanelyu://?view=reset-password&token=' + encodeURIComponent(token) + '&email=' + encodeURIComponent(email);
+            const intentUrl = 'intent://app.intan-elyu.online/?view=reset-password&token=' + encodeURIComponent(token) + '&email=' + encodeURIComponent(email) + '#Intent;scheme=https;package=com.intan.elyu;end;';
+            window.location.href = customScheme;
             setTimeout(() => {
-                const isApk = navigator.userAgent.includes('IntanElyuAPK') || !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+                try { window.location.href = intentUrl; } catch (e) { }
+            }, 500);
+        };
 
-                // If on Android mobile browser, try deep link return to APK
-                if (!isApk && /android/i.test(navigator.userAgent)) {
-                    try {
-                        const directUrl = 'intanelyu://?view=dashboard&token=' + encodeURIComponent(data.token || '') + '&user=' + encodeURIComponent(JSON.stringify(data.user || {}));
-                        window.location.href = directUrl;
-                        setTimeout(() => {
-                            if (typeof navigateTo === 'function') {
-                                navigateTo('dashboard', true, true);
-                            } else {
-                                window.location.href = 'index.php?view=dashboard';
-                            }
-                        }, 1200);
-                        return;
-                    } catch (e) {}
-                }
-
-                if (typeof navigateTo === 'function') {
-                    navigateTo('dashboard', true, true);
-                } else {
-                    window.location.href = 'index.php?view=dashboard';
-                }
-            }, 1200);
-
-        } catch (error) {
-            console.error('Reset Password Error:', error);
-            if (typeof showToast === 'function') showToast(error.message);
-            btn.innerHTML = oldHtml;
-            btn.disabled = false;
+        const apkBox = document.getElementById('apk-launch-box');
+        if (apkBox && isApk) {
+            apkBox.style.display = 'none';
+        } else if (!isApk && (params.get('open_app') === '1' || /android/i.test(navigator.userAgent))) {
+            // Auto-attempt launch into APK
+            window.launchInApk();
         }
-    };
-})();
+
+        if (!token || !email) {
+            console.warn('Token or email query parameter missing from URL.');
+        }
+
+        window.handleResetPassword = async function (e) {
+            e.preventDefault();
+
+            const password = document.getElementById('reset-password-val').value;
+            const confirmPassword = document.getElementById('reset-password-confirm').value;
+
+            if (password.length < 8) {
+                if (typeof showToast === 'function') showToast('Password must be at least 8 characters long.');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                if (typeof showToast === 'function') showToast('Passwords do not match. Please verify.');
+                return;
+            }
+
+            const btn = document.getElementById('btn-submit-reset');
+            const oldHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(backendUrl + '/api/auth/reset-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        token: token,
+                        email: email,
+                        password: password,
+                        password_confirmation: confirmPassword
+                    })
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || data.error || 'Failed to reset password.');
+                }
+
+                if (data.token) {
+                    localStorage.setItem('intan_elyu_token', data.token);
+                    if (window.AppStorage) window.AppStorage.setItem('intan_elyu_token', data.token);
+                }
+                if (data.user) {
+                    localStorage.setItem('auth_user', JSON.stringify(data.user));
+                    if (window.AppStorage) window.AppStorage.setItem('auth_user', data.user);
+                }
+
+                if (typeof showToast === 'function') {
+                    showToast('Password reset successfully! Proceeding into the app...', 'success');
+                }
+
+                setTimeout(() => {
+                    const isApk = navigator.userAgent.includes('IntanElyuAPK') || !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+
+                    // If on Android mobile browser, try deep link return to APK
+                    if (!isApk && /android/i.test(navigator.userAgent)) {
+                        try {
+                            const directUrl = 'intanelyu://?view=dashboard&token=' + encodeURIComponent(data.token || '') + '&user=' + encodeURIComponent(JSON.stringify(data.user || {}));
+                            window.location.href = directUrl;
+                            setTimeout(() => {
+                                if (typeof navigateTo === 'function') {
+                                    navigateTo('dashboard', true, true);
+                                } else {
+                                    window.location.href = 'index.php?view=dashboard';
+                                }
+                            }, 1200);
+                            return;
+                        } catch (e) { }
+                    }
+
+                    if (typeof navigateTo === 'function') {
+                        navigateTo('dashboard', true, true);
+                    } else {
+                        window.location.href = 'index.php?view=dashboard';
+                    }
+                }, 1200);
+
+            } catch (error) {
+                console.error('Reset Password Error:', error);
+                if (typeof showToast === 'function') showToast(error.message);
+                btn.innerHTML = oldHtml;
+                btn.disabled = false;
+            }
+        };
+    })();
 </script>
