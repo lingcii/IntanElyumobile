@@ -41,14 +41,17 @@ class PasswordResetMail extends Mailable
     public function content(): Content
     {
         $resetUrl = 'https://app.intan-elyu.online/?view=reset-password&token=' . $this->token . '&email=' . urlencode($this->user->email);
+        $appIntentUrl = 'intent://app.intan-elyu.online/?view=reset-password&token=' . $this->token . '&email=' . urlencode($this->user->email) . '#Intent;scheme=https;package=com.intan.elyu;S.browser_fallback_url=' . urlencode($resetUrl) . ';end;';
 
         return new Content(
             view: 'emails.password_reset',
             with: [
-                'userName'  => $this->user->name,
-                'userEmail' => $this->user->email,
-                'resetUrl'  => $resetUrl,
-                'otpCode'   => $this->otpCode,
+                'userName'     => $this->user->name,
+                'userEmail'    => $this->user->email,
+                'resetUrl'     => $resetUrl,
+                'appIntentUrl' => $appIntentUrl,
+                'otpCode'      => $this->otpCode,
+                'token'        => $this->token,
             ],
         );
     }

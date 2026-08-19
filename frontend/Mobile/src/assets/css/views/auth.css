@@ -573,3 +573,24 @@ body[data-view="auth"] {
     transform: rotate(45deg) translate(-0.5px, -0.5px);
     display: block;
 }
+
+/* Mobile Frame on Desktop / Web Browsers */
+@media (min-width: 600px) {
+    body[data-view="auth"],
+    body[data-view="reset-password"] {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: #0b0f19 !important;
+    }
+    body[data-view="auth"] .auth-container,
+    body[data-view="reset-password"] .auth-container {
+        max-width: 420px;
+        min-height: 85vh;
+        max-height: 92vh;
+        border-radius: 28px;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1);
+        margin: 20px auto;
+    }
+}

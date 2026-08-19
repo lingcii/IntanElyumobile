@@ -99,18 +99,19 @@
                     <p>We received a request to reset the password for your account linked with <strong>{{ $userEmail }}</strong>.</p>
                     
                     @if(!empty($otpCode))
-                    <div style="background: #f0f9ff; border: 1.5px dashed #0284c7; border-radius: 12px; padding: 20px; text-align: center; margin: 25px 0;">
-                        <span style="font-size: 12px; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 8px;">Your 6-Digit In-App Security Reset Code</span>
-                        <div style="font-size: 32px; font-weight: 900; font-family: monospace; letter-spacing: 10px; color: #0f172a; margin-left: 10px;">{{ $otpCode }}</div>
-                        <span style="font-size: 12px; color: #64748b; margin-top: 6px; display: block;">Enter this code directly in the app to reset your password instantly. Valid for 15 minutes.</span>
+                    <div style="background: #f0fdf4; border: 1.5px dashed #16a34a; border-radius: 12px; padding: 22px; text-align: center; margin: 25px 0;">
+                        <span style="font-size: 12px; font-weight: 800; color: #15803d; text-transform: uppercase; letter-spacing: 1.2px; display: block; margin-bottom: 8px;">👉 RECOMMENDED: YOUR 6-DIGIT IN-APP SECURITY CODE</span>
+                        <div style="font-size: 36px; font-weight: 900; font-family: monospace; letter-spacing: 12px; color: #0f172a; margin: 8px 0 8px 12px;">{{ $otpCode }}</div>
+                        <span style="font-size: 13px; color: #334155; font-weight: 500; display: block;">Return to your <strong>Intan Elyu Mobile App</strong> and enter this code to reset your password instantly.</span>
                     </div>
                     @endif
 
-                    <p>You can also click the button below to choose a new password on mobile. This reset link is valid for 60 minutes.</p>
-                    
-                    <center>
-                        <a href="{{ $resetUrl }}" class="btn">Reset Password</a>
-                    </center>
+                    <div style="text-align: center; margin: 30px 0 20px 0;">
+                        <a href="{{ $appIntentUrl ?? $resetUrl }}" class="btn" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff !important; text-decoration: none; padding: 14px 28px; border-radius: 10px; font-weight: 700; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(2,132,199,0.35);">📱 Open in Intan Elyu App</a>
+                        <p style="font-size: 13px; color: #64748b; margin-top: 14px;">
+                            Or if on computer/browser: <a href="{{ $resetUrl }}" style="color: #0284c7; font-weight: 600; text-decoration: underline;">Open Web Reset Page</a>
+                        </p>
+                    </div>
 
                     <p>If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
                 </td>
