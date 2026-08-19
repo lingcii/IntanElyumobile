@@ -484,14 +484,14 @@
 
     <!-- DOWNLOAD CARD -->
     <div class="download-card">
-      <a href="https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk" class="download-btn"
-        id="download-btn" target="_blank" rel="noopener">
+      <a href="downloads/intan-elyu.apk" download="intan-elyu.apk" class="download-btn"
+        id="download-btn">
         <i class="fab fa-android"></i>
         Download APK for Android
       </a>
       <div class="file-info">
         <span><i class="fa-solid fa-file-zipper"></i> APK File</span>
-        <span><i class="fa-solid fa-hard-drive"></i> ~8 MB</span>
+        <span><i class="fa-solid fa-hard-drive"></i> ~8.8 MB</span>
         <span><i class="fa-solid fa-lock"></i> Signed Release</span>
       </div>
     </div>
@@ -555,10 +555,14 @@
   <!-- QR Code Generator -->
   <script>
     (function () {
-      var downloadUrl = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk';
+      var directUrl = (window.location.origin || 'https://app.intan-elyu.online') + '/downloads/intan-elyu.apk';
+      var downloadUrl = directUrl;
 
       var btn = document.getElementById('download-btn');
-      if (btn) btn.href = downloadUrl;
+      if (btn) {
+        btn.href = downloadUrl;
+        btn.setAttribute('download', 'intan-elyu.apk');
+      }
 
       var canvas = document.getElementById('qr-canvas');
       var size = 180;
