@@ -204,17 +204,18 @@ $activeTab = 'leaderboard';
             banner.style.display = 'flex';
             const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
             const myId = cachedMeData ? (cachedMeData.id || cachedMeData.user_id) : (authUser.id || authUser.user_id || '');
-            const myName = cachedMeData ? (cachedMeData.name || cachedMeData.full_name) : (authUser.name || authUser.full_name || '');
+            const myRankNum = cachedMyRank && cachedMyRank < 999 ? cachedMyRank : 1;
+            const myDisplayName = `${myRankNum}# Explorer`;
             const myXp = cachedMeData ? parseInt(cachedMeData.total_points || cachedMeData.total_xp || cachedMeData.xp || 0) : (authUser.xp || 0);
             const myActivities = cachedMeData ? parseInt(cachedMeData.completed_activities || cachedMeData.places_visited || 0) : 0;
             const myLevel = Math.floor(myXp / 1000) + 1;
-            const myAvatar = cachedMeData && cachedMeData.avatar ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myName || 'You')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+            const myAvatar = cachedMeData && cachedMeData.avatar ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${myRankNum}+Explorer&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
 
             window.myUserData = {
-                name: myName || 'You',
+                name: myDisplayName,
                 avatar: myAvatar,
                 xp: myXp,
-                rank: cachedMyRank && cachedMyRank < 999 ? cachedMyRank : 1,
+                rank: myRankNum,
                 level: myLevel,
                 activities: myActivities,
                 location: cachedMeData ? (cachedMeData.home_location || '') : '',
@@ -222,7 +223,7 @@ $activeTab = 'leaderboard';
             };
 
             if (avatarEl) avatarEl.src = myAvatar;
-            if (titleEl) titleEl.textContent = myName || (myId ? `Explorer #${myId}` : 'Your Standing');
+            if (titleEl) titleEl.textContent = myDisplayName;
             if (rankCircle) {
                 if (cachedMyRank && cachedMyRank < 999) {
                     rankCircle.textContent = '#' + cachedMyRank;
@@ -285,19 +286,17 @@ $activeTab = 'leaderboard';
         renderLeaderboardUI();
     };
 
-    function getUserDisplayName(user) {
-        if (user.is_leaderboard_private) return 'Private Explorer';
-        if (user.name && user.name.trim() !== '') return user.name;
-        if (user.full_name && user.full_name.trim() !== '') return user.full_name;
-        if (user.real_name && user.real_name.trim() !== '') return user.real_name;
-        const idToUse = user.user_id || user.id || 0;
-        return `Explorer #${idToUse}`;
+    function getUserDisplayName(user, rank) {
+        if (rank) {
+            return `${rank}# Explorer`;
+        }
+        const idToUse = user.rank || user.user_id || user.id || 1;
+        return `${idToUse}# Explorer`;
     }
 
     function generatePodiumPlace(user, rank) {
-        const displayName = getUserDisplayName(user);
-        const avatarName = displayName.replace(/#/g, '');
-        let avatarUrl = user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(avatarName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
+        const displayName = getUserDisplayName(user, rank);
+        let avatarUrl = user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${rank}+Explorer&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
         if (avatarUrl && !avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:')) {
             avatarUrl = (window.backendUrl || '') + '/' + avatarUrl.replace(/^\//, '');
         }
@@ -331,7 +330,7 @@ $activeTab = 'leaderboard';
         <div class="podium-place rank-${rank}" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${xp}, ${rank}, ${level}, ${activities}, '${safeLocation}', '${safeBio}')">
             <div class="podium-avatar-wrap">
                 ${medalIcon}
-                <img src="${avatarUrl}" alt="${displayName}" class="podium-avatar" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(avatarName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128';">
+                <img src="${avatarUrl}" alt="${displayName}" class="podium-avatar" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${rank}+Explorer&background=007AFF&color=fff&rounded=true&bold=true&size=128';">
                 <div class="podium-rank-badge rank-badge-${rank}">${rank}</div>
             </div>
             <div class="podium-name">${displayName}</div>
@@ -348,9 +347,8 @@ $activeTab = 'leaderboard';
     }
 
     function generateRankItem(user, rank, isMe) {
-        const displayName = getUserDisplayName(user);
-        const avatarName = displayName.replace(/#/g, '');
-        let avatarUrl = user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(avatarName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
+        const displayName = getUserDisplayName(user, rank);
+        let avatarUrl = user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${rank}+Explorer&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
         if (avatarUrl && !avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:')) {
             avatarUrl = (window.backendUrl || '') + '/' + avatarUrl.replace(/^\//, '');
         }
@@ -370,7 +368,7 @@ $activeTab = 'leaderboard';
         <div class="rank-item ${activeClass}" style="animation-delay: ${Math.max(0, delay)}s;" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${xp}, ${rank}, ${level}, ${activities}, '${safeLocation}', '${safeBio}')">
             <div style="display: flex; align-items: center; min-width: 0; flex: 1;">
                 <div class="rank-number-box">${rank}</div>
-                <img src="${avatarUrl}" alt="${displayName}" class="rank-avatar" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(avatarName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128';">
+                <img src="${avatarUrl}" alt="${displayName}" class="rank-avatar" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${rank}+Explorer&background=007AFF&color=fff&rounded=true&bold=true&size=128';">
                 <div class="rank-info">
                     <div class="rank-user-name">
                         <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${displayName}</span>
