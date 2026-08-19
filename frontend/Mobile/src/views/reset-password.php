@@ -31,10 +31,16 @@ $email = $_GET['email'] ?? '';
                     <input type="hidden" id="reset-email" value="<?= htmlspecialchars($email, ENT_QUOTES) ?>">
 
                     <?php if (!empty($email)): ?>
-                    <p style="text-align: center; color: rgba(255,255,255,0.7); font-size: 13px; margin-bottom: 20px;">
+                    <p style="text-align: center; color: rgba(255,255,255,0.7); font-size: 13px; margin-bottom: 16px;">
                         Resetting password for <strong style="color: #38bdf8;"><?= htmlspecialchars($email) ?></strong>
                     </p>
                     <?php endif; ?>
+
+                    <div id="apk-launch-box" style="margin-bottom: 20px; text-align: center;">
+                        <button type="button" onclick="launchInApk()" style="width: 100%; background: linear-gradient(135deg, #0284c7, #2563eb); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 12px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 15px rgba(2,132,199,0.4); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fa-solid fa-mobile-screen"></i> Open in Intan Elyu APK
+                        </button>
+                    </div>
 
                     <div class="input-group" style="margin-bottom: 20px;">
                         <i class="fa-solid fa-lock"></i>
@@ -80,6 +86,24 @@ function togglePasswordVisibility(inputId, iconEl) {
     const token = document.getElementById('reset-token')?.value || params.get('token') || '';
     const email = document.getElementById('reset-email')?.value || params.get('email') || '';
     const backendUrl = (typeof window.getBackendUrl === 'function') ? window.getBackendUrl() : (window.backendUrl || window.location.origin);
+    const isApk = navigator.userAgent.includes('IntanElyuAPK') || !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+
+    window.launchInApk = function() {
+        const customScheme = 'intanelyu://?view=reset-password&token=' + encodeURIComponent(token) + '&email=' + encodeURIComponent(email);
+        const intentUrl = 'intent://app.intan-elyu.online/?view=reset-password&token=' + encodeURIComponent(token) + '&email=' + encodeURIComponent(email) + '#Intent;scheme=https;package=com.intan.elyu;end;';
+        window.location.href = customScheme;
+        setTimeout(() => {
+            try { window.location.href = intentUrl; } catch(e) {}
+        }, 500);
+    };
+
+    const apkBox = document.getElementById('apk-launch-box');
+    if (apkBox && isApk) {
+        apkBox.style.display = 'none';
+    } else if (!isApk && (params.get('open_app') === '1' || /android/i.test(navigator.userAgent))) {
+        // Auto-attempt launch into APK
+        window.launchInApk();
+    }
 
     if (!token || !email) {
         console.warn('Token or email query parameter missing from URL.');
