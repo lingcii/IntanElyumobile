@@ -106,7 +106,7 @@
                     </div>
                     @endif
 
-                    <p>You can also click the button below to choose a new password on your browser. This reset link is valid for 60 minutes.</p>
+                    <p>You can also click the button below to choose a new password on mobile. This reset link is valid for 60 minutes.</p>
                     
                     <center>
                         <a href="{{ $resetUrl }}" class="btn">Reset Password</a>
@@ -117,7 +117,7 @@
             </tr>
             <tr>
                 <td class="footer">
-                    <p>If you're having trouble clicking the button, copy and paste the link below into your web browser:</p>
+                    <p>If you're having trouble clicking the button, copy and paste the link below into your mobile browser:</p>
                     <p style="word-break: break-all;"><a href="{{ $resetUrl }}" style="color: #0284c7;">{{ $resetUrl }}</a></p>
                 </td>
             </tr>

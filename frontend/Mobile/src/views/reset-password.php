@@ -1,6 +1,7 @@
 <?php
 // Password Reset View
 ?>
+<link rel="stylesheet" href="assets/css/views/auth.css?v=<?= time() ?>">
 <div class="auth-container">
     <!-- Top Blue Section -->
     <div class="auth-top">
@@ -21,20 +22,22 @@
     
     <!-- Bottom Section -->
     <div class="auth-bottom" style="padding-top: 40px;">
-        <div class="forms-wrapper" style="padding: 0 20px;">
+        <div class="forms-wrapper" style="padding: 0 20px; max-width: 380px; margin: 0 auto;">
             <div class="form-panel" style="width:100%; display:block; opacity:1; transform:none;">
                 <form id="form-reset-password" onsubmit="handleResetPassword(event)">
-                    <div class="input-group">
+                    <div class="input-group" style="margin-bottom: 20px;">
                         <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="reset-password-val" class="auth-input" placeholder="New Password" required minlength="8">
+                        <input type="password" id="reset-password-val" class="auth-input" placeholder="New Password (min 8 chars)" required minlength="8">
+                        <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('reset-password-val', this)"></i>
                     </div>
-                    <div class="input-group">
+                    <div class="input-group" style="margin-bottom: 24px;">
                         <i class="fa-solid fa-lock"></i>
                         <input type="password" id="reset-password-confirm" class="auth-input" placeholder="Confirm Password" required minlength="8">
+                        <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('reset-password-confirm', this)"></i>
                     </div>
                     
-                    <button type="submit" id="btn-submit-reset" class="btn-circle-submit" style="margin-top: 24px;">
-                        <i class="fa-solid fa-arrow-right"></i>
+                    <button type="submit" id="btn-submit-reset" class="btn-circle-submit" style="margin-top: 10px;">
+                        <i class="fa-solid fa-check"></i>
                     </button>
                 </form>
             </div>
@@ -43,17 +46,35 @@
 </div>
 
 <script>
+function togglePasswordVisibility(inputId, iconEl) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        if (iconEl) {
+            iconEl.classList.remove('fa-eye');
+            iconEl.classList.add('fa-eye-slash');
+        }
+    } else {
+        input.type = 'password';
+        if (iconEl) {
+            iconEl.classList.remove('fa-eye-slash');
+            iconEl.classList.add('fa-eye');
+        }
+    }
+}
+
 (function() {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
     const email = params.get('email');
-    const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+    const backendUrl = (typeof window.getBackendUrl === 'function') ? window.getBackendUrl() : (window.backendUrl || window.location.origin);
 
     if (!token || !email) {
         if (typeof showToast === 'function') showToast('Invalid or missing password reset token.');
         setTimeout(() => {
             if (typeof navigateTo === 'function') navigateTo('auth');
-        }, 2000);
+        }, 2500);
     }
 
     window.handleResetPassword = async function(e) {
@@ -62,8 +83,13 @@
         const password = document.getElementById('reset-password-val').value;
         const confirmPassword = document.getElementById('reset-password-confirm').value;
 
+        if (password.length < 8) {
+            if (typeof showToast === 'function') showToast('Password must be at least 8 characters long.');
+            return;
+        }
+
         if (password !== confirmPassword) {
-            if (typeof showToast === 'function') showToast('Passwords do not match.');
+            if (typeof showToast === 'function') showToast('Passwords do not match. Please verify.');
             return;
         }
 
@@ -92,15 +118,19 @@
                 throw new Error(data.message || data.error || 'Failed to reset password.');
             }
 
-            if (typeof showToast === 'function') showToast('Password reset successfully! Log in now.');
+            if (typeof showToast === 'function') showToast('Password reset successfully! Redirecting to login...', 'success');
             
             setTimeout(() => {
                 const cleanUrl = new URL(window.location.origin + window.location.pathname);
                 cleanUrl.searchParams.set('view', 'auth');
                 window.history.replaceState({ view: 'auth' }, '', cleanUrl);
                 
-                if (typeof navigateTo === 'function') navigateTo('auth');
-            }, 2000);
+                if (typeof navigateTo === 'function') {
+                    navigateTo('auth');
+                } else {
+                    window.location.href = cleanUrl.toString();
+                }
+            }, 1800);
 
         } catch (error) {
             console.error('Reset Password Error:', error);
