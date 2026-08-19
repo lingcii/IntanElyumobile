@@ -150,7 +150,7 @@ window.initGoogleOAuthHandler = function () {
         if (window.history && window.history.replaceState) {
             window.history.replaceState({}, document.title, window.location.pathname + '?view=dashboard');
         }
-        if (typeof showToast === 'function') showToast('🎉 Logged in successfully!', 'success');
+        if (typeof showToast === 'function') showToast('Logged in successfully!', 'success');
         navigateTo('dashboard', true, true);
         return;
     }
