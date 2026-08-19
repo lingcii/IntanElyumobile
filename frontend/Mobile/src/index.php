@@ -84,6 +84,7 @@ if ($isAjax) {
         }
         window.GOOGLE_CLIENT_ID = '620598190857-37a0ucobfd4b3rct7ofti8rtvl3qt884.apps.googleusercontent.com';
     </script>
+    <script src="assets/js/capacitor/capacitor.js?v=<?= time() ?>"></script>
     <script src="assets/js/main.js?v=<?= time() ?>"></script>
 
     <link rel="stylesheet" href="assets/css/style.css?v=<?= time() ?>">

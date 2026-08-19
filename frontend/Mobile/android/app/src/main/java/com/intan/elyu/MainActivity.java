@@ -9,10 +9,12 @@ import android.os.Bundle;
 import android.webkit.GeolocationPermissions;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebResourceRequest;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.BridgeWebChromeClient;
+import com.getcapacitor.BridgeWebViewClient;
 
 public class MainActivity extends BridgeActivity {
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
@@ -29,7 +31,7 @@ public class MainActivity extends BridgeActivity {
                 WebView webView = this.bridge.getWebView();
                 WebSettings settings = webView.getSettings();
                 
-                // Enable Geolocation in WebView
+                // Enable Geolocation & Storage in WebView
                 settings.setGeolocationEnabled(true);
                 settings.setGeolocationDatabasePath(getFilesDir().getPath());
                 settings.setDomStorageEnabled(true);
@@ -40,6 +42,9 @@ public class MainActivity extends BridgeActivity {
                 String ua = settings.getUserAgentString();
                 if (ua != null) {
                     ua = ua.replace("; wv", "").replace("Version/4.0 ", "");
+                    if (!ua.contains("IntanElyuAPK")) {
+                        ua = ua + " IntanElyuAPK/1.0";
+                    }
                     settings.setUserAgentString(ua);
                 }
 
@@ -48,6 +53,40 @@ public class MainActivity extends BridgeActivity {
                     @Override
                     public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
                         callback.invoke(origin, true, false);
+                    }
+                });
+
+                // Keep all navigations (auth, google, app) strictly inside this APK WebView
+                webView.setWebViewClient(new BridgeWebViewClient(this.bridge) {
+                    @Override
+                    public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                        if (url != null && (
+                            url.contains("intan-elyu.online") || 
+                            url.contains("accounts.google.com") || 
+                            url.contains("google.com") || 
+                            url.contains("googleapis.com") ||
+                            url.contains("localhost")
+                        )) {
+                            view.loadUrl(url);
+                            return true;
+                        }
+                        return super.shouldOverrideUrlLoading(view, url);
+                    }
+
+                    @Override
+                    public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                        if (request != null && request.getUrl() != null) {
+                            String url = request.getUrl().toString();
+                            if (url.contains("intan-elyu.online") || 
+                                url.contains("accounts.google.com") || 
+                                url.contains("google.com") || 
+                                url.contains("googleapis.com") ||
+                                url.contains("localhost")) {
+                                view.loadUrl(url);
+                                return true;
+                            }
+                        }
+                        return super.shouldOverrideUrlLoading(view, request);
                     }
                 });
             }
