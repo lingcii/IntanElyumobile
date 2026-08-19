@@ -801,7 +801,7 @@ require_once __DIR__ . '/../components/header.php';
     window.verifyGpsCheckIn = async function() {
         const imageFile = window.selectedCheckinImageFile || (document.getElementById('checkin-proof-image') ? document.getElementById('checkin-proof-image').files[0] : null);
         if (!imageFile) {
-            if (typeof showToast === 'function') showToast('Please select or capture a photo proof first! 📸');
+            if (typeof showToast === 'function') showToast('Please select or capture a photo proof first.');
             return;
         }
 
@@ -832,8 +832,8 @@ require_once __DIR__ . '/../components/header.php';
             const result = await response.json();
 
             if (response.ok) {
-                if (typeof showToast === 'function') showToast(result.message || 'Checked in! Earned +50 XP & Points');
                 closeCheckinModal();
+                if (typeof showToast === 'function') showToast(result.message || 'Photo proof submitted! Pending verification before completion.');
                 document.getElementById('checkin-prompt-card').style.display = 'none';
                 
                 const item = window.currentTripItems?.find(i => i.id == itemId);

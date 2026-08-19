@@ -556,7 +556,7 @@ $backRoute = 'itinerary';
     window.verifyGpsCheckIn = function() {
         const imageFile = window.selectedCheckinImageFile || (document.getElementById('checkin-proof-image') ? document.getElementById('checkin-proof-image').files[0] : null);
         if (!imageFile) {
-            if (typeof showToast === 'function') showToast('Please select or capture a photo proof first! 📸');
+            if (typeof showToast === 'function') showToast('Please select or capture a photo proof first.');
             return;
         }
 
@@ -597,18 +597,28 @@ $backRoute = 'itinerary';
                 });
 
                 const data = await response.json();
-                if (response.ok && data.success) {
-                    if (typeof showToast === 'function') showToast(data.message || 'Check-in verified successfully! 🎉');
+                if (response.ok && (data.success || data.status === 'pending' || data.status === 'approved' || data.status === 'success')) {
                     window.closeCheckinModal();
-                    // Play confetti or XP animation if available
+                    if (typeof showToast === 'function') showToast(data.message || 'Photo proof submitted! Pending verification before completion.');
+                    
+                    const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                    if (token) {
+                        localStorage.removeItem('saved_trips_' + token.substring(0, 10));
+                        localStorage.removeItem('dashboard_trips_' + token.substring(0, 10));
+                    }
+                    
                     if (window.confetti) {
                         window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
                     }
                     setTimeout(() => {
-                        window.location.reload();
-                    }, 1200);
+                        if (typeof window.fetchSavedTrips === 'function') {
+                            window.fetchSavedTrips(true);
+                        } else {
+                            window.location.reload();
+                        }
+                    }, 400);
                 } else {
-                    if (typeof showToast === 'function') showToast(data.message || 'Check-in failed. Please ensure you are at the spot!');
+                    if (typeof showToast === 'function') showToast(data.message || 'Check-in failed. Please ensure you are at the spot.');
                     btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo';
                     btn.disabled = false;
                 }
