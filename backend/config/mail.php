@@ -26,7 +26,7 @@ return [
             'port' => (int) env('MAIL_PORT', 587),
             'encryption' => env('MAIL_ENCRYPTION', 'tls'),
             'username' => env('MAIL_USERNAME', 'acekillersmile@gmail.com'),
-            'password' => env('MAIL_PASSWORD', 'mwmheyrxpppgeial'),
+            'password' => env('MAIL_PASSWORD', 'egnrijvxdqdanlwc'),
             'timeout' => 30,
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
