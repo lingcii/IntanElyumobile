@@ -4,9 +4,45 @@ $token = $_GET['token'] ?? '';
 $email = $_GET['email'] ?? '';
 ?>
 <link rel="stylesheet" href="assets/css/views/auth.css?v=<?= time() ?>">
+<style>
+.back-btn-circle {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    z-index: 20;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.back-btn-circle:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.06);
+}
+.back-btn-circle:active {
+    transform: scale(0.95);
+}
+</style>
+
 <div class="auth-container">
     <!-- Top Blue Section -->
-    <div class="auth-top">
+    <div class="auth-top" style="position: relative;">
+        <!-- Back Button -->
+        <button type="button" class="back-btn-circle" onclick="handleResetBack()" aria-label="Go Back">
+            <i class="fa-solid fa-arrow-left"></i>
+        </button>
+
         <div class="logo-container">
             <img src="assets/img/logo.png" alt="Intan Elyu Logo">
         </div>
@@ -23,8 +59,8 @@ $email = $_GET['email'] ?? '';
     </div>
     
     <!-- Bottom Section -->
-    <div class="auth-bottom" style="padding-top: 40px;">
-        <div class="forms-wrapper" style="padding: 0 20px; max-width: 380px; margin: 0 auto;">
+    <div class="auth-bottom" style="padding-top: 36px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <div class="forms-wrapper" style="padding: 0 20px; width: 100%; max-width: 350px; margin: 0 auto;">
             <div class="form-panel" style="width:100%; display:block; opacity:1; transform:none;">
                 <form id="form-reset-password" onsubmit="handleResetPassword(event)">
                     <input type="hidden" id="reset-token" value="<?= htmlspecialchars($token, ENT_QUOTES) ?>">
@@ -53,7 +89,7 @@ $email = $_GET['email'] ?? '';
                         <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('reset-password-confirm', this)"></i>
                     </div>
                     
-                    <button type="submit" id="btn-submit-reset" class="btn-circle-submit" style="margin-top: 10px;">
+                    <button type="submit" id="btn-submit-reset" class="btn-circle-submit" style="margin: 20px auto 0 auto; display: flex; align-items: center; justify-content: center;">
                         <i class="fa-solid fa-check"></i>
                     </button>
                 </form>
@@ -82,6 +118,15 @@ function togglePasswordVisibility(inputId, iconEl) {
 }
 
 (function() {
+    window.handleResetBack = function(e) {
+        if (e) e.preventDefault();
+        if (typeof navigateTo === 'function') {
+            navigateTo('auth');
+        } else {
+            window.location.href = 'index.php?view=auth';
+        }
+    };
+
     const params = new URLSearchParams(window.location.search);
     const token = document.getElementById('reset-token')?.value || params.get('token') || '';
     const email = document.getElementById('reset-email')?.value || params.get('email') || '';
