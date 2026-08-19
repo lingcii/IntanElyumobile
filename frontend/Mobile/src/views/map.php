@@ -2434,8 +2434,43 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
                 // Render testimonies list
                 if (d.data && d.data.length > 0) {
+                    const maskUserName = (name) => {
+                        if (!name || typeof name !== 'string') return 'Explorer';
+                        const trimmed = name.trim();
+                        if (!trimmed) return 'Explorer';
+                        
+                        const parts = trimmed.split(/\s+/);
+                        if (parts.length === 1) {
+                            const w = parts[0];
+                            if (w.length <= 2) return w.charAt(0) + '*';
+                            if (w.length <= 4) return w.slice(0, 2) + '*'.repeat(w.length - 2);
+                            return w.slice(0, 2) + '*'.repeat(w.length - 4) + w.slice(-2);
+                        }
+                        
+                        return parts.map((part, index) => {
+                            const len = part.length;
+                            if (len <= 2) return part.charAt(0) + '*';
+                            
+                            if (index === 0) {
+                                // First name (e.g. "temi" -> "te**")
+                                const visible = Math.min(2, Math.max(1, len - 2));
+                                return part.slice(0, visible) + '*'.repeat(len - visible);
+                            } else if (index === parts.length - 1) {
+                                // Last name (e.g. "simer" -> "***er")
+                                const visible = Math.min(2, Math.max(1, len - 2));
+                                return '*'.repeat(len - visible) + part.slice(-visible);
+                            } else {
+                                // Middle names
+                                return '*'.repeat(len);
+                            }
+                        }).join(' ');
+                    };
+
                     const renderCard = (fb) => {
                         const user = fb.user || { name: 'Explorer' };
+                        const rawName = user.name || user.full_name || 'Explorer';
+                        const maskedName = maskUserName(rawName);
+                        const initial = (rawName || 'E').charAt(0).toUpperCase();
                         const rating = parseInt(fb.rating) || 5;
                         let starsHtml = '';
                         for (let s = 1; s <= 5; s++) {
@@ -2458,9 +2493,9 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                                 <div style="display:flex; align-items:center; gap:8px;">
                                     <div style="width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg, #38bdf8, #2563eb); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:11px;">
-                                        ${(user.name || 'E').charAt(0).toUpperCase()}
+                                        ${initial}
                                     </div>
-                                    <strong style="color:#ffffff; font-size:13px; font-weight:700;">${user.name}</strong>
+                                    <strong style="color:#ffffff; font-size:13px; font-weight:700;">${maskedName}</strong>
                                 </div>
                                 <div style="display:flex; gap:2px; align-items:center;">${starsHtml}</div>
                             </div>
