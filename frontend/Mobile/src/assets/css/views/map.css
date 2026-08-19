@@ -241,25 +241,30 @@
     background: rgba(56, 189, 248, 0.3);
 }
 
-/* ── Bottom Sheet (Modern Glassmorphism Design) ── */
+/* ── Bottom Sheet (Intact Docked Design) ── */
 .bottom-sheet {
     position: absolute;
-    left: 12px;
-    right: 12px;
-    bottom: calc(114px + env(safe-area-inset-bottom));
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
     z-index: 990;
-    background: radial-gradient(circle at 50% 0%, rgba(26, 42, 74, 0.96) 0%, rgba(15, 23, 42, 0.98) 100%);
+    background: radial-gradient(circle at 50% 0%, rgba(26, 42, 74, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%);
     backdrop-filter: blur(32px);
     -webkit-backdrop-filter: blur(32px);
-    border: 1px solid rgba(56, 189, 248, 0.22);
-    border-radius: 28px;
-    padding: 8px 18px 18px;
-    max-height: calc(100vh - 140px);
-    box-shadow: none !important;
+    border-top: 1px solid rgba(56, 189, 248, 0.25);
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-radius: 28px 28px 0 0;
+    padding: 8px 16px calc(98px + env(safe-area-inset-bottom));
+    max-height: calc(100vh - 70px);
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5) !important;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     will-change: transform, opacity;
+    box-sizing: border-box;
 }
 
 .bottom-sheet.active {
@@ -298,7 +303,7 @@
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    max-height: calc(82vh - 44px);
+    max-height: calc(85vh - 110px);
     padding-bottom: 12px;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE/Edge */
