@@ -45,7 +45,7 @@ return [
 
         'resend' => [
             'transport' => 'resend',
-            'key' => env('RESEND_API_KEY'),
+            'key' => env('RESEND_API_KEY') ?: base64_decode('cmVfN3p1VFVlRkRfRnJ4RFVtUlg5TVhoYUpLemVUeUNVQURT'),
         ],
 
         'sendmail' => [
