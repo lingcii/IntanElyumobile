@@ -54,23 +54,27 @@ require_once __DIR__ . '/../components/header.php';
 </div>
 
 <!-- Prompt Card when within 300m -->
-<div id="checkin-prompt-card" style="position: absolute; top: 80px; left: 16px; right: 16px; z-index: 1001; background: rgba(15,23,42,0.9); border: 1.5px solid rgba(56,189,248,0.4); border-radius: 18px; padding: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; align-items: center; justify-content: space-between; backdrop-filter: blur(10px); animation: slideDown 0.3s ease-out;">
-    <div style="display:flex; align-items:center; gap:10px;">
-        <span style="font-size:24px;">📍</span>
+<div id="checkin-prompt-card" style="position: absolute; top: calc(max(env(safe-area-inset-top), 40px) + 54px); left: 16px; right: 16px; z-index: 1001; background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); border: 1.5px solid rgba(56,189,248,0.4); border-radius: 20px; padding: 14px 18px; box-shadow: 0 12px 36px rgba(0,0,0,0.6), 0 0 20px rgba(56,189,248,0.2); display: none; align-items: center; justify-content: space-between; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+    <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:40px; height:40px; border-radius:12px; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <i class="fa-solid fa-location-dot" style="color:#38bdf8; font-size:18px;"></i>
+        </div>
         <div style="text-align: left;">
-            <h5 style="margin:0; font-size:13px; font-weight:700; color:#fff;">You've arrived!</h5>
-            <p id="checkin-prompt-dest-name" style="margin:2px 0 0; font-size:11px; color:rgba(255,255,255,0.7); font-weight:500;"></p>
+            <h5 style="margin:0 0 2px; font-size:14px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">You've arrived!</h5>
+            <p id="checkin-prompt-dest-name" style="margin:0; font-size:12px; color:rgba(226,232,240,0.8); font-weight:600;"></p>
         </div>
     </div>
-    <button onclick="window.triggerMapCheckinModal()" style="background:#38bdf8; color:#000; border:none; padding:8px 14px; border-radius:10px; font-weight:800; font-size:11px; cursor:pointer; box-shadow: 0 4px 10px rgba(56,189,248,0.25);">
-        Check In
+    <button onclick="window.triggerMapCheckinModal()" style="background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); color:#ffffff; border:1px solid rgba(255,255,255,0.2); padding:9px 18px; border-radius:12px; font-weight:800; font-size:12px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.4); display:flex; align-items:center; gap:6px; flex-shrink:0; transition:transform 0.15s ease;">
+        <i class="fa-solid fa-camera" style="font-size:11px;"></i> Check In
     </button>
 </div>
 
 <!-- Check-in Verification Modal (GPS and Photo Proof) -->
 <div id="checkin-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.78); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:99999; justify-content:center; align-items:center;">
     <div style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(56, 189, 248, 0.3); border-radius:24px; padding:28px 24px; width:90%; max-width:380px; box-shadow:0 24px 60px rgba(0,0,0,0.6), 0 0 30px rgba(56,189,248,0.15); text-align:center;">
-        <div style="font-size:48px; margin-bottom:12px;">📸</div>
+        <div style="width:58px; height:58px; border-radius:50%; background:rgba(56,189,248,0.15); border:1.5px solid rgba(56,189,248,0.35); display:flex; align-items:center; justify-content:center; margin:0 auto 14px;">
+            <i class="fa-solid fa-camera" style="font-size:26px; color:#38bdf8;"></i>
+        </div>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Claim Your Reward</h3>
         <p style="font-size:13px; color:rgba(226, 232, 240, 0.85); margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination to verify your visit and earn <strong style="color:#38bdf8; font-weight:800;">+50 XP</strong> & <strong style="color:#38bdf8; font-weight:800;">+50 Points</strong>.</p>
 
