@@ -396,24 +396,24 @@ $activeTab = 'leaderboard';
             const safeLocation = (user.home_location || '').replace(/'/g, "\\'");
             const safeBio = (user.bio || '').replace(/'/g, "\\'");
 
-            let metricPillHtml = '';
+            let iconHtml = '';
+            let textMetric = '';
 
             if (currentSortMode === 'points') {
-                metricPillHtml = `
-            <div class="podium-xp-pill podium-xp-${rank}" style="background:rgba(245,158,11,0.18); color:#f59e0b; border:1px solid rgba(245,158,11,0.35); margin-bottom:10px;">
-                <i class="fa-solid fa-coins" style="font-size:10px;"></i> ${pts.toLocaleString()} PTS
-            </div>`;
+                iconHtml = '<i class="fa-solid fa-coins" style="font-size:10px;"></i>';
+                textMetric = `${pts.toLocaleString()} PTS`;
             } else if (currentSortMode === 'visited') {
-                metricPillHtml = `
-            <div class="podium-xp-pill podium-xp-${rank}" style="margin-bottom:10px;">
-                <i class="fa-solid fa-map-location-dot" style="font-size:10px;"></i> ${activities} Visited
-            </div>`;
+                iconHtml = '<i class="fa-solid fa-map-location-dot" style="font-size:10px;"></i>';
+                textMetric = `${activities} Visited`;
             } else {
-                metricPillHtml = `
-            <div class="podium-xp-pill podium-xp-${rank}" style="margin-bottom:10px;">
-                <i class="fa-solid fa-bolt" style="font-size:10px;"></i> ${xp.toLocaleString()} XP
-            </div>`;
+                iconHtml = '<i class="fa-solid fa-bolt" style="font-size:10px;"></i>';
+                textMetric = `${xp.toLocaleString()} XP`;
             }
+
+            const metricPillHtml = `
+            <div class="podium-xp-pill podium-xp-${rank}" style="margin-bottom:10px;">
+                ${iconHtml} ${textMetric}
+            </div>`;
 
             return `
         <div class="podium-place rank-${rank}" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${xp}, ${pts}, ${rank}, ${level}, ${activities}, '${safeLocation}', '${safeBio}')">
