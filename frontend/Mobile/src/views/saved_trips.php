@@ -828,7 +828,7 @@ $backRoute = 'itinerary';
                     ${destListHtml}
                 </div>
                 <button type="button" id="btn-trip-completion-close" onclick="window.closeTripCompletionReviewModal()" style="width:100%; padding:13px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#e2e8f0; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
-                    Maybe Later
+                    Okay
                 </button>
             </div>
         </div>`;
