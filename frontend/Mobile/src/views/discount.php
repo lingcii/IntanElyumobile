@@ -26,11 +26,11 @@ $backRoute = 'dashboard';
     <!-- Category Filters -->
     <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 20px; scrollbar-width: none;" id="discount-filters">
         <button class="discount-cat-btn active" onclick="filterDiscounts('All')">All Deals</button>
-        <button class="discount-cat-btn" id="btn-my-claimed" onclick="filterDiscounts('Claimed')">🎟️ My Vouchers (<span id="claimed-count">0</span>)</button>
-        <button class="discount-cat-btn" onclick="filterDiscounts('Food & Dining')">🍔 Food & Dining</button>
-        <button class="discount-cat-btn" onclick="filterDiscounts('Activities')">🏄 Activities & Surf</button>
-        <button class="discount-cat-btn" onclick="filterDiscounts('Accommodations')">🏨 Accommodations</button>
-        <button class="discount-cat-btn" onclick="filterDiscounts('Souvenirs')">🎁 Gear & Passes</button>
+        <button class="discount-cat-btn" id="btn-my-claimed" onclick="filterDiscounts('Claimed')">My Vouchers (<span id="claimed-count">0</span>)</button>
+        <button class="discount-cat-btn" onclick="filterDiscounts('Food & Dining')">Food & Dining</button>
+        <button class="discount-cat-btn" onclick="filterDiscounts('Activities')">Activities & Surf</button>
+        <button class="discount-cat-btn" onclick="filterDiscounts('Accommodations')">Accommodations</button>
+        <button class="discount-cat-btn" onclick="filterDiscounts('Souvenirs')">Gear & Passes</button>
     </div>
 
     <!-- Discounts Grid -->

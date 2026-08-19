@@ -2395,24 +2395,37 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 // Render summary metrics
                 if (d.summary && d.summary.total_reviews > 0) {
                     const sm = d.summary;
+                    const reviewCount = parseInt(sm.total_reviews) || 0;
+                    const reviewText = reviewCount === 1 ? '1 Review' : `${reviewCount} Reviews`;
+                    const avgRating = parseFloat(sm.average_rating || 5).toFixed(1);
+
+                    const cleanVal = sm.cleanliness.clean >= sm.cleanliness.moderate && sm.cleanliness.clean >= sm.cleanliness.dirty ? 'Clean' : (sm.cleanliness.moderate >= sm.cleanliness.dirty ? 'Moderate' : 'Dirty');
+                    const cleanColor = cleanVal === 'Clean' ? '#34c759' : (cleanVal === 'Moderate' ? '#f59e0b' : '#ef4444');
+                    const cleanBg = cleanVal === 'Clean' ? 'rgba(52,199,89,0.12)' : (cleanVal === 'Moderate' ? 'rgba(245,158,11,0.12)' : 'rgba(239,68,68,0.12)');
+
+                    const safeVal = sm.safety.safe >= sm.safety.moderate && sm.safety.safe >= sm.safety.unsafe ? 'Safe' : (sm.safety.moderate >= sm.safety.unsafe ? 'Moderate' : 'Unsafe');
+                    const safeColor = safeVal === 'Safe' ? '#34c759' : (safeVal === 'Moderate' ? '#f59e0b' : '#ef4444');
+                    const safeBg = safeVal === 'Safe' ? 'rgba(52,199,89,0.12)' : (safeVal === 'Moderate' ? 'rgba(245,158,11,0.12)' : 'rgba(239,68,68,0.12)');
+
                     summary.style.display = 'block';
                     summary.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:6px;">
-                            <strong style="color:#fff;">Visitor Insights (${sm.total_reviews} reviews)</strong>
-                            <strong style="color:#38bdf8;">★ ${sm.average_rating}</strong>
-                        </div>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-                            <div>
-                                <span style="display:block; font-size:9px; color:rgba(255,255,255,0.45); text-transform:uppercase;">Cleanliness</span>
-                                <span style="font-weight:700; color:#fff;">
-                                    ${sm.cleanliness.clean >= sm.cleanliness.moderate && sm.cleanliness.clean >= sm.cleanliness.dirty ? 'Clean' : (sm.cleanliness.moderate >= sm.cleanliness.dirty ? 'Moderate' : 'Dirty')}
-                                </span>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:8px;">
+                            <strong style="color:#ffffff; font-size:13px; font-weight:800; display:flex; align-items:center; gap:6px;">
+                                <i class="fa-solid fa-chart-simple" style="color:#38bdf8; font-size:11px;"></i> Visitor Insights (${reviewText})
+                            </strong>
+                            <div style="display:flex; align-items:center; gap:4px; background:rgba(251,191,36,0.12); border:1px solid rgba(251,191,36,0.3); padding:2px 8px; border-radius:100px;">
+                                <i class="fa-solid fa-star" style="color:#fbbf24; font-size:11px;"></i>
+                                <span style="color:#fbbf24; font-size:12px; font-weight:800;">${avgRating}</span>
                             </div>
-                            <div>
-                                <span style="display:block; font-size:9px; color:rgba(255,255,255,0.45); text-transform:uppercase;">Safety</span>
-                                <span style="font-weight:700; color:#fff;">
-                                    ${sm.safety.safe >= sm.safety.moderate && sm.safety.safe >= sm.safety.unsafe ? 'Safe' : (sm.safety.moderate >= sm.safety.unsafe ? 'Moderate' : 'Unsafe')}
-                                </span>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
+                            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:10px; color:rgba(226,232,240,0.6); text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Cleanliness</span>
+                                <span style="font-size:11px; font-weight:800; color:${cleanColor}; background:${cleanBg}; border:1px solid ${cleanColor}40; padding:2px 8px; border-radius:6px;">${cleanVal}</span>
+                            </div>
+                            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:10px; color:rgba(226,232,240,0.6); text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Safety</span>
+                                <span style="font-size:11px; font-weight:800; color:${safeColor}; background:${safeBg}; border:1px solid ${safeColor}40; padding:2px 8px; border-radius:6px;">${safeVal}</span>
                             </div>
                         </div>`;
                 } else {
@@ -2423,23 +2436,39 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 if (d.data && d.data.length > 0) {
                     const renderCard = (fb) => {
                         const user = fb.user || { name: 'Explorer' };
-                        const stars = '★'.repeat(fb.rating || 0) + '☆'.repeat(5 - (fb.rating || 0));
-                        const date = new Date(fb.created_at).toLocaleDateString();
+                        const rating = parseInt(fb.rating) || 5;
+                        let starsHtml = '';
+                        for (let s = 1; s <= 5; s++) {
+                            starsHtml += s <= rating 
+                                ? '<i class="fa-solid fa-star" style="color:#fbbf24; font-size:11px;"></i>' 
+                                : '<i class="fa-regular fa-star" style="color:rgba(255,255,255,0.2); font-size:11px;"></i>';
+                        }
+                        const date = fb.created_at ? new Date(fb.created_at).toLocaleDateString() : '';
                         const policyHtml = fb.policy_recommendation ? `
-                            <div style="background:rgba(56,189,248,0.06); border:1px solid rgba(56,189,248,0.18); padding:8px 10px; border-radius:10px; margin-top:8px; font-size:11px;">
-                                <strong style="display:block; font-size:10px; color:#38bdf8; text-transform:uppercase; margin-bottom:2px;">Policy Recommendation:</strong>
-                                <span style="color:rgba(255,255,255,0.85);">${fb.policy_recommendation}</span>
+                            <div style="background:rgba(56,189,248,0.06); border:1px solid rgba(56,189,248,0.2); padding:10px 12px; border-radius:12px; margin-top:10px;">
+                                <div style="display:flex; align-items:center; gap:5px; margin-bottom:4px;">
+                                    <i class="fa-solid fa-lightbulb" style="color:#38bdf8; font-size:11px;"></i>
+                                    <strong style="font-size:10px; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; font-weight:800;">Policy Recommendation</strong>
+                                </div>
+                                <span style="color:rgba(226,232,240,0.9); font-size:12px; line-height:1.4; display:block;">${fb.policy_recommendation}</span>
                             </div>` : '';
 
                         return `
-                        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); padding:12px; border-radius:14px; font-size:12px;">
-                            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-                                <strong style="color:#fff;">${user.name}</strong>
-                                <span style="color:#f59e0b; font-weight:700;">${stars}</span>
+                        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); padding:14px; border-radius:16px; font-size:12px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <div style="width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg, #38bdf8, #2563eb); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:11px;">
+                                        ${(user.name || 'E').charAt(0).toUpperCase()}
+                                    </div>
+                                    <strong style="color:#ffffff; font-size:13px; font-weight:700;">${user.name}</strong>
+                                </div>
+                                <div style="display:flex; gap:2px; align-items:center;">${starsHtml}</div>
                             </div>
-                            <p style="margin:0; color:rgba(255,255,255,0.85); line-height:1.4;">${fb.testimony || 'Visited and checked in.'}</p>
+                            <p style="margin:0; color:rgba(226,232,240,0.88); font-size:12.5px; line-height:1.5;">${fb.testimony || 'Visited and checked in.'}</p>
                             ${policyHtml}
-                            <span style="display:block; font-size:9px; color:rgba(255,255,255,0.35); text-align:right; margin-top:6px;">${date}</span>
+                            <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+                                <span style="font-size:10px; color:rgba(148,163,184,0.6); font-weight:600;"><i class="fa-regular fa-clock" style="margin-right:3px; font-size:9px;"></i>${date}</span>
+                            </div>
                         </div>`;
                     };
 
