@@ -1686,6 +1686,37 @@ $activeTab = 'itinerary';
                 const data = await response.json();
 
                 if (response.ok) {
+                    // Optimistically inject the new trip into the saved trips cache so it appears with 0ms latency
+                    const cacheKey = 'saved_trips_' + token.substring(0, 10);
+                    const dashCacheKey = 'dashboard_trips_' + token.substring(0, 10);
+                    localStorage.removeItem(dashCacheKey);
+
+                    if (data.itinerary) {
+                        try {
+                            const rawCached = localStorage.getItem(cacheKey);
+                            let existingTrips = [];
+                            if (rawCached) {
+                                const parsed = window.safeJsonParse(rawCached, null);
+                                if (parsed && Array.isArray(parsed.data)) {
+                                    existingTrips = parsed.data;
+                                }
+                            }
+                            const updatedTrips = [data.itinerary, ...existingTrips.filter(t => t.id !== data.itinerary.id)];
+                            localStorage.setItem(cacheKey, JSON.stringify({
+                                data: updatedTrips,
+                                timestamp: Date.now()
+                            }));
+                        } catch (e) {
+                            localStorage.removeItem(cacheKey);
+                        }
+                    } else {
+                        localStorage.removeItem(cacheKey);
+                    }
+
+                    if (data.itinerary_id || (data.itinerary && data.itinerary.id)) {
+                        sessionStorage.setItem('just_saved_trip_id', String(data.itinerary_id || data.itinerary.id));
+                    }
+
                     showToast("Trip saved successfully!");
                     localStorage.removeItem('intan_elyu_draft_itinerary');
                     closeSaveModal();

@@ -165,9 +165,43 @@ class ItineraryController extends Controller
             return $itinerary;
         });
 
+        $itinerary->load(['items.destination:id,name,photo_url,latitude,longitude,entrance_fee,classification_status']);
+        $items = $itinerary->items->map(function ($item) {
+            $dest = $item->destination;
+            $imageUrl = $dest ? $dest->photo_url : null;
+            return [
+                'id'               => $item->id,
+                'is_visited'       => $item->is_visited,
+                'proof_image'      => $item->proof_image,
+                'proof_status'     => $item->proof_status ?? ($item->is_visited ? 'approved' : 'pending'),
+                'rejection_reason' => $item->rejection_reason,
+                'visited_at'       => $item->visited_at,
+                'destination' => $dest ? [
+                    'id'           => $dest->id,
+                    'name'         => $dest->name,
+                    'image'        => $imageUrl,
+                    'latitude'     => $dest->latitude,
+                    'longitude'    => $dest->longitude,
+                    'entrance_fee' => $dest->entrance_fee,
+                    'classification_status' => $dest->classification_status,
+                ] : null,
+            ];
+        });
+
         return response()->json([
             'message'      => 'Trip saved! 🎉',
             'itinerary_id' => $itinerary->id,
+            'itinerary'    => [
+                'id'             => $itinerary->id,
+                'title'          => $itinerary->title,
+                'trip_date'      => $itinerary->trip_date?->format('Y-m-d'),
+                'budget'         => $itinerary->budget,
+                'total_cost'     => $itinerary->total_cost,
+                'status'         => $itinerary->status,
+                'route_type'     => $itinerary->route_type,
+                'transport_mode' => $itinerary->transport_mode,
+                'items'          => $items,
+            ]
         ], 201);
     }
 

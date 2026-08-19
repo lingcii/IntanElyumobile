@@ -393,6 +393,19 @@ $backRoute = 'itinerary';
 
             list.innerHTML = html;
             initSavedTripsSwipe();
+
+            // If a trip was just saved, auto-expand it smoothly so user sees it instantly
+            const justSavedId = sessionStorage.getItem('just_saved_trip_id');
+            if (justSavedId) {
+                sessionStorage.removeItem('just_saved_trip_id');
+                setTimeout(() => {
+                    const savedContainer = document.querySelector(`.trip-swipe-container[data-trip-id="${justSavedId}"]`);
+                    if (savedContainer) {
+                        window.toggleTripDetails(justSavedId);
+                        savedContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 80);
+            }
     }
 
     window.toggleTripDetails = function(tripId) {
@@ -980,7 +993,24 @@ $backRoute = 'itinerary';
         });
     }
 
-    // Render immediately on view load
+    window.loadSavedTrips = window.fetchSavedTrips;
+
+    // Render immediately from local cache with 0ms latency
+    const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+    if (token) {
+        const cacheKey = 'saved_trips_' + token.substring(0, 10);
+        const rawCached = localStorage.getItem(cacheKey);
+        if (rawCached) {
+            try {
+                const parsed = window.safeJsonParse(rawCached, null);
+                if (parsed && Array.isArray(parsed.data) && parsed.data.length > 0) {
+                    renderSavedTrips(parsed.data);
+                }
+            } catch (e) {}
+        }
+    }
+
+    // Fetch and sync in background
     window.fetchSavedTrips();
 
 })();
