@@ -117,6 +117,10 @@ Route::get('/serve-image.php', function (\Illuminate\Http\Request $request) use 
 // Puzzle Tourist Spot Images (Public)
 Route::match(['GET', 'POST', 'OPTIONS'], '/puzzles/spots', [PuzzleController::class, 'spots']);
 
+// Vouchers (Public & Guest Preview)
+Route::get('/vouchers', [\App\Http\Controllers\VoucherController::class, 'index']);
+Route::get('/public/vouchers', [\App\Http\Controllers\VoucherController::class, 'index']);
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  Auth (public)
 // ─────────────────────────────────────────────────────────────────────────────

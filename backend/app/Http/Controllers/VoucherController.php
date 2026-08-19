@@ -31,16 +31,33 @@ class VoucherController extends Controller
 
             // Format response for Mobile app compatibility
             $formatted = $vouchers->map(function($v) {
+                $category = 'Food & Dining';
+                $text = strtolower(($v->voucher_name ?? '') . ' ' . ($v->partner_establishment ?? '') . ' ' . ($v->description ?? ''));
+                if (str_contains($text, 'surf') || str_contains($text, 'activity') || str_contains($text, 'tour') || str_contains($text, 'hike') || str_contains($text, 'rental') || str_contains($text, 'lesson')) {
+                    $category = 'Activities';
+                } elseif (str_contains($text, 'hotel') || str_contains($text, 'resort') || str_contains($text, 'stay') || str_contains($text, 'room') || str_contains($text, 'inn') || str_contains($text, 'villa')) {
+                    $category = 'Accommodations';
+                } elseif (str_contains($text, 'pasalubong') || str_contains($text, 'souvenir') || str_contains($text, 'native') || str_contains($text, 'wine') || str_contains($text, 'craft') || str_contains($text, 'pass')) {
+                    $category = 'Souvenirs';
+                } elseif (str_contains($text, 'coffee') || str_contains($text, 'dining') || str_contains($text, 'food') || str_contains($text, 'restaurant') || str_contains($text, 'cafe') || str_contains($text, 'spice') || str_contains($text, 'dish') || str_contains($text, 'snack')) {
+                    $category = 'Food & Dining';
+                }
+
+                $badge = 'PROMO';
+                if ($v->discount_value) {
+                    $badge = $v->discount_type === 'percentage' ? $v->discount_value . '% OFF' : '₱' . $v->discount_value . ' OFF';
+                }
+
                 return [
                     'id' => $v->id,
                     'title' => $v->voucher_name,
-                    'category' => $v->discount_type ?: 'General',
+                    'category' => $category,
                     'partner' => $v->partner_establishment ?: ($v->municipality ? $v->municipality->name . ' Tourism' : 'LUPTO Tourism'),
-                    'location' => $v->municipality ? $v->municipality->name . ', La Union' : 'La Union',
-                    'badge' => $v->discount_value ? ($v->discount_type === 'percentage' ? $v->discount_value . '% OFF' : '₱' . $v->discount_value . ' OFF') : 'PROMO',
-                    'pointsCost' => $v->required_points ?: 100,
+                    'location' => $v->municipality ? $v->municipality->name . ', La Union' : 'San Juan, La Union',
+                    'badge' => $badge,
+                    'pointsCost' => (int) ($v->required_points ?: 100),
                     'code' => $v->voucher_code,
-                    'expires' => $v->expires_at ? $v->expires_at->format('Y-m-d') : null,
+                    'expires' => $v->expires_at ? $v->expires_at->format('Y-m-d') : '2026-12-31',
                     'description' => $v->description ?: $v->terms_and_conditions ?: 'Present voucher code at merchant checkout.',
                     'image' => $v->image,
                     'available_quantity' => $v->available_quantity,
@@ -120,9 +137,21 @@ class VoucherController extends Controller
             ]);
         });
 
+        // Trigger notification
+        \App\Models\Notification::createSafely(
+            $user->id,
+            'favorite_update',
+            '🎟️ Voucher Redeemed!',
+            "Claimed '{$voucher->voucher_name}' ({$redemption->voucher_code}). Present code at merchant checkout!",
+            ['action_url' => '/discount']
+        );
+
+        $newBalance = max(0, $balance - $cost);
+
         return response()->json([
             'status' => 'success',
             'message' => 'Voucher claimed successfully!',
+            'new_balance' => $newBalance,
             'data' => $redemption
         ]);
     }

@@ -101,35 +101,25 @@ $activeTab = 'profile';
         </div>
 
         <!-- Catalog list -->
-        <h5 style="margin:0 0 12px; font-size:13px; font-weight:700; color:#fff; text-align: left;">Redeem Rewards</h5>
-        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-            <!-- Pasalubong center voucher -->
-            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); padding:12px 14px; border-radius:14px;">
-                <div style="text-align: left;">
-                    <strong style="display:block; font-size:13px; color:#fff;">₱50 Pasalubong Discount</strong>
-                    <span style="font-size:11px; color:rgba(255,255,255,0.5);">Claimable at local Pasalubong Center</span>
-                </div>
-                <button onclick="redeemReward('pasalubong_discount', 100)" style="background:#38bdf8; color:#000; border:none; padding:8px 12px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer;">
-                    100 PTS
-                </button>
-            </div>
-
-            <!-- Environmental fee waiver -->
-            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); padding:12px 14px; border-radius:14px;">
-                <div style="text-align: left;">
-                    <strong style="display:block; font-size:13px; color:#fff;">Waived Environmental Fee</strong>
-                    <span style="font-size:11px; color:rgba(255,255,255,0.5);">Waive standard municipality entry fee</span>
-                </div>
-                <button onclick="redeemReward('environmental_fee', 150)" style="background:#38bdf8; color:#000; border:none; padding:8px 12px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer;">
-                    150 PTS
-                </button>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h5 style="margin:0; font-size:14px; font-weight:800; color:#fff; text-align: left;">Redeem Rewards</h5>
+            <a href="#" onclick="navigateTo('discount'); return false;" style="font-size:11px; font-weight:700; color:#38bdf8; text-decoration:none; display:flex; align-items:center; gap:4px;">
+                View All Deals <i class="fa-solid fa-arrow-right" style="font-size:9px;"></i>
+            </a>
+        </div>
+        <div id="profile-rewards-catalog" style="display:flex; flex-direction:column; gap:10px; margin-bottom:24px;">
+            <div style="text-align:center; padding:12px; color:rgba(255,255,255,0.4); font-size:12px;">
+                <i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Loading available rewards...
             </div>
         </div>
 
         <!-- Active Claimed Vouchers -->
-        <h5 style="margin:0 0 12px; font-size:13px; font-weight:700; color:#fff; text-align: left;">Active Vouchers</h5>
-        <div id="vouchers-list" style="display:flex; flex-direction:column; gap:8px;">
-            <div style="font-size:12px; color:rgba(255,255,255,0.4); text-align:center; padding:10px;">No redeemed vouchers yet.</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h5 style="margin:0; font-size:14px; font-weight:800; color:#fff; text-align: left;">Active Vouchers</h5>
+            <span id="active-vouchers-count" style="font-size:10px; font-weight:800; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; padding:2px 8px; border-radius:100px;">0 Active</span>
+        </div>
+        <div id="vouchers-list" style="display:flex; flex-direction:column; gap:10px;">
+            <div style="font-size:12px; color:rgba(255,255,255,0.4); text-align:center; padding:14px; background:rgba(255,255,255,0.02); border:1px dashed rgba(255,255,255,0.08); border-radius:14px;">No redeemed vouchers yet.</div>
         </div>
     </div>
     
@@ -391,43 +381,117 @@ $activeTab = 'profile';
         );
     }
 
-    // Fetch Points & Vouchers
+    // Fetch Points & Dynamic Vouchers Catalog & Active Redemptions
     async function fetchPointsAndVouchers() {
         const token = localStorage.getItem('intan_elyu_token');
         if (!token) return;
 
         try {
+            // 1. Fetch balance & claimed vouchers
             const r = await fetch(backendUrl + '/api/tourist/points/balance', {
                 headers: {
                     'Accept': 'application/json',
+                    'ngrok-skip-browser-warning': 'true',
                     'Authorization': 'Bearer ' + token
                 }
             });
             const d = await r.json();
             if (d.status === 'success') {
+                window._userPointsBalance = d.points || 0;
                 const ptsVal = document.getElementById('profile-points-val');
-                if (ptsVal) ptsVal.textContent = d.points;
+                if (ptsVal) ptsVal.textContent = (d.points || 0).toLocaleString();
                 
-                // Render vouchers
+                // Render Active Vouchers
                 const list = document.getElementById('vouchers-list');
+                const badge = document.getElementById('active-vouchers-count');
                 if (list) {
                     if (d.vouchers && d.vouchers.length > 0) {
+                        if (badge) badge.textContent = `${d.vouchers.length} Active`;
                         let html = '';
                         d.vouchers.forEach(v => {
-                            const typeLabel = v.type === 'pasalubong_discount' ? '<i class="fa-solid fa-bag-shopping" style="color:#38bdf8; margin-right:4px;"></i> Pasalubong Discount' : '<i class="fa-solid fa-leaf" style="color:#34c759; margin-right:4px;"></i> Env Fee Waived';
                             const badgeColor = v.status === 'active' ? '#34c759' : '#8e8e93';
+                            const voucherTitle = v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.type || 'Tourist Voucher'));
+                            const safeCode = (v.voucher_code || '').replace(/'/g, "\\'");
+                            
                             html += `
-                            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); padding:12px; border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
-                                <div style="text-align: left;">
-                                    <span style="font-size:12px; font-weight:700; color:#fff; display:block;">${typeLabel}</span>
-                                    <code style="font-size:13px; font-weight:800; color:#38bdf8; letter-spacing:0.5px; background:rgba(56,189,248,0.1); padding:2px 6px; border-radius:6px; margin-top:4px; display:inline-block;">${v.voucher_code}</code>
+                            <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%); border: 1px solid rgba(56, 189, 248, 0.25); padding: 14px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+                                <div style="text-align: left; flex: 1; min-width: 0;">
+                                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                                        <i class="fa-solid fa-ticket" style="color: #38bdf8; font-size: 13px;"></i>
+                                        <span style="font-size: 13px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${voucherTitle}</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <code style="font-size: 13px; font-weight: 900; color: #38bdf8; letter-spacing: 0.5px; background: rgba(56,189,248,0.12); border: 1px dashed rgba(56,189,248,0.35); padding: 3px 8px; border-radius: 8px;">${v.voucher_code}</code>
+                                        <button type="button" onclick="navigator.clipboard.writeText('${safeCode}'); if(typeof showToast==='function') showToast('Voucher code copied!');" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                                            <i class="fa-solid fa-copy"></i>
+                                        </button>
+                                    </div>
                                 </div>
-                                <span style="font-size:10px; font-weight:800; text-transform:uppercase; color:${badgeColor}; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:6px;">${v.status}</span>
+                                <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: ${badgeColor}; background: ${v.status === 'active' ? 'rgba(52,199,89,0.15)' : 'rgba(255,255,255,0.05)'}; border: 1px solid ${v.status === 'active' ? 'rgba(52,199,89,0.35)' : 'rgba(255,255,255,0.1)'}; padding: 4px 8px; border-radius: 100px; white-space: nowrap;">
+                                    ${v.status || 'Active'}
+                                </span>
                             </div>`;
                         });
                         list.innerHTML = html;
                     } else {
-                        list.innerHTML = '<div style="font-size:12px; color:rgba(255,255,255,0.4); text-align:center; padding:10px;">No redeemed vouchers yet.</div>';
+                        if (badge) badge.textContent = '0 Active';
+                        list.innerHTML = '<div style="font-size:12px; color:rgba(255,255,255,0.4); text-align:center; padding:14px; background:rgba(255,255,255,0.02); border:1px dashed rgba(255,255,255,0.08); border-radius:14px;">No redeemed vouchers yet.</div>';
+                    }
+                }
+            }
+
+            // 2. Fetch active catalog rewards
+            const catalogEl = document.getElementById('profile-rewards-catalog');
+            if (catalogEl) {
+                const resVouchers = await fetch(backendUrl + '/api/vouchers', {
+                    headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
+                });
+                if (resVouchers.ok) {
+                    const vouchersPayload = await resVouchers.json();
+                    if (vouchersPayload.status === 'success' && Array.isArray(vouchersPayload.data) && vouchersPayload.data.length > 0) {
+                        const topVouchers = vouchersPayload.data.slice(0, 3);
+                        catalogEl.innerHTML = topVouchers.map(v => {
+                            const iconClass = v.category === 'Activities' ? 'fa-person-hiking' : (v.category === 'Accommodations' ? 'fa-hotel' : (v.category === 'Souvenirs' ? 'fa-gift' : 'fa-utensils'));
+                            return `
+                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); padding:12px 14px; border-radius:16px; gap:12px; transition:transform 0.15s ease;">
+                                <div style="display:flex; align-items:center; gap:10px; min-width:0; text-align:left; flex:1;">
+                                    <div style="width:36px; height:36px; border-radius:10px; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.25); display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:15px; flex-shrink:0;">
+                                        <i class="fa-solid ${iconClass}"></i>
+                                    </div>
+                                    <div style="min-width:0; flex:1;">
+                                        <div style="display:flex; align-items:center; gap:6px;">
+                                            <strong style="display:block; font-size:13px; font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.title}</strong>
+                                            <span style="font-size:9px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.15); padding:1px 6px; border-radius:6px; flex-shrink:0;">${v.badge}</span>
+                                        </div>
+                                        <span style="font-size:11px; color:rgba(226,232,240,0.6); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.partner}</span>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="window.redeemAdminVoucher(${v.id}, ${v.pointsCost}, '${(v.title || '').replace(/'/g, "\\'")}')" style="background:linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); color:#ffffff; border:none; padding:8px 14px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer; flex-shrink:0; box-shadow:0 3px 10px rgba(56,189,248,0.3); white-space:nowrap;">
+                                    ${v.pointsCost} PTS
+                                </button>
+                            </div>`;
+                        }).join('');
+                    } else {
+                        // Default built-in rewards fallback
+                        catalogEl.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); padding:12px 14px; border-radius:16px;">
+                                <div style="text-align: left;">
+                                    <strong style="display:block; font-size:13px; color:#fff;">₱50 Pasalubong Discount</strong>
+                                    <span style="font-size:11px; color:rgba(255,255,255,0.5);">Claimable at local Pasalubong Center</span>
+                                </div>
+                                <button onclick="redeemReward('pasalubong_discount', 100)" style="background:linear-gradient(135deg, #38bdf8, #2563eb); color:#fff; border:none; padding:8px 12px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer;">
+                                    100 PTS
+                                </button>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); padding:12px 14px; border-radius:16px;">
+                                <div style="text-align: left;">
+                                    <strong style="display:block; font-size:13px; color:#fff;">Waived Environmental Fee</strong>
+                                    <span style="font-size:11px; color:rgba(255,255,255,0.5);">Waive standard municipality entry fee</span>
+                                </div>
+                                <button onclick="redeemReward('environmental_fee', 150)" style="background:linear-gradient(135deg, #38bdf8, #2563eb); color:#fff; border:none; padding:8px 12px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer;">
+                                    150 PTS
+                                </button>
+                            </div>`;
                     }
                 }
             }
@@ -436,9 +500,55 @@ $activeTab = 'profile';
         }
     }
 
+    window.redeemAdminVoucher = async function(voucherId, cost, title) {
+        const token = localStorage.getItem('intan_elyu_token');
+        if (!token) return;
+
+        const currentPts = window._userPointsBalance || 0;
+        if (currentPts < cost) {
+            if (typeof showToast === 'function') showToast(`Insufficient points. You need ${cost} PTS (Balance: ${currentPts} PTS).`);
+            return;
+        }
+
+        if (!confirm(`Redeem '${title}' for ${cost} PTS?`)) return;
+
+        try {
+            const response = await fetch(backendUrl + '/api/tourist/points/redeem-voucher', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({ voucher_id: voucherId })
+            });
+
+            const data = await response.json();
+            if (response.ok && data.status === 'success') {
+                if (typeof showToast === 'function') showToast("Voucher claimed successfully!");
+                if (window.confetti) {
+                    window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+                }
+                fetchPointsAndVouchers();
+            } else {
+                if (typeof showToast === 'function') showToast(data.message || "Failed to redeem voucher.");
+            }
+        } catch (error) {
+            console.error("Redemption error:", error);
+            if (typeof showToast === 'function') showToast("Network error. Please try again.");
+        }
+    };
+
     window.redeemReward = async function(type, cost) {
         const token = localStorage.getItem('intan_elyu_token');
         if (!token) return;
+
+        const currentPts = window._userPointsBalance || 0;
+        if (currentPts < cost) {
+            if (typeof showToast === 'function') showToast(`Insufficient points. You need ${cost} PTS (Balance: ${currentPts} PTS).`);
+            return;
+        }
 
         if (!confirm(`Are you sure you want to redeem this reward for ${cost} Points?`)) return;
 
@@ -448,6 +558,7 @@ $activeTab = 'profile';
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true',
                     'Authorization': 'Bearer ' + token
                 },
                 body: JSON.stringify({ type: type })
@@ -456,6 +567,9 @@ $activeTab = 'profile';
             const data = await response.json();
             if (response.ok) {
                 if (typeof showToast === 'function') showToast("Reward redeemed successfully!");
+                if (window.confetti) {
+                    window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+                }
                 fetchPointsAndVouchers();
             } else {
                 if (typeof showToast === 'function') showToast(data.message || "Failed to redeem reward.");
