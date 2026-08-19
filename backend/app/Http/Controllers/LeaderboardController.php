@@ -35,6 +35,12 @@ class LeaderboardController extends Controller
                     COALESCE(u.is_leaderboard_private, 0)             AS is_leaderboard_private,
                     u.last_activity                                   AS last_activity_date,
                     COALESCE(u.xp, 0)                                 AS total_points,
+                    COALESCE(u.xp, 0)                                 AS total_xp,
+                    GREATEST(
+                        0,
+                        COALESCE((SELECT SUM(up.points) FROM user_points up WHERE up.user_id = u.id), 0) -
+                        COALESCE((SELECT SUM(pr.points_cost) FROM point_redemptions pr WHERE pr.user_id = u.id), 0)
+                    )                                                 AS claimable_points,
                     GREATEST(
                         COALESCE(u.completed_activities, 0),
                         (SELECT COUNT(*) FROM itinerary_items ii JOIN itineraries it ON ii.itinerary_id = it.id WHERE it.user_id = u.id AND ii.is_visited = 1)
@@ -68,7 +74,9 @@ class LeaderboardController extends Controller
 
         $orderMap = [
             'points_desc'     => 'total_points DESC, completed_activities DESC, points_since ASC',
-            'points_asc'      => 'total_points ASC, completed_activities ASC, points_since DESC',
+            'xp_desc'         => 'total_points DESC, completed_activities DESC, points_since ASC',
+            'pts_desc'        => 'claimable_points DESC, total_points DESC, points_since ASC',
+            'points'          => 'claimable_points DESC, total_points DESC, points_since ASC',
             'activities_desc' => 'completed_activities DESC, total_points DESC, points_since ASC',
             'name_asc'        => 'full_name ASC',
         ];

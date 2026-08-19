@@ -42,6 +42,9 @@ $activeTab = 'leaderboard';
         <button class="leaderboard-tab-btn active" id="tab-sort-xp" onclick="setLeaderboardSort('xp')">
             <i class="fa-solid fa-bolt" style="color:#fbbf24;"></i> Top XP
         </button>
+        <button class="leaderboard-tab-btn" id="tab-sort-points" onclick="setLeaderboardSort('points')">
+            <i class="fa-solid fa-coins" style="color:#f59e0b;"></i> Highest Points
+        </button>
         <button class="leaderboard-tab-btn" id="tab-sort-visited" onclick="setLeaderboardSort('visited')">
             <i class="fa-solid fa-map-location-dot" style="color:#38bdf8;"></i> Most Visited
         </button>
@@ -130,7 +133,7 @@ $activeTab = 'leaderboard';
             url = backendUrl + '/api/tourist/leaderboard';
         }
 
-        const cacheKey = 'leaderboard_data_v8_' + (token ? token.substring(0, 10) : 'public');
+        const cacheKey = 'leaderboard_data_v9_' + (token ? token.substring(0, 10) : 'public');
         const fetchCache = window.useCache || (async (key, fetcher, renderer) => { const d = await fetcher(); if(renderer) renderer(d); return d; });
 
         await fetchCache(
@@ -148,9 +151,8 @@ $activeTab = 'leaderboard';
             (data) => {
                 if (!data) return;
                 rawLeadersList = data.users || data.leaders || [];
-                cachedMyRank = data.myRank || 999;
                 cachedMeData = data.me || null;
-
+                cachedMyRank = data.my_rank || 999;
                 renderLeaderboardUI();
             },
             Boolean(window.leaderboardNeedsRefresh),
@@ -168,7 +170,16 @@ $activeTab = 'leaderboard';
 
         // Sort items based on current sort mode
         let leaders = [...rawLeadersList];
-        if (currentSortMode === 'visited') {
+        if (currentSortMode === 'points') {
+            leaders.sort((a, b) => {
+                const ptsA = parseInt(a.claimable_points || a.points || 0);
+                const ptsB = parseInt(b.claimable_points || b.points || 0);
+                if (ptsB !== ptsA) return ptsB - ptsA;
+                const xpA = parseInt(a.total_points || a.total_xp || a.xp || 0);
+                const xpB = parseInt(b.total_points || b.total_xp || b.xp || 0);
+                return xpB - xpA;
+            });
+        } else if (currentSortMode === 'visited') {
             leaders.sort((a, b) => {
                 const actA = parseInt(a.completed_activities || a.places_visited || 0);
                 const actB = parseInt(b.completed_activities || b.places_visited || 0);
@@ -203,10 +214,10 @@ $activeTab = 'leaderboard';
         if (banner) {
             banner.style.display = 'flex';
             const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-            const myId = cachedMeData ? (cachedMeData.id || cachedMeData.user_id) : (authUser.id || authUser.user_id || '');
             const myRankNum = cachedMyRank && cachedMyRank < 999 ? cachedMyRank : 1;
             const myDisplayName = `${myRankNum}# Explorer`;
             const myXp = cachedMeData ? parseInt(cachedMeData.total_points || cachedMeData.total_xp || cachedMeData.xp || 0) : (authUser.xp || 0);
+            const myPts = cachedMeData ? parseInt(cachedMeData.claimable_points || cachedMeData.points || 0) : 0;
             const myActivities = cachedMeData ? parseInt(cachedMeData.completed_activities || cachedMeData.places_visited || 0) : 0;
             const myLevel = Math.floor(myXp / 1000) + 1;
             const myRawName = (cachedMeData ? (cachedMeData.name || cachedMeData.full_name) : (authUser.name || authUser.full_name || 'Explorer')).replace(/[^a-zA-Z\s]/g, '').trim() || 'Explorer';
@@ -233,7 +244,7 @@ $activeTab = 'leaderboard';
                 }
             }
             if (subtext) {
-                subtext.textContent = `${myXp.toLocaleString()} XP • ${myActivities} Places Visited`;
+                subtext.textContent = `${myXp.toLocaleString()} XP • ${myPts.toLocaleString()} PTS • ${myActivities} Visited`;
             }
         }
 
@@ -274,15 +285,12 @@ $activeTab = 'leaderboard';
         currentSortMode = mode;
 
         const tabXp = document.getElementById('tab-sort-xp');
+        const tabPoints = document.getElementById('tab-sort-points');
         const tabVisited = document.getElementById('tab-sort-visited');
 
-        if (mode === 'xp') {
-            if (tabXp) tabXp.classList.add('active');
-            if (tabVisited) tabVisited.classList.remove('active');
-        } else {
-            if (tabVisited) tabVisited.classList.add('active');
-            if (tabXp) tabXp.classList.remove('active');
-        }
+        if (tabXp) tabXp.classList.toggle('active', mode === 'xp');
+        if (tabPoints) tabPoints.classList.toggle('active', mode === 'points');
+        if (tabVisited) tabVisited.classList.toggle('active', mode === 'visited');
 
         renderLeaderboardUI();
     };
@@ -323,10 +331,43 @@ $activeTab = 'leaderboard';
         
         const safeName = displayName.replace(/'/g, "\\'");
         const xp = parseInt(user.total_points || user.total_xp || user.xp || 0);
+        const pts = parseInt(user.claimable_points || user.points || 0);
         const level = user.level || (Math.floor(xp / 1000) + 1);
         const activities = parseInt(user.completed_activities || user.places_visited || 0);
         const safeLocation = (user.home_location || '').replace(/'/g, "\\'");
         const safeBio = (user.bio || '').replace(/'/g, "\\'");
+
+        let metricPillHtml = '';
+        let subMetricHtml = '';
+
+        if (currentSortMode === 'points') {
+            metricPillHtml = `
+            <div class="podium-xp-pill podium-xp-${rank}" style="background:rgba(245,158,11,0.18); color:#f59e0b; border:1px solid rgba(245,158,11,0.35);">
+                <i class="fa-solid fa-coins" style="font-size:10px;"></i> ${pts.toLocaleString()} PTS
+            </div>`;
+            subMetricHtml = `
+            <div style="font-size:10px; color:rgba(226,232,240,0.7); font-weight:700; margin-bottom:8px;">
+                <i class="fa-solid fa-bolt" style="color:#fbbf24; font-size:9px;"></i> ${xp.toLocaleString()} XP
+            </div>`;
+        } else if (currentSortMode === 'visited') {
+            metricPillHtml = `
+            <div class="podium-xp-pill podium-xp-${rank}">
+                <i class="fa-solid fa-map-location-dot" style="font-size:10px;"></i> ${activities} Visited
+            </div>`;
+            subMetricHtml = `
+            <div style="font-size:10px; color:rgba(226,232,240,0.7); font-weight:700; margin-bottom:8px;">
+                <i class="fa-solid fa-bolt" style="color:#fbbf24; font-size:9px;"></i> ${xp.toLocaleString()} XP
+            </div>`;
+        } else {
+            metricPillHtml = `
+            <div class="podium-xp-pill podium-xp-${rank}">
+                <i class="fa-solid fa-bolt" style="font-size:10px;"></i> ${xp.toLocaleString()} XP
+            </div>`;
+            subMetricHtml = `
+            <div style="font-size:10px; color:rgba(226,232,240,0.7); font-weight:700; margin-bottom:8px;">
+                <i class="fa-solid fa-map-location-dot" style="color:#38bdf8; font-size:9px;"></i> ${activities} visited
+            </div>`;
+        }
         
         return `
         <div class="podium-place rank-${rank}" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${xp}, ${rank}, ${level}, ${activities}, '${safeLocation}', '${safeBio}')">
@@ -336,12 +377,8 @@ $activeTab = 'leaderboard';
                 <div class="podium-rank-badge rank-badge-${rank}">${rank}</div>
             </div>
             <div class="podium-name">${displayName}</div>
-            <div class="podium-xp-pill podium-xp-${rank}">
-                <i class="fa-solid fa-bolt" style="font-size:10px;"></i> ${xp.toLocaleString()} XP
-            </div>
-            <div style="font-size:10px; color:rgba(226,232,240,0.7); font-weight:700; margin-bottom:8px;">
-                <i class="fa-solid fa-map-location-dot" style="color:#38bdf8; font-size:9px;"></i> ${activities} visited
-            </div>
+            ${metricPillHtml}
+            ${subMetricHtml}
             <div class="podium-block block-${rank}" style="height:${stepHeight};">
                 <span class="block-label">${badgeLabel}</span>
             </div>
@@ -362,10 +399,29 @@ $activeTab = 'leaderboard';
         
         const safeName = displayName.replace(/'/g, "\\'");
         const xp = parseInt(user.total_points || user.total_xp || user.xp || 0);
+        const pts = parseInt(user.claimable_points || user.points || 0);
         const level = user.level || (Math.floor(xp / 1000) + 1);
         const activities = parseInt(user.completed_activities || user.places_visited || 0);
         const safeLocation = (user.home_location || '').replace(/'/g, "\\'");
         const safeBio = (user.bio || '').replace(/'/g, "\\'");
+
+        let rightBadgeHtml = '';
+        if (currentSortMode === 'points') {
+            rightBadgeHtml = `
+            <div class="rank-xp-badge" style="background:rgba(245,158,11,0.14); border:1px solid rgba(245,158,11,0.3); color:#f59e0b;">
+                <i class="fa-solid fa-coins" style="font-size:11px;"></i> ${pts.toLocaleString()} <small style="font-size:10px; color:rgba(245,158,11,0.85);">PTS</small>
+            </div>`;
+        } else if (currentSortMode === 'visited') {
+            rightBadgeHtml = `
+            <div class="rank-xp-badge" style="background:rgba(56,189,248,0.14); border:1px solid rgba(56,189,248,0.3); color:#38bdf8;">
+                <i class="fa-solid fa-map-location-dot" style="font-size:11px;"></i> ${activities} <small style="font-size:10px; color:rgba(56,189,248,0.85);">STOPS</small>
+            </div>`;
+        } else {
+            rightBadgeHtml = `
+            <div class="rank-xp-badge">
+                <span>⚡</span> ${xp.toLocaleString()} <small style="font-size:10px; color:rgba(255,255,255,0.6);">XP</small>
+            </div>`;
+        }
         
         return `
         <div class="rank-item ${activeClass}" style="animation-delay: ${Math.max(0, delay)}s;" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${xp}, ${rank}, ${level}, ${activities}, '${safeLocation}', '${safeBio}')">
@@ -382,9 +438,7 @@ $activeTab = 'leaderboard';
                     </div>
                 </div>
             </div>
-            <div class="rank-xp-badge">
-                <span>⚡</span> ${xp.toLocaleString()} <small style="font-size:10px; color:rgba(255,255,255,0.6);">XP</small>
-            </div>
+            ${rightBadgeHtml}
         </div>`;
     }
 
