@@ -121,6 +121,149 @@ window.getFullImageUrl = function (url) {
     return base + '/api/image/' + clean;
 };
 
+// Extract initial view name from query param (?view=...) or URL path (/download)
+function getInitialViewName() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('view')) return params.get('view');
+    const pathSegs = window.location.pathname.split('/').filter(Boolean);
+    const lastSeg = pathSegs.length > 0 ? pathSegs[pathSegs.length - 1] : '';
+    if (lastSeg && lastSeg !== 'index.php' && !lastSeg.includes('.')) {
+        return lastSeg;
+    }
+    return 'splash';
+}
+
+// App State
+const state = {
+    currentView: getInitialViewName(),
+    isNavigating: false
+};
+window.state = state;
+
+/**
+ * Execute scripts injected via innerHTML
+ */
+function executeScripts(container) {
+    if (!container) return;
+    const scripts = container.querySelectorAll('script');
+    scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+        if (oldScript.parentNode) {
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        }
+    });
+}
+window.executeScripts = executeScripts;
+
+/**
+ * Navigation Router Function (SPA feel)
+ * @param {string} viewName - Name of the view to load
+ * @param {boolean} addToHistory - Whether to push to browser history
+ * @param {boolean} fade - Whether to apply the fade transition
+ */
+async function navigateTo(viewName, addToHistory = true, fade = true) {
+    // Prevent overlapping navigations or navigating to the same view
+    if (state.isNavigating) return;
+
+    // Global Auth Enforcement: Ensure user is logged in
+    const publicViews = ['splash', 'auth', 'download', 'about', 'terms', 'reset-password', 'user_manual'];
+    if (!publicViews.includes(viewName) && !localStorage.getItem('intan_elyu_token')) {
+        viewName = 'auth';
+    }
+
+    // If we're already on this view and it's not a back-button event, do nothing
+    if (addToHistory && state.currentView === viewName) return;
+
+    state.isNavigating = true;
+    const mainContent = document.getElementById('main-content');
+
+    // Emergency failsafe: auto-unlock after 3 seconds no matter what
+    const failsafe = setTimeout(() => {
+        if (state.isNavigating) {
+            console.warn("Emergency unlock triggered!");
+            state.isNavigating = false;
+            if (mainContent) mainContent.classList.remove('view-transitioning');
+        }
+    }, 3000);
+
+    if (!mainContent) {
+        state.isNavigating = false;
+        return;
+    }
+
+    // Animate out
+    if (fade) {
+        mainContent.classList.add('view-transitioning');
+    }
+
+    try {
+        // Fetch new view via AJAX (with strict cache buster)
+        const response = await fetch(`index.php?view=${viewName}&ajax=1&_t=${Date.now()}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        if (!response.ok) throw new Error('Network response was not ok');
+
+        const html = await response.text();
+
+        const updateContent = () => {
+            try {
+                mainContent.innerHTML = html;
+                document.body.setAttribute('data-view', viewName);
+
+                // Execute any scripts in the new view
+                executeScripts(mainContent);
+
+                // Toggle bottom nav visibility
+                const bottomNav = document.getElementById('bottom-navigation');
+                const noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual'];
+                if (bottomNav) {
+                    bottomNav.classList.toggle('nav-hidden', noNavViews.includes(viewName));
+                }
+
+                // Animate in
+                if (fade) {
+                    mainContent.classList.remove('view-transitioning');
+                }
+
+                // Update URL
+                if (addToHistory) {
+                    const url = new URL(window.location);
+                    url.searchParams.set('view', viewName);
+                    window.history.pushState({ view: viewName }, '', url);
+                }
+
+                state.currentView = viewName;
+                if (typeof initCurrentView === 'function') initCurrentView();
+            } catch (err) {
+                console.error("Error during view initialization:", err);
+            } finally {
+                clearTimeout(failsafe);
+                state.isNavigating = false;
+            }
+        };
+
+        // If fading, wait for the fade out to finish (200ms). Otherwise update instantly.
+        if (fade) {
+            setTimeout(updateContent, 200);
+        } else {
+            updateContent();
+        }
+
+    } catch (error) {
+        clearTimeout(failsafe);
+        console.error('Navigation error:', error);
+        if (typeof showToast === 'function') showToast('Failed to load view');
+        if (fade && mainContent) mainContent.classList.remove('view-transitioning');
+        state.isNavigating = false;
+    }
+}
+window.navigateTo = navigateTo;
+
 /**
  * Global Google OAuth 2.0 Direct Handler
  * Handles access_token / id_token returned via Google OAuth redirect across all views & platforms (APK / Web)
@@ -251,8 +394,6 @@ window.initGoogleOAuthHandler = function () {
                 window.AppStorage.setItem('intan_elyu_token', data.token);
             }
 
-            const isApk = navigator.userAgent.includes('IntanElyuAPK') || !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
-
             const currentOverlay = document.getElementById('global-oauth-overlay');
             if (currentOverlay) {
                 currentOverlay.innerHTML = `
@@ -293,7 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.initGoogleOAuthHandler();
 
     // Auto-invalidate stale caches from previous builds
-    const CACHE_VER = 'v1.0.5_r2_regex';
+    const CACHE_VER = 'v1.0.6_state_order';
     if (localStorage.getItem('intan_elyu_cache_ver') !== CACHE_VER) {
         Object.keys(localStorage).forEach(k => {
             if (k.startsWith('dashboard_') || k.startsWith('trending_') || k.startsWith('map_') || k.startsWith('spots_') || k.startsWith('destinations_') || k.includes('cache')) {
@@ -324,134 +465,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Check if we need to initialize any views on load
-    initCurrentView();
+    if (typeof initCurrentView === 'function') initCurrentView();
 });
-
-// Extract initial view name from query param (?view=...) or URL path (/download)
-function getInitialViewName() {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('view')) return params.get('view');
-    const pathSegs = window.location.pathname.split('/').filter(Boolean);
-    const lastSeg = pathSegs.length > 0 ? pathSegs[pathSegs.length - 1] : '';
-    if (lastSeg && lastSeg !== 'index.php' && !lastSeg.includes('.')) {
-        return lastSeg;
-    }
-    return 'splash';
-}
-
-// App State
-const state = {
-    currentView: getInitialViewName(),
-    isNavigating: false
-};
-
-/**
- * Navigation Router Function (SPA feel)
- * @param {string} viewName - Name of the view to load
- * @param {boolean} addToHistory - Whether to push to browser history
- * @param {boolean} fade - Whether to apply the fade transition
- */
-async function navigateTo(viewName, addToHistory = true, fade = true) {
-    // Prevent overlapping navigations or navigating to the same view
-    if (state.isNavigating) return;
-
-    // Global Auth Enforcement: Ensure user is logged in
-    const publicViews = ['splash', 'auth', 'download', 'about', 'terms', 'reset-password', 'user_manual'];
-    if (!publicViews.includes(viewName) && !localStorage.getItem('intan_elyu_token')) {
-        viewName = 'auth';
-    }
-
-    // Redirect hidden pages (no longer redirecting merch view for finals)
-
-    // If we're already on this view and it's not a back-button event, do nothing
-    if (addToHistory && state.currentView === viewName) return;
-
-    state.isNavigating = true;
-    const mainContent = document.getElementById('main-content');
-
-    // Emergency failsafe: auto-unlock after 3 seconds no matter what
-    const failsafe = setTimeout(() => {
-        if (state.isNavigating) {
-            console.warn("Emergency unlock triggered!");
-            state.isNavigating = false;
-            if (mainContent) mainContent.classList.remove('view-transitioning');
-        }
-    }, 3000);
-
-    if (!mainContent) {
-        state.isNavigating = false;
-        return;
-    }
-
-    // Animate out
-    if (fade) {
-        mainContent.classList.add('view-transitioning');
-    }
-
-    try {
-        // Fetch new view via AJAX (with strict cache buster)
-        const response = await fetch(`index.php?view=${viewName}&ajax=1&_t=${Date.now()}`, {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
-
-        if (!response.ok) throw new Error('Network response was not ok');
-
-        const html = await response.text();
-
-        const updateContent = () => {
-            try {
-                mainContent.innerHTML = html;
-                document.body.setAttribute('data-view', viewName);
-
-                // Execute any scripts in the new view
-                executeScripts(mainContent);
-
-                // Toggle bottom nav visibility
-                const bottomNav = document.getElementById('bottom-navigation');
-                const noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual'];
-                if (bottomNav) {
-                    bottomNav.classList.toggle('nav-hidden', noNavViews.includes(viewName));
-                }
-
-                // Animate in
-                if (fade) {
-                    mainContent.classList.remove('view-transitioning');
-                }
-
-                // Update URL
-                if (addToHistory) {
-                    const url = new URL(window.location);
-                    url.searchParams.set('view', viewName);
-                    window.history.pushState({ view: viewName }, '', url);
-                }
-
-                state.currentView = viewName;
-                initCurrentView();
-            } catch (err) {
-                console.error("Error during view initialization:", err);
-            } finally {
-                clearTimeout(failsafe);
-                state.isNavigating = false;
-            }
-        };
-
-        // If fading, wait for the fade out to finish (200ms). Otherwise update instantly.
-        if (fade) {
-            setTimeout(updateContent, 200);
-        } else {
-            updateContent();
-        }
-
-    } catch (error) {
-        clearTimeout(failsafe);
-        console.error('Navigation error:', error);
-        showToast('Failed to load view');
-        if (fade) mainContent.classList.remove('view-transitioning');
-        state.isNavigating = false;
-    }
-}
 
 // Handle Browser Back Button
 window.addEventListener('popstate', (e) => {
