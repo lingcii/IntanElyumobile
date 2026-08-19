@@ -97,7 +97,7 @@ $activeTab = 'itinerary';
 
         <!-- The Map -->
         <div id="draft-map-container"
-            style="height: 260px; width:100%; border-radius: 20px; overflow: hidden; border:1px solid rgba(56, 189, 248, 0.25); position:relative; background:#0f172a; box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+            style="height: 260px; width:100%; border-radius: 20px; overflow: hidden; border:1px solid rgba(56, 189, 248, 0.25); position:relative; background:#cadce4; box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
             <div id="itinerary-map" style="width:100%; height:100%;"></div>
         </div>
 
@@ -1736,7 +1736,11 @@ $activeTab = 'itinerary';
                     keyboard: true
                 });
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                    maxZoom: 19
+                    maxZoom: 19,
+                    detectRetina: true,
+                    keepBuffer: 4,
+                    updateWhenZooming: true,
+                    updateWhenIdle: false
                 }).addTo(draftMap);
             }
 

@@ -534,3 +534,26 @@ body[data-view="itinerary"] {
     50% { transform: scale(1.1); box-shadow: 0 0 22px rgba(56, 189, 248, 0.9); }
 }
 
+/* ============================================================
+ * Leaflet Tile Seam Elimination & Smooth Rendering
+ * ============================================================ */
+#draft-map-container,
+#itinerary-map,
+#itinerary-map.leaflet-container,
+#itinerary-map .leaflet-tile-pane {
+    background: #cadce4 !important; /* Seamlessly matches CartoDB Voyager ocean tone */
+}
+
+#itinerary-map .leaflet-tile-container img.leaflet-tile,
+#itinerary-map .leaflet-tile {
+    outline: 1px solid transparent;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+    mix-blend-mode: normal;
+}
+
+
