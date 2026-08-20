@@ -79,60 +79,60 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     </div>
 
     <!-- Live Weather, Wave & Sunset Tracker Widget -->
-    <div id="weather-sunset-tracker" class="weather-sunset-tracker animate-slide-down">
+    <div id="weather-sunset-tracker" class="weather-sunset-tracker animate-slide-down" style="position: absolute; top: calc(135px + env(safe-area-inset-top)); left: 16px; z-index: 890; max-width: 280px; user-select: none;">
         <!-- Minimized Left Edge Tab (Only > is showing on the left) -->
-        <button type="button" id="tracker-edge-tab" class="tracker-edge-tab" onclick="window.toggleWeatherTracker(true)" title="Open Live Weather & Sunset Tracker" style="display:none;">
-            <span class="pulse-dot dot-green" style="width:5px; height:5px; margin:0;" title="Live"></span>
-            <i class="fa-solid fa-water tracker-edge-icon"></i>
-            <i class="fa-solid fa-chevron-right tracker-edge-arrow"></i>
+        <button type="button" id="tracker-edge-tab" class="tracker-edge-tab" onclick="window.toggleWeatherTracker(true)" title="Open Live Weather & Sunset Tracker" style="display:none; height:40px; padding:0 12px 0 10px; background:#1E3A8A; border:1px solid rgba(255,255,255,0.15); border-left:none; border-radius:0 12px 12px 0; align-items:center; gap:7px; cursor:pointer; box-shadow:2px 4px 14px rgba(0,0,0,0.35); outline:none; appearance:none; -webkit-appearance:none;">
+            <span class="pulse-dot dot-green" style="width:6px; height:6px; margin:0; display:inline-block;" title="Live"></span>
+            <i class="fa-solid fa-water tracker-edge-icon" style="color:#38bdf8; font-size:13px;"></i>
+            <i class="fa-solid fa-chevron-right tracker-edge-arrow" style="color:#ffffff; font-size:12px; font-weight:800;"></i>
         </button>
 
         <!-- Expanded Full Card -->
-        <div id="tracker-expanded" class="tracker-expanded-card">
-            <div class="tracker-header">
+        <div id="tracker-expanded" class="tracker-expanded-card" style="background:#1E3A8A; border:1px solid rgba(255,255,255,0.12); border-radius:18px; padding:12px 14px; box-shadow:0 10px 30px rgba(0,0,0,0.45);">
+            <div class="tracker-header" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
                 <div style="display:flex; align-items:center; gap:6px;">
                     <span class="pulse-dot dot-green" style="width:6px; height:6px; margin:0; display:inline-block;" title="Live Telemetry"></span>
-                    <span class="tracker-title">Live Weather, Wave & Sunset</span>
+                    <span class="tracker-title" style="font-size:11.5px; font-weight:700; color:#f1f5f9;">Live Weather, Wave & Sunset</span>
                 </div>
-                <div style="display:flex; align-items:center; gap:3px;">
-                    <button type="button" id="tracker-btn-refresh" class="tracker-btn-more" onclick="window.fetchLiveMarineTelemetry(true)" title="Refresh Live Data">
+                <div style="display:flex; align-items:center; gap:4px;">
+                    <button type="button" id="tracker-btn-refresh" class="tracker-btn-more" onclick="window.fetchLiveMarineTelemetry(true)" title="Refresh Live Data" style="background:none; border:none; color:rgba(255,255,255,0.7); cursor:pointer; padding:2px 4px;">
                         <i class="fa-solid fa-arrows-rotate" id="tracker-refresh-icon" style="font-size:11px;"></i>
                     </button>
-                    <button type="button" class="tracker-btn-more" onclick="window.toggleWeatherTracker(false)" title="Hide to Left Side">
+                    <button type="button" class="tracker-btn-more" onclick="window.toggleWeatherTracker(false)" title="Hide to Left Side" style="background:none; border:none; color:rgba(255,255,255,0.7); cursor:pointer; padding:2px 4px;">
                         <i class="fa-solid fa-chevron-left" style="font-size:11px;"></i>
                     </button>
                 </div>
             </div>
             
-            <div class="tracker-body">
+            <div class="tracker-body" style="display:flex; flex-direction:column; gap:8px;">
                 <!-- Row 1: Swell -->
-                <div class="tracker-row">
-                    <div class="tracker-icon-box wave-icon">
+                <div class="tracker-row" style="display:flex; align-items:center; gap:9px;">
+                    <div class="tracker-icon-box wave-icon" style="width:24px; height:24px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:12px; background:rgba(56,189,248,0.2); color:#38bdf8; border:1px solid rgba(56,189,248,0.35);">
                         <i class="fa-solid fa-water"></i>
                     </div>
-                    <span class="tracker-text" id="tracker-swell-text">1.2m - Moderate Swell</span>
+                    <span class="tracker-text" id="tracker-swell-text" style="font-size:11.5px; font-weight:600; color:rgba(241,245,249,0.95);">1.2m - Moderate Swell</span>
                 </div>
 
                 <!-- Row 2: Tide -->
-                <div class="tracker-row">
-                    <div class="tracker-icon-box tide-icon">
+                <div class="tracker-row" style="display:flex; align-items:center; gap:9px;">
+                    <div class="tracker-icon-box tide-icon" style="width:24px; height:24px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:12px; background:rgba(59,130,246,0.2); color:#60a5fa; border:1px solid rgba(59,130,246,0.35);">
                         <i class="fa-solid fa-arrow-up"></i>
                     </div>
-                    <span class="tracker-text" id="tracker-tide-text">RISING TIDE (High in 3h 15m)</span>
+                    <span class="tracker-text" id="tracker-tide-text" style="font-size:11.5px; font-weight:600; color:rgba(241,245,249,0.95);">RISING TIDE (High in 3h 15m)</span>
                 </div>
 
                 <!-- Row 3: Sunset -->
-                <div class="tracker-row sunset-row">
-                    <div class="tracker-icon-box sunset-icon">
+                <div class="tracker-row sunset-row" style="display:flex; align-items:center; gap:9px;">
+                    <div class="tracker-icon-box sunset-icon" style="width:24px; height:24px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:12px; background:rgba(245,158,11,0.2); color:#fbbf24; border:1px solid rgba(245,158,11,0.35);">
                         <i class="fa-solid fa-sun"></i>
                     </div>
-                    <span class="tracker-text sunset-highlight" id="tracker-sunset-text">
+                    <span class="tracker-text sunset-highlight" id="tracker-sunset-text" style="font-size:11.5px; font-weight:700; color:#fbbf24;">
                         Sunset in <span id="tracker-sunset-countdown">2h 15m</span> at San Juan Beach 🌅
                     </span>
                 </div>
 
                 <!-- Action Button -->
-                <button type="button" class="tracker-btn-action" onclick="window.findSunsetSpots()">
+                <button type="button" class="tracker-btn-action" onclick="window.findSunsetSpots()" style="margin-top:4px; width:100%; padding:7px 12px; border-radius:100px; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.4); color:#38bdf8; font-size:11.5px; font-weight:700; cursor:pointer;">
                     Find Sunset Spots
                 </button>
             </div>
