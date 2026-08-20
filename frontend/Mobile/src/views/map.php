@@ -1301,39 +1301,40 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             if (window.closeSheet) window.closeSheet();
             const sheet = document.getElementById('nearby-sites-sheet');
             if (!sheet) return;
+
             sheet.style.display = 'block';
-            void sheet.offsetHeight;
+            sheet.style.transition = 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease';
+            sheet.style.transform = 'translateY(calc(100% + 120px))';
+            sheet.classList.remove('active');
+
+            void sheet.offsetHeight; // force reflow for smooth slide-up animation
+
             sheet.classList.add('active');
             sheet.style.transform = 'translateY(0)';
-            
+
             await window.renderNearbyTouristSites();
         };
 
         window.closeNearbySitesSheet = function() {
             const sheet = document.getElementById('nearby-sites-sheet');
             if (!sheet) return;
+            sheet.style.transition = 'transform 0.38s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease';
             sheet.style.transform = 'translateY(calc(100% + 120px))';
             sheet.classList.remove('active');
             setTimeout(() => {
                 if (!sheet.classList.contains('active')) {
                     sheet.style.display = 'none';
                 }
-            }, 350);
+            }, 380);
         };
 
         window.filterNearbyRadius = function(radius, btn) {
             currentNearbyRadius = radius;
             document.querySelectorAll('.nearby-radius-btn').forEach(b => {
                 b.classList.remove('active');
-                b.style.background = 'rgba(30,58,138,0.6)';
-                b.style.border = '1px solid rgba(56,189,248,0.25)';
-                b.style.color = 'rgba(248,250,252,0.9)';
             });
             if (btn) {
                 btn.classList.add('active');
-                btn.style.background = 'linear-gradient(135deg, #38bdf8, #2563eb)';
-                btn.style.border = '1px solid #38bdf8';
-                btn.style.color = '#fff';
             }
             window.renderNearbyTouristSites();
         };
@@ -1441,7 +1442,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
             if (filtered.length === 0) {
                 container.innerHTML = `
-                    <div style="text-align:center; padding:28px 14px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:18px;">
+                    <div style="text-align:center; padding:28px 14px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:18px; animation: nearbyCardSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
                         <div style="width:48px; height:48px; margin:0 auto 12px; border-radius:50%; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.25); display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:20px;">
                             <i class="fa-solid fa-location-dot"></i>
                         </div>
@@ -1449,7 +1450,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                         <div style="font-size:12px; color:rgba(148,163,184,0.8); margin-bottom:14px; line-height:1.4;">
                             Try expanding your search radius to discover attractions across La Union.
                         </div>
-                        <button type="button" onclick="window.filterNearbyRadius(15, document.querySelector('[data-radius=\\'15\\']'))" style="padding:8px 18px; border-radius:100px; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:#fff; font-size:12px; font-weight:800; cursor:pointer;">
+                        <button type="button" onclick="window.filterNearbyRadius(15, document.querySelector('[data-radius=\\'15\\']'))" style="padding:8px 18px; border-radius:100px; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:#fff; font-size:12px; font-weight:800; cursor:pointer; transition:transform 0.2s ease;">
                             Show Within 15 km
                         </button>
                     </div>
@@ -1458,7 +1459,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             }
 
             let html = '';
-            filtered.forEach(spot => {
+            filtered.forEach((spot, idx) => {
                 const img = window.getDestImage ? window.getDestImage(spot, 300) : (spot.image || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300');
                 const rating = spot.rating ? parseFloat(spot.rating).toFixed(1) : (spot.reviews_avg_rating ? parseFloat(spot.reviews_avg_rating).toFixed(1) : 'New');
                 
@@ -1472,10 +1473,11 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 }
 
                 const safeSpotStr = encodeURIComponent(JSON.stringify(spot));
+                const delay = (idx * 0.04).toFixed(2);
 
                 html += `
-                    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:16px; padding:10px 12px; display:flex; align-items:center; gap:12px; transition:all 0.2s;" onpointerdown="this.style.background='rgba(56,189,248,0.08)'" onpointerup="this.style.background='rgba(255,255,255,0.03)'" onpointercancel="this.style.background='rgba(255,255,255,0.03)'">
-                        <img src="${img}" alt="${spot.name}" style="width:64px; height:64px; border-radius:12px; object-fit:cover; flex-shrink:0;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
+                    <div class="nearby-site-card" style="animation: nearbyCardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s forwards; opacity: 0;" onclick="window.selectNearbySite('${safeSpotStr}')">
+                        <img src="${img}" alt="${spot.name}" style="width:64px; height:64px; border-radius:12px; object-fit:cover; flex-shrink:0; transition: transform 0.3s ease;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
                         <div style="flex:1; min-width:0;">
                             <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:3px;">
                                 <h4 style="margin:0; font-size:14px; font-weight:800; color:#f8fafc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${spot.name}</h4>
@@ -1493,7 +1495,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                                 ${spot.category ? `<span style="font-size:10px; color:rgba(255,255,255,0.7); background:rgba(255,255,255,0.06); padding:2px 6px; border-radius:6px;">${spot.category}</span>` : ''}
                             </div>
                         </div>
-                        <button type="button" onclick="window.selectNearbySite('${safeSpotStr}')" style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.35); color:#38bdf8; width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:all 0.2s;" title="View on Map">
+                        <button type="button" class="nearby-site-action-btn" title="View on Map">
                             <i class="fa-solid fa-chevron-right" style="font-size:13px;"></i>
                         </button>
                     </div>
