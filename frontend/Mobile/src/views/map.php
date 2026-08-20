@@ -1862,22 +1862,34 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
         function openSheet(animate) {
             isOpen = true;
-            sheet.classList.add('active');
+            sheet.style.display = 'block';
             if (animate) {
-                sheet.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                sheet.style.transition = 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease';
+                sheet.style.transform = 'translateY(calc(100% + 120px))';
+                sheet.classList.remove('active');
+                
+                void sheet.offsetHeight; // force reflow for smooth slide-up animation
+                
+                sheet.classList.add('active');
+                sheet.style.transform = 'translateY(0)';
+                currentY = 0;
             } else {
-                sheet.classList.add('sheet-dragging');
+                sheet.classList.add('active');
+                applyY(0);
             }
-            applyY(0);
-            if (!animate) sheet.classList.remove('sheet-dragging');
             setTimeout(() => { if (!isDragging) sheet.style.transition = ''; }, 500);
         }
 
         function closeSheet() {
             isOpen = false;
-            sheet.style.transition = 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            sheet.style.transition = 'transform 0.38s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease';
             sheet.style.transform = 'translateY(calc(100% + 120px))';
             sheet.classList.remove('active');
+            setTimeout(() => {
+                if (!sheet.classList.contains('active')) {
+                    sheet.style.display = 'none';
+                }
+            }, 380);
             if (onClose) onClose();
         }
 
@@ -1904,7 +1916,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             sheet.classList.remove('sheet-dragging');
             if (animFrame) cancelAnimationFrame(animFrame);
 
-            sheet.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            sheet.style.transition = 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)';
 
             const peekY = getPeekY();
             const delta = currentY - initialY;
@@ -2048,8 +2060,15 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
     window.openSheet = function(locationData) {
         if (!locationData) return;
+        if (window.closeNearbySitesSheet) {
+            window.closeNearbySitesSheet();
+        }
         const targetSheet = document.getElementById('place-details-sheet');
         if (!targetSheet) return;
+        const scrollArea = targetSheet.querySelector('.draggable-content');
+        if (scrollArea) {
+            scrollArea.scrollTop = 0;
+        }
         window.currentDestinationForRoute = locationData;
         if (window.activePopup) {
             window.activePopup.remove();
