@@ -455,18 +455,18 @@ $activeTab = 'leaderboard';
 
             if (currentSortMode === 'points') {
                 rightBadgeHtml = `
-            <div class="rank-xp-badge" style="background:rgba(245,158,11,0.14); border:1px solid rgba(245,158,11,0.3); color:#f59e0b;">
-                <i class="fa-solid fa-coins" style="font-size:11px;"></i> ${pts.toLocaleString()} <small style="font-size:10px; color:rgba(245,158,11,0.85);">PTS</small>
+            <div class="rank-xp-badge" style="color:#f59e0b;">
+                ${pts.toLocaleString()} <small style="font-size:10px; font-weight:700; color:rgba(245,158,11,0.85); margin-left:3px;">PTS</small>
             </div>`;
             } else if (currentSortMode === 'visited') {
                 rightBadgeHtml = `
-            <div class="rank-xp-badge" style="background:rgba(56,189,248,0.14); border:1px solid rgba(56,189,248,0.3); color:#38bdf8;">
-                <i class="fa-solid fa-map-location-dot" style="font-size:11px;"></i> ${activities} <small style="font-size:10px; color:rgba(56,189,248,0.85);">VISITED</small>
+            <div class="rank-xp-badge" style="color:#38bdf8;">
+                ${activities} <small style="font-size:10px; font-weight:700; color:rgba(56,189,248,0.85); margin-left:3px;">VISITED</small>
             </div>`;
             } else {
                 rightBadgeHtml = `
-            <div class="rank-xp-badge">
-                <span>⚡</span> ${xp.toLocaleString()} <small style="font-size:10px; color:rgba(255,255,255,0.6);">XP</small>
+            <div class="rank-xp-badge" style="color:#ffffff;">
+                ${xp.toLocaleString()} <small style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.6); margin-left:3px;">XP</small>
             </div>`;
             }
 

@@ -485,30 +485,33 @@ if (is_dir($imgDir)) {
     if (!token) return;
 
     let lat = window.currentGPSLat || null, lng = window.currentGPSLng || null;
-    if (!lat || !lng || window.currentGPSSource !== 'gps') {
-        try {
-            if (typeof window.requestPreciseLocation === 'function') {
-                const loc = await window.requestPreciseLocation(false);
-                if (loc && loc.lat && loc.lng) {
-                    lat = loc.lat;
-                    lng = loc.lng;
-                }
-            } else if ("geolocation" in navigator) {
-                const pos = await new Promise((res, rej) => {
-                    navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 });
-                });
-                if (pos && pos.coords) {
-                    lat = pos.coords.latitude;
-                    lng = pos.coords.longitude;
-                    window.currentGPSLat = lat;
-                    window.currentGPSLng = lng;
-                    window.currentGPSSource = 'gps';
-                }
+    try {
+        if (typeof window.requestPreciseLocation === 'function') {
+            const loc = await window.requestPreciseLocation(true);
+            if (loc && loc.lat && loc.lng) {
+                lat = loc.lat;
+                lng = loc.lng;
+                window.currentGPSLat = lat;
+                window.currentGPSLng = lng;
+                window.currentGPSSource = 'gps';
+                window.userCurrentCoords = { lat, lng };
             }
-        } catch(e) {
-            if (e && e.code !== 3) {
-                console.log("Location access issue (handled):", e.message);
+        } else if ("geolocation" in navigator) {
+            const pos = await new Promise((res, rej) => {
+                navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+            });
+            if (pos && pos.coords) {
+                lat = pos.coords.latitude;
+                lng = pos.coords.longitude;
+                window.currentGPSLat = lat;
+                window.currentGPSLng = lng;
+                window.currentGPSSource = 'gps';
+                window.userCurrentCoords = { lat, lng };
             }
+        }
+    } catch(e) {
+        if (e && e.code !== 3) {
+            console.log("Location access issue (handled):", e.message);
         }
     }
 
@@ -733,7 +736,10 @@ if (is_dir($imgDir)) {
         const nearContainer = document.getElementById('near-me-container');
         if (!nearContainer) return;
 
-        if (!userLat || !userLng) {
+        const uLat = parseFloat(userLat);
+        const uLng = parseFloat(userLng);
+
+        if (isNaN(uLat) || isNaN(uLng) || uLat === 0 || uLng === 0) {
             nearContainer.classList.add('is-empty');
             nearContainer.style.paddingLeft = '0';
             nearContainer.style.paddingRight = '0';
@@ -745,7 +751,7 @@ if (is_dir($imgDir)) {
                         <i class="fa-solid fa-location-crosshairs"></i>
                     </div>
                     <div class="dash-empty-title">Location Access Needed</div>
-                    <div class="dash-empty-desc">Enable location access to discover tourist spots within 2 km of your current location.</div>
+                    <div class="dash-empty-desc">Enable location access to discover tourist spots near your current location.</div>
                     <button type="button" onclick="if(window.locateMeForWeather) window.locateMeForWeather();" class="dash-empty-btn">
                         <i class="fa-solid fa-location-arrow"></i> Enable Location
                     </button>
@@ -753,9 +759,6 @@ if (is_dir($imgDir)) {
             `;
             return;
         }
-
-        const uLat = parseFloat(userLat);
-        const uLng = parseFloat(userLng);
 
         const cacheKey = 'public_map_data';
         await window.useCache(
@@ -766,7 +769,7 @@ if (is_dir($imgDir)) {
                 return await res.json();
             },
             (data) => {
-                if (!data) {
+                if (!data || !data.destinations) {
                     nearContainer.classList.add('is-empty');
                     nearContainer.style.paddingLeft = '0';
                     nearContainer.style.paddingRight = '0';
@@ -779,28 +782,42 @@ if (is_dir($imgDir)) {
                             </div>
                             <div class="dash-empty-title">Unable to Load Nearby Spots</div>
                             <div class="dash-empty-desc">Could not load spots at this moment. Please check your connection.</div>
-                            <button type="button" onclick="loadNearMe(window.userCurrentCoords?.lat, window.userCurrentCoords?.lng)" class="dash-empty-btn">
+                            <button type="button" onclick="loadNearMe(window.userCurrentCoords?.lat || window.currentGPSLat, window.userCurrentCoords?.lng || window.currentGPSLng)" class="dash-empty-btn">
                                 <i class="fa-solid fa-rotate-right"></i> Retry
                             </button>
                         </div>
                     `;
                     return;
                 }
-                let spots = data.destinations || [];
-                spots.forEach(spot => {
-                    var sLat = parseFloat(spot.latitude || spot.lat);
-                    var sLng = parseFloat(spot.longitude || spot.lng);
+
+                // Clone spots array so we do not mutate cached data in-place
+                let rawSpots = data.destinations || [];
+                let spots = rawSpots.map(s => {
+                    const copy = { ...s };
+                    const sLat = parseFloat(copy.lat || copy.latitude);
+                    const sLng = parseFloat(copy.lng || copy.longitude);
                     if (!isNaN(sLat) && !isNaN(sLng)) {
-                        spot.distance = getDistance(uLat, uLng, sLat, sLng);
+                        copy.distance = getDistance(uLat, uLng, sLat, sLng);
                     } else {
-                        spot.distance = 999999;
+                        copy.distance = 999999;
                     }
+                    return copy;
                 });
 
-                // Strictly filter only spots within 2 km radius of user location
-                const MAX_RADIUS_KM = 2.0;
+                // Sort by nearest distance first
                 spots.sort((a, b) => a.distance - b.distance);
-                const nearSpots = spots.filter(s => s.distance <= MAX_RADIUS_KM);
+
+                // Progressive distance filter:
+                // 1. If spots within 5 km exist, show them.
+                // 2. If none within 5 km, show spots within 15 km.
+                // 3. Otherwise show closest 4 spots across La Union.
+                let nearSpots = spots.filter(s => s.distance <= 5.0);
+                if (nearSpots.length === 0) {
+                    nearSpots = spots.filter(s => s.distance <= 15.0);
+                }
+                if (nearSpots.length === 0 && spots.length > 0) {
+                    nearSpots = spots.filter(s => s.distance < 999999).slice(0, 4);
+                }
 
                 if (nearSpots.length > 0) {
                     nearContainer.classList.remove('is-empty');
@@ -809,13 +826,17 @@ if (is_dir($imgDir)) {
                     nearContainer.style.marginLeft = '';
                     nearContainer.style.marginRight = '';
                     nearContainer.innerHTML = '';
+
                     nearSpots.forEach(dest => {
                         const img = window.getDestImage(dest, 600);
                         const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
                         
                         let distText = '';
-                        if (dest.distance < 1) {
-                            const meters = Math.max(10, Math.round(dest.distance * 1000));
+                        if (dest.distance < 0.05) {
+                            const meters = Math.max(5, Math.round(dest.distance * 1000));
+                            distText = `${meters}m away`;
+                        } else if (dest.distance < 1.0) {
+                            const meters = Math.round((dest.distance * 1000) / 10) * 10;
                             distText = `${meters}m away`;
                         } else {
                             distText = `${dest.distance.toFixed(1)} km away`;
@@ -845,8 +866,8 @@ if (is_dir($imgDir)) {
                             <div class="dash-empty-icon-wrap">
                                 <i class="fa-solid fa-location-dot"></i>
                             </div>
-                            <div class="dash-empty-title">No Spots Within 2 km</div>
-                            <div class="dash-empty-desc">There are no tourist spots within 2 km of your current location. Explore all attractions across La Union on the map.</div>
+                            <div class="dash-empty-title">No Spots Nearby</div>
+                            <div class="dash-empty-desc">Discover destinations and attractions across La Union on the map.</div>
                             <button type="button" onclick="navigateTo('map')" class="dash-empty-btn">
                                 <i class="fa-solid fa-map-location-dot"></i> Explore Map
                             </button>
@@ -855,7 +876,7 @@ if (is_dir($imgDir)) {
                 }
             },
             false,
-            300000 // 5 minutes TTL
+            60000 // 1 minute TTL
         );
     }
 
@@ -864,10 +885,10 @@ if (is_dir($imgDir)) {
         const rating = dest.rating ? parseFloat(dest.rating).toFixed(1) : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating).toFixed(1) : 'New');
         const desc = dest.description ? dest.description.substring(0, 150) + (dest.description.length > 150 ? '...' : '') : 'A beautiful destination waiting to be explored.';
         
-                    const encodedDest = encodeURIComponent(JSON.stringify(dest));
-                    return `
+        const encodedDest = encodeURIComponent(JSON.stringify(dest));
+        return `
             <div data-category="${(dest.category || '').replace(/"/g, '&quot;')}" style="margin-bottom: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 18px; overflow: hidden; transition: all 0.3s ease;">
-                <div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.toggle-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.paddingTop = '14px'; content.style.paddingBottom = '14px'; content.style.maxHeight = (content.scrollHeight + 150) + 'px'; content.style.opacity = '1'; icon.style.transform = 'rotate(90deg)'; } else { content.style.maxHeight = '0px'; content.style.opacity = '0'; content.style.paddingTop = '0'; content.style.paddingBottom = '0'; icon.style.transform = 'rotate(0deg)'; }" style="cursor:pointer; display:flex; align-items:center; gap: 12px; padding: 12px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.05)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
+                <div onclick="window.toggleRecommendedCard(this)" style="cursor:pointer; display:flex; align-items:center; gap: 12px; padding: 12px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.05)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
                     <img src="${img}" alt="${dest.name}" style="width:60px; height:60px; border-radius:12px; object-fit:cover;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
                     <div style="flex:1; min-width:0;">
                         <h4 style="margin:0 0 5px; font-size:15px; font-weight:800; letter-spacing:-0.3px; color:#f8fafc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dest.name}</h4>
@@ -1200,6 +1221,34 @@ window.viewDestinationOnMap = function(encodedDest) {
     } catch(e) { console.error('Failed to view destination:', e); }
 };
 
+window.toggleRecommendedCard = function(headerEl) {
+    if (!headerEl) return;
+    const content = headerEl.nextElementSibling;
+    const icon = headerEl.querySelector('.toggle-icon');
+    if (!content) return;
+
+    const isOpen = content.style.maxHeight && content.style.maxHeight !== '0px';
+    const extras = headerEl.closest('#rec-extras');
+
+    if (!isOpen) {
+        content.style.paddingTop = '14px';
+        content.style.paddingBottom = '14px';
+        content.style.maxHeight = (content.scrollHeight + 180) + 'px';
+        content.style.opacity = '1';
+        if (icon) icon.style.transform = 'rotate(90deg)';
+        if (extras && extras.classList.contains('open')) {
+            extras.style.maxHeight = 'none';
+            extras.style.overflow = 'visible';
+        }
+    } else {
+        content.style.maxHeight = '0px';
+        content.style.opacity = '0';
+        content.style.paddingTop = '0';
+        content.style.paddingBottom = '0';
+        if (icon) icon.style.transform = 'rotate(0deg)';
+    }
+};
+
 window.toggleRecommendedMore = function() {
     const extras = document.getElementById('rec-extras');
     const chevron = document.getElementById('rec-chevron');
@@ -1207,17 +1256,29 @@ window.toggleRecommendedMore = function() {
 
     if (!extras) return;
 
-    const isOpen = extras.style.maxHeight !== '0px' && extras.style.maxHeight !== '';
+    const isOpen = extras.classList.contains('open') || (extras.style.maxHeight !== '0px' && extras.style.maxHeight !== '');
 
     if (isOpen) {
-        extras.style.maxHeight = '0';
-        chevron.style.transform = 'rotate(0deg)';
-        // Update button text (preserve icon)
-        btn.innerHTML = `<i class="fa-solid fa-chevron-down" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i> View More`;
-    } else {
+        extras.style.overflow = 'hidden';
         extras.style.maxHeight = extras.scrollHeight + 'px';
-        chevron.style.transform = 'rotate(180deg)';
-        btn.innerHTML = `<i class="fa-solid fa-chevron-up" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i> Show Less`;
+        void extras.offsetHeight; // force reflow
+        extras.style.maxHeight = '0px';
+        extras.classList.remove('open');
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+        const count = extras.children.length;
+        if (btn) btn.innerHTML = `<i class="fa-solid fa-chevron-down" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i> View ${count} More`;
+    } else {
+        extras.style.overflow = 'hidden';
+        extras.style.maxHeight = (extras.scrollHeight + 300) + 'px';
+        extras.classList.add('open');
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+        if (btn) btn.innerHTML = `<i class="fa-solid fa-chevron-up" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i> Show Less`;
+        setTimeout(() => {
+            if (extras.classList.contains('open')) {
+                extras.style.maxHeight = 'none';
+                extras.style.overflow = 'visible';
+            }
+        }, 420);
     }
 };
 
@@ -1603,7 +1664,11 @@ window.toggleRecommendedMore = function() {
             window.requestPreciseLocation(true).then(loc => {
                 if (loc && loc.lat && loc.lng) {
                     window.userCurrentCoords = { lat: loc.lat, lng: loc.lng };
+                    window.currentGPSLat = loc.lat;
+                    window.currentGPSLng = loc.lng;
+                    window.currentGPSSource = 'gps';
                     window.fetchWeather(loc.lat, loc.lng, 'My Location 📍', true);
+                    if (typeof loadNearMe === 'function') loadNearMe(loc.lat, loc.lng);
                 } else {
                     fallbackToLocal();
                 }
@@ -1620,17 +1685,34 @@ window.toggleRecommendedMore = function() {
                     window.currentGPSLng = lng;
                     window.currentGPSSource = 'gps';
                     window.fetchWeather(lat, lng, 'My Location 📍', true);
+                    if (typeof loadNearMe === 'function') loadNearMe(lat, lng);
                 },
                 (err) => {
                     console.warn('GPS location failed/denied, using local fallback:', err);
                     fallbackToLocal();
                 },
-                { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         } else {
             fallbackToLocal();
         }
     };
+
+    // Live continuous GPS sync listener for real-time Near Me distances
+    document.addEventListener('gpsUpdated', function(e) {
+        if (e.detail && e.detail.lat && e.detail.lng) {
+            const liveLat = parseFloat(e.detail.lat);
+            const liveLng = parseFloat(e.detail.lng);
+            if (!isNaN(liveLat) && !isNaN(liveLng) && liveLat !== 0 && liveLng !== 0) {
+                window.userCurrentCoords = { lat: liveLat, lng: liveLng };
+                window.currentGPSLat = liveLat;
+                window.currentGPSLng = liveLng;
+                if (typeof loadNearMe === 'function') {
+                    loadNearMe(liveLat, liveLng);
+                }
+            }
+        }
+    });
 
     window.updateWeatherModal = function(data) {
         const modalLoc = document.getElementById('modal-weather-loc');

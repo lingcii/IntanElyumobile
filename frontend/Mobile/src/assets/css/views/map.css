@@ -965,6 +965,7 @@
 
 /* ── Map Control Buttons ── */
 .btn-locate-me,
+.btn-nearby-sites,
 .btn-layer-toggle,
 .btn-3d-view {
     background: rgba(15, 23, 42, 0.92) !important;
@@ -991,7 +992,22 @@
     cursor: pointer;
 }
 
+.btn-nearby-sites {
+    position: absolute;
+    bottom: calc(115px + env(safe-area-inset-bottom));
+    left: 10px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    z-index: 900;
+    cursor: pointer;
+}
+
 .btn-locate-me:active,
+.btn-nearby-sites:active,
 .btn-layer-toggle:active,
 .btn-3d-view:active {
     transform: scale(0.9) !important;

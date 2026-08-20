@@ -83,6 +83,12 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         <i class="fa-solid fa-crosshairs"></i>
     </div>
 
+    <!-- Nearby Tourist Sites Button (Left Side) -->
+    <div class="btn-nearby-sites animate-slide-up" id="btn-nearby-sites" onclick="window.toggleNearbySitesSheet()" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); left: 10px; width: 44px; height: 44px; background: rgba(15, 23, 42, 0.92); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 18px; z-index: 900; cursor: pointer; transition: all 0.2s;" title="Nearby Tourist Sites">
+        <i class="fa-solid fa-compass"></i>
+        <span id="nearby-sites-badge" style="display:none; position:absolute; top:-5px; right:-5px; min-width:18px; height:18px; padding:0 4px; border-radius:9px; background:#38bdf8; color:#0f172a; font-size:10px; font-weight:800; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,0.5);">0</span>
+    </div>
+
     <!-- Layer Toggle Button -->
     <div class="btn-layer-toggle animate-slide-up" id="btn-layer-toggle" style="position: absolute; bottom: calc(235px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: #1E3A8A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-layer-group"></i>
@@ -93,6 +99,40 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         <i class="fa-solid fa-cube"></i>
     </div>
 
+    <!-- Nearby Tourist Sites Sheet (Triggered by Left Button) -->
+    <div class="bottom-sheet" id="nearby-sites-sheet" style="display:none;">
+        <div class="sheet-drag-handle" id="nearby-drag-handle"><span class="sheet-drag-dot"></span></div>
+        <div class="draggable-content" id="nearby-sites-scroll" style="max-height: calc(75vh - 70px); overflow-y: auto; padding: 0 4px 16px 4px;">
+            
+            <!-- Header -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding: 0 8px;">
+                <div>
+                    <h3 style="margin:0; font-size:17px; font-weight:800; color:#f8fafc; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-compass" style="color:#38bdf8;"></i> Nearby Tourist Sites
+                    </h3>
+                    <p id="nearby-sites-subtext" style="margin:3px 0 0 0; font-size:12px; color:rgba(148,163,184,0.8);">
+                        Discover attractions close to your current location
+                    </p>
+                </div>
+                <button type="button" onclick="window.closeNearbySitesSheet()" style="background:rgba(255,255,255,0.08); border:none; color:rgba(255,255,255,0.7); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:background 0.2s;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Radius filter pills -->
+            <div style="display:flex; gap:6px; overflow-x:auto; padding: 4px 8px 12px 8px; scrollbar-width:none;">
+                <button type="button" class="nearby-radius-btn active" data-radius="2" onclick="window.filterNearbyRadius(2, this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid #38bdf8; background:linear-gradient(135deg, #38bdf8, #2563eb); color:#fff; cursor:pointer; white-space:nowrap;">Within 2 km</button>
+                <button type="button" class="nearby-radius-btn" data-radius="5" onclick="window.filterNearbyRadius(5, this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(56,189,248,0.25); background:rgba(30,58,138,0.6); color:rgba(248,250,252,0.9); cursor:pointer; white-space:nowrap;">Within 5 km</button>
+                <button type="button" class="nearby-radius-btn" data-radius="15" onclick="window.filterNearbyRadius(15, this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(56,189,248,0.25); background:rgba(30,58,138,0.6); color:rgba(248,250,252,0.9); cursor:pointer; white-space:nowrap;">Within 15 km</button>
+                <button type="button" class="nearby-radius-btn" data-radius="all" onclick="window.filterNearbyRadius('all', this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(56,189,248,0.25); background:rgba(30,58,138,0.6); color:rgba(248,250,252,0.9); cursor:pointer; white-space:nowrap;">All Closest</button>
+            </div>
+
+            <!-- List container -->
+            <div id="nearby-sites-list" style="display:flex; flex-direction:column; gap:10px; padding: 0 4px;">
+                <!-- Rendered dynamically -->
+            </div>
+        </div>
+    </div>
 
     <!-- Bottom Sheet (hidden by default) -->
     <div class="bottom-sheet" id="place-details-sheet">
@@ -1211,15 +1251,13 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                     }
                 }
 
-                checkProximityAutoPop(lat, lng);
+                updateNearbyBadge(lat, lng);
             }
         });
 
-        // ── Proximity Auto-Pop Logic ──
-        window._poppedSpots = window._poppedSpots || {};
-        
-        function getDistanceMeters(lat1, lon1, lat2, lon2) {
-            const R = 6371000;
+        // ── Nearby Tourist Sites Logic ──
+        function getDistanceKm(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth radius in km
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
             const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -1228,55 +1266,259 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         }
 
-        function checkProximityAutoPop(lat, lng) {
+        function updateNearbyBadge(lat, lng) {
             if (!window.allMapLocations || window.allMapLocations.length === 0) return;
-            
-            for (const loc of window.allMapLocations) {
-                const locLat = parseFloat(loc.lat);
-                const locLng = parseFloat(loc.lng);
-                if (isNaN(locLat) || isNaN(locLng)) continue;
-
-                const dist = getDistanceMeters(lat, lng, locLat, locLng);
-                if (dist <= 200 && !window._poppedSpots[loc.id]) { // Within 200m radius
-                    window._poppedSpots[loc.id] = true;
-
-                    showProximityBanner(loc, Math.round(dist));
-
-                    if (window.mapInstance) {
-                        window.mapInstance.flyTo({ center: [locLng, locLat], zoom: 15, duration: 1200 });
-                        window.openSheet(loc);
-                    }
-                    break;
+            const nearbySpots = window.allMapLocations.filter(loc => {
+                const locLat = parseFloat(loc.lat || loc.latitude);
+                const locLng = parseFloat(loc.lng || loc.longitude);
+                if (isNaN(locLat) || isNaN(locLng)) return false;
+                return getDistanceKm(lat, lng, locLat, locLng) <= 2.0;
+            });
+            const badge = document.getElementById('nearby-sites-badge');
+            if (badge) {
+                if (nearbySpots.length > 0) {
+                    badge.textContent = nearbySpots.length;
+                    badge.style.display = 'inline-flex';
+                } else {
+                    badge.style.display = 'none';
                 }
             }
         }
 
-        function showProximityBanner(loc, distMeters) {
-            let banner = document.getElementById('proximity-auto-pop-banner');
-            if (!banner) {
-                banner = document.createElement('div');
-                banner.id = 'proximity-auto-pop-banner';
-                banner.style.cssText = "position:fixed; top:80px; left:50%; transform:translateX(-50%); z-index:10001; background:linear-gradient(135deg,#0f172a,#1e293b); border:1px solid #38bdf8; border-radius:16px; padding:12px 20px; box-shadow:0 12px 32px rgba(0,0,0,0.6); display:flex; align-items:center; gap:12px; color:#fff; transition:all 0.3s; max-width:90vw;";
-                document.body.appendChild(banner);
+        let currentNearbyRadius = 2; // default 2km
+
+        window.toggleNearbySitesSheet = function() {
+            const sheet = document.getElementById('nearby-sites-sheet');
+            if (!sheet) return;
+            if (sheet.classList.contains('active')) {
+                window.closeNearbySitesSheet();
+            } else {
+                window.openNearbySitesSheet();
             }
-            banner.innerHTML = `
-                <div style="width:38px; height:38px; border-radius:12px; background:rgba(56,189,248,0.2); border:1px solid #38bdf8; display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:18px; flex-shrink:0;">
-                    <i class="fa-solid fa-compass-drafting"></i>
-                </div>
-                <div>
-                    <span style="display:block; font-size:10px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px;">📍 Nearby Destination Discovered</span>
-                    <strong style="font-size:14px; color:#fff;">${loc.name}</strong>
-                    <span style="display:block; font-size:11px; color:rgba(255,255,255,0.7);">${distMeters}m away</span>
-                </div>
-                <button onclick="document.getElementById('proximity-auto-pop-banner').style.display='none'" style="background:none; border:none; color:rgba(255,255,255,0.5); font-size:16px; cursor:pointer; margin-left:8px;">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            `;
-            banner.style.display = 'flex';
+        };
+
+        window.openNearbySitesSheet = async function() {
+            if (window.closeSheet) window.closeSheet();
+            const sheet = document.getElementById('nearby-sites-sheet');
+            if (!sheet) return;
+            sheet.style.display = 'block';
+            void sheet.offsetHeight;
+            sheet.classList.add('active');
+            sheet.style.transform = 'translateY(0)';
+            
+            await window.renderNearbyTouristSites();
+        };
+
+        window.closeNearbySitesSheet = function() {
+            const sheet = document.getElementById('nearby-sites-sheet');
+            if (!sheet) return;
+            sheet.style.transform = 'translateY(calc(100% + 120px))';
+            sheet.classList.remove('active');
             setTimeout(() => {
-                if (banner) banner.style.display = 'none';
-            }, 8000);
-        }
+                if (!sheet.classList.contains('active')) {
+                    sheet.style.display = 'none';
+                }
+            }, 350);
+        };
+
+        window.filterNearbyRadius = function(radius, btn) {
+            currentNearbyRadius = radius;
+            document.querySelectorAll('.nearby-radius-btn').forEach(b => {
+                b.classList.remove('active');
+                b.style.background = 'rgba(30,58,138,0.6)';
+                b.style.border = '1px solid rgba(56,189,248,0.25)';
+                b.style.color = 'rgba(248,250,252,0.9)';
+            });
+            if (btn) {
+                btn.classList.add('active');
+                btn.style.background = 'linear-gradient(135deg, #38bdf8, #2563eb)';
+                btn.style.border = '1px solid #38bdf8';
+                btn.style.color = '#fff';
+            }
+            window.renderNearbyTouristSites();
+        };
+
+        window.renderNearbyTouristSites = async function() {
+            const container = document.getElementById('nearby-sites-list');
+            const subtext = document.getElementById('nearby-sites-subtext');
+            if (!container) return;
+
+            container.innerHTML = `
+                <div style="text-align:center; padding:30px 10px; color:rgba(148,163,184,0.8); font-size:13px;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size:22px; color:#38bdf8; margin-bottom:10px; display:block;"></i>
+                    Locating nearby tourist attractions...
+                </div>
+            `;
+
+            let lat = window.currentGPSLat || (window.userCurrentCoords ? window.userCurrentCoords.lat : null);
+            let lng = window.currentGPSLng || (window.userCurrentCoords ? window.userCurrentCoords.lng : null);
+
+            if (!lat || !lng) {
+                try {
+                    if (typeof window.requestPreciseLocation === 'function') {
+                        const loc = await window.requestPreciseLocation(false);
+                        if (loc && loc.lat && loc.lng) {
+                            lat = loc.lat;
+                            lng = loc.lng;
+                        }
+                    } else if (navigator.geolocation) {
+                        const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 6000, enableHighAccuracy: true }));
+                        if (pos && pos.coords) {
+                            lat = pos.coords.latitude;
+                            lng = pos.coords.longitude;
+                        }
+                    }
+                } catch(e) {
+                    console.log("Nearby sites location fallback:", e.message);
+                }
+            }
+
+            if (!lat || !lng) {
+                if (window.mapInstance) {
+                    const center = window.mapInstance.getCenter();
+                    lat = center.lat;
+                    lng = center.lng;
+                } else {
+                    lat = 16.6159;
+                    lng = 120.3209;
+                }
+            }
+
+            let spots = window.allMapLocations || [];
+            if (spots.length === 0) {
+                try {
+                    const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+                    const res = await fetch(backendUrl + '/api/public/map');
+                    if (res.ok) {
+                        const d = await res.json();
+                        spots = d.destinations || [];
+                        window.allMapLocations = spots;
+                    }
+                } catch(e) {}
+            }
+
+            if (spots.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:30px 10px; color:rgba(148,163,184,0.8); font-size:13px;">
+                        <i class="fa-solid fa-triangle-exclamation" style="font-size:24px; color:#f59e0b; margin-bottom:10px; display:block;"></i>
+                        No tourist sites found. Please check your connection.
+                    </div>
+                `;
+                return;
+            }
+
+            const calculatedSpots = spots.map(s => {
+                const copy = { ...s };
+                const sLat = parseFloat(copy.lat || copy.latitude);
+                const sLng = parseFloat(copy.lng || copy.longitude);
+                if (!isNaN(sLat) && !isNaN(sLng)) {
+                    copy.distanceKm = getDistanceKm(lat, lng, sLat, sLng);
+                    copy.distanceMeters = Math.round(copy.distanceKm * 1000);
+                } else {
+                    copy.distanceKm = 999999;
+                    copy.distanceMeters = 999999999;
+                }
+                return copy;
+            });
+
+            calculatedSpots.sort((a, b) => a.distanceKm - b.distanceKm);
+
+            let filtered = [];
+            if (currentNearbyRadius === 'all') {
+                filtered = calculatedSpots.filter(s => s.distanceKm < 999999).slice(0, 15);
+            } else {
+                const radiusNum = parseFloat(currentNearbyRadius);
+                filtered = calculatedSpots.filter(s => s.distanceKm <= radiusNum);
+            }
+
+            if (subtext) {
+                if (filtered.length > 0) {
+                    subtext.textContent = `Found ${filtered.length} attraction${filtered.length > 1 ? 's' : ''} ${currentNearbyRadius === 'all' ? 'closest to you' : 'within ' + currentNearbyRadius + ' km'}`;
+                } else {
+                    subtext.textContent = `No spots found within ${currentNearbyRadius} km`;
+                }
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:28px 14px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:18px;">
+                        <div style="width:48px; height:48px; margin:0 auto 12px; border-radius:50%; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.25); display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:20px;">
+                            <i class="fa-solid fa-location-dot"></i>
+                        </div>
+                        <div style="font-size:14px; font-weight:800; color:#f8fafc; margin-bottom:4px;">No Spots Within ${currentNearbyRadius} km</div>
+                        <div style="font-size:12px; color:rgba(148,163,184,0.8); margin-bottom:14px; line-height:1.4;">
+                            Try expanding your search radius to discover attractions across La Union.
+                        </div>
+                        <button type="button" onclick="window.filterNearbyRadius(15, document.querySelector('[data-radius=\\'15\\']'))" style="padding:8px 18px; border-radius:100px; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:#fff; font-size:12px; font-weight:800; cursor:pointer;">
+                            Show Within 15 km
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(spot => {
+                const img = window.getDestImage ? window.getDestImage(spot, 300) : (spot.image || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300');
+                const rating = spot.rating ? parseFloat(spot.rating).toFixed(1) : (spot.reviews_avg_rating ? parseFloat(spot.reviews_avg_rating).toFixed(1) : 'New');
+                
+                let distBadge = '';
+                if (spot.distanceKm < 0.05) {
+                    distBadge = `${Math.max(5, spot.distanceMeters)}m away`;
+                } else if (spot.distanceKm < 1.0) {
+                    distBadge = `${Math.round(spot.distanceMeters / 10) * 10}m away`;
+                } else {
+                    distBadge = `${spot.distanceKm.toFixed(1)} km away`;
+                }
+
+                const safeSpotStr = encodeURIComponent(JSON.stringify(spot));
+
+                html += `
+                    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:16px; padding:10px 12px; display:flex; align-items:center; gap:12px; transition:all 0.2s;" onpointerdown="this.style.background='rgba(56,189,248,0.08)'" onpointerup="this.style.background='rgba(255,255,255,0.03)'" onpointercancel="this.style.background='rgba(255,255,255,0.03)'">
+                        <img src="${img}" alt="${spot.name}" style="width:64px; height:64px; border-radius:12px; object-fit:cover; flex-shrink:0;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
+                        <div style="flex:1; min-width:0;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:3px;">
+                                <h4 style="margin:0; font-size:14px; font-weight:800; color:#f8fafc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${spot.name}</h4>
+                            </div>
+                            <div style="font-size:11.5px; color:rgba(148,163,184,0.85); margin-bottom:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                <i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:3px;"></i>${spot.municipality || spot.location || 'La Union'}
+                            </div>
+                            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                <span style="font-size:10px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); padding:2px 7px; border-radius:100px; display:inline-flex; align-items:center; gap:3px;">
+                                    <i class="fa-solid fa-location-arrow" style="font-size:9px;"></i> ${distBadge}
+                                </span>
+                                <span style="font-size:10.5px; font-weight:700; color:#fbbf24; display:inline-flex; align-items:center; gap:3px;">
+                                    <i class="fa-solid fa-star" style="font-size:9.5px;"></i> ${rating}
+                                </span>
+                                ${spot.category ? `<span style="font-size:10px; color:rgba(255,255,255,0.7); background:rgba(255,255,255,0.06); padding:2px 6px; border-radius:6px;">${spot.category}</span>` : ''}
+                            </div>
+                        </div>
+                        <button type="button" onclick="window.selectNearbySite('${safeSpotStr}')" style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.35); color:#38bdf8; width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:all 0.2s;" title="View on Map">
+                            <i class="fa-solid fa-chevron-right" style="font-size:13px;"></i>
+                        </button>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        };
+
+        window.selectNearbySite = function(encodedSpot) {
+            try {
+                const spot = JSON.parse(decodeURIComponent(encodedSpot));
+                window.closeNearbySitesSheet();
+                const sLat = parseFloat(spot.lat || spot.latitude);
+                const sLng = parseFloat(spot.lng || spot.longitude);
+                if (!isNaN(sLat) && !isNaN(sLng) && window.mapInstance) {
+                    window.mapInstance.flyTo({ center: [sLng, sLat], zoom: 15, offset: [0, -180], duration: 900 });
+                    setTimeout(() => {
+                        if (window.openSheet) window.openSheet(spot);
+                    }, 500);
+                }
+            } catch(e) {
+                console.error("Error selecting nearby site:", e);
+            }
+        };
 
         // Auto-check on load in case GPS already acquired globally or request precise fix
         setTimeout(() => {
@@ -1506,6 +1748,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     }
 
     initDraggableSheet('place-details-sheet', 'place-drag-handle');
+    initDraggableSheet('nearby-sites-sheet', 'nearby-drag-handle');
 
 
     window.isPlaceSaved = function(destId) {
