@@ -80,12 +80,12 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
     <!-- Live Weather, Wave & Sunset Tracker Widget -->
     <div id="weather-sunset-tracker" class="weather-sunset-tracker animate-slide-down">
-        <!-- Minimized Pill State -->
-        <div id="tracker-minimized" class="tracker-minimized-pill" onclick="window.toggleWeatherTracker(true)" style="display:none;">
-            <span class="tracker-pill-icon"><i class="fa-solid fa-water"></i></span>
-            <span id="tracker-pill-summary">1.2m Swell • 🌅 Sunset in 2h 15m</span>
-            <i class="fa-solid fa-chevron-down tracker-pill-arrow"></i>
-        </div>
+        <!-- Minimized Left Edge Tab (Only > is showing on the left) -->
+        <button type="button" id="tracker-edge-tab" class="tracker-edge-tab" onclick="window.toggleWeatherTracker(true)" title="Open Live Weather & Sunset Tracker" style="display:none;">
+            <span class="pulse-dot dot-green" style="width:5px; height:5px; margin:0;" title="Live"></span>
+            <i class="fa-solid fa-water tracker-edge-icon"></i>
+            <i class="fa-solid fa-chevron-right tracker-edge-arrow"></i>
+        </button>
 
         <!-- Expanded Full Card -->
         <div id="tracker-expanded" class="tracker-expanded-card">
@@ -98,8 +98,8 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                     <button type="button" id="tracker-btn-refresh" class="tracker-btn-more" onclick="window.fetchLiveMarineTelemetry(true)" title="Refresh Live Data">
                         <i class="fa-solid fa-arrows-rotate" id="tracker-refresh-icon" style="font-size:11px;"></i>
                     </button>
-                    <button type="button" class="tracker-btn-more" onclick="window.toggleWeatherTracker(false)" title="Minimize Tracker">
-                        <i class="fa-solid fa-ellipsis"></i>
+                    <button type="button" class="tracker-btn-more" onclick="window.toggleWeatherTracker(false)" title="Hide to Left Side">
+                        <i class="fa-solid fa-chevron-left" style="font-size:11px;"></i>
                     </button>
                 </div>
             </div>
@@ -1631,18 +1631,21 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         };
 
         window.toggleWeatherTracker = function(expand) {
+            const tracker = document.getElementById('weather-sunset-tracker');
             const exp = document.getElementById('tracker-expanded');
-            const min = document.getElementById('tracker-minimized');
-            if (!exp || !min) return;
+            const tab = document.getElementById('tracker-edge-tab');
+            if (!tracker || !exp || !tab) return;
 
             if (expand) {
-                min.style.display = 'none';
+                tracker.classList.remove('minimized');
+                tab.style.display = 'none';
                 exp.style.display = 'block';
-                exp.style.animation = 'nearbyCardSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+                exp.style.animation = 'nearbyCardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards';
             } else {
                 exp.style.display = 'none';
-                min.style.display = 'inline-flex';
-                min.style.animation = 'buttonTapPop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+                tracker.classList.add('minimized');
+                tab.style.display = 'inline-flex';
+                tab.style.animation = 'buttonTapPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards';
             }
         };
 

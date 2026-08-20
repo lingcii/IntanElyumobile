@@ -1320,42 +1320,53 @@
     transform: scale(0.96);
 }
 
-/* Minimized state pill */
-.tracker-minimized-pill {
+.weather-sunset-tracker.minimized {
+    left: 0 !important;
+}
+
+/* Minimized Left Edge Tab (Only > showing on the left) */
+.tracker-edge-tab {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    padding: 6px 12px;
-    background: rgba(15, 23, 42, 0.92);
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 10px 10px 8px;
+    background: radial-gradient(circle at 10% 20%, rgba(15, 30, 50, 0.96) 0%, rgba(10, 18, 30, 0.98) 100%);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(56, 189, 248, 0.3);
-    border-radius: 100px;
-    color: #f1f5f9;
-    font-size: 11px;
-    font-weight: 700;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
-    cursor: pointer;
-    transition: all 0.22s ease;
-}
-
-.tracker-minimized-pill:hover {
-    border-color: #38bdf8;
-    background: rgba(30, 58, 138, 0.85);
-}
-
-.tracker-minimized-pill:active {
-    transform: scale(0.95);
-}
-
-.tracker-pill-icon {
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    border-left: none;
+    border-radius: 0 16px 16px 0;
     color: #38bdf8;
-    font-size: 11px;
+    cursor: pointer;
+    box-shadow: 4px 6px 20px rgba(0, 0, 0, 0.45);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    outline: none;
 }
 
-.tracker-pill-arrow {
-    font-size: 9px;
-    color: rgba(148, 163, 184, 0.8);
-    margin-left: 2px;
+.tracker-edge-tab:hover {
+    background: radial-gradient(circle at 10% 20%, rgba(20, 45, 75, 0.98) 0%, rgba(15, 25, 45, 0.98) 100%);
+    border-color: #38bdf8;
+    padding-right: 14px;
+}
+
+.tracker-edge-tab:active {
+    transform: scale(0.92);
+}
+
+.tracker-edge-icon {
+    font-size: 13px;
+    color: #38bdf8;
+}
+
+.tracker-edge-arrow {
+    font-size: 13px;
+    font-weight: 900;
+    color: #ffffff;
+    transition: transform 0.2s ease;
+}
+
+.tracker-edge-tab:hover .tracker-edge-arrow {
+    transform: translateX(3px);
 }
 
