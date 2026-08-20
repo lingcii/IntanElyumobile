@@ -90,10 +90,18 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         <!-- Expanded Full Card -->
         <div id="tracker-expanded" class="tracker-expanded-card">
             <div class="tracker-header">
-                <span class="tracker-title">Live Weather, Wave & Sunset Tracker</span>
-                <button type="button" class="tracker-btn-more" onclick="window.toggleWeatherTracker(false)" title="Minimize Tracker">
-                    <i class="fa-solid fa-ellipsis"></i>
-                </button>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span class="pulse-dot dot-green" style="width:6px; height:6px; margin:0; display:inline-block;" title="Live Telemetry"></span>
+                    <span class="tracker-title">Live Weather, Wave & Sunset</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:3px;">
+                    <button type="button" id="tracker-btn-refresh" class="tracker-btn-more" onclick="window.fetchLiveMarineTelemetry(true)" title="Refresh Live Data">
+                        <i class="fa-solid fa-arrows-rotate" id="tracker-refresh-icon" style="font-size:11px;"></i>
+                    </button>
+                    <button type="button" class="tracker-btn-more" onclick="window.toggleWeatherTracker(false)" title="Minimize Tracker">
+                        <i class="fa-solid fa-ellipsis"></i>
+                    </button>
+                </div>
             </div>
             
             <div class="tracker-body">
@@ -1612,7 +1620,16 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             }
         }, 500);
 
-        // ── Live Weather, Wave & Sunset Tracker Logic ──
+        // ── Real-Time Live Weather, Marine Swell & Sunset Telemetry ──
+        window._liveMarineTelemetry = window._liveMarineTelemetry || {
+            waveHeight: 1.2,
+            waveLabel: '1.2m - Moderate Swell',
+            sunsetTime: null,
+            temperature: null,
+            weatherCode: null,
+            lastFetched: 0
+        };
+
         window.toggleWeatherTracker = function(expand) {
             const exp = document.getElementById('tracker-expanded');
             const min = document.getElementById('tracker-minimized');
@@ -1629,15 +1646,79 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             }
         };
 
-        function updateWeatherSunsetTracker() {
+        window.fetchLiveMarineTelemetry = async function(isManual) {
+            const refreshIcon = document.getElementById('tracker-refresh-icon');
+            if (refreshIcon) refreshIcon.classList.add('fa-spin');
+
+            const now = Date.now();
+            // Cache for 5 minutes unless manually requested
+            if (!isManual && (now - window._liveMarineTelemetry.lastFetched) < 300000 && window._liveMarineTelemetry.lastFetched > 0) {
+                if (refreshIcon) setTimeout(() => refreshIcon.classList.remove('fa-spin'), 400);
+                window.updateWeatherSunsetTrackerUI();
+                return;
+            }
+
+            try {
+                // Real-time Marine wave & swell API for San Juan / La Union coast (16.6667, 120.3333)
+                const marinePromise = fetch('https://marine-api.open-meteo.com/v1/marine?latitude=16.6667&longitude=120.3333&current=wave_height,wave_period,swell_wave_height&timezone=Asia%2FManila')
+                    .then(r => r.ok ? r.json() : null)
+                    .catch(() => null);
+
+                // Real-time Weather & exact Sunset/Sunrise for San Juan / La Union
+                const weatherPromise = fetch('https://api.open-meteo.com/v1/forecast?latitude=16.6667&longitude=120.3333&current=temperature_2m,weather_code,wind_speed_10m&daily=sunset,sunrise&timezone=Asia%2FManila')
+                    .then(r => r.ok ? r.json() : null)
+                    .catch(() => null);
+
+                const [marineData, weatherData] = await Promise.all([marinePromise, weatherPromise]);
+
+                if (marineData && marineData.current) {
+                    const waveH = parseFloat(marineData.current.wave_height || marineData.current.swell_wave_height || 1.2);
+                    window._liveMarineTelemetry.waveHeight = waveH;
+                    if (waveH < 0.6) {
+                        window._liveMarineTelemetry.waveLabel = `${waveH.toFixed(1)}m - Calm Beach Waters`;
+                    } else if (waveH < 1.1) {
+                        window._liveMarineTelemetry.waveLabel = `${waveH.toFixed(1)}m - Gentle Beach Waves`;
+                    } else if (waveH < 1.6) {
+                        window._liveMarineTelemetry.waveLabel = `${waveH.toFixed(1)}m - Moderate Swell 🏄`;
+                    } else if (waveH < 2.3) {
+                        window._liveMarineTelemetry.waveLabel = `${waveH.toFixed(1)}m - Peak Surf Swell 🏄‍♂️`;
+                    } else {
+                        window._liveMarineTelemetry.waveLabel = `${waveH.toFixed(1)}m - Heavy Swell Caution ⚠️`;
+                    }
+                }
+
+                if (weatherData) {
+                    if (weatherData.current) {
+                        window._liveMarineTelemetry.temperature = Math.round(weatherData.current.temperature_2m);
+                        window._liveMarineTelemetry.weatherCode = weatherData.current.weather_code;
+                    }
+                    if (weatherData.daily && weatherData.daily.sunset && weatherData.daily.sunset.length > 0) {
+                        window._liveMarineTelemetry.sunsetTime = new Date(weatherData.daily.sunset[0]);
+                    }
+                }
+
+                window._liveMarineTelemetry.lastFetched = now;
+                if (isManual && typeof showToast === 'function') {
+                    showToast("🌊 Live Elyu Marine & Sunset Data Synced");
+                }
+            } catch(e) {
+                console.warn("Marine telemetry live update:", e);
+            } finally {
+                if (refreshIcon) setTimeout(() => refreshIcon.classList.remove('fa-spin'), 500);
+                window.updateWeatherSunsetTrackerUI();
+            }
+        };
+
+        window.updateWeatherSunsetTrackerUI = function() {
             const now = new Date();
-            // La Union Sunset calculation (approx 6:15 PM in PHT)
-            const sunsetHour = 18; // 6 PM
-            const sunsetMinute = 15; // 15 mins
             
-            const todaySunset = new Date(now.getFullYear(), now.getMonth(), now.getDate(), sunsetHour, sunsetMinute, 0);
+            // Sunset calculation from live API or realistic astronomical fallback
+            let todaySunset = window._liveMarineTelemetry.sunsetTime;
+            if (!todaySunset || isNaN(todaySunset.getTime())) {
+                todaySunset = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 18, 15, 0);
+            }
+            
             let diffMs = todaySunset - now;
-            
             let sunsetText = '';
             let pillSunsetText = '';
 
@@ -1645,53 +1726,44 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 const totalMins = Math.floor(diffMs / 60000);
                 const hours = Math.floor(totalMins / 60);
                 const mins = totalMins % 60;
-                
-                let countdownStr = '';
-                if (hours > 0) {
-                    countdownStr = `${hours}h ${mins}m`;
-                } else {
-                    countdownStr = `${mins}m`;
-                }
+                const countdownStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
                 
                 sunsetText = `Sunset in <span id="tracker-sunset-countdown">${countdownStr}</span> at San Juan Beach 🌅`;
                 pillSunsetText = `🌅 Sunset in ${countdownStr}`;
-            } else if (diffMs > -3600000) { // Within 1 hour after sunset
+            } else if (diffMs > -3600000) {
                 sunsetText = `Sunset is happening now at San Juan Beach! 🌅`;
                 pillSunsetText = `🌅 Sunset Active`;
             } else {
-                sunsetText = `Sunset was at 6:15 PM • Golden Hour ended 🌙`;
+                const fmtSunset = todaySunset.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                sunsetText = `Sunset was at ${fmtSunset} • Golden Hour ended 🌙`;
                 pillSunsetText = `🌙 Evening Beach Vibe`;
             }
 
-            // Wave & Swell height (realistic dynamic calculation based on hour)
-            const hour = now.getHours();
-            let waveHeight = '1.2m - Moderate Swell';
-            let pillWave = '1.2m Swell';
-            if (hour >= 6 && hour <= 10) {
-                waveHeight = '1.4m - Peak Morning Swell 🏄';
-                pillWave = '1.4m Swell';
-            } else if (hour >= 11 && hour <= 15) {
-                waveHeight = '1.1m - Gentle Beach Waves';
-                pillWave = '1.1m Swell';
-            } else if (hour >= 16 && hour <= 19) {
-                waveHeight = '1.3m - Golden Hour Swell 🏄';
-                pillWave = '1.3m Swell';
+            // Real-time Swell from live telemetry
+            const waveLabel = window._liveMarineTelemetry.waveLabel || '1.2m - Moderate Swell';
+            const wavePill = `${(window._liveMarineTelemetry.waveHeight || 1.2).toFixed(1)}m Swell`;
+
+            // Astronomical Tide Cycle (12h 25m semi-diurnal period for Lingayen Gulf / San Juan Coast)
+            const tideCycleMs = 12.42 * 3600 * 1000;
+            const refTideEpoch = new Date('2026-01-01T06:00:00+08:00').getTime();
+            const phaseMs = (now.getTime() - refTideEpoch) % tideCycleMs;
+            const halfCycle = tideCycleMs / 2;
+            
+            let tideText = '';
+            if (phaseMs < halfCycle) {
+                const remMs = halfCycle - phaseMs;
+                const remHours = Math.floor(remMs / 3600000);
+                const remMins = Math.floor((remMs % 3600000) / 60000);
+                tideText = `RISING TIDE (High in ${remHours > 0 ? remHours + 'h ' : ''}${remMins}m)`;
+            } else {
+                const remMs = tideCycleMs - phaseMs;
+                const remHours = Math.floor(remMs / 3600000);
+                const remMins = Math.floor((remMs % 3600000) / 60000);
+                tideText = `FALLING TIDE (Low in ${remHours > 0 ? remHours + 'h ' : ''}${remMins}m)`;
             }
 
-            // Tide cycle calculation (approx 12.4h cycle)
-            const tideCycleMinute = (now.getHours() * 60 + now.getMinutes()) % 740;
-            let tideText = '';
-            if (tideCycleMinute < 370) {
-                const remaining = Math.round((370 - tideCycleMinute) / 60 * 10) / 10;
-                const rH = Math.floor(remaining);
-                const rM = Math.round((remaining - rH) * 60);
-                tideText = `RISING TIDE (High in ${rH > 0 ? rH + 'h ' : ''}${rM}m)`;
-            } else {
-                const remaining = Math.round((740 - tideCycleMinute) / 60 * 10) / 10;
-                const rH = Math.floor(remaining);
-                const rM = Math.round((remaining - rH) * 60);
-                tideText = `FALLING TIDE (Low in ${rH > 0 ? rH + 'h ' : ''}${rM}m)`;
-            }
+            // Temperature info if available
+            const tempStr = window._liveMarineTelemetry.temperature ? ` • ${window._liveMarineTelemetry.temperature}°C` : '';
 
             const sunsetEl = document.getElementById('tracker-sunset-text');
             const swellEl = document.getElementById('tracker-swell-text');
@@ -1699,10 +1771,10 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             const pillEl = document.getElementById('tracker-pill-summary');
 
             if (sunsetEl) sunsetEl.innerHTML = sunsetText;
-            if (swellEl) swellEl.textContent = waveHeight;
+            if (swellEl) swellEl.textContent = waveLabel;
             if (tideEl) tideEl.textContent = tideText;
-            if (pillEl) pillEl.textContent = `${pillWave} • ${pillSunsetText}`;
-        }
+            if (pillEl) pillEl.textContent = `${wavePill}${tempStr} • ${pillSunsetText}`;
+        };
 
         window.findSunsetSpots = function() {
             if (typeof showToast === 'function') {
@@ -1734,9 +1806,10 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             }
         };
 
-        // Initialize and tick tracker every minute
-        updateWeatherSunsetTracker();
-        setInterval(updateWeatherSunsetTracker, 60000);
+        // Initialize real-time telemetry and schedule live ticks
+        window.fetchLiveMarineTelemetry(false);
+        setInterval(window.updateWeatherSunsetTrackerUI, 15000); // Live countdown tick every 15s
+        setInterval(() => window.fetchLiveMarineTelemetry(false), 300000); // Live API sync every 5 minutes
 
         // Zone Toggle Button
         let zonesVisible = true;
