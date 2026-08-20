@@ -1178,6 +1178,8 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         const locateBtn = document.getElementById('btn-locate-me');
         if (locateBtn) {
             locateBtn.addEventListener('click', async () => {
+                locateBtn.classList.add('btn-tap-pop');
+                setTimeout(() => locateBtn.classList.remove('btn-tap-pop'), 400);
                 const icon = locateBtn.querySelector('i') || locateBtn;
                 const origIconClass = icon.className;
                 icon.className = 'fa-solid fa-spinner fa-spin';
@@ -1288,6 +1290,18 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         let currentNearbyRadius = 2; // default 2km
 
         window.toggleNearbySitesSheet = function() {
+            const btn = document.getElementById('btn-nearby-sites');
+            if (btn) {
+                btn.classList.add('btn-tap-pop');
+                const icon = btn.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('icon-spin-bounce');
+                    void icon.offsetWidth;
+                    icon.classList.add('icon-spin-bounce');
+                }
+                setTimeout(() => btn.classList.remove('btn-tap-pop'), 400);
+            }
+
             const sheet = document.getElementById('nearby-sites-sheet');
             if (!sheet) return;
             if (sheet.classList.contains('active')) {
@@ -1300,7 +1314,10 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         window.openNearbySitesSheet = async function() {
             if (window.closeSheet) window.closeSheet();
             const sheet = document.getElementById('nearby-sites-sheet');
+            const btn = document.getElementById('btn-nearby-sites');
             if (!sheet) return;
+
+            if (btn) btn.classList.add('active');
 
             sheet.style.display = 'block';
             sheet.style.transition = 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease';
@@ -1317,6 +1334,8 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
         window.closeNearbySitesSheet = function() {
             const sheet = document.getElementById('nearby-sites-sheet');
+            const btn = document.getElementById('btn-nearby-sites');
+            if (btn) btn.classList.remove('active');
             if (!sheet) return;
             sheet.style.transition = 'transform 0.38s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease';
             sheet.style.transform = 'translateY(calc(100% + 120px))';
@@ -1575,6 +1594,8 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
         if (btnLayer) {
             btnLayer.addEventListener('click', () => {
+                btnLayer.classList.add('btn-tap-pop');
+                setTimeout(() => btnLayer.classList.remove('btn-tap-pop'), 400);
                 isSatellite = !isSatellite;
                 
                 if (isSatellite) {
@@ -1595,6 +1616,8 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
         if (btn3d) {
             btn3d.addEventListener('click', () => {
+                btn3d.classList.add('btn-tap-pop');
+                setTimeout(() => btn3d.classList.remove('btn-tap-pop'), 400);
                 const is3D = btn3d.classList.toggle('active');
                 if (is3D) {
                     btn3d.style.background = 'var(--primary-color)';

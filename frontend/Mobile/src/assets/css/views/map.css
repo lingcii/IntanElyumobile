@@ -974,8 +974,10 @@
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     border-radius: 12px !important;
     color: #38bdf8 !important;
-    box-shadow: none !important;
-    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease, color 0.22s ease !important;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .btn-locate-me {
@@ -1010,8 +1012,45 @@
 .btn-nearby-sites:active,
 .btn-layer-toggle:active,
 .btn-3d-view:active {
-    transform: scale(0.9) !important;
+    transform: scale(0.86) !important;
     background: rgba(56, 189, 248, 0.35) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* ── Button Click Pop & Icon Animations ── */
+@keyframes buttonTapPop {
+    0% { transform: scale(1); }
+    35% { transform: scale(0.82); }
+    70% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+@keyframes iconSpinBounce {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.3); color: #ffffff; }
+    100% { transform: rotate(360deg) scale(1); color: #38bdf8; }
+}
+
+@keyframes pulseGlowRing {
+    0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+    70% { box-shadow: 0 0 0 12px rgba(56, 189, 248, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+}
+
+.btn-tap-pop {
+    animation: buttonTapPop 0.38s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.icon-spin-bounce {
+    animation: iconSpinBounce 0.45s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-nearby-sites.active {
+    background: linear-gradient(135deg, #0284c7, #1d4ed8) !important;
+    border-color: #38bdf8 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 16px rgba(56, 189, 248, 0.6) !important;
+    animation: pulseGlowRing 1.2s ease-out;
 }
 
 /* ── MapLibre Controls ── */
