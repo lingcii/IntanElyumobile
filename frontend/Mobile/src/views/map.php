@@ -79,16 +79,16 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     </div>
 
     <!-- Live Weather, Wave & Sunset Tracker Widget -->
-    <div id="weather-sunset-tracker" class="weather-sunset-tracker animate-slide-down" style="position: absolute; top: calc(135px + env(safe-area-inset-top)); left: 16px; z-index: 890; max-width: 280px; user-select: none;">
+    <div id="weather-sunset-tracker" class="weather-sunset-tracker animate-slide-down">
         <!-- Minimized Left Edge Tab (Only > is showing on the left) -->
-        <button type="button" id="tracker-edge-tab" class="tracker-edge-tab" onclick="window.toggleWeatherTracker(true)" title="Open Live Weather & Sunset Tracker" style="display:none; height:40px; padding:0 12px 0 10px; background:#1E3A8A !important; border:1px solid rgba(255,255,255,0.1) !important; border-left:none !important; border-radius:0 12px 12px 0 !important; align-items:center; gap:7px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2) !important; outline:none; appearance:none; -webkit-appearance:none;">
+        <button type="button" id="tracker-edge-tab" class="tracker-edge-tab" onclick="window.toggleWeatherTracker(true)" title="Open Live Weather & Sunset Tracker">
             <span class="pulse-dot dot-green" style="width:6px; height:6px; margin:0; display:inline-block;" title="Live"></span>
             <i class="fa-solid fa-water tracker-edge-icon" style="color:#38bdf8 !important; font-size:13px;"></i>
             <i class="fa-solid fa-chevron-right tracker-edge-arrow" style="color:#38bdf8 !important; font-size:12px; font-weight:800;"></i>
         </button>
 
         <!-- Expanded Full Card -->
-        <div id="tracker-expanded" class="tracker-expanded-card" style="background:#1E3A8A; border:1px solid rgba(255,255,255,0.12); border-radius:18px; padding:12px 14px; box-shadow:0 10px 30px rgba(0,0,0,0.45);">
+        <div id="tracker-expanded" class="tracker-expanded-card">
             <div class="tracker-header" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
                 <div style="display:flex; align-items:center; gap:6px;">
                     <span class="pulse-dot dot-green" style="width:6px; height:6px; margin:0; display:inline-block;" title="Live Telemetry"></span>
@@ -1632,20 +1632,16 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
         window.toggleWeatherTracker = function(expand) {
             const tracker = document.getElementById('weather-sunset-tracker');
-            const exp = document.getElementById('tracker-expanded');
-            const tab = document.getElementById('tracker-edge-tab');
-            if (!tracker || !exp || !tab) return;
+            if (!tracker) return;
 
             if (expand) {
                 tracker.classList.remove('minimized');
-                tab.style.display = 'none';
-                exp.style.display = 'block';
-                exp.style.animation = 'nearbyCardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+                const exp = document.getElementById('tracker-expanded');
+                if (exp) exp.style.animation = 'nearbyCardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards';
             } else {
-                exp.style.display = 'none';
                 tracker.classList.add('minimized');
-                tab.style.display = 'inline-flex';
-                tab.style.animation = 'buttonTapPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+                const tab = document.getElementById('tracker-edge-tab');
+                if (tab) tab.style.animation = 'buttonTapPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards';
             }
         };
 
