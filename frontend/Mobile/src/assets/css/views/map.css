@@ -38,16 +38,16 @@
     top: env(safe-area-inset-top, 20px);
     left: 16px;
     right: 16px;
-    z-index: 900;
+    z-index: 1000 !important;
     margin-top: 20px;
 }
 
 .map-search {
-    background: rgba(15, 23, 42, 0.9);
+    background: #1E3A8A;
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(56, 189, 248, 0.3);
-    box-shadow: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
     border-radius: 100px;
     display: flex;
     align-items: center;
@@ -56,9 +56,9 @@
 }
 
 .map-search:focus-within {
-    border-color: rgba(56, 189, 248, 0.6);
-    box-shadow: none !important;
-    background: rgba(15, 23, 42, 0.95);
+    border-color: #38bdf8;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35) !important;
+    background: #1E3A8A;
 }
 
 .map-search input {
@@ -86,23 +86,24 @@
 /* ── Search Suggestions Dropdown ── */
 .map-search-suggestions {
     position: absolute;
-    top: calc(100% + 6px);
+    top: calc(100% + 8px);
     left: 0;
     right: 0;
-    background: rgba(15, 23, 42, 0.96);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(56, 189, 248, 0.3);
+    background: radial-gradient(circle at 10% 20%, rgba(30, 58, 138, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 20px;
-    box-shadow: none !important;
-    max-height: 290px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6) !important;
+    max-height: min(280px, calc(100vh - 360px));
     overflow-y: auto;
-    z-index: 999;
+    -webkit-overflow-scrolling: touch;
+    z-index: 1010 !important;
     padding: 8px;
     opacity: 0;
     visibility: hidden;
     transform: translateY(-8px) scale(0.97);
-    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
+    transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s ease;
     pointer-events: none;
 }
 
