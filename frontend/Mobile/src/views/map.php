@@ -81,10 +81,10 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     <!-- Live Weather, Wave & Sunset Tracker Widget -->
     <div id="weather-sunset-tracker" class="weather-sunset-tracker animate-slide-down" style="position: absolute; top: calc(135px + env(safe-area-inset-top)); left: 16px; z-index: 890; max-width: 280px; user-select: none;">
         <!-- Minimized Left Edge Tab (Only > is showing on the left) -->
-        <button type="button" id="tracker-edge-tab" class="tracker-edge-tab" onclick="window.toggleWeatherTracker(true)" title="Open Live Weather & Sunset Tracker" style="display:none; height:40px; padding:0 12px 0 10px; background:#1E3A8A; border:1px solid rgba(255,255,255,0.15); border-left:none; border-radius:0 12px 12px 0; align-items:center; gap:7px; cursor:pointer; box-shadow:2px 4px 14px rgba(0,0,0,0.35); outline:none; appearance:none; -webkit-appearance:none;">
+        <button type="button" id="tracker-edge-tab" class="tracker-edge-tab" onclick="window.toggleWeatherTracker(true)" title="Open Live Weather & Sunset Tracker" style="display:none; height:40px; padding:0 12px 0 10px; background:#1E3A8A !important; border:1px solid rgba(255,255,255,0.1) !important; border-left:none !important; border-radius:0 12px 12px 0 !important; align-items:center; gap:7px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2) !important; outline:none; appearance:none; -webkit-appearance:none;">
             <span class="pulse-dot dot-green" style="width:6px; height:6px; margin:0; display:inline-block;" title="Live"></span>
-            <i class="fa-solid fa-water tracker-edge-icon" style="color:#38bdf8; font-size:13px;"></i>
-            <i class="fa-solid fa-chevron-right tracker-edge-arrow" style="color:#ffffff; font-size:12px; font-weight:800;"></i>
+            <i class="fa-solid fa-water tracker-edge-icon" style="color:#38bdf8 !important; font-size:13px;"></i>
+            <i class="fa-solid fa-chevron-right tracker-edge-arrow" style="color:#38bdf8 !important; font-size:12px; font-weight:800;"></i>
         </button>
 
         <!-- Expanded Full Card -->

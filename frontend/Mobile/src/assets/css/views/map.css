@@ -1331,41 +1331,43 @@
     height: 40px !important;
     padding: 0 12px 0 10px !important;
     background: #1E3A8A !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
     border-left: none !important;
     border-radius: 0 12px 12px 0 !important;
     color: #38bdf8 !important;
     cursor: pointer !important;
-    box-shadow: 2px 4px 14px rgba(0, 0, 0, 0.35) !important;
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background 0.22s ease !important;
     outline: none !important;
     appearance: none !important;
     -webkit-appearance: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
 }
 
 .tracker-edge-tab:hover {
     background: #2563eb !important;
-    border-color: rgba(255, 255, 255, 0.3) !important;
-    padding-right: 15px !important;
 }
 
 .tracker-edge-tab:active {
-    transform: scale(0.92);
+    transform: scale(0.9) !important;
+    background: rgba(56, 189, 248, 0.35) !important;
 }
 
 .tracker-edge-icon {
-    font-size: 13px;
+    font-size: 14px !important;
     color: #38bdf8 !important;
 }
 
 .tracker-edge-arrow {
-    font-size: 12px;
-    font-weight: 800;
-    color: #ffffff !important;
-    transition: transform 0.2s ease;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    color: #38bdf8 !important;
+    transition: transform 0.2s ease !important;
 }
 
 .tracker-edge-tab:hover .tracker-edge-arrow {
-    transform: translateX(3px);
+    transform: translateX(2px) !important;
+    color: #ffffff !important;
 }
 
