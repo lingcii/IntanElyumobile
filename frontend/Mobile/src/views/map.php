@@ -78,8 +78,8 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         </div>
     </div>
 
-    <!-- Live Weather, Wave & Sunset Tracker Widget -->
-    <div id="weather-sunset-tracker" class="weather-sunset-tracker animate-slide-down">
+    <!-- Live Weather, Wave & Sunset Tracker Widget (Minimized by default) -->
+    <div id="weather-sunset-tracker" class="weather-sunset-tracker minimized animate-slide-down">
         <!-- Minimized Left Edge Tab (Only > is showing on the left) -->
         <button type="button" id="tracker-edge-tab" class="tracker-edge-tab" onclick="window.toggleWeatherTracker(true)" title="Open Live Weather & Sunset Tracker">
             <span class="pulse-dot dot-green" style="width:6px; height:6px; margin:0; display:inline-block;" title="Live"></span>
