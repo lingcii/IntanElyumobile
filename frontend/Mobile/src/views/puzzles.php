@@ -66,9 +66,12 @@ include __DIR__ . '/../components/header.php';
             </div>
         </div>
 
-        <div style="display: flex; gap: 10px; justify-content: center;">
-            <button onclick="initPuzzle()" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px 20px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer;">
+        <div style="display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap;">
+            <button onclick="promptResetPuzzle()" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px;">
                 <i class="fa-solid fa-arrows-rotate"></i> Reset Puzzle
+            </button>
+            <button onclick="promptChangePuzzle()" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(37, 99, 235, 0.2)); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px;">
+                <i class="fa-solid fa-shuffle"></i> Change Puzzle
             </button>
         </div>
     </div>
@@ -113,6 +116,25 @@ include __DIR__ . '/../components/header.php';
         <button onclick="submitScrambleAnswers()" style="width: 100%; border: none; background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 10px 20px rgba(37,99,235,0.25);">
             Submit Answers
         </button>
+    </div>
+
+    <!-- Confirm Modal popup -->
+    <div id="game-confirm-modal" style="display: none; position: fixed; inset: 0; z-index: 10002; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(10px);">
+        <div style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid rgba(255,255,255,0.15); border-radius: 24px; width: 100%; max-width: 350px; padding: 28px 20px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); transform: scale(0.9); animation: modalEnter 0.3s forwards cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <div id="confirm-modal-icon-bg" style="width: 64px; height: 64px; border-radius: 50%; background: rgba(56,189,248,0.15); border: 2px solid #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #38bdf8; margin: 0 auto 16px;">
+                <i id="confirm-modal-icon" class="fa-solid fa-arrows-rotate"></i>
+            </div>
+            <h2 id="confirm-modal-title" style="margin: 0 0 10px; font-size: 20px; font-weight: 800; color: #fff;">Reset Puzzle?</h2>
+            <p id="confirm-modal-msg" style="margin: 0 0 24px; font-size: 13px; color: rgba(148,163,184,0.9); line-height: 1.5;">Are you sure you want to reset puzzle?</p>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="closeGameConfirm()" style="flex: 1; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #cbd5e1; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer;">
+                    Cancel
+                </button>
+                <button id="confirm-modal-action-btn" onclick="executeGameConfirm()" style="flex: 1; border: none; background: #38bdf8; color: #0f172a; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer;">
+                    Yes, Reset
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Success Modal popup -->
@@ -437,6 +459,7 @@ let tiles = [];
 let moves = 0;
 let timeSec = 0;
 let puzzleSolved = false;
+let pendingConfirmAction = null;
 
 async function fetchDatabasePuzzleSpots() {
     try {
@@ -470,8 +493,10 @@ async function fetchDatabasePuzzleSpots() {
                         desc: s.desc
                     };
                 });
-                // Update active puzzle with live database R2 spot images once loaded
-                initPuzzle();
+                // If it was the fallback default, replace with a random spot from database
+                if (!currentPuzzleItem || PUZZLE_IMAGES.some(p => p.image === currentPuzzleItem.image)) {
+                    initPuzzle(true);
+                }
             }
         }
     } catch(e) {
@@ -483,25 +508,32 @@ fetchDatabasePuzzleSpots();
 // Clear any lingering interval from a prior IIFE run (SPA AJAX re-execution)
 if (window._puzzleTimerInterval) clearInterval(window._puzzleTimerInterval);
 
-let timerInterval = null;
-
 const correctLayout = [0, 1, 2, 3, 4, 5, 6, 7, 8]; // 8 is the empty cell
 
-function initPuzzle() {
-    // Daily limit check
-    try {
-        if (localStorage.getItem('game_done_puzzle') === new Date().toDateString()) {
-            openGameAlert('Puzzle already completed today! Come back tomorrow.');
-            return;
+function startPuzzleTimer() {
+    if (window._puzzleTimerInterval) clearInterval(window._puzzleTimerInterval);
+    window._puzzleTimerInterval = setInterval(() => {
+        if (puzzleSolved) return;
+        timeSec++;
+        const mins = Math.floor(timeSec / 60).toString().padStart(2, '0');
+        const secs = (timeSec % 60).toString().padStart(2, '0');
+        const el = document.getElementById('puzzle-timer');
+        if (el) el.textContent = mins + ':' + secs;
+    }, 1000);
+}
+
+function shuffleTiles() {
+    do {
+        tiles = [...correctLayout];
+        for (let i = 7; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
         }
-    } catch(e) {}
+    } while (!isSolvable(tiles));
+}
 
-    // Select a random puzzle image from database pool (or fallback static pool)
-    const pool = (dbPuzzleSpots && dbPuzzleSpots.length > 0) ? dbPuzzleSpots : PUZZLE_IMAGES;
-    const randomIdx = Math.floor(Math.random() * pool.length);
-    currentPuzzleItem = pool[randomIdx];
-
-    // Update Title, Description, and Target Goal Thumbnail
+function updatePuzzleInfoUI() {
+    if (!currentPuzzleItem) return;
     const titleEl = document.getElementById('puzzle-title');
     const descEl = document.getElementById('puzzle-desc');
     const targetImgEl = document.getElementById('puzzle-target-img');
@@ -509,7 +541,9 @@ function initPuzzle() {
     if (titleEl) titleEl.textContent = currentPuzzleItem.name + ' Slide Puzzle';
     if (descEl) descEl.innerHTML = currentPuzzleItem.desc;
     if (targetImgEl) targetImgEl.src = currentPuzzleItem.image;
+}
 
+function resetPuzzleState() {
     moves = 0;
     timeSec = 0;
     puzzleSolved = false;
@@ -518,25 +552,91 @@ function initPuzzle() {
     if (movesEl) movesEl.textContent = '0';
     if (timerEl) timerEl.textContent = '00:00';
     
-    if (window._puzzleTimerInterval) clearInterval(window._puzzleTimerInterval);
-    window._puzzleTimerInterval = setInterval(() => {
-        timeSec++;
-        const mins = Math.floor(timeSec / 60).toString().padStart(2, '0');
-        const secs = (timeSec % 60).toString().padStart(2, '0');
-        const el = document.getElementById('puzzle-timer');
-        if (el) el.textContent = mins + ':' + secs;
-    }, 1000);
-
-    // Shuffle tiles ensuring solvable layout
-    do {
-        tiles = [...correctLayout];
-        for (let i = 7; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
-        }
-    } while (!isSolvable(tiles));
-
+    startPuzzleTimer();
+    shuffleTiles();
     renderPuzzleBoard();
+}
+
+function initPuzzle(forceNewImage = false) {
+    // Daily limit check
+    try {
+        if (localStorage.getItem('game_done_puzzle') === new Date().toDateString()) {
+            openGameAlert('Puzzle already completed today! Come back tomorrow.');
+            return;
+        }
+    } catch(e) {}
+
+    const pool = (dbPuzzleSpots && dbPuzzleSpots.length > 0) ? dbPuzzleSpots : PUZZLE_IMAGES;
+    if (forceNewImage || !currentPuzzleItem) {
+        const randomIdx = Math.floor(Math.random() * pool.length);
+        currentPuzzleItem = pool[randomIdx];
+    }
+
+    updatePuzzleInfoUI();
+    resetPuzzleState();
+}
+
+function promptResetPuzzle() {
+    try {
+        if (localStorage.getItem('game_done_puzzle') === new Date().toDateString()) {
+            openGameAlert('Puzzle already completed today! Come back tomorrow.');
+            return;
+        }
+    } catch(e) {}
+
+    openGameConfirm({
+        title: 'Reset Puzzle?',
+        message: 'Are you sure you want to reset puzzle?',
+        icon: 'fa-arrows-rotate',
+        iconColor: '#38bdf8',
+        iconBg: 'rgba(56,189,248,0.15)',
+        confirmText: 'Yes, Reset',
+        confirmBg: '#38bdf8',
+        onConfirm: resetPuzzle
+    });
+}
+
+function resetPuzzle() {
+    // Keeps the same image, only rearranges the tiles and resets moves/timer
+    resetPuzzleState();
+}
+
+function promptChangePuzzle() {
+    try {
+        if (localStorage.getItem('game_done_puzzle') === new Date().toDateString()) {
+            openGameAlert('Puzzle already completed today! Come back tomorrow.');
+            return;
+        }
+    } catch(e) {}
+
+    openGameConfirm({
+        title: 'Change Puzzle?',
+        message: 'Are you sure you want to change puzzle? A new image will be loaded.',
+        icon: 'fa-shuffle',
+        iconColor: '#38bdf8',
+        iconBg: 'rgba(56,189,248,0.15)',
+        confirmText: 'Yes, Change',
+        confirmBg: '#38bdf8',
+        onConfirm: changePuzzle
+    });
+}
+
+function changePuzzle() {
+    const pool = (dbPuzzleSpots && dbPuzzleSpots.length > 0) ? dbPuzzleSpots : PUZZLE_IMAGES;
+    if (pool.length > 1 && currentPuzzleItem) {
+        let newIdx = Math.floor(Math.random() * pool.length);
+        let attempts = 0;
+        while (pool[newIdx].image === currentPuzzleItem.image && attempts < 10) {
+            newIdx = Math.floor(Math.random() * pool.length);
+            attempts++;
+        }
+        currentPuzzleItem = pool[newIdx];
+    } else if (pool.length > 0) {
+        currentPuzzleItem = pool[0];
+    }
+
+    updatePuzzleInfoUI();
+    resetPuzzleState();
 }
 
 function isSolvable(grid) {
@@ -599,7 +699,7 @@ function checkPuzzleSolved() {
     const isCorrect = tiles.every((v, i) => v === correctLayout[i]);
     if (isCorrect) {
         puzzleSolved = true;
-        clearInterval(timerInterval);
+        if (window._puzzleTimerInterval) clearInterval(window._puzzleTimerInterval);
         claimMiniGamePoints('puzzle');
     }
 }
@@ -1002,6 +1102,56 @@ function closeGameAlert() {
     document.body.style.overflow = '';
 }
 
+function openGameConfirm({ title, message, icon = 'fa-arrows-rotate', iconColor = '#38bdf8', iconBg = 'rgba(56,189,248,0.15)', confirmText = 'Confirm', confirmBg = '#38bdf8', onConfirm }) {
+    const modal = document.getElementById('game-confirm-modal');
+    if (!modal) return;
+    
+    const titleEl = document.getElementById('confirm-modal-title');
+    const msgEl = document.getElementById('confirm-modal-msg');
+    const iconEl = document.getElementById('confirm-modal-icon');
+    const iconBgEl = document.getElementById('confirm-modal-icon-bg');
+    const actionBtn = document.getElementById('confirm-modal-action-btn');
+
+    if (titleEl) titleEl.textContent = title || 'Confirm Action';
+    if (msgEl) msgEl.textContent = message || 'Are you sure?';
+    if (iconEl) {
+        iconEl.className = `fa-solid ${icon}`;
+        iconEl.style.color = iconColor;
+    }
+    if (iconBgEl) {
+        iconBgEl.style.background = iconBg;
+        iconBgEl.style.borderColor = iconColor;
+    }
+    if (actionBtn) {
+        actionBtn.textContent = confirmText;
+        actionBtn.style.background = confirmBg;
+        if (confirmBg === '#38bdf8' || confirmBg.includes('#38bdf8')) {
+            actionBtn.style.color = '#0f172a';
+        } else {
+            actionBtn.style.color = '#fff';
+        }
+    }
+
+    pendingConfirmAction = onConfirm;
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeGameConfirm() {
+    const modal = document.getElementById('game-confirm-modal');
+    if (modal) modal.style.display = 'none';
+    pendingConfirmAction = null;
+    document.body.style.overflow = '';
+}
+
+function executeGameConfirm() {
+    const action = pendingConfirmAction;
+    closeGameConfirm();
+    if (typeof action === 'function') {
+        action();
+    }
+}
+
 // Global Smooth Button Click Feedback Listener
 document.addEventListener('click', (e) => {
     const btn = e.target.closest('button, .game-nav-tab, .trivia-option-btn');
@@ -1022,6 +1172,13 @@ window.loadGamePoints = loadGamePoints;
 window.openGameSuccess = openGameSuccess;
 window.claimMiniGamePoints = claimMiniGamePoints;
 window.initPuzzle = initPuzzle;
+window.promptResetPuzzle = promptResetPuzzle;
+window.resetPuzzle = resetPuzzle;
+window.promptChangePuzzle = promptChangePuzzle;
+window.changePuzzle = changePuzzle;
+window.openGameConfirm = openGameConfirm;
+window.closeGameConfirm = closeGameConfirm;
+window.executeGameConfirm = executeGameConfirm;
 window.closeGameSuccess = closeGameSuccess;
 window.submitTriviaAnswers = submitTriviaAnswers;
 window.initMemoryGame = initMemoryGame;
