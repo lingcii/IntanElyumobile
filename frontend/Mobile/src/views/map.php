@@ -79,23 +79,23 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     </div>
 
     <!-- Locate Me Button -->
-    <div class="btn-locate-me animate-slide-up" id="btn-locate-me" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); right: 10px;">
+    <div class="btn-locate-me animate-slide-up" id="btn-locate-me" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: #1E3A8A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-crosshairs"></i>
     </div>
 
     <!-- Nearby Tourist Sites Button (Left Side) -->
-    <div class="btn-nearby-sites animate-slide-up" id="btn-nearby-sites" onclick="window.toggleNearbySitesSheet()" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); left: 10px; width: 44px; height: 44px; background: rgba(15, 23, 42, 0.92); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 18px; z-index: 900; cursor: pointer; transition: all 0.2s;" title="Nearby Tourist Sites">
+    <div class="btn-nearby-sites animate-slide-up" id="btn-nearby-sites" onclick="window.toggleNearbySitesSheet()" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); left: 10px; width: 44px; height: 44px; background: #1E3A8A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;" title="Nearby Tourist Sites">
         <i class="fa-solid fa-compass"></i>
         <span id="nearby-sites-badge" style="display:none; position:absolute; top:-5px; right:-5px; min-width:18px; height:18px; padding:0 4px; border-radius:9px; background:#38bdf8; color:#0f172a; font-size:10px; font-weight:800; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,0.5);">0</span>
     </div>
 
     <!-- Layer Toggle Button -->
-    <div class="btn-layer-toggle animate-slide-up" id="btn-layer-toggle" style="position: absolute; bottom: calc(235px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: #1E3A8A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
+    <div class="btn-layer-toggle animate-slide-up" id="btn-layer-toggle" style="position: absolute; bottom: calc(235px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: #1E3A8A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-layer-group"></i>
     </div>
 
     <!-- 3D Mode Button -->
-    <div class="btn-3d-view animate-slide-up" id="btn-3d-view" style="position: absolute; bottom: calc(175px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: #1E3A8A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
+    <div class="btn-3d-view animate-slide-up" id="btn-3d-view" style="position: absolute; bottom: calc(175px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: #1E3A8A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-cube"></i>
     </div>
 
