@@ -1411,12 +1411,19 @@ $usersHandler = function (\Illuminate\Http\Request $request) {
 
 Route::get('/users',               $usersHandler);
 Route::get('/admin/users',         $usersHandler);
-Route::get('/tourists',            $usersHandler);
-Route::get('/admin/tourists',      $usersHandler);
-Route::get('/lupto/tourists',      $usersHandler);
-Route::get('/picto/tourists',      $usersHandler);
-Route::get('/pitco/tourists',      $usersHandler);
-Route::get('/municipal/tourists',  $usersHandler);
+
+$touristsHandler = function (\Illuminate\Http\Request $request) {
+    $ctrl = new \App\Http\Controllers\LeaderboardController();
+    return $ctrl->index($request);
+};
+
+Route::get('/tourists',            $touristsHandler);
+Route::get('/admin/tourists',      $touristsHandler);
+Route::get('/lupto/tourists',      $touristsHandler);
+Route::get('/picto/tourists',      $touristsHandler);
+Route::get('/pitco/tourists',      $touristsHandler);
+Route::get('/municipal/tourists',  $touristsHandler);
+
 
 
 

@@ -56,8 +56,7 @@ class LeaderboardController extends Controller
                     COALESCE(u.created_at, NOW())                     AS points_since
                 FROM users u
                 LEFT JOIN municipalities m ON u.municipality_id = m.id
-                WHERE (u.role = 'tourist' OR u.role IS NULL OR u.role = 'user' OR u.role = '')
-                  AND (u.status = 'active' OR u.status IS NULL OR u.status = '')
+                WHERE u.role = 'tourist'
                 GROUP BY u.id, u.name, u.email, u.avatar, u.home_location, m.name, u.bio, u.is_leaderboard_private, u.last_activity, u.xp, u.completed_activities, u.created_at
             ),
             ranked AS (
