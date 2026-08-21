@@ -640,12 +640,67 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
             ]);
         });
 
-        Route::get('/users', function () {
-            $users = \App\Models\User::all();
+        Route::get('/users', function (\Illuminate\Http\Request $request) {
+            $ctrl = new \App\Http\Controllers\LeaderboardController();
+            $leaderboardResp = $ctrl->index($request);
+            $leaderboardData = json_decode($leaderboardResp->getContent(), true);
+            $rankedUsers = $leaderboardData['leaderboard'] ?? ($leaderboardData['data'] ?? []);
+
+            $allUsers = \App\Models\User::with('municipality')->get();
+            $adminCount = $allUsers->whereIn('role', ['admin', 'super_admin', 'lupto', 'pitco', 'picto'])->count();
+            $municipalCount = $allUsers->where('role', 'municipal')->count();
+            $touristCount = $allUsers->where('role', 'tourist')->count();
+
+            // Map all users with enriched rank and points
+            $rankedUserMap = collect($rankedUsers)->keyBy('id');
+            $enrichedAll = $allUsers->map(function ($u, $idx) use ($rankedUserMap) {
+                $mName = $u->municipality ? $u->municipality->name : (!empty($u->home_location) ? $u->home_location : 'La Union');
+                $ranked = $rankedUserMap->get($u->id);
+
+                if ($ranked) {
+                    $rankVal = $ranked['rank'];
+                    $pointsVal = $ranked['total_points'];
+                    $actVal = $ranked['completed_activities'];
+                } else {
+                    $rankVal = $idx + 1;
+                    $pointsVal = (int) ($u->xp ?? 0);
+                    $actVal = (int) ($u->completed_activities ?? 0);
+                }
+
+                $uArr = $u->toArray();
+                $uArr['rank'] = $rankVal;
+                $uArr['rank_no'] = $rankVal;
+                $uArr['position'] = $rankVal;
+                $uArr['ranking'] = $rankVal;
+                $uArr['municipality'] = $mName;
+                $uArr['municipality_name'] = $mName;
+                $uArr['home_location'] = $mName;
+                $uArr['location'] = $mName;
+                $uArr['total_points'] = $pointsVal;
+                $uArr['points'] = $pointsVal;
+                $uArr['xp'] = $pointsVal;
+                $uArr['pts'] = $pointsVal;
+                $uArr['completed_activities'] = $actVal;
+                $uArr['activities'] = $actVal;
+                $uArr['total_activities'] = $actVal;
+                $uArr['places_visited'] = $actVal;
+                return $uArr;
+            })->sortBy('rank')->values();
+
             return response()->json([
-                'success' => true,
-                'users' => $users,
-                'roleStats' => []
+                'success'     => true,
+                'status'      => 'success',
+                'users'       => $enrichedAll,
+                'data'        => $enrichedAll,
+                'tourists'    => $rankedUsers,
+                'leaderboard' => $rankedUsers,
+                'roleStats'   => [
+                    'admin'     => $adminCount,
+                    'municipal' => $municipalCount,
+                    'tourist'   => $touristCount,
+                    'total'     => $allUsers->count(),
+                ],
+                'stats'       => $leaderboardData['stats'] ?? [],
             ]);
         });
 
@@ -1290,6 +1345,79 @@ Route::get('/lupto/activity-logs',     $activityLogsHandler);
 Route::get('/picto/activity-logs',     $activityLogsHandler);
 Route::get('/pitco/activity-logs',     $activityLogsHandler);
 Route::get('/municipal/activity-logs', $activityLogsHandler);
+
+$usersHandler = function (\Illuminate\Http\Request $request) {
+    $ctrl = new \App\Http\Controllers\LeaderboardController();
+    $leaderboardResp = $ctrl->index($request);
+    $leaderboardData = json_decode($leaderboardResp->getContent(), true);
+    $rankedUsers = $leaderboardData['leaderboard'] ?? ($leaderboardData['data'] ?? []);
+
+    $allUsers = \App\Models\User::with('municipality')->get();
+    $adminCount = $allUsers->whereIn('role', ['admin', 'super_admin', 'lupto', 'pitco', 'picto'])->count();
+    $municipalCount = $allUsers->where('role', 'municipal')->count();
+    $touristCount = $allUsers->where('role', 'tourist')->count();
+
+    $rankedUserMap = collect($rankedUsers)->keyBy('id');
+    $enrichedAll = $allUsers->map(function ($u, $idx) use ($rankedUserMap) {
+        $mName = $u->municipality ? $u->municipality->name : (!empty($u->home_location) ? $u->home_location : 'La Union');
+        $ranked = $rankedUserMap->get($u->id);
+
+        if ($ranked) {
+            $rankVal = $ranked['rank'];
+            $pointsVal = $ranked['total_points'];
+            $actVal = $ranked['completed_activities'];
+        } else {
+            $rankVal = $idx + 1;
+            $pointsVal = (int) ($u->xp ?? 0);
+            $actVal = (int) ($u->completed_activities ?? 0);
+        }
+
+        $uArr = $u->toArray();
+        $uArr['rank'] = $rankVal;
+        $uArr['rank_no'] = $rankVal;
+        $uArr['position'] = $rankVal;
+        $uArr['ranking'] = $rankVal;
+        $uArr['municipality'] = $mName;
+        $uArr['municipality_name'] = $mName;
+        $uArr['home_location'] = $mName;
+        $uArr['location'] = $mName;
+        $uArr['total_points'] = $pointsVal;
+        $uArr['points'] = $pointsVal;
+        $uArr['xp'] = $pointsVal;
+        $uArr['pts'] = $pointsVal;
+        $uArr['completed_activities'] = $actVal;
+        $uArr['activities'] = $actVal;
+        $uArr['total_activities'] = $actVal;
+        $uArr['places_visited'] = $actVal;
+        return $uArr;
+    })->sortBy('rank')->values();
+
+    return response()->json([
+        'success'     => true,
+        'status'      => 'success',
+        'users'       => $enrichedAll,
+        'data'        => $enrichedAll,
+        'tourists'    => $rankedUsers,
+        'leaderboard' => $rankedUsers,
+        'roleStats'   => [
+            'admin'     => $adminCount,
+            'municipal' => $municipalCount,
+            'tourist'   => $touristCount,
+            'total'     => $allUsers->count(),
+        ],
+        'stats'       => $leaderboardData['stats'] ?? [],
+    ]);
+};
+
+Route::get('/users',               $usersHandler);
+Route::get('/admin/users',         $usersHandler);
+Route::get('/tourists',            $usersHandler);
+Route::get('/admin/tourists',      $usersHandler);
+Route::get('/lupto/tourists',      $usersHandler);
+Route::get('/picto/tourists',      $usersHandler);
+Route::get('/pitco/tourists',      $usersHandler);
+Route::get('/municipal/tourists',  $usersHandler);
+
 
 
 
