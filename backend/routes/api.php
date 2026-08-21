@@ -1031,3 +1031,12 @@ Route::prefix('analytics')->group(function () {
     Route::any('/{action}',           [AnalyticsController::class, 'handleAction']);
 });
 
+// Top-level Leaderboard aliases
+Route::get('/leaderboard',       [LeaderboardController::class, 'index']);
+Route::get('/admin/leaderboard', [LeaderboardController::class, 'index']);
+Route::get('/lupto/leaderboard', [LeaderboardController::class, 'index']);
+Route::get('/picto/leaderboard', [LeaderboardController::class, 'index']);
+Route::get('/pitco/leaderboard', [LeaderboardController::class, 'index']);
+Route::get('/municipal/leaderboard', [LeaderboardController::class, 'index']);
+
+
