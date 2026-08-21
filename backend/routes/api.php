@@ -725,10 +725,125 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
             ]);
         });
 
-        Route::get('/activity-logs', function () {
+        Route::get('/activity-logs', function (\Illuminate\Http\Request $request) {
+            $dbLogs = \App\Models\ActivityLog::with('user:id,name,email,avatar')->latest()->limit(100)->get();
+
+            if ($dbLogs->isNotEmpty()) {
+                $formatted = $dbLogs->map(function ($l) {
+                    return [
+                        'id'          => $l->id,
+                        'user_id'     => $l->user_id,
+                        'user_name'   => $l->user ? $l->user->name : "Explorer #{$l->user_id}",
+                        'name'        => $l->user ? $l->user->name : "Explorer #{$l->user_id}",
+                        'action'      => $l->action,
+                        'details'     => $l->details,
+                        'description' => $l->details,
+                        'module'      => $l->module ?? 'General',
+                        'ip_address'  => $l->ip_address ?? '127.0.0.1',
+                        'created_at'  => $l->created_at ? $l->created_at->toIso8601String() : now()->toIso8601String(),
+                        'date'        => $l->created_at ? $l->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
+                        'user'        => $l->user,
+                    ];
+                });
+
+                return response()->json([
+                    'success' => true,
+                    'status'  => 'success',
+                    'logs'    => $formatted,
+                    'data'    => $formatted,
+                    'total'   => $formatted->count(),
+                ]);
+            }
+
+            // Synthesize comprehensive live activity records from real database events
+            $users = \App\Models\User::latest()->limit(25)->get()->map(function ($u) {
+                return [
+                    'id'          => 'usr_' . $u->id,
+                    'user_id'     => $u->id,
+                    'user_name'   => $u->name ?: "Explorer #{$u->id}",
+                    'name'        => $u->name ?: "Explorer #{$u->id}",
+                    'action'      => 'User Registration',
+                    'details'     => "Tourist '{$u->name}' registered with email {$u->email}",
+                    'description' => "Tourist '{$u->name}' registered with email {$u->email}",
+                    'module'      => 'Authentication',
+                    'ip_address'  => '127.0.0.1',
+                    'created_at'  => $u->created_at ? $u->created_at->toIso8601String() : now()->toIso8601String(),
+                    'date'        => $u->created_at ? $u->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
+                    'user'        => ['id' => $u->id, 'name' => $u->name, 'avatar' => $u->avatar],
+                ];
+            });
+
+            $feedbacks = \App\Models\SiteFeedback::with(['user:id,name,avatar', 'touristSpot:id,name'])->latest()->limit(25)->get()->map(function ($fb) {
+                $spotName = $fb->touristSpot ? $fb->touristSpot->name : 'Tourist Spot';
+                $uName = $fb->user ? $fb->user->name : 'Tourist';
+                return [
+                    'id'          => 'fb_' . $fb->id,
+                    'user_id'     => $fb->user_id,
+                    'user_name'   => $uName,
+                    'name'        => $uName,
+                    'action'      => 'Destination Review & Rating',
+                    'details'     => "Submitted {$fb->rating}★ review for '{$spotName}'",
+                    'description' => "Submitted {$fb->rating}★ review for '{$spotName}'" . ($fb->testimony ? ": \"{$fb->testimony}\"" : ''),
+                    'module'      => 'Feedback',
+                    'ip_address'  => '127.0.0.1',
+                    'created_at'  => $fb->created_at ? $fb->created_at->toIso8601String() : now()->toIso8601String(),
+                    'date'        => $fb->created_at ? $fb->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
+                    'user'        => $fb->user ? ['id' => $fb->user->id, 'name' => $fb->user->name, 'avatar' => $fb->user->avatar] : null,
+                ];
+            });
+
+            $points = \App\Models\UserPoint::with('user:id,name,avatar')->latest()->limit(25)->get()->map(function ($up) {
+                $uName = $up->user ? $up->user->name : 'Tourist';
+                return [
+                    'id'          => 'pt_' . $up->id,
+                    'user_id'     => $up->user_id,
+                    'user_name'   => $uName,
+                    'name'        => $uName,
+                    'action'      => 'Points & XP Awarded',
+                    'details'     => "Earned +{$up->points} points (" . ($up->reason ?: $up->activity_type) . ")",
+                    'description' => "Earned +{$up->points} points (" . ($up->reason ?: $up->activity_type) . ")",
+                    'module'      => 'Gamification',
+                    'ip_address'  => '127.0.0.1',
+                    'created_at'  => $up->created_at ? $up->created_at->toIso8601String() : now()->toIso8601String(),
+                    'date'        => $up->created_at ? $up->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
+                    'user'        => $up->user ? ['id' => $up->user->id, 'name' => $up->user->name, 'avatar' => $up->user->avatar] : null,
+                ];
+            });
+
+            $itinItems = \App\Models\ItineraryItem::with(['itinerary.user:id,name,avatar', 'destination:id,name'])->latest()->limit(25)->get()->map(function ($it) {
+                $u = $it->itinerary ? $it->itinerary->user : null;
+                $uName = $u ? $u->name : 'Tourist';
+                $spotName = $it->destination ? $it->destination->name : 'Destination';
+                return [
+                    'id'          => 'itin_' . $it->id,
+                    'user_id'     => $u ? $u->id : null,
+                    'user_name'   => $uName,
+                    'name'        => $uName,
+                    'action'      => $it->is_visited ? 'Destination Check-In' : 'Itinerary Destination Added',
+                    'details'     => ($it->is_visited ? 'Completed check-in at ' : 'Added destination ') . "'{$spotName}'",
+                    'description' => ($it->is_visited ? 'Completed check-in at ' : 'Added destination ') . "'{$spotName}'",
+                    'module'      => 'Itinerary',
+                    'ip_address'  => '127.0.0.1',
+                    'created_at'  => $it->created_at ? $it->created_at->toIso8601String() : now()->toIso8601String(),
+                    'date'        => $it->created_at ? $it->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
+                    'user'        => $u ? ['id' => $u->id, 'name' => $u->name, 'avatar' => $u->avatar] : null,
+                ];
+            });
+
+            $combined = collect()
+                ->concat($users)
+                ->concat($feedbacks)
+                ->concat($points)
+                ->concat($itinItems)
+                ->sortByDesc('created_at')
+                ->values();
+
             return response()->json([
                 'success' => true,
-                'logs' => []
+                'status'  => 'success',
+                'logs'    => $combined,
+                'data'    => $combined,
+                'total'   => $combined->count(),
             ]);
         });
 
@@ -1088,6 +1203,94 @@ Route::get('/lupto/leaderboard',     [LeaderboardController::class, 'index']);
 Route::get('/picto/leaderboard',     [LeaderboardController::class, 'index']);
 Route::get('/pitco/leaderboard',     [LeaderboardController::class, 'index']);
 Route::get('/municipal/leaderboard', [LeaderboardController::class, 'index']);
+
+// Top-level Activity Logs aliases
+$activityLogsHandler = function (\Illuminate\Http\Request $request) {
+    $dbLogs = \App\Models\ActivityLog::with('user:id,name,email,avatar')->latest()->limit(100)->get();
+    if ($dbLogs->isNotEmpty()) {
+        $formatted = $dbLogs->map(fn($l) => [
+            'id'          => $l->id,
+            'user_id'     => $l->user_id,
+            'user_name'   => $l->user ? $l->user->name : "Explorer #{$l->user_id}",
+            'name'        => $l->user ? $l->user->name : "Explorer #{$l->user_id}",
+            'action'      => $l->action,
+            'details'     => $l->details,
+            'description' => $l->details,
+            'module'      => $l->module ?? 'General',
+            'ip_address'  => $l->ip_address ?? '127.0.0.1',
+            'created_at'  => $l->created_at ? $l->created_at->toIso8601String() : now()->toIso8601String(),
+            'date'        => $l->created_at ? $l->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
+            'user'        => $l->user,
+        ]);
+        return response()->json(['success' => true, 'status' => 'success', 'logs' => $formatted, 'data' => $formatted, 'total' => $formatted->count()]);
+    }
+    $users = \App\Models\User::latest()->limit(25)->get()->map(fn($u) => [
+        'id'          => 'usr_' . $u->id,
+        'user_id'     => $u->id,
+        'user_name'   => $u->name ?: "Explorer #{$u->id}",
+        'name'        => $u->name ?: "Explorer #{$u->id}",
+        'action'      => 'User Registration',
+        'details'     => "Tourist '{$u->name}' registered with email {$u->email}",
+        'description' => "Tourist '{$u->name}' registered with email {$u->email}",
+        'module'      => 'Authentication',
+        'ip_address'  => '127.0.0.1',
+        'created_at'  => $u->created_at ? $u->created_at->toIso8601String() : now()->toIso8601String(),
+        'date'        => $u->created_at ? $u->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
+        'user'        => ['id' => $u->id, 'name' => $u->name, 'avatar' => $u->avatar],
+    ]);
+    $feedbacks = \App\Models\SiteFeedback::with(['user:id,name,avatar', 'touristSpot:id,name'])->latest()->limit(25)->get()->map(fn($fb) => [
+        'id'          => 'fb_' . $fb->id,
+        'user_id'     => $fb->user_id,
+        'user_name'   => $fb->user ? $fb->user->name : 'Tourist',
+        'name'        => $fb->user ? $fb->user->name : 'Tourist',
+        'action'      => 'Destination Review & Rating',
+        'details'     => "Submitted {$fb->rating}★ review for '" . ($fb->touristSpot ? $fb->touristSpot->name : 'Spot') . "'",
+        'description' => "Submitted {$fb->rating}★ review for '" . ($fb->touristSpot ? $fb->touristSpot->name : 'Spot') . "'" . ($fb->testimony ? ": \"{$fb->testimony}\"" : ''),
+        'module'      => 'Feedback',
+        'ip_address'  => '127.0.0.1',
+        'created_at'  => $fb->created_at ? $fb->created_at->toIso8601String() : now()->toIso8601String(),
+        'date'        => $fb->created_at ? $fb->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
+        'user'        => $fb->user ? ['id' => $fb->user->id, 'name' => $fb->user->name, 'avatar' => $fb->user->avatar] : null,
+    ]);
+    $points = \App\Models\UserPoint::with('user:id,name,avatar')->latest()->limit(25)->get()->map(fn($up) => [
+        'id'          => 'pt_' . $up->id,
+        'user_id'     => $up->user_id,
+        'user_name'   => $up->user ? $up->user->name : 'Tourist',
+        'name'        => $up->user ? $up->user->name : 'Tourist',
+        'action'      => 'Points & XP Awarded',
+        'details'     => "Earned +{$up->points} points (" . ($up->reason ?: $up->activity_type) . ")",
+        'description' => "Earned +{$up->points} points (" . ($up->reason ?: $up->activity_type) . ")",
+        'module'      => 'Gamification',
+        'ip_address'  => '127.0.0.1',
+        'created_at'  => $up->created_at ? $up->created_at->toIso8601String() : now()->toIso8601String(),
+        'date'        => $up->created_at ? $up->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
+        'user'        => $up->user ? ['id' => $up->user->id, 'name' => $up->user->name, 'avatar' => $up->user->avatar] : null,
+    ]);
+    $itinItems = \App\Models\ItineraryItem::with(['itinerary.user:id,name,avatar', 'destination:id,name'])->latest()->limit(25)->get()->map(fn($it) => [
+        'id'          => 'itin_' . $it->id,
+        'user_id'     => $it->itinerary ? $it->itinerary->user_id : null,
+        'user_name'   => ($it->itinerary && $it->itinerary->user) ? $it->itinerary->user->name : 'Tourist',
+        'name'        => ($it->itinerary && $it->itinerary->user) ? $it->itinerary->user->name : 'Tourist',
+        'action'      => $it->is_visited ? 'Destination Check-In' : 'Itinerary Destination Added',
+        'details'     => ($it->is_visited ? 'Completed check-in at ' : 'Added destination ') . "'" . ($it->destination ? $it->destination->name : 'Spot') . "'",
+        'description' => ($it->is_visited ? 'Completed check-in at ' : 'Added destination ') . "'" . ($it->destination ? $it->destination->name : 'Spot') . "'",
+        'module'      => 'Itinerary',
+        'ip_address'  => '127.0.0.1',
+        'created_at'  => $it->created_at ? $it->created_at->toIso8601String() : now()->toIso8601String(),
+        'date'        => $it->created_at ? $it->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
+        'user'        => ($it->itinerary && $it->itinerary->user) ? ['id' => $it->itinerary->user->id, 'name' => $it->itinerary->user->name, 'avatar' => $it->itinerary->user->avatar] : null,
+    ]);
+    $combined = collect()->concat($users)->concat($feedbacks)->concat($points)->concat($itinItems)->sortByDesc('created_at')->values();
+    return response()->json(['success' => true, 'status' => 'success', 'logs' => $combined, 'data' => $combined, 'total' => $combined->count()]);
+};
+
+Route::get('/activity-logs',           $activityLogsHandler);
+Route::get('/admin/activity-logs',     $activityLogsHandler);
+Route::get('/lupto/activity-logs',     $activityLogsHandler);
+Route::get('/picto/activity-logs',     $activityLogsHandler);
+Route::get('/pitco/activity-logs',     $activityLogsHandler);
+Route::get('/municipal/activity-logs', $activityLogsHandler);
+
 
 
 
