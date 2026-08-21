@@ -52,6 +52,13 @@ class UserPoint extends Model
 
             $up = self::create($data);
 
+            // Also increment points on users table
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
+                    User::where('id', $userId)->increment('points', $points);
+                }
+            } catch (\Throwable $e) {}
+
             // Also record in activity_logs
             try {
                 if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {

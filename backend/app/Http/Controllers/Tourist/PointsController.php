@@ -277,6 +277,12 @@ class PointsController extends Controller
 
         // Start transaction
         $redemption = DB::transaction(function() use ($user, $type, $cost, $code) {
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
+                    $user->decrement('points', $cost);
+                }
+            } catch (\Throwable $e) {}
+
             return PointRedemption::create([
                 'user_id' => $user->id,
                 'type' => $type,

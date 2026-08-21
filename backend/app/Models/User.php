@@ -22,6 +22,7 @@ class User extends Authenticatable
         'last_activity',
         'api_token',
         'xp',
+        'points',
         'level',
         'avatar',
         'google_id',
@@ -42,6 +43,8 @@ class User extends Authenticatable
     ];
 
     protected $casts = [
+        'xp'                => 'integer',
+        'points'            => 'integer',
         'email_verified_at' => 'datetime',
         'last_activity'     => 'datetime',
         'created_at'        => 'datetime',

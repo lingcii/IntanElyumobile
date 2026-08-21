@@ -31,28 +31,16 @@ class LeaderboardController extends Controller
                     u.bio                                             AS bio,
                     COALESCE(u.is_leaderboard_private, 0)             AS is_leaderboard_private,
                     u.last_activity                                   AS last_activity_date,
-                    GREATEST(
-                        COALESCE(u.xp, 0),
-                        COALESCE((SELECT SUM(up.points) FROM user_points up WHERE up.user_id = u.id), 0),
-                        COALESCE((SELECT COUNT(*) FROM site_feedbacks fb WHERE fb.user_id = u.id) * 25, 0)
-                    )                                                 AS total_points,
-                    GREATEST(
-                        COALESCE(u.xp, 0),
-                        COALESCE((SELECT SUM(up.points) FROM user_points up WHERE up.user_id = u.id), 0),
-                        COALESCE((SELECT COUNT(*) FROM site_feedbacks fb WHERE fb.user_id = u.id) * 25, 0)
-                    )                                                 AS total_xp,
-                    GREATEST(
-                        0,
-                        COALESCE((SELECT SUM(up.points) FROM user_points up WHERE up.user_id = u.id), 0) -
-                        COALESCE((SELECT SUM(pr.points_cost) FROM point_redemptions pr WHERE pr.user_id = u.id), 0),
-                        COALESCE(u.xp, 0)
-                    )                                                 AS claimable_points,
+                    COALESCE(u.xp, 0)                                 AS total_xp,
+                    COALESCE(u.xp, 0)                                 AS xp,
+                    COALESCE(u.points, 0)                             AS points,
+                    COALESCE(u.points, 0)                             AS total_points,
+                    COALESCE(u.points, 0)                             AS claimable_points,
                     GREATEST(
                         COALESCE(u.completed_activities, 0),
                         COALESCE((SELECT COUNT(*) FROM itinerary_items ii JOIN itineraries it ON ii.itinerary_id = it.id WHERE it.user_id = u.id AND ii.is_visited = 1), 0),
                         COALESCE((SELECT COUNT(DISTINCT up.spot_id) FROM user_points up WHERE up.user_id = u.id AND up.spot_id IS NOT NULL), 0),
-                        COALESCE((SELECT COUNT(*) FROM site_feedbacks fb WHERE fb.user_id = u.id), 0),
-                        COALESCE((SELECT COUNT(*) FROM user_points up WHERE up.user_id = u.id), 0)
+                        COALESCE((SELECT COUNT(*) FROM site_feedbacks fb WHERE fb.user_id = u.id), 0)
                     )                                                 AS completed_activities,
                     GREATEST(
                         COALESCE((SELECT COUNT(DISTINCT ii.tourist_spot_id) FROM itinerary_items ii JOIN itineraries it ON ii.itinerary_id = it.id WHERE it.user_id = u.id AND ii.is_visited = 1), 0),
@@ -63,14 +51,15 @@ class LeaderboardController extends Controller
                 FROM users u
                 LEFT JOIN municipalities m ON u.municipality_id = m.id
                 WHERE u.role = 'tourist'
-                GROUP BY u.id, u.name, u.email, u.avatar, u.home_location, m.name, u.bio, u.is_leaderboard_private, u.last_activity, u.xp, u.completed_activities, u.created_at
+                GROUP BY u.id, u.name, u.email, u.avatar, u.home_location, m.name, u.bio, u.is_leaderboard_private, u.last_activity, u.xp, u.points, u.completed_activities, u.created_at
             ),
             ranked AS (
                 SELECT
                     us.*,
                     ROW_NUMBER() OVER (
                         ORDER BY
-                            us.total_points        DESC,
+                            us.total_xp             DESC,
+                            us.points               DESC,
                             us.completed_activities DESC,
                             us.points_since         ASC,
                             us.user_id              ASC
@@ -94,13 +83,15 @@ class LeaderboardController extends Controller
 
         // Normalize various sorting parameter names
         $orderSql = match ($rawSort) {
-            'lowest_points', 'lowest points', 'points_asc', 'xp_asc' => 'total_points ASC, completed_activities ASC, user_id ASC',
-            'most_activities', 'activities', 'activities_desc', 'completed_activities', 'visited', 'most_visited', 'places_visited', 'visited_desc' => 'completed_activities DESC, places_visited DESC, total_points DESC, user_id ASC',
-            'least_activities', 'activities_asc' => 'completed_activities ASC, total_points ASC, user_id ASC',
+            'lowest_points', 'lowest points', 'points_asc' => 'points ASC, total_xp ASC, user_id ASC',
+            'xp_asc' => 'total_xp ASC, points ASC, user_id ASC',
+            'points', 'points_desc', 'highest_points' => 'points DESC, total_xp DESC, user_id ASC',
+            'most_activities', 'activities', 'activities_desc', 'completed_activities', 'visited', 'most_visited', 'places_visited', 'visited_desc' => 'completed_activities DESC, places_visited DESC, total_xp DESC, user_id ASC',
+            'least_activities', 'activities_asc' => 'completed_activities ASC, total_xp ASC, user_id ASC',
             'name_asc', 'name' => 'full_name ASC, user_id ASC',
             'name_desc' => 'full_name DESC, user_id ASC',
             'recent', 'newest', 'latest' => 'points_since DESC, user_id ASC',
-            default => '`rank` ASC, total_points DESC, completed_activities DESC',
+            default => '`rank` ASC, total_xp DESC, points DESC',
         };
 
         $myRank = null;

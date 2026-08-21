@@ -128,6 +128,12 @@ class VoucherController extends Controller
                 $voucher->increment('redeemed_quantity');
             }
 
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
+                    $user->decrement('points', $cost);
+                }
+            } catch (\Throwable $e) {}
+
             return PointRedemption::create([
                 'user_id' => $user->id,
                 'type' => $voucher->voucher_name,
