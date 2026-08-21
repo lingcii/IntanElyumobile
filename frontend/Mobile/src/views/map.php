@@ -371,9 +371,6 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
             <!-- Action Buttons -->
             <div class="sheet-btn-row" style="display:flex; gap:10px; align-items:center; margin-top:14px;">
-                <button id="btn-checkin-spot" onclick="window.checkInAtCurrentSpot()" style="flex:1.1; padding:13px 8px; border:none; border-radius:14px; background:linear-gradient(135deg, #10b981, #059669); color:#fff; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; box-shadow:0 4px 14px rgba(16,185,129,0.35); transition:transform 0.15s ease;">
-                    <i class="fa-solid fa-location-crosshairs"></i> Check In (+50 XP)
-                </button>
                 <button id="btn-add-itinerary" onclick="window.addToItinerary()" class="btn-add-itinerary-premium" style="flex:1;">
                     <i class="fa-solid fa-calendar-plus"></i> Add to Trip
                 </button>
