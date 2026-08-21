@@ -50,9 +50,15 @@ class LeaderboardController extends Controller
                     GREATEST(
                         COALESCE(u.completed_activities, 0),
                         COALESCE((SELECT COUNT(*) FROM itinerary_items ii JOIN itineraries it ON ii.itinerary_id = it.id WHERE it.user_id = u.id AND ii.is_visited = 1), 0),
+                        COALESCE((SELECT COUNT(DISTINCT up.spot_id) FROM user_points up WHERE up.user_id = u.id AND up.spot_id IS NOT NULL), 0),
                         COALESCE((SELECT COUNT(*) FROM site_feedbacks fb WHERE fb.user_id = u.id), 0),
                         COALESCE((SELECT COUNT(*) FROM user_points up WHERE up.user_id = u.id), 0)
                     )                                                 AS completed_activities,
+                    GREATEST(
+                        COALESCE((SELECT COUNT(DISTINCT ii.tourist_spot_id) FROM itinerary_items ii JOIN itineraries it ON ii.itinerary_id = it.id WHERE it.user_id = u.id AND ii.is_visited = 1), 0),
+                        COALESCE((SELECT COUNT(DISTINCT up.spot_id) FROM user_points up WHERE up.user_id = u.id AND up.spot_id IS NOT NULL), 0),
+                        COALESCE(u.completed_activities, 0)
+                    )                                                 AS places_visited,
                     COALESCE(u.created_at, NOW())                     AS points_since
                 FROM users u
                 LEFT JOIN municipalities m ON u.municipality_id = m.id
@@ -89,7 +95,7 @@ class LeaderboardController extends Controller
         // Normalize various sorting parameter names
         $orderSql = match ($rawSort) {
             'lowest_points', 'lowest points', 'points_asc', 'xp_asc' => 'total_points ASC, completed_activities ASC, user_id ASC',
-            'most_activities', 'activities', 'activities_desc', 'completed_activities' => 'completed_activities DESC, total_points DESC, user_id ASC',
+            'most_activities', 'activities', 'activities_desc', 'completed_activities', 'visited', 'most_visited', 'places_visited', 'visited_desc' => 'completed_activities DESC, places_visited DESC, total_points DESC, user_id ASC',
             'least_activities', 'activities_asc' => 'completed_activities ASC, total_points ASC, user_id ASC',
             'name_asc', 'name' => 'full_name ASC, user_id ASC',
             'name_desc' => 'full_name DESC, user_id ASC',
@@ -229,7 +235,7 @@ class LeaderboardController extends Controller
                 'activities'             => $activitiesVal,
                 'total_activities'       => $activitiesVal,
                 'activities_count'       => $activitiesVal,
-                'places_visited'         => $activitiesVal,
+                'places_visited'         => (int) ($r->places_visited ?? $activitiesVal),
                 'level'                  => (int) (floor($pointsVal / 1000) + 1),
                 'points_since'           => $r->points_since ?? null,
             ];
