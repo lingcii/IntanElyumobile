@@ -20,27 +20,8 @@ class PointsController extends Controller
     {
         $user = $request->user();
 
-        // Calculate earned points
-        $earned = 0;
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('user_points') && \Illuminate\Support\Facades\Schema::hasColumn('user_points', 'points')) {
-                $earned = (int) UserPoint::where('user_id', $user->id)->sum('points');
-            }
-        } catch (\Throwable $e) {
-            $earned = 0;
-        }
-
-        // Calculate redeemed points
-        $redeemed = 0;
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions') && \Illuminate\Support\Facades\Schema::hasColumn('point_redemptions', 'points_cost')) {
-                $redeemed = (int) PointRedemption::where('user_id', $user->id)->sum('points_cost');
-            }
-        } catch (\Throwable $e) {
-            $redeemed = 0;
-        }
-
-        $balance = max(0, $earned - $redeemed);
+        // Balance directly from users table
+        $balance = (int) ($user->points ?? 0);
 
         $history = collect();
         try {

@@ -36,17 +36,8 @@ class LeaderboardController extends Controller
                     COALESCE(u.points, 0)                             AS points,
                     COALESCE(u.points, 0)                             AS total_points,
                     COALESCE(u.points, 0)                             AS claimable_points,
-                    GREATEST(
-                        COALESCE(u.completed_activities, 0),
-                        COALESCE((SELECT COUNT(*) FROM itinerary_items ii JOIN itineraries it ON ii.itinerary_id = it.id WHERE it.user_id = u.id AND ii.is_visited = 1), 0),
-                        COALESCE((SELECT COUNT(DISTINCT up.spot_id) FROM user_points up WHERE up.user_id = u.id AND up.spot_id IS NOT NULL), 0),
-                        COALESCE((SELECT COUNT(*) FROM site_feedbacks fb WHERE fb.user_id = u.id), 0)
-                    )                                                 AS completed_activities,
-                    GREATEST(
-                        COALESCE((SELECT COUNT(DISTINCT ii.tourist_spot_id) FROM itinerary_items ii JOIN itineraries it ON ii.itinerary_id = it.id WHERE it.user_id = u.id AND ii.is_visited = 1), 0),
-                        COALESCE((SELECT COUNT(DISTINCT up.spot_id) FROM user_points up WHERE up.user_id = u.id AND up.spot_id IS NOT NULL), 0),
-                        COALESCE(u.completed_activities, 0)
-                    )                                                 AS places_visited,
+                    COALESCE(u.completed_activities, 0)               AS completed_activities,
+                    COALESCE(u.completed_activities, 0)               AS places_visited,
                     COALESCE(u.created_at, NOW())                     AS points_since
                 FROM users u
                 LEFT JOIN municipalities m ON u.municipality_id = m.id
