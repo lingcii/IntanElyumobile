@@ -69,7 +69,7 @@ class LeaderboardController extends Controller
     {
         $search = trim($request->get('search', ''));
         $rawSort = strtolower(trim($request->get('sort', 'points_desc')));
-        $limit = min(max((int) $request->get('limit', 100), 1), 500);
+        $limit = min(max((int) $request->get('limit', 10), 1), 500);
         $offset = max((int) $request->get('offset', 0), 0);
 
         // Normalize various sorting parameter names
@@ -99,7 +99,8 @@ class LeaderboardController extends Controller
                     $meRows = $this->castRows([(array) $myRankRow]);
                     $me = $meRows[0] ?? null;
                 }
-            } catch (\Throwable $e) {}
+            } catch (\Throwable $e) {
+            }
         }
 
         // Execute dynamic ranked query
@@ -111,32 +112,32 @@ class LeaderboardController extends Controller
         $totalActivities = (int) array_sum(array_column($rows, 'completed_activities'));
 
         return response()->json([
-            'success'          => true,
-            'myRank'           => $myRank,
-            'my_rank'          => $myRank,
-            'me'               => $me,
-            'users'            => $rows,
-            'leaders'          => $rows,
-            'leaderboard'      => $rows,
-            'data'             => $rows,
-            'tourists'         => $rows,
-            'total'            => $totalTourists,
-            'total_tourists'   => $totalTourists,
-            'totalTourists'    => $totalTourists,
-            'highest_points'   => $highestPoints,
-            'highestPoints'    => $highestPoints,
+            'success' => true,
+            'myRank' => $myRank,
+            'my_rank' => $myRank,
+            'me' => $me,
+            'users' => $rows,
+            'leaders' => $rows,
+            'leaderboard' => $rows,
+            'data' => $rows,
+            'tourists' => $rows,
+            'total' => $totalTourists,
+            'total_tourists' => $totalTourists,
+            'totalTourists' => $totalTourists,
+            'highest_points' => $highestPoints,
+            'highestPoints' => $highestPoints,
             'total_activities' => $totalActivities,
-            'totalActivities'  => $totalActivities,
-            'stats'            => [
-                'total_tourists'   => $totalTourists,
-                'totalTourists'    => $totalTourists,
-                'highest_points'   => $highestPoints,
-                'highestPoints'    => $highestPoints,
+            'totalActivities' => $totalActivities,
+            'stats' => [
+                'total_tourists' => $totalTourists,
+                'totalTourists' => $totalTourists,
+                'highest_points' => $highestPoints,
+                'highestPoints' => $highestPoints,
                 'total_activities' => $totalActivities,
-                'totalActivities'  => $totalActivities,
+                'totalActivities' => $totalActivities,
             ],
-            'offset'           => $offset,
-            'limit'            => $limit,
+            'offset' => $offset,
+            'limit' => $limit,
         ]);
     }
 
@@ -166,7 +167,7 @@ class LeaderboardController extends Controller
 
         return [
             'total' => (int) $total,
-            'rows'  => json_decode(json_encode($rows), true),
+            'rows' => json_decode(json_encode($rows), true),
         ];
     }
 
@@ -188,39 +189,39 @@ class LeaderboardController extends Controller
             $muniVal = $isPrivate ? 'La Union' : ($r->municipality ?: ($r->home_location ?: 'La Union'));
 
             return [
-                'id'                     => (int) $r->user_id,
-                'user_id'                => (int) $r->user_id,
-                'rank'                   => $rankVal,
-                'rank_number'            => $rankVal,
-                'rank_no'                => $rankVal,
-                'position'               => $rankVal,
-                'ranking'                => $rankVal,
-                'index'                  => $rankVal,
-                'name'                   => $displayName,
-                'full_name'              => $displayName,
-                'real_name'              => $realName,
-                'email'                  => $r->email ?? null,
-                'avatar'                 => $isPrivate ? null : ($r->avatar ?? null),
-                'home_location'          => $muniVal,
-                'municipality'           => $muniVal,
-                'municipality_name'      => $muniVal,
-                'location'               => $muniVal,
-                'bio'                    => $isPrivate ? null : ($r->bio ?? null),
+                'id' => (int) $r->user_id,
+                'user_id' => (int) $r->user_id,
+                'rank' => $rankVal,
+                'rank_number' => $rankVal,
+                'rank_no' => $rankVal,
+                'position' => $rankVal,
+                'ranking' => $rankVal,
+                'index' => $rankVal,
+                'name' => $displayName,
+                'full_name' => $displayName,
+                'real_name' => $realName,
+                'email' => $r->email ?? null,
+                'avatar' => $isPrivate ? null : ($r->avatar ?? null),
+                'home_location' => $muniVal,
+                'municipality' => $muniVal,
+                'municipality_name' => $muniVal,
+                'location' => $muniVal,
+                'bio' => $isPrivate ? null : ($r->bio ?? null),
                 'is_leaderboard_private' => $isPrivate,
-                'last_activity_date'     => $r->last_activity_date ?? null,
-                'total_xp'               => $xpVal,
-                'xp'                     => $xpVal,
-                'total_points'           => $pointsVal,
-                'points'                 => $pointsVal,
-                'pts'                    => $pointsVal,
-                'claimable_points'       => (int) ($r->claimable_points ?? $pointsVal),
-                'completed_activities'   => $activitiesVal,
-                'activities'             => $activitiesVal,
-                'total_activities'       => $activitiesVal,
-                'activities_count'       => $activitiesVal,
-                'places_visited'         => (int) ($r->places_visited ?? $activitiesVal),
-                'level'                  => (int) (floor($xpVal / 1000) + 1),
-                'points_since'           => $r->points_since ?? null,
+                'last_activity_date' => $r->last_activity_date ?? null,
+                'total_xp' => $xpVal,
+                'xp' => $xpVal,
+                'total_points' => $pointsVal,
+                'points' => $pointsVal,
+                'pts' => $pointsVal,
+                'claimable_points' => (int) ($r->claimable_points ?? $pointsVal),
+                'completed_activities' => $activitiesVal,
+                'activities' => $activitiesVal,
+                'total_activities' => $activitiesVal,
+                'activities_count' => $activitiesVal,
+                'places_visited' => (int) ($r->places_visited ?? $activitiesVal),
+                'level' => (int) (floor($xpVal / 1000) + 1),
+                'points_since' => $r->points_since ?? null,
             ];
         }, $rows, array_keys($rows));
     }

@@ -192,7 +192,7 @@ $activeTab = 'leaderboard';
                 url = backendUrl + '/api/tourist/leaderboard';
             }
 
-            const cacheKey = 'leaderboard_data_v11_' + (token ? token.substring(0, 10) : 'public');
+            const cacheKey = 'leaderboard_data_v12_' + (token ? token.substring(0, 10) : 'public');
             const fetchCache = window.useCache || (async (key, fetcher, renderer) => { const d = await fetcher(); if (renderer) renderer(d); return d; });
 
             await fetchCache(
@@ -260,7 +260,7 @@ $activeTab = 'leaderboard';
 
             const countBadge = document.getElementById('explorers-count-badge');
             if (countBadge) {
-                countBadge.textContent = `${leaders.length} Explorers Listed`;
+                countBadge.textContent = `Top ${Math.min(leaders.length, 10)} Explorers`;
             }
 
             // Render Standing Banner
@@ -314,17 +314,17 @@ $activeTab = 'leaderboard';
             if (leaders[2]) podiumHTML += generatePodiumPlace(leaders[2], 3);
             if (podiumContainer) podiumContainer.innerHTML = podiumHTML;
 
-            // Render Rank List (Ranks 4+)
+            // Render Rank List (Ranks 4 to 10 - capped strictly at 10 total)
             let rankListHTML = '';
             if (leaders.length > 3) {
-                for (let i = 3; i < Math.min(leaders.length, 25); i++) {
+                for (let i = 3; i < Math.min(leaders.length, 10); i++) {
                     const user = leaders[i];
                     const isMe = cachedMeData && (user.id === cachedMeData.id || user.user_id === cachedMeData.id);
                     rankListHTML += generateRankItem(user, i + 1, isMe);
                 }
             }
 
-            if (cachedMeData && cachedMyRank > 25 && cachedMyRank <= 999) {
+            if (cachedMeData && cachedMyRank > 10 && cachedMyRank <= 999) {
                 rankListHTML += generateRankItem(cachedMeData, cachedMyRank, true);
             }
 
