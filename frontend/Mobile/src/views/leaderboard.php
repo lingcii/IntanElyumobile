@@ -192,7 +192,7 @@ $activeTab = 'leaderboard';
                 url = backendUrl + '/api/tourist/leaderboard';
             }
 
-            const cacheKey = 'leaderboard_data_v10_' + (token ? token.substring(0, 10) : 'public');
+            const cacheKey = 'leaderboard_data_v11_' + (token ? token.substring(0, 10) : 'public');
             const fetchCache = window.useCache || (async (key, fetcher, renderer) => { const d = await fetcher(); if (renderer) renderer(d); return d; });
 
             await fetchCache(
@@ -275,9 +275,9 @@ $activeTab = 'leaderboard';
                 const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
                 const myRankNum = cachedMyRank && cachedMyRank < 999 ? cachedMyRank : 1;
                 const myDisplayName = `${myRankNum}# Explorer`;
-                const myXp = cachedMeData ? parseInt(cachedMeData.total_points || cachedMeData.total_xp || cachedMeData.xp || 0) : (authUser.xp || 0);
-                const myPts = cachedMeData ? parseInt(cachedMeData.claimable_points || cachedMeData.points || 0) : 0;
-                const myActivities = cachedMeData ? parseInt(cachedMeData.completed_activities || cachedMeData.places_visited || 0) : 0;
+                const myXp = cachedMeData ? parseInt(cachedMeData.xp ?? cachedMeData.total_xp ?? 0) : (authUser.xp || 0);
+                const myPts = cachedMeData ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? cachedMeData.claimable_points ?? 0) : (authUser.points || 0);
+                const myActivities = cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.places_visited ?? 0) : 0;
                 const myLevel = Math.floor(myXp / 1000) + 1;
                 const myRawName = (cachedMeData ? (cachedMeData.name || cachedMeData.full_name) : (authUser.name || authUser.full_name || 'Explorer')).replace(/[^a-zA-Z\s]/g, '').trim() || 'Explorer';
                 const myAvatar = cachedMeData && cachedMeData.avatar ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myRawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
@@ -389,10 +389,10 @@ $activeTab = 'leaderboard';
             }
 
             const safeName = displayName.replace(/'/g, "\\'");
-            const xp = parseInt(user.total_points || user.total_xp || user.xp || 0);
-            const pts = parseInt(user.claimable_points || user.points || 0);
+            const xp = parseInt(user.xp ?? user.total_xp ?? 0);
+            const pts = parseInt(user.points ?? user.pts ?? user.total_points ?? user.claimable_points ?? 0);
             const level = user.level || (Math.floor(xp / 1000) + 1);
-            const activities = parseInt(user.completed_activities || user.places_visited || 0);
+            const activities = parseInt(user.completed_activities ?? user.places_visited ?? 0);
             const safeLocation = (user.home_location || '').replace(/'/g, "\\'");
             const safeBio = (user.bio || '').replace(/'/g, "\\'");
 
@@ -443,10 +443,10 @@ $activeTab = 'leaderboard';
             const delay = 0.15 + ((rank - 4) * 0.03);
 
             const safeName = displayName.replace(/'/g, "\\'");
-            const xp = parseInt(user.total_points || user.total_xp || user.xp || 0);
-            const pts = parseInt(user.claimable_points || user.points || 0);
+            const xp = parseInt(user.xp ?? user.total_xp ?? 0);
+            const pts = parseInt(user.points ?? user.pts ?? user.total_points ?? user.claimable_points ?? 0);
             const level = user.level || (Math.floor(xp / 1000) + 1);
-            const activities = parseInt(user.completed_activities || user.places_visited || 0);
+            const activities = parseInt(user.completed_activities ?? user.places_visited ?? 0);
             const safeLocation = (user.home_location || '').replace(/'/g, "\\'");
             const safeBio = (user.bio || '').replace(/'/g, "\\'");
 

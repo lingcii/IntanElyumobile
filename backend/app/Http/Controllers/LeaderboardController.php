@@ -182,7 +182,8 @@ class LeaderboardController extends Controller
             $displayName = $isPrivate ? "Private Explorer" : $realName;
 
             $rankVal = isset($r->rank) && (int) $r->rank > 0 ? (int) $r->rank : ($index + 1);
-            $pointsVal = (int) ($r->total_points ?? 0);
+            $xpVal = (int) ($r->total_xp ?? $r->xp ?? 0);
+            $pointsVal = (int) ($r->points ?? $r->total_points ?? 0);
             $activitiesVal = (int) ($r->completed_activities ?? 0);
             $muniVal = $isPrivate ? 'La Union' : ($r->municipality ?: ($r->home_location ?: 'La Union'));
 
@@ -207,9 +208,9 @@ class LeaderboardController extends Controller
                 'bio'                    => $isPrivate ? null : ($r->bio ?? null),
                 'is_leaderboard_private' => $isPrivate,
                 'last_activity_date'     => $r->last_activity_date ?? null,
+                'total_xp'               => $xpVal,
+                'xp'                     => $xpVal,
                 'total_points'           => $pointsVal,
-                'total_xp'               => $pointsVal,
-                'xp'                     => $pointsVal,
                 'points'                 => $pointsVal,
                 'pts'                    => $pointsVal,
                 'claimable_points'       => (int) ($r->claimable_points ?? $pointsVal),
@@ -218,7 +219,7 @@ class LeaderboardController extends Controller
                 'total_activities'       => $activitiesVal,
                 'activities_count'       => $activitiesVal,
                 'places_visited'         => (int) ($r->places_visited ?? $activitiesVal),
-                'level'                  => (int) (floor($pointsVal / 1000) + 1),
+                'level'                  => (int) (floor($xpVal / 1000) + 1),
                 'points_since'           => $r->points_since ?? null,
             ];
         }, $rows, array_keys($rows));
