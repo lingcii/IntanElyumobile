@@ -35,16 +35,16 @@ body[data-view="auth"] {
 .auth-top {
     position: relative;
     width: 100%;
-    height: 38vh;
-    min-height: 240px;
-    max-height: 300px;
+    height: 42vh;
+    min-height: 280px;
+    max-height: 350px;
     flex-shrink: 0;
     background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding-bottom: 24px;
+    padding-bottom: 30px;
     /* Space for wave */
 }
 
@@ -131,16 +131,22 @@ body[data-view="auth"] {
 
 .auth-bottom {
     flex: 1;
-    min-height: 0;
     background: #1e293b;
-    padding: 12px 30px calc(20px + env(safe-area-inset-bottom, 0px)) 30px;
+    padding: 20px 32px calc(24px + env(safe-area-inset-bottom, 0px)) 32px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     position: relative;
     z-index: 5;
     margin-bottom: 0;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.auth-bottom::-webkit-scrollbar {
+    display: none;
 }
 
 /* --- Entrance Animations --- */
@@ -161,7 +167,7 @@ body[data-view="auth"] {
     display: flex;
     justify-content: space-evenly;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 24px;
     flex-shrink: 0;
     opacity: 0;
     animation: popUpSmooth 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
@@ -186,8 +192,6 @@ body[data-view="auth"] {
 .forms-wrapper {
     display: flex;
     width: 400%;
-    flex: 1;
-    min-height: 0;
     transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
@@ -196,49 +200,13 @@ body[data-view="auth"] {
     flex-shrink: 0;
     padding: 0 4px;
     transition: opacity 0.3s;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 100%;
-    min-height: 0;
-    overflow: hidden;
-}
-
-.form-panel form {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    flex: 1;
-    min-height: 0;
-}
-
-.form-panel.login-form form {
-    justify-content: center;
-}
-
-.form-panel.register-form {
-    height: 100%;
-}
-
-.form-panel.register-form form {
-    justify-content: flex-start;
-    overflow-y: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-    padding-right: 2px;
-}
-
-.form-panel.register-form form::-webkit-scrollbar {
-    display: none;
 }
 
 .auth-social-section {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: auto !important;
-    padding-top: 8px;
-    padding-bottom: 2px;
+    margin-top: 18px;
     width: 100%;
     flex-shrink: 0;
 }
@@ -319,7 +287,7 @@ body[data-view="auth"] {
 .input-group {
     position: relative;
     border-bottom: 1px solid #334155;
-    margin-bottom: 14px;
+    margin-bottom: 20px;
     transition: border-color 0.3s;
     width: 100%;
     opacity: 0;
@@ -487,8 +455,8 @@ body[data-view="auth"] {
     font-size: 13px;
     color: #38bdf8;
     text-decoration: none;
-    margin-bottom: 14px;
-    margin-top: -4px;
+    margin-bottom: 20px;
+    margin-top: -6px;
     font-weight: 500;
     opacity: 0;
     animation: popUpSmooth 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.25s;
@@ -496,23 +464,22 @@ body[data-view="auth"] {
 
 /* Circular Submit Button */
 .btn-circle-submit {
-    width: 52px;
-    height: 52px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     background: #1e3a8a;
     color: #ffffff;
     border: none;
-    font-size: 20px;
+    font-size: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 6px auto 8px;
+    margin: 0 auto;
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(30, 58, 138, 0.3);
     transition: transform 0.3s, box-shadow 0.3s;
     opacity: 0;
     animation: popUpSmooth 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.35s;
-    flex-shrink: 0;
 }
 
 .btn-circle-submit:hover {
