@@ -98,6 +98,8 @@
     max-height: min(280px, calc(100vh - 360px));
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     z-index: 1010 !important;
     padding: 8px;
     opacity: 0;
@@ -115,16 +117,10 @@
 }
 
 .map-search-suggestions::-webkit-scrollbar {
-    width: 4px;
-}
-
-.map-search-suggestions::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.map-search-suggestions::-webkit-scrollbar-thumb {
-    background: rgba(56, 189, 248, 0.3);
-    border-radius: 10px;
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
 }
 
 .map-search-suggestion-item {
