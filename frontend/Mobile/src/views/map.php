@@ -2987,10 +2987,6 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                             <strong style="color:#ffffff; font-size:13px; font-weight:800; display:flex; align-items:center; gap:6px;">
                                 <i class="fa-solid fa-chart-simple" style="color:#38bdf8; font-size:11px;"></i> Visitor Insights (${reviewText})
                             </strong>
-                            <div style="display:flex; align-items:center; gap:4px; background:rgba(251,191,36,0.12); border:1px solid rgba(251,191,36,0.3); padding:2px 8px; border-radius:100px;">
-                                <i class="fa-solid fa-star" style="color:#fbbf24; font-size:11px;"></i>
-                                <span style="color:#fbbf24; font-size:12px; font-weight:800;">${avgRating}</span>
-                            </div>
                         </div>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
                             <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
@@ -3045,13 +3041,6 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                         const rawName = user.name || user.full_name || 'Explorer';
                         const maskedName = maskUserName(rawName);
                         const initial = (rawName || 'E').charAt(0).toUpperCase();
-                        const rating = parseInt(fb.rating) || 5;
-                        let starsHtml = '';
-                        for (let s = 1; s <= 5; s++) {
-                            starsHtml += s <= rating 
-                                ? '<i class="fa-solid fa-star" style="color:#fbbf24; font-size:11px;"></i>' 
-                                : '<i class="fa-regular fa-star" style="color:rgba(255,255,255,0.2); font-size:11px;"></i>';
-                        }
                         const date = fb.created_at ? new Date(fb.created_at).toLocaleDateString() : '';
                         const policyHtml = fb.policy_recommendation ? `
                             <div style="background:rgba(56,189,248,0.06); border:1px solid rgba(56,189,248,0.2); padding:10px 12px; border-radius:12px; margin-top:10px;">
@@ -3071,7 +3060,6 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                                     </div>
                                     <strong style="color:#ffffff; font-size:13px; font-weight:700;">${maskedName}</strong>
                                 </div>
-                                <div style="display:flex; gap:2px; align-items:center;">${starsHtml}</div>
                             </div>
                             <p style="margin:0; color:rgba(226,232,240,0.88); font-size:12.5px; line-height:1.5;">${fb.testimony || 'Visited and checked in.'}</p>
                             ${policyHtml}
