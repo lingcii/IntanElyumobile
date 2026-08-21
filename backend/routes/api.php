@@ -17,6 +17,7 @@ use App\Http\Controllers\Tourist\PointsController;
 use App\Http\Controllers\WeatherController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\PuzzleController;
+use App\Http\Controllers\Admin\AnalyticsController;
 use App\Models\TouristSpot;
 use Illuminate\Support\Facades\Route;
 
@@ -510,23 +511,39 @@ Route::get('/tourist-spots',  [MapController::class, 'publicMapData']);
 // ─────────────────────────────────────────────────────────────────────────────
 foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
     Route::prefix($rolePrefix)->group(function () use ($rolePrefix) {
-        Route::get('/dashboard', function () {
-            $totalSpots = \App\Models\TouristSpot::count();
+        Route::get('/dashboard', function (Illuminate\Http\Request $request) {
+            $muniId = $request->query('municipality_id');
+            $spotsQuery = \App\Models\TouristSpot::with('municipality');
+            if ($muniId) {
+                $spotsQuery->where('municipality_id', $muniId);
+            }
+            $spots = $spotsQuery->get();
+            $totalSpots = $spots->count();
             $totalMunis = \Illuminate\Support\Facades\DB::table('municipalities')->count();
             $totalUsers = \App\Models\User::count();
-            $spots = \App\Models\TouristSpot::with('municipality')->get();
+            $totalVisits = (int) $spots->sum('visits');
+            $ratedSpots = $spots->where('rating', '>', 0);
+            $avgRating = $ratedSpots->count() > 0 ? round((float) $ratedSpots->avg('rating'), 1) : 5.0;
+
+            $pendingApprovals = 0;
+            try {
+                $pendingApprovals = \App\Models\ItineraryItem::where('proof_status', 'pending')->count()
+                    + \App\Models\TouristSpot::where('status', 'pending')->count();
+            } catch (\Throwable $e) {}
 
             return response()->json([
                 'success' => true,
                 'kpis' => [
                     'total_municipalities' => $totalMunis ?: 20,
-                    'total_spots' => $totalSpots ?: 12,
-                    'pending_approvals' => 0,
-                    'total_tourists' => $totalUsers ?: 150
+                    'total_spots'          => $totalSpots ?: 12,
+                    'pending_approvals'    => $pendingApprovals,
+                    'total_tourists'       => $totalUsers ?: 150,
+                    'total_visits'         => $totalVisits,
+                    'avg_rating'           => $avgRating,
                 ],
                 'municipalities' => \Illuminate\Support\Facades\DB::table('municipalities')->get(),
-                'touristSpots' => $spots,
-                'alerts' => []
+                'touristSpots'   => $spots,
+                'alerts'         => []
             ]);
         });
 
@@ -631,98 +648,21 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
             ]);
         });
 
-        Route::get('/analytics/full', function () {
-            return response()->json([
-                'success' => true,
-                'analytics' => [
-                    'monthly_visits' => [],
-                    'category_distribution' => [],
-                    'demographics' => []
-                ]
-            ]);
-        });
-
-        Route::get('/analytics/summary', function () {
-            $totalSpots = \App\Models\TouristSpot::count();
-            return response()->json([
-                'success' => true,
-                'summary' => [
-                    'total_spots' => $totalSpots ?: 12,
-                    'approved_spots' => $totalSpots ?: 12,
-                    'total_visits' => 450,
-                    'total_analytics_visits' => 450,
-                    'most_visited_spot' => 'Ma-Cho Temple',
-                    'most_visited_muni' => 'San Fernando',
-                    'growth_rate' => 12.5
-                ]
-            ]);
-        });
-
-        Route::get('/fare-data/guides', function () {
-            return response()->json([
-                'success' => true,
-                'guides' => [],
-                'data' => []
-            ]);
-        });
-
-        Route::get('/fare-data/uploads', function () {
-            return response()->json([
-                'success' => true,
-                'uploads' => [],
-                'data' => []
-            ]);
-        });
-
-        Route::get('/fare-data', function () {
-            return response()->json([
-                'success' => true,
-                'fare_data' => [],
-                'guides' => [],
-                'uploads' => []
-            ]);
-        });
-
-        Route::any('/fare-data/{any}', function () {
-            return response()->json([
-                'success' => true,
-                'fare_data' => [],
-                'guides' => [],
-                'uploads' => [],
-                'data' => []
-            ]);
-        })->where('any', '.*');
-
-        Route::get('/analytics/chart-data', function () {
-            return response()->json([
-                'success' => true,
-                'categories' => [],
-                'visits' => []
-            ]);
-        });
-
-        Route::get('/analytics/monthly-trend', function () {
-            return response()->json([
-                'success' => true,
-                'months' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                'data' => [3200, 3800, 3500, 4200, 4500, 4800, 4100, 4300, 4600, 4800, 4900, 4520]
-            ]);
-        });
-
-        Route::get('/analytics', function () {
-            return response()->json([
-                'success' => true,
-                'analytics' => []
-            ]);
-        });
-
-        Route::any('/analytics/{any}', function () {
-            return response()->json([
-                'success' => true,
-                'analytics' => [],
-                'data' => []
-            ]);
-        })->where('any', '.*');
+        // Real-time Analytics Endpoints
+        Route::get('/analytics/summary',            [AnalyticsController::class, 'summary']);
+        Route::get('/analytics/top-spots',          [AnalyticsController::class, 'topSpots']);
+        Route::get('/analytics/top_spots',          [AnalyticsController::class, 'topSpots']);
+        Route::get('/analytics/top-municipalities', [AnalyticsController::class, 'topMunicipalities']);
+        Route::get('/analytics/top_municipalities', [AnalyticsController::class, 'topMunicipalities']);
+        Route::get('/analytics/chart-data',         [AnalyticsController::class, 'chartData']);
+        Route::get('/analytics/chart_data',         [AnalyticsController::class, 'chartData']);
+        Route::get('/analytics/monthly-trend',      [AnalyticsController::class, 'monthlyTrend']);
+        Route::get('/analytics/monthly_trend',      [AnalyticsController::class, 'monthlyTrend']);
+        Route::get('/analytics/filter-options',     [AnalyticsController::class, 'filterOptions']);
+        Route::get('/analytics/filter_options',     [AnalyticsController::class, 'filterOptions']);
+        Route::get('/analytics/full',               [AnalyticsController::class, 'full']);
+        Route::get('/analytics',                    [AnalyticsController::class, 'handleAction']);
+        Route::any('/analytics/{action}',           [AnalyticsController::class, 'handleAction']);
 
         Route::get('/leaderboard', [LeaderboardController::class, 'index']);
 
@@ -980,6 +920,84 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     Route::get('/feedback', [FeedbackController::class, 'index']);
     Route::post('/feedback', [FeedbackController::class, 'store']);
 
+    // AR and Instant GPS Check-in
+    Route::post('/points/ar-checkin', function (\Illuminate\Http\Request $request) {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $spotId = $request->input('spot_id');
+        $spot = TouristSpot::find($spotId);
+        if (!$spot) {
+            return response()->json(['status' => 'error', 'message' => 'Tourist destination not found.'], 404);
+        }
+
+        // Increment spot visits count in database
+        $spot->increment('visits');
+
+        // Award +50 XP and +50 points
+        try {
+            $user->increment('xp', 50);
+            $user->increment('completed_activities');
+            \App\Models\UserPoint::awardPointsSafely(
+                $user->id,
+                50,
+                'ar_checkin',
+                "AR/GPS Check-in at {$spot->name}"
+            );
+        } catch (\Throwable $e) {}
+
+        // Invalidate map and trending caches
+        \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:5');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:10');
+
+        return response()->json([
+            'status'        => 'success',
+            'success'       => true,
+            'message'       => "🎉 Check-in Verified at {$spot->name}! Earned +50 XP & +50 Points!",
+            'visits'        => $spot->fresh()->visits,
+            'xp_earned'     => 50,
+            'points_earned' => 50,
+        ]);
+    });
+
+    // Direct Destination Check-in
+    Route::post('/destinations/{id}/check-in', function (\Illuminate\Http\Request $request, int $id) {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $spot = TouristSpot::findOrFail($id);
+        $spot->increment('visits');
+
+        try {
+            $user->increment('xp', 50);
+            $user->increment('completed_activities');
+            \App\Models\UserPoint::awardPointsSafely(
+                $user->id,
+                50,
+                'check_in',
+                "Direct Check-in at {$spot->name}"
+            );
+        } catch (\Throwable $e) {}
+
+        \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:5');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:10');
+
+        return response()->json([
+            'status'        => 'success',
+            'success'       => true,
+            'message'       => "🎉 Check-in completed at {$spot->name}! Earned +50 XP & +50 Points!",
+            'visits'        => $spot->fresh()->visits,
+            'xp_earned'     => 50,
+            'points_earned' => 50,
+        ]);
+    });
+
     // Points & Vouchers
     Route::get('/vouchers', [\App\Http\Controllers\VoucherController::class, 'index']);
     Route::get('/fares', [\App\Http\Controllers\FareController::class, 'index']);
@@ -994,3 +1012,22 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     // Puzzle Tourist Spot Images from Database
     Route::match(['GET', 'POST', 'OPTIONS'], '/puzzles/spots', [PuzzleController::class, 'spots']);
 });
+
+// Top-level Analytics aliases
+Route::prefix('analytics')->group(function () {
+    Route::get('/summary',            [AnalyticsController::class, 'summary']);
+    Route::get('/top-spots',          [AnalyticsController::class, 'topSpots']);
+    Route::get('/top_spots',          [AnalyticsController::class, 'topSpots']);
+    Route::get('/top-municipalities', [AnalyticsController::class, 'topMunicipalities']);
+    Route::get('/top_municipalities', [AnalyticsController::class, 'topMunicipalities']);
+    Route::get('/chart-data',         [AnalyticsController::class, 'chartData']);
+    Route::get('/chart_data',         [AnalyticsController::class, 'chartData']);
+    Route::get('/monthly-trend',      [AnalyticsController::class, 'monthlyTrend']);
+    Route::get('/monthly_trend',      [AnalyticsController::class, 'monthlyTrend']);
+    Route::get('/filter-options',     [AnalyticsController::class, 'filterOptions']);
+    Route::get('/filter_options',     [AnalyticsController::class, 'filterOptions']);
+    Route::get('/full',               [AnalyticsController::class, 'full']);
+    Route::get('/',                   [AnalyticsController::class, 'handleAction']);
+    Route::any('/{action}',           [AnalyticsController::class, 'handleAction']);
+});
+

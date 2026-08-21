@@ -228,7 +228,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 <div id="sheet-slider-dots" class="dest-slider-dots" style="display:none;"></div>
             </div>
 
-            <!-- Quick Stats Grid (Distance & Visiting Hours) -->
+            <!-- Quick Stats Grid (Distance, Hours, Visitors, Rating) -->
             <div class="dest-quick-stats-grid">
                 <div class="quick-stat-card">
                     <div class="quick-stat-icon blue">
@@ -246,6 +246,24 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                     <div class="quick-stat-info">
                         <span class="quick-stat-label">Hours</span>
                         <span class="quick-stat-value" id="sheet-hours">--</span>
+                    </div>
+                </div>
+                <div class="quick-stat-card" id="sheet-visitors-stat-card">
+                    <div class="quick-stat-icon purple">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div class="quick-stat-info">
+                        <span class="quick-stat-label">Visitors</span>
+                        <span class="quick-stat-value" id="sheet-visitors">0 Visitors</span>
+                    </div>
+                </div>
+                <div class="quick-stat-card" id="sheet-rating-stat-card">
+                    <div class="quick-stat-icon amber">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                    <div class="quick-stat-info">
+                        <span class="quick-stat-label">Rating</span>
+                        <span class="quick-stat-value" id="sheet-rating">5.0 ★</span>
                     </div>
                 </div>
             </div>
@@ -334,11 +352,13 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
                         <!-- Testimonies Section -->
                         <div id="sheet-testimonies-section" style="display:none; margin-top:14px; padding-top:14px; border-top:1px dashed rgba(255,255,255,0.08);">
-                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
                                 <h4 style="margin:0; font-size:12.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff;">Tourist Testimonies</h4>
-                                <span style="font-size:10px; font-weight:700; color:#38bdf8; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.25); padding:3px 8px; border-radius:6px;">
-                                    <i class="fa-solid fa-shield-halved" style="margin-right:3px;"></i> Verified Reviews
-                                </span>
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <button type="button" onclick="window.openWriteTestimonyModal()" style="background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:#fff; font-size:11px; font-weight:800; padding:5px 12px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 8px rgba(56,189,248,0.3);">
+                                        <i class="fa-solid fa-star" style="font-size:10px;"></i> Rate & Review
+                                    </button>
+                                </div>
                             </div>
                             <div id="testimonies-summary-metrics" style="display:none;"></div>
                             <div id="testimonies-list-container" style="display:flex; flex-direction:column; gap:8px;">
@@ -355,11 +375,14 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             </div>
 
             <!-- Action Buttons -->
-            <div class="sheet-btn-row">
-                <button id="btn-add-itinerary" onclick="window.addToItinerary()" class="btn-add-itinerary-premium">
-                    <i class="fa-solid fa-calendar-plus"></i> Add to Itinerary
+            <div class="sheet-btn-row" style="display:flex; gap:10px; align-items:center; margin-top:14px;">
+                <button id="btn-checkin-spot" onclick="window.checkInAtCurrentSpot()" style="flex:1.1; padding:13px 8px; border:none; border-radius:14px; background:linear-gradient(135deg, #10b981, #059669); color:#fff; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; box-shadow:0 4px 14px rgba(16,185,129,0.35); transition:transform 0.15s ease;">
+                    <i class="fa-solid fa-location-crosshairs"></i> Check In (+50 XP)
                 </button>
-                <button id="sheet-fav-btn" onclick="window.toggleMapFavorite(this)" class="btn-sheet-fav" aria-label="Save to favorites">
+                <button id="btn-add-itinerary" onclick="window.addToItinerary()" class="btn-add-itinerary-premium" style="flex:1;">
+                    <i class="fa-solid fa-calendar-plus"></i> Add to Trip
+                </button>
+                <button id="sheet-fav-btn" onclick="window.toggleMapFavorite(this)" class="btn-sheet-fav" aria-label="Save to favorites" style="flex-shrink:0;">
                     <i class="fa-solid fa-heart"></i>
                 </button>
             </div>
@@ -2227,6 +2250,27 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             }
         }
 
+        // Set Visitors & Rating stats in quick stats grid
+        const visitorsEl = document.getElementById('sheet-visitors');
+        if (visitorsEl) {
+            const vCount = parseInt(locationData.visits) || 0;
+            visitorsEl.textContent = vCount === 1 ? '1 Visitor' : `${vCount} Visitors`;
+        }
+
+        const ratingEl = document.getElementById('sheet-rating');
+        if (ratingEl) {
+            const rVal = (locationData.rating && parseFloat(locationData.rating) > 0) ? parseFloat(locationData.rating).toFixed(1) : '5.0';
+            ratingEl.textContent = `${rVal} ★`;
+        }
+
+        // Reset check-in button state
+        const checkinBtn = document.getElementById('btn-checkin-spot');
+        if (checkinBtn) {
+            checkinBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Check In (+50 XP)';
+            checkinBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+            checkinBtn.disabled = false;
+        }
+
         // Sync heart button state (red if saved, faded if unsaved)
         window.updateSheetFavButton(window.isPlaceSaved(locationData.id));
         
@@ -3261,15 +3305,85 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             const text = await response.text();
             const data = window.safeJsonParse(text, {});
             if (response.ok) {
-                if (typeof showToast === 'function') showToast("Thank you for your feedback! 🗣️");
+                if (typeof showToast === 'function') showToast(data.message || "Thank you for your rating & feedback! 🗣️");
                 window.closeWriteTestimonyModal();
                 fetchTestimonies(spotId);
+
+                // Update rating in current sheet live
+                if (window.currentDestinationForRoute && window.currentDestinationForRoute.id == spotId) {
+                    const newRating = data.spot_rating || rating;
+                    window.currentDestinationForRoute.rating = newRating;
+                    const ratingEl = document.getElementById('sheet-rating');
+                    if (ratingEl) ratingEl.textContent = parseFloat(newRating).toFixed(1) + ' ★';
+                }
             } else {
                 if (typeof showToast === 'function') showToast(data.message || "Failed to submit review.");
             }
         } catch (error) {
             console.error("Testimony submission error:", error);
             if (typeof showToast === 'function') showToast("Network error.");
+        }
+    };
+
+    window.checkInAtCurrentSpot = async function() {
+        if (!window.currentDestinationForRoute || !window.currentDestinationForRoute.id) return;
+        const dest = window.currentDestinationForRoute;
+        const token = localStorage.getItem('intan_elyu_token');
+        if (!token) {
+            if (typeof showToast === 'function') showToast('Please log in to check in.');
+            return;
+        }
+
+        const btn = document.getElementById('btn-checkin-spot');
+        const origHtml = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking in...';
+            btn.disabled = true;
+        }
+
+        try {
+            const _backendUrl = window.backendUrl || '';
+            const res = await fetch(_backendUrl + '/api/tourist/destinations/' + dest.id + '/check-in', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({
+                    lat: window.myLat || dest.lat || dest.latitude,
+                    lng: window.myLng || dest.lng || dest.longitude
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok && (data.status === 'success' || data.success)) {
+                if (typeof showToast === 'function') showToast(data.message || `🎉 Check-in verified! Earned +50 XP & +50 Points at ${dest.name}!`);
+                
+                // Update local spot visitors count
+                const newVisits = data.visits || ((parseInt(dest.visits) || 0) + 1);
+                dest.visits = newVisits;
+                const visitorsEl = document.getElementById('sheet-visitors');
+                if (visitorsEl) visitorsEl.textContent = newVisits === 1 ? '1 Visitor' : `${newVisits} Visitors`;
+                
+                if (btn) {
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Checked In!';
+                    btn.style.background = 'linear-gradient(135deg, #059669, #047857)';
+                }
+            } else {
+                if (typeof showToast === 'function') showToast(data.message || 'Check-in failed.');
+                if (btn) {
+                    btn.innerHTML = origHtml;
+                    btn.disabled = false;
+                }
+            }
+        } catch (err) {
+            console.error('Check-in error:', err);
+            if (typeof showToast === 'function') showToast('Network error during check-in.');
+            if (btn) {
+                btn.innerHTML = origHtml;
+                btn.disabled = false;
+            }
         }
     };
 

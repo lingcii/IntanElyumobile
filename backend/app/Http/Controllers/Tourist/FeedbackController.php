@@ -163,9 +163,10 @@ class FeedbackController extends Controller
         }
 
         return response()->json([
-            'status' => 'success',
-            'message' => 'Thank you for your testimony and feedback! (+25 XP & +25 Points earned)',
-            'data' => $feedback
+            'status'      => 'success',
+            'message'     => 'Thank you for your testimony and feedback! (+25 XP & +25 Points earned)',
+            'data'        => $feedback,
+            'spot_rating' => isset($spot) && $spot ? $spot->rating : ($request->rating ?? 5.0)
         ]);
     }
 }

@@ -216,6 +216,29 @@ class ItineraryController extends Controller
 
         $itinerary->update(['status' => 'completed']);
 
+        // Mark all items as visited and increment spot visits
+        $itemsToVisit = $itinerary->items()->get();
+        foreach ($itemsToVisit as $item) {
+            if (!$item->is_visited) {
+                $item->update([
+                    'is_visited'   => true,
+                    'visited_at'   => $item->visited_at ?? now(),
+                    'proof_status' => 'approved',
+                ]);
+                if ($item->tourist_spot_id) {
+                    $spot = TouristSpot::find($item->tourist_spot_id);
+                    if ($spot) {
+                        $spot->increment('visits');
+                    }
+                }
+            }
+        }
+
+        // Invalidate map and trending caches
+        Cache::forget('map:public:spots');
+        Cache::forget('trending:top:5');
+        Cache::forget('trending:top:10');
+
         try {
             $user->increment('xp', 100);
             $user->increment('completed_activities');
