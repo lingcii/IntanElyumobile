@@ -847,23 +847,7 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
                 ];
             });
 
-            $points = \App\Models\UserPoint::with('user:id,name,avatar')->latest()->limit(25)->get()->map(function ($up) {
-                $uName = $up->user ? $up->user->name : 'Tourist';
-                return [
-                    'id'          => 'pt_' . $up->id,
-                    'user_id'     => $up->user_id,
-                    'user_name'   => $uName,
-                    'name'        => $uName,
-                    'action'      => 'Points & XP Awarded',
-                    'details'     => "Earned +{$up->points} points (" . ($up->reason ?: $up->activity_type) . ")",
-                    'description' => "Earned +{$up->points} points (" . ($up->reason ?: $up->activity_type) . ")",
-                    'module'      => 'Gamification',
-                    'ip_address'  => '127.0.0.1',
-                    'created_at'  => $up->created_at ? $up->created_at->toIso8601String() : now()->toIso8601String(),
-                    'date'        => $up->created_at ? $up->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
-                    'user'        => $up->user ? ['id' => $up->user->id, 'name' => $up->user->name, 'avatar' => $up->user->avatar] : null,
-                ];
-            });
+            $points = collect();
 
             $itinItems = \App\Models\ItineraryItem::with(['itinerary.user:id,name,avatar', 'destination:id,name'])->latest()->limit(25)->get()->map(function ($it) {
                 $u = $it->itinerary ? $it->itinerary->user : null;
@@ -1309,20 +1293,7 @@ $activityLogsHandler = function (\Illuminate\Http\Request $request) {
         'date'        => $fb->created_at ? $fb->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
         'user'        => $fb->user ? ['id' => $fb->user->id, 'name' => $fb->user->name, 'avatar' => $fb->user->avatar] : null,
     ]);
-    $points = \App\Models\UserPoint::with('user:id,name,avatar')->latest()->limit(25)->get()->map(fn($up) => [
-        'id'          => 'pt_' . $up->id,
-        'user_id'     => $up->user_id,
-        'user_name'   => $up->user ? $up->user->name : 'Tourist',
-        'name'        => $up->user ? $up->user->name : 'Tourist',
-        'action'      => 'Points & XP Awarded',
-        'details'     => "Earned +{$up->points} points (" . ($up->reason ?: $up->activity_type) . ")",
-        'description' => "Earned +{$up->points} points (" . ($up->reason ?: $up->activity_type) . ")",
-        'module'      => 'Gamification',
-        'ip_address'  => '127.0.0.1',
-        'created_at'  => $up->created_at ? $up->created_at->toIso8601String() : now()->toIso8601String(),
-        'date'        => $up->created_at ? $up->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
-        'user'        => $up->user ? ['id' => $up->user->id, 'name' => $up->user->name, 'avatar' => $up->user->avatar] : null,
-    ]);
+    $points = collect();
     $itinItems = \App\Models\ItineraryItem::with(['itinerary.user:id,name,avatar', 'destination:id,name'])->latest()->limit(25)->get()->map(fn($it) => [
         'id'          => 'itin_' . $it->id,
         'user_id'     => $it->itinerary ? $it->itinerary->user_id : null,

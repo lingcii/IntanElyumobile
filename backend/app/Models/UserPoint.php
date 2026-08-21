@@ -27,39 +27,19 @@ class UserPoint extends Model
     }
 
     /**
-     * Safely award points to a user, guarding against missing tables or columns.
+     * Safely award points to a user, incrementing users.points and logging to activity_logs.
      */
     public static function awardPointsSafely(int $userId, int $points, string $source, string $description, ?int $spotId = null): ?self
     {
         try {
-            if (!\Illuminate\Support\Facades\Schema::hasTable('user_points')) {
-                return null;
-            }
-            if (!\Illuminate\Support\Facades\Schema::hasColumn('user_points', 'points')) {
-                return null;
-            }
-
-            $data = [
-                'user_id'     => $userId,
-                'points'      => $points,
-                'source'      => $source,
-                'description' => $description,
-            ];
-
-            if ($spotId && \Illuminate\Support\Facades\Schema::hasColumn('user_points', 'spot_id')) {
-                $data['spot_id'] = $spotId;
-            }
-
-            $up = self::create($data);
-
-            // Also increment points on users table
+            // Increment points on users table
             try {
                 if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
                     User::where('id', $userId)->increment('points', $points);
                 }
             } catch (\Throwable $e) {}
 
-            // Also record in activity_logs
+            // Record in activity_logs
             try {
                 if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
                     $sourceLabel = ucwords(str_replace('_', ' ', $source));
@@ -70,11 +50,9 @@ class UserPoint extends Model
                         'ip_address' => request()->ip() ?? '127.0.0.1',
                     ]);
                 }
-            } catch (\Throwable $e) {
-                // Ignore activity log errors
-            }
+            } catch (\Throwable $e) {}
 
-            return $up;
+            return null;
         } catch (\Throwable $e) {
             return null;
         }

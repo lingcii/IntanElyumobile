@@ -109,10 +109,8 @@ class VoucherController extends Controller
 
         $cost = (int) ($voucher->required_points ?: 100);
 
-        // Calculate points balance
-        $earned = (int) UserPoint::where('user_id', $user->id)->sum('points');
-        $redeemed = (int) PointRedemption::where('user_id', $user->id)->sum('points_cost');
-        $balance = max(0, $earned - $redeemed);
+        // Calculate points balance directly from users table
+        $balance = (int) ($user->points ?? 0);
 
         if ($balance < $cost) {
             return response()->json([
