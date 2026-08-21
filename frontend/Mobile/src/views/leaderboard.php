@@ -192,7 +192,7 @@ $activeTab = 'leaderboard';
                 url = backendUrl + '/api/tourist/leaderboard';
             }
 
-            const cacheKey = 'leaderboard_data_v12_' + (token ? token.substring(0, 10) : 'public');
+            const cacheKey = 'leaderboard_data_v13_' + (token ? token.substring(0, 10) : 'public');
             const fetchCache = window.useCache || (async (key, fetcher, renderer) => { const d = await fetcher(); if (renderer) renderer(d); return d; });
 
             await fetchCache(
@@ -473,7 +473,6 @@ $activeTab = 'leaderboard';
             return `
         <div class="rank-item ${activeClass}" style="animation-delay: ${Math.max(0, delay)}s;" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${xp}, ${pts}, ${rank}, ${level}, ${activities}, '${safeLocation}', '${safeBio}')">
             <div style="display: flex; align-items: center; min-width: 0; flex: 1;">
-                <div class="rank-number-box">${rank}</div>
                 <img src="${avatarUrl}" alt="${displayName}" class="rank-avatar" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128';">
                 <div class="rank-info">
                     <div class="rank-user-name">
