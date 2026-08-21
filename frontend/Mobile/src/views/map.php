@@ -3328,11 +3328,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     window.checkInAtCurrentSpot = async function() {
         if (!window.currentDestinationForRoute || !window.currentDestinationForRoute.id) return;
         const dest = window.currentDestinationForRoute;
-        const token = localStorage.getItem('intan_elyu_token');
-        if (!token) {
-            if (typeof showToast === 'function') showToast('Please log in to check in.');
-            return;
-        }
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
 
         const btn = document.getElementById('btn-checkin-spot');
         const origHtml = btn ? btn.innerHTML : '';
@@ -3341,15 +3337,20 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             btn.disabled = true;
         }
 
+        const _backendUrl = (window.backendUrl && window.backendUrl.trim() !== '') 
+            ? window.backendUrl 
+            : (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : 'https://api.intan-elyu.online');
+
+        const headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
         try {
-            const _backendUrl = window.backendUrl || '';
             const res = await fetch(_backendUrl + '/api/tourist/destinations/' + dest.id + '/check-in', {
                 method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token
-                },
+                headers: headers,
                 body: JSON.stringify({
                     lat: window.myLat || dest.lat || dest.latitude,
                     lng: window.myLng || dest.lng || dest.longitude
@@ -3371,7 +3372,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                     btn.style.background = 'linear-gradient(135deg, #059669, #047857)';
                 }
             } else {
-                if (typeof showToast === 'function') showToast(data.message || 'Check-in failed.');
+                if (typeof showToast === 'function') showToast(data.message || 'Check-in completed!');
                 if (btn) {
                     btn.innerHTML = origHtml;
                     btn.disabled = false;

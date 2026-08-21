@@ -547,8 +547,22 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
             ]);
         });
 
-        Route::get('/tourist-spots', function () {
-            $spots = \App\Models\TouristSpot::with('municipality')->get();
+        Route::get('/tourist-spots', function (Illuminate\Http\Request $request) {
+            $muniId = $request->query('municipality_id');
+            $query = \App\Models\TouristSpot::with(['municipality:id,name', 'images']);
+            if ($muniId) {
+                $query->where('municipality_id', $muniId);
+            }
+            $spots = $query->get()->map(function ($spot) {
+                $spot->visits = (int) ($spot->visits ?? 0);
+                if (!$spot->rating || (float)$spot->rating <= 0) {
+                    $avg = \App\Models\SiteFeedback::where('tourist_spot_id', $spot->id)->whereNotNull('rating')->avg('rating');
+                    $spot->rating = $avg ? round((float)$avg, 1) : 0.0;
+                } else {
+                    $spot->rating = round((float)$spot->rating, 1);
+                }
+                return $spot;
+            });
             return response()->json($spots);
         });
 
@@ -922,11 +936,6 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
 
     // AR and Instant GPS Check-in
     Route::post('/points/ar-checkin', function (\Illuminate\Http\Request $request) {
-        $user = $request->user();
-        if (!$user) {
-            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
-        }
-
         $spotId = $request->input('spot_id');
         $spot = TouristSpot::find($spotId);
         if (!$spot) {
@@ -936,17 +945,19 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
         // Increment spot visits count in database
         $spot->increment('visits');
 
-        // Award +50 XP and +50 points
-        try {
-            $user->increment('xp', 50);
-            $user->increment('completed_activities');
-            \App\Models\UserPoint::awardPointsSafely(
-                $user->id,
-                50,
-                'ar_checkin',
-                "AR/GPS Check-in at {$spot->name}"
-            );
-        } catch (\Throwable $e) {}
+        $user = $request->user();
+        if ($user) {
+            try {
+                $user->increment('xp', 50);
+                $user->increment('completed_activities');
+                \App\Models\UserPoint::awardPointsSafely(
+                    $user->id,
+                    50,
+                    'ar_checkin',
+                    "AR/GPS Check-in at {$spot->name}"
+                );
+            } catch (\Throwable $e) {}
+        }
 
         // Invalidate map and trending caches
         \Illuminate\Support\Facades\Cache::forget('map:public:spots');
@@ -957,7 +968,7 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
             'status'        => 'success',
             'success'       => true,
             'message'       => "🎉 Check-in Verified at {$spot->name}! Earned +50 XP & +50 Points!",
-            'visits'        => $spot->fresh()->visits,
+            'visits'        => (int) $spot->fresh()->visits,
             'xp_earned'     => 50,
             'points_earned' => 50,
         ]);
@@ -965,24 +976,22 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
 
     // Direct Destination Check-in
     Route::post('/destinations/{id}/check-in', function (\Illuminate\Http\Request $request, int $id) {
-        $user = $request->user();
-        if (!$user) {
-            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
-        }
-
         $spot = TouristSpot::findOrFail($id);
         $spot->increment('visits');
 
-        try {
-            $user->increment('xp', 50);
-            $user->increment('completed_activities');
-            \App\Models\UserPoint::awardPointsSafely(
-                $user->id,
-                50,
-                'check_in',
-                "Direct Check-in at {$spot->name}"
-            );
-        } catch (\Throwable $e) {}
+        $user = $request->user();
+        if ($user) {
+            try {
+                $user->increment('xp', 50);
+                $user->increment('completed_activities');
+                \App\Models\UserPoint::awardPointsSafely(
+                    $user->id,
+                    50,
+                    'check_in',
+                    "Direct Check-in at {$spot->name}"
+                );
+            } catch (\Throwable $e) {}
+        }
 
         \Illuminate\Support\Facades\Cache::forget('map:public:spots');
         \Illuminate\Support\Facades\Cache::forget('trending:top:5');
@@ -992,7 +1001,7 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
             'status'        => 'success',
             'success'       => true,
             'message'       => "🎉 Check-in completed at {$spot->name}! Earned +50 XP & +50 Points!",
-            'visits'        => $spot->fresh()->visits,
+            'visits'        => (int) $spot->fresh()->visits,
             'xp_earned'     => 50,
             'points_earned' => 50,
         ]);
@@ -1031,12 +1040,55 @@ Route::prefix('analytics')->group(function () {
     Route::any('/{action}',           [AnalyticsController::class, 'handleAction']);
 });
 
+// Top-level Public Check-in and Rating aliases
+Route::post('/public/destinations/{id}/check-in', function (\Illuminate\Http\Request $request, int $id) {
+    $spot = TouristSpot::findOrFail($id);
+    $spot->increment('visits');
+    \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+    \Illuminate\Support\Facades\Cache::forget('trending:top:5');
+    return response()->json(['status' => 'success', 'success' => true, 'visits' => (int) $spot->fresh()->visits]);
+});
+Route::post('/destinations/{id}/check-in', function (\Illuminate\Http\Request $request, int $id) {
+    $spot = TouristSpot::findOrFail($id);
+    $spot->increment('visits');
+    \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+    \Illuminate\Support\Facades\Cache::forget('trending:top:5');
+    return response()->json(['status' => 'success', 'success' => true, 'visits' => (int) $spot->fresh()->visits]);
+});
+Route::post('/points/ar-checkin', function (\Illuminate\Http\Request $request) {
+    $spotId = $request->input('spot_id');
+    $spot = TouristSpot::find($spotId);
+    if (!$spot) return response()->json(['status' => 'error'], 404);
+    $spot->increment('visits');
+    \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+    \Illuminate\Support\Facades\Cache::forget('trending:top:5');
+    return response()->json(['status' => 'success', 'success' => true, 'visits' => (int) $spot->fresh()->visits]);
+});
+Route::post('/feedback', [FeedbackController::class, 'store']);
+Route::post('/destinations/{id}/rate', function (\Illuminate\Http\Request $request, int $id) {
+    $spot = TouristSpot::findOrFail($id);
+    $rating = (int) $request->input('rating', 5);
+    $user = $request->user();
+    \App\Models\SiteFeedback::updateOrCreate(
+        ['user_id' => $user ? $user->id : null, 'tourist_spot_id' => $id],
+        ['rating' => $rating]
+    );
+    $avg = \App\Models\SiteFeedback::where('tourist_spot_id', $id)->whereNotNull('rating')->avg('rating');
+    $spot->rating = round((float) ($avg ?: $rating), 1);
+    $spot->save();
+    \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+    \Illuminate\Support\Facades\Cache::forget('trending:top:5');
+    return response()->json(['status' => 'success', 'success' => true, 'spot_rating' => $spot->rating]);
+});
+
 // Top-level Leaderboard aliases
-Route::get('/leaderboard',       [LeaderboardController::class, 'index']);
-Route::get('/admin/leaderboard', [LeaderboardController::class, 'index']);
-Route::get('/lupto/leaderboard', [LeaderboardController::class, 'index']);
-Route::get('/picto/leaderboard', [LeaderboardController::class, 'index']);
-Route::get('/pitco/leaderboard', [LeaderboardController::class, 'index']);
+Route::get('/leaderboard',           [LeaderboardController::class, 'index']);
+Route::get('/admin/leaderboard',     [LeaderboardController::class, 'index']);
+Route::get('/lupto/leaderboard',     [LeaderboardController::class, 'index']);
+Route::get('/picto/leaderboard',     [LeaderboardController::class, 'index']);
+Route::get('/pitco/leaderboard',     [LeaderboardController::class, 'index']);
 Route::get('/municipal/leaderboard', [LeaderboardController::class, 'index']);
+
+
 
 
