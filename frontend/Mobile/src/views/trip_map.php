@@ -24,11 +24,6 @@ require_once __DIR__ . '/../components/header.php';
 
 <div id="trip-map" style="width: 100%; height: 100vh; background: #0a0f1c;"></div>
 
-<!-- Floating Locate Me Button -->
-<div class="btn-locate-me animate-slide-up" id="btn-trip-locate-me" style="position: absolute; bottom: 180px; right: 16px; width: 44px; height: 44px; border-radius: 14px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(56, 189, 248, 0.35); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 18px; z-index: 1000; cursor: pointer; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);" onclick="window.locateTripUser()">
-    <i class="fa-solid fa-crosshairs"></i>
-</div>
-
 <!-- Floating Destination Conveyor Carousel -->
 <div id="trip-conveyor-wrapper" style="position: absolute; bottom: max(env(safe-area-inset-bottom), 16px); left: 0; right: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 12px; pointer-events: none; width: 100%; box-sizing: border-box; overflow: hidden;">
     
