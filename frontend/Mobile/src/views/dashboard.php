@@ -267,6 +267,24 @@ if (is_dir($imgDir)) {
     </div>
 </div>
 
+<!-- Delete Trip Confirmation Modal -->
+<div id="delete-trip-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.8); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center;">
+    <div style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); border:1px solid rgba(239, 68, 68, 0.35); border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:0 24px 60px rgba(0,0,0,0.6), 0 0 30px rgba(239, 68, 68, 0.2); text-align:center;">
+        <i class="fa-solid fa-trash-can" style="font-size:32px; color:#ef4444; margin-bottom:10px; display:block;"></i>
+        <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Delete Saved Trip?</h3>
+        <p id="delete-trip-title-text" style="font-size:13px; color:rgba(226, 232, 240, 0.8); margin-bottom:22px; line-height:1.5;">Are you sure you want to delete this trip? All saved itinerary items will be removed.</p>
+
+        <div style="display:flex; gap:10px;">
+            <button type="button" style="flex:1; padding:13px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#e2e8f0; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeDeleteTripModal()">
+                Cancel
+            </button>
+            <button type="button" id="btn-confirm-delete-trip" style="flex:1; padding:13px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border:1px solid rgba(255,255,255,0.2); color:#ffffff; border-radius:14px; box-shadow:0 4px 16px rgba(239,68,68,0.4); cursor:pointer;" onclick="window.executeConfirmDeleteTrip()">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
     window.filterCategoryDash = function(cat, el) {
@@ -1071,6 +1089,9 @@ if (is_dir($imgDir)) {
                                                 <button onclick="navigateTo('saved_trips')" style="flex:1; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
                                                     <i class="fa-solid fa-route"></i> View Details
                                                 </button>
+                                                <button onclick="event.stopPropagation(); window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}')" style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:12px 14px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; flex-shrink:0;" title="Delete Trip">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -1522,7 +1543,7 @@ window.toggleRecommendedMore = function() {
         const id = window._pendingDeleteTripId;
         const element = window._pendingDeleteTripContainer;
         const btn = document.getElementById('btn-confirm-delete-trip');
-        const token = localStorage.getItem('intan_elyu_token');
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
         if (!id || !token) {
             window.closeDeleteTripModal();
             return;
@@ -1542,9 +1563,11 @@ window.toggleRecommendedMore = function() {
                 }
             });
 
-            // Clear local cached saved trips
-            const cacheKey = 'saved_trips_' + token.substring(0, 10);
-            localStorage.removeItem(cacheKey);
+            // Clear local cached saved trips in both views
+            const tokenKey = token.substring(0, 10);
+            localStorage.removeItem('saved_trips_' + tokenKey);
+            localStorage.removeItem('dashboard_trips_' + tokenKey);
+            localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
 
             if (res.ok || res.status === 404) {
                 if (element) {
@@ -1554,12 +1577,15 @@ window.toggleRecommendedMore = function() {
                     setTimeout(() => {
                         element.remove();
                         const tripsContainer = document.getElementById('saved-trips-container');
-                        if (tripsContainer && tripsContainer.children.length === 0) {
+                        if (tripsContainer && (!tripsContainer.querySelectorAll('.trip-swipe-container') || tripsContainer.querySelectorAll('.trip-swipe-container').length === 0)) {
                             tripsContainer.innerHTML = `
-                                <div style="padding: 28px 20px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: rgba(15,23,42,0.6); border: 1px solid rgba(56,189,248,0.15); border-radius: 20px; box-sizing: border-box;">
-                                    <i class="fa-solid fa-route" style="font-size: 32px; color: #38bdf8;"></i>
-                                    <div style="color: rgba(148,163,184,0.9); font-size: 14px; font-weight: 600; line-height: 1.4;">No saved trips yet.</div>
-                                    <button onclick="navigateTo('itinerary')" style="background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; border: none; padding: 11px 24px; border-radius: 100px; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(56,189,248,0.3); cursor: pointer; white-space: nowrap;">
+                                <div class="dash-empty-state">
+                                    <div class="dash-empty-icon-wrap">
+                                        <i class="fa-solid fa-route"></i>
+                                    </div>
+                                    <div class="dash-empty-title">No Saved Trips Yet</div>
+                                    <div class="dash-empty-desc">Create custom itineraries and explore recommended routes for your La Union adventure.</div>
+                                    <button type="button" onclick="navigateTo('itinerary')" class="dash-empty-btn">
                                         <i class="fa-solid fa-plus"></i> Plan a Trip
                                     </button>
                                 </div>

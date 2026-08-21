@@ -773,8 +773,12 @@ $backRoute = 'itinerary';
                 }
 
                 // Invalidate cache and refetch saved trips
-                const token = localStorage.getItem('intan_elyu_token');
-                if (token) localStorage.removeItem('saved_trips_' + token.substring(0, 10));
+                const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                if (token) {
+                    const tokenKey = token.substring(0, 10);
+                    localStorage.removeItem('saved_trips_' + tokenKey);
+                    localStorage.removeItem('dashboard_trips_' + tokenKey);
+                }
                 window.fetchSavedTrips(true);
 
                 // Show Trip Completed modal with Review buttons for visited spots
@@ -926,7 +930,12 @@ $backRoute = 'itinerary';
                 }
             });
 
-            if (res.ok) {
+            if (res.ok || res.status === 404) {
+                const tokenKey = token.substring(0, 10);
+                localStorage.removeItem('saved_trips_' + tokenKey);
+                localStorage.removeItem('dashboard_trips_' + tokenKey);
+                localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
+
                 if (typeof showToast === 'function') showToast("Trip deleted successfully.");
                 if (element) {
                     element.style.transition = 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)';

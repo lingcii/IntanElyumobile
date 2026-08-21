@@ -354,11 +354,6 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                         <div id="sheet-testimonies-section" style="display:none; margin-top:14px; padding-top:14px; border-top:1px dashed rgba(255,255,255,0.08);">
                             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
                                 <h4 style="margin:0; font-size:12.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff;">Tourist Testimonies</h4>
-                                <div style="display:flex; align-items:center; gap:6px;">
-                                    <button type="button" onclick="window.openWriteTestimonyModal()" style="background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:#fff; font-size:11px; font-weight:800; padding:5px 12px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 8px rgba(56,189,248,0.3);">
-                                        <i class="fa-solid fa-star" style="font-size:10px;"></i> Rate & Review
-                                    </button>
-                                </div>
                             </div>
                             <div id="testimonies-summary-metrics" style="display:none;"></div>
                             <div id="testimonies-list-container" style="display:flex; flex-direction:column; gap:8px;">
