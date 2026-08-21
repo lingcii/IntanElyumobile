@@ -115,4 +115,9 @@ class TouristSpot extends Model
     {
         return $this->hasMany(SiteFeedback::class, 'tourist_spot_id');
     }
+
+    public function userPoints()
+    {
+        return $this->hasMany(UserPoint::class, 'spot_id');
+    }
 }

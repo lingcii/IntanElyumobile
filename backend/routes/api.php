@@ -1124,7 +1124,8 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
                     $user->id,
                     50,
                     'ar_checkin',
-                    "AR/GPS Check-in at {$spot->name}"
+                    "AR/GPS Check-in at {$spot->name}",
+                    $spot->id
                 );
             } catch (\Throwable $e) {}
         }
@@ -1158,7 +1159,8 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
                     $user->id,
                     50,
                     'check_in',
-                    "Direct Check-in at {$spot->name}"
+                    "Direct Check-in at {$spot->name}",
+                    $spot->id
                 );
             } catch (\Throwable $e) {}
         }
