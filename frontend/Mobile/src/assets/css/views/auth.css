@@ -25,35 +25,38 @@ body[data-view="auth"] {
     background: #1e293b;
     position: relative;
     overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* --- Top Blue Section --- */
 .auth-top {
     position: relative;
     width: 100%;
-    height: 45vh;
-    min-height: 350px;
+    height: 36vh;
+    min-height: 230px;
+    max-height: 290px;
     background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding-bottom: 40px;
+    padding-bottom: 30px;
     /* Space for wave */
 }
 
 /* Circle Logo */
 .logo-container {
-    width: 140px;
-    height: 140px;
+    width: 110px;
+    height: 110px;
     background: #ffffff;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 16px;
+    margin-bottom: 10px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-    padding: 5px;
+    padding: 4px;
     position: relative;
     z-index: 10;
 }
@@ -66,8 +69,8 @@ body[data-view="auth"] {
 }
 
 .auth-top h1 {
-    font-size: 32px;
-    font-weight: 400;
+    font-size: 26px;
+    font-weight: 800;
     color: #ffffff;
     margin: 0;
     letter-spacing: 0.5px;
@@ -94,7 +97,7 @@ body[data-view="auth"] {
     display: block;
     width: 200vw;
     /* Double width for smooth infinite panning */
-    height: 70px;
+    height: 50px;
 }
 
 .wave-layer {
@@ -126,9 +129,10 @@ body[data-view="auth"] {
 .auth-bottom {
     flex: 1;
     background: #1e293b;
-    padding: 20px 40px calc(40px + env(safe-area-inset-bottom, 0px)) 40px;
+    padding: 20px 32px calc(30px + env(safe-area-inset-bottom, 0px)) 32px;
     display: flex;
     flex-direction: column;
+    justify-content: flex-start;
     position: relative;
     z-index: 5;
     margin-bottom: 0;
@@ -152,7 +156,7 @@ body[data-view="auth"] {
     display: flex;
     justify-content: space-evenly;
     align-items: center;
-    margin-bottom: 40px;
+    margin-bottom: 24px;
     opacity: 0;
     animation: popUpSmooth 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
@@ -262,7 +266,7 @@ body[data-view="auth"] {
 .input-group {
     position: relative;
     border-bottom: 1px solid #334155;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     transition: border-color 0.3s;
     width: 100%;
     opacity: 0;
@@ -430,8 +434,8 @@ body[data-view="auth"] {
     font-size: 13px;
     color: #38bdf8;
     text-decoration: none;
-    margin-bottom: 30px;
-    margin-top: -10px;
+    margin-bottom: 20px;
+    margin-top: -6px;
     font-weight: 500;
     opacity: 0;
     animation: popUpSmooth 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.25s;
@@ -439,13 +443,13 @@ body[data-view="auth"] {
 
 /* Circular Submit Button */
 .btn-circle-submit {
-    width: 60px;
-    height: 60px;
+    width: 54px;
+    height: 54px;
     border-radius: 50%;
     background: #1e3a8a;
     color: #ffffff;
     border: none;
-    font-size: 24px;
+    font-size: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -587,10 +591,10 @@ body[data-view="auth"] {
     body[data-view="auth"] .auth-container,
     body[data-view="reset-password"] .auth-container {
         max-width: 420px;
-        min-height: 85vh;
-        max-height: 92vh;
+        min-height: auto;
+        max-height: 94vh;
         border-radius: 28px;
         box-shadow: 0 24px 70px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1);
-        margin: 20px auto;
+        margin: auto;
     }
 }
