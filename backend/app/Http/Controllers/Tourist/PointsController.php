@@ -294,6 +294,18 @@ class PointsController extends Controller
             ['action_url' => '/discount']
         );
 
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
+                $typeLabel = ucwords(str_replace('_', ' ', $type));
+                \App\Models\ActivityLog::create([
+                    'user_id'    => $user->id,
+                    'action'     => 'Points Redeemed',
+                    'details'    => "Redeemed {$cost} points for {$typeLabel} (Code: {$code})",
+                    'ip_address' => $request->ip() ?? '127.0.0.1',
+                ]);
+            }
+        } catch (\Throwable $e) {}
+
         return response()->json([
             'status' => 'success',
             'message' => 'Reward redeemed successfully!',

@@ -33,12 +33,29 @@ class UserPoint extends Model
                 return null;
             }
 
-            return self::create([
+            $up = self::create([
                 'user_id'     => $userId,
                 'points'      => $points,
                 'source'      => $source,
                 'description' => $description,
             ]);
+
+            // Also record in activity_logs
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
+                    $sourceLabel = ucwords(str_replace('_', ' ', $source));
+                    \App\Models\ActivityLog::create([
+                        'user_id'    => $userId,
+                        'action'     => 'Points Awarded',
+                        'details'    => "Earned +{$points} Points ({$sourceLabel}): {$description}",
+                        'ip_address' => request()->ip() ?? '127.0.0.1',
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                // Ignore activity log errors
+            }
+
+            return $up;
         } catch (\Throwable $e) {
             return null;
         }

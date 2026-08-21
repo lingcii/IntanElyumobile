@@ -146,6 +146,17 @@ class VoucherController extends Controller
             ['action_url' => '/discount']
         );
 
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
+                \App\Models\ActivityLog::create([
+                    'user_id'    => $user->id,
+                    'action'     => 'Voucher Redeemed',
+                    'details'    => "Redeemed {$cost} points for '{$voucher->voucher_name}' (Code: {$redemption->voucher_code})",
+                    'ip_address' => $request->ip() ?? '127.0.0.1',
+                ]);
+            }
+        } catch (\Throwable $e) {}
+
         $newBalance = max(0, $balance - $cost);
 
         return response()->json([
