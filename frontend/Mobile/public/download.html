@@ -491,7 +491,7 @@
       </a>
       <div class="file-info">
         <span><i class="fa-solid fa-file-zipper"></i> APK File</span>
-        <span><i class="fa-solid fa-hard-drive"></i> ~8.8 MB</span>
+        <span><i class="fa-solid fa-hard-drive"></i> ~32.4 MB</span>
         <span><i class="fa-solid fa-lock"></i> Signed Release</span>
       </div>
       <div style="margin-top: 12px; font-size: 12px; color: rgba(148,163,184,0.75);">
@@ -558,12 +558,13 @@
   <!-- QR Code Generator -->
   <script>
     (function () {
-      var directUrl = (window.location.origin || 'https://app.intan-elyu.online') + '/index.php?action=download_apk';
-      var downloadUrl = directUrl;
+      var isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('192.168.') || window.location.hostname.startsWith('10.');
+      var publicApkUrl = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk';
+      var scanDownloadUrl = isLocal ? publicApkUrl : ((window.location.origin || 'https://app.intan-elyu.online') + '/index.php?action=download_apk');
 
       var btn = document.getElementById('download-btn');
       if (btn) {
-        btn.href = downloadUrl;
+        btn.href = 'index.php?action=download_apk';
         btn.setAttribute('download', 'intan-elyu.apk');
       }
 
@@ -572,7 +573,6 @@
       canvas.width = size;
       canvas.height = size;
 
-      // Use Google Charts QR API to fetch QR image
       var qrImg = new Image();
       qrImg.crossOrigin = 'anonymous';
       qrImg.onload = function () {
@@ -582,24 +582,17 @@
         ctx.drawImage(qrImg, 0, 0, size, size);
       };
       qrImg.onerror = function () {
-        // Fallback: show the URL as text
-        var ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, size, size);
-        ctx.fillStyle = '#1e293b';
-        ctx.font = 'bold 14px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Scan QR', size / 2, size / 2 - 10);
-        ctx.font = '11px Inter, sans-serif';
-        ctx.fillText('on live server', size / 2, size / 2 + 10);
+        // Fallback: Google Charts
+        var gImg = new Image();
+        gImg.onload = function() {
+          var ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, size, size);
+          ctx.drawImage(gImg, 0, 0, size, size);
+        };
+        gImg.src = 'https://chart.googleapis.com/chart?cht=qr&chs=' + size + 'x' + size + '&chl=' + encodeURIComponent(scanDownloadUrl) + '&chld=M|1';
       };
-      // Encode URL for QR
-      var qrApiUrl = 'https://chart.googleapis.com/chart?cht=qr&chs=' + size + 'x' + size + '&chl=' + encodeURIComponent(downloadUrl) + '&choe=UTF-8';
-      qrImg.src = qrApiUrl;
-
-      // Update download button href with the same URL
-      var btn = document.getElementById('download-btn');
-      if (btn) btn.href = 'downloads/intan-elyu.apk';
+      qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=' + size + 'x' + size + '&data=' + encodeURIComponent(scanDownloadUrl) + '&margin=1';
     })();
   </script>
 

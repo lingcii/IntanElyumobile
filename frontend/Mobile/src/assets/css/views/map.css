@@ -32,13 +32,13 @@
     outline: none !important;
 }
 
-/* ── Floating Search Bar ── */
+/* ── Floating Search Bar & Categories ── */
 .map-floating-header {
     position: absolute;
     top: env(safe-area-inset-top, 20px);
     left: 16px;
     right: 16px;
-    z-index: 1000 !important;
+    z-index: 50;
     margin-top: 20px;
 }
 
@@ -99,7 +99,7 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    z-index: 1010 !important;
+    z-index: 60;
     padding: 8px;
     opacity: 0;
     visibility: hidden;
@@ -247,7 +247,7 @@
     right: 0;
     bottom: 0;
     width: 100%;
-    z-index: 990;
+    z-index: 1100;
     background: radial-gradient(circle at 50% 0%, rgba(26, 42, 74, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%);
     backdrop-filter: blur(32px);
     -webkit-backdrop-filter: blur(32px);

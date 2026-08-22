@@ -292,9 +292,13 @@ $hideBottomNav = true;
       <i class="fab fa-android"></i>
       Download APK for Android
     </a>
+    <?php
+      $localApk = dirname(__DIR__) . '/downloads/intan-elyu.apk';
+      $apkSizeStr = file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 * 1024), 1) . ' MB' : '~32 MB';
+    ?>
     <div class="file-info">
       <span><i class="fa-solid fa-file-zipper"></i> APK File</span>
-      <span><i class="fa-solid fa-hard-drive"></i> ~8.8 MB</span>
+      <span><i class="fa-solid fa-hard-drive"></i> <?= $apkSizeStr ?></span>
       <span><i class="fa-solid fa-lock"></i> Signed Release</span>
     </div>
     <div style="margin-top: 12px; font-size: 12px; color: rgba(148,163,184,0.75);">
@@ -358,42 +362,68 @@ $hideBottomNav = true;
 <!-- QR Code Generator -->
 <script>
 (function(){
-  var directUrl = (window.location.origin || 'https://app.intan-elyu.online') + '/index.php?action=download_apk';
-  var downloadUrl = directUrl;
+  // Determine download URL
+  // If testing on localhost/127.0.0.1, phone cameras cannot connect to "http://localhost",
+  // so we direct the QR scanner to the live cloud APK mirror so scanning works immediately from any phone!
+  var isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('192.168.') || window.location.hostname.startsWith('10.');
+  var publicApkUrl = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk';
+  var scanDownloadUrl = isLocal ? publicApkUrl : ((window.location.origin || 'https://app.intan-elyu.online') + '/index.php?action=download_apk');
 
-  // Update download button
+  // Direct button download (for the device viewing this page)
   var btn = document.getElementById('download-btn');
   if (btn) {
-    btn.href = downloadUrl;
+    btn.href = 'index.php?action=download_apk';
     btn.setAttribute('download', 'intan-elyu.apk');
   }
 
-  // Generate QR code using lightweight library
+  // Generate QR code using lightweight SVG generator
   var qrContainer = document.getElementById('qr-canvas-wrap');
   if (qrContainer) {
-    var script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';
-    script.onload = function() {
-      var qr = qrcode(0, 'M');
-      qr.addData(downloadUrl);
-      qr.make();
-      qrContainer.innerHTML = qr.createSvgTag({ scalable: true, margin: 2 });
-      qrContainer.querySelector('svg').style.width = '100%';
-      qrContainer.querySelector('svg').style.height = '100%';
-      qrContainer.querySelector('svg').style.borderRadius = '12px';
-    };
-    script.onerror = function() {
-      // Fallback to QR image API
+    function renderSvgQr() {
+      try {
+        var qr = qrcode(0, 'M');
+        qr.addData(scanDownloadUrl);
+        qr.make();
+        qrContainer.innerHTML = qr.createSvgTag({ scalable: true, margin: 1 });
+        var svg = qrContainer.querySelector('svg');
+        if (svg) {
+          svg.style.width = '100%';
+          svg.style.height = '100%';
+          svg.style.display = 'block';
+          svg.style.background = '#ffffff';
+        }
+      } catch (e) {
+        useImageFallback();
+      }
+    }
+
+    function useImageFallback() {
       var img = document.createElement('img');
-      img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(downloadUrl);
-      img.alt = 'QR Code';
+      img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(scanDownloadUrl) + '&margin=1';
+      img.alt = 'Scan QR Code to Download APK';
       img.style.width = '100%';
       img.style.height = '100%';
-      img.style.borderRadius = '12px';
+      img.style.objectFit = 'contain';
+      img.style.display = 'block';
+      img.style.background = '#ffffff';
+      img.onerror = function() {
+        // Tertiary fallback to Google Charts
+        this.onerror = null;
+        this.src = 'https://chart.googleapis.com/chart?cht=qr&chs=180x180&chl=' + encodeURIComponent(scanDownloadUrl) + '&chld=M|1';
+      };
       qrContainer.innerHTML = '';
       qrContainer.appendChild(img);
-    };
-    document.head.appendChild(script);
+    }
+
+    if (typeof qrcode !== 'undefined') {
+      renderSvgQr();
+    } else {
+      var script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';
+      script.onload = function() { renderSvgQr(); };
+      script.onerror = function() { useImageFallback(); };
+      document.head.appendChild(script);
+    }
   }
 })();
 </script>
