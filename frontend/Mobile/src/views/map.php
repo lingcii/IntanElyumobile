@@ -2155,6 +2155,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         const scrollArea = targetSheet.querySelector('.draggable-content');
         if (scrollArea) {
             scrollArea.scrollTop = 0;
+            scrollArea.scrollLeft = 0;
         }
         window.currentDestinationForRoute = locationData;
         if (window.activePopup) {
