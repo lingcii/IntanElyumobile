@@ -254,7 +254,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                     </div>
                     <div class="quick-stat-info">
                         <span class="quick-stat-label">Visitors</span>
-                        <span class="quick-stat-value" id="sheet-visitors">0 Visitors</span>
+                        <span class="quick-stat-value" id="sheet-visitors">Less than 100 this month</span>
                     </div>
                 </div>
                 <div class="quick-stat-card" id="sheet-rating-stat-card">
@@ -2246,7 +2246,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         const visitorsEl = document.getElementById('sheet-visitors');
         if (visitorsEl) {
             const vCount = parseInt(locationData.visits) || 0;
-            visitorsEl.textContent = vCount === 1 ? '1 Visitor' : `${vCount} Visitors`;
+            visitorsEl.textContent = window.formatVisitorCount ? window.formatVisitorCount(vCount) : (vCount < 100 ? 'Less than 100 this month' : `${vCount.toLocaleString()} visitors this month`);
         }
 
         const ratingEl = document.getElementById('sheet-rating');
@@ -3345,7 +3345,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 const newVisits = data.visits || ((parseInt(dest.visits) || 0) + 1);
                 dest.visits = newVisits;
                 const visitorsEl = document.getElementById('sheet-visitors');
-                if (visitorsEl) visitorsEl.textContent = newVisits === 1 ? '1 Visitor' : `${newVisits} Visitors`;
+                if (visitorsEl) visitorsEl.textContent = window.formatVisitorCount ? window.formatVisitorCount(newVisits) : (newVisits < 100 ? 'Less than 100 this month' : `${newVisits.toLocaleString()} visitors this month`);
                 
                 if (btn) {
                     btn.innerHTML = '<i class="fa-solid fa-check"></i> Checked In!';

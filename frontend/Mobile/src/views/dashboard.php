@@ -607,7 +607,7 @@ if (is_dir($imgDir)) {
         if (document.getElementById('dash-stat-places')) document.getElementById('dash-stat-places').textContent = (data.stats && data.stats.placesVisited) ? data.stats.placesVisited : 0;
         if (document.getElementById('dash-stat-xp')) document.getElementById('dash-stat-xp').textContent = xp.toLocaleString();
 
-        // Populate Trending Spots
+        // Populate Trending Spots (Limit to top 5, "See All" opens full list)
         const trendingContainer = document.getElementById('trending-container');
         if (trendingContainer) {
             trendingContainer.innerHTML = '';
@@ -617,7 +617,7 @@ if (is_dir($imgDir)) {
                 trendingContainer.style.paddingRight = '';
                 trendingContainer.style.marginLeft = '';
                 trendingContainer.style.marginRight = '';
-                const trendingList = data.trending;
+                const trendingList = data.trending.slice(0, 5);
                 trendingList.forEach(dest => {
                     const img = window.getDestImage(dest, 600);
                     const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
@@ -650,7 +650,7 @@ if (is_dir($imgDir)) {
             }
         }
 
-        // Populate Saved Places
+        // Populate Saved Places (Limit to top 5, "See All" opens full list)
         const savedContainer = document.getElementById('saved-places-container');
         if (savedContainer) {
             savedContainer.innerHTML = '';
@@ -665,7 +665,7 @@ if (is_dir($imgDir)) {
                 savedContainer.style.paddingRight = '';
                 savedContainer.style.marginLeft = '';
                 savedContainer.style.marginRight = '';
-                const savedList = data.savedPlaces;
+                const savedList = data.savedPlaces.slice(0, 5);
                 savedList.forEach(dest => {
                     const img = window.getDestImage(dest, 600);
                     const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';

@@ -93,6 +93,22 @@ window.setHtml = function (id, html) {
     if (el) el.innerHTML = (html !== undefined && html !== null) ? html : '';
 };
 
+/**
+ * Format destination visitor counts consistently across the application.
+ * If visits < 100, display 'Less than 100 this month'.
+ * If visits >= 100, display '{count} visitors this month' or compact format.
+ */
+window.formatVisitorCount = function (visits, options = {}) {
+    const count = parseInt(visits) || 0;
+    if (count < 100) {
+        return options.compact ? '< 100 this mo.' : 'Less than 100 this month';
+    }
+    if (options.compact) {
+        return `${count.toLocaleString()} visits`;
+    }
+    return `${count.toLocaleString()} visitors this month`;
+};
+
 window.getBackendUrl = function () {
     var url = window.backendUrl || window.BACKEND_URL;
     if (url) {
