@@ -195,7 +195,7 @@
                         <i class="fa-solid fa-paper-plane"></i>
                     </div>
                     <h3 style="margin: 0 0 4px 0; color: white; font-size: 18px; font-weight: 800;">Reset Code Sent</h3>
-                    <p style="color: rgba(255,255,255,0.7); font-size: 12px; margin: 0 0 16px 0;">We sent a 6-digit reset code to <br><strong id="fp-target-email" style="color: #38bdf8; font-family: monospace;"></strong></p>
+                    <p style="color: #000000; font-size: 12px; margin: 0 0 16px 0; font-weight: 500;">We sent a 6-digit reset code to <br><strong id="fp-target-email" style="color: #1d4ed8; font-family: monospace;"></strong></p>
 
                     <form id="form-fp-verify-code" onsubmit="handleVerifyFpCode(event)">
                         <!-- 6 Individual Digit Input Boxes -->
@@ -212,12 +212,12 @@
                             <i class="fa-solid fa-arrow-right"></i>
                         </button>
 
-                        <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 10px;">
+                        <div style="font-size: 12px; color: #000000; margin-top: 10px; font-weight: 500;">
                             Didn't receive email? 
-                            <button type="button" id="fp-resend-btn" onclick="handleResendFpEmail(event)" style="background: none; border: none; color: #38bdf8; font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0;">
+                            <button type="button" id="fp-resend-btn" onclick="handleResendFpEmail(event)" style="background: none; border: none; color: #1d4ed8; font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0;">
                                 Resend Code
                             </button>
-                            <span id="fp-countdown-text" style="display: none; color: #f59e0b; font-weight: 700;">(Resend in <span id="fp-countdown-sec">45</span>s)</span>
+                            <span id="fp-countdown-text" style="display: none; color: #b45309; font-weight: 700;">(Resend in <span id="fp-countdown-sec">45</span>s)</span>
                         </div>
                     </form>
                 </div>
@@ -228,7 +228,7 @@
                         <i class="fa-solid fa-lock"></i>
                     </div>
                     <h3 style="margin: 0 0 4px 0; color: white; font-size: 18px; font-weight: 800;">Create New Password</h3>
-                    <p style="color: rgba(255,255,255,0.7); font-size: 12px; margin: 0 0 20px 0;">Enter your new password below.</p>
+                    <p style="color: #000000; font-size: 12px; margin: 0 0 20px 0; font-weight: 500;">Enter your new password below.</p>
 
                     <form id="form-fp-password" onsubmit="handleResetPasswordSubmit(event)">
                         <div class="input-group" style="margin-bottom: 16px;">

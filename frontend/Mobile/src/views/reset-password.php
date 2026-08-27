@@ -48,7 +48,7 @@ $email = $_GET['email'] ?? '';
 
                 <div class="fp-header" style="margin-bottom: 24px; text-align: center;">
                     <h3 style="font-size: 22px; font-weight: 800; color: #ffffff; margin-bottom: 6px;">Reset Password</h3>
-                    <p style="font-size: 13px; color: #94a3b8;">Create a new password for your account<?php if (!empty($email)): ?><br><strong style="color: #38bdf8; font-family: monospace;"><?= htmlspecialchars($email) ?></strong><?php endif; ?></p>
+                    <p style="font-size: 13px; color: #000000; font-weight: 500;">Create a new password for your account<?php if (!empty($email)): ?><br><strong style="color: #1d4ed8; font-family: monospace;"><?= htmlspecialchars($email) ?></strong><?php endif; ?></p>
                 </div>
 
                 <form id="form-reset-password" onsubmit="handleResetPassword(event)">

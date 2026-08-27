@@ -686,18 +686,26 @@ body[data-view="auth"] {
 
 .fp-header p {
     font-size: 13px;
-    color: #888;
+    color: #000000;
     margin: 0;
+    font-weight: 500;
 }
 
 .back-link {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: #888;
+    color: #000000;
     text-decoration: none;
     font-size: 14px;
+    font-weight: 600;
     margin-bottom: 20px;
+    transition: opacity 0.2s ease;
+}
+
+.back-link:hover {
+    color: #000000;
+    opacity: 0.75;
 }
 
 /* ============================================================
