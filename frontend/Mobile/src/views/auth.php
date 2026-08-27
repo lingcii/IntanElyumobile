@@ -135,10 +135,10 @@
                         </div>
                     </div>
                     
-                    <div style="font-size: 11.5px; color: #0f172a; font-weight: 600; margin: 10px 0 16px 4px; display: flex; align-items: center; gap: 8px;">
-                        <input type="checkbox" id="reg-privacy-checkbox" class="circular-checkbox" style="cursor: pointer;">
-                        <label for="reg-privacy-checkbox" id="reg-privacy-label" style="cursor: pointer; margin: 0; line-height: 1.35; color: #0f172a;">
-                            I agree to the <a href="#" id="link-terms-privacy" onclick="openPrivacyPolicyModal(event)" style="color: #1d4ed8; font-weight: 800; text-decoration: underline; cursor: pointer;">Terms & Privacy Policy</a>.
+                    <div class="terms-agreement-card">
+                        <input type="checkbox" id="reg-privacy-checkbox" class="custom-terms-checkbox">
+                        <label for="reg-privacy-checkbox" id="reg-privacy-label" class="terms-agreement-label">
+                            I agree to the <a href="#" id="link-terms-privacy" onclick="openPrivacyPolicyModal(event)" class="terms-policy-highlight">Terms &amp; Privacy Policy</a>.
                         </label>
                     </div>
                     
@@ -330,53 +330,91 @@
     </div>
 </div>
 
-<!-- Privacy Policy Agreement Modal (Required Before Account Registration) -->
 <div id="privacy-policy-modal" class="auth-2fa-overlay" style="display: none;">
-    <div class="auth-2fa-card" style="max-width: 440px; text-align: left; padding: 24px 20px; border-radius: 28px; max-height: 85vh; display: flex; flex-direction: column;">
-        <button type="button" class="auth-2fa-close" onclick="closePrivacyPolicyModal()"><i class="fa-solid fa-xmark"></i></button>
+    <div class="privacy-modal-card">
+        <button type="button" class="privacy-modal-close" onclick="closePrivacyPolicyModal()" aria-label="Close">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
         
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            <div style="width: 44px; height: 44px; border-radius: 14px; background: rgba(56, 189, 248, 0.15); border: 1.5px solid #38bdf8; display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 20px; flex-shrink: 0;">
+        <div class="privacy-modal-header">
+            <div class="privacy-modal-icon-ring">
                 <i class="fa-solid fa-shield-halved"></i>
             </div>
             <div>
-                <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff;">Terms & Privacy Policy</h3>
-                <span style="font-size: 11px; color: #38bdf8; font-weight: 700;">Step 1 of 2 · Data Protection Terms</span>
+                <h3 class="privacy-modal-title">Terms &amp; Privacy Policy</h3>
+                <span class="privacy-modal-badge">Data Protection · Step 1 of 2</span>
             </div>
         </div>
 
-        <div id="privacy-modal-scroll-body" style="font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.6; overflow-y: auto; padding-right: 8px; margin-bottom: 16px; flex: 1; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 16px; background: rgba(15, 23, 42, 0.5);">
-            <p style="margin-top: 0;">Welcome to <strong>Intan Elyu Tourism Management System</strong>. Please read and scroll through our terms of service and privacy practices before completing your account registration:</p>
+        <div id="privacy-modal-scroll-body" class="privacy-modal-scroll-body">
+            <div class="policy-welcome-banner">
+                <i class="fa-solid fa-circle-info policy-welcome-icon"></i>
+                <p style="margin: 0; font-size: 12px; color: #334155; line-height: 1.55;">
+                    Welcome to <strong>Intan Elyu Tourism Management System</strong>. Please read through our terms of service and privacy practices before activating your account:
+                </p>
+            </div>
             
-            <h4 style="color: #38bdf8; margin: 14px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-user-gear" style="margin-right: 6px;"></i> 1. Account & Registration Responsibilities</h4>
-            <p style="margin: 0 0 10px 0;">By registering an account, you confirm that the personal details provided (Full Name, Email Address) are accurate and belong to you. You are responsible for maintaining the confidentiality of your account credentials.</p>
+            <div class="policy-item-card">
+                <div class="policy-item-header">
+                    <div class="policy-icon-badge"><i class="fa-solid fa-user-check"></i></div>
+                    <span class="policy-item-title">1. Account &amp; Registration</span>
+                </div>
+                <p class="policy-item-desc">By registering, you confirm that personal details provided (Full Name, Email) are accurate and belong to you. You are responsible for safeguarding your credentials.</p>
+            </div>
 
-            <h4 style="color: #38bdf8; margin: 14px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-database" style="margin-right: 6px;"></i> 2. Information We Collect & Encryption</h4>
-            <p style="margin: 0 0 10px 0;">We store your full name, email address, password hashes (Bcrypt encrypted), and optional profile preferences to deliver personalized itinerary recommendations. We never share or sell your personal information to unauthorized third parties.</p>
+            <div class="policy-item-card">
+                <div class="policy-item-header">
+                    <div class="policy-icon-badge"><i class="fa-solid fa-lock"></i></div>
+                    <span class="policy-item-title">2. Information &amp; Encryption</span>
+                </div>
+                <p class="policy-item-desc">We store your name, email, and Bcrypt-encrypted password hashes to personalize your Elyu itinerary. We never sell or share your data with unauthorized third parties.</p>
+            </div>
             
-            <h4 style="color: #38bdf8; margin: 14px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-location-dot" style="margin-right: 6px;"></i> 3. Location Access & Fair Play XP Rewards</h4>
-            <p style="margin: 0 0 10px 0;">Device location coordinates are accessed strictly during active spot check-in tasks to verify XP rewards and badge unlocks. We do not track your location in the background or monitor your movement outside active check-ins.</p>
+            <div class="policy-item-card">
+                <div class="policy-item-header">
+                    <div class="policy-icon-badge"><i class="fa-solid fa-location-dot"></i></div>
+                    <span class="policy-item-title">3. Location &amp; Fair Play XP</span>
+                </div>
+                <p class="policy-item-desc">Device location is accessed strictly during active tourist spot check-ins to verify XP rewards and badge unlocks. We do not track your location in the background.</p>
+            </div>
             
-            <h4 style="color: #38bdf8; margin: 14px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-shield-halved" style="margin-right: 6px;"></i> 4. 2-Factor Email Security (2FA)</h4>
-            <p style="margin: 0 0 10px 0;">After accepting these terms, a 6-digit 2-Factor Authentication (2FA) verification code will be issued to your email address to confirm identity before account activation.</p>
+            <div class="policy-item-card">
+                <div class="policy-item-header">
+                    <div class="policy-icon-badge"><i class="fa-solid fa-shield-halved"></i></div>
+                    <span class="policy-item-title">4. 2-Factor Email Security (2FA)</span>
+                </div>
+                <p class="policy-item-desc">After accepting these terms, a 6-digit verification code will be dispatched to your email address to confirm identity before account activation.</p>
+            </div>
 
-            <h4 style="color: #38bdf8; margin: 14px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-leaf" style="margin-right: 6px;"></i> 5. Responsible Tourism Code of Conduct</h4>
-            <p style="margin: 0 0 10px 0;">As a registered tourist on Intan Elyu, you agree to follow environmental preservation guidelines, respect local La Union heritage sites, avoid littering, and adhere to municipal beach and trail safety rules.</p>
+            <div class="policy-item-card">
+                <div class="policy-item-header">
+                    <div class="policy-icon-badge"><i class="fa-solid fa-leaf"></i></div>
+                    <span class="policy-item-title">5. Responsible Tourism</span>
+                </div>
+                <p class="policy-item-desc">As a registered tourist on Intan Elyu, you agree to respect local La Union heritage, avoid littering, preserve coastal beaches, and follow local municipal guidelines.</p>
+            </div>
 
-            <h4 style="color: #38bdf8; margin: 14px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-user-lock" style="margin-right: 6px;"></i> 6. Privacy Rights & Profile Visibility</h4>
-            <p style="margin: 0 0 4px 0;">Your email address remains private. You can set your profile to Private mode at any time in App Settings to hide your rank on public leaderboards or request account erasure.</p>
+            <div class="policy-item-card">
+                <div class="policy-item-header">
+                    <div class="policy-icon-badge"><i class="fa-solid fa-eye-slash"></i></div>
+                    <span class="policy-item-title">6. Privacy Rights &amp; Profile</span>
+                </div>
+                <p class="policy-item-desc">Your email remains private. You can toggle your profile to Private mode anytime in App Settings to hide your rank on public leaderboards or request account erasure.</p>
+            </div>
         </div>
 
-        <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 14px; padding: 10px 12px; margin-bottom: 16px; font-size: 11px; color: #38bdf8; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" id="chk-accept-privacy" class="circular-checkbox" disabled style="opacity: 0.4; cursor: not-allowed;">
-            <label for="chk-accept-privacy" id="lbl-chk-accept-privacy" style="cursor: not-allowed; margin: 0; line-height: 1.3; opacity: 0.4;">I have read, understood, and accept the Terms & Privacy Policy.</label>
+        <div class="privacy-acceptance-box">
+            <input type="checkbox" id="chk-accept-privacy" class="custom-terms-checkbox" disabled style="opacity: 0.4; cursor: not-allowed;">
+            <label for="chk-accept-privacy" id="lbl-chk-accept-privacy" style="cursor: not-allowed; margin: 0; line-height: 1.35; font-size: 11.5px; font-weight: 600; color: #1e293b; opacity: 0.5;">
+                I have read, understood, and accept the Terms &amp; Privacy Policy.
+            </label>
         </div>
 
-        <div style="display: flex; gap: 10px;">
-            <button type="button" onclick="closePrivacyPolicyModal()" class="auth-2fa-btn-primary" style="flex: 1; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #94a3b8; font-size: 13px;">
+        <div class="privacy-modal-actions">
+            <button type="button" onclick="closePrivacyPolicyModal()" class="btn-privacy-decline">
                 Decline
             </button>
-            <button type="button" id="btn-accept-policy-proceed" onclick="acceptPolicyAndProceed()" class="auth-2fa-btn-primary" disabled style="flex: 1.8; background: linear-gradient(135deg, #38bdf8, #2563eb); font-size: 13px; opacity: 0.4; cursor: not-allowed;">
+            <button type="button" id="btn-accept-policy-proceed" onclick="acceptPolicyAndProceed()" class="btn-privacy-accept" disabled>
                 <i class="fa-solid fa-lock" style="margin-right: 6px;"></i>Scroll to Bottom to Accept
             </button>
         </div>
