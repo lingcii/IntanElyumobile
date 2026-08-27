@@ -15,9 +15,27 @@ $email = $_GET['email'] ?? '';
         <!-- Animated Seamless SVG Wave -->
         <div class="wave-bottom">
             <svg viewBox="0 0 2000 100" preserveAspectRatio="none">
-                <path class="wave-layer wave-1" fill="rgba(30,41,59,0.3)" d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 C1150,100 1350,0 1500,50 C1650,100 1850,0 2000,50 L2000,100 L0,100 Z"></path>
-                <path class="wave-layer wave-2" fill="rgba(30,41,59,0.5)" d="M0,60 C200,110 300,10 500,60 C700,110 800,10 1000,60 C1200,110 1300,10 1500,60 C1700,110 1800,10 2000,60 L2000,100 L0,100 Z"></path>
-                <path class="wave-layer wave-3" fill="#1e293b" d="M0,70 C250,120 250,20 500,70 C750,120 750,20 1000,70 C1250,120 1250,20 1500,70 C1750,120 1750,20 2000,70 L2000,100 L0,100 Z"></path>
+                <defs>
+                    <linearGradient id="resetWaveGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.85" />
+                        <stop offset="40%" stop-color="#06b6d4" stop-opacity="0.65" />
+                        <stop offset="100%" stop-color="#0284c7" stop-opacity="0.25" />
+                    </linearGradient>
+                    <linearGradient id="resetWaveGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9" />
+                        <stop offset="50%" stop-color="#0284c7" stop-opacity="0.75" />
+                        <stop offset="100%" stop-color="#1e3a8a" stop-opacity="0.45" />
+                    </linearGradient>
+                    <linearGradient id="resetWaveGrad3" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#2563eb" stop-opacity="1" />
+                        <stop offset="35%" stop-color="#1d4ed8" stop-opacity="1" />
+                        <stop offset="70%" stop-color="#1e3a8a" stop-opacity="1" />
+                        <stop offset="100%" stop-color="#1e293b" stop-opacity="1" />
+                    </linearGradient>
+                </defs>
+                <path class="wave-layer wave-1" fill="url(#resetWaveGrad1)" d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 C1150,100 1350,0 1500,50 C1650,100 1850,0 2000,50 L2000,100 L0,100 Z"></path>
+                <path class="wave-layer wave-2" fill="url(#resetWaveGrad2)" d="M0,60 C200,110 300,10 500,60 C700,110 800,10 1000,60 C1200,110 1300,10 1500,60 C1700,110 1800,10 2000,60 L2000,100 L0,100 Z"></path>
+                <path class="wave-layer wave-3" fill="url(#resetWaveGrad3)" d="M0,70 C250,120 250,20 500,70 C750,120 750,20 1000,70 C1250,120 1250,20 1500,70 C1750,120 1750,20 2000,70 L2000,100 L0,100 Z"></path>
             </svg>
         </div>
     </div>
