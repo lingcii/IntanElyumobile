@@ -1859,7 +1859,8 @@ $activeTab = 'itinerary';
             });
 
             if (latlngs.length > 1) {
-                const activeRoute = document.querySelector('.btn-route-type.active').innerText;
+                const activeRouteEl = document.querySelector('.btn-route-type.active');
+                const activeRoute = (activeRouteEl ? activeRouteEl.innerText.trim() : (window.currentRouteType === 'alternate' ? 'Alternate' : 'Recommended'));
                 let routeColor = '#38bdf8'; // Recommended = Blue
                 let shadowColor = '#0f172a';
 
