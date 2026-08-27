@@ -50,6 +50,7 @@
         <div class="auth-tabs" id="auth-tabs">
             <div class="auth-tab active" id="tab-login" onclick="toggleAuthMode(false)">Login</div>
             <div class="auth-tab" id="tab-register" onclick="toggleAuthMode(true)">Register</div>
+            <div class="tab-gooey-glider" id="tab-gooey-glider"></div>
         </div>
         
         <div class="forms-wrapper" id="forms-wrapper">
@@ -864,9 +865,44 @@
         }, 200); // Wait for the 0.2s fade out transition
     }
 
+    function positionTabGlider(isRegister, animate = true) {
+        const glider = document.getElementById('tab-gooey-glider');
+        const targetTab = isRegister ? tabRegister : tabLogin;
+        if (!glider || !targetTab || !tabsContainer) return;
+
+        const targetRect = targetTab.getBoundingClientRect();
+        const containerRect = tabsContainer.getBoundingClientRect();
+        const targetLeft = targetRect.left - containerRect.left + (targetRect.width - 32) / 2;
+
+        if (!animate) {
+            glider.style.transition = 'none';
+            glider.style.left = `${targetLeft}px`;
+            return;
+        }
+
+        glider.style.transition = '';
+        glider.classList.remove('stretching-right', 'stretching-left');
+        void glider.offsetWidth; // trigger reflow
+
+        if (isRegister) {
+            glider.classList.add('stretching-right');
+        } else {
+            glider.classList.add('stretching-left');
+        }
+        glider.style.left = `${targetLeft}px`;
+    }
+
+    // Initialize glider position on load & handle resize
+    setTimeout(() => { positionTabGlider(false, false); }, 80);
+    window.addEventListener('resize', () => {
+        const isReg = wrapper && wrapper.classList.contains('show-register');
+        positionTabGlider(isReg, false);
+    });
+
     function toggleAuthMode(isRegister) {
         tabsContainer.style.display = 'flex';
         wrapper.classList.remove('show-forgot', 'show-otp');
+        positionTabGlider(isRegister, true);
         
         if (isRegister) {
             wrapper.classList.add('show-register');
