@@ -727,7 +727,7 @@ if (is_dir($imgDir)) {
                     </div>
                     <button id="btn-view-more-rec"
                         onclick="window.toggleRecommendedMore()"
-                        style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border:1px solid rgba(116,163,207,0.3); background:#FFFFFF; color:#0284C7; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 14px rgba(116,163,207,0.1); transition: all 0.2s;">
+                        style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border:1px solid rgba(129,168,207,0.25); background:rgba(30,41,59,0.6); color:#63b1d0; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 14px rgba(0,0,0,0.2); transition: all 0.2s;">
                         <i class="fa-solid fa-chevron-down" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i>
                         View ${extras.length} More
                     </button>
@@ -906,15 +906,15 @@ if (is_dir($imgDir)) {
         const encodedDest = encodeURIComponent(JSON.stringify(dest));
         return `
             <div class="rec-item-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}">
-                <div onclick="window.toggleRecommendedCard(this)" style="cursor:pointer; display:flex; align-items:center; gap: 12px; padding: 12px; transition: background 0.15s;" onpointerdown="this.style.background='#F0F5FA'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
+                <div onclick="window.toggleRecommendedCard(this)" style="cursor:pointer; display:flex; align-items:center; gap: 12px; padding: 12px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(97,146,202,0.15)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
                     <img src="${img}" alt="${dest.name}" style="width:60px; height:60px; border-radius:12px; object-fit:cover;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
                     <div style="flex:1; min-width:0;">
                         <h4 class="rec-title">${dest.name}</h4>
-                        <p class="rec-loc"><i class="fa-solid fa-location-dot" style="margin-right:4px; color:#0284c7;"></i>${dest.location || dest.municipality_id || 'La Union'}</p>
+                        <p class="rec-loc"><i class="fa-solid fa-location-dot" style="margin-right:4px; color:#63b1d0;"></i>${dest.location || dest.municipality_id || 'La Union'}</p>
                         <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
                             <i class="fa-solid fa-star" style="color:#f59e0b; font-size:11px;"></i>
                             <span class="rec-rating">${rating}</span>
-                            ${dest.classification_status ? `<span style="padding: 2px 6px; border-radius: 6px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#16a34a' : (dest.classification_status === 'EMERGE' ? '#0284c7' : '#d97706')};">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
+                            ${dest.classification_status ? `<span style="padding: 2px 6px; border-radius: 6px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#16a34a' : (dest.classification_status === 'EMERGE' ? '#6192ca' : '#d97706')};">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
                         </div>
                     </div>
                     <i class="fa-solid fa-chevron-right toggle-icon rec-chevron"></i>
@@ -925,10 +925,10 @@ if (is_dir($imgDir)) {
                         ${desc}
                     </div>
                     <div style="display:flex; gap:8px; font-size:11px; margin-bottom:12px; flex-wrap:wrap;">
-                        ${dest.category ? `<span style="background:rgba(116,163,207,0.18); color:#0369a1; padding:4px 10px; border-radius:100px; font-weight:700;">${dest.category}</span>` : ''}
-                        ${dest.entrance_fee ? `<span style="background:rgba(2,132,199,0.12); color:#0284c7; padding:4px 10px; border-radius:100px; font-weight:700;">₱${dest.entrance_fee}</span>` : '<span style="background:rgba(22,163,74,0.12); color:#16a34a; padding:4px 10px; border-radius:100px; font-weight:700;">Free</span>'}
+                        ${dest.category ? `<span style="background:rgba(97,146,202,0.2); color:#63b1d0; padding:4px 10px; border-radius:100px; font-weight:700;">${dest.category}</span>` : ''}
+                        ${dest.entrance_fee ? `<span style="background:rgba(99,177,208,0.15); color:#63b1d0; padding:4px 10px; border-radius:100px; font-weight:700;">₱${dest.entrance_fee}</span>` : '<span style="background:rgba(22,163,74,0.15); color:#4ade80; padding:4px 10px; border-radius:100px; font-weight:700;">Free</span>'}
                     </div>
-                    <button onclick="window.viewDestinationOnMap('${encodedDest}')" style="width:100%; margin-bottom:14px; background:linear-gradient(135deg, #0284c7, #2563eb); border:none; color:white; padding:10px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(2,132,199,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <button onclick="window.viewDestinationOnMap('${encodedDest}')" style="width:100%; margin-bottom:14px; background:linear-gradient(135deg, #6192ca, #1e40af); border:none; color:white; padding:10px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(97,146,202,0.35); display:flex; align-items:center; justify-content:center; gap:8px;">
                         <i class="fa-solid fa-map-location-dot"></i> View Details on Map
                     </button>
                 </div>
