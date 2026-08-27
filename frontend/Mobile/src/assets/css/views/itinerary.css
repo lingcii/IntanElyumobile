@@ -112,7 +112,7 @@ body[data-view="itinerary"] .mobile-header .header-icon {
 
 /* Empty State Card Styling */
 #itinerary-empty-state,
-.empty-state-card {
+.itinerary-container .empty-state-card {
     background: rgba(30, 75, 135, 0.58) !important;
     backdrop-filter: blur(24px) !important;
     -webkit-backdrop-filter: blur(24px) !important;
@@ -126,6 +126,11 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     flex-direction: column;
     align-items: center;
     animation: cardFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+#itinerary-empty-state.is-hidden,
+#itinerary-empty-state[style*="display: none"] {
+    display: none !important;
 }
 
 .empty-state-icon {

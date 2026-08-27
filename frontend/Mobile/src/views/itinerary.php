@@ -132,7 +132,7 @@ $activeTab = 'itinerary';
     </button>
 
     <!-- Empty State Card -->
-    <div id="itinerary-empty-state" class="empty-state-card">
+    <div id="itinerary-empty-state" class="empty-state-card is-hidden" style="display:none;">
         <div class="empty-state-icon">
             <i class="fa-solid fa-route"></i>
         </div>
@@ -656,17 +656,19 @@ $activeTab = 'itinerary';
 
             if (rawDraft.length === 0) {
                 timeline.innerHTML = '';
-                emptyState.style.display = 'flex';
+                emptyState.style.setProperty('display', 'flex', 'important');
+                emptyState.classList.remove('is-hidden');
                 emptyState.style.animation = 'none';
                 void emptyState.offsetHeight; // Trigger reflow for smooth re-animation
                 emptyState.style.animation = 'cardFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards';
-                fab.style.display = 'none';
+                fab.style.setProperty('display', 'none', 'important');
                 if (mapWrapper) mapWrapper.style.display = 'none';
                 return;
             }
 
-            emptyState.style.display = 'none';
-            fab.style.display = 'flex';
+            emptyState.style.setProperty('display', 'none', 'important');
+            emptyState.classList.add('is-hidden');
+            fab.style.setProperty('display', 'flex', 'important');
             if (mapWrapper) mapWrapper.style.display = 'block';
 
             // Sync active class on route toggle buttons

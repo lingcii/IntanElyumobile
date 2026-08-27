@@ -168,7 +168,7 @@ body[data-view="saved_trips"] .mobile-header .header-icon {
 }
 
 /* Empty State Card */
-.empty-state-card {
+.saved-trips-page-container .empty-state-card {
     background: rgba(30, 75, 135, 0.58) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
@@ -177,10 +177,10 @@ body[data-view="saved_trips"] .mobile-header .header-icon {
     padding: 32px 24px !important;
     text-align: center !important;
     box-shadow: none !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    gap: 10px !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
 }
 
 /* Buttons Micro-Interactions */
