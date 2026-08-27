@@ -34,9 +34,9 @@
                     </linearGradient>
                     <linearGradient id="authWaveGrad3" x1="0%" y1="0%" x2="0%" y2="100%">
                         <stop offset="0%" stop-color="#2563eb" stop-opacity="1" />
-                        <stop offset="25%" stop-color="#1d4ed8" stop-opacity="1" />
-                        <stop offset="55%" stop-color="#1e3a8a" stop-opacity="1" />
-                        <stop offset="100%" stop-color="#1e3a8a" stop-opacity="1" />
+                        <stop offset="35%" stop-color="#1d4ed8" stop-opacity="1" />
+                        <stop offset="70%" stop-color="#1e3a8a" stop-opacity="1" />
+                        <stop offset="100%" stop-color="#1e293b" stop-opacity="1" />
                     </linearGradient>
                 </defs>
                 <path class="wave-layer wave-1" fill="url(#authWaveGrad1)" d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 C1150,100 1350,0 1500,50 C1650,100 1850,0 2000,50 L2000,100 L0,100 Z"></path>
@@ -76,9 +76,9 @@
 
                 <div class="auth-social-section">
                     <div style="width:100%; display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-                        <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.15);">
-                        <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px;">Or Connect With</span>
-                        <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.15);">
+                        <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.25);">
+                        <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.8); text-transform:uppercase; letter-spacing:1px;">Or Connect With</span>
+                        <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.25);">
                     </div>
                     <button type="button" class="btn-google" onclick="window.triggerGoogleLogin(event)" style="width:100%; padding:13px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:white; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:background 0.2s, transform 0.1s;">
                         <svg viewBox="0 0 24 24" width="18" height="18" style="flex-shrink:0;">
