@@ -7,11 +7,6 @@
     box-sizing: border-box;
 }
 
-body {
-    background-color: #74a3cf;
-    margin: 0;
-}
-
 body[data-view="auth"] {
     background: #74a3cf !important;
     overflow: hidden !important;

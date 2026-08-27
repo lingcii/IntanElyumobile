@@ -4,6 +4,19 @@
  * ============================================================ */
 
 /* Full screen map styles */
+body[data-view="map"],
+body[data-view="map"] #app-container,
+body[data-view="map"] #main-content {
+    height: 100vh !important;
+    height: 100dvh !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    position: relative !important;
+    box-sizing: border-box !important;
+}
+
 #main-content {
     overflow: hidden !important;
     position: relative;
