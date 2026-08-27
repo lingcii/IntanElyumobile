@@ -707,34 +707,25 @@ body[data-view="auth"] {
  * Terms & Privacy Policy Modern Redesign
  * ============================================================ */
 
-/* Terms Agreement Row on Register Form */
-.terms-agreement-card {
-    background: #ffffff;
-    border: 1.5px solid rgba(255, 255, 255, 0.9);
-    border-radius: 14px;
-    padding: 10px 14px;
-    margin: 10px 0 18px 0;
+/* Terms Agreement Row on Register Form (Unboxed / No Container) */
+.terms-agreement-row {
+    background: transparent;
+    border: none;
+    padding: 2px 4px;
+    margin: 8px 0 16px 2px;
     display: flex;
     align-items: center;
-    gap: 11px;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
-
-.terms-agreement-card:hover {
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
-    border-color: rgba(29, 78, 216, 0.25);
-    transform: translateY(-1px);
+    gap: 9px;
+    box-shadow: none;
 }
 
 .custom-terms-checkbox {
     appearance: none;
     -webkit-appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 6px;
-    border: 2px solid #94a3b8;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid #1d4ed8;
     background: #ffffff;
     cursor: pointer;
     display: inline-flex;
@@ -748,28 +739,29 @@ body[data-view="auth"] {
 }
 
 .custom-terms-checkbox:hover {
-    border-color: #1d4ed8;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.15);
 }
 
 .custom-terms-checkbox:checked {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    background: #1d4ed8;
     border-color: #1d4ed8;
-    box-shadow: 0 2px 8px rgba(29, 78, 216, 0.35);
+    box-shadow: 0 2px 6px rgba(29, 78, 216, 0.35);
 }
 
 .custom-terms-checkbox:checked::after {
     content: '';
-    width: 5px;
-    height: 9px;
+    width: 4px;
+    height: 8px;
     border: solid #ffffff;
-    border-width: 0 2.2px 2.2px 0;
-    transform: rotate(45deg) translate(-0.5px, -1px);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg) translate(-0.5px, -0.5px);
     display: block;
 }
 
 .terms-agreement-label {
     font-size: 12px;
-    color: #1e293b;
+    color: #0f172a;
     font-weight: 600;
     cursor: pointer;
     margin: 0;
@@ -780,14 +772,12 @@ body[data-view="auth"] {
 .terms-policy-highlight {
     color: #1d4ed8;
     font-weight: 800;
-    text-decoration: none;
-    border-bottom: 1.5px solid rgba(29, 78, 216, 0.4);
-    transition: all 0.2s ease;
+    text-decoration: underline;
+    transition: color 0.2s ease;
 }
 
 .terms-policy-highlight:hover {
     color: #2563eb;
-    border-bottom-color: #2563eb;
 }
 
 /* Privacy Modal Overlay Card */

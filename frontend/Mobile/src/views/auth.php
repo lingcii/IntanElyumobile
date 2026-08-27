@@ -135,7 +135,7 @@
                         </div>
                     </div>
                     
-                    <div class="terms-agreement-card">
+                    <div class="terms-agreement-row">
                         <input type="checkbox" id="reg-privacy-checkbox" class="custom-terms-checkbox">
                         <label for="reg-privacy-checkbox" id="reg-privacy-label" class="terms-agreement-label">
                             I agree to the <a href="#" id="link-terms-privacy" onclick="openPrivacyPolicyModal(event)" class="terms-policy-highlight">Terms &amp; Privacy Policy</a>.
