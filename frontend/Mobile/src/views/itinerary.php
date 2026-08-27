@@ -74,11 +74,11 @@ $activeTab = 'itinerary';
         <div style="display:flex; align-items:center; gap: 8px;">
             <!-- Saved Trips Button (Small) -->
             <button onclick="navigateTo('saved_trips')"
-                style="background: rgba(37, 99, 235, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; font-weight:700; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; box-sizing: border-box; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                style="background: rgba(30, 58, 138, 0.78); border: 1.5px solid rgba(255, 255, 255, 0.35); color: #ffffff; font-weight:700; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; box-sizing: border-box; box-shadow: none;">
                 <i class="fa-solid fa-bookmark" style="margin-right:6px;"></i> Saved Trips
             </button>
             <span
-                style="background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.2); color:#38bdf8; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; font-weight:700; display:flex; align-items:center; box-sizing: border-box;">
+                style="background:rgba(255, 255, 255, 0.16); border:1.5px solid rgba(255, 255, 255, 0.3); color:#ffffff; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; font-weight:800; display:flex; align-items:center; box-sizing: border-box;">
                 <span id="itinerary-count" style="margin-right:4px;">0</span> Places
             </span>
         </div>
@@ -97,21 +97,21 @@ $activeTab = 'itinerary';
 
         <!-- The Map -->
         <div id="draft-map-container"
-            style="height: 260px; width:100%; border-radius: 20px; overflow: hidden; border:1px solid rgba(56, 189, 248, 0.25); position:relative; background:#cadce4; box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+            style="height: 260px; width:100%; border-radius: 20px; overflow: hidden; border:1.5px solid rgba(255, 255, 255, 0.3); position:relative; background:#cadce4; box-shadow: none;">
             <div id="itinerary-map" style="width:100%; height:100%;"></div>
         </div>
 
         <!-- Map Route Stats -->
         <div
-            style="display:flex; justify-content:space-around; align-items:center; margin-top:12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:14px;">
-            <div style="color:white; font-size:14px; font-weight:600;">
-                <i class="fa-solid fa-route" style="color:#38bdf8; margin-right:6px; font-size:16px;"></i> <span
+            style="display:flex; justify-content:space-around; align-items:center; margin-top:12px; background:rgba(30,75,135,0.58); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1.5px solid rgba(255,255,255,0.28); border-radius:16px; padding:14px; box-shadow:none;">
+            <div style="color:white; font-size:14px; font-weight:700;">
+                <i class="fa-solid fa-route" style="color:#00f2fe; margin-right:6px; font-size:16px;"></i> <span
                     id="draft-map-dist">0 km</span>
             </div>
-            <div style="width:1px; height:20px; background:rgba(255,255,255,0.1);"></div>
+            <div style="width:1px; height:20px; background:rgba(255,255,255,0.2);"></div>
             <div
-                style="color:white; font-size:14px; font-weight:600; display:flex; flex-direction:column; align-items:center;">
-                <div><i class="fa-solid fa-clock" style="color:#34d399; margin-right:6px; font-size:16px;"></i> <span
+                style="color:white; font-size:14px; font-weight:700; display:flex; flex-direction:column; align-items:center;">
+                <div><i class="fa-solid fa-clock" style="color:#00f2fe; margin-right:6px; font-size:16px;"></i> <span
                         id="draft-map-time">0 min</span></div>
                 <div id="draft-traffic-warning" style="display:none; margin-top:2px; font-size:10px; font-weight:500;">
                 </div>
@@ -126,7 +126,7 @@ $activeTab = 'itinerary';
 
     <!-- Save Itinerary Action -->
     <button class="btn-primary" id="btn-save-itinerary"
-        style="display:none; width:100%; padding:16px; border-radius:16px; font-weight:700; font-size:16px; margin-bottom:40px; box-shadow:0 8px 20px rgba(0,0,0,0.1);"
+        style="display:none; width:100%; padding:16px; border-radius:20px; font-weight:900; font-size:16px; margin-bottom:40px; border:1.5px solid #ffffff; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; box-shadow:none;"
         onclick="openSaveModal()">
         <i class="fa-solid fa-cloud-arrow-up" style="margin-right:8px;"></i> Save Draft Plan
     </button>
@@ -702,7 +702,7 @@ $activeTab = 'itinerary';
                     <h3 class="starting-point-title">Your Current Location</h3>
                     <div class="starting-point-status" id="itinerary-starting-status">${startingStatus}</div>
                 </div>
-                <button type="button" onclick="event.stopPropagation(); window.routeToMyLocation();" style="background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; font-size:11px; font-weight:800; padding:6px 12px; border-radius:100px; cursor:pointer; display:flex; align-items:center; gap:4px; flex-shrink:0;">
+                <button type="button" onclick="event.stopPropagation(); window.routeToMyLocation();" style="background:rgba(255,255,255,0.18); border:1.5px solid rgba(255,255,255,0.35); color:#ffffff; font-size:11px; font-weight:800; padding:6px 12px; border-radius:100px; cursor:pointer; display:flex; align-items:center; gap:4px; flex-shrink:0;">
                     <i class="fa-solid fa-crosshairs"></i> Locate
                 </button>
             </div>
@@ -757,7 +757,7 @@ $activeTab = 'itinerary';
                             </div>
                         </div>
                         <h3 class="place-name">${place.name}</h3>
-                        <p style="font-size:12px; color:rgba(255,255,255,0.7); margin: 4px 0 8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.4;">
+                        <p style="font-size:12.5px; color:#ffffff; opacity:0.95; font-weight:500; margin: 4px 0 8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.4;">
                             ${place.description && place.description !== 'null' ? place.description : (place.category && place.category !== 'null' ? place.category : 'A beautiful destination to explore in La Union.')}
                         </p>
                         <div class="place-details">

@@ -9,14 +9,36 @@
     min-height: 100vh;
     padding: 16px 16px 110px 16px;
     box-sizing: border-box;
-    background: radial-gradient(circle at 50% 0%, #0f172a 0%, #090d16 100%) !important;
-    color: #f8fafc !important;
+    background:
+        radial-gradient(ellipse at 85% 5%, rgba(0, 242, 254, 0.35) 0%, transparent 55%),
+        radial-gradient(ellipse at 15% 45%, rgba(56, 189, 248, 0.3) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(63, 125, 183, 0.4) 0%, transparent 60%),
+        linear-gradient(180deg, #1e3a8a 0%, #3f7db7 30%, #0284c7 65%, #06b6d4 90%, #00f2fe 100%) !important;
+    background-attachment: fixed !important;
+    color: #ffffff !important;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
 }
 
 body[data-view="itinerary"] {
-    background-color: #090d16 !important;
-    color: #f8fafc !important;
+    background-color: #1e3a8a !important;
+    color: #ffffff !important;
+}
+
+body[data-view="itinerary"] .mobile-header {
+    background: rgba(30, 58, 138, 0.88) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
+    box-shadow: none !important;
+}
+
+body[data-view="itinerary"] .mobile-header .header-title {
+    color: #ffffff !important;
+    font-weight: 800 !important;
+}
+
+body[data-view="itinerary"] .mobile-header .header-icon {
+    color: #ffffff !important;
 }
 
 /* Headings & Section Titles */
@@ -65,9 +87,11 @@ body[data-view="itinerary"] {
 
 /* Route Mode Buttons */
 .btn-route-type {
-    background: rgba(15, 23, 42, 0.8) !important;
-    border: 1px solid rgba(56, 189, 248, 0.2) !important;
-    color: rgba(248, 250, 252, 0.8) !important;
+    background: rgba(30, 58, 138, 0.78) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+    color: #ffffff !important;
     padding: 8px 18px !important;
     border-radius: 100px !important;
     font-size: 12px !important;
@@ -75,27 +99,29 @@ body[data-view="itinerary"] {
     cursor: pointer !important;
     transition: all 0.25s ease !important;
     white-space: nowrap !important;
+    box-shadow: none !important;
 }
 
 .btn-route-type.active {
-    background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%) !important;
-    border-color: transparent !important;
+    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 60%, #1e3a8a 100%) !important;
+    border: 1.5px solid #ffffff !important;
     color: #ffffff !important;
-    box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35) !important;
+    font-weight: 800 !important;
+    box-shadow: none !important;
 }
 
 /* Empty State Card Styling */
 #itinerary-empty-state,
 .empty-state-card {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.85) 100%) !important;
+    background: rgba(30, 75, 135, 0.58) !important;
     backdrop-filter: blur(24px) !important;
     -webkit-backdrop-filter: blur(24px) !important;
-    border: 1px solid rgba(56, 189, 248, 0.25) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
     border-radius: 26px !important;
     padding: 38px 24px !important;
     margin: 24px 0 !important;
     text-align: center !important;
-    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.4) !important;
+    box-shadow: none !important;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -169,17 +195,17 @@ body[data-view="itinerary"] {
 
 /* Save Draft Plan Button */
 #btn-save-itinerary {
-    background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%) !important;
-    color: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
+    color: #0f172a !important;
+    border: 1.5px solid #ffffff !important;
     border-radius: 20px !important;
     padding: 16px 24px !important;
     font-weight: 900 !important;
     font-size: 15px !important;
     letter-spacing: 0.3px !important;
-    box-shadow: 0 10px 28px rgba(56, 189, 248, 0.4) !important;
+    box-shadow: none !important;
     cursor: pointer !important;
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease !important;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -188,7 +214,6 @@ body[data-view="itinerary"] {
 
 #btn-save-itinerary:hover {
     transform: translateY(-2px) scale(1.01) !important;
-    box-shadow: 0 14px 36px rgba(56, 189, 248, 0.55) !important;
 }
 
 #btn-save-itinerary:active {
@@ -241,22 +266,22 @@ body[data-view="itinerary"] {
 .swipe-content {
     position: relative !important;
     z-index: 2 !important;
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.85) 100%) !important;
+    background: rgba(30, 75, 135, 0.58) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
-    border: 1px solid rgba(56, 189, 248, 0.25) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
     border-radius: 20px;
     padding: 18px 20px !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+    box-shadow: none !important;
     transition: transform 0.2s ease, border-radius 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 
 .swipe-content .time-label {
     font-size: 11px !important;
     font-weight: 800 !important;
-    color: #38bdf8 !important;
-    background: rgba(56, 189, 248, 0.14) !important;
-    border: 1px solid rgba(56, 189, 248, 0.3) !important;
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.18) !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
     padding: 4px 10px !important;
     border-radius: 100px !important;
     letter-spacing: 0.4px !important;
@@ -273,7 +298,8 @@ body[data-view="itinerary"] {
 
 .swipe-content p {
     font-size: 13px !important;
-    color: rgba(248, 250, 252, 0.8) !important;
+    color: #ffffff !important;
+    opacity: 0.95 !important;
     line-height: 1.5 !important;
     margin: 4px 0 12px 0 !important;
 }
@@ -283,12 +309,13 @@ body[data-view="itinerary"] {
     align-items: center !important;
     gap: 8px !important;
     font-size: 12px !important;
-    color: #cbd5e1 !important;
+    color: #ffffff !important;
+    opacity: 0.95 !important;
     font-weight: 700 !important;
 }
 
 .swipe-content .place-details i {
-    color: #38bdf8 !important;
+    color: #00f2fe !important;
     font-size: 13px !important;
 }
 
@@ -327,13 +354,13 @@ body[data-view="itinerary"] {
 }
 
 .starting-point-card {
-    background: linear-gradient(135deg, rgba(30, 58, 138, 0.35) 0%, rgba(15, 23, 42, 0.85) 100%) !important;
+    background: rgba(30, 75, 135, 0.58) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
-    border: 1.5px solid rgba(56, 189, 248, 0.4) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
     border-radius: 20px !important;
     padding: 16px 18px !important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 16px rgba(56, 189, 248, 0.12) !important;
+    box-shadow: none !important;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -344,7 +371,7 @@ body[data-view="itinerary"] {
 
 .starting-point-card:hover {
     transform: translateY(-2px);
-    border-color: rgba(56, 189, 248, 0.7) !important;
+    border-color: #00f2fe !important;
 }
 
 .starting-point-icon-box {
@@ -425,16 +452,16 @@ body[data-view="itinerary"] {
 
 /* Next Stop Card Special Highlighting */
 .timeline-item.is-next-stop .swipe-content {
-    border: 1.5px solid rgba(56, 189, 248, 0.6) !important;
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 0 24px rgba(56, 189, 248, 0.18) !important;
+    border: 1.5px solid #00f2fe !important;
+    background: rgba(38, 85, 150, 0.72) !important;
+    box-shadow: none !important;
     position: relative;
 }
 
 /* Glowing NEXT STOP Badge */
 .badge-next-stop {
-    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
-    border: 1px solid rgba(56, 189, 248, 0.5) !important;
+    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
+    border: 1px solid #ffffff !important;
     color: #ffffff !important;
     font-size: 10px !important;
     font-weight: 900 !important;
@@ -445,13 +472,7 @@ body[data-view="itinerary"] {
     display: inline-flex !important;
     align-items: center !important;
     gap: 4px !important;
-    box-shadow: 0 0 12px rgba(56, 189, 248, 0.4) !important;
-    animation: nextStopPulse 2.5s infinite ease-in-out;
-}
-
-@keyframes nextStopPulse {
-    0%, 100% { box-shadow: 0 0 8px rgba(56, 189, 248, 0.3); }
-    50% { box-shadow: 0 0 18px rgba(56, 189, 248, 0.7); }
+    box-shadow: none !important;
 }
 
 /* Next Stop ETA / Distance Chip */
@@ -459,13 +480,13 @@ body[data-view="itinerary"] {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: rgba(56, 189, 248, 0.12);
-    border: 1px solid rgba(56, 189, 248, 0.25);
+    background: rgba(255, 255, 255, 0.16) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
     border-radius: 100px;
     padding: 4px 12px;
     font-size: 11px;
     font-weight: 700;
-    color: #38bdf8;
+    color: #ffffff !important;
     margin-top: 8px;
 }
 
