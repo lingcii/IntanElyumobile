@@ -540,7 +540,10 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 },
                 "osm": {
                     "type": "raster",
-                    "tiles": ["https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"],
+                    "tiles": [
+                        "https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+                        "https://b.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+                    ],
                     "tileSize": 256
                 },
                 "terrain": {

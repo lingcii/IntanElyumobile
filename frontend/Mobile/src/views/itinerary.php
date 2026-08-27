@@ -1766,8 +1766,9 @@ $activeTab = 'itinerary';
                     boxZoom: true,
                     keyboard: true
                 });
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
                     maxZoom: 19,
+                    subdomains: ['a', 'b'],
                     detectRetina: true,
                     keepBuffer: 4,
                     updateWhenZooming: true,
