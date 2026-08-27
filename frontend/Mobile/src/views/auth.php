@@ -403,8 +403,8 @@
         </div>
 
         <div class="privacy-acceptance-box">
-            <input type="checkbox" id="chk-accept-privacy" class="custom-terms-checkbox" disabled style="opacity: 0.4; cursor: not-allowed;">
-            <label for="chk-accept-privacy" id="lbl-chk-accept-privacy" style="cursor: not-allowed; margin: 0; line-height: 1.35; font-size: 11.5px; font-weight: 600; color: #1e293b; opacity: 0.5;">
+            <input type="checkbox" id="chk-accept-privacy" class="custom-terms-checkbox" style="cursor: pointer;">
+            <label for="chk-accept-privacy" id="lbl-chk-accept-privacy" style="cursor: pointer; margin: 0; line-height: 1.35; font-size: 11.5px; font-weight: 600; color: #1e293b;">
                 I have read, understood, and accept the Terms &amp; Privacy Policy.
             </label>
         </div>
@@ -413,8 +413,8 @@
             <button type="button" onclick="closePrivacyPolicyModal()" class="btn-privacy-decline">
                 Decline
             </button>
-            <button type="button" id="btn-accept-policy-proceed" onclick="acceptPolicyAndProceed()" class="btn-privacy-accept" disabled>
-                <i class="fa-solid fa-lock" style="margin-right: 6px;"></i>Scroll to Bottom to Accept
+            <button type="button" id="btn-accept-policy-proceed" onclick="acceptPolicyAndProceed()" class="btn-privacy-accept">
+                Accept
             </button>
         </div>
     </div>
@@ -1179,30 +1179,25 @@
         const acceptBtn = document.getElementById('btn-accept-policy-proceed');
         const scrollBody = document.getElementById('privacy-modal-scroll-body');
 
-        if (chk) { chk.checked = false; chk.disabled = true; chk.style.opacity = '0.4'; chk.style.cursor = 'not-allowed'; }
-        if (lblChk) { lblChk.style.cursor = 'not-allowed'; lblChk.style.opacity = '0.4'; }
+        if (chk) { 
+            chk.checked = false; 
+            chk.disabled = false; 
+            chk.style.opacity = '1'; 
+            chk.style.cursor = 'pointer'; 
+        }
+        if (lblChk) { 
+            lblChk.style.cursor = 'pointer'; 
+            lblChk.style.opacity = '1'; 
+        }
         if (acceptBtn) {
-            acceptBtn.disabled = true;
-            acceptBtn.style.opacity = '0.4';
-            acceptBtn.style.cursor = 'not-allowed';
-            acceptBtn.innerHTML = '<i class="fa-solid fa-lock" style="margin-right: 6px;"></i>Scroll to Bottom to Accept';
+            acceptBtn.disabled = false;
+            acceptBtn.style.opacity = '1';
+            acceptBtn.style.cursor = 'pointer';
+            acceptBtn.innerHTML = 'Accept';
         }
 
         if (scrollBody) {
             scrollBody.scrollTop = 0;
-            scrollBody.onscroll = function() {
-                const isBottom = (scrollBody.scrollTop + scrollBody.clientHeight) >= (scrollBody.scrollHeight - 25);
-                if (isBottom) {
-                    if (chk) { chk.disabled = false; chk.style.opacity = '1'; chk.style.cursor = 'pointer'; }
-                    if (lblChk) { lblChk.style.cursor = 'pointer'; lblChk.style.opacity = '1'; }
-                    if (acceptBtn) {
-                        acceptBtn.disabled = false;
-                        acceptBtn.style.opacity = '1';
-                        acceptBtn.style.cursor = 'pointer';
-                        acceptBtn.innerHTML = '<i class="fa-solid fa-check" style="margin-right: 6px;"></i>Accept';
-                    }
-                }
-            };
         }
 
         modal.style.display = 'flex';
@@ -1230,10 +1225,7 @@
 
     window.acceptPolicyAndProceed = async function() {
         const chk = document.getElementById('chk-accept-privacy');
-        if (chk && !chk.checked) {
-            if (typeof showToast === 'function') showToast('Please check the box to accept the Terms & Privacy Policy.');
-            return;
-        }
+        if (chk) chk.checked = true;
 
         const regChk = document.getElementById('reg-privacy-checkbox');
         if (regChk) regChk.checked = true;

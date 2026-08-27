@@ -240,12 +240,12 @@ p, .description, .body-text, .subtitle, .faq-answer {
 
 /* 1. Zero-JS Polite Validation (:user-invalid & :user-valid) */
 .auth-input:user-invalid, 
-input:user-invalid {
+input:not([type="checkbox"]):not([type="radio"]):user-invalid {
   border-bottom-color: #f87171 !important;
 }
 
 .auth-input:user-valid, 
-input:user-valid {
+input:not([type="checkbox"]):not([type="radio"]):user-valid {
   border-bottom-color: #34d399 !important;
 }
 
