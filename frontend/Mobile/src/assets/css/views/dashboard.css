@@ -16,11 +16,11 @@
 }
 
 body[data-view="dashboard"] {
-    background-color: #3f7db7 !important;
+    background-color: #1e3a8a !important;
 }
 
 body[data-view="dashboard"] .mobile-header {
-    background: rgba(43, 95, 145, 0.88) !important;
+    background: rgba(30, 58, 138, 0.88) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
@@ -36,28 +36,33 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     color: #ffffff !important;
 }
 
-/* Main Container */
+/* Main Container: 3 Wave Colors (#1e3a8a/#3f7db7, #0284c7/#38bdf8, #00f2fe/#06b6d4) */
 .dashboard-container {
     width: 100%;
     min-height: 100vh;
     padding: 16px 16px 110px 16px;
     box-sizing: border-box;
-    background: linear-gradient(180deg, #3f7db7 0%, #2b5f91 50%, #1c3d5f 100%);
+    background: 
+        radial-gradient(ellipse at 85% 5%, rgba(0, 242, 254, 0.35) 0%, transparent 55%),
+        radial-gradient(ellipse at 15% 45%, rgba(56, 189, 248, 0.3) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(63, 125, 183, 0.4) 0%, transparent 60%),
+        linear-gradient(180deg, #1e3a8a 0%, #3f7db7 30%, #0284c7 65%, #06b6d4 90%, #00f2fe 100%);
+    background-attachment: fixed;
     color: #ffffff;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
 }
 
 /* Profile + EXP Card */
 .profile-header {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 58, 138, 0.82) 50%, rgba(63, 125, 183, 0.7) 100%);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(129, 168, 207, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.22);
     border-radius: 26px;
     padding: 22px 20px;
     margin-bottom: 20px;
     cursor: pointer;
-    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45), 0 0 24px rgba(97, 146, 202, 0.15);
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.4), 0 0 20px rgba(0, 242, 254, 0.15);
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
     position: relative;
     overflow: hidden;
@@ -124,15 +129,15 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     margin: 0;
     font-size: 12px;
     font-weight: 700;
-    color: #63b1d0;
+    color: #00f2fe;
     letter-spacing: 0.3px;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: rgba(99, 177, 208, 0.16);
+    background: rgba(0, 242, 254, 0.16);
     padding: 4px 12px;
     border-radius: 100px;
-    border: 1px solid rgba(99, 177, 208, 0.35);
+    border: 1px solid rgba(0, 242, 254, 0.35);
 }
 
 #dash-explorer-id {
@@ -195,12 +200,12 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 
 .exp-bar-fill {
     height: 100%;
-    background: linear-gradient(90deg, #38bdf8 0%, #2563eb 50%, #8b5cf6 100%);
+    background: linear-gradient(90deg, #00f2fe 0%, #38bdf8 50%, #3f7db7 100%);
     background-size: 200% 200%;
     animation: shimmerFill 3s ease infinite;
     border-radius: 100px;
     transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+    box-shadow: 0 0 14px rgba(0, 242, 254, 0.65);
 }
 
 /* Stats Row Grid */
@@ -550,9 +555,9 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 }
 
 .category-card.active {
-    background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
-    border-color: #38bdf8;
-    box-shadow: 0 8px 26px rgba(37, 99, 235, 0.45);
+    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 50%, #1e3a8a 100%);
+    border-color: #00f2fe;
+    box-shadow: 0 8px 26px rgba(0, 242, 254, 0.45);
     animation: filterFadeIn 0.25s ease-out;
 }
 

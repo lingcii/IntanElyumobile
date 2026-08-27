@@ -45,7 +45,7 @@ if (is_dir($imgDir)) {
                         <span id="dash-explorer-id">ID: #--</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
-                        <span class="profile-title" id="dash-title"><i class="fa-solid fa-compass" style="color:#63b1d0; font-size:11px;"></i> Explorer of Elyu</span>
+                        <span class="profile-title" id="dash-title"><i class="fa-solid fa-compass" style="color:#00f2fe; font-size:11px;"></i> Explorer of Elyu</span>
                         <span id="dash-status-badge"><i class="fa-solid fa-circle" style="font-size:6px; margin-right:4px;"></i> Active Tourist</span>
                     </div>
                 </div>
@@ -55,13 +55,13 @@ if (is_dir($imgDir)) {
         <!-- Level XP Progress Section -->
         <div class="exp-container">
             <div class="exp-header">
-                <span class="exp-label" id="dash-level-label"><i class="fa-solid fa-award" style="color:#63b1d0; margin-right:4px;"></i> Level Progress</span>
+                <span class="exp-label" id="dash-level-label"><i class="fa-solid fa-award" style="color:#00f2fe; margin-right:4px;"></i> Level Progress</span>
                 <span class="exp-value" id="dash-xp-value"><i class="fa-solid fa-bolt" style="color:#fbbf24; margin-right:4px;"></i>— XP</span>
             </div>
             <div class="exp-bar-bg"><div class="exp-bar-fill" id="dash-xp-bar" style="width:0%;"></div></div>
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#cbd5e1; font-weight:600; margin-top:4px;">
                 <span id="dash-xp-needed" style="color:#cbd5e1;">1,000 XP to next level</span>
-                <span id="dash-xp-pct" style="color:#63b1d0; font-weight:800;">0%</span>
+                <span id="dash-xp-pct" style="color:#00f2fe; font-weight:800;">0%</span>
             </div>
         </div>
     </div>
@@ -590,7 +590,7 @@ if (is_dir($imgDir)) {
         const xpNeeded = xpPerLevel - xpInLevel;
 
         const lvlLabel = document.getElementById('dash-level-label');
-        if (lvlLabel) lvlLabel.innerHTML = `<i class="fa-solid fa-award" style="color:#63b1d0; margin-right:4px;"></i> Level ${level} Progress`;
+        if (lvlLabel) lvlLabel.innerHTML = `<i class="fa-solid fa-award" style="color:#00f2fe; margin-right:4px;"></i> Level ${level} Progress`;
         
         const xpVal = document.getElementById('dash-xp-value');
         if (xpVal) xpVal.innerHTML = `<i class="fa-solid fa-bolt" style="color:#fbbf24; margin-right:4px;"></i>${xpInLevel.toLocaleString()} / ${xpPerLevel.toLocaleString()} XP`;
