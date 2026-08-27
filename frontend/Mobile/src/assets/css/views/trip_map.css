@@ -33,7 +33,7 @@ body[data-view="trip_map"] .map-floating-header {
 }
 
 body[data-view="trip_map"] .map-search {
-    background: rgba(97, 146, 202, 0.85);
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1.5px solid rgba(255, 255, 255, 0.45);
@@ -46,8 +46,8 @@ body[data-view="trip_map"] .map-search {
 }
 
 body[data-view="trip_map"] .map-search:focus-within {
-    border-color: #63b1d0;
-    background: rgba(97, 146, 202, 0.95);
+    border-color: #00f2fe;
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(2, 132, 199, 0.92) 100%);
 }
 
 body[data-view="trip_map"] .map-search input {
@@ -78,10 +78,10 @@ body[data-view="trip_map"] .map-categories {
 body[data-view="trip_map"] .map-categories::-webkit-scrollbar { display: none; }
 
 body[data-view="trip_map"] .category-pill {
-    background: rgba(129, 168, 207, 0.75);
+    background: rgba(30, 58, 138, 0.78);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
     border-radius: 20px;
     padding: 7px 16px;
     font-size: 12px;
@@ -94,7 +94,7 @@ body[data-view="trip_map"] .category-pill {
 }
 
 body[data-view="trip_map"] .category-pill.active {
-    background: linear-gradient(135deg, #63b1d0 0%, #6192ca 100%);
+    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 60%, #1e3a8a 100%);
     color: #ffffff;
     border: 1.5px solid #ffffff;
     box-shadow: none !important;
@@ -102,7 +102,7 @@ body[data-view="trip_map"] .category-pill.active {
 
 body[data-view="trip_map"] .category-pill:not(.active):active {
     transform: scale(0.94);
-    background: #75abe0;
+    background: rgba(63, 125, 183, 0.85);
 }
 
 /* ── Trip Map View Specific Controls ── */
@@ -111,7 +111,7 @@ body[data-view="trip_map"] .category-pill:not(.active):active {
 body[data-view="trip_map"] .btn-locate-me,
 body[data-view="trip_map"] .btn-layer-toggle,
 body[data-view="trip_map"] .btn-3d-view {
-    background: rgba(97, 146, 202, 0.85) !important;
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%) !important;
     backdrop-filter: blur(16px) !important;
     -webkit-backdrop-filter: blur(16px) !important;
     border: 1.5px solid rgba(255, 255, 255, 0.45) !important;
@@ -122,7 +122,7 @@ body[data-view="trip_map"] .btn-3d-view {
 }
 
 body[data-view="trip_map"] .btn-locate-me { position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 18px; z-index: 900; cursor: pointer; }
-body[data-view="trip_map"] .btn-locate-me:active { transform: scale(0.9) !important; background: #63b1d0 !important; }
+body[data-view="trip_map"] .btn-locate-me:active { transform: scale(0.9) !important; background: linear-gradient(135deg, #00f2fe, #0284c7) !important; }
 
 body.keyboard-open .btn-locate-me,
 body.keyboard-open .btn-layer-toggle,
