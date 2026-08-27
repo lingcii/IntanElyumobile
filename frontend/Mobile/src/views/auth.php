@@ -34,8 +34,8 @@
                     </linearGradient>
                     <linearGradient id="authWaveGrad3" x1="0%" y1="0%" x2="0%" y2="100%">
                         <stop offset="0%" stop-color="#2563eb" stop-opacity="1" />
-                        <stop offset="25%" stop-color="#1d4ed8" stop-opacity="1" />
-                        <stop offset="100%" stop-color="#1d4ed8" stop-opacity="1" />
+                        <stop offset="35%" stop-color="#60a5fa" stop-opacity="1" />
+                        <stop offset="100%" stop-color="#96afe7" stop-opacity="1" />
                     </linearGradient>
                 </defs>
                 <path class="wave-layer wave-1" fill="url(#authWaveGrad1)" d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 C1150,100 1350,0 1500,50 C1650,100 1850,0 2000,50 L2000,100 L0,100 Z"></path>
@@ -134,10 +134,10 @@
                         </div>
                     </div>
                     
-                    <div style="font-size: 11px; color: rgba(255,255,255,0.85); margin: 10px 0 16px 4px; display: flex; align-items: center; gap: 8px;">
+                    <div style="font-size: 11.5px; color: #0f172a; font-weight: 600; margin: 10px 0 16px 4px; display: flex; align-items: center; gap: 8px;">
                         <input type="checkbox" id="reg-privacy-checkbox" class="circular-checkbox" style="cursor: pointer;">
-                        <label for="reg-privacy-checkbox" id="reg-privacy-label" style="cursor: pointer; margin: 0; line-height: 1.35;">
-                            I agree to the <a href="#" id="link-terms-privacy" onclick="openPrivacyPolicyModal(event)" style="color: #38bdf8; font-weight: 700; text-decoration: underline; cursor: pointer;">Terms & Privacy Policy</a>.
+                        <label for="reg-privacy-checkbox" id="reg-privacy-label" style="cursor: pointer; margin: 0; line-height: 1.35; color: #0f172a;">
+                            I agree to the <a href="#" id="link-terms-privacy" onclick="openPrivacyPolicyModal(event)" style="color: #1d4ed8; font-weight: 800; text-decoration: underline; cursor: pointer;">Terms & Privacy Policy</a>.
                         </label>
                     </div>
                     
@@ -1135,12 +1135,21 @@
         modal.style.display = 'flex';
         requestAnimationFrame(() => {
             modal.classList.add('active');
+            if (scrollBody) {
+                scrollBody.scrollTop = 0;
+                scrollBody.scrollTo(0, 0);
+            }
         });
     };
 
     window.closePrivacyPolicyModal = function() {
         const modal = document.getElementById('privacy-policy-modal');
+        const scrollBody = document.getElementById('privacy-modal-scroll-body');
         if (modal) modal.classList.remove('active');
+        if (scrollBody) {
+            scrollBody.scrollTop = 0;
+            scrollBody.scrollTo(0, 0);
+        }
         setTimeout(() => {
             if (modal) modal.style.display = 'none';
         }, 300);
