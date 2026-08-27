@@ -8,12 +8,12 @@
 }
 
 body {
-    background-color: #96afe7;
+    background-color: #74a3cf;
     margin: 0;
 }
 
 body[data-view="auth"] {
-    background: #96afe7 !important;
+    background: #74a3cf !important;
     overflow: hidden !important;
     height: 100vh !important;
     height: 100dvh !important;
@@ -26,7 +26,7 @@ body[data-view="auth"] {
     width: 100%;
     display: flex;
     flex-direction: column;
-    background: #96afe7;
+    background: #74a3cf;
     position: relative;
     overflow: hidden;
 }
@@ -137,7 +137,7 @@ body[data-view="auth"] {
 
 .auth-bottom {
     flex: 1;
-    background: #96afe7;
+    background: #74a3cf;
     padding: 20px 32px calc(24px + env(safe-area-inset-bottom, 0px)) 32px;
     display: flex;
     flex-direction: column;
