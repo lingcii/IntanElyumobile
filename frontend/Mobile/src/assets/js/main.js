@@ -730,14 +730,19 @@ document.addEventListener('viewLoaded', (e) => {
 window.intanElyuLocationWatchId = null;
 
 // Initialize Service Worker
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
     window.addEventListener('load', function () {
-        // Use relative path for Service Worker to support both / and /mobile/ base URLs
-        navigator.serviceWorker.register('sw.js').then(function (registration) {
-            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-        }, function (err) {
-            console.log('ServiceWorker registration failed: ', err);
-        });
+        try {
+            // Resolve sw.js relative to document.baseURI to support clean routes and sub-directories without 404
+            const swUrl = document.baseURI ? new URL('sw.js', document.baseURI).href : 'sw.js';
+            navigator.serviceWorker.register(swUrl).then(function (registration) {
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            }).catch(function (err) {
+                console.warn('ServiceWorker registration note: ', err);
+            });
+        } catch (e) {
+            console.warn('ServiceWorker init skipped: ', e);
+        }
     });
 }
 
