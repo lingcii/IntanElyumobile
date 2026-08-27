@@ -727,7 +727,7 @@ if (is_dir($imgDir)) {
                     </div>
                     <button id="btn-view-more-rec"
                         onclick="window.toggleRecommendedMore()"
-                        style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border:1px solid rgba(129,168,207,0.25); background:rgba(30,41,59,0.6); color:#63b1d0; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 14px rgba(0,0,0,0.2); transition: all 0.2s;">
+                        style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,0.2); background:rgba(15,23,42,0.8); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 14px rgba(15,23,42,0.3); backdrop-filter:blur(10px); transition: all 0.2s;">
                         <i class="fa-solid fa-chevron-down" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i>
                         View ${extras.length} More
                     </button>
@@ -928,7 +928,7 @@ if (is_dir($imgDir)) {
                         ${dest.category ? `<span style="background:rgba(97,146,202,0.2); color:#63b1d0; padding:4px 10px; border-radius:100px; font-weight:700;">${dest.category}</span>` : ''}
                         ${dest.entrance_fee ? `<span style="background:rgba(99,177,208,0.15); color:#63b1d0; padding:4px 10px; border-radius:100px; font-weight:700;">₱${dest.entrance_fee}</span>` : '<span style="background:rgba(22,163,74,0.15); color:#4ade80; padding:4px 10px; border-radius:100px; font-weight:700;">Free</span>'}
                     </div>
-                    <button onclick="window.viewDestinationOnMap('${encodedDest}')" style="width:100%; margin-bottom:14px; background:linear-gradient(135deg, #6192ca, #1e40af); border:none; color:white; padding:10px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(97,146,202,0.35); display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <button onclick="window.viewDestinationOnMap('${encodedDest}')" style="width:100%; margin-bottom:14px; background:linear-gradient(135deg, #1e40af, #2563eb); border:none; color:white; padding:10px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(37,99,235,0.4); display:flex; align-items:center; justify-content:center; gap:8px;">
                         <i class="fa-solid fa-map-location-dot"></i> View Details on Map
                     </button>
                 </div>
