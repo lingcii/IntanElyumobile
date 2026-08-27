@@ -124,6 +124,18 @@ body[data-view="trip_map"] .btn-3d-view {
 body[data-view="trip_map"] .btn-locate-me { position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 18px; z-index: 900; cursor: pointer; }
 body[data-view="trip_map"] .btn-locate-me:active { transform: scale(0.9) !important; background: #63b1d0 !important; }
 
+body.keyboard-open .btn-locate-me,
+body.keyboard-open .btn-layer-toggle,
+body.keyboard-open .btn-3d-view,
+html.keyboard-open .btn-locate-me,
+html.keyboard-open .btn-layer-toggle,
+html.keyboard-open .btn-3d-view {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    transform: scale(0.7) !important;
+}
+
 /* ── MapLibre Controls ── */
 .maplibregl-ctrl-bottom-right { bottom: calc(100px + env(safe-area-inset-bottom)) !important; right: 10px !important; margin: 0 !important; z-index: 900 !important; }
 
