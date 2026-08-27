@@ -62,8 +62,8 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     padding: 22px 20px;
     margin-bottom: 20px;
     cursor: pointer;
-    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.4), 0 0 20px rgba(0, 242, 254, 0.15);
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: none;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
     position: relative;
     overflow: hidden;
 }
@@ -225,8 +225,8 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     padding: 16px 12px;
     text-align: center;
     cursor: pointer;
-    transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.3);
+    transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+    box-shadow: none;
 }
 
 .stat-card:active {
@@ -270,8 +270,8 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.35);
-    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: none;
+    transition: transform 0.25s ease, border-color 0.25s ease;
 }
 
 .weather-card:active {
@@ -418,19 +418,19 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     scroll-snap-align: center;
     cursor: pointer;
     border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    box-shadow: none !important;
     flex-shrink: 0;
     will-change: transform, opacity;
     transform: scale(0.88) translate3d(0, 0, 0);
     opacity: 0.70;
-    transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s ease, border-color 0.25s ease;
 }
 
 .fav-card.active-card {
     transform: scale(1.00) translate3d(0, 0, 0) !important;
     opacity: 1 !important;
     z-index: 10;
-    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.55), 0 0 16px rgba(56, 189, 248, 0.3) !important;
+    box-shadow: none !important;
     border-color: rgba(56, 189, 248, 0.6) !important;
 }
 
@@ -537,11 +537,11 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     justify-content: center;
     padding: 10px 6px;
     box-sizing: border-box;
-    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.3);
+    box-shadow: none !important;
     cursor: pointer;
     user-select: none;
     border: 1px solid rgba(255, 255, 255, 0.16);
-    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    transition: transform 0.25s ease, border-color 0.25s ease;
     scroll-snap-align: start;
 }
 
@@ -557,7 +557,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 .category-card.active {
     background: linear-gradient(135deg, #00f2fe 0%, #0284c7 50%, #1e3a8a 100%);
     border-color: #00f2fe;
-    box-shadow: 0 8px 26px rgba(0, 242, 254, 0.45);
+    box-shadow: none !important;
     animation: filterFadeIn 0.25s ease-out;
 }
 
@@ -624,7 +624,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 22px;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    box-shadow: none !important;
     animation: dashEmptyFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     margin: 0 !important;
 }
@@ -651,7 +651,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     justify-content: center;
     font-size: 22px;
     color: #38bdf8;
-    box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+    box-shadow: none;
     margin-bottom: 2px;
     flex-shrink: 0;
 }
@@ -688,19 +688,17 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, opacity 0.2s ease;
+    box-shadow: none;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
     text-decoration: none;
     white-space: nowrap;
 }
 
 .dash-empty-btn:active {
     transform: scale(0.96);
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
 }
 
 .dash-empty-btn:hover {
-    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
     color: #ffffff !important;
 }
 
@@ -722,7 +720,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     font-size: 13px;
     font-weight: 600;
     margin: 0 !important;
-    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.3);
+    box-shadow: none !important;
 }
 
 .dash-loading-state i {
@@ -739,12 +737,11 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 18px;
     overflow: hidden;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.3);
+    box-shadow: none !important;
     transition: all 0.25s ease;
 }
 
 .rec-item-card:hover {
-    box-shadow: 0 8px 26px rgba(15, 23, 42, 0.45);
     border-color: rgba(56, 189, 248, 0.4);
 }
 
