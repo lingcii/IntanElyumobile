@@ -78,85 +78,26 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         </div>
     </div>
 
-    <!-- Live Weather, Wave & Sunset Tracker Widget (Minimized by default) -->
-    <div id="weather-sunset-tracker" class="weather-sunset-tracker minimized animate-slide-down">
-        <!-- Minimized Left Edge Tab (Only > is showing on the left) -->
-        <button type="button" id="tracker-edge-tab" class="tracker-edge-tab" onclick="window.toggleWeatherTracker(true)" title="Open Live Weather & Sunset Tracker">
-            <span class="pulse-dot dot-green" style="width:6px; height:6px; margin:0; display:inline-block;" title="Live"></span>
-            <i class="fa-solid fa-water tracker-edge-icon" style="color:#38bdf8 !important; font-size:13px;"></i>
-            <i class="fa-solid fa-chevron-right tracker-edge-arrow" style="color:#38bdf8 !important; font-size:12px; font-weight:800;"></i>
-        </button>
 
-        <!-- Expanded Full Card -->
-        <div id="tracker-expanded" class="tracker-expanded-card">
-            <div class="tracker-header" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span class="pulse-dot dot-green" style="width:6px; height:6px; margin:0; display:inline-block;" title="Live Telemetry"></span>
-                    <span class="tracker-title" style="font-size:11.5px; font-weight:700; color:#f1f5f9;">Live Weather, Wave & Sunset</span>
-                </div>
-                <div style="display:flex; align-items:center; gap:4px;">
-                    <button type="button" id="tracker-btn-refresh" class="tracker-btn-more" onclick="window.fetchLiveMarineTelemetry(true)" title="Refresh Live Data" style="background:none; border:none; color:rgba(255,255,255,0.7); cursor:pointer; padding:2px 4px;">
-                        <i class="fa-solid fa-arrows-rotate" id="tracker-refresh-icon" style="font-size:11px;"></i>
-                    </button>
-                    <button type="button" class="tracker-btn-more" onclick="window.toggleWeatherTracker(false)" title="Hide to Left Side" style="background:none; border:none; color:rgba(255,255,255,0.7); cursor:pointer; padding:2px 4px;">
-                        <i class="fa-solid fa-chevron-left" style="font-size:11px;"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="tracker-body" style="display:flex; flex-direction:column; gap:8px;">
-                <!-- Row 1: Swell -->
-                <div class="tracker-row" style="display:flex; align-items:center; gap:9px;">
-                    <div class="tracker-icon-box wave-icon" style="width:24px; height:24px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:12px; background:rgba(56,189,248,0.2); color:#38bdf8; border:1px solid rgba(56,189,248,0.35);">
-                        <i class="fa-solid fa-water"></i>
-                    </div>
-                    <span class="tracker-text" id="tracker-swell-text" style="font-size:11.5px; font-weight:600; color:rgba(241,245,249,0.95);">1.2m - Moderate Swell</span>
-                </div>
-
-                <!-- Row 2: Tide -->
-                <div class="tracker-row" style="display:flex; align-items:center; gap:9px;">
-                    <div class="tracker-icon-box tide-icon" style="width:24px; height:24px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:12px; background:rgba(59,130,246,0.2); color:#60a5fa; border:1px solid rgba(59,130,246,0.35);">
-                        <i class="fa-solid fa-arrow-up"></i>
-                    </div>
-                    <span class="tracker-text" id="tracker-tide-text" style="font-size:11.5px; font-weight:600; color:rgba(241,245,249,0.95);">RISING TIDE (High in 3h 15m)</span>
-                </div>
-
-                <!-- Row 3: Sunset -->
-                <div class="tracker-row sunset-row" style="display:flex; align-items:center; gap:9px;">
-                    <div class="tracker-icon-box sunset-icon" style="width:24px; height:24px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:12px; background:rgba(245,158,11,0.2); color:#fbbf24; border:1px solid rgba(245,158,11,0.35);">
-                        <i class="fa-solid fa-sun"></i>
-                    </div>
-                    <span class="tracker-text sunset-highlight" id="tracker-sunset-text" style="font-size:11.5px; font-weight:700; color:#fbbf24;">
-                        Sunset in <span id="tracker-sunset-countdown">2h 15m</span> at San Juan Beach 🌅
-                    </span>
-                </div>
-
-                <!-- Action Button -->
-                <button type="button" class="tracker-btn-action" onclick="window.findSunsetSpots()" style="margin-top:4px; width:100%; padding:7px 12px; border-radius:100px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none; color:#0f172a; font-size:11.5px; font-weight:800; cursor:pointer; box-shadow:none;">
-                    Find Sunset Spots
-                </button>
-            </div>
-        </div>
-    </div>
 
     <!-- Locate Me Button -->
-    <div class="btn-locate-me animate-slide-up" id="btn-locate-me" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: rgba(30,75,135,0.78); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.28); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #00f2fe; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
+    <div class="btn-locate-me animate-slide-up" id="btn-locate-me" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: rgba(97, 146, 202, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-crosshairs"></i>
     </div>
 
     <!-- Nearby Tourist Sites Button (Left Side) -->
-    <div class="btn-nearby-sites animate-slide-up" id="btn-nearby-sites" onclick="window.toggleNearbySitesSheet()" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); left: 10px; width: 44px; height: 44px; background: rgba(30,75,135,0.78); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.28); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #00f2fe; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;" title="Nearby Tourist Sites">
+    <div class="btn-nearby-sites animate-slide-up" id="btn-nearby-sites" onclick="window.toggleNearbySitesSheet()" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); left: 10px; width: 44px; height: 44px; background: rgba(97, 146, 202, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;" title="Nearby Tourist Sites">
         <i class="fa-solid fa-compass"></i>
-        <span id="nearby-sites-badge" style="display:none; position:absolute; top:-5px; right:-5px; min-width:18px; height:18px; padding:0 4px; border-radius:9px; background:#00f2fe; color:#0f172a; font-size:10px; font-weight:800; align-items:center; justify-content:center; box-shadow:none;">0</span>
+        <span id="nearby-sites-badge" style="display:none; position:absolute; top:-5px; right:-5px; min-width:18px; height:18px; padding:0 4px; border-radius:9px; background:#63b1d0; color:#ffffff; font-size:10px; font-weight:800; align-items:center; justify-content:center; box-shadow:none;">0</span>
     </div>
 
     <!-- Layer Toggle Button -->
-    <div class="btn-layer-toggle animate-slide-up" id="btn-layer-toggle" style="position: absolute; bottom: calc(235px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: rgba(30,75,135,0.78); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.28); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #00f2fe; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
+    <div class="btn-layer-toggle animate-slide-up" id="btn-layer-toggle" style="position: absolute; bottom: calc(235px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: rgba(97, 146, 202, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-layer-group"></i>
     </div>
 
     <!-- 3D Mode Button -->
-    <div class="btn-3d-view animate-slide-up" id="btn-3d-view" style="position: absolute; bottom: calc(175px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: rgba(30,75,135,0.78); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.28); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #00f2fe; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
+    <div class="btn-3d-view animate-slide-up" id="btn-3d-view" style="position: absolute; bottom: calc(175px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: rgba(97, 146, 202, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-cube"></i>
     </div>
 
@@ -168,24 +109,24 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             <!-- Header -->
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding: 0 8px;">
                 <div>
-                    <h3 style="margin:0; font-size:17px; font-weight:800; color:#f8fafc; display:flex; align-items:center; gap:8px;">
-                        <i class="fa-solid fa-compass" style="color:#00f2fe;"></i> Nearby Tourist Sites
+                    <h3 style="margin:0; font-size:17px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-compass" style="color:#ffffff;"></i> Nearby Tourist Sites
                     </h3>
-                    <p id="nearby-sites-subtext" style="margin:3px 0 0 0; font-size:12px; color:rgba(224,242,254,0.85);">
+                    <p id="nearby-sites-subtext" style="margin:3px 0 0 0; font-size:12px; color:#ffffff; opacity:0.95;">
                         Discover attractions close to your current location
                     </p>
                 </div>
-                <button type="button" onclick="window.closeNearbySitesSheet()" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.18); color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:background 0.2s;">
+                <button type="button" onclick="window.closeNearbySitesSheet()" style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:background 0.2s;">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
             <!-- Radius filter pills -->
             <div style="display:flex; gap:6px; overflow-x:auto; padding: 4px 8px 12px 8px; scrollbar-width:none;">
-                <button type="button" class="nearby-radius-btn active" data-radius="2" onclick="window.filterNearbyRadius(2, this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:800; border:1px solid #00f2fe; background:linear-gradient(135deg, #00f2fe, #0284c7); color:#0f172a; cursor:pointer; white-space:nowrap;">Within 2 km</button>
-                <button type="button" class="nearby-radius-btn" data-radius="5" onclick="window.filterNearbyRadius(5, this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(255,255,255,0.28); background:rgba(30,75,135,0.75); color:#ffffff; cursor:pointer; white-space:nowrap;">Within 5 km</button>
-                <button type="button" class="nearby-radius-btn" data-radius="15" onclick="window.filterNearbyRadius(15, this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(255,255,255,0.28); background:rgba(30,75,135,0.75); color:#ffffff; cursor:pointer; white-space:nowrap;">Within 15 km</button>
-                <button type="button" class="nearby-radius-btn" data-radius="all" onclick="window.filterNearbyRadius('all', this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(255,255,255,0.28); background:rgba(30,75,135,0.75); color:#ffffff; cursor:pointer; white-space:nowrap;">All Closest</button>
+                <button type="button" class="nearby-radius-btn active" data-radius="2" onclick="window.filterNearbyRadius(2, this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:800; border:1.5px solid #ffffff; background:linear-gradient(135deg, #63b1d0, #6192ca); color:#ffffff; cursor:pointer; white-space:nowrap;">Within 2 km</button>
+                <button type="button" class="nearby-radius-btn" data-radius="5" onclick="window.filterNearbyRadius(5, this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(255,255,255,0.35); background:rgba(129,168,207,0.75); color:#ffffff; cursor:pointer; white-space:nowrap;">Within 5 km</button>
+                <button type="button" class="nearby-radius-btn" data-radius="15" onclick="window.filterNearbyRadius(15, this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(255,255,255,0.35); background:rgba(129,168,207,0.75); color:#ffffff; cursor:pointer; white-space:nowrap;">Within 15 km</button>
+                <button type="button" class="nearby-radius-btn" data-radius="all" onclick="window.filterNearbyRadius('all', this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(255,255,255,0.35); background:rgba(129,168,207,0.75); color:#ffffff; cursor:pointer; white-space:nowrap;">All Closest</button>
             </div>
 
             <!-- List container -->

@@ -269,9 +269,10 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 .stat-label {
     font-size: 11px;
     font-weight: 700;
-    color: #e0f2fe;
+    color: #ffffff !important;
     text-transform: uppercase;
     letter-spacing: 0.6px;
+    opacity: 0.95;
 }
 
 /* Weather Widget */
@@ -687,11 +688,12 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 
 .dash-empty-desc {
     font-size: 13px;
-    color: #e0f2fe;
+    color: #ffffff !important;
     line-height: 1.45;
     max-width: 380px;
     margin: 0 auto;
     text-wrap: pretty;
+    opacity: 0.95;
 }
 
 .dash-empty-btn {
