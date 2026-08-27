@@ -8,12 +8,12 @@
 }
 
 body {
-    background-color: #1e293b;
+    background-color: #0b1736;
     margin: 0;
 }
 
 body[data-view="auth"] {
-    background: #1e293b !important;
+    background: #0b1736 !important;
     overflow: hidden !important;
     height: 100vh !important;
     height: 100dvh !important;
@@ -26,7 +26,7 @@ body[data-view="auth"] {
     width: 100%;
     display: flex;
     flex-direction: column;
-    background: #1e293b;
+    background: #0b1736;
     position: relative;
     overflow: hidden;
 }
@@ -153,7 +153,7 @@ body[data-view="auth"] {
 
 .auth-bottom {
     flex: 1;
-    background: #1e293b;
+    background: linear-gradient(180deg, #1e3a8a 0%, #172554 45%, #0b1736 100%);
     padding: 20px 32px calc(24px + env(safe-area-inset-bottom, 0px)) 32px;
     display: flex;
     flex-direction: column;
@@ -165,6 +165,19 @@ body[data-view="auth"] {
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+}
+
+.auth-bottom::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    height: 140px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.25) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 80%);
+    pointer-events: none;
+    z-index: 1;
 }
 
 .auth-bottom::-webkit-scrollbar {
@@ -322,7 +335,7 @@ body[data-view="auth"] {
 /* Minimal Inputs */
 .input-group {
     position: relative;
-    border-bottom: 1px solid #334155;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     margin-bottom: 20px;
     transition: border-color 0.3s;
     width: 100%;
@@ -379,7 +392,7 @@ body[data-view="auth"] {
 .auth-input:-webkit-autofill:hover,
 .auth-input:-webkit-autofill:focus,
 .auth-input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px #1e293b inset !important;
+    -webkit-box-shadow: 0 0 0 30px #172554 inset !important;
     -webkit-text-fill-color: #ffffff !important;
     transition: background-color 5000s ease-in-out 0s;
 }
@@ -551,7 +564,7 @@ body[data-view="auth"] {
 .auth-divider::after {
     content: '';
     flex: 1;
-    border-bottom: 1px solid #334155;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .auth-divider span {
