@@ -1124,6 +1124,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             if (!loc) return;
             suggestionsEl.classList.remove('open');
             searchInput.value = loc.name;
+            searchInput.blur(); // Dismiss mobile soft keyboard
             const activeCatEl = document.querySelector('.category-pill.active');
             window.filterCategory('All', document.querySelector('.category-pill'));
             const lat = parseFloat(loc.lat);
@@ -1143,8 +1144,13 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 renderSuggestions(searchInput.value);
             });
 
-            // Focus — show suggestions
+            // Focus — show suggestions and auto-hide navigation bar
             searchInput.addEventListener('focus', () => {
+                document.body.classList.add('keyboard-open');
+                const bNav = document.getElementById('bottom-navigation');
+                const mNav = document.getElementById('magic-nav');
+                if (bNav) bNav.classList.add('keyboard-hidden');
+                if (mNav) mNav.classList.add('keyboard-hidden');
                 renderSuggestions(searchInput.value);
             });
 
@@ -1187,11 +1193,19 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 if (activeIdx >= 0) items[activeIdx].classList.add('active');
             });
 
-            // Blur — hide suggestions with smooth transition
+            // Blur — hide suggestions with smooth transition and restore nav bar
             searchInput.addEventListener('blur', () => {
                 setTimeout(() => {
                     if (suggestionsEl) suggestionsEl.classList.remove('open');
-                }, 200);
+                    const active = document.activeElement;
+                    if (!active || (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA')) {
+                        document.body.classList.remove('keyboard-open');
+                        const bNav = document.getElementById('bottom-navigation');
+                        const mNav = document.getElementById('magic-nav');
+                        if (bNav) bNav.classList.remove('keyboard-hidden');
+                        if (mNav) mNav.classList.remove('keyboard-hidden');
+                    }
+                }, 180);
             });
         }
 

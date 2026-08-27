@@ -1762,3 +1762,83 @@ document.addEventListener('DOMContentLoaded', () => {
         window.processOfflineCheckinQueue();
     }
 });
+
+// =========================================================================
+// Mobile Virtual Keyboard Detection & Auto-Hide Navigation Bar
+// =========================================================================
+(function initVirtualKeyboardDetector() {
+    function isEditableTarget(el) {
+        if (!el) return false;
+        const tag = (el.tagName || '').toUpperCase();
+        if (tag === 'TEXTAREA' || el.isContentEditable) return true;
+        if (tag === 'INPUT') {
+            const type = (el.type || 'text').toLowerCase();
+            return !['submit', 'button', 'checkbox', 'radio', 'file', 'image', 'reset', 'range', 'color'].includes(type);
+        }
+        return false;
+    }
+
+    function hideNavForKeyboard() {
+        document.body.classList.add('keyboard-open');
+        document.documentElement.classList.add('keyboard-open');
+        const bNav = document.getElementById('bottom-navigation');
+        const mNav = document.getElementById('magic-nav');
+        if (bNav) bNav.classList.add('keyboard-hidden');
+        if (mNav) mNav.classList.add('keyboard-hidden');
+    }
+
+    function showNavAfterKeyboard() {
+        document.body.classList.remove('keyboard-open');
+        document.documentElement.classList.remove('keyboard-open');
+        const bNav = document.getElementById('bottom-navigation');
+        const mNav = document.getElementById('magic-nav');
+        if (bNav) bNav.classList.remove('keyboard-hidden');
+        if (mNav) mNav.classList.remove('keyboard-hidden');
+    }
+
+    // 1. Focusin / Focusout listeners (instant reaction when tapping any input)
+    document.addEventListener('focusin', (e) => {
+        if (isEditableTarget(e.target)) {
+            hideNavForKeyboard();
+        }
+    }, true);
+
+    document.addEventListener('focusout', (e) => {
+        if (isEditableTarget(e.target)) {
+            setTimeout(() => {
+                if (!isEditableTarget(document.activeElement)) {
+                    showNavAfterKeyboard();
+                }
+            }, 120);
+        }
+    }, true);
+
+    // 2. VisualViewport API (detects virtual keyboard slide-up on Android & iOS)
+    if (window.visualViewport) {
+        const onViewportChange = () => {
+            const currentHeight = window.visualViewport.height;
+            const screenHeight = window.screen.height || window.innerHeight;
+            const heightDiff = window.innerHeight - currentHeight;
+
+            if (heightDiff > 120 || (isEditableTarget(document.activeElement) && currentHeight < screenHeight * 0.8)) {
+                hideNavForKeyboard();
+            } else if (!isEditableTarget(document.activeElement)) {
+                showNavAfterKeyboard();
+            }
+        };
+
+        window.visualViewport.addEventListener('resize', onViewportChange);
+        window.visualViewport.addEventListener('scroll', onViewportChange);
+    }
+
+    // 3. Capacitor Keyboard plugin events (for native Android / iOS wrapper)
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Keyboard) {
+        try {
+            const { Keyboard } = window.Capacitor.Plugins;
+            Keyboard.addListener('keyboardWillShow', hideNavForKeyboard);
+            Keyboard.addListener('keyboardDidShow', hideNavForKeyboard);
+            Keyboard.addListener('keyboardWillHide', showNavAfterKeyboard);
+            Keyboard.addListener('keyboardDidHide', showNavAfterKeyboard);
+        } catch(e) {}
+    }
+})();

@@ -72,7 +72,7 @@ if ($isAjax) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
     <title>Intan Elyu</title>
     <link rel="icon" type="image/png" href="assets/img/logo.png">
     <link rel="apple-touch-icon" href="assets/img/logo.png">
@@ -233,6 +233,15 @@ if ($isAjax) {
                 opacity: 0;
                 pointer-events: none;
                 transform: translateY(20px);
+                visibility: hidden !important;
+            }
+
+            #bottom-navigation.keyboard-hidden,
+            body.keyboard-open #bottom-navigation,
+            html.keyboard-open #bottom-navigation {
+                opacity: 0 !important;
+                pointer-events: none !important;
+                transform: translateY(140px) !important;
                 visibility: hidden !important;
             }
         </style>
