@@ -1,6 +1,6 @@
 /* ============================================================
  * Saved Trips View Styles - saved_trips.css
- * Intan Elyu Mobile — Ultra-Premium Modern Redesign
+ * Intan Elyu Mobile — Ultra-Premium Coastal Wave Theme
  * ============================================================ */
 
 /* Main Container with Header Clearances & Adjusted Spacing */
@@ -12,14 +12,36 @@
     padding-right: 18px !important;
     padding-bottom: 110px !important;
     box-sizing: border-box;
-    background: radial-gradient(circle at 50% 0%, #0f172a 0%, #090d16 100%) !important;
-    color: #f8fafc !important;
+    background:
+        radial-gradient(ellipse at 85% 5%, rgba(0, 242, 254, 0.35) 0%, transparent 55%),
+        radial-gradient(ellipse at 15% 45%, rgba(56, 189, 248, 0.3) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(63, 125, 183, 0.4) 0%, transparent 60%),
+        linear-gradient(180deg, #1e3a8a 0%, #3f7db7 30%, #0284c7 65%, #06b6d4 90%, #00f2fe 100%) !important;
+    background-attachment: fixed !important;
+    color: #ffffff !important;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
 }
 
 body[data-view="saved_trips"] {
-    background-color: #090d16 !important;
-    color: #f8fafc !important;
+    background-color: #1e3a8a !important;
+    color: #ffffff !important;
+}
+
+body[data-view="saved_trips"] .mobile-header {
+    background: rgba(30, 58, 138, 0.88) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
+    box-shadow: none !important;
+}
+
+body[data-view="saved_trips"] .mobile-header .header-title {
+    color: #ffffff !important;
+    font-weight: 800 !important;
+}
+
+body[data-view="saved_trips"] .mobile-header .header-icon {
+    color: #ffffff !important;
 }
 
 /* Headings & Section Titles */
@@ -82,18 +104,18 @@ body[data-view="saved_trips"] {
 .trip-swipe-content {
     position: relative;
     z-index: 2;
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%) !important;
+    background: rgba(30, 75, 135, 0.58) !important;
     backdrop-filter: blur(24px) !important;
     -webkit-backdrop-filter: blur(24px) !important;
-    border: 1px solid rgba(56, 189, 248, 0.25);
+    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
     border-radius: 24px;
     padding: 22px 20px;
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+    box-shadow: none !important;
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease, border-color 0.25s ease !important;
 }
 
 .trip-swipe-content:hover {
-    border-color: rgba(56, 189, 248, 0.4);
+    border-color: rgba(255, 255, 255, 0.5) !important;
 }
 
 /* Collapsible Timeline Spacing */
@@ -132,8 +154,8 @@ body[data-view="saved_trips"] {
 /* Timeline Destination Card Items */
 .timeline-content {
     padding: 16px !important;
-    background: rgba(255, 255, 255, 0.03) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
     border-radius: 18px !important;
     display: flex !important;
     flex-direction: column !important;
@@ -142,7 +164,23 @@ body[data-view="saved_trips"] {
 }
 
 .timeline-content:hover {
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* Empty State Card */
+.empty-state-card {
+    background: rgba(30, 75, 135, 0.58) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+    border-radius: 24px !important;
+    padding: 32px 24px !important;
+    text-align: center !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 10px !important;
 }
 
 /* Buttons Micro-Interactions */
@@ -160,7 +198,7 @@ body[data-view="saved_trips"] {
 #complete-trip-modal,
 #delete-trip-modal {
     z-index: 99999 !important;
-    background: rgba(6, 11, 25, 0.8) !important;
+    background: rgba(6, 11, 25, 0.75) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
 }
@@ -168,9 +206,9 @@ body[data-view="saved_trips"] {
 #checkin-modal > div,
 #complete-trip-modal > div,
 #delete-trip-modal > div {
-    background: linear-gradient(145deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%) !important;
-    border: 1px solid rgba(56, 189, 248, 0.35) !important;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 35px rgba(56, 189, 248, 0.2) !important;
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+    box-shadow: none !important;
     color: #ffffff !important;
     border-radius: 26px !important;
 }

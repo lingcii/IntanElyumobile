@@ -47,34 +47,35 @@ $backRoute = 'itinerary';
 </div>
 
 <!-- Check-in Verification Modal (GPS and Photo Proof) -->
-<div id="checkin-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.78); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:99999; justify-content:center; align-items:center;">
-    <div style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(56, 189, 248, 0.3); border-radius:24px; padding:28px 24px; width:90%; max-width:380px; box-shadow:0 24px 60px rgba(0,0,0,0.6), 0 0 30px rgba(56,189,248,0.15); text-align:center;">
-        <i class="fa-solid fa-camera" style="font-size:32px; color:#38bdf8; margin-bottom:10px; display:block;"></i>
+<!-- Check-in Verification Modal (GPS and Photo Proof) -->
+<div id="checkin-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:99999; justify-content:center; align-items:center;">
+    <div style="background:linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1.5px solid rgba(255, 255, 255, 0.35); border-radius:24px; padding:28px 24px; width:90%; max-width:380px; box-shadow:none; text-align:center;">
+        <i class="fa-solid fa-camera" style="font-size:32px; color:#00f2fe; margin-bottom:10px; display:block;"></i>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Claim Your Reward</h3>
-        <p style="font-size:13px; color:rgba(226, 232, 240, 0.85); margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination to verify your visit and earn <strong style="color:#38bdf8; font-weight:800;">+50 XP</strong> & <strong style="color:#38bdf8; font-weight:800;">+50 Points</strong>.</p>
+        <p style="font-size:13px; color:#ffffff; opacity:0.95; margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination to verify your visit and earn <strong style="color:#00f2fe; font-weight:800;">+50 XP</strong> & <strong style="color:#00f2fe; font-weight:800;">+50 Points</strong>.</p>
 
         <input type="hidden" id="checkin-item-id">
         
         <!-- Step 1: Photo Proof -->
         <div style="margin-bottom: 16px; text-align: left;">
-            <label style="font-size:11px; font-weight:800; color:#38bdf8; margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Step 1: Photo Proof (Required)</label>
+            <label style="font-size:11px; font-weight:800; color:#00f2fe; margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Step 1: Photo Proof (Required)</label>
             <input type="file" id="checkin-proof-image" accept="image/*" style="display:none;" onchange="window.handlePhotoSelected(this)">
-            <button type="button" onclick="window.openCheckinImagePickerModal()" id="btn-select-photo" style="width:100%; padding:14px; background:rgba(56,189,248,0.1); border:1.5px dashed rgba(56,189,248,0.4); border-radius:14px; color:#38bdf8; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:all 0.2s ease;">
-                <i class="fa-solid fa-camera" style="font-size:16px;"></i> <span id="photo-status-text">Take or Choose Photo</span>
+            <button type="button" onclick="window.openCheckinImagePickerModal()" id="btn-select-photo" style="width:100%; padding:14px; background:rgba(255,255,255,0.12); border:1.5px dashed rgba(255,255,255,0.4); border-radius:14px; color:#ffffff; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:all 0.2s ease;">
+                <i class="fa-solid fa-camera" style="font-size:16px; color:#00f2fe;"></i> <span id="photo-status-text">Take or Choose Photo</span>
             </button>
             
             <!-- Picture Preview Container (Displays actual picture preview instead of filename string) -->
-            <div id="checkin-photo-preview-container" style="display:none; margin-top:12px; position:relative; border-radius:16px; overflow:hidden; border:1.5px solid rgba(56,189,248,0.4); background:rgba(15,23,42,0.8); box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+            <div id="checkin-photo-preview-container" style="display:none; margin-top:12px; position:relative; border-radius:16px; overflow:hidden; border:1.5px solid #00f2fe; background:rgba(15,23,42,0.8); box-shadow:none;">
                 <img id="checkin-photo-preview-img" src="" alt="Proof Preview" style="width:100%; max-height:180px; object-fit:cover; display:block;">
                 <div style="position:absolute; top:8px; right:8px; display:flex; gap:6px;">
-                    <button type="button" onclick="window.openCheckinImagePickerModal()" title="Change Picture" style="background:rgba(15,23,42,0.85); color:#38bdf8; border:1px solid rgba(56,189,248,0.4); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; backdrop-filter:blur(6px);">
+                    <button type="button" onclick="window.openCheckinImagePickerModal()" title="Change Picture" style="background:rgba(15,23,42,0.85); color:#00f2fe; border:1px solid rgba(255,255,255,0.4); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; backdrop-filter:blur(6px);">
                         <i class="fa-solid fa-arrows-rotate" style="font-size:13px;"></i>
                     </button>
                     <button type="button" onclick="window.removeCheckinPhoto()" title="Remove Picture" style="background:rgba(239,68,68,0.85); color:#ffffff; border:none; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; backdrop-filter:blur(6px);">
                         <i class="fa-solid fa-xmark" style="font-size:14px;"></i>
                     </button>
                 </div>
-                <div style="padding:6px 10px; background:rgba(15,23,42,0.9); font-size:10px; font-weight:700; color:#38bdf8; text-transform:uppercase; text-align:center; border-top:1px solid rgba(255,255,255,0.08);">
+                <div style="padding:6px 10px; background:rgba(15,23,42,0.9); font-size:10px; font-weight:700; color:#00f2fe; text-transform:uppercase; text-align:center; border-top:1px solid rgba(255,255,255,0.15);">
                     <i class="fa-solid fa-circle-check" style="margin-right:4px; color:#34c759;"></i> Picture Proof Attached
                 </div>
             </div>
@@ -82,35 +83,35 @@ $backRoute = 'itinerary';
 
         <!-- Step 2: Location Verification -->
         <div style="margin-bottom: 12px; text-align: left;">
-            <label style="font-size:11px; font-weight:800; color:#38bdf8; margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Step 2: Location Check-in</label>
-            <button class="btn-primary" id="btn-verify-gps" style="width:100%; padding:14px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); border:1px solid rgba(255,255,255,0.25); color:#ffffff; border-radius:14px; box-shadow:0 4px 16px rgba(56,189,248,0.4); cursor:pointer;" onclick="verifyGpsCheckIn()">
+            <label style="font-size:11px; font-weight:800; color:#00f2fe; margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Step 2: Location Check-in</label>
+            <button class="btn-primary" id="btn-verify-gps" style="width:100%; padding:14px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:1px solid #ffffff; color:#ffffff; border-radius:14px; box-shadow:none; cursor:pointer;" onclick="verifyGpsCheckIn()">
                 <i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Submit
             </button>
         </div>
 
-        <button style="width:100%; padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#e2e8f0; font-size:13px; font-weight:700; cursor:pointer;" onclick="closeCheckinModal()">Cancel</button>
+        <button style="width:100%; padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,0.25); background:rgba(255,255,255,0.12); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;" onclick="closeCheckinModal()">Cancel</button>
     </div>
 </div>
 
 <!-- Check-in Image Picker Choice Modal -->
 <div id="checkin-image-picker-modal" onclick="if(event.target===this) window.closeCheckinImagePickerModal()" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:999999; align-items:flex-end; justify-content:center; padding:0; margin:0; box-sizing:border-box;">
-    <div style="background:linear-gradient(135deg, rgba(30,41,59,0.98) 0%, rgba(15,23,42,1) 100%); border-top:1px solid rgba(56,189,248,0.3); border-radius:28px 28px 0 0; width:100%; max-width:500px; padding:26px 22px; box-shadow:0 -10px 45px rgba(0,0,0,0.8); animation:slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); box-sizing:border-box;">
+    <div style="background:linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); border-top:1.5px solid rgba(255,255,255,0.35); border-radius:28px 28px 0 0; width:100%; max-width:500px; padding:26px 22px; box-shadow:none; animation:slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); box-sizing:border-box;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h3 style="margin:0; font-size:17px; font-weight:800; color:#f8fafc; display:flex; align-items:center; gap:10px;">
-                <i class="fa-solid fa-camera" style="color:#38bdf8; font-size:18px;"></i> Attach Proof Photo
+            <h3 style="margin:0; font-size:17px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:10px;">
+                <i class="fa-solid fa-camera" style="color:#00f2fe; font-size:18px;"></i> Attach Proof Photo
             </h3>
-            <button type="button" onclick="window.closeCheckinImagePickerModal()" style="background:rgba(255,255,255,0.08); border:none; color:#94a3b8; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+            <button type="button" onclick="window.closeCheckinImagePickerModal()" style="background:rgba(255,255,255,0.15); border:none; color:#ffffff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
                 <i class="fa-solid fa-xmark" style="font-size:15px;"></i>
             </button>
         </div>
         <div style="display:flex; flex-direction:column; gap:12px;">
-            <button type="button" onclick="window.selectCheckinImageSource('camera')" style="width:100%; padding:15px; background:linear-gradient(135deg, rgba(56,189,248,0.18) 0%, rgba(37,99,235,0.22) 100%); border:1px solid rgba(56,189,248,0.35); border-radius:18px; color:#38bdf8; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:transform 0.15s ease, box-shadow 0.15s ease;">
+            <button type="button" onclick="window.selectCheckinImageSource('camera')" style="width:100%; padding:15px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:1px solid #ffffff; border-radius:18px; color:#ffffff; font-size:14px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; box-shadow:none;">
                 <i class="fa-solid fa-camera" style="font-size:17px;"></i> Take Photo with Camera
             </button>
-            <button type="button" onclick="window.selectCheckinImageSource('gallery')" style="width:100%; padding:15px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:18px; color:#f8fafc; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:transform 0.15s ease, background 0.15s ease;">
-                <i class="fa-solid fa-images" style="font-size:17px; color:#38bdf8;"></i> Choose from Photo Gallery
+            <button type="button" onclick="window.selectCheckinImageSource('gallery')" style="width:100%; padding:15px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); border-radius:18px; color:#ffffff; font-size:14px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer;">
+                <i class="fa-solid fa-images" style="font-size:17px; color:#00f2fe;"></i> Choose from Photo Gallery
             </button>
-            <button type="button" onclick="window.closeCheckinImagePickerModal()" style="width:100%; padding:12px; background:transparent; border:none; color:#94a3b8; font-size:13px; font-weight:600; cursor:pointer; margin-top:4px;">
+            <button type="button" onclick="window.closeCheckinImagePickerModal()" style="width:100%; padding:12px; background:transparent; border:none; color:#ffffff; opacity:0.85; font-size:13px; font-weight:700; cursor:pointer; margin-top:4px;">
                 Cancel
             </button>
         </div>
@@ -118,17 +119,17 @@ $backRoute = 'itinerary';
 </div>
 
 <!-- Complete Trip Confirmation Modal -->
-<div id="complete-trip-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.8); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center;">
-    <div style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); border:1px solid rgba(16, 185, 129, 0.35); border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:0 24px 60px rgba(0,0,0,0.6), 0 0 30px rgba(16, 185, 129, 0.2); text-align:center;">
-        <i class="fa-solid fa-flag-checkered" style="font-size:32px; color:#10b981; margin-bottom:10px; display:block;"></i>
+<div id="complete-trip-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:999999; justify-content:center; align-items:center;">
+    <div style="background:linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); border:1.5px solid rgba(255, 255, 255, 0.35); border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:none; text-align:center;">
+        <i class="fa-solid fa-flag-checkered" style="font-size:32px; color:#34c759; margin-bottom:10px; display:block;"></i>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Complete Trip?</h3>
-        <p style="font-size:13px; color:rgba(226, 232, 240, 0.85); margin-bottom:22px; line-height:1.5;">Are you sure you want to mark this trip as completed? It will be moved to your History.</p>
+        <p style="font-size:13px; color:#ffffff; opacity:0.95; margin-bottom:22px; line-height:1.5;">Are you sure you want to mark this trip as completed? It will be moved to your History.</p>
 
         <div style="display:flex; gap:10px;">
-            <button type="button" style="flex:1; padding:13px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#e2e8f0; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeCompleteTripModal()">
+            <button type="button" style="flex:1; padding:13px; border-radius:14px; border:1px solid rgba(255,255,255,0.25); background:rgba(255,255,255,0.12); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeCompleteTripModal()">
                 Cancel
             </button>
-            <button type="button" id="btn-confirm-complete-trip" style="flex:1; padding:13px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:1px solid rgba(255,255,255,0.2); color:#ffffff; border-radius:14px; box-shadow:0 4px 16px rgba(16,185,129,0.4); cursor:pointer;" onclick="window.executeConfirmCompleteTrip()">
+            <button type="button" id="btn-confirm-complete-trip" style="flex:1; padding:13px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:1px solid #ffffff; color:#ffffff; border-radius:14px; box-shadow:none; cursor:pointer;" onclick="window.executeConfirmCompleteTrip()">
                 Complete
             </button>
         </div>
@@ -136,17 +137,17 @@ $backRoute = 'itinerary';
 </div>
 
 <!-- Delete Trip Confirmation Modal -->
-<div id="delete-trip-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.8); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center;">
-    <div style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); border:1px solid rgba(239, 68, 68, 0.35); border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:0 24px 60px rgba(0,0,0,0.6), 0 0 30px rgba(239, 68, 68, 0.2); text-align:center;">
+<div id="delete-trip-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:999999; justify-content:center; align-items:center;">
+    <div style="background:linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); border:1.5px solid rgba(255, 255, 255, 0.35); border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:none; text-align:center;">
         <i class="fa-solid fa-trash-can" style="font-size:32px; color:#ef4444; margin-bottom:10px; display:block;"></i>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Delete Saved Trip?</h3>
-        <p id="delete-trip-title-text" style="font-size:13px; color:rgba(226, 232, 240, 0.8); margin-bottom:22px; line-height:1.5;">Are you sure you want to delete this trip? All saved itinerary items will be removed.</p>
+        <p id="delete-trip-title-text" style="font-size:13px; color:#ffffff; opacity:0.95; margin-bottom:22px; line-height:1.5;">Are you sure you want to delete this trip? All saved itinerary items will be removed.</p>
 
         <div style="display:flex; gap:10px;">
-            <button type="button" style="flex:1; padding:13px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#e2e8f0; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeDeleteTripModal()">
+            <button type="button" style="flex:1; padding:13px; border-radius:14px; border:1px solid rgba(255,255,255,0.25); background:rgba(255,255,255,0.12); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeDeleteTripModal()">
                 Cancel
             </button>
-            <button type="button" id="btn-confirm-delete-trip" style="flex:1; padding:13px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border:1px solid rgba(255,255,255,0.2); color:#ffffff; border-radius:14px; box-shadow:0 4px 16px rgba(239,68,68,0.4); cursor:pointer;" onclick="window.executeConfirmDeleteTrip()">
+            <button type="button" id="btn-confirm-delete-trip" style="flex:1; padding:13px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border:1px solid #ffffff; color:#ffffff; border-radius:14px; box-shadow:none; cursor:pointer;" onclick="window.executeConfirmDeleteTrip()">
                 Delete
             </button>
         </div>
@@ -219,15 +220,15 @@ $backRoute = 'itinerary';
         if (!list) return;
 
         const emptyStateHtml = `
-            <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px;">
-                <div style="width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, rgba(56,189,248,0.15) 0%, rgba(129,140,248,0.2) 100%); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; border: 1px solid rgba(56,189,248,0.25); box-shadow: 0 8px 24px rgba(56,189,248,0.15);">
-                    <i class="fa-solid fa-compass-drafting" style="font-size: 32px; color: #38bdf8;"></i>
+            <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px; background: rgba(30, 75, 135, 0.58); border: 1.5px solid rgba(255, 255, 255, 0.28); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 24px; padding: 32px 24px; text-align: center; box-shadow: none;">
+                <div style="width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; border: 2px solid #ffffff; box-shadow: none;">
+                    <i class="fa-solid fa-compass-drafting" style="font-size: 32px; color: #ffffff;"></i>
                 </div>
                 <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff; text-wrap: balance;">No Saved Trips Yet</h3>
-                <p style="margin: 0; font-size: 13px; color: rgba(148,163,184,0.9); line-height: 1.45; max-width: 260px; text-wrap: pretty;">
+                <p style="margin: 0; font-size: 13px; color: #ffffff; opacity: 0.95; line-height: 1.45; max-width: 260px; text-wrap: pretty;">
                     Your adventure starts here! Explore La Union tourist spots and plan your personalized itinerary.
                 </p>
-                <button type="button" class="btn-cta-accent-10" onclick="if(typeof window.navigateTo==='function') window.navigateTo('itinerary');" style="margin-top: 10px; padding: 12px 24px; border-radius: 100px; font-size: 14px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <button type="button" class="btn-cta-accent-10" onclick="if(typeof window.navigateTo==='function') window.navigateTo('itinerary');" style="margin-top: 10px; padding: 12px 24px; border-radius: 100px; font-size: 14px; font-weight: 800; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border: 1.5px solid #ffffff; color: #ffffff; display: flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: none;">
                     <i class="fa-solid fa-plus"></i> Create New Trip
                 </button>
             </div>
@@ -270,11 +271,11 @@ $backRoute = 'itinerary';
                 </div>
                 
                 <!-- Rich Glassmorphic Front Card Content (Overlays z-index 2) -->
-                <div class="trip-swipe-content" style="position:relative; z-index:2; background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 24px; padding: 22px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease, border-color 0.25s ease; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(56, 189, 248, 0.08);">
+                <div class="trip-swipe-content" style="position:relative; z-index:2; background: rgba(30, 75, 135, 0.58); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1.5px solid rgba(255, 255, 255, 0.28); border-radius: 24px; padding: 22px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease, border-color 0.25s ease; box-shadow: none;">
                     <h3 style="margin: 0 0 6px 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">${trip.title}</h3>
-                    <p style="font-size: 13px; color: rgba(226, 232, 240, 0.85); margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                        <span><i class="fa-regular fa-calendar" style="color: #38bdf8; margin-right: 4px;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}</span> 
-                        ${trip.budget ? '&bull; <span style="background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.25); color: #38bdf8; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-coins" style="font-size:10px;"></i>Budget: ₱' + parseFloat(trip.budget).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + budgetIndicator + '</span>' : ''}
+                    <p style="font-size: 13px; color: #ffffff; opacity: 0.95; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span><i class="fa-regular fa-calendar" style="color: #00f2fe; margin-right: 4px;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}</span> 
+                        ${trip.budget ? '&bull; <span style="background: rgba(255,255,255,0.16); border: 1.5px solid rgba(255,255,255,0.3); color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-coins" style="font-size:10px; color:#fbbf24;"></i>Budget: ₱' + parseFloat(trip.budget).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + budgetIndicator + '</span>' : ''}
                     </p>
                     <div class="timeline-collapsible" id="timeline-${trip.id}">
                         <div class="timeline-inner">
@@ -303,13 +304,13 @@ $backRoute = 'itinerary';
                         html += `
                         <div class="timeline-item ${isVisited ? 'completed' : (isNextStop ? 'is-next-stop' : '')}" style="margin-bottom: 12px;">
                             <div class="timeline-dot"></div>
-                            <div class="timeline-content" style="padding:14px; background: rgba(255,255,255,0.04); border: 1px solid ${isNextStop ? 'rgba(56,189,248,0.5)' : 'rgba(255,255,255,0.08)'}; border-radius: 16px; display:flex; flex-direction:column; gap:8px;">
+                            <div class="timeline-content" style="padding:14px; background: rgba(255,255,255,0.08); border: 1.5px solid ${isNextStop ? '#00f2fe' : 'rgba(255,255,255,0.2)'}; border-radius: 16px; display:flex; flex-direction:column; gap:8px;">
                                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                     <h4 style="margin:0; font-size:15px; font-weight:800; color:#ffffff;">${dest ? dest.name : 'Unknown Destination'}</h4>
-                                    ${isNextStop ? `<span style="padding: 2px 8px; border-radius: 100px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: linear-gradient(135deg, #0284c7, #0369a1);"><i class="fa-solid fa-location-dot" style="font-size:8px;"></i> Next Stop</span>` : ''}
-                                    ${(dest && dest.classification_status) ? `<span style="padding: 2px 8px; border-radius: 100px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')};">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
+                                    ${isNextStop ? `<span style="padding: 2px 8px; border-radius: 100px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: linear-gradient(135deg, #00f2fe, #0284c7); border: 1px solid #ffffff;"><i class="fa-solid fa-location-dot" style="font-size:8px;"></i> Next Stop</span>` : ''}
+                                    ${(dest && dest.classification_status) ? `<span style="padding: 2px 8px; border-radius: 100px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#00f2fe' : '#f59e0b')};">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
                                 </div>
-                                ${(dest && (dest.accessible_by_private_vehicle === 0 || dest.accessible_by_private_vehicle === false)) ? `<div style="background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.2); border-radius:10px; padding:8px 12px; display:flex; gap:8px; align-items:flex-start; margin-top:4px;"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; font-size:13px; margin-top:2px;"></i><div><h5 style="margin:0 0 2px 0; font-size:11px; font-weight:800; color:#ef4444; text-transform:uppercase;">Inaccessible by Private Car</h5><p style="margin:0; font-size:10px; color:rgba(226,232,240,0.8); line-height:1.3;">Prepare to hike or use specialized local transport.</p></div></div>` : ''}
+                                ${(dest && (dest.accessible_by_private_vehicle === 0 || dest.accessible_by_private_vehicle === false)) ? `<div style="background:rgba(239, 68, 68, 0.15); border:1px solid rgba(239, 68, 68, 0.3); border-radius:10px; padding:8px 12px; display:flex; gap:8px; align-items:flex-start; margin-top:4px;"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; font-size:13px; margin-top:2px;"></i><div><h5 style="margin:0 0 2px 0; font-size:11px; font-weight:800; color:#ef4444; text-transform:uppercase;">Inaccessible by Private Car</h5><p style="margin:0; font-size:10px; color:#ffffff; opacity:0.9; line-height:1.3;">Prepare to hike or use specialized local transport.</p></div></div>` : ''}
 
                                 ${isVisited || item.proof_status === 'approved' ? 
                                     `<div style="display:flex; align-items:center; justify-space-between; gap:10px; margin-top:4px;">
@@ -319,10 +320,10 @@ $backRoute = 'itinerary';
                                                 <span style="color:#34c759; font-size:12px; font-weight:800; display:block;">
                                                     <i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Visited & Verified
                                                 </span>
-                                                <span style="font-size:10px; color:rgba(226,232,240,0.6);">Your Trip has been Confirmed!</span>
+                                                <span style="font-size:10px; color:#ffffff; opacity:0.8;">Your Trip has been Confirmed!</span>
                                             </div>
                                         </div>
-                                        <button type="button" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (dest ? dest.id : '')}')" style="background:linear-gradient(135deg, rgba(56,189,248,0.15), rgba(37,99,235,0.25)); border:1px solid rgba(56,189,248,0.35); color:#38bdf8; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(56,189,248,0.2); flex-shrink:0;">
+                                        <button type="button" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (dest ? dest.id : '')}')" style="background:rgba(255,255,255,0.16); border:1.5px solid rgba(255,255,255,0.35); color:#ffffff; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:none; flex-shrink:0;">
                                             <i class="fa-solid fa-pen" style="font-size:10px;"></i> Review
                                         </button>
                                     </div>` : 
@@ -334,10 +335,10 @@ $backRoute = 'itinerary';
                                                     <span style="color:#ef4444; font-size:12px; font-weight:800; display:block;">
                                                         <i class="fa-solid fa-circle-xmark" style="margin-right:4px;"></i> Proof Rejected
                                                     </span>
-                                                    <span style="font-size:10px; color:rgba(239,68,68,0.8);">${item.rejection_reason || 'Please upload a clearer photo taken at the destination.'}</span>
+                                                    <span style="font-size:10px; color:#ef4444;">${item.rejection_reason || 'Please upload a clearer photo taken at the destination.'}</span>
                                                 </div>
                                             </div>
-                                            <button class="btn-primary" style="padding: 8px 14px; font-size:12px; font-weight:700; width:max-content; border-radius:100px; background: linear-gradient(135deg, #ef4444, #dc2626); border:none; box-shadow: 0 4px 12px rgba(239,68,68,0.3); color:#fff; cursor:pointer;" onclick="window.openCheckinModal('${item.id}')">
+                                            <button class="btn-primary" style="padding: 8px 14px; font-size:12px; font-weight:700; width:max-content; border-radius:100px; background: linear-gradient(135deg, #ef4444, #dc2626); border:none; box-shadow: none; color:#fff; cursor:pointer;" onclick="window.openCheckinModal('${item.id}')">
                                                 <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Re-upload Photo Proof
                                             </button>
                                         </div>` : 
@@ -345,13 +346,13 @@ $backRoute = 'itinerary';
                                             `<div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
                                                 ${proofImgHtml}
                                                 <div>
-                                                    <span style="background:rgba(255,149,0,0.15); border:1px solid rgba(255,149,0,0.35); color:#FF9500; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
+                                                    <span style="background:rgba(255,149,0,0.2); border:1px solid rgba(255,149,0,0.4); color:#FF9500; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
                                                         <i class="fa-solid fa-clock"></i> Pending Confirmation
                                                     </span>
-                                                    <span style="font-size:10px; color:rgba(226,232,240,0.6); display:block; margin-top:4px;">Awaiting Validation</span>
+                                                    <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Awaiting Validation</span>
                                                 </div>
                                             </div>` : 
-                                            `<button class="btn-primary" style="padding: 8px 14px; font-size:12px; font-weight:700; width:max-content; border-radius:100px; background: linear-gradient(135deg, #38bdf8, #2563eb); border:none; box-shadow: 0 4px 12px rgba(56,189,248,0.3); color:#fff; cursor:pointer;" onclick="window.openCheckinModal('${item.id}')">
+                                            `<button class="btn-primary" style="padding: 8px 14px; font-size:12px; font-weight:800; width:max-content; border-radius:100px; background: linear-gradient(135deg, #00f2fe, #0284c7); border:1px solid #ffffff; box-shadow: none; color:#fff; cursor:pointer;" onclick="window.openCheckinModal('${item.id}')">
                                                 <i class="fa-solid fa-location-arrow" style="margin-right:4px;"></i> Check In (+50 XP)
                                              </button>`))
                                 }
@@ -359,7 +360,7 @@ $backRoute = 'itinerary';
                         </div>`;
                     });
                 } else {
-                    html += `<p style="font-size:13px; color:rgba(226,232,240,0.7); margin:10px 0;">No destinations in this trip.</p>`;
+                    html += `<p style="font-size:13px; color:#ffffff; opacity:0.85; margin:10px 0;">No destinations in this trip.</p>`;
                 }
                     
                 html += `</div></div></div>`; // Close timeline, timeline-inner, and timeline-collapsible
@@ -369,7 +370,7 @@ $backRoute = 'itinerary';
 
                 // View Details button
                 html += `
-                <button class="btn-primary" style="flex:1; background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(37, 99, 235, 0.25) 100%); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; padding: 14px; border-radius: 14px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.25s ease;" onclick="window.toggleTripDetails('${trip.id}')">
+                <button class="btn-primary" style="flex:1; background: rgba(255, 255, 255, 0.16); border: 1.5px solid rgba(255, 255, 255, 0.35); color: #ffffff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.25s ease;" onclick="window.toggleTripDetails('${trip.id}')">
                     <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="margin-right:8px; transition:transform 0.3s ease;"></i> View Details
                 </button>`;
 
@@ -377,17 +378,17 @@ $backRoute = 'itinerary';
                 html += `<div class="start-collapsible" id="start-wrapper-${trip.id}">`;
                 if (isTripCompleted) {
                     html += `
-                    <button class="btn-primary" style="width:100%; white-space:nowrap; background: rgba(16,185,129,0.18); border: 1px solid rgba(16,185,129,0.4); color: #34c759; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: default;" disabled>
-                        <i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> Completed
+                    <button class="btn-primary" style="width:100%; white-space:nowrap; background: rgba(16,185,129,0.25); border: 1.5px solid rgba(16,185,129,0.5); color: #ffffff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: default;" disabled>
+                        <i class="fa-solid fa-circle-check" style="margin-right:6px; color:#34c759;"></i> Completed
                     </button>`;
                 } else if (unvisitedCount === 0 && trip.items && trip.items.length > 0) {
                     html += `
-                    <button class="btn-primary" id="btn-complete-trip-${trip.id}" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; box-shadow: 0 4px 16px rgba(16,185,129,0.35); cursor: pointer;" onclick="window.markTripCompleted('${trip.id}')">
+                    <button class="btn-primary" id="btn-complete-trip-${trip.id}" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: 1.5px solid #ffffff; color: #fff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; box-shadow: none; cursor: pointer;" onclick="window.markTripCompleted('${trip.id}')">
                         <i class="fa-solid fa-flag-checkered" style="margin-right:6px;"></i> Complete
                     </button>`;
                 } else {
                     html += `
-                    <button class="btn-primary" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; box-shadow: 0 4px 16px rgba(56,189,248,0.35); cursor: pointer;" onclick="window.startTrip('${trip.id}')">
+                    <button class="btn-primary" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border: 1.5px solid #ffffff; color: #fff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; box-shadow: none; cursor: pointer;" onclick="window.startTrip('${trip.id}')">
                         <i class="fa-solid fa-play" style="margin-right:6px;"></i> Start
                     </button>`;
                 }
