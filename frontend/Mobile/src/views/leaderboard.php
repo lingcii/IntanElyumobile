@@ -32,7 +32,7 @@ $activeTab = 'leaderboard';
                     <span id="my-explorer-title"
                         style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Your Standing</span>
                     <span
-                        style="font-size: 9.5px; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 2px 7px; border-radius: 100px; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">YOU</span>
+                        style="font-size: 9.5px; background: rgba(0, 242, 254, 0.2); color: #00f2fe; padding: 2px 7px; border-radius: 100px; font-weight: 800; border: 1px solid rgba(0, 242, 254, 0.4);">YOU</span>
                 </div>
                 <div class="standing-subtext" id="my-standing-subtext">Loading rank details...</div>
             </div>
@@ -51,7 +51,7 @@ $activeTab = 'leaderboard';
             <i class="fa-solid fa-coins" style="color:#f59e0b;"></i> Highest Points
         </button>
         <button class="leaderboard-tab-btn" id="tab-sort-visited" onclick="setLeaderboardSort('visited')">
-            <i class="fa-solid fa-map-location-dot" style="color:#38bdf8;"></i> Most Visited
+            <i class="fa-solid fa-map-location-dot" style="color:#00f2fe;"></i> Most Visited
         </button>
     </div>
 
@@ -66,9 +66,9 @@ $activeTab = 'leaderboard';
             style="display: flex; justify-content: space-between; align-items: center; margin: 20px 4px 12px 4px;">
             <h3
                 style="font-size: 15px; font-weight: 800; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 6px;">
-                <i class="fa-solid fa-list-ol" style="color: #38bdf8;"></i> Explorer Leaderboard
+                <i class="fa-solid fa-list-ol" style="color: #00f2fe;"></i> Explorer Leaderboard
             </h3>
-            <span style="font-size: 11px; font-weight: 700; color: rgba(148, 163, 184, 0.7);"
+            <span style="font-size: 11px; font-weight: 700; color: #ffffff; opacity: 0.9;"
                 id="explorers-count-badge">Top Ranks</span>
         </div>
 
@@ -79,7 +79,7 @@ $activeTab = 'leaderboard';
             </div>
             <button class="btn-invite-friends"
                 onclick="if(navigator.share){navigator.share({title:'La Union Top Explorers',url:window.location.href});}else if(typeof showToast==='function'){showToast('Leaderboard link copied to clipboard!');}">
-                <i class="fa-solid fa-user-plus" style="color:#38bdf8;"></i> Invite Friends & Compete
+                <i class="fa-solid fa-user-plus" style="color:#ffffff;"></i> Invite Friends & Compete
             </button>
         </div>
     </div>
