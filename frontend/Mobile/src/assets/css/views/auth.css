@@ -8,12 +8,12 @@
 }
 
 body {
-    background-color: #0f172a;
+    background-color: #1d4ed8;
     margin: 0;
 }
 
 body[data-view="auth"] {
-    background: #0f172a !important;
+    background: #1d4ed8 !important;
     overflow: hidden !important;
     height: 100vh !important;
     height: 100dvh !important;
@@ -26,7 +26,7 @@ body[data-view="auth"] {
     width: 100%;
     display: flex;
     flex-direction: column;
-    background: #0f172a;
+    background: #1d4ed8;
     position: relative;
     overflow: hidden;
 }
@@ -126,7 +126,6 @@ body[data-view="auth"] {
 
 .wave-3 {
     animation: moveWave 8s linear infinite;
-    filter: drop-shadow(0 -3px 10px rgba(37, 99, 235, 0.4));
 }
 
 @keyframes moveWave {
@@ -141,7 +140,7 @@ body[data-view="auth"] {
 
 .auth-bottom {
     flex: 1;
-    background: linear-gradient(180deg, #1e3a8a 0%, #172554 45%, #0f172a 100%);
+    background: #1d4ed8;
     padding: 20px 32px calc(24px + env(safe-area-inset-bottom, 0px)) 32px;
     display: flex;
     flex-direction: column;
@@ -380,7 +379,7 @@ body[data-view="auth"] {
 .auth-input:-webkit-autofill:hover,
 .auth-input:-webkit-autofill:focus,
 .auth-input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px #172554 inset !important;
+    -webkit-box-shadow: 0 0 0 30px #1d4ed8 inset !important;
     -webkit-text-fill-color: #ffffff !important;
     transition: background-color 5000s ease-in-out 0s;
 }

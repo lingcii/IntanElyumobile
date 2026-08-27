@@ -34,9 +34,8 @@
                     </linearGradient>
                     <linearGradient id="authWaveGrad3" x1="0%" y1="0%" x2="0%" y2="100%">
                         <stop offset="0%" stop-color="#2563eb" stop-opacity="1" />
-                        <stop offset="35%" stop-color="#1d4ed8" stop-opacity="1" />
-                        <stop offset="70%" stop-color="#1e3a8a" stop-opacity="1" />
-                        <stop offset="100%" stop-color="#1e3a8a" stop-opacity="1" />
+                        <stop offset="25%" stop-color="#1d4ed8" stop-opacity="1" />
+                        <stop offset="100%" stop-color="#1d4ed8" stop-opacity="1" />
                     </linearGradient>
                 </defs>
                 <path class="wave-layer wave-1" fill="url(#authWaveGrad1)" d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 C1150,100 1350,0 1500,50 C1650,100 1850,0 2000,50 L2000,100 L0,100 Z"></path>
