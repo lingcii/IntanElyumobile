@@ -54,10 +54,10 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 
 /* Profile + EXP Card */
 .profile-header {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 58, 138, 0.82) 50%, rgba(63, 125, 183, 0.7) 100%);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.28);
     border-radius: 26px;
     padding: 22px 20px;
     margin-bottom: 20px;
@@ -217,10 +217,10 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 }
 
 .stat-card {
-    background: rgba(15, 23, 42, 0.8);
+    background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 22px;
     padding: 16px 12px;
     text-align: center;
@@ -231,8 +231,8 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 
 .stat-card:active {
     transform: scale(0.95);
-    background: rgba(15, 23, 42, 0.95);
-    border-color: #38bdf8;
+    background: rgba(255, 255, 255, 0.25);
+    border-color: #00f2fe;
 }
 
 .stat-icon {
@@ -253,17 +253,17 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 .stat-label {
     font-size: 11px;
     font-weight: 700;
-    color: #cbd5e1;
+    color: rgba(255, 255, 255, 0.85);
     text-transform: uppercase;
     letter-spacing: 0.6px;
 }
 
 /* Weather Widget */
 .weather-card {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.8) 100%);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 24px;
     padding: 20px 22px;
     margin-bottom: 20px;
@@ -276,7 +276,8 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 
 .weather-card:active {
     transform: scale(0.98);
-    border-color: #38bdf8;
+    background: rgba(255, 255, 255, 0.22);
+    border-color: #00f2fe;
 }
 
 .weather-left {
@@ -295,13 +296,13 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 .weather-desc {
     font-size: 14px;
     font-weight: 700;
-    color: #38bdf8;
+    color: #00f2fe;
     letter-spacing: -0.2px;
 }
 
 .weather-loc {
     font-size: 12px;
-    color: #cbd5e1;
+    color: rgba(255, 255, 255, 0.85);
     margin-top: 2px;
     font-weight: 600;
     display: flex;
@@ -314,7 +315,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     margin-top: 10px;
     font-size: 11px;
     font-weight: 700;
-    color: #e2e8f0;
+    color: #ffffff;
 }
 
 .weather-icon {
@@ -527,7 +528,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     flex: 0 0 98px;
     width: 98px;
     height: 102px;
-    background: rgba(15, 23, 42, 0.78);
+    background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-radius: 22px;
@@ -540,14 +541,15 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     box-shadow: none !important;
     cursor: pointer;
     user-select: none;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    transition: transform 0.25s ease, border-color 0.25s ease;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
     scroll-snap-align: start;
 }
 
 .category-card:hover {
     transform: translateY(-2px);
-    border-color: #38bdf8;
+    border-color: #00f2fe;
+    background: rgba(255, 255, 255, 0.22);
 }
 
 .category-card:active {
@@ -555,7 +557,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 }
 
 .category-card.active {
-    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 50%, #1e3a8a 100%);
+    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%);
     border-color: #00f2fe;
     box-shadow: none !important;
     animation: filterFadeIn 0.25s ease-out;
@@ -569,7 +571,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     align-items: center;
     justify-content: center;
     font-size: 22px;
-    color: #38bdf8;
+    color: #00f2fe;
     margin-bottom: 6px;
     transition: color 0.25s ease, transform 0.25s ease;
 }
@@ -619,10 +621,10 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    background: linear-gradient(145deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.8) 100%);
+    background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 22px;
     box-shadow: none !important;
     animation: dashEmptyFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -644,13 +646,13 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     width: 50px;
     height: 50px;
     border-radius: 16px;
-    background: rgba(56, 189, 248, 0.16);
-    border: 1px solid rgba(56, 189, 248, 0.35);
+    background: rgba(0, 242, 254, 0.18);
+    border: 1px solid rgba(0, 242, 254, 0.35);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 22px;
-    color: #38bdf8;
+    color: #00f2fe;
     box-shadow: none;
     margin-bottom: 2px;
     flex-shrink: 0;
@@ -667,7 +669,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 
 .dash-empty-desc {
     font-size: 13px;
-    color: #cbd5e1;
+    color: rgba(255, 255, 255, 0.85);
     line-height: 1.45;
     max-width: 380px;
     margin: 0 auto;
@@ -679,10 +681,10 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     padding: 10px 22px;
     border-radius: 100px;
     font-size: 12.5px;
-    font-weight: 700;
-    background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
-    color: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-weight: 800;
+    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%);
+    color: #0f172a !important;
+    border: none;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -699,7 +701,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 }
 
 .dash-empty-btn:hover {
-    color: #ffffff !important;
+    color: #0f172a !important;
 }
 
 /* Loading State Card */
@@ -713,10 +715,10 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    background: rgba(15, 23, 42, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 20px;
-    color: #cbd5e1;
+    color: rgba(255, 255, 255, 0.85);
     font-size: 13px;
     font-weight: 600;
     margin: 0 !important;
@@ -724,17 +726,17 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 }
 
 .dash-loading-state i {
-    color: #38bdf8;
+    color: #00f2fe;
     font-size: 15px;
 }
 
 /* Recommended Destination Card (Wave Oceanic Theme) */
 .rec-item-card {
     margin-bottom: 12px;
-    background: rgba(15, 23, 42, 0.8);
+    background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 18px;
     overflow: hidden;
     box-shadow: none !important;
@@ -742,7 +744,8 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 }
 
 .rec-item-card:hover {
-    border-color: rgba(56, 189, 248, 0.4);
+    border-color: #00f2fe;
+    background: rgba(255, 255, 255, 0.22);
 }
 
 .rec-item-card .rec-title {
@@ -759,7 +762,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 .rec-item-card .rec-loc {
     margin: 0 0 8px;
     font-size: 12px;
-    color: #cbd5e1;
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .rec-item-card .rec-rating {
@@ -770,7 +773,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 }
 
 .rec-item-card .rec-chevron {
-    color: #94a3b8;
+    color: rgba(255, 255, 255, 0.8);
     font-size: 13px;
     padding: 4px;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -782,13 +785,13 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     padding: 0 14px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
-    background: rgba(10, 16, 30, 0.65);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.18);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .rec-item-card .rec-desc {
     font-size: 12px;
-    color: #e2e8f0;
+    color: rgba(255, 255, 255, 0.9);
     line-height: 1.5;
     margin-bottom: 12px;
     margin-top: 12px;
