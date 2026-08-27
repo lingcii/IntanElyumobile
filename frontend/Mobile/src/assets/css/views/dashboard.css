@@ -15,13 +15,17 @@
     100% { background-position: 0% 50%; }
 }
 
+body[data-view="dashboard"] {
+    background-color: #74a3cf !important;
+}
+
 /* Main Container */
 .dashboard-container {
     width: 100%;
     min-height: 100vh;
     padding: 16px 16px 110px 16px;
     box-sizing: border-box;
-    background: radial-gradient(circle at 50% 0%, #0f172a 0%, #090d16 100%);
+    background: #74a3cf;
     color: #f8fafc;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
 }
@@ -293,28 +297,28 @@
     margin: 0;
     font-size: 18px;
     font-weight: 900;
-    color: #ffffff;
+    color: #0f172a;
     letter-spacing: -0.4px;
 }
 
 .section-title a {
     font-size: 12px;
     font-weight: 800;
-    color: #38bdf8;
+    color: #0f172a;
     text-decoration: none;
     text-transform: uppercase;
     letter-spacing: 0.6px;
-    padding: 4px 10px;
+    padding: 4px 12px;
     border-radius: 100px;
-    background: rgba(56, 189, 248, 0.1);
-    border: 1px solid rgba(56, 189, 248, 0.2);
+    background: rgba(255, 255, 255, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.7);
     transition: all 0.2s ease;
 }
 
 .section-title a:hover,
 .section-title a:active {
-    background: rgba(56, 189, 248, 0.2);
-    color: #ffffff;
+    background: rgba(255, 255, 255, 0.75);
+    color: #000000;
 }
 
 /* Horizontal Scroll Cards Row with Center Snap */
