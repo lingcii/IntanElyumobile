@@ -27,15 +27,13 @@ $email = $_GET['email'] ?? '';
                         <stop offset="100%" stop-color="#1e3a8a" stop-opacity="0.45" />
                     </linearGradient>
                     <linearGradient id="resetWaveGrad3" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stop-color="#2563eb" stop-opacity="1" />
-                        <stop offset="35%" stop-color="#60a5fa" stop-opacity="1" />
-                        <stop offset="85%" stop-color="#96afe7" stop-opacity="1" />
+                        <stop offset="0%" stop-color="#96afe7" stop-opacity="1" />
                         <stop offset="100%" stop-color="#96afe7" stop-opacity="1" />
                     </linearGradient>
                 </defs>
                 <path class="wave-layer wave-1" fill="url(#resetWaveGrad1)" d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 C1150,100 1350,0 1500,50 C1650,100 1850,0 2000,50 L2000,160 L0,160 Z"></path>
                 <path class="wave-layer wave-2" fill="url(#resetWaveGrad2)" d="M0,60 C200,110 300,10 500,60 C700,110 800,10 1000,60 C1200,110 1300,10 1500,60 C1700,110 1800,10 2000,60 L2000,160 L0,160 Z"></path>
-                <path class="wave-layer wave-3" fill="url(#resetWaveGrad3)" d="M0,70 C250,120 250,20 500,70 C750,120 750,20 1000,70 C1250,120 1250,20 1500,70 C1750,120 1750,20 2000,70 L2000,160 L0,160 Z"></path>
+                <path class="wave-layer wave-3" fill="#96afe7" d="M0,70 C250,120 250,20 500,70 C750,120 750,20 1000,70 C1250,120 1250,20 1500,70 C1750,120 1750,20 2000,70 L2000,160 L0,160 Z"></path>
             </svg>
         </div>
     </div>

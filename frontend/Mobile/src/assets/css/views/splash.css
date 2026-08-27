@@ -177,7 +177,7 @@
 
 /* Transition to Auth State */
 .splash-container.transition-to-auth .wave-wrapper {
-    height: calc(100vh - max(45vh, 350px));
+    height: calc(100vh - clamp(280px, 42vh, 350px));
     /* Matches auth-bottom height */
 }
 
