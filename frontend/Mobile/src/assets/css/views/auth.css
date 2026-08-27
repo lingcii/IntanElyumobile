@@ -8,12 +8,12 @@
 }
 
 body {
-    background-color: #1e293b;
+    background-color: #0f172a;
     margin: 0;
 }
 
 body[data-view="auth"] {
-    background: #1e293b !important;
+    background: #0f172a !important;
     overflow: hidden !important;
     height: 100vh !important;
     height: 100dvh !important;
@@ -26,7 +26,7 @@ body[data-view="auth"] {
     width: 100%;
     display: flex;
     flex-direction: column;
-    background: #1e293b;
+    background: #0f172a;
     position: relative;
     overflow: hidden;
 }
@@ -51,18 +51,19 @@ body[data-view="auth"] {
 
 /* Circle Logo */
 .logo-container {
-    width: 110px;
-    height: 110px;
+    width: 140px;
+    height: 140px;
     background: #ffffff;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 10px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(56, 189, 248, 0.25);
-    padding: 4px;
+    margin-bottom: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    padding: 5px;
     position: relative;
     z-index: 10;
+    box-sizing: border-box;
 }
 
 .logo-container img {
@@ -140,7 +141,7 @@ body[data-view="auth"] {
 
 .auth-bottom {
     flex: 1;
-    background: #1e293b;
+    background: linear-gradient(180deg, #1e3a8a 0%, #172554 45%, #0f172a 100%);
     padding: 20px 32px calc(24px + env(safe-area-inset-bottom, 0px)) 32px;
     display: flex;
     flex-direction: column;
@@ -379,7 +380,7 @@ body[data-view="auth"] {
 .auth-input:-webkit-autofill:hover,
 .auth-input:-webkit-autofill:focus,
 .auth-input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px #1e293b inset !important;
+    -webkit-box-shadow: 0 0 0 30px #172554 inset !important;
     -webkit-text-fill-color: #ffffff !important;
     transition: background-color 5000s ease-in-out 0s;
 }

@@ -47,7 +47,7 @@
                         <stop offset="0%" stop-color="#2563eb" stop-opacity="1" />
                         <stop offset="35%" stop-color="#1d4ed8" stop-opacity="1" />
                         <stop offset="70%" stop-color="#1e3a8a" stop-opacity="1" />
-                        <stop offset="100%" stop-color="#1e293b" stop-opacity="1" />
+                        <stop offset="100%" stop-color="#1e3a8a" stop-opacity="1" />
                     </linearGradient>
                 </defs>
                 <path class="wave-layer wave-1" fill="url(#splashWaveGrad1)" d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 C1150,100 1350,0 1500,50 C1650,100 1850,0 2000,50 L2000,100 L0,100 Z"></path>
@@ -82,8 +82,8 @@
             if(splashMain) {
                 // Dynamically calculate the perfect translateY destination based on auth page layout
                 const vh = window.innerHeight;
-                const authTopHeight = Math.max(vh * 0.45, 350);
-                const destCenter = (authTopHeight - 40) / 2 - 40; // Center of logo in auth flex block
+                const authTopHeight = Math.min(Math.max(vh * 0.42, 280), 350);
+                const destCenter = (authTopHeight / 2) - 37; // Exact center of 140px logo in auth-top
 
                 // Determine current position of the splash logo
                 const logoContainer = splashMain.querySelector('.splash-logo-container');
