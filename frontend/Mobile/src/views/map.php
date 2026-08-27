@@ -132,7 +132,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 </div>
 
                 <!-- Action Button -->
-                <button type="button" class="tracker-btn-action" onclick="window.findSunsetSpots()" style="margin-top:4px; width:100%; padding:7px 12px; border-radius:100px; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.4); color:#38bdf8; font-size:11.5px; font-weight:700; cursor:pointer;">
+                <button type="button" class="tracker-btn-action" onclick="window.findSunsetSpots()" style="margin-top:4px; width:100%; padding:7px 12px; border-radius:100px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none; color:#0f172a; font-size:11.5px; font-weight:800; cursor:pointer; box-shadow:none;">
                     Find Sunset Spots
                 </button>
             </div>
@@ -140,23 +140,23 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     </div>
 
     <!-- Locate Me Button -->
-    <div class="btn-locate-me animate-slide-up" id="btn-locate-me" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: #1E3A8A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
+    <div class="btn-locate-me animate-slide-up" id="btn-locate-me" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: rgba(30,75,135,0.78); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.28); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #00f2fe; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-crosshairs"></i>
     </div>
 
     <!-- Nearby Tourist Sites Button (Left Side) -->
-    <div class="btn-nearby-sites animate-slide-up" id="btn-nearby-sites" onclick="window.toggleNearbySitesSheet()" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); left: 10px; width: 44px; height: 44px; background: #1E3A8A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;" title="Nearby Tourist Sites">
+    <div class="btn-nearby-sites animate-slide-up" id="btn-nearby-sites" onclick="window.toggleNearbySitesSheet()" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); left: 10px; width: 44px; height: 44px; background: rgba(30,75,135,0.78); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.28); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #00f2fe; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;" title="Nearby Tourist Sites">
         <i class="fa-solid fa-compass"></i>
-        <span id="nearby-sites-badge" style="display:none; position:absolute; top:-5px; right:-5px; min-width:18px; height:18px; padding:0 4px; border-radius:9px; background:#38bdf8; color:#0f172a; font-size:10px; font-weight:800; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,0.5);">0</span>
+        <span id="nearby-sites-badge" style="display:none; position:absolute; top:-5px; right:-5px; min-width:18px; height:18px; padding:0 4px; border-radius:9px; background:#00f2fe; color:#0f172a; font-size:10px; font-weight:800; align-items:center; justify-content:center; box-shadow:none;">0</span>
     </div>
 
     <!-- Layer Toggle Button -->
-    <div class="btn-layer-toggle animate-slide-up" id="btn-layer-toggle" style="position: absolute; bottom: calc(235px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: #1E3A8A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
+    <div class="btn-layer-toggle animate-slide-up" id="btn-layer-toggle" style="position: absolute; bottom: calc(235px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: rgba(30,75,135,0.78); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.28); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #00f2fe; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-layer-group"></i>
     </div>
 
     <!-- 3D Mode Button -->
-    <div class="btn-3d-view animate-slide-up" id="btn-3d-view" style="position: absolute; bottom: calc(175px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: #1E3A8A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
+    <div class="btn-3d-view animate-slide-up" id="btn-3d-view" style="position: absolute; bottom: calc(175px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: rgba(30,75,135,0.78); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.28); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #00f2fe; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-cube"></i>
     </div>
 
@@ -169,23 +169,23 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding: 0 8px;">
                 <div>
                     <h3 style="margin:0; font-size:17px; font-weight:800; color:#f8fafc; display:flex; align-items:center; gap:8px;">
-                        <i class="fa-solid fa-compass" style="color:#38bdf8;"></i> Nearby Tourist Sites
+                        <i class="fa-solid fa-compass" style="color:#00f2fe;"></i> Nearby Tourist Sites
                     </h3>
-                    <p id="nearby-sites-subtext" style="margin:3px 0 0 0; font-size:12px; color:rgba(148,163,184,0.8);">
+                    <p id="nearby-sites-subtext" style="margin:3px 0 0 0; font-size:12px; color:rgba(224,242,254,0.85);">
                         Discover attractions close to your current location
                     </p>
                 </div>
-                <button type="button" onclick="window.closeNearbySitesSheet()" style="background:rgba(255,255,255,0.08); border:none; color:rgba(255,255,255,0.7); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:background 0.2s;">
+                <button type="button" onclick="window.closeNearbySitesSheet()" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.18); color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:background 0.2s;">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
             <!-- Radius filter pills -->
             <div style="display:flex; gap:6px; overflow-x:auto; padding: 4px 8px 12px 8px; scrollbar-width:none;">
-                <button type="button" class="nearby-radius-btn active" data-radius="2" onclick="window.filterNearbyRadius(2, this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid #38bdf8; background:linear-gradient(135deg, #38bdf8, #2563eb); color:#fff; cursor:pointer; white-space:nowrap;">Within 2 km</button>
-                <button type="button" class="nearby-radius-btn" data-radius="5" onclick="window.filterNearbyRadius(5, this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(56,189,248,0.25); background:rgba(30,58,138,0.6); color:rgba(248,250,252,0.9); cursor:pointer; white-space:nowrap;">Within 5 km</button>
-                <button type="button" class="nearby-radius-btn" data-radius="15" onclick="window.filterNearbyRadius(15, this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(56,189,248,0.25); background:rgba(30,58,138,0.6); color:rgba(248,250,252,0.9); cursor:pointer; white-space:nowrap;">Within 15 km</button>
-                <button type="button" class="nearby-radius-btn" data-radius="all" onclick="window.filterNearbyRadius('all', this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(56,189,248,0.25); background:rgba(30,58,138,0.6); color:rgba(248,250,252,0.9); cursor:pointer; white-space:nowrap;">All Closest</button>
+                <button type="button" class="nearby-radius-btn active" data-radius="2" onclick="window.filterNearbyRadius(2, this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:800; border:1px solid #00f2fe; background:linear-gradient(135deg, #00f2fe, #0284c7); color:#0f172a; cursor:pointer; white-space:nowrap;">Within 2 km</button>
+                <button type="button" class="nearby-radius-btn" data-radius="5" onclick="window.filterNearbyRadius(5, this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(255,255,255,0.28); background:rgba(30,75,135,0.75); color:#ffffff; cursor:pointer; white-space:nowrap;">Within 5 km</button>
+                <button type="button" class="nearby-radius-btn" data-radius="15" onclick="window.filterNearbyRadius(15, this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(255,255,255,0.28); background:rgba(30,75,135,0.75); color:#ffffff; cursor:pointer; white-space:nowrap;">Within 15 km</button>
+                <button type="button" class="nearby-radius-btn" data-radius="all" onclick="window.filterNearbyRadius('all', this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(255,255,255,0.28); background:rgba(30,75,135,0.75); color:#ffffff; cursor:pointer; white-space:nowrap;">All Closest</button>
             </div>
 
             <!-- List container -->
