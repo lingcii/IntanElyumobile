@@ -727,7 +727,7 @@ if (is_dir($imgDir)) {
                     </div>
                     <button id="btn-view-more-rec"
                         onclick="window.toggleRecommendedMore()"
-                        style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,0.25); background:rgba(255,255,255,0.15); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:none; backdrop-filter:blur(10px); transition: all 0.2s;">
+                        style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border:1px solid rgba(56,189,248,0.3); background:rgba(15,30,60,0.85); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:none; backdrop-filter:blur(10px); transition: all 0.2s;">
                         <i class="fa-solid fa-chevron-down" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i>
                         View ${extras.length} More
                     </button>
@@ -906,7 +906,7 @@ if (is_dir($imgDir)) {
         const encodedDest = encodeURIComponent(JSON.stringify(dest));
         return `
             <div class="rec-item-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}">
-                <div onclick="window.toggleRecommendedCard(this)" style="cursor:pointer; display:flex; align-items:center; gap: 12px; padding: 12px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.22)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
+                <div onclick="window.toggleRecommendedCard(this)" style="cursor:pointer; display:flex; align-items:center; gap: 12px; padding: 12px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(56, 189, 248, 0.18)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
                     <img src="${img}" alt="${dest.name}" style="width:60px; height:60px; border-radius:12px; object-fit:cover;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
                     <div style="flex:1; min-width:0;">
                         <h4 class="rec-title">${dest.name}</h4>
