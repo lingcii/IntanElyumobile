@@ -133,14 +133,13 @@
 
 .splash-container .wave-bottom {
     position: absolute;
-    bottom: calc(100% - 3px);
-    /* Overlap into the wrapper to completely prevent any seam/line */
+    bottom: calc(100% - 2px);
     left: 0;
     width: 100%;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: visible;
     line-height: 0;
     pointer-events: none;
-    transform: translateY(1px);
     z-index: 2;
 }
 
@@ -156,12 +155,10 @@
 
 .wave-1 {
     animation: moveWave 18s linear infinite;
-    filter: drop-shadow(0 -2px 8px rgba(0, 242, 254, 0.5));
 }
 
 .wave-2 {
     animation: moveWave 12s linear infinite reverse;
-    filter: drop-shadow(0 -2px 6px rgba(56, 189, 248, 0.35));
 }
 
 .wave-3 {

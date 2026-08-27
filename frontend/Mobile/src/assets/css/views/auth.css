@@ -94,10 +94,10 @@ body[data-view="auth"] {
 .wave-bottom {
     position: absolute;
     bottom: -2px;
-    /* Overlap slightly into auth-bottom to prevent any line/gap */
     left: 0;
     width: 100%;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: visible;
     line-height: 0;
     pointer-events: none;
     z-index: 6;
@@ -106,7 +106,6 @@ body[data-view="auth"] {
 .wave-bottom svg {
     display: block;
     width: 200vw;
-    /* Double width for smooth infinite panning */
     height: 65px;
 }
 
@@ -116,12 +115,10 @@ body[data-view="auth"] {
 
 .wave-1 {
     animation: moveWave 18s linear infinite;
-    filter: drop-shadow(0 -2px 8px rgba(0, 242, 254, 0.5));
 }
 
 .wave-2 {
     animation: moveWave 12s linear infinite reverse;
-    filter: drop-shadow(0 -2px 6px rgba(56, 189, 248, 0.35));
 }
 
 .wave-3 {
