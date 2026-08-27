@@ -152,8 +152,8 @@ body[data-view="map"] #main-content {
     padding: 10px 12px;
     border-radius: 16px;
     cursor: pointer;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     margin-bottom: 6px;
     transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background 0.22s ease, border-color 0.22s ease;
 }
@@ -164,8 +164,8 @@ body[data-view="map"] #main-content {
 
 .map-search-suggestion-item:hover,
 .map-search-suggestion-item.active {
-    background: rgba(56, 189, 248, 0.1);
-    border-color: rgba(56, 189, 248, 0.3);
+    background: rgba(255, 255, 255, 0.25);
+    border-color: #ffffff;
     transform: translateY(-1px);
 }
 
@@ -178,9 +178,9 @@ body[data-view="map"] #main-content {
     justify-content: center;
     font-size: 14px;
     flex-shrink: 0;
-    background: rgba(56, 189, 248, 0.15);
-    color: #38bdf8;
-    border: 1px solid rgba(56, 189, 248, 0.25);
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.45);
 }
 
 .map-search-suggestion-item .suggestion-info {
@@ -191,7 +191,7 @@ body[data-view="map"] #main-content {
 .map-search-suggestion-item .suggestion-name {
     font-size: 14px;
     font-weight: 800;
-    color: #f8fafc;
+    color: #ffffff;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -200,13 +200,15 @@ body[data-view="map"] #main-content {
 .map-search-suggestion-item .suggestion-category {
     font-size: 11px;
     font-weight: 600;
-    color: #38bdf8;
+    color: #ffffff;
+    opacity: 0.9;
     margin-left: 6px;
 }
 
 .map-search-suggestion-item .suggestion-municipality {
-    font-size: 10px;
-    color: #94a3b8;
+    font-size: 10.5px;
+    color: #ffffff;
+    opacity: 0.9;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -1150,9 +1152,10 @@ body[data-view="map"] #main-content {
 }
 
 .nearby-site-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.14) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 18px !important;
+    box-shadow: none !important;
     padding: 10px 12px;
     display: flex;
     align-items: center;
@@ -1163,14 +1166,14 @@ body[data-view="map"] #main-content {
 }
 
 .nearby-site-card:hover {
-    background: rgba(56, 189, 248, 0.07);
-    border-color: rgba(56, 189, 248, 0.28);
+    background: rgba(255, 255, 255, 0.24) !important;
+    border-color: #ffffff !important;
     transform: translateY(-2px);
 }
 
 .nearby-site-card:active {
     transform: scale(0.97);
-    background: rgba(56, 189, 248, 0.14);
+    background: rgba(255, 255, 255, 0.28) !important;
 }
 
 .nearby-radius-btn {
@@ -1190,28 +1193,30 @@ body[data-view="map"] #main-content {
 }
 
 .nearby-radius-btn.active {
-    background: linear-gradient(135deg, #38bdf8, #2563eb) !important;
-    border: 1px solid #38bdf8 !important;
+    background: linear-gradient(135deg, #63b1d0, #6192ca) !important;
+    border: 1.5px solid #ffffff !important;
     color: #ffffff !important;
-    box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35);
+    box-shadow: none !important;
+    font-weight: 800 !important;
 }
 
 .nearby-radius-btn:not(.active) {
-    background: rgba(30, 58, 138, 0.6) !important;
-    border: 1px solid rgba(56, 189, 248, 0.25) !important;
-    color: rgba(248, 250, 252, 0.9) !important;
+    background: rgba(129, 168, 207, 0.75) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
 }
 
 .nearby-radius-btn:not(.active):hover {
-    background: rgba(30, 58, 138, 0.85) !important;
-    border-color: rgba(56, 189, 248, 0.45) !important;
+    background: #75abe0 !important;
+    border-color: #ffffff !important;
     color: #ffffff !important;
 }
 
 .nearby-site-action-btn {
-    background: rgba(56, 189, 248, 0.15);
-    border: 1px solid rgba(56, 189, 248, 0.35);
-    color: #38bdf8;
+    background: rgba(255, 255, 255, 0.22) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    color: #ffffff !important;
     width: 38px;
     height: 38px;
     border-radius: 12px;
@@ -1224,8 +1229,8 @@ body[data-view="map"] #main-content {
 }
 
 .nearby-site-action-btn:hover {
-    background: rgba(56, 189, 248, 0.35);
-    color: #ffffff;
+    background: rgba(255, 255, 255, 0.35) !important;
+    color: #ffffff !important;
     transform: scale(1.08);
 }
 

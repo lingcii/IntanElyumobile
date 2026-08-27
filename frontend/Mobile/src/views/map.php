@@ -1481,15 +1481,15 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
             if (filtered.length === 0) {
                 container.innerHTML = `
-                    <div style="text-align:center; padding:28px 14px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:18px; animation: nearbyCardSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
-                        <div style="width:48px; height:48px; margin:0 auto 12px; border-radius:50%; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.25); display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:20px;">
+                    <div style="text-align:center; padding:28px 14px; background:rgba(255,255,255,0.15); border:1.5px solid rgba(255,255,255,0.35); border-radius:18px; animation: nearbyCardSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+                        <div style="width:48px; height:48px; margin:0 auto 12px; border-radius:50%; background:rgba(255,255,255,0.22); border:1.5px solid rgba(255,255,255,0.45); display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:20px;">
                             <i class="fa-solid fa-location-dot"></i>
                         </div>
-                        <div style="font-size:14px; font-weight:800; color:#f8fafc; margin-bottom:4px;">No Spots Within ${currentNearbyRadius} km</div>
-                        <div style="font-size:12px; color:rgba(148,163,184,0.8); margin-bottom:14px; line-height:1.4;">
+                        <div style="font-size:15px; font-weight:800; color:#ffffff; margin-bottom:6px;">No Spots Within ${currentNearbyRadius} km</div>
+                        <div style="font-size:12.5px; color:#ffffff; opacity:0.95; margin-bottom:16px; line-height:1.45; font-weight:500;">
                             Try expanding your search radius to discover attractions across La Union.
                         </div>
-                        <button type="button" onclick="window.filterNearbyRadius(15, document.querySelector('[data-radius=\\'15\\']'))" style="padding:8px 18px; border-radius:100px; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:#fff; font-size:12px; font-weight:800; cursor:pointer; transition:transform 0.2s ease;">
+                        <button type="button" onclick="window.filterNearbyRadius(15, document.querySelector('[data-radius=\\'15\\']'))" style="padding:9px 20px; border-radius:100px; background:linear-gradient(135deg, #63b1d0, #6192ca); border:1.5px solid #ffffff; color:#ffffff; font-size:12.5px; font-weight:800; cursor:pointer; transition:transform 0.2s ease;">
                             Show Within 15 km
                         </button>
                     </div>
@@ -1515,27 +1515,27 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 const delay = (idx * 0.04).toFixed(2);
 
                 html += `
-                    <div class="nearby-site-card" style="animation: nearbyCardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s forwards; opacity: 0;" onclick="window.selectNearbySite('${safeSpotStr}')">
+                    <div class="nearby-site-card" style="animation: nearbyCardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s forwards; opacity: 0; background:rgba(255,255,255,0.14); border:1.5px solid rgba(255,255,255,0.3); border-radius:18px; padding:10px 12px; display:flex; align-items:center; gap:12px;" onclick="window.selectNearbySite('${safeSpotStr}')">
                         <img src="${img}" alt="${spot.name}" style="width:64px; height:64px; border-radius:12px; object-fit:cover; flex-shrink:0; transition: transform 0.3s ease;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
                         <div style="flex:1; min-width:0;">
                             <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:3px;">
-                                <h4 style="margin:0; font-size:14px; font-weight:800; color:#f8fafc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${spot.name}</h4>
+                                <h4 style="margin:0; font-size:14px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${spot.name}</h4>
                             </div>
-                            <div style="font-size:11.5px; color:rgba(148,163,184,0.85); margin-bottom:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                <i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:3px;"></i>${spot.municipality || spot.location || 'La Union'}
+                            <div style="font-size:11.5px; color:#ffffff; opacity:0.92; margin-bottom:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                <i class="fa-solid fa-location-dot" style="color:#ffffff; margin-right:3px;"></i>${spot.municipality || spot.location || 'La Union'}
                             </div>
                             <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                                <span style="font-size:10px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); padding:2px 7px; border-radius:100px; display:inline-flex; align-items:center; gap:3px;">
-                                    <i class="fa-solid fa-location-arrow" style="font-size:9px;"></i> ${distBadge}
+                                <span style="font-size:10px; font-weight:800; color:#ffffff; background:rgba(255,255,255,0.22); border:1px solid rgba(255,255,255,0.4); padding:2px 7px; border-radius:100px; display:inline-flex; align-items:center; gap:3px;">
+                                    <i class="fa-solid fa-location-arrow" style="font-size:9px; color:#ffffff;"></i> ${distBadge}
                                 </span>
                                 <span style="font-size:10.5px; font-weight:700; color:#fbbf24; display:inline-flex; align-items:center; gap:3px;">
                                     <i class="fa-solid fa-star" style="font-size:9.5px;"></i> ${rating}
                                 </span>
-                                ${spot.category ? `<span style="font-size:10px; color:rgba(255,255,255,0.7); background:rgba(255,255,255,0.06); padding:2px 6px; border-radius:6px;">${spot.category}</span>` : ''}
+                                ${spot.category ? `<span style="font-size:10px; color:#ffffff; background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.3); padding:2px 6px; border-radius:6px; font-weight:600;">${spot.category}</span>` : ''}
                             </div>
                         </div>
-                        <button type="button" class="nearby-site-action-btn" title="View on Map">
-                            <i class="fa-solid fa-chevron-right" style="font-size:13px;"></i>
+                        <button type="button" class="nearby-site-action-btn" title="View on Map" style="background:rgba(255,255,255,0.22); border:1px solid rgba(255,255,255,0.4); color:#ffffff; width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                            <i class="fa-solid fa-chevron-right" style="font-size:13px; color:#ffffff;"></i>
                         </button>
                     </div>
                 `;

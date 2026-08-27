@@ -24,7 +24,7 @@ body[data-view="trip_map"] #main-content {
 #tourist-map, #trip-map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; background-color: #eef2f6; }
 
 /* ── Floating Search Bar ── */
-.map-floating-header {
+body[data-view="trip_map"] .map-floating-header {
     position: absolute;
     top: env(safe-area-inset-top, 20px);
     left: 16px; right: 16px;
@@ -32,12 +32,12 @@ body[data-view="trip_map"] #main-content {
     margin-top: 20px;
 }
 
-.map-search {
-    background: rgba(30, 58, 138, 0.95);
+body[data-view="trip_map"] .map-search {
+    background: rgba(97, 146, 202, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(56, 189, 248, 0.25);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.04);
+    border: 1.5px solid rgba(255, 255, 255, 0.45);
+    box-shadow: none !important;
     border-radius: 100px;
     display: flex;
     align-items: center;
@@ -45,29 +45,29 @@ body[data-view="trip_map"] #main-content {
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.map-search:focus-within {
-    border-color: rgba(56, 189, 248, 0.5);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 3px rgba(56,189,248,0.12);
+body[data-view="trip_map"] .map-search:focus-within {
+    border-color: #63b1d0;
+    background: rgba(97, 146, 202, 0.95);
 }
 
-.map-search input {
+body[data-view="trip_map"] .map-search input {
     border: none;
     background: transparent;
     flex: 1;
     font-size: 15px;
-    font-weight: 500;
-    color: #f8fafc;
+    font-weight: 700;
+    color: #ffffff;
     margin-left: 12px;
     outline: none;
     font-family: inherit;
 }
 
-.map-search input::placeholder { color: rgba(148, 163, 184, 0.7); }
+body[data-view="trip_map"] .map-search input::placeholder { color: rgba(255, 255, 255, 0.85); }
 
-.map-search i { color: #38bdf8; font-size: 16px; }
+body[data-view="trip_map"] .map-search i { color: #ffffff; font-size: 16px; }
 
 /* ── Category Pills ── */
-.map-categories {
+body[data-view="trip_map"] .map-categories {
     display: flex;
     gap: 8px;
     margin-top: 10px;
@@ -75,54 +75,54 @@ body[data-view="trip_map"] #main-content {
     padding-bottom: 4px;
     scrollbar-width: none;
 }
-.map-categories::-webkit-scrollbar { display: none; }
+body[data-view="trip_map"] .map-categories::-webkit-scrollbar { display: none; }
 
-.category-pill {
-    background: rgba(30, 58, 138, 0.85);
+body[data-view="trip_map"] .category-pill {
+    background: rgba(129, 168, 207, 0.75);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 20px;
     padding: 7px 16px;
     font-size: 12px;
-    font-weight: 600;
-    color: rgba(248, 250, 252, 0.9);
+    font-weight: 700;
+    color: #ffffff;
     white-space: nowrap;
     transition: all 0.2s;
     cursor: pointer;
     letter-spacing: 0.3px;
 }
 
-.category-pill.active {
-    background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+body[data-view="trip_map"] .category-pill.active {
+    background: linear-gradient(135deg, #63b1d0 0%, #6192ca 100%);
     color: #ffffff;
-    border-color: transparent;
-    box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35);
+    border: 1.5px solid #ffffff;
+    box-shadow: none !important;
 }
 
-.category-pill:not(.active):active {
+body[data-view="trip_map"] .category-pill:not(.active):active {
     transform: scale(0.94);
-    background: rgba(56,189,248,0.15);
+    background: #75abe0;
 }
 
 /* ── Trip Map View Specific Controls ── */
 
 /* ── Map Control Buttons ── */
-.btn-locate-me,
-.btn-layer-toggle,
-.btn-3d-view {
-    background: rgba(30, 58, 138, 0.95) !important;
+body[data-view="trip_map"] .btn-locate-me,
+body[data-view="trip_map"] .btn-layer-toggle,
+body[data-view="trip_map"] .btn-3d-view {
+    background: rgba(97, 146, 202, 0.85) !important;
     backdrop-filter: blur(16px) !important;
     -webkit-backdrop-filter: blur(16px) !important;
-    border: 1px solid rgba(56, 189, 248, 0.25) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.45) !important;
     border-radius: 14px !important;
-    color: #38bdf8 !important;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
     transition: all 0.2s !important;
 }
 
-.btn-locate-me { position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 18px; z-index: 900; cursor: pointer; }
-.btn-locate-me:active { transform: scale(0.9) !important; background: rgba(56,189,248,0.25) !important; }
+body[data-view="trip_map"] .btn-locate-me { position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 18px; z-index: 900; cursor: pointer; }
+body[data-view="trip_map"] .btn-locate-me:active { transform: scale(0.9) !important; background: #63b1d0 !important; }
 
 /* ── MapLibre Controls ── */
 .maplibregl-ctrl-bottom-right { bottom: calc(100px + env(safe-area-inset-bottom)) !important; right: 10px !important; margin: 0 !important; z-index: 900 !important; }
