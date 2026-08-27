@@ -46,6 +46,7 @@
                     <linearGradient id="splashWaveGrad3" x1="0%" y1="0%" x2="0%" y2="100%">
                         <stop offset="0%" stop-color="#2563eb" stop-opacity="1" />
                         <stop offset="35%" stop-color="#60a5fa" stop-opacity="1" />
+                        <stop offset="85%" stop-color="#96afe7" stop-opacity="1" />
                         <stop offset="100%" stop-color="#96afe7" stop-opacity="1" />
                     </linearGradient>
                 </defs>

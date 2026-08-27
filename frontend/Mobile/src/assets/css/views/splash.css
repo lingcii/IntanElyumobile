@@ -133,20 +133,21 @@
 
 .splash-container .wave-bottom {
     position: absolute;
-    bottom: 100%;
-    /* Sits exactly on top of the wrapper */
+    bottom: calc(100% - 3px);
+    /* Overlap into the wrapper to completely prevent any seam/line */
     left: 0;
     width: 100%;
     overflow: hidden;
     line-height: 0;
+    pointer-events: none;
     transform: translateY(1px);
-    /* To prevent 1px gap */
+    z-index: 2;
 }
 
 .wave-bottom svg {
     display: block;
     width: 200vw;
-    height: 70px;
+    height: 65px;
 }
 
 .wave-layer {
@@ -165,7 +166,6 @@
 
 .wave-3 {
     animation: moveWave 8s linear infinite;
-    filter: drop-shadow(0 -3px 10px rgba(37, 99, 235, 0.4));
 }
 
 @keyframes moveWave {
