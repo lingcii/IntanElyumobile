@@ -34,8 +34,8 @@
                     </linearGradient>
                     <linearGradient id="authWaveGrad3" x1="0%" y1="0%" x2="0%" y2="100%">
                         <stop offset="0%" stop-color="#2563eb" stop-opacity="1" />
-                        <stop offset="35%" stop-color="#1d4ed8" stop-opacity="1" />
-                        <stop offset="70%" stop-color="#1e40af" stop-opacity="1" />
+                        <stop offset="25%" stop-color="#1d4ed8" stop-opacity="1" />
+                        <stop offset="55%" stop-color="#1e3a8a" stop-opacity="1" />
                         <stop offset="100%" stop-color="#1e3a8a" stop-opacity="1" />
                     </linearGradient>
                 </defs>
