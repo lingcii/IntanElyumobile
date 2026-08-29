@@ -768,7 +768,6 @@ if (is_dir($imgDir)) {
                                         const pLat = place.lat || place.latitude;
                                         const pLng = place.lng || place.longitude;
                                         if (pLat && pLng && !isNaN(parseFloat(pLat)) && !isNaN(parseFloat(pLng))) {
-                                            window.mapInstance.flyTo({ center: [parseFloat(pLng), parseFloat(pLat)], zoom: 14, offset: [0, -160] });
                                             window.openSheet(place);
                                             setTimeout(() => {
                                                 const routeBtn = document.getElementById('btn-show-route');
@@ -788,7 +787,6 @@ if (is_dir($imgDir)) {
                                         const pLat = place.lat || place.latitude;
                                         const pLng = place.lng || place.longitude;
                                         if (pLat && pLng && !isNaN(parseFloat(pLat)) && !isNaN(parseFloat(pLng))) {
-                                            window.mapInstance.flyTo({ center: [parseFloat(pLng), parseFloat(pLat)], zoom: 14, offset: [0, -160] });
                                             window.openSheet(place);
                                         }
                                     }
@@ -1258,12 +1256,11 @@ if (is_dir($imgDir)) {
                                     if (window.activePopup) window.activePopup.remove();
 
                                     const popupContent = document.createElement('div');
-                                    popupContent.style.cssText = "font-weight:700; font-size:13px; color:var(--text-dark); padding: 4px 6px; cursor: pointer; display: flex; align-items: center; gap: 7px;";
-                                    popupContent.innerHTML = `<span style="font-size:8px; font-weight:800; padding:2px 6px; border-radius:6px; background:${catColor}; color:#ffffff; text-transform:uppercase; letter-spacing:0.5px;">${statusLabel}</span> <span style="max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${loc.name}</span> <i class="fa-solid fa-chevron-right" style="font-size:10px; color:var(--primary-color);"></i>`;
+                                    popupContent.style.cssText = "font-weight:700; font-size:12.5px; color:#ffffff; padding: 4px 8px; cursor: pointer; display: flex; align-items: center; gap: 6px;";
+                                    // Classification removed per user request: clean name and chevron only
+                                    popupContent.innerHTML = `<span style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${loc.name}</span> <i class="fa-solid fa-chevron-right" style="font-size:10px; color:#38bdf8;"></i>`;
 
                                     popupContent.addEventListener('click', () => {
-                                        const cz = window.mapInstance.getZoom();
-                                        window.mapInstance.flyTo({ center: [locLng, locLat], zoom: Math.max(cz, 14), offset: [0, -180], duration: 400 });
                                         window.openSheet(loc);
                                     });
 
@@ -1276,9 +1273,6 @@ if (is_dir($imgDir)) {
 
                                     const popupEl = window.activePopup.getElement();
                                     if (popupEl) popupEl.style.zIndex = 9999;
-
-                                    const cz = window.mapInstance.getZoom();
-                                    window.mapInstance.flyTo({ center: [locLng, locLat], zoom: Math.max(cz, 14), offset: [0, -180], duration: 600 });
                                 });
 
                                 container.addEventListener('mouseenter', () => {
@@ -1717,7 +1711,6 @@ if (is_dir($imgDir)) {
                 const lat = parseFloat(loc.lat);
                 const lng = parseFloat(loc.lng);
                 if (!isNaN(lat) && !isNaN(lng) && window.mapInstance) {
-                    window.mapInstance.flyTo({ center: [lng, lat], zoom: 14, offset: [0, -180], duration: 800 });
                     window.openSheet(loc);
                 }
             }
@@ -2159,10 +2152,7 @@ if (is_dir($imgDir)) {
                     const sLat = parseFloat(spot.lat || spot.latitude);
                     const sLng = parseFloat(spot.lng || spot.longitude);
                     if (!isNaN(sLat) && !isNaN(sLng) && window.mapInstance) {
-                        window.mapInstance.flyTo({ center: [sLng, sLat], zoom: 15, offset: [0, -180], duration: 900 });
-                        setTimeout(() => {
-                            if (window.openSheet) window.openSheet(spot);
-                        }, 500);
+                        if (window.openSheet) window.openSheet(spot);
                     }
                 } catch (e) {
                     console.error("Error selecting nearby site:", e);
@@ -2723,6 +2713,21 @@ if (is_dir($imgDir)) {
             if (window.activePopup) {
                 window.activePopup.remove();
             }
+
+            // Smoothly zoom out when viewing tourist site details to show broader context above bottom sheet
+            const destLat = parseFloat(locationData.lat || locationData.latitude);
+            const destLng = parseFloat(locationData.lng || locationData.longitude);
+            if (!isNaN(destLat) && !isNaN(destLng) && window.mapInstance) {
+                window.mapInstance.flyTo({
+                    center: [destLng, destLat],
+                    zoom: 12.2,
+                    offset: [0, -130],
+                    duration: 850,
+                    essential: true,
+                    curve: 1.42
+                });
+            }
+
             const titleEl = document.getElementById('sheet-title');
             if (titleEl) titleEl.textContent = locationData.name || '';
 
