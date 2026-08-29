@@ -107,7 +107,7 @@ if (is_dir($imgDir)) {
 
     <!-- Weather Forecast Modal -->
     <div id="weather-modal" onclick="if(event.target===this) window.closeWeatherModal()" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); backdrop-filter:blur(10px); z-index:99999; justify-content:center; align-items:flex-end;">
-        <div style="background:#6196c8; border:none; border-radius:28px 28px 0 0; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; padding:24px 20px; box-shadow:0 -10px 40px rgba(0,0,0,0.4); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+        <div style="background:#6196c8; border:none; border-radius:28px 28px 0 0; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; padding:24px 20px; box-shadow:none; animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                 <div>
                     <h3 style="margin:0; font-size:18px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
@@ -145,9 +145,9 @@ if (is_dir($imgDir)) {
     </div>
 
     <!-- Gamification Panel -->
-    <div class="weather-card stagger-2" onclick="navigateTo('puzzles')" style="background: #6196c8; border: none; border-radius: 24px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16); margin-top: 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
+    <div class="weather-card stagger-2" onclick="navigateTo('puzzles')" style="background: #6196c8; border: none; border-radius: 24px; box-shadow: none; margin-top: 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
         <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="font-size: 32px; filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.2));">🧩</div>
+            <div style="font-size: 32px; filter: none;">🧩</div>
             <div>
                 <h4 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -0.2px;">GameZone</h4>
                 <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.95); font-weight: 600;">Play fun mini-games to earn discount vouchers! 🎁</p>
@@ -1048,7 +1048,7 @@ if (is_dir($imgDir)) {
 
                                     destinationsHtml += `
                                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; padding:8px 12px; background:rgba(0,0,0,0.12); border:none; border-radius:12px;">
-                                            <div style="width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg, #38bdf8, #2563eb); color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.2);">${index+1}</div>
+                                            <div style="width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg, #38bdf8, #2563eb); color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; flex-shrink:0; box-shadow:none;">${index+1}</div>
                                             ${proofImgHtml}
                                             <div style="flex:1; font-size:13px; color:#ffffff; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
                                             ${proofBadge}
@@ -1065,9 +1065,9 @@ if (is_dir($imgDir)) {
                                     <div class="trip-swipe-bg" onclick="window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}')" style="position: absolute; top: 0; right: 0; bottom: 0; width: 85px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 0 20px 20px 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 800; gap: 4px; z-index: 1; opacity: 0; pointer-events: none; transform: translateX(85px); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease; cursor: pointer;">
                                         <i class="fa-solid fa-trash-can"></i> Delete
                                     </div>
-                                    <div class="trip-swipe-content" style="position: relative; z-index: 2; transition: transform 0.2s ease, border-radius 0.2s ease; background: #6196c8; border: none; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(15,23,42,0.16);">
+                                    <div class="trip-swipe-content" style="position: relative; z-index: 2; transition: transform 0.2s ease, border-radius 0.2s ease; background: #6196c8; border: none; border-radius: 20px; overflow: hidden; box-shadow: none;">
                                         <div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.toggle-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.paddingTop = '14px'; content.style.paddingBottom = '16px'; content.style.maxHeight = (content.scrollHeight + 50) + 'px'; content.style.opacity = '1'; icon.style.transform = 'rotate(90deg)'; } else { content.style.maxHeight = '0px'; content.style.opacity = '0'; content.style.paddingTop = '0'; content.style.paddingBottom = '0'; icon.style.transform = 'rotate(0deg)'; }" style="cursor:pointer; display:flex; align-items:center; gap: 14px; padding: 16px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.08)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
-                                            <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(255, 255, 255, 0.22); border: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 14px rgba(0,0,0,0.1);">
+                                            <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(255, 255, 255, 0.22); border: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: none;">
                                                 <i class="fa-solid fa-map-location-dot" style="color: #ffffff; font-size: 20px;"></i>
                                             </div>
                                             <div style="flex: 1; min-width: 0;">
@@ -1083,7 +1083,7 @@ if (is_dir($imgDir)) {
                                         <div style="max-height: 0px; opacity: 0; padding: 0 16px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; background: transparent; border-top: 1px solid rgba(255,255,255,0.15);">
                                             ${destinationsHtml}
                                             <div style="display:flex; gap:10px; margin-top:12px; margin-bottom:2px;">
-                                                <button onclick="window.location.href='?view=trip_map&trip_id=${trip.id}'" style="flex:1; background:linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); border:1px solid rgba(255,255,255,0.2); color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 16px rgba(56,189,248,0.35);">
+                                                <button onclick="window.location.href='?view=trip_map&trip_id=${trip.id}'" style="flex:1; background:linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); border:1px solid rgba(255,255,255,0.2); color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:none;">
                                                     <i class="fa-solid fa-compass"></i> Start Trip
                                                 </button>
                                                 <button onclick="navigateTo('saved_trips')" style="flex:1; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
