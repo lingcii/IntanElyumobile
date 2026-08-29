@@ -99,15 +99,15 @@ if (is_dir($imgDir)) {
         </div>
         <div style="text-align: right;">
             <div class="weather-icon" id="weather-icon">⛅</div>
-            <span style="font-size: 10px; color: rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-top: 4px; font-weight: 600;">
-                5-Day Forecast <i class="fa-solid fa-chevron-right" style="font-size: 8px; color: #38bdf8;"></i>
+            <span style="font-size: 10px; color: rgba(255,255,255,0.95); display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-top: 4px; font-weight: 700;">
+                5-Day Forecast <i class="fa-solid fa-chevron-right" style="font-size: 8px; color: #ffffff;"></i>
             </span>
         </div>
     </div>
 
     <!-- Weather Forecast Modal -->
     <div id="weather-modal" onclick="if(event.target===this) window.closeWeatherModal()" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); backdrop-filter:blur(10px); z-index:99999; justify-content:center; align-items:flex-end;">
-        <div style="background:#74a3cf; border:none; border-radius:28px 28px 0 0; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; padding:24px 20px; box-shadow:0 -10px 40px rgba(0,0,0,0.4); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+        <div style="background:#6196c8; border:none; border-radius:28px 28px 0 0; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; padding:24px 20px; box-shadow:0 -10px 40px rgba(0,0,0,0.4); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                 <div>
                     <h3 style="margin:0; font-size:18px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
@@ -145,7 +145,7 @@ if (is_dir($imgDir)) {
     </div>
 
     <!-- Gamification Panel -->
-    <div class="weather-card stagger-2" onclick="navigateTo('puzzles')" style="background: #74a3cf; border: none; border-radius: 24px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16); margin-top: 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
+    <div class="weather-card stagger-2" onclick="navigateTo('puzzles')" style="background: #6196c8; border: none; border-radius: 24px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16); margin-top: 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="font-size: 32px; filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.2));">🧩</div>
             <div>
@@ -1065,7 +1065,7 @@ if (is_dir($imgDir)) {
                                     <div class="trip-swipe-bg" onclick="window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}')" style="position: absolute; top: 0; right: 0; bottom: 0; width: 85px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 0 20px 20px 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 800; gap: 4px; z-index: 1; opacity: 0; pointer-events: none; transform: translateX(85px); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease; cursor: pointer;">
                                         <i class="fa-solid fa-trash-can"></i> Delete
                                     </div>
-                                    <div class="trip-swipe-content" style="position: relative; z-index: 2; transition: transform 0.2s ease, border-radius 0.2s ease; background: #74a3cf; border: none; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(15,23,42,0.16);">
+                                    <div class="trip-swipe-content" style="position: relative; z-index: 2; transition: transform 0.2s ease, border-radius 0.2s ease; background: #6196c8; border: none; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(15,23,42,0.16);">
                                         <div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.toggle-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.paddingTop = '14px'; content.style.paddingBottom = '16px'; content.style.maxHeight = (content.scrollHeight + 50) + 'px'; content.style.opacity = '1'; icon.style.transform = 'rotate(90deg)'; } else { content.style.maxHeight = '0px'; content.style.opacity = '0'; content.style.paddingTop = '0'; content.style.paddingBottom = '0'; icon.style.transform = 'rotate(0deg)'; }" style="cursor:pointer; display:flex; align-items:center; gap: 14px; padding: 16px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.08)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
                                             <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(255, 255, 255, 0.22); border: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 14px rgba(0,0,0,0.1);">
                                                 <i class="fa-solid fa-map-location-dot" style="color: #ffffff; font-size: 20px;"></i>
