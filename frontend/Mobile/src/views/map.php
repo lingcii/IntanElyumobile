@@ -81,50 +81,50 @@ if (is_dir($imgDir)) {
 
     <!-- Classification Toggle Button & Popover (Vertical on Left Side Corner) -->
     <div class="btn-classification-wrapper" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); left: 10px; z-index: 895;">
-        <!-- Popover showing the 3 Types of Classification -->
-        <div id="classification-popover" style="display: none; position: absolute; bottom: 0; left: calc(100% + 10px); transform-origin: bottom left; transform: scale(0.95); opacity: 0; width: 250px; background: rgba(15, 23, 42, 0.94); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 20px; padding: 12px 14px; box-shadow: 0 12px 32px rgba(0,0,0,0.45); border: none !important; outline: none !important; transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.12);">
+        <!-- Popover showing the 3 Types of Classification (Matched to blue gradient theme) -->
+        <div id="classification-popover" style="display: none; position: absolute; bottom: 0; left: calc(100% + 10px); transform-origin: bottom left; transform: scale(0.95); opacity: 0; width: 250px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(45, 90, 155, 0.94) 50%, rgba(63, 125, 183, 0.94) 100%) !important; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 20px; padding: 12px 14px; box-shadow: 0 16px 36px rgba(10, 25, 60, 0.45); border: none !important; outline: none !important; transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.18);">
                 <span style="font-size: 11px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.6px;">
-                    <i class="fa-solid fa-tags" style="color: #38bdf8; margin-right: 5px;"></i> Classifications
+                    <i class="fa-solid fa-tags" style="color: #00f2fe; margin-right: 5px;"></i> Classifications
                 </span>
-                <span onclick="window.toggleClassificationMenu(false)" style="cursor: pointer; color: rgba(255,255,255,0.6); font-size: 12px; padding: 2px 4px;"><i class="fa-solid fa-xmark"></i></span>
+                <span onclick="window.toggleClassificationMenu(false)" style="cursor: pointer; color: #ffffff; opacity: 0.85; font-size: 12px; padding: 2px 4px;"><i class="fa-solid fa-xmark"></i></span>
             </div>
             <div style="display: flex; flex-direction: column; gap: 6px;">
                 <!-- 1. Existing -->
-                <div class="classification-item-chip" onclick="window.filterByClassification('EXIST')" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(52, 199, 89, 0.15); transition: background 0.15s ease;">
+                <div class="classification-item-chip" onclick="window.filterByClassification('EXIST')" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; transition: background 0.15s ease;">
                     <span style="width: 10px; height: 10px; border-radius: 50%; background: #34c759; box-shadow: 0 0 8px #34c759; flex-shrink: 0;"></span>
                     <div style="flex: 1;">
                         <div style="font-size: 12px; font-weight: 800; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
                             <span>Existing</span>
-                            <span id="count-exist" style="font-size: 10px; font-weight: 800; color: #34c759;">Site</span>
+                            <span id="count-exist" style="font-size: 10px; font-weight: 800; color: #34c759; background: rgba(52,199,89,0.22); padding: 1px 6px; border-radius: 6px;">Site</span>
                         </div>
-                        <div style="font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 500;">Fully developed spots & facilities</div>
+                        <div style="font-size: 10px; color: rgba(255,255,255,0.85); font-weight: 500;">Fully developed spots & facilities</div>
                     </div>
                 </div>
                 <!-- 2. Emerging -->
-                <div class="classification-item-chip" onclick="window.filterByClassification('EMERGE')" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(56, 189, 248, 0.15); transition: background 0.15s ease;">
+                <div class="classification-item-chip" onclick="window.filterByClassification('EMERGE')" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; transition: background 0.15s ease;">
                     <span style="width: 10px; height: 10px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 8px #38bdf8; flex-shrink: 0;"></span>
                     <div style="flex: 1;">
                         <div style="font-size: 12px; font-weight: 800; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
                             <span>Emerging</span>
-                            <span id="count-emerge" style="font-size: 10px; font-weight: 800; color: #38bdf8;">Site</span>
+                            <span id="count-emerge" style="font-size: 10px; font-weight: 800; color: #38bdf8; background: rgba(56,189,248,0.22); padding: 1px 6px; border-radius: 6px;">Site</span>
                         </div>
-                        <div style="font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 500;">Rising attractions gaining visitors</div>
+                        <div style="font-size: 10px; color: rgba(255,255,255,0.85); font-weight: 500;">Rising attractions gaining visitors</div>
                     </div>
                 </div>
                 <!-- 3. Potential -->
-                <div class="classification-item-chip" onclick="window.filterByClassification('POTENTIAL')" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(245, 158, 11, 0.15); transition: background 0.15s ease;">
+                <div class="classification-item-chip" onclick="window.filterByClassification('POTENTIAL')" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; transition: background 0.15s ease;">
                     <span style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 8px #f59e0b; flex-shrink: 0;"></span>
                     <div style="flex: 1;">
                         <div style="font-size: 12px; font-weight: 800; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
                             <span>Potential</span>
-                            <span id="count-potential" style="font-size: 10px; font-weight: 800; color: #f59e0b;">Site</span>
+                            <span id="count-potential" style="font-size: 10px; font-weight: 800; color: #f59e0b; background: rgba(245,158,11,0.22); padding: 1px 6px; border-radius: 6px;">Site</span>
                         </div>
-                        <div style="font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 500;">Unspoiled spots with high promise</div>
+                        <div style="font-size: 10px; color: rgba(255,255,255,0.85); font-weight: 500;">Unspoiled spots with high promise</div>
                     </div>
                 </div>
             </div>
-            <div onclick="window.filterByClassification('ALL')" style="cursor: pointer; margin-top: 8px; text-align: center; font-size: 11px; font-weight: 800; color: #38bdf8; padding: 5px; border-radius: 8px; background: rgba(255,255,255,0.06);">
+            <div onclick="window.filterByClassification('ALL')" style="cursor: pointer; margin-top: 8px; text-align: center; font-size: 11px; font-weight: 800; color: #ffffff; padding: 7px; border-radius: 10px; background: rgba(255,255,255,0.18); transition: background 0.15s ease;">
                 Show All Classifications
             </div>
         </div>
