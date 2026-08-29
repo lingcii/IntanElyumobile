@@ -32,7 +32,7 @@ $activeTab = 'leaderboard';
                     <span id="my-explorer-title"
                         style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Your Standing</span>
                     <span
-                        style="font-size: 9.5px; background: rgba(0, 242, 254, 0.2); color: #00f2fe; padding: 2px 7px; border-radius: 100px; font-weight: 800; border: 1px solid rgba(0, 242, 254, 0.4);">YOU</span>
+                        style="font-size: 9.5px; background: rgba(0, 242, 254, 0.2); color: #00f2fe; padding: 2px 7px; border-radius: 100px; font-weight: 800; border: none !important; outline: none !important;">YOU</span>
                 </div>
                 <div class="standing-subtext" id="my-standing-subtext">Loading rank details...</div>
             </div>
@@ -98,7 +98,7 @@ $activeTab = 'leaderboard';
         <div
             style="display:flex; justify-content:center; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
             <span id="modal-rank-pill"
-                style="font-size:11px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.25); padding:2px 10px; border-radius:100px;">#1
+                style="font-size:11px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.12); border:none !important; outline:none !important; padding:2px 10px; border-radius:100px;">#1
                 Ranked Explorer</span>
             <div id="modal-location"
                 style="font-size: 11.5px; color: rgba(226,232,240,0.85); font-weight: 600; display: none;"><i
@@ -106,7 +106,7 @@ $activeTab = 'leaderboard';
             </div>
         </div>
         <p id="modal-bio"
-            style="font-size: 12px; color: rgba(226, 232, 240, 0.85); font-style: italic; margin: 0 0 12px 0; display: none; line-height: 1.4; background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
+            style="font-size: 12px; color: rgba(226, 232, 240, 0.85); font-style: italic; margin: 0 0 12px 0; display: none; line-height: 1.4; background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: 12px; border: none !important; outline: none !important;">
         </p>
 
         <!-- 4 Stats Boxes Grid -->
@@ -143,7 +143,7 @@ $activeTab = 'leaderboard';
 
         <!-- Explorer Badges / Milestones Section -->
         <div id="modal-explorer-milestones"
-            style="margin-top:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:10px 12px; text-align:left;">
+            style="margin-top:12px; background:rgba(255,255,255,0.02); border:none !important; outline:none !important; border-radius:14px; padding:10px 12px; text-align:left;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                 <span
                     style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:rgba(148,163,184,0.8);">Achievements
@@ -154,13 +154,13 @@ $activeTab = 'leaderboard';
             </div>
             <div style="display:flex; gap:6px; flex-wrap:wrap;">
                 <span
-                    style="font-size:10px; font-weight:700; color:#fff; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.25); padding:3px 8px; border-radius:8px;">🌊
+                    style="font-size:10px; font-weight:700; color:#fff; background:rgba(56,189,248,0.12); border:none !important; outline:none !important; padding:3px 8px; border-radius:8px;">🌊
                     Elyu Surfer</span>
                 <span
-                    style="font-size:10px; font-weight:700; color:#fff; background:rgba(251,191,36,0.12); border:1px solid rgba(251,191,36,0.25); padding:3px 8px; border-radius:8px;">⚡
+                    style="font-size:10px; font-weight:700; color:#fff; background:rgba(251,191,36,0.12); border:none !important; outline:none !important; padding:3px 8px; border-radius:8px;">⚡
                     XP Pioneer</span>
                 <span
-                    style="font-size:10px; font-weight:700; color:#fff; background:rgba(52,199,89,0.12); border:1px solid rgba(52,199,89,0.25); padding:3px 8px; border-radius:8px;">🌿
+                    style="font-size:10px; font-weight:700; color:#fff; background:rgba(52,199,89,0.12); border:none !important; outline:none !important; padding:3px 8px; border-radius:8px;">🌿
                     Eco Spot Check-in</span>
             </div>
         </div>

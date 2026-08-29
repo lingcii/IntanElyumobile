@@ -145,19 +145,19 @@ if (is_dir($imgDir)) {
             <div style="display:flex; gap:6px; overflow-x:auto; padding: 4px 8px 12px 8px; scrollbar-width:none;">
                 <button type="button" class="nearby-radius-btn active" data-radius="2"
                     onclick="window.filterNearbyRadius(2, this)"
-                    style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:800; border:1.5px solid #ffffff; background:linear-gradient(135deg, #00f2fe, #0284c7); color:#ffffff; cursor:pointer; white-space:nowrap;">Within
+                    style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:800; border:none !important; outline:none !important; background:linear-gradient(135deg, #00f2fe, #0284c7); color:#ffffff; cursor:pointer; white-space:nowrap;">Within
                     2 km</button>
                 <button type="button" class="nearby-radius-btn" data-radius="5"
                     onclick="window.filterNearbyRadius(5, this)"
-                    style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(255,255,255,0.35); background:rgba(30,58,138,0.78); color:#ffffff; cursor:pointer; white-space:nowrap;">Within
+                    style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:none !important; outline:none !important; background:rgba(30,58,138,0.78); color:#ffffff; cursor:pointer; white-space:nowrap;">Within
                     5 km</button>
                 <button type="button" class="nearby-radius-btn" data-radius="15"
                     onclick="window.filterNearbyRadius(15, this)"
-                    style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(255,255,255,0.35); background:rgba(30,58,138,0.78); color:#ffffff; cursor:pointer; white-space:nowrap;">Within
+                    style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:none !important; outline:none !important; background:rgba(30,58,138,0.78); color:#ffffff; cursor:pointer; white-space:nowrap;">Within
                     15 km</button>
                 <button type="button" class="nearby-radius-btn" data-radius="all"
                     onclick="window.filterNearbyRadius('all', this)"
-                    style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(255,255,255,0.35); background:rgba(30,58,138,0.78); color:#ffffff; cursor:pointer; white-space:nowrap;">All
+                    style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:none !important; outline:none !important; background:rgba(30,58,138,0.78); color:#ffffff; cursor:pointer; white-space:nowrap;">All
                     Closest</button>
             </div>
 
@@ -243,10 +243,10 @@ if (is_dir($imgDir)) {
 
             <!-- Site Fee Summary Banner -->
             <div id="sheet-fees-card" class="dest-fees-card"
-                style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:10px 14px; margin-bottom:10px;">
+                style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.06); border:none !important; outline:none !important; border-radius:16px; padding:10px 14px; margin-bottom:10px;">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <div
-                        style="width:34px; height:34px; border-radius:10px; background:rgba(16,185,129,0.12); color:#34d399; border:1px solid rgba(52,211,153,0.25); display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;">
+                        style="width:34px; height:34px; border-radius:10px; background:rgba(16,185,129,0.16); color:#34d399; border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;">
                         <i class="fa-solid fa-ticket"></i>
                     </div>
                     <div style="display:flex; flex-direction:column;">

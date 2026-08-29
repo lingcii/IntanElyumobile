@@ -116,7 +116,8 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     background: rgba(30, 75, 135, 0.58) !important;
     backdrop-filter: blur(24px) !important;
     -webkit-backdrop-filter: blur(24px) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 26px !important;
     padding: 38px 24px !important;
     margin: 24px 0 !important;
@@ -138,7 +139,8 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     height: 76px;
     border-radius: 50%;
     background: rgba(56, 189, 248, 0.14);
-    border: 1px solid rgba(56, 189, 248, 0.35);
+    border: none !important;
+    outline: none !important;
     display: flex;
     align-items: center;
     justify-content: center;

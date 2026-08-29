@@ -74,11 +74,11 @@ $activeTab = 'itinerary';
         <div style="display:flex; align-items:center; gap: 8px;">
             <!-- Saved Trips Button (Small) -->
             <button onclick="navigateTo('saved_trips')"
-                style="background: rgba(30, 58, 138, 0.78); border: 1.5px solid rgba(255, 255, 255, 0.35); color: #ffffff; font-weight:700; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; box-sizing: border-box; box-shadow: none;">
+                style="background: rgba(30, 58, 138, 0.78); border: none !important; outline: none !important; color: #ffffff; font-weight:700; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; box-sizing: border-box; box-shadow: none;">
                 <i class="fa-solid fa-bookmark" style="margin-right:6px;"></i> Saved Trips
             </button>
             <span
-                style="background:rgba(255, 255, 255, 0.16); border:1.5px solid rgba(255, 255, 255, 0.3); color:#ffffff; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; font-weight:800; display:flex; align-items:center; box-sizing: border-box;">
+                style="background:rgba(255, 255, 255, 0.16); border: none !important; outline: none !important; color:#ffffff; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; font-weight:800; display:flex; align-items:center; box-sizing: border-box;">
                 <span id="itinerary-count" style="margin-right:4px;">0</span> Places
             </span>
         </div>
@@ -97,13 +97,13 @@ $activeTab = 'itinerary';
 
         <!-- The Map -->
         <div id="draft-map-container"
-            style="height: 260px; width:100%; border-radius: 20px; overflow: hidden; border:1.5px solid rgba(255, 255, 255, 0.3); position:relative; background:#cadce4; box-shadow: none;">
+            style="height: 260px; width:100%; border-radius: 20px; overflow: hidden; border: none !important; outline: none !important; position:relative; background:#cadce4; box-shadow: none;">
             <div id="itinerary-map" style="width:100%; height:100%;"></div>
         </div>
 
         <!-- Map Route Stats -->
         <div
-            style="display:flex; justify-content:space-around; align-items:center; margin-top:12px; background:rgba(30,75,135,0.58); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1.5px solid rgba(255,255,255,0.28); border-radius:16px; padding:14px; box-shadow:none;">
+            style="display:flex; justify-content:space-around; align-items:center; margin-top:12px; background:rgba(30,75,135,0.58); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border: none !important; outline: none !important; border-radius:16px; padding:14px; box-shadow:none;">
             <div style="color:white; font-size:14px; font-weight:700;">
                 <i class="fa-solid fa-route" style="color:#00f2fe; margin-right:6px; font-size:16px;"></i> <span
                     id="draft-map-dist">0 km</span>
@@ -126,7 +126,7 @@ $activeTab = 'itinerary';
 
     <!-- Save Itinerary Action -->
     <button class="btn-primary" id="btn-save-itinerary"
-        style="display:none; width:100%; padding:16px; border-radius:20px; font-weight:900; font-size:16px; margin-bottom:40px; border:1.5px solid #ffffff; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; box-shadow:none;"
+        style="display:none; width:100%; padding:16px; border-radius:20px; font-weight:900; font-size:16px; margin-bottom:40px; border: none !important; outline: none !important; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; box-shadow:none;"
         onclick="openSaveModal()">
         <i class="fa-solid fa-cloud-arrow-up" style="margin-right:8px;"></i> Save Draft Plan
     </button>
