@@ -635,13 +635,13 @@ if (is_dir($imgDir)) {
                     isTicking = true;
                 }
             }, { passive: true });
+            requestAnimationFrame(() => {
+                updateCardScales();
+                setTimeout(updateCardScales, 150);
+            });
+        } else {
+            requestAnimationFrame(updateCardScales);
         }
-
-        requestAnimationFrame(() => {
-            updateCardScales();
-            setTimeout(updateCardScales, 150);
-            setTimeout(updateCardScales, 500);
-        });
     };
 
     (async function dashboardInit() {
@@ -913,6 +913,10 @@ if (is_dir($imgDir)) {
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         }
 
+        let _lastNearMeLat = null;
+        let _lastNearMeLng = null;
+        let _renderedNearMuniHeader = null;
+
         async function loadNearMe(userLat, userLng, preferredLocationName) {
             const nearContainer = document.getElementById('near-me-container');
             if (!nearContainer) return;
@@ -921,23 +925,25 @@ if (is_dir($imgDir)) {
             const uLng = parseFloat(userLng);
 
             if (isNaN(uLat) || isNaN(uLng) || uLat === 0 || uLng === 0) {
-                nearContainer.classList.add('is-empty');
-                nearContainer.style.paddingLeft = '0';
-                nearContainer.style.paddingRight = '0';
-                nearContainer.style.marginLeft = '0';
-                nearContainer.style.marginRight = '0';
-                nearContainer.innerHTML = `
-                <div class="dash-empty-state">
-                    <div class="dash-empty-icon-wrap">
-                        <i class="fa-solid fa-location-crosshairs"></i>
+                if (nearContainer.children.length === 0 || nearContainer.classList.contains('is-empty')) {
+                    nearContainer.classList.add('is-empty');
+                    nearContainer.style.paddingLeft = '0';
+                    nearContainer.style.paddingRight = '0';
+                    nearContainer.style.marginLeft = '0';
+                    nearContainer.style.marginRight = '0';
+                    nearContainer.innerHTML = `
+                    <div class="dash-empty-state">
+                        <div class="dash-empty-icon-wrap">
+                            <i class="fa-solid fa-location-crosshairs"></i>
+                        </div>
+                        <div class="dash-empty-title">Location Access Needed</div>
+                        <div class="dash-empty-desc">Enable location access to discover tourist spots in your location.</div>
+                        <button type="button" onclick="if(window.locateMeForWeather) window.locateMeForWeather();" class="dash-empty-btn">
+                            <i class="fa-solid fa-location-arrow"></i> Enable Location
+                        </button>
                     </div>
-                    <div class="dash-empty-title">Location Access Needed</div>
-                    <div class="dash-empty-desc">Enable location access to discover tourist spots in your location.</div>
-                    <button type="button" onclick="if(window.locateMeForWeather) window.locateMeForWeather();" class="dash-empty-btn">
-                        <i class="fa-solid fa-location-arrow"></i> Enable Location
-                    </button>
-                </div>
-            `;
+                `;
+                }
                 return;
             }
 
@@ -981,11 +987,14 @@ if (is_dir($imgDir)) {
             }
             window.userCurrentMunicipality = detectedMuni;
 
-            // Update Section Header to indicate user's location
-            const nearSectionHeader = document.querySelector('#near-me-container')?.closest('.dash-section')?.querySelector('.section-title h3');
-            if (nearSectionHeader && detectedMuni) {
-                const cleanName = detectedMuni.replace(' City', '').replace(', La Union', '');
-                nearSectionHeader.innerHTML = `Near Me <span style="font-size:12px; font-weight:700; color:#38bdf8; margin-left:6px; background:rgba(56,189,248,0.15); padding:2px 8px; border-radius:12px;"><i class="fa-solid fa-location-dot"></i> ${cleanName}</span>`;
+            // Update Section Header only if value changed (avoids reflow & twitching)
+            const cleanName = detectedMuni ? detectedMuni.replace(' City', '').replace(', La Union', '') : '';
+            if (cleanName && _renderedNearMuniHeader !== cleanName) {
+                _renderedNearMuniHeader = cleanName;
+                const nearSectionHeader = document.querySelector('#near-me-container')?.closest('.dash-section')?.querySelector('.section-title h3');
+                if (nearSectionHeader) {
+                    nearSectionHeader.innerHTML = `Near Me <span style="font-size:12px; font-weight:700; color:#38bdf8; margin-left:6px; background:rgba(56,189,248,0.15); padding:2px 8px; border-radius:12px;"><i class="fa-solid fa-location-dot"></i> ${cleanName}</span>`;
+                }
             }
 
             const cacheKey = 'public_map_data';
@@ -1052,6 +1061,33 @@ if (is_dir($imgDir)) {
                     window.lastNearSpots = nearSpots;
 
                     if (nearSpots.length > 0) {
+                        // Check if exact same spots are already rendered in container
+                        const existingCards = nearContainer.querySelectorAll('.fav-card');
+                        const existingIds = Array.from(existingCards).map(c => c.getAttribute('data-id')).filter(Boolean).join(',');
+                        const newIds = nearSpots.map(s => s.id).join(',');
+
+                        if (existingIds === newIds && existingIds !== '') {
+                            // Exact same list of spots: Update distance labels in-place with NO twitching!
+                            nearSpots.forEach(dest => {
+                                const card = nearContainer.querySelector(`.fav-card[data-id="${dest.id}"]`);
+                                if (card) {
+                                    let distText = '';
+                                    if (dest.distance < 0.05) {
+                                        distText = `${Math.max(5, Math.round(dest.distance * 1000))}m away`;
+                                    } else if (dest.distance < 1.0) {
+                                        distText = `${Math.round((dest.distance * 1000) / 10) * 10}m away`;
+                                    } else {
+                                        distText = `${dest.distance.toFixed(1)} km away`;
+                                    }
+                                    const distSpan = card.querySelector('.near-dist-text');
+                                    if (distSpan && distSpan.textContent !== distText) {
+                                        distSpan.textContent = distText;
+                                    }
+                                }
+                            });
+                            return;
+                        }
+
                         nearContainer.classList.remove('is-empty');
                         nearContainer.style.paddingLeft = '';
                         nearContainer.style.paddingRight = '';
@@ -1076,12 +1112,12 @@ if (is_dir($imgDir)) {
 
                             const encodedDest = encodeURIComponent(JSON.stringify(dest));
                             nearContainer.innerHTML += `
-                            <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
+                            <div class="fav-card" data-id="${dest.id}" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                                 ${badgeHtml}
                                 <img src="${img}" alt="${dest.name}" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
                                 <div class="fav-card-overlay">
                                     <span class="fav-card-name">${dest.name}</span>
-                                    <span style="display:block; font-size:10px; color:#38bdf8; margin-top:2px; font-weight:700;"><i class="fa-solid fa-location-arrow"></i> ${distText}</span>
+                                    <span style="display:block; font-size:10px; color:#38bdf8; margin-top:2px; font-weight:700;"><i class="fa-solid fa-location-arrow"></i> <span class="near-dist-text">${distText}</span></span>
                                 </div>
                             </div>
                         `;
@@ -1939,7 +1975,8 @@ if (is_dir($imgDir)) {
         }
     };
 
-    // Live continuous GPS sync listener for real-time Near Me distances
+    // Live continuous GPS sync listener for real-time Near Me distances (debounced to eliminate twitching)
+    let _gpsDebounceTimer = null;
     document.addEventListener('gpsUpdated', function (e) {
         if (e.detail && e.detail.lat && e.detail.lng) {
             const liveLat = parseFloat(e.detail.lat);
@@ -1948,8 +1985,11 @@ if (is_dir($imgDir)) {
                 window.userCurrentCoords = { lat: liveLat, lng: liveLng };
                 window.currentGPSLat = liveLat;
                 window.currentGPSLng = liveLng;
-                if (typeof loadNearMe === 'function') {
-                    loadNearMe(liveLat, liveLng);
+                if (typeof window.loadNearMe === 'function') {
+                    clearTimeout(_gpsDebounceTimer);
+                    _gpsDebounceTimer = setTimeout(() => {
+                        window.loadNearMe(liveLat, liveLng);
+                    }, 1500);
                 }
             }
         }
