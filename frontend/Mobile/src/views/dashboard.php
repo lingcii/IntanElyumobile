@@ -9,7 +9,8 @@ $imgDir = __DIR__ . '/../assets/img/MUNICIPALITIES';
 if (is_dir($imgDir)) {
     $munis = scandir($imgDir);
     foreach ($munis as $muni) {
-        if ($muni === '.' || $muni === '..') continue;
+        if ($muni === '.' || $muni === '..')
+            continue;
         if (is_dir("$imgDir/$muni")) {
             $files = scandir("$imgDir/$muni");
             foreach ($files as $f) {
@@ -33,20 +34,26 @@ if (is_dir($imgDir)) {
 <div class="dashboard-container has-header has-bottom-nav animate-slide-up">
 
     <!-- Profile + EXP Card -->
-    <div class="profile-header stagger-1" onclick="navigateTo('profile')" style="background: #6196c8 !important; border: none !important; outline: none !important; box-shadow: none !important;">
+    <div class="profile-header stagger-1" onclick="navigateTo('profile')"
+        style="background: #6196c8 !important; border: none !important; outline: none !important; box-shadow: none !important;">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
             <div class="profile-info-row" style="margin-bottom:0; flex:1;">
                 <div class="profile-avatar">
-                    <img id="dash-avatar" src="https://ui-avatars.com/api/?name=Tourist&amp;background=007AFF&amp;color=fff&amp;rounded=true&amp;bold=true&amp;size=128" alt="Avatar">
+                    <img id="dash-avatar"
+                        src="https://ui-avatars.com/api/?name=Tourist&amp;background=007AFF&amp;color=fff&amp;rounded=true&amp;bold=true&amp;size=128"
+                        alt="Avatar">
                 </div>
                 <div class="profile-text">
                     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                        <h2 class="profile-name" id="dash-name" style="margin:0;">Hi, there! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i></h2>
+                        <h2 class="profile-name" id="dash-name" style="margin:0;">Hi, there! <i class="fa-solid fa-hand"
+                                style="color:#fbbf24; font-size:18px; margin-left:4px;"></i></h2>
                         <span id="dash-explorer-id">ID: #--</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
-                        <span class="profile-title" id="dash-title"><i class="fa-solid fa-compass" style="color:#00f2fe; font-size:11px;"></i> Explorer of Elyu</span>
-                        <span id="dash-status-badge"><i class="fa-solid fa-circle" style="font-size:6px; margin-right:4px;"></i> Active Tourist</span>
+                        <span class="profile-title" id="dash-title"><i class="fa-solid fa-compass"
+                                style="color:#00f2fe; font-size:11px;"></i> Explorer of Elyu</span>
+                        <span id="dash-status-badge"><i class="fa-solid fa-circle"
+                                style="font-size:6px; margin-right:4px;"></i> Active Tourist</span>
                     </div>
                 </div>
             </div>
@@ -55,11 +62,16 @@ if (is_dir($imgDir)) {
         <!-- Level XP Progress Section -->
         <div class="exp-container">
             <div class="exp-header">
-                <span class="exp-label" id="dash-level-label"><i class="fa-solid fa-award" style="color:#00f2fe; margin-right:4px;"></i> Level Progress</span>
-                <span class="exp-value" id="dash-xp-value"><i class="fa-solid fa-bolt" style="color:#fbbf24; margin-right:4px;"></i>— XP</span>
+                <span class="exp-label" id="dash-level-label"><i class="fa-solid fa-award"
+                        style="color:#00f2fe; margin-right:4px;"></i> Level Progress</span>
+                <span class="exp-value" id="dash-xp-value"><i class="fa-solid fa-bolt"
+                        style="color:#fbbf24; margin-right:4px;"></i>— XP</span>
             </div>
-            <div class="exp-bar-bg"><div class="exp-bar-fill" id="dash-xp-bar" style="width:0%;"></div></div>
-            <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#cbd5e1; font-weight:600; margin-top:4px;">
+            <div class="exp-bar-bg">
+                <div class="exp-bar-fill" id="dash-xp-bar" style="width:0%;"></div>
+            </div>
+            <div
+                style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#cbd5e1; font-weight:600; margin-top:4px;">
                 <span id="dash-xp-needed" style="color:#cbd5e1;">1,000 XP to next level</span>
                 <span id="dash-xp-pct" style="color:#00f2fe; font-weight:800;">0%</span>
             </div>
@@ -86,46 +98,62 @@ if (is_dir($imgDir)) {
     </div>
 
     <!-- Weather Widget -->
-    <div class="weather-card stagger-2" onclick="window.openWeatherModal()" style="cursor: pointer; position: relative;" title="Click for 5-Day Weather Forecast">
+    <div class="weather-card stagger-2" onclick="window.openWeatherModal()" style="cursor: pointer; position: relative;"
+        title="Click for 5-Day Weather Forecast">
         <div class="weather-left">
-            <div class="weather-temp" id="weather-temp"><i class="fa-solid fa-spinner fa-spin" style="font-size:22px; color:rgba(255,255,255,0.4);"></i></div>
+            <div class="weather-temp" id="weather-temp"><i class="fa-solid fa-spinner fa-spin"
+                    style="font-size:22px; color:rgba(255,255,255,0.4);"></i></div>
             <div class="weather-desc" id="weather-desc">Loading Weather...</div>
-            <div class="weather-loc" id="weather-loc"><i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> San Fernando, La Union</div>
+            <div class="weather-loc" id="weather-loc"><i class="fa-solid fa-location-dot"
+                    style="color:#38bdf8; margin-right:4px;"></i> San Fernando, La Union</div>
             <div class="weather-details">
-                <span class="weather-detail"><i class="fa-solid fa-droplet" style="color:#38bdf8;"></i> <span id="weather-humidity">--%</span></span>
-                <span class="weather-detail"><i class="fa-solid fa-wind" style="color:#a78bfa;"></i> <span id="weather-wind">-- km/h</span></span>
-                <span class="weather-detail"><i class="fa-solid fa-sun" style="color:#fbbf24;"></i> UV <span id="weather-uv">--</span></span>
+                <span class="weather-detail"><i class="fa-solid fa-droplet" style="color:#38bdf8;"></i> <span
+                        id="weather-humidity">--%</span></span>
+                <span class="weather-detail"><i class="fa-solid fa-wind" style="color:#a78bfa;"></i> <span
+                        id="weather-wind">-- km/h</span></span>
+                <span class="weather-detail"><i class="fa-solid fa-sun" style="color:#fbbf24;"></i> UV <span
+                        id="weather-uv">--</span></span>
             </div>
         </div>
         <div style="text-align: right;">
             <div class="weather-icon" id="weather-icon">⛅</div>
-            <span style="font-size: 10px; color: rgba(255,255,255,0.95); display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-top: 4px; font-weight: 700;">
+            <span
+                style="font-size: 10px; color: rgba(255,255,255,0.95); display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-top: 4px; font-weight: 700;">
                 5-Day Forecast <i class="fa-solid fa-chevron-right" style="font-size: 8px; color: #ffffff;"></i>
             </span>
         </div>
     </div>
 
     <!-- Weather Forecast Modal -->
-    <div id="weather-modal" onclick="if(event.target===this) window.closeWeatherModal()" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); backdrop-filter:blur(10px); z-index:99999; justify-content:center; align-items:flex-end;">
-        <div style="background:#6196c8; border:none; border-radius:28px 28px 0 0; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; padding:24px 20px; box-shadow:none; animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+    <div id="weather-modal" onclick="if(event.target===this) window.closeWeatherModal()"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); backdrop-filter:blur(10px); z-index:99999; justify-content:center; align-items:flex-end;">
+        <div
+            style="background:#6196c8; border:none; border-radius:28px 28px 0 0; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; padding:24px 20px; box-shadow:none; animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                 <div>
-                    <h3 style="margin:0; font-size:18px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
+                    <h3
+                        style="margin:0; font-size:18px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
                         <span>🌤️ Weather Forecast</span>
                     </h3>
-                    <p style="margin:2px 0 0 0; font-size:12px; color:rgba(255,255,255,0.9);" id="modal-weather-loc">San Fernando, La Union</p>
+                    <p style="margin:2px 0 0 0; font-size:12px; color:rgba(255,255,255,0.9);" id="modal-weather-loc">San
+                        Fernando, La Union</p>
                 </div>
-                <button onclick="window.closeWeatherModal()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                <button onclick="window.closeWeatherModal()"
+                    style="background:rgba(255,255,255,0.2); border:none; color:#fff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
             <!-- Current Detailed Weather Card -->
-            <div style="background:rgba(0,0,0,0.14); border:none; border-radius:22px; padding:18px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between;">
+            <div
+                style="background:rgba(0,0,0,0.14); border:none; border-radius:22px; padding:18px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between;">
                 <div>
-                    <div style="font-size:38px; font-weight:900; color:#fff; letter-spacing:-1px;" id="modal-temp">29°C</div>
-                    <div style="font-size:14px; font-weight:800; color:#ffffff; margin-top:2px;" id="modal-condition">Partly Cloudy</div>
-                    <div style="font-size:12px; color:rgba(255,255,255,0.9); margin-top:6px;" id="modal-feels">Feels like 31°C</div>
+                    <div style="font-size:38px; font-weight:900; color:#fff; letter-spacing:-1px;" id="modal-temp">29°C
+                    </div>
+                    <div style="font-size:14px; font-weight:800; color:#ffffff; margin-top:2px;" id="modal-condition">
+                        Partly Cloudy</div>
+                    <div style="font-size:12px; color:rgba(255,255,255,0.9); margin-top:6px;" id="modal-feels">Feels
+                        like 31°C</div>
                 </div>
                 <div style="text-align:center;">
                     <div style="font-size:52px;" id="modal-icon">⛅</div>
@@ -133,7 +161,8 @@ if (is_dir($imgDir)) {
             </div>
 
             <!-- 5-Day Forecast Grid -->
-            <h4 style="margin:0 0 12px 0; font-size:14px; font-weight:800; color:#f8fafc; display:flex; align-items:center; gap:6px;">
+            <h4
+                style="margin:0 0 12px 0; font-size:14px; font-weight:800; color:#f8fafc; display:flex; align-items:center; gap:6px;">
                 <i class="fa-solid fa-calendar-days" style="color:#38bdf8;"></i> 5-Day Forecast
             </h4>
             <div id="weather-forecast-container" style="display:flex; flex-direction:column; gap:10px;">
@@ -145,15 +174,20 @@ if (is_dir($imgDir)) {
     </div>
 
     <!-- Gamification Panel -->
-    <div class="weather-card stagger-2" onclick="navigateTo('puzzles')" style="background: #6196c8; border: none; border-radius: 24px; box-shadow: none; margin-top: 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
+    <div class="weather-card stagger-2" onclick="navigateTo('puzzles')"
+        style="background: #6196c8; border: none; border-radius: 24px; box-shadow: none; margin-top: 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="font-size: 32px; filter: none;">🧩</div>
             <div>
-                <h4 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -0.2px;">GameZone</h4>
-                <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.95); font-weight: 600;">Play fun mini-games to earn discount vouchers! 🎁</p>
+                <h4 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -0.2px;">
+                    GameZone</h4>
+                <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.95); font-weight: 600;">Play fun
+                    mini-games to earn discount vouchers! 🎁</p>
             </div>
         </div>
-        <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 14px;"><i class="fa-solid fa-play"></i></div>
+        <div
+            style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 14px;">
+            <i class="fa-solid fa-play"></i></div>
     </div>
 
     <!-- Categories Section -->
@@ -209,14 +243,14 @@ if (is_dir($imgDir)) {
     </div>
 
 
-    
+
     <!-- My Saved Trips Preview -->
     <div class="dash-section stagger-3">
         <div class="section-title">
             <h3>My Saved Trips</h3>
             <a href="javascript:void(0);" onclick="navigateTo('saved_trips')">Open Saved Trips</a>
         </div>
-        
+
         <div id="saved-trips-container">
             <div class="dash-loading-state">
                 <i class="fa-solid fa-spinner fa-spin"></i>
@@ -224,7 +258,7 @@ if (is_dir($imgDir)) {
             </div>
         </div>
     </div>
-    
+
     <!-- Favorites / Saved Places -->
     <div class="dash-section stagger-3">
         <div class="section-title">
@@ -236,7 +270,7 @@ if (is_dir($imgDir)) {
                 <i class="fa-solid fa-spinner fa-spin"></i>
                 <span>Loading Saved Places...</span>
             </div>
-        </div>  
+        </div>
     </div>
 
     <!-- Recommended For You -->
@@ -268,17 +302,25 @@ if (is_dir($imgDir)) {
 </div>
 
 <!-- Delete Trip Confirmation Modal -->
-<div id="delete-trip-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center;">
-    <div style="background:#6196c8; border:none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:none; text-align:center;">
+<div id="delete-trip-modal"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center;">
+    <div
+        style="background:#6196c8; border:none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:none; text-align:center;">
         <i class="fa-solid fa-trash-can" style="font-size:32px; color:#ffffff; margin-bottom:10px; display:block;"></i>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Delete Saved Trip?</h3>
-        <p id="delete-trip-title-text" style="font-size:13px; color:rgba(255, 255, 255, 0.95); margin-bottom:22px; line-height:1.5;">Are you sure you want to delete this trip? All saved itinerary items will be removed.</p>
+        <p id="delete-trip-title-text"
+            style="font-size:13px; color:rgba(255, 255, 255, 0.95); margin-bottom:22px; line-height:1.5;">Are you sure
+            you want to delete this trip? All saved itinerary items will be removed.</p>
 
         <div style="display:flex; gap:10px;">
-            <button type="button" style="flex:1; padding:13px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.22); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeDeleteTripModal()">
+            <button type="button"
+                style="flex:1; padding:13px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.22); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;"
+                onclick="window.closeDeleteTripModal()">
                 Cancel
             </button>
-            <button type="button" id="btn-confirm-delete-trip" style="flex:1; padding:13px; font-size:14px; font-weight:800; background:#ef4444; border:none; outline:none; color:#ffffff; border-radius:14px; box-shadow:none; cursor:pointer;" onclick="window.executeConfirmDeleteTrip()">
+            <button type="button" id="btn-confirm-delete-trip"
+                style="flex:1; padding:13px; font-size:14px; font-weight:800; background:#ef4444; border:none; outline:none; color:#ffffff; border-radius:14px; box-shadow:none; cursor:pointer;"
+                onclick="window.executeConfirmDeleteTrip()">
                 Delete
             </button>
         </div>
@@ -287,7 +329,7 @@ if (is_dir($imgDir)) {
 
 <script>
     window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
-    window.filterCategoryDash = function(cat, el) {
+    window.filterCategoryDash = function (cat, el) {
         document.querySelectorAll('#dash-categories-list .category-card').forEach(card => card.classList.remove('active'));
         if (el) el.classList.add('active');
 
@@ -365,7 +407,7 @@ if (is_dir($imgDir)) {
                 container.style.paddingRight = '0';
                 container.style.marginLeft = '0';
                 container.style.marginRight = '0';
-                
+
                 const emptyDiv = document.createElement('div');
                 emptyDiv.className = 'dash-filter-empty-state dash-empty-state';
                 emptyDiv.innerHTML = `
@@ -375,7 +417,7 @@ if (is_dir($imgDir)) {
                     <div class="dash-empty-title">${emptyMsg}</div>
                     <div class="dash-empty-desc">Try selecting another category or tap All to view all destinations.</div>
                 `;
-                
+
                 const btnMore = container.querySelector('#btn-view-more-rec');
                 if (btnMore) {
                     btnMore.style.display = 'none';
@@ -400,7 +442,7 @@ if (is_dir($imgDir)) {
         filterContainer('near-me-container', 'No nearby sites found in this category.');
     };
 
-    window.initLoopingFocusCarousel = function(containerId) {
+    window.initLoopingFocusCarousel = function (containerId) {
         const container = document.getElementById(containerId);
         if (!container) return;
 
@@ -485,144 +527,144 @@ if (is_dir($imgDir)) {
         });
     };
 
-(async function dashboardInit() {
-    const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
-    const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
-    const setSrc = (id, src) => { const el = document.getElementById(id); if (el) el.src = src; };
+    (async function dashboardInit() {
+        const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+        const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+        const setSrc = (id, src) => { const el = document.getElementById(id); if (el) el.src = src; };
 
-    var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
-    const token = localStorage.getItem('intan_elyu_token');
-    const user = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : {};
+        var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+        const token = localStorage.getItem('intan_elyu_token');
+        const user = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : {};
 
-    // Instant render from cache
-    if (user && user.name) {
-        setHtml('dash-name', 'Hi, ' + user.name.split(' ')[0] + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
-        setSrc('dash-avatar', user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
-    }
-
-    if (!token) return;
-
-    let lat = window.currentGPSLat || null, lng = window.currentGPSLng || null;
-    try {
-        if (typeof window.requestPreciseLocation === 'function') {
-            const loc = await window.requestPreciseLocation(true);
-            if (loc && loc.lat && loc.lng) {
-                lat = loc.lat;
-                lng = loc.lng;
-                window.currentGPSLat = lat;
-                window.currentGPSLng = lng;
-                window.currentGPSSource = 'gps';
-                window.userCurrentCoords = { lat, lng };
-            }
-        } else if ("geolocation" in navigator) {
-            const pos = await new Promise((res, rej) => {
-                navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-            });
-            if (pos && pos.coords) {
-                lat = pos.coords.latitude;
-                lng = pos.coords.longitude;
-                window.currentGPSLat = lat;
-                window.currentGPSLng = lng;
-                window.currentGPSSource = 'gps';
-                window.userCurrentCoords = { lat, lng };
-            }
-        }
-    } catch(e) {
-        if (e && e.code !== 3) {
-            console.log("Location access issue (handled):", e.message);
-        }
-    }
-
-    let apiUrl = backendUrl + '/api/tourist/dashboard';
-    if (lat && lng) apiUrl += `?lat=${lat}&lng=${lng}`;
-
-    const cacheKey = 'dashboard_data_' + (lat && lng ? `${lat.toFixed(3)}_${lng.toFixed(3)}` : 'default');
-
-    function renderDashboard(data) {
-        // Update notification badge
-        if (data.stats && typeof window.updateUnreadBadge === 'function') {
-            window.updateUnreadBadge(data.stats.unread_notifications || 0);
+        // Instant render from cache
+        if (user && user.name) {
+            setHtml('dash-name', 'Hi, ' + user.name.split(' ')[0] + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
+            setSrc('dash-avatar', user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
         }
 
-        const u = data.user || {};
+        if (!token) return;
 
-        // Profile header
-        const firstName = (u.name || 'Explorer').split(' ')[0];
-        setHtml('dash-name', 'Hi, ' + firstName + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
-        setTxt('dash-title', 'Level ' + (u.level || 1) + ' Explorer');
-        
-        const userId = u.id || u.user_id || '';
-        if (userId) setTxt('dash-explorer-id', 'ID: #' + userId);
-        
-        if (u.avatar) {
-            let avatarUrl = u.avatar;
-            if (avatarUrl.includes('localhost:3000') || avatarUrl.includes('127.0.0.1:3000')) {
-                avatarUrl = avatarUrl.replace(/http:\/\/(localhost|127\.0\.0\.1):3000/, window.backendUrl || 'http://localhost:8000');
+        let lat = window.currentGPSLat || null, lng = window.currentGPSLng || null;
+        try {
+            if (typeof window.requestPreciseLocation === 'function') {
+                const loc = await window.requestPreciseLocation(true);
+                if (loc && loc.lat && loc.lng) {
+                    lat = loc.lat;
+                    lng = loc.lng;
+                    window.currentGPSLat = lat;
+                    window.currentGPSLng = lng;
+                    window.currentGPSSource = 'gps';
+                    window.userCurrentCoords = { lat, lng };
+                }
+            } else if ("geolocation" in navigator) {
+                const pos = await new Promise((res, rej) => {
+                    navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+                });
+                if (pos && pos.coords) {
+                    lat = pos.coords.latitude;
+                    lng = pos.coords.longitude;
+                    window.currentGPSLat = lat;
+                    window.currentGPSLng = lng;
+                    window.currentGPSSource = 'gps';
+                    window.userCurrentCoords = { lat, lng };
+                }
             }
-            if (!avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:') && !avatarUrl.startsWith('blob:')) {
-                let b = (window.backendUrl || '').replace(/\/+$/, '');
-                avatarUrl = b + '/' + avatarUrl.replace(/^\//, '');
+        } catch (e) {
+            if (e && e.code !== 3) {
+                console.log("Location access issue (handled):", e.message);
             }
-
-            const dashAvatarEl = document.getElementById('dash-avatar');
-            if (dashAvatarEl) {
-                let fallbackAvatar = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + u.avatar.replace(/^\//, '');
-                dashAvatarEl.onerror = function() {
-                    if (this.src !== fallbackAvatar) {
-                        this.src = fallbackAvatar;
-                    } else {
-                        this.onerror = null;
-                        this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Tourist')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
-                    }
-                };
-                dashAvatarEl.src = avatarUrl;
-            }
-        } else {
-            setSrc('dash-avatar', `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Tourist')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
         }
 
-        // XP Bar
-        const xp = parseInt(u.xp) || 0;
-        const level = parseInt(u.level) || 1;
-        const xpPerLevel = 1000;
-        const xpInLevel = xp % xpPerLevel;
-        const xpPct = Math.min((xpInLevel / xpPerLevel) * 100, 100);
-        const xpNeeded = xpPerLevel - xpInLevel;
+        let apiUrl = backendUrl + '/api/tourist/dashboard';
+        if (lat && lng) apiUrl += `?lat=${lat}&lng=${lng}`;
 
-        const lvlLabel = document.getElementById('dash-level-label');
-        if (lvlLabel) lvlLabel.innerHTML = `<i class="fa-solid fa-award" style="color:#00f2fe; margin-right:4px;"></i> Level ${level} Progress`;
-        
-        const xpVal = document.getElementById('dash-xp-value');
-        if (xpVal) xpVal.innerHTML = `<i class="fa-solid fa-bolt" style="color:#fbbf24; margin-right:4px;"></i>${xpInLevel.toLocaleString()} / ${xpPerLevel.toLocaleString()} XP`;
-        
-        const xpNeedEl = document.getElementById('dash-xp-needed');
-        if (xpNeedEl) xpNeedEl.textContent = `${xpNeeded.toLocaleString()} XP to Level ${level + 1}`;
-        
-        const xpPctEl = document.getElementById('dash-xp-pct');
-        if (xpPctEl) xpPctEl.textContent = `${Math.round(xpPct)}%`;
+        const cacheKey = 'dashboard_data_' + (lat && lng ? `${lat.toFixed(3)}_${lng.toFixed(3)}` : 'default');
 
-        if (document.getElementById('dash-xp-bar')) document.getElementById('dash-xp-bar').style.width = xpPct + '%';
+        function renderDashboard(data) {
+            // Update notification badge
+            if (data.stats && typeof window.updateUnreadBadge === 'function') {
+                window.updateUnreadBadge(data.stats.unread_notifications || 0);
+            }
 
-        // Stats
-        if (document.getElementById('dash-stat-places')) document.getElementById('dash-stat-places').textContent = (data.stats && data.stats.placesVisited) ? data.stats.placesVisited : 0;
-        if (document.getElementById('dash-stat-xp')) document.getElementById('dash-stat-xp').textContent = xp.toLocaleString();
+            const u = data.user || {};
 
-        // Populate Trending Spots (Limit to top 5, "See All" opens full list)
-        const trendingContainer = document.getElementById('trending-container');
-        if (trendingContainer) {
-            trendingContainer.innerHTML = '';
-            if (data.trending && data.trending.length > 0) {
-                trendingContainer.classList.remove('is-empty');
-                trendingContainer.style.paddingLeft = '';
-                trendingContainer.style.paddingRight = '';
-                trendingContainer.style.marginLeft = '';
-                trendingContainer.style.marginRight = '';
-                const trendingList = data.trending.slice(0, 5);
-                trendingList.forEach(dest => {
-                    const img = window.getDestImage(dest, 600);
-                    const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
-                    const encodedDest = encodeURIComponent(JSON.stringify(dest));
-                    trendingContainer.innerHTML += `
+            // Profile header
+            const firstName = (u.name || 'Explorer').split(' ')[0];
+            setHtml('dash-name', 'Hi, ' + firstName + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
+            setTxt('dash-title', 'Level ' + (u.level || 1) + ' Explorer');
+
+            const userId = u.id || u.user_id || '';
+            if (userId) setTxt('dash-explorer-id', 'ID: #' + userId);
+
+            if (u.avatar) {
+                let avatarUrl = u.avatar;
+                if (avatarUrl.includes('localhost:3000') || avatarUrl.includes('127.0.0.1:3000')) {
+                    avatarUrl = avatarUrl.replace(/http:\/\/(localhost|127\.0\.0\.1):3000/, window.backendUrl || 'http://localhost:8000');
+                }
+                if (!avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:') && !avatarUrl.startsWith('blob:')) {
+                    let b = (window.backendUrl || '').replace(/\/+$/, '');
+                    avatarUrl = b + '/' + avatarUrl.replace(/^\//, '');
+                }
+
+                const dashAvatarEl = document.getElementById('dash-avatar');
+                if (dashAvatarEl) {
+                    let fallbackAvatar = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + u.avatar.replace(/^\//, '');
+                    dashAvatarEl.onerror = function () {
+                        if (this.src !== fallbackAvatar) {
+                            this.src = fallbackAvatar;
+                        } else {
+                            this.onerror = null;
+                            this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Tourist')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
+                        }
+                    };
+                    dashAvatarEl.src = avatarUrl;
+                }
+            } else {
+                setSrc('dash-avatar', `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Tourist')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+            }
+
+            // XP Bar
+            const xp = parseInt(u.xp) || 0;
+            const level = parseInt(u.level) || 1;
+            const xpPerLevel = 1000;
+            const xpInLevel = xp % xpPerLevel;
+            const xpPct = Math.min((xpInLevel / xpPerLevel) * 100, 100);
+            const xpNeeded = xpPerLevel - xpInLevel;
+
+            const lvlLabel = document.getElementById('dash-level-label');
+            if (lvlLabel) lvlLabel.innerHTML = `<i class="fa-solid fa-award" style="color:#00f2fe; margin-right:4px;"></i> Level ${level} Progress`;
+
+            const xpVal = document.getElementById('dash-xp-value');
+            if (xpVal) xpVal.innerHTML = `<i class="fa-solid fa-bolt" style="color:#fbbf24; margin-right:4px;"></i>${xpInLevel.toLocaleString()} / ${xpPerLevel.toLocaleString()} XP`;
+
+            const xpNeedEl = document.getElementById('dash-xp-needed');
+            if (xpNeedEl) xpNeedEl.textContent = `${xpNeeded.toLocaleString()} XP to Level ${level + 1}`;
+
+            const xpPctEl = document.getElementById('dash-xp-pct');
+            if (xpPctEl) xpPctEl.textContent = `${Math.round(xpPct)}%`;
+
+            if (document.getElementById('dash-xp-bar')) document.getElementById('dash-xp-bar').style.width = xpPct + '%';
+
+            // Stats
+            if (document.getElementById('dash-stat-places')) document.getElementById('dash-stat-places').textContent = (data.stats && data.stats.placesVisited) ? data.stats.placesVisited : 0;
+            if (document.getElementById('dash-stat-xp')) document.getElementById('dash-stat-xp').textContent = xp.toLocaleString();
+
+            // Populate Trending Spots (Limit to top 5, "See All" opens full list)
+            const trendingContainer = document.getElementById('trending-container');
+            if (trendingContainer) {
+                trendingContainer.innerHTML = '';
+                if (data.trending && data.trending.length > 0) {
+                    trendingContainer.classList.remove('is-empty');
+                    trendingContainer.style.paddingLeft = '';
+                    trendingContainer.style.paddingRight = '';
+                    trendingContainer.style.marginLeft = '';
+                    trendingContainer.style.marginRight = '';
+                    const trendingList = data.trending.slice(0, 5);
+                    trendingList.forEach(dest => {
+                        const img = window.getDestImage(dest, 600);
+                        const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
+                        const encodedDest = encodeURIComponent(JSON.stringify(dest));
+                        trendingContainer.innerHTML += `
                         <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                             ${badgeHtml}
                             <img src="${img}" alt="${dest.name}" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
@@ -630,15 +672,15 @@ if (is_dir($imgDir)) {
                             <i class="fa-solid fa-fire fav-heart" style="color: #ff9500; font-size: 14px;"></i>
                         </div>
                     `;
-                });
-                window.initLoopingFocusCarousel('trending-container');
-            } else {
-                trendingContainer.classList.add('is-empty');
-                trendingContainer.style.paddingLeft = '0';
-                trendingContainer.style.paddingRight = '0';
-                trendingContainer.style.marginLeft = '0';
-                trendingContainer.style.marginRight = '0';
-                trendingContainer.innerHTML = `
+                    });
+                    window.initLoopingFocusCarousel('trending-container');
+                } else {
+                    trendingContainer.classList.add('is-empty');
+                    trendingContainer.style.paddingLeft = '0';
+                    trendingContainer.style.paddingRight = '0';
+                    trendingContainer.style.marginLeft = '0';
+                    trendingContainer.style.marginRight = '0';
+                    trendingContainer.innerHTML = `
                     <div class="dash-empty-state">
                         <div class="dash-empty-icon-wrap">
                             <i class="fa-solid fa-fire-flame-curved"></i>
@@ -647,30 +689,30 @@ if (is_dir($imgDir)) {
                         <div class="dash-empty-desc">Check back soon for popular attractions and trending activities in La Union.</div>
                     </div>
                 `;
+                }
             }
-        }
 
-        // Populate Saved Places (Limit to top 5, "See All" opens full list)
-        const savedContainer = document.getElementById('saved-places-container');
-        if (savedContainer) {
-            savedContainer.innerHTML = '';
-            if (data.savedPlaces && data.savedPlaces.length > 0) {
-                try {
-                    const savedIds = data.savedPlaces.map(p => p.id);
-                    localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(savedIds));
-                } catch(e) {}
+            // Populate Saved Places (Limit to top 5, "See All" opens full list)
+            const savedContainer = document.getElementById('saved-places-container');
+            if (savedContainer) {
+                savedContainer.innerHTML = '';
+                if (data.savedPlaces && data.savedPlaces.length > 0) {
+                    try {
+                        const savedIds = data.savedPlaces.map(p => p.id);
+                        localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(savedIds));
+                    } catch (e) { }
 
-                savedContainer.classList.remove('is-empty');
-                savedContainer.style.paddingLeft = '';
-                savedContainer.style.paddingRight = '';
-                savedContainer.style.marginLeft = '';
-                savedContainer.style.marginRight = '';
-                const savedList = data.savedPlaces.slice(0, 5);
-                savedList.forEach(dest => {
-                    const img = window.getDestImage(dest, 600);
-                    const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
-                    const encodedDest = encodeURIComponent(JSON.stringify(dest));
-                    savedContainer.innerHTML += `
+                    savedContainer.classList.remove('is-empty');
+                    savedContainer.style.paddingLeft = '';
+                    savedContainer.style.paddingRight = '';
+                    savedContainer.style.marginLeft = '';
+                    savedContainer.style.marginRight = '';
+                    const savedList = data.savedPlaces.slice(0, 5);
+                    savedList.forEach(dest => {
+                        const img = window.getDestImage(dest, 600);
+                        const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
+                        const encodedDest = encodeURIComponent(JSON.stringify(dest));
+                        savedContainer.innerHTML += `
                         <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                             ${badgeHtml}
                             <img src="${img}" alt="${dest.name}" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
@@ -678,15 +720,15 @@ if (is_dir($imgDir)) {
                             <i class="fa-solid fa-heart fav-heart" style="color: #ff3b30;" onclick="event.stopPropagation(); window.toggleFavorite(${dest.id}, this)"></i>
                         </div>
                     `;
-                });
-                window.initLoopingFocusCarousel('saved-places-container');
-            } else {
-                savedContainer.classList.add('is-empty');
-                savedContainer.style.paddingLeft = '0';
-                savedContainer.style.paddingRight = '0';
-                savedContainer.style.marginLeft = '0';
-                savedContainer.style.marginRight = '0';
-                savedContainer.innerHTML = `
+                    });
+                    window.initLoopingFocusCarousel('saved-places-container');
+                } else {
+                    savedContainer.classList.add('is-empty');
+                    savedContainer.style.paddingLeft = '0';
+                    savedContainer.style.paddingRight = '0';
+                    savedContainer.style.marginLeft = '0';
+                    savedContainer.style.marginRight = '0';
+                    savedContainer.innerHTML = `
                     <div class="dash-empty-state">
                         <div class="dash-empty-icon-wrap">
                             <i class="fa-solid fa-map-location-dot"></i>
@@ -698,30 +740,30 @@ if (is_dir($imgDir)) {
                         </button>
                     </div>
                 `;
-            }
-        }
-
-        const recContainer = document.getElementById('recommended-container');
-        if (recContainer && data.recommended) {
-            recContainer.innerHTML = '';
-            if (data.timeLabel) {
-                setTxt('recommended-title', data.timeLabel);
+                }
             }
 
-            const INITIAL_SHOW = 2;
-            const allDests = data.recommended;
+            const recContainer = document.getElementById('recommended-container');
+            if (recContainer && data.recommended) {
+                recContainer.innerHTML = '';
+                if (data.timeLabel) {
+                    setTxt('recommended-title', data.timeLabel);
+                }
 
-            // Render first 2
-            allDests.slice(0, INITIAL_SHOW).forEach(dest => {
-                recContainer.innerHTML += buildRecommendedItem(dest);
-            });
+                const INITIAL_SHOW = 2;
+                const allDests = data.recommended;
 
-            // Hidden extras container
-            if (allDests.length > INITIAL_SHOW) {
-                const extras = allDests.slice(INITIAL_SHOW);
-                const extraHtml = extras.map(dest => buildRecommendedItem(dest)).join('');
+                // Render first 2
+                allDests.slice(0, INITIAL_SHOW).forEach(dest => {
+                    recContainer.innerHTML += buildRecommendedItem(dest);
+                });
 
-                recContainer.innerHTML += `
+                // Hidden extras container
+                if (allDests.length > INITIAL_SHOW) {
+                    const extras = allDests.slice(INITIAL_SHOW);
+                    const extraHtml = extras.map(dest => buildRecommendedItem(dest)).join('');
+
+                    recContainer.innerHTML += `
                     <div id="rec-extras" style="overflow:hidden; max-height:0; transition: max-height 0.4s ease;">
                         ${extraHtml}
                     </div>
@@ -732,38 +774,38 @@ if (is_dir($imgDir)) {
                         View ${extras.length} More
                     </button>
                 `;
+                }
             }
+
+            // Cache updated user
+            localStorage.setItem('auth_user', JSON.stringify(u));
         }
 
-        // Cache updated user
-        localStorage.setItem('auth_user', JSON.stringify(u));
-    }
+        // Helper functions used inside render/build
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius of the earth in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
 
-    // Helper functions used inside render/build
-    function getDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; // Radius of the earth in km
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                  Math.sin(dLon/2) * Math.sin(dLon/2);
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    }
+        async function loadNearMe(userLat, userLng) {
+            const nearContainer = document.getElementById('near-me-container');
+            if (!nearContainer) return;
 
-    async function loadNearMe(userLat, userLng) {
-        const nearContainer = document.getElementById('near-me-container');
-        if (!nearContainer) return;
+            const uLat = parseFloat(userLat);
+            const uLng = parseFloat(userLng);
 
-        const uLat = parseFloat(userLat);
-        const uLng = parseFloat(userLng);
-
-        if (isNaN(uLat) || isNaN(uLng) || uLat === 0 || uLng === 0) {
-            nearContainer.classList.add('is-empty');
-            nearContainer.style.paddingLeft = '0';
-            nearContainer.style.paddingRight = '0';
-            nearContainer.style.marginLeft = '0';
-            nearContainer.style.marginRight = '0';
-            nearContainer.innerHTML = `
+            if (isNaN(uLat) || isNaN(uLng) || uLat === 0 || uLng === 0) {
+                nearContainer.classList.add('is-empty');
+                nearContainer.style.paddingLeft = '0';
+                nearContainer.style.paddingRight = '0';
+                nearContainer.style.marginLeft = '0';
+                nearContainer.style.marginRight = '0';
+                nearContainer.innerHTML = `
                 <div class="dash-empty-state">
                     <div class="dash-empty-icon-wrap">
                         <i class="fa-solid fa-location-crosshairs"></i>
@@ -775,25 +817,25 @@ if (is_dir($imgDir)) {
                     </button>
                 </div>
             `;
-            return;
-        }
+                return;
+            }
 
-        const cacheKey = 'public_map_data';
-        await window.useCache(
-            cacheKey,
-            async () => {
-                const res = await fetch(backendUrl + '/api/public/map');
-                if (!res.ok) throw new Error("Failed to fetch map data");
-                return await res.json();
-            },
-            (data) => {
-                if (!data || !data.destinations) {
-                    nearContainer.classList.add('is-empty');
-                    nearContainer.style.paddingLeft = '0';
-                    nearContainer.style.paddingRight = '0';
-                    nearContainer.style.marginLeft = '0';
-                    nearContainer.style.marginRight = '0';
-                    nearContainer.innerHTML = `
+            const cacheKey = 'public_map_data';
+            await window.useCache(
+                cacheKey,
+                async () => {
+                    const res = await fetch(backendUrl + '/api/public/map');
+                    if (!res.ok) throw new Error("Failed to fetch map data");
+                    return await res.json();
+                },
+                (data) => {
+                    if (!data || !data.destinations) {
+                        nearContainer.classList.add('is-empty');
+                        nearContainer.style.paddingLeft = '0';
+                        nearContainer.style.paddingRight = '0';
+                        nearContainer.style.marginLeft = '0';
+                        nearContainer.style.marginRight = '0';
+                        nearContainer.innerHTML = `
                         <div class="dash-empty-state">
                             <div class="dash-empty-icon-wrap">
                                 <i class="fa-solid fa-triangle-exclamation"></i>
@@ -805,63 +847,63 @@ if (is_dir($imgDir)) {
                             </button>
                         </div>
                     `;
-                    return;
-                }
-
-                // Clone spots array so we do not mutate cached data in-place
-                let rawSpots = data.destinations || [];
-                let spots = rawSpots.map(s => {
-                    const copy = { ...s };
-                    const sLat = parseFloat(copy.lat || copy.latitude);
-                    const sLng = parseFloat(copy.lng || copy.longitude);
-                    if (!isNaN(sLat) && !isNaN(sLng)) {
-                        copy.distance = getDistance(uLat, uLng, sLat, sLng);
-                    } else {
-                        copy.distance = 999999;
+                        return;
                     }
-                    return copy;
-                });
 
-                // Sort by nearest distance first
-                spots.sort((a, b) => a.distance - b.distance);
-
-                // Progressive distance filter:
-                // 1. If spots within 5 km exist, show them.
-                // 2. If none within 5 km, show spots within 15 km.
-                // 3. Otherwise show closest 4 spots across La Union.
-                let nearSpots = spots.filter(s => s.distance <= 5.0);
-                if (nearSpots.length === 0) {
-                    nearSpots = spots.filter(s => s.distance <= 15.0);
-                }
-                if (nearSpots.length === 0 && spots.length > 0) {
-                    nearSpots = spots.filter(s => s.distance < 999999).slice(0, 4);
-                }
-
-                if (nearSpots.length > 0) {
-                    nearContainer.classList.remove('is-empty');
-                    nearContainer.style.paddingLeft = '';
-                    nearContainer.style.paddingRight = '';
-                    nearContainer.style.marginLeft = '';
-                    nearContainer.style.marginRight = '';
-                    nearContainer.innerHTML = '';
-
-                    nearSpots.forEach(dest => {
-                        const img = window.getDestImage(dest, 600);
-                        const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
-                        
-                        let distText = '';
-                        if (dest.distance < 0.05) {
-                            const meters = Math.max(5, Math.round(dest.distance * 1000));
-                            distText = `${meters}m away`;
-                        } else if (dest.distance < 1.0) {
-                            const meters = Math.round((dest.distance * 1000) / 10) * 10;
-                            distText = `${meters}m away`;
+                    // Clone spots array so we do not mutate cached data in-place
+                    let rawSpots = data.destinations || [];
+                    let spots = rawSpots.map(s => {
+                        const copy = { ...s };
+                        const sLat = parseFloat(copy.lat || copy.latitude);
+                        const sLng = parseFloat(copy.lng || copy.longitude);
+                        if (!isNaN(sLat) && !isNaN(sLng)) {
+                            copy.distance = getDistance(uLat, uLng, sLat, sLng);
                         } else {
-                            distText = `${dest.distance.toFixed(1)} km away`;
+                            copy.distance = 999999;
                         }
+                        return copy;
+                    });
 
-                        const encodedDest = encodeURIComponent(JSON.stringify(dest));
-                        nearContainer.innerHTML += `
+                    // Sort by nearest distance first
+                    spots.sort((a, b) => a.distance - b.distance);
+
+                    // Progressive distance filter:
+                    // 1. If spots within 5 km exist, show them.
+                    // 2. If none within 5 km, show spots within 15 km.
+                    // 3. Otherwise show closest 4 spots across La Union.
+                    let nearSpots = spots.filter(s => s.distance <= 5.0);
+                    if (nearSpots.length === 0) {
+                        nearSpots = spots.filter(s => s.distance <= 15.0);
+                    }
+                    if (nearSpots.length === 0 && spots.length > 0) {
+                        nearSpots = spots.filter(s => s.distance < 999999).slice(0, 4);
+                    }
+
+                    if (nearSpots.length > 0) {
+                        nearContainer.classList.remove('is-empty');
+                        nearContainer.style.paddingLeft = '';
+                        nearContainer.style.paddingRight = '';
+                        nearContainer.style.marginLeft = '';
+                        nearContainer.style.marginRight = '';
+                        nearContainer.innerHTML = '';
+
+                        nearSpots.forEach(dest => {
+                            const img = window.getDestImage(dest, 600);
+                            const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
+
+                            let distText = '';
+                            if (dest.distance < 0.05) {
+                                const meters = Math.max(5, Math.round(dest.distance * 1000));
+                                distText = `${meters}m away`;
+                            } else if (dest.distance < 1.0) {
+                                const meters = Math.round((dest.distance * 1000) / 10) * 10;
+                                distText = `${meters}m away`;
+                            } else {
+                                distText = `${dest.distance.toFixed(1)} km away`;
+                            }
+
+                            const encodedDest = encodeURIComponent(JSON.stringify(dest));
+                            nearContainer.innerHTML += `
                             <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                                 ${badgeHtml}
                                 <img src="${img}" alt="${dest.name}" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
@@ -871,15 +913,15 @@ if (is_dir($imgDir)) {
                                 </div>
                             </div>
                         `;
-                    });
-                    window.initLoopingFocusCarousel('near-me-container');
-                } else {
-                    nearContainer.classList.add('is-empty');
-                    nearContainer.style.paddingLeft = '0';
-                    nearContainer.style.paddingRight = '0';
-                    nearContainer.style.marginLeft = '0';
-                    nearContainer.style.marginRight = '0';
-                    nearContainer.innerHTML = `
+                        });
+                        window.initLoopingFocusCarousel('near-me-container');
+                    } else {
+                        nearContainer.classList.add('is-empty');
+                        nearContainer.style.paddingLeft = '0';
+                        nearContainer.style.paddingRight = '0';
+                        nearContainer.style.marginLeft = '0';
+                        nearContainer.style.marginRight = '0';
+                        nearContainer.innerHTML = `
                         <div class="dash-empty-state">
                             <div class="dash-empty-icon-wrap">
                                 <i class="fa-solid fa-location-dot"></i>
@@ -891,20 +933,20 @@ if (is_dir($imgDir)) {
                             </button>
                         </div>
                     `;
-                }
-            },
-            false,
-            60000 // 1 minute TTL
-        );
-    }
+                    }
+                },
+                false,
+                60000 // 1 minute TTL
+            );
+        }
 
-    function buildRecommendedItem(dest) {
-        const img = window.getDestImage(dest, 300);
-        const rating = dest.rating ? parseFloat(dest.rating).toFixed(1) : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating).toFixed(1) : 'New');
-        const desc = dest.description ? dest.description.substring(0, 150) + (dest.description.length > 150 ? '...' : '') : 'A beautiful destination waiting to be explored.';
-        
-        const encodedDest = encodeURIComponent(JSON.stringify(dest));
-        return `
+        function buildRecommendedItem(dest) {
+            const img = window.getDestImage(dest, 300);
+            const rating = dest.rating ? parseFloat(dest.rating).toFixed(1) : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating).toFixed(1) : 'New');
+            const desc = dest.description ? dest.description.substring(0, 150) + (dest.description.length > 150 ? '...' : '') : 'A beautiful destination waiting to be explored.';
+
+            const encodedDest = encodeURIComponent(JSON.stringify(dest));
+            return `
             <div class="rec-item-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}">
                 <div onclick="window.toggleRecommendedCard(this)" style="cursor:pointer; display:flex; align-items:center; gap: 12px; padding: 12px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(56, 189, 248, 0.18)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
                     <img src="${img}" alt="${dest.name}" style="width:60px; height:60px; border-radius:12px; object-fit:cover;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
@@ -934,133 +976,133 @@ if (is_dir($imgDir)) {
                 </div>
             </div>
         `;
-    }
-
-    try {
-        await window.useCache(
-            cacheKey,
-            async () => {
-                const res = await fetch(apiUrl, {
-                    credentials: 'include',
-                    headers: {
-                        'Accept': 'application/json',
-                        'ngrok-skip-browser-warning': 'true',
-                        'Authorization': 'Bearer ' + token
-                    }
-                });
-                if (!res.ok) {
-                    if (res.status === 401) {
-                        localStorage.removeItem('intan_elyu_token');
-                        localStorage.removeItem('auth_user');
-                        window.location.href = '?view=auth';
-                    }
-                    throw new Error("Dashboard fetch failed");
-                }
-                return await res.json();
-            },
-            (data) => {
-                if (data) {
-                    renderDashboard(data);
-                }
-            },
-            Boolean(window.dashboardNeedsRefresh),
-            30000 // 30 seconds TTL for dashboard
-        );
-        window.dashboardNeedsRefresh = false;
-
-        loadNearMe(lat, lng);
-        if (typeof window.fetchWeather === 'function') {
-            if (lat && lng) {
-                window.fetchWeather(lat, lng, 'My Location', true);
-            } else {
-                window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
-            }
         }
 
-        // Fetch Rank and Cache it
-        const rankCacheKey = 'dashboard_rank_' + token.substring(0, 10);
-        await window.useCache(
-            rankCacheKey,
-            async () => {
-                const rankRes = await fetch(backendUrl + '/api/tourist/leaderboard', {
-                    headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token, 'ngrok-skip-browser-warning': 'true' }
-                });
-                if (rankRes.ok) return await rankRes.json();
-                throw new Error("Rank fetch failed");
-            },
-            (rankData) => {
-                if (rankData && rankData.myRank) {
-                    const el = document.getElementById('dash-stat-rank');
-                    if (el) el.textContent = '#' + rankData.myRank;
-                } else {
-                    const el = document.getElementById('dash-stat-rank');
-                    if (el) el.textContent = 'Unranked';
-                }
-            },
-            false,
-            60000 // 1 minute TTL for rank
-        );
-
-        // Fetch Saved Trips and Cache it
-        const tripsContainer = document.getElementById('saved-trips-container');
-        if (tripsContainer) {
-            const tripsCacheKey = 'dashboard_trips_' + token.substring(0, 10);
+        try {
             await window.useCache(
-                tripsCacheKey,
+                cacheKey,
                 async () => {
-                    const itinRes = await fetch(backendUrl + '/api/tourist/itineraries', {
-                        headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
+                    const res = await fetch(apiUrl, {
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'ngrok-skip-browser-warning': 'true',
+                            'Authorization': 'Bearer ' + token
+                        }
                     });
-                    if (itinRes.ok) return await itinRes.json();
-                    throw new Error("Trips fetch failed");
+                    if (!res.ok) {
+                        if (res.status === 401) {
+                            localStorage.removeItem('intan_elyu_token');
+                            localStorage.removeItem('auth_user');
+                            window.location.href = '?view=auth';
+                        }
+                        throw new Error("Dashboard fetch failed");
+                    }
+                    return await res.json();
                 },
-                (itinData) => {
-                    if (!itinData) return;
-                    const allItineraries = itinData.itineraries || [];
-                    const itineraries = allItineraries.filter(t => t.status !== 'completed');
-                    if (itineraries.length > 0) {
-                        let tripsHtml = '';
-                        // Show up to 3 most recent trips
-                        itineraries.slice(0, 3).forEach(trip => {
-                            let destinationsHtml = '';
-                            if (trip.items && trip.items.length > 0) {
-                                trip.items.forEach((item, index) => {
-                                    const destName = item.destination ? item.destination.name : 'Unknown Destination';
-                                    let proofImgHtml = '';
-                                    if (item.proof_image) {
-                                        let pUrl = item.proof_image;
-                                        if (!pUrl.startsWith('http') && !pUrl.startsWith('data:') && !pUrl.startsWith('blob:')) {
-                                            let b = (window.backendUrl || '').replace(/\/+$/, '');
-                                            pUrl = b + '/' + pUrl.replace(/^\//, '');
+                (data) => {
+                    if (data) {
+                        renderDashboard(data);
+                    }
+                },
+                Boolean(window.dashboardNeedsRefresh),
+                30000 // 30 seconds TTL for dashboard
+            );
+            window.dashboardNeedsRefresh = false;
+
+            loadNearMe(lat, lng);
+            if (typeof window.fetchWeather === 'function') {
+                if (lat && lng) {
+                    window.fetchWeather(lat, lng, 'My Location', true);
+                } else {
+                    window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
+                }
+            }
+
+            // Fetch Rank and Cache it
+            const rankCacheKey = 'dashboard_rank_' + token.substring(0, 10);
+            await window.useCache(
+                rankCacheKey,
+                async () => {
+                    const rankRes = await fetch(backendUrl + '/api/tourist/leaderboard', {
+                        headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token, 'ngrok-skip-browser-warning': 'true' }
+                    });
+                    if (rankRes.ok) return await rankRes.json();
+                    throw new Error("Rank fetch failed");
+                },
+                (rankData) => {
+                    if (rankData && rankData.myRank) {
+                        const el = document.getElementById('dash-stat-rank');
+                        if (el) el.textContent = '#' + rankData.myRank;
+                    } else {
+                        const el = document.getElementById('dash-stat-rank');
+                        if (el) el.textContent = 'Unranked';
+                    }
+                },
+                false,
+                60000 // 1 minute TTL for rank
+            );
+
+            // Fetch Saved Trips and Cache it
+            const tripsContainer = document.getElementById('saved-trips-container');
+            if (tripsContainer) {
+                const tripsCacheKey = 'dashboard_trips_' + token.substring(0, 10);
+                await window.useCache(
+                    tripsCacheKey,
+                    async () => {
+                        const itinRes = await fetch(backendUrl + '/api/tourist/itineraries', {
+                            headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
+                        });
+                        if (itinRes.ok) return await itinRes.json();
+                        throw new Error("Trips fetch failed");
+                    },
+                    (itinData) => {
+                        if (!itinData) return;
+                        const allItineraries = itinData.itineraries || [];
+                        const itineraries = allItineraries.filter(t => t.status !== 'completed');
+                        if (itineraries.length > 0) {
+                            let tripsHtml = '';
+                            // Show up to 3 most recent trips
+                            itineraries.slice(0, 3).forEach(trip => {
+                                let destinationsHtml = '';
+                                if (trip.items && trip.items.length > 0) {
+                                    trip.items.forEach((item, index) => {
+                                        const destName = item.destination ? item.destination.name : 'Unknown Destination';
+                                        let proofImgHtml = '';
+                                        if (item.proof_image) {
+                                            let pUrl = item.proof_image;
+                                            if (!pUrl.startsWith('http') && !pUrl.startsWith('data:') && !pUrl.startsWith('blob:')) {
+                                                let b = (window.backendUrl || '').replace(/\/+$/, '');
+                                                pUrl = b + '/' + pUrl.replace(/^\//, '');
+                                            }
+                                            let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + item.proof_image.replace(/^\//, '');
+                                            proofImgHtml = `<img src="${pUrl}" onerror="if(this.src!=='${fallbackUrl}'){this.src='${fallbackUrl}';}" alt="Proof" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1px solid ${item.is_visited ? 'rgba(52,199,89,0.5)' : (item.proof_status === 'rejected' ? 'rgba(239,68,68,0.5)' : 'rgba(255,149,0,0.5)')}; flex-shrink:0;">`;
                                         }
-                                        let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + item.proof_image.replace(/^\//, '');
-                                        proofImgHtml = `<img src="${pUrl}" onerror="if(this.src!=='${fallbackUrl}'){this.src='${fallbackUrl}';}" alt="Proof" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1px solid ${item.is_visited ? 'rgba(52,199,89,0.5)' : (item.proof_status === 'rejected' ? 'rgba(239,68,68,0.5)' : 'rgba(255,149,0,0.5)')}; flex-shrink:0;">`;
-                                    }
 
-                                    let proofBadge = '';
-                                    if (item.is_visited || item.proof_status === 'approved') {
-                                        proofBadge = `<span style="font-size:10px; font-weight:800; color:#34c759; background:rgba(52,199,89,0.15); border:1px solid rgba(52,199,89,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Verified</span>`;
-                                    } else if (item.proof_status === 'rejected') {
-                                        proofBadge = `<span style="font-size:10px; font-weight:800; color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
-                                    } else if (item.proof_image && (item.proof_status === 'pending' || !item.proof_status)) {
-                                        proofBadge = `<span style="font-size:10px; font-weight:800; color:#FF9500; background:rgba(255,149,0,0.15); border:1px solid rgba(255,149,0,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-clock"></i> Pending</span>`;
-                                    }
+                                        let proofBadge = '';
+                                        if (item.is_visited || item.proof_status === 'approved') {
+                                            proofBadge = `<span style="font-size:10px; font-weight:800; color:#34c759; background:rgba(52,199,89,0.15); border:1px solid rgba(52,199,89,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Verified</span>`;
+                                        } else if (item.proof_status === 'rejected') {
+                                            proofBadge = `<span style="font-size:10px; font-weight:800; color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
+                                        } else if (item.proof_image && (item.proof_status === 'pending' || !item.proof_status)) {
+                                            proofBadge = `<span style="font-size:10px; font-weight:800; color:#FF9500; background:rgba(255,149,0,0.15); border:1px solid rgba(255,149,0,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-clock"></i> Pending</span>`;
+                                        }
 
-                                    destinationsHtml += `
+                                        destinationsHtml += `
                                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; padding:8px 12px; background:rgba(0,0,0,0.12); border:none; border-radius:12px;">
-                                            <div style="width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg, #38bdf8, #2563eb); color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; flex-shrink:0; box-shadow:none;">${index+1}</div>
+                                            <div style="width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg, #38bdf8, #2563eb); color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; flex-shrink:0; box-shadow:none;">${index + 1}</div>
                                             ${proofImgHtml}
                                             <div style="flex:1; font-size:13px; color:#ffffff; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
                                             ${proofBadge}
                                         </div>
                                     `;
-                                });
-                            } else {
-                                destinationsHtml = '<div style="font-size:12px; color:rgba(255,255,255,0.7); font-style:italic; text-align:center; padding:10px 0;">No destinations added yet.</div>';
-                            }
+                                    });
+                                } else {
+                                    destinationsHtml = '<div style="font-size:12px; color:rgba(255,255,255,0.7); font-style:italic; text-align:center; padding:10px 0;">No destinations added yet.</div>';
+                                }
 
-                            const safeTitle = (trip.title || 'Trip').replace(/'/g, "\\'");
-                            tripsHtml += `
+                                const safeTitle = (trip.title || 'Trip').replace(/'/g, "\\'");
+                                tripsHtml += `
                                 <div class="trip-swipe-container" data-trip-id="${trip.id}" data-trip-title="${safeTitle}" style="margin-bottom: 14px; position: relative; overflow: hidden; border-radius: 20px; -webkit-mask-image: -webkit-radial-gradient(white, black); mask-image: radial-gradient(white, black); isolation: isolate; contain: paint;">
                                     <div class="trip-swipe-bg" onclick="window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}')" style="position: absolute; top: 0; right: 0; bottom: 0; width: 85px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 0 20px 20px 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 800; gap: 4px; z-index: 1; opacity: 0; pointer-events: none; transform: translateX(85px); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease; cursor: pointer;">
                                         <i class="fa-solid fa-trash-can"></i> Delete
@@ -1094,13 +1136,13 @@ if (is_dir($imgDir)) {
                                     </div>
                                 </div>
                             `;
-                        });
-                        tripsContainer.innerHTML = tripsHtml;
-                        if (typeof window.setupDashboardSwipeToDelete === 'function') {
-                            window.setupDashboardSwipeToDelete();
-                        }
-                    } else {
-                        tripsContainer.innerHTML = `
+                            });
+                            tripsContainer.innerHTML = tripsHtml;
+                            if (typeof window.setupDashboardSwipeToDelete === 'function') {
+                                window.setupDashboardSwipeToDelete();
+                            }
+                        } else {
+                            tripsContainer.innerHTML = `
                             <div class="dash-empty-state">
                                 <div class="dash-empty-icon-wrap">
                                     <i class="fa-solid fa-route"></i>
@@ -1112,63 +1154,63 @@ if (is_dir($imgDir)) {
                                 </button>
                             </div>
                         `;
-                    }
-                },
-                false,
-                60000 // 1 minute TTL for trips
-            );
+                        }
+                    },
+                    false,
+                    60000 // 1 minute TTL for trips
+                );
+            }
+        } catch (e) {
+            console.error(e);
         }
-    } catch(e) {
-        console.error(e);
-    }
-})();
+    })();
 
-window.toggleFavorite = function(destId, element) {
-    const token = localStorage.getItem('intan_elyu_token');
-    var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
-    
-    const card = element.closest('.fav-card');
-    const isSavedContainer = card && (card.closest('#saved-places-container') !== null);
-    
-    // Check if currently favorited
-    const isSolid = element.classList.contains('fa-solid');
-    const colorStyle = element.style.color || '';
-    const isRed = isSolid && (colorStyle === '#ff3b30' || colorStyle.includes('255, 59, 48') || colorStyle.includes('255,59,48'));
-    const isRemoving = isSavedContainer || isRed;
-    
-    // 1. INSTANT OPTIMISTIC UPDATE
-    element.classList.remove('heart-pop-anim');
-    void element.offsetWidth; // trigger reflow
-    element.classList.add('heart-pop-anim');
+    window.toggleFavorite = function (destId, element) {
+        const token = localStorage.getItem('intan_elyu_token');
+        var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
 
-    if (isRemoving) {
-        element.style.color = 'rgba(255,255,255,0.4)';
-        element.classList.remove('fa-solid');
-        element.classList.add('fa-regular');
-        if (typeof showToast === 'function') showToast('Removed from Saved Places');
-        
-        if (isSavedContainer && card) {
-            card.style.transition = 'opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s ease, padding 0.3s ease, margin 0.3s ease';
-            card.style.opacity = '0';
-            card.style.transform = 'scale(0.8)';
-            card.style.width = '0px';
-            card.style.minWidth = '0px';
-            card.style.marginRight = '0px';
-            card.style.padding = '0px';
-            card.style.pointerEvents = 'none';
-            
-            setTimeout(() => {
-                card.remove();
-                const container = document.getElementById('saved-places-container');
-                if (container) {
-                    const remainingCards = Array.from(container.children).filter(c => c.classList.contains('fav-card') && c.style.pointerEvents !== 'none');
-                    if (remainingCards.length === 0) {
-                        container.classList.add('is-empty');
-                        container.style.paddingLeft = '0';
-                        container.style.paddingRight = '0';
-                        container.style.marginLeft = '0';
-                        container.style.marginRight = '0';
-                        container.innerHTML = `
+        const card = element.closest('.fav-card');
+        const isSavedContainer = card && (card.closest('#saved-places-container') !== null);
+
+        // Check if currently favorited
+        const isSolid = element.classList.contains('fa-solid');
+        const colorStyle = element.style.color || '';
+        const isRed = isSolid && (colorStyle === '#ff3b30' || colorStyle.includes('255, 59, 48') || colorStyle.includes('255,59,48'));
+        const isRemoving = isSavedContainer || isRed;
+
+        // 1. INSTANT OPTIMISTIC UPDATE
+        element.classList.remove('heart-pop-anim');
+        void element.offsetWidth; // trigger reflow
+        element.classList.add('heart-pop-anim');
+
+        if (isRemoving) {
+            element.style.color = 'rgba(255,255,255,0.4)';
+            element.classList.remove('fa-solid');
+            element.classList.add('fa-regular');
+            if (typeof showToast === 'function') showToast('Removed from Saved Places');
+
+            if (isSavedContainer && card) {
+                card.style.transition = 'opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s ease, padding 0.3s ease, margin 0.3s ease';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.8)';
+                card.style.width = '0px';
+                card.style.minWidth = '0px';
+                card.style.marginRight = '0px';
+                card.style.padding = '0px';
+                card.style.pointerEvents = 'none';
+
+                setTimeout(() => {
+                    card.remove();
+                    const container = document.getElementById('saved-places-container');
+                    if (container) {
+                        const remainingCards = Array.from(container.children).filter(c => c.classList.contains('fav-card') && c.style.pointerEvents !== 'none');
+                        if (remainingCards.length === 0) {
+                            container.classList.add('is-empty');
+                            container.style.paddingLeft = '0';
+                            container.style.paddingRight = '0';
+                            container.style.marginLeft = '0';
+                            container.style.marginRight = '0';
+                            container.innerHTML = `
                             <div class="dash-empty-state">
                                 <div class="dash-empty-icon-wrap">
                                     <i class="fa-solid fa-map-location-dot"></i>
@@ -1180,125 +1222,125 @@ window.toggleFavorite = function(destId, element) {
                                 </button>
                             </div>
                         `;
+                        }
                     }
-                }
-            }, 300);
-        }
-    } else {
-        element.style.color = '#ff3b30';
-        element.classList.remove('fa-regular');
-        element.classList.add('fa-solid');
-        if (typeof showToast === 'function') showToast('Added to Saved Places');
-    }
-
-    // Update local cached dashboard and saved places state
-    try {
-        const tokenPrefix = token ? token.substring(0, 10) : '';
-        localStorage.removeItem('saved_places_' + tokenPrefix);
-        
-        let savedIds = JSON.parse(localStorage.getItem('intan_elyu_saved_place_ids') || '[]');
-        if (isRemoving) {
-            savedIds = savedIds.filter(id => id != destId);
+                }, 300);
+            }
         } else {
-            if (!savedIds.some(id => id == destId)) savedIds.push(destId);
+            element.style.color = '#ff3b30';
+            element.classList.remove('fa-regular');
+            element.classList.add('fa-solid');
+            if (typeof showToast === 'function') showToast('Added to Saved Places');
         }
-        localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(savedIds));
 
-        for (let i = 0; i < localStorage.length; i++) {
-            const k = localStorage.key(i);
-            if (k && k.startsWith('dashboard_data_')) {
-                const cached = JSON.parse(localStorage.getItem(k) || '{}');
-                if (cached.savedPlaces && Array.isArray(cached.savedPlaces)) {
-                    if (isRemoving) {
-                        cached.savedPlaces = cached.savedPlaces.filter(p => p.id != destId);
+        // Update local cached dashboard and saved places state
+        try {
+            const tokenPrefix = token ? token.substring(0, 10) : '';
+            localStorage.removeItem('saved_places_' + tokenPrefix);
+
+            let savedIds = JSON.parse(localStorage.getItem('intan_elyu_saved_place_ids') || '[]');
+            if (isRemoving) {
+                savedIds = savedIds.filter(id => id != destId);
+            } else {
+                if (!savedIds.some(id => id == destId)) savedIds.push(destId);
+            }
+            localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(savedIds));
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith('dashboard_data_')) {
+                    const cached = JSON.parse(localStorage.getItem(k) || '{}');
+                    if (cached.savedPlaces && Array.isArray(cached.savedPlaces)) {
+                        if (isRemoving) {
+                            cached.savedPlaces = cached.savedPlaces.filter(p => p.id != destId);
+                        }
+                        localStorage.setItem(k, JSON.stringify(cached));
                     }
-                    localStorage.setItem(k, JSON.stringify(cached));
                 }
             }
-        }
-    } catch(e) {}
+        } catch (e) { }
 
-    // 2. BACKGROUND NETWORK REQUEST
-    fetch(backendUrl + '/api/tourist/destinations/' + destId + '/favorite', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-            'Accept': 'application/json',
-            'Authorization': 'Bearer ' + token
-        }
-    }).catch(e => {
-        console.warn('Background favorite sync error:', e);
-    });
-};
+        // 2. BACKGROUND NETWORK REQUEST
+        fetch(backendUrl + '/api/tourist/destinations/' + destId + '/favorite', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token
+            }
+        }).catch(e => {
+            console.warn('Background favorite sync error:', e);
+        });
+    };
 
-window.viewDestinationOnMap = function(encodedDest) {
-    try {
-        const dest = JSON.parse(decodeURIComponent(encodedDest));
-        localStorage.setItem('intan_elyu_view_destination', JSON.stringify(dest));
-        window.location.href = '?view=map';
-    } catch(e) { console.error('Failed to view destination:', e); }
-};
+    window.viewDestinationOnMap = function (encodedDest) {
+        try {
+            const dest = JSON.parse(decodeURIComponent(encodedDest));
+            localStorage.setItem('intan_elyu_view_destination', JSON.stringify(dest));
+            window.location.href = '?view=map';
+        } catch (e) { console.error('Failed to view destination:', e); }
+    };
 
-window.toggleRecommendedCard = function(headerEl) {
-    if (!headerEl) return;
-    const content = headerEl.nextElementSibling;
-    const icon = headerEl.querySelector('.toggle-icon');
-    if (!content) return;
+    window.toggleRecommendedCard = function (headerEl) {
+        if (!headerEl) return;
+        const content = headerEl.nextElementSibling;
+        const icon = headerEl.querySelector('.toggle-icon');
+        if (!content) return;
 
-    const isOpen = content.style.maxHeight && content.style.maxHeight !== '0px';
-    const extras = headerEl.closest('#rec-extras');
+        const isOpen = content.style.maxHeight && content.style.maxHeight !== '0px';
+        const extras = headerEl.closest('#rec-extras');
 
-    if (!isOpen) {
-        content.style.paddingTop = '14px';
-        content.style.paddingBottom = '14px';
-        content.style.maxHeight = (content.scrollHeight + 180) + 'px';
-        content.style.opacity = '1';
-        if (icon) icon.style.transform = 'rotate(90deg)';
-        if (extras && extras.classList.contains('open')) {
-            extras.style.maxHeight = 'none';
-            extras.style.overflow = 'visible';
-        }
-    } else {
-        content.style.maxHeight = '0px';
-        content.style.opacity = '0';
-        content.style.paddingTop = '0';
-        content.style.paddingBottom = '0';
-        if (icon) icon.style.transform = 'rotate(0deg)';
-    }
-};
-
-window.toggleRecommendedMore = function() {
-    const extras = document.getElementById('rec-extras');
-    const chevron = document.getElementById('rec-chevron');
-    const btn = document.getElementById('btn-view-more-rec');
-
-    if (!extras) return;
-
-    const isOpen = extras.classList.contains('open') || (extras.style.maxHeight !== '0px' && extras.style.maxHeight !== '');
-
-    if (isOpen) {
-        extras.style.overflow = 'hidden';
-        extras.style.maxHeight = extras.scrollHeight + 'px';
-        void extras.offsetHeight; // force reflow
-        extras.style.maxHeight = '0px';
-        extras.classList.remove('open');
-        if (chevron) chevron.style.transform = 'rotate(0deg)';
-        const count = extras.children.length;
-        if (btn) btn.innerHTML = `<i class="fa-solid fa-chevron-down" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i> View ${count} More`;
-    } else {
-        extras.style.overflow = 'hidden';
-        extras.style.maxHeight = (extras.scrollHeight + 300) + 'px';
-        extras.classList.add('open');
-        if (chevron) chevron.style.transform = 'rotate(180deg)';
-        if (btn) btn.innerHTML = `<i class="fa-solid fa-chevron-up" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i> Show Less`;
-        setTimeout(() => {
-            if (extras.classList.contains('open')) {
+        if (!isOpen) {
+            content.style.paddingTop = '14px';
+            content.style.paddingBottom = '14px';
+            content.style.maxHeight = (content.scrollHeight + 180) + 'px';
+            content.style.opacity = '1';
+            if (icon) icon.style.transform = 'rotate(90deg)';
+            if (extras && extras.classList.contains('open')) {
                 extras.style.maxHeight = 'none';
                 extras.style.overflow = 'visible';
             }
-        }, 420);
-    }
-};
+        } else {
+            content.style.maxHeight = '0px';
+            content.style.opacity = '0';
+            content.style.paddingTop = '0';
+            content.style.paddingBottom = '0';
+            if (icon) icon.style.transform = 'rotate(0deg)';
+        }
+    };
+
+    window.toggleRecommendedMore = function () {
+        const extras = document.getElementById('rec-extras');
+        const chevron = document.getElementById('rec-chevron');
+        const btn = document.getElementById('btn-view-more-rec');
+
+        if (!extras) return;
+
+        const isOpen = extras.classList.contains('open') || (extras.style.maxHeight !== '0px' && extras.style.maxHeight !== '');
+
+        if (isOpen) {
+            extras.style.overflow = 'hidden';
+            extras.style.maxHeight = extras.scrollHeight + 'px';
+            void extras.offsetHeight; // force reflow
+            extras.style.maxHeight = '0px';
+            extras.classList.remove('open');
+            if (chevron) chevron.style.transform = 'rotate(0deg)';
+            const count = extras.children.length;
+            if (btn) btn.innerHTML = `<i class="fa-solid fa-chevron-down" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i> View ${count} More`;
+        } else {
+            extras.style.overflow = 'hidden';
+            extras.style.maxHeight = (extras.scrollHeight + 300) + 'px';
+            extras.classList.add('open');
+            if (chevron) chevron.style.transform = 'rotate(180deg)';
+            if (btn) btn.innerHTML = `<i class="fa-solid fa-chevron-up" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i> Show Less`;
+            setTimeout(() => {
+                if (extras.classList.contains('open')) {
+                    extras.style.maxHeight = 'none';
+                    extras.style.overflow = 'visible';
+                }
+            }, 420);
+        }
+    };
 
     // Initialize Search Functionality
     setTimeout(() => {
@@ -1343,8 +1385,8 @@ window.toggleRecommendedMore = function() {
                     return;
                 }
 
-                const matches = allDestinationsForSearch.filter(dest => 
-                    dest.name.toLowerCase().includes(currentQuery) || 
+                const matches = allDestinationsForSearch.filter(dest =>
+                    dest.name.toLowerCase().includes(currentQuery) ||
                     (dest.category && dest.category.toLowerCase().includes(currentQuery)) ||
                     (dest.location && dest.location.toLowerCase().includes(currentQuery)) ||
                     (dest.municipality && dest.municipality.toLowerCase().includes(currentQuery))
@@ -1386,7 +1428,7 @@ window.toggleRecommendedMore = function() {
                     searchResults.style.display = 'none';
                 }
             });
-            
+
             // Show again when focusing input if there is text
             searchInput.addEventListener('focus', () => {
                 if (searchInput.value.trim().length > 0 && searchResults.innerHTML.trim() !== '') {
@@ -1396,7 +1438,7 @@ window.toggleRecommendedMore = function() {
         }
     }, 500);
 
-    window.setupDashboardSwipeToDelete = function() {
+    window.setupDashboardSwipeToDelete = function () {
         document.querySelectorAll('.trip-swipe-container').forEach(container => {
             const content = container.querySelector('.trip-swipe-content');
             const bg = container.querySelector('.trip-swipe-bg');
@@ -1494,7 +1536,7 @@ window.toggleRecommendedMore = function() {
         });
     };
 
-    window.confirmDeleteSavedTrip = function(id, container, title) {
+    window.confirmDeleteSavedTrip = function (id, container, title) {
         window._pendingDeleteTripId = id;
         window._pendingDeleteTripContainer = container;
         window._pendingDeleteTripTitle = title || container?.dataset?.tripTitle || '';
@@ -1510,7 +1552,7 @@ window.toggleRecommendedMore = function() {
         }
     };
 
-    window.closeDeleteTripModal = function() {
+    window.closeDeleteTripModal = function () {
         const modal = document.getElementById('delete-trip-modal');
         if (modal) modal.style.display = 'none';
 
@@ -1536,7 +1578,7 @@ window.toggleRecommendedMore = function() {
         window._pendingDeleteTripTitle = null;
     };
 
-    window.executeConfirmDeleteTrip = async function() {
+    window.executeConfirmDeleteTrip = async function () {
         const id = window._pendingDeleteTripId;
         const element = window._pendingDeleteTripContainer;
         const btn = document.getElementById('btn-confirm-delete-trip');
@@ -1611,7 +1653,7 @@ window.toggleRecommendedMore = function() {
     // ─────────────────────────────────────────────────────────────────────────────
     window.currentWeatherLocation = { lat: 16.6159, lng: 120.3209, name: 'San Fernando, La Union', isCurrentLoc: false };
 
-    window.fetchWeather = async function(lat = 16.6159, lng = 120.3209, locationName = 'San Fernando, La Union', isCurrentLoc = false) {
+    window.fetchWeather = async function (lat = 16.6159, lng = 120.3209, locationName = 'San Fernando, La Union', isCurrentLoc = false) {
         window.currentWeatherLocation = { lat, lng, name: locationName, isCurrentLoc };
         const tempEl = document.getElementById('weather-temp');
         const descEl = document.getElementById('weather-desc');
@@ -1628,7 +1670,7 @@ window.toggleRecommendedMore = function() {
             const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
             if (!res.ok) throw new Error('Weather request failed with status ' + res.status);
             const data = await res.json();
-            
+
             if (tempEl) tempEl.textContent = `${data.temperature}°C`;
             if (descEl) descEl.textContent = data.condition;
             if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${data.location}`;
@@ -1648,7 +1690,7 @@ window.toggleRecommendedMore = function() {
         }
     };
 
-    window.renderWeatherIconHtml = function(iconEmoji, faIcon) {
+    window.renderWeatherIconHtml = function (iconEmoji, faIcon) {
         if (faIcon) {
             let color = '#fbbf24';
             if (faIcon.includes('sun')) color = '#fbbf24';
@@ -1657,13 +1699,13 @@ window.toggleRecommendedMore = function() {
             else if (faIcon.includes('bolt')) color = '#f59e0b';
             else if (faIcon.includes('cloud')) color = '#94a3b8';
             else if (faIcon.includes('smog')) color = '#cbd5e1';
-            
+
             return `<i class="fa-solid ${faIcon}" style="color:${color}; filter:drop-shadow(0 0 10px ${color}80);"></i>`;
         }
         return iconEmoji || '⛅';
     };
 
-    window.locateMeForWeather = function() {
+    window.locateMeForWeather = function () {
         const locEl = document.getElementById('weather-loc');
         const descEl = document.getElementById('weather-desc');
         if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot fa-spin" style="color:#38bdf8; margin-right:4px;"></i> Detecting location...`;
@@ -1679,7 +1721,7 @@ window.toggleRecommendedMore = function() {
                         return;
                     }
                 }
-            } catch(e) {}
+            } catch (e) { }
             window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
         };
 
@@ -1722,7 +1764,7 @@ window.toggleRecommendedMore = function() {
     };
 
     // Live continuous GPS sync listener for real-time Near Me distances
-    document.addEventListener('gpsUpdated', function(e) {
+    document.addEventListener('gpsUpdated', function (e) {
         if (e.detail && e.detail.lat && e.detail.lng) {
             const liveLat = parseFloat(e.detail.lat);
             const liveLng = parseFloat(e.detail.lng);
@@ -1737,7 +1779,7 @@ window.toggleRecommendedMore = function() {
         }
     });
 
-    window.updateWeatherModal = function(data) {
+    window.updateWeatherModal = function (data) {
         const modalLoc = document.getElementById('modal-weather-loc');
         const modalTemp = document.getElementById('modal-temp');
         const modalCondition = document.getElementById('modal-condition');
@@ -1771,17 +1813,17 @@ window.toggleRecommendedMore = function() {
         }
     };
 
-    window.openWeatherModal = function() {
+    window.openWeatherModal = function () {
         const modal = document.getElementById('weather-modal');
         if (modal) modal.style.display = 'flex';
     };
 
-    window.closeWeatherModal = function() {
+    window.closeWeatherModal = function () {
         const modal = document.getElementById('weather-modal');
         if (modal) modal.style.display = 'none';
     };
 
-    window.changeWeatherLocation = function(valStr) {
+    window.changeWeatherLocation = function (valStr) {
         if (valStr === 'GPS_CURRENT') {
             window.locateMeForWeather();
             return;
@@ -1805,7 +1847,7 @@ window.toggleRecommendedMore = function() {
     // =========================================================================
     // ONBOARDING MODAL CONTROLLER (Complete Profile)
     // =========================================================================
-    window.initDashboardOnboarding = function() {
+    window.initDashboardOnboarding = function () {
         const showOb = sessionStorage.getItem('show_onboarding') || sessionStorage.getItem('onboarding_active');
         if (!showOb) return;
 
@@ -1819,17 +1861,17 @@ window.toggleRecommendedMore = function() {
                     avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=38bdf8&color=fff`;
                 }
             }
-        } catch (e) {}
+        } catch (e) { }
 
         const profileModal = document.getElementById('onboard-profile-modal');
         if (profileModal) profileModal.style.display = 'flex';
     };
 
-    window.previewOnboardAvatar = function(event) {
+    window.previewOnboardAvatar = function (event) {
         const file = event.target?.files?.[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 const img = document.getElementById('onboard-avatar-preview');
                 if (img) img.src = e.target.result;
             };
@@ -1837,7 +1879,7 @@ window.toggleRecommendedMore = function() {
         }
     };
 
-    window.onboardSaveProfile = async function() {
+    window.onboardSaveProfile = async function () {
         const btn = document.getElementById('btn-onboard-save');
         if (btn) {
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
@@ -1847,7 +1889,7 @@ window.toggleRecommendedMore = function() {
         const phone = document.getElementById('onboard-phone')?.value || '';
         const home = document.getElementById('onboard-home')?.value || '';
         const bio = document.getElementById('onboard-bio')?.value || '';
-        
+
         const activeChips = Array.from(document.querySelectorAll('#onboard-pref-chips .pref-chip.active')).map(c => c.textContent.trim());
         const prefs = activeChips.join(', ');
 
@@ -1877,9 +1919,9 @@ window.toggleRecommendedMore = function() {
                     const headerAvatar = document.querySelector('.user-avatar, #user-avatar, .header-avatar');
                     if (headerAvatar && data.user.avatar) headerAvatar.src = data.user.avatar;
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
-        
+
         sessionStorage.removeItem('show_onboarding');
         sessionStorage.removeItem('onboarding_active');
         sessionStorage.removeItem('onboarding_step');
@@ -1889,7 +1931,7 @@ window.toggleRecommendedMore = function() {
         if (typeof showToast === 'function') showToast('Profile updated! Welcome to Intan Elyu!');
     };
 
-    window.onboardSkipProfile = function() {
+    window.onboardSkipProfile = function () {
         sessionStorage.removeItem('show_onboarding');
         sessionStorage.removeItem('onboarding_active');
         sessionStorage.removeItem('onboarding_step');
@@ -1907,17 +1949,25 @@ window.toggleRecommendedMore = function() {
 </script>
 
 <!-- Delete Trip Confirmation Modal -->
-<div id="delete-trip-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center;">
-    <div style="background:#6196c8; border:none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:none; text-align:center;">
+<div id="delete-trip-modal"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center;">
+    <div
+        style="background:#6196c8; border:none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:none; text-align:center;">
         <i class="fa-solid fa-trash-can" style="font-size:32px; color:#ffffff; margin-bottom:10px; display:block;"></i>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Delete Saved Trip?</h3>
-        <p id="delete-trip-title-text" style="font-size:13px; color:rgba(255, 255, 255, 0.95); margin-bottom:22px; line-height:1.5;">Are you sure you want to delete this trip? All saved itinerary items will be removed.</p>
+        <p id="delete-trip-title-text"
+            style="font-size:13px; color:rgba(255, 255, 255, 0.95); margin-bottom:22px; line-height:1.5;">Are you sure
+            you want to delete this trip? All saved itinerary items will be removed.</p>
 
         <div style="display:flex; gap:10px;">
-            <button type="button" style="flex:1; padding:13px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.22); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeDeleteTripModal()">
+            <button type="button"
+                style="flex:1; padding:13px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.22); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;"
+                onclick="window.closeDeleteTripModal()">
                 Cancel
             </button>
-            <button type="button" id="btn-confirm-delete-trip" style="flex:1; padding:13px; font-size:14px; font-weight:800; background:#ef4444; border:none; outline:none; color:#ffffff; border-radius:14px; box-shadow:none; cursor:pointer;" onclick="window.executeConfirmDeleteTrip()">
+            <button type="button" id="btn-confirm-delete-trip"
+                style="flex:1; padding:13px; font-size:14px; font-weight:800; background:#ef4444; border:none; outline:none; color:#ffffff; border-radius:14px; box-shadow:none; cursor:pointer;"
+                onclick="window.executeConfirmDeleteTrip()">
                 Delete
             </button>
         </div>
@@ -1925,60 +1975,94 @@ window.toggleRecommendedMore = function() {
 </div>
 
 <!-- Complete Profile Modal -->
-<div id="onboard-profile-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(12px); z-index:999999; justify-content:center; align-items:center; padding:16px;">
-    <div style="background:#0f172a; border:1px solid rgba(56,189,248,0.3); border-radius:24px; width:100%; max-width:480px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.8); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
-        <div style="padding:20px 24px; background:linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.95)); border-bottom:1px solid rgba(255,255,255,0.08);">
-            <h3 style="margin:0 0 4px 0; font-size:17px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
+<div id="onboard-profile-modal"
+    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(12px); z-index:999999; justify-content:center; align-items:center; padding:16px;">
+    <div
+        style="background:#0f172a; border:1px solid rgba(56,189,248,0.3); border-radius:24px; width:100%; max-width:480px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.8); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+        <div
+            style="padding:20px 24px; background:linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.95)); border-bottom:1px solid rgba(255,255,255,0.08);">
+            <h3
+                style="margin:0 0 4px 0; font-size:17px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
                 <i class="fa-solid fa-user-gear" style="color:#fbbf24;"></i> Complete Your Profile
             </h3>
-            <p style="margin:0; font-size:12px; color:rgba(148,163,184,0.9);">Tell us a bit about yourself to personalize recommendations.</p>
+            <p style="margin:0; font-size:12px; color:rgba(148,163,184,0.9);">Tell us a bit about yourself to
+                personalize recommendations.</p>
         </div>
         <div style="padding:20px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:14px;">
             <!-- Profile Avatar Picker -->
-            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; margin-bottom:4px;">
+            <div
+                style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; margin-bottom:4px;">
                 <div style="position:relative; width:84px; height:84px;">
-                    <img id="onboard-avatar-preview" src="https://ui-avatars.com/api/?name=User&background=38bdf8&color=fff" style="width:84px; height:84px; border-radius:50%; object-fit:cover; border:2.5px solid #38bdf8; box-shadow:0 6px 20px rgba(56,189,248,0.35);">
-                    <label for="onboard-avatar-input" style="position:absolute; bottom:2px; right:2px; width:28px; height:28px; background:#38bdf8; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:12px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.5); border:2px solid #0f172a; transition:transform 0.2s;">
+                    <img id="onboard-avatar-preview"
+                        src="https://ui-avatars.com/api/?name=User&background=38bdf8&color=fff"
+                        style="width:84px; height:84px; border-radius:50%; object-fit:cover; border:2.5px solid #38bdf8; box-shadow:0 6px 20px rgba(56,189,248,0.35);">
+                    <label for="onboard-avatar-input"
+                        style="position:absolute; bottom:2px; right:2px; width:28px; height:28px; background:#38bdf8; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:12px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.5); border:2px solid #0f172a; transition:transform 0.2s;">
                         <i class="fa-solid fa-camera"></i>
                     </label>
-                    <input type="file" id="onboard-avatar-input" accept="image/*" style="display:none;" onchange="window.previewOnboardAvatar(event)">
+                    <input type="file" id="onboard-avatar-input" accept="image/*" style="display:none;"
+                        onchange="window.previewOnboardAvatar(event)">
                 </div>
-                <span style="font-size:11px; font-weight:700; color:#38bdf8; cursor:pointer;" onclick="document.getElementById('onboard-avatar-input').click()">
+                <span style="font-size:11px; font-weight:700; color:#38bdf8; cursor:pointer;"
+                    onclick="document.getElementById('onboard-avatar-input').click()">
                     Add Profile Picture
                 </span>
             </div>
 
             <div>
-                <label style="display:block; font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); margin-bottom:6px;">Mobile Phone Number</label>
-                <input type="text" id="onboard-phone" placeholder="0912 345 6789" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px 14px; color:#fff; font-size:13px; outline:none;">
+                <label
+                    style="display:block; font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); margin-bottom:6px;">Mobile
+                    Phone Number</label>
+                <input type="text" id="onboard-phone" placeholder="0912 345 6789"
+                    style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px 14px; color:#fff; font-size:13px; outline:none;">
             </div>
             <div>
-                <label style="display:block; font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); margin-bottom:6px;">Home Town / City</label>
-                <input type="text" id="onboard-home" placeholder="e.g. Manila, La Union, Baguio" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px 14px; color:#fff; font-size:13px; outline:none;">
+                <label
+                    style="display:block; font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); margin-bottom:6px;">Home
+                    Town / City</label>
+                <input type="text" id="onboard-home" placeholder="e.g. Manila, La Union, Baguio"
+                    style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px 14px; color:#fff; font-size:13px; outline:none;">
             </div>
             <div>
-                <label style="display:block; font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); margin-bottom:6px;">Short Bio</label>
-                <textarea id="onboard-bio" rows="2" placeholder="Share your travel interests..." style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px 14px; color:#fff; font-size:13px; outline:none; resize:none;"></textarea>
+                <label
+                    style="display:block; font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); margin-bottom:6px;">Short
+                    Bio</label>
+                <textarea id="onboard-bio" rows="2" placeholder="Share your travel interests..."
+                    style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px 14px; color:#fff; font-size:13px; outline:none; resize:none;"></textarea>
             </div>
             <div>
-                <label style="display:block; font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); margin-bottom:8px;">Travel Preferences</label>
+                <label
+                    style="display:block; font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); margin-bottom:8px;">Travel
+                    Preferences</label>
                 <div style="display:flex; flex-wrap:wrap; gap:8px;" id="onboard-pref-chips">
-                    <span onclick="this.classList.toggle('active')" class="pref-chip" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 12px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer;">🏄 Surfing</span>
-                    <span onclick="this.classList.toggle('active')" class="pref-chip" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 12px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer;">🏖️ Beach</span>
-                    <span onclick="this.classList.toggle('active')" class="pref-chip" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 12px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer;">⛰️ Hiking</span>
-                    <span onclick="this.classList.toggle('active')" class="pref-chip" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 12px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer;">🍜 Food & Dining</span>
-                    <span onclick="this.classList.toggle('active')" class="pref-chip" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 12px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer;">🏛️ Heritage</span>
+                    <span onclick="this.classList.toggle('active')" class="pref-chip"
+                        style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 12px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer;">🏄
+                        Surfing</span>
+                    <span onclick="this.classList.toggle('active')" class="pref-chip"
+                        style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 12px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer;">🏖️
+                        Beach</span>
+                    <span onclick="this.classList.toggle('active')" class="pref-chip"
+                        style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 12px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer;">⛰️
+                        Hiking</span>
+                    <span onclick="this.classList.toggle('active')" class="pref-chip"
+                        style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 12px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer;">🍜
+                        Food & Dining</span>
+                    <span onclick="this.classList.toggle('active')" class="pref-chip"
+                        style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 12px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer;">🏛️
+                        Heritage</span>
                 </div>
             </div>
         </div>
-        <div style="padding:16px 20px; background:rgba(15,23,42,0.98); border-top:1px solid rgba(255,255,255,0.08); display:flex; gap:10px;">
-            <button onclick="window.onboardSkipProfile()" style="flex:1; background:transparent; border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.7); padding:12px; border-radius:12px; font-weight:700; font-size:12px; cursor:pointer;">
+        <div
+            style="padding:16px 20px; background:rgba(15,23,42,0.98); border-top:1px solid rgba(255,255,255,0.08); display:flex; gap:10px;">
+            <button onclick="window.onboardSkipProfile()"
+                style="flex:1; background:transparent; border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.7); padding:12px; border-radius:12px; font-weight:700; font-size:12px; cursor:pointer;">
                 Skip for now
             </button>
-            <button id="btn-onboard-save" onclick="window.onboardSaveProfile()" style="flex:2; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:12px; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
+            <button id="btn-onboard-save" onclick="window.onboardSaveProfile()"
+                style="flex:2; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:12px; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
                 Save & Continue <i class="fa-solid fa-arrow-right"></i>
             </button>
         </div>
     </div>
 </div>
-
