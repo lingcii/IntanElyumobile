@@ -290,7 +290,7 @@ body[data-view="auth"] {
 }
 
 .form-panel.login-form form {
-    margin: auto 0;
+    margin: 0;
     width: 100%;
 }
 
@@ -402,13 +402,21 @@ body[data-view="auth"] {
     position: relative;
     background: #ffffff;
     border: 1.5px solid rgba(255, 255, 255, 0.9);
-    border-radius: 13px;
-    margin-bottom: 11px;
+    border-radius: 16px;
+    margin-bottom: 12px;
     transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
     width: 100%;
     opacity: 0;
     animation: popUpSmooth 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+}
+
+.login-form .input-group {
+    margin-bottom: 14px;
+}
+
+.register-form .input-group {
+    margin-bottom: 11px;
 }
 
 .form-panel .input-group:nth-of-type(1) {
@@ -431,11 +439,11 @@ body[data-view="auth"] {
 
 .input-group i {
     position: absolute;
-    left: 14px;
+    left: 15px;
     top: 50%;
     transform: translateY(-50%);
     color: #1d4ed8;
-    font-size: 16px;
+    font-size: 17px;
     width: 20px;
     text-align: center;
     transition: color 0.3s;
@@ -450,11 +458,12 @@ body[data-view="auth"] {
     width: 100%;
     border: none;
     background: transparent;
-    padding: 11px 38px 11px 42px !important;
-    font-size: 14px;
+    padding: 13.5px 42px 13.5px 44px !important;
+    font-size: 15px;
     color: #0f172a;
     font-weight: 500;
     outline: none;
+    box-sizing: border-box;
 }
 
 .auth-input::placeholder {
@@ -582,11 +591,11 @@ body[data-view="auth"] {
 .forgot-pwd {
     display: block;
     text-align: right;
-    color: rgba(15, 23, 42, 0.7);
-    font-size: 12.5px;
+    color: rgba(15, 23, 42, 0.75);
+    font-size: 13px;
     text-decoration: none;
-    margin-bottom: 10px;
-    margin-top: -3px;
+    margin-bottom: 16px;
+    margin-top: 0px;
     font-weight: 700;
     transition: color 0.2s ease;
     opacity: 0;
@@ -600,16 +609,16 @@ body[data-view="auth"] {
 /* Liquid Morphing Blob Submit Button */
 .btn-circle-submit {
     position: relative;
-    width: 50px;
-    height: 50px;
+    width: 52px;
+    height: 52px;
     background: linear-gradient(135deg, #38bdf8 0%, #2563eb 50%, #1d4ed8 100%);
     color: #ffffff;
     border: none;
-    font-size: 19px;
+    font-size: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto;
+    margin: 8px auto 0 auto;
     cursor: pointer;
     box-shadow: 0 8px 25px rgba(29, 78, 216, 0.4), inset 0 -3px 8px rgba(0, 0, 0, 0.15), inset 0 3px 8px rgba(255, 255, 255, 0.4);
     animation: liquidMorph 6s ease-in-out infinite alternate, popUpSmooth 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.35s;
