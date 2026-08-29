@@ -69,7 +69,7 @@
                         <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.8); text-transform:uppercase; letter-spacing:1px;">Or Connect With</span>
                         <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.25);">
                     </div>
-                    <button type="button" class="btn-google" onclick="window.triggerGoogleLogin(event)" style="width:100%; padding:13px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:white; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:background 0.2s, transform 0.1s;">
+                    <button type="button" class="btn-google" onclick="window.triggerGoogleLogin(event)" style="width:100%; padding:10.5px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:white; font-size:13.5px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:background 0.2s, transform 0.1s;">
                         <svg viewBox="0 0 24 24" width="18" height="18" style="flex-shrink:0;">
                             <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.53-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.7c0-.18-.01-.35-.05-.47z"/>
                             <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.11 0-5.74-2.11-6.68-4.96H1.21v3.15C3.18 21.88 7.31 24 12 24z"/>
@@ -142,7 +142,7 @@
                         <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px;">Or Connect With</span>
                         <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.15);">
                     </div>
-                    <button type="button" class="btn-google" onclick="window.triggerGoogleLogin(event)" style="width:100%; padding:13px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:white; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:background 0.2s, transform 0.1s;">
+                    <button type="button" class="btn-google" onclick="window.triggerGoogleLogin(event)" style="width:100%; padding:10.5px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:white; font-size:13.5px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:background 0.2s, transform 0.1s;">
                         <svg viewBox="0 0 24 24" width="18" height="18" style="flex-shrink:0;">
                             <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.53-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.7c0-.18-.01-.35-.05-.47z"/>
                             <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.11 0-5.74-2.11-6.68-4.96H1.21v3.15C3.18 21.88 7.31 24 12 24z"/>
@@ -1828,6 +1828,10 @@
     window.triggerGoogleLogin = function(event) {
         if (event && event.preventDefault) event.preventDefault();
 
+        if (typeof window.showGoogleOAuthModal === 'function') {
+            window.showGoogleOAuthModal('Connecting to Google...', 'Redirecting to Google account selection...');
+        }
+
         const googleBtns = document.querySelectorAll('.btn-google');
         googleBtns.forEach((btn) => {
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connecting to Google...';
@@ -1837,6 +1841,9 @@
         const clientId = window.GOOGLE_CLIENT_ID || localStorage.getItem('intan_elyu_google_client_id') || '620598190857-37a0ucobfd4b3rct7ofti8rtvl3qt884.apps.googleusercontent.com';
 
         function resetBtns() {
+            if (typeof window.hideGoogleOAuthModal === 'function') {
+                window.hideGoogleOAuthModal();
+            }
             googleBtns.forEach(btn => {
                 btn.innerHTML = '<span>Sign in with Google</span>';
                 btn.disabled = false;
@@ -1940,5 +1947,18 @@
             }
             sessionStorage.removeItem('login_prefill_email');
         }
+    })();
+
+    // Lock scroll on login page to ensure completely fixed layout
+    (function preventLoginScroll() {
+        document.addEventListener('touchmove', function(e) {
+            const wrapper = document.getElementById('forms-wrapper');
+            if (wrapper && !wrapper.classList.contains('show-register') && !wrapper.classList.contains('show-forgot') && !wrapper.classList.contains('show-otp')) {
+                // On login page - prevent bounce/scrolling
+                if (!e.target.closest('.privacy-modal-card')) {
+                    e.preventDefault();
+                }
+            }
+        }, { passive: false });
     })();
 </script>
