@@ -727,7 +727,7 @@ if (is_dir($imgDir)) {
                     </div>
                     <button id="btn-view-more-rec"
                         onclick="window.toggleRecommendedMore()"
-                        style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,0.28); background:rgba(30,75,135,0.58); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:none; backdrop-filter:blur(10px); transition: all 0.2s;">
+                        style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border:none; outline:none; background:#6196c8; color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:none; transition: all 0.2s;">
                         <i class="fa-solid fa-chevron-down" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i>
                         View ${extras.length} More
                     </button>
