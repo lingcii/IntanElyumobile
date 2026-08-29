@@ -1415,55 +1415,80 @@ window.getDestImage = function (dest, width) {
         return backendUrl + '/api/image/' + cleanPath;
     }
 
-    // Phase 2: Resolve via Cloudflare R2 Tourist Spot Image Pool if photo_url is missing
-    var r2SpotImages = [
-        "spot_6a68655d7a28a.jpg", "spot_6a686f4d0f48b.jpg", "spot_6a686f55b5132.jpg",
-        "spot_6a689fe582fe5.jpg", "spot_6a689ff28f586.jpg", "spot_6a693128189eb.png",
-        "spot_6a693130eb555.png", "spot_6a69313cc2d50.jpg", "spot_6a701e3bd5473.png",
-        "spot_6a701e4458a9d.png", "spot_6a7020e362474.jpg", "spot_6a82bad24fa2b.jpg",
-        "spot_6a82bae67b658.png", "spot_6a82baf585d66.png", "spot_6a82fa545468e.jpg",
-        "spot_6a83ac4fe8380.png", "spot_6a83b4c6a7ff2.jpg", "spot_6a8424d68edd9.jpg",
-        "spot_6a86016341907.jpg", "spot_6a860ccf6bcbc.jpg", "spot_6a8720233dfd2.jpg",
-        "spot_6a87af4adc0ff.jpg", "spot_6a892d8f1f4dd.jpg", "spot_6a8931dd25b2b.jpg",
-        "spot_6a89329e8ab90.jpg", "spot_6a8933354349f.jpg", "spot_6a8935ce0b962.jpg",
-        "spot_6a89360a4a300.jpg", "spot_6a893707d61cf.jpg", "spot_6a89377a9dfd0.jpg",
-        "spot_6a8937f6ee1f0.jpg", "spot_6a8938f02d8e6.jpg", "spot_6a893f2ca838e.jpg",
-        "spot_6a89409281ace.jpg", "spot_6a8955e1e52b9.jpg", "spot_6a89852288687.png",
-        "spot_6a89997cbe6f2.jpg", "spot_6a8bbcc802ca9.jpg", "spot_6a8e5594236b9.jpg",
-        "spot_6a903328abff9.jpg", "spot_6a9033306e82e.jpg"
-    ];
-
-    if (dest && (dest.id || dest.name)) {
-        var idx = 0;
-        if (dest.id && !isNaN(parseInt(dest.id))) {
-            idx = Math.abs(parseInt(dest.id)) % r2SpotImages.length;
-        } else if (dest.name) {
-            var hash = 0;
-            for (var i = 0; i < dest.name.length; i++) {
-                hash = ((hash << 5) - hash) + dest.name.charCodeAt(i);
-                hash |= 0;
-            }
-            idx = Math.abs(hash) % r2SpotImages.length;
+    // Phase 2: Fallback to local filesystem images (AVAILABLE_MUNI_IMAGES) if photo_url is missing
+    if (window.AVAILABLE_MUNI_IMAGES && dest && dest.name) {
+        var munisToCheck = [];
+        if (dest.municipality) {
+            var mClean = dest.municipality.toUpperCase().replace(/\s*TEST$/i, '').trim();
+            munisToCheck.push(mClean);
+            munisToCheck.push(dest.municipality.toUpperCase());
         }
-        return r2PublicBase + '/tourist_spots/' + r2SpotImages[idx];
+        var allKeys = Object.keys(window.AVAILABLE_MUNI_IMAGES);
+        for (var k = 0; k < allKeys.length; k++) {
+            if (munisToCheck.indexOf(allKeys[k]) === -1) {
+                munisToCheck.push(allKeys[k]);
+            }
+        }
+
+        var dNorm = dest.name.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
+        var dWords = dNorm.split(/\s+/).filter(function (w) { return w.length > 2; });
+        var bestMatch = null, bestScore = 0, bestMuni = null;
+
+        for (var mi = 0; mi < munisToCheck.length; mi++) {
+            var muni = munisToCheck[mi];
+            var images = window.AVAILABLE_MUNI_IMAGES[muni];
+            if (!images || !images.length) continue;
+            for (var ii = 0; ii < images.length; ii++) {
+                var img = images[ii];
+                var iNorm = img.replace(/\.(jpg|jpeg|png|webp|gif)$/i, '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
+                var dStr = dNorm.replace(/\s+/g, '');
+                var iStr = iNorm.replace(/\s+/g, '').replace(/[0-9]+$/, '');
+                if (dStr === iStr) {
+                    return encodeURI('assets/img/MUNICIPALITIES/' + muni + '/' + img);
+                }
+                var score = 0;
+                if (dStr.indexOf(iStr) !== -1 || iStr.indexOf(dStr) !== -1) score += 100;
+                var iWords = iNorm.split(/\s+/).filter(function (w) { return w.length > 2; });
+                var common = 0;
+                for (var wi = 0; wi < dWords.length; wi++) {
+                    var w = dWords[wi];
+                    if (iWords.indexOf(w) !== -1) {
+                        score += w === muni.toLowerCase() ? 1 : 10;
+                        common++;
+                    }
+                }
+                if (common > 0) score += (common / Math.max(dWords.length, iWords.length)) * 5;
+                if (score > bestScore && score >= 10) {
+                    bestScore = score;
+                    bestMatch = img;
+                    bestMuni = muni;
+                }
+            }
+            if (bestMatch && bestScore >= 100) {
+                return encodeURI('assets/img/MUNICIPALITIES/' + bestMuni + '/' + bestMatch);
+            }
+        }
+        if (bestMatch) {
+            return encodeURI('assets/img/MUNICIPALITIES/' + bestMuni + '/' + bestMatch);
+        }
     }
 
-    // Phase 3: Final fallback to default Cloudflare R2 spot image
-    return r2PublicBase + '/tourist_spots/' + r2SpotImages[0];
+    // Phase 3: Final fallback to Cloudflare R2 verified spot image
+    return 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a686f4d0f48b.jpg';
 };
 
 window.handleImgError = function (imgEl, spotName, muniName) {
     if (!imgEl) return;
     imgEl.onerror = null;
-    var r2PublicBase = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev';
+    var r2Default = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a686f4d0f48b.jpg';
     if (window.getDestImage && (spotName || muniName)) {
         var fallback = window.getDestImage({ name: spotName || '', municipality: muniName || '', photo_url: null }, 600);
-        if (fallback && fallback !== imgEl.src && fallback.includes('r2.dev')) {
+        if (fallback && fallback !== imgEl.src && !fallback.includes('unsplash.com') && !fallback.startsWith('data:image/svg')) {
             imgEl.src = fallback;
             return;
         }
     }
-    imgEl.src = r2PublicBase + '/tourist_spots/spot_6a686f4d0f48b.jpg';
+    imgEl.src = r2Default;
 };
 
 /**
