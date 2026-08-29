@@ -397,15 +397,16 @@ body[data-view="map"] #main-content {
 }
 
 .dest-sheet-close-btn {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.12);
+    border: none !important;
+    outline: none !important;
     width: 34px;
     height: 34px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgba(248, 250, 252, 0.85);
+    color: rgba(248, 250, 252, 0.95);
     font-size: 14px;
     cursor: pointer;
     flex-shrink: 0;
@@ -496,7 +497,8 @@ body[data-view="map"] #main-content {
     background: rgba(15, 23, 42, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(56, 189, 248, 0.4);
+    border: none !important;
+    outline: none !important;
     box-shadow: none !important;
     display: inline-flex;
     align-items: center;
@@ -510,6 +512,8 @@ body[data-view="map"] #main-content {
     font-weight: 800;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    border: none !important;
+    outline: none !important;
     box-shadow: none !important;
     display: inline-flex;
     align-items: center;
@@ -517,20 +521,23 @@ body[data-view="map"] #main-content {
 }
 
 .sheet-status-pill.status-exist {
-    background: rgba(16, 185, 129, 0.3);
-    border: 1px solid rgba(52, 211, 153, 0.6);
+    background: rgba(16, 185, 129, 0.35);
+    border: none !important;
+    outline: none !important;
     color: #34d399;
 }
 
 .sheet-status-pill.status-emerge {
-    background: rgba(14, 165, 233, 0.3);
-    border: 1px solid rgba(56, 189, 248, 0.6);
+    background: rgba(14, 165, 233, 0.35);
+    border: none !important;
+    outline: none !important;
     color: #38bdf8;
 }
 
 .sheet-status-pill.status-potential {
-    background: rgba(245, 158, 11, 0.3);
-    border: 1px solid rgba(251, 191, 36, 0.6);
+    background: rgba(245, 158, 11, 0.35);
+    border: none !important;
+    outline: none !important;
     color: #fbbf24;
 }
 
@@ -541,6 +548,8 @@ body[data-view="map"] #main-content {
     font-weight: 800;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    border: none !important;
+    outline: none !important;
     box-shadow: none !important;
     display: inline-flex;
     align-items: center;
@@ -549,20 +558,23 @@ body[data-view="map"] #main-content {
 }
 
 .sheet-open-pill.status-open {
-    background: rgba(16, 185, 129, 0.3);
-    border: 1px solid rgba(52, 211, 153, 0.6);
+    background: rgba(16, 185, 129, 0.35);
+    border: none !important;
+    outline: none !important;
     color: #34d399;
 }
 
 .sheet-open-pill.status-closed {
-    background: rgba(239, 68, 68, 0.3);
-    border: 1px solid rgba(248, 113, 113, 0.6);
+    background: rgba(239, 68, 68, 0.35);
+    border: none !important;
+    outline: none !important;
     color: #f87171;
 }
 
 .sheet-open-pill.status-maint {
-    background: rgba(245, 158, 11, 0.3);
-    border: 1px solid rgba(251, 191, 36, 0.6);
+    background: rgba(245, 158, 11, 0.35);
+    border: none !important;
+    outline: none !important;
     color: #fbbf24;
 }
 
@@ -614,7 +626,8 @@ body[data-view="map"] #main-content {
 
 .quick-stat-card {
     background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    border: none !important;
+    outline: none !important;
     border-radius: 16px;
     padding: 10px 12px;
     display: flex;
@@ -622,13 +635,12 @@ body[data-view="map"] #main-content {
     gap: 10px;
     min-width: 0;
     box-sizing: border-box;
-    transition: background 0.2s ease, border-color 0.2s ease;
+    transition: background 0.2s ease;
     box-shadow: none !important;
 }
 
 .quick-stat-card:hover {
     background: rgba(255, 255, 255, 0.18);
-    border-color: #ffffff;
 }
 
 .quick-stat-icon {
@@ -641,30 +653,32 @@ body[data-view="map"] #main-content {
     font-size: 14px;
     flex-shrink: 0;
     box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
 }
 
 .quick-stat-icon.blue {
     background: rgba(255, 255, 255, 0.18);
     color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    border: none !important;
 }
 
 .quick-stat-icon.emerald {
     background: rgba(52, 199, 89, 0.2);
     color: #34d399;
-    border: 1px solid rgba(52, 199, 89, 0.35);
+    border: none !important;
 }
 
 .quick-stat-icon.amber {
     background: rgba(251, 191, 36, 0.2);
     color: #fbbf24;
-    border: 1px solid rgba(251, 191, 36, 0.35);
+    border: none !important;
 }
 
 .quick-stat-icon.purple {
     background: rgba(168, 85, 247, 0.2);
     color: #c084fc;
-    border: 1px solid rgba(168, 85, 247, 0.35);
+    border: none !important;
 }
 
 .quick-stat-info {
@@ -698,8 +712,9 @@ body[data-view="map"] #main-content {
 
 /* ── Destination Details Card ── */
 .dest-info-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(255, 255, 255, 0.05);
+    border: none !important;
+    outline: none !important;
     border-radius: 20px;
     padding: 16px;
     margin-top: 8px;
@@ -723,7 +738,8 @@ body[data-view="map"] #main-content {
     font-size: 12px;
     background: rgba(56, 189, 248, 0.12);
     color: #38bdf8;
-    border: 1px solid rgba(56, 189, 248, 0.25);
+    border: none !important;
+    outline: none !important;
     box-shadow: none !important;
 }
 
@@ -747,7 +763,8 @@ body[data-view="map"] #main-content {
 
 .dest-warning-card {
     background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.25);
+    border: none !important;
+    outline: none !important;
     border-radius: 14px;
     padding: 12px;
     margin-bottom: 12px;
@@ -788,8 +805,9 @@ body[data-view="map"] #main-content {
 }
 
 .dest-guide-box {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.05);
+    border: none !important;
+    outline: none !important;
     border-radius: 14px;
     padding: 12px 14px;
     margin-bottom: 10px;
@@ -816,8 +834,9 @@ body[data-view="map"] #main-content {
 }
 
 .dest-advisory-box {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.05);
+    border: none !important;
+    outline: none !important;
     border-radius: 14px;
     padding: 12px 14px;
     margin-bottom: 10px;
@@ -844,8 +863,9 @@ body[data-view="map"] #main-content {
 }
 
 .dest-support-box {
-    background: rgba(56, 189, 248, 0.04);
-    border: 1px solid rgba(56, 189, 248, 0.16);
+    background: rgba(56, 189, 248, 0.06);
+    border: none !important;
+    outline: none !important;
     border-radius: 16px;
     padding: 14px;
     box-shadow: none !important;
@@ -862,7 +882,8 @@ body[data-view="map"] #main-content {
     font-size: 9.5px;
     font-weight: 800;
     background: rgba(56, 189, 248, 0.15);
-    border: 1px solid rgba(56, 189, 248, 0.3);
+    border: none !important;
+    outline: none !important;
     padding: 2px 7px;
     border-radius: 6px;
     color: #38bdf8;
@@ -1245,7 +1266,8 @@ html.keyboard-open .btn-3d-view {
 
 .nearby-radius-btn.active {
     background: linear-gradient(135deg, #00f2fe, #0284c7) !important;
-    border: 1.5px solid #ffffff !important;
+    border: none !important;
+    outline: none !important;
     color: #ffffff !important;
     box-shadow: none !important;
     font-weight: 800 !important;
@@ -1253,20 +1275,23 @@ html.keyboard-open .btn-3d-view {
 
 .nearby-radius-btn:not(.active) {
     background: rgba(30, 58, 138, 0.78) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+    border: none !important;
+    outline: none !important;
     color: #ffffff !important;
     box-shadow: none !important;
 }
 
 .nearby-radius-btn:not(.active):hover {
     background: rgba(63, 125, 183, 0.85) !important;
-    border-color: #ffffff !important;
+    border: none !important;
+    outline: none !important;
     color: #ffffff !important;
 }
 
 .nearby-site-action-btn {
     background: rgba(255, 255, 255, 0.22) !important;
-    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    border: none !important;
+    outline: none !important;
     color: #ffffff !important;
     width: 38px;
     height: 38px;
