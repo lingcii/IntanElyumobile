@@ -56,7 +56,13 @@
                         <input type="password" id="login-password" class="auth-input" placeholder="Password" required>
                         <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('login-password', this)"></i>
                     </div>
-                    <a href="#" class="forgot-pwd" onclick="showForgotPassword(event)">Forgot Password?</a>
+                    <div class="auth-options-row">
+                        <label class="remember-me-label" for="login-remember">
+                            <input type="checkbox" id="login-remember" class="custom-terms-checkbox">
+                            <span>Remember me</span>
+                        </label>
+                        <a href="#" class="forgot-pwd" onclick="showForgotPassword(event)">Forgot Password?</a>
+                    </div>
                     
                     <button type="submit" id="btn-login" class="btn-circle-submit">
                         <i class="fa-solid fa-arrow-right"></i>
@@ -78,6 +84,9 @@
                         </svg>
                         <span>Sign in with Google</span>
                     </button>
+                    <p class="auth-switch-prompt">
+                        Don't have an account? <a href="#" onclick="toggleAuthMode(true); return false;" class="auth-switch-link">Register now</a>
+                    </p>
                 </div>
             </div>
             
@@ -151,6 +160,9 @@
                         </svg>
                         <span>Sign up with Google</span>
                     </button>
+                    <p class="auth-switch-prompt">
+                        Already have an account? <a href="#" onclick="toggleAuthMode(false); return false;" class="auth-switch-link">Log in</a>
+                    </p>
                 </div>
             </div>
 
@@ -1009,19 +1021,28 @@
 
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
+        const remember = document.getElementById('login-remember')?.checked || false;
 
         try {
             const response = await fetch(backendUrl + '/api/auth/login', {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({ email: email, password: password })
+                body: JSON.stringify({ email: email, password: password, remember: remember })
             });
             
             const data = await response.json();
             
             if (!response.ok) {
                 throw new Error(data.error || data.message || 'Invalid login credentials.');
+            }
+
+            if (remember) {
+                localStorage.setItem('intan_elyu_remembered_email', email);
+                localStorage.setItem('intan_elyu_remember_me', '1');
+            } else {
+                localStorage.removeItem('intan_elyu_remembered_email');
+                localStorage.removeItem('intan_elyu_remember_me');
             }
 
             localStorage.setItem('auth_user', JSON.stringify(data.user));
@@ -1937,15 +1958,22 @@
 
     (function checkPrefillEmail() {
         const params = new URLSearchParams(window.location.search);
-        const prefillEmail = sessionStorage.getItem('login_prefill_email') || params.get('email');
+        const prefillEmail = sessionStorage.getItem('login_prefill_email') || params.get('email') || localStorage.getItem('intan_elyu_remembered_email');
         if (prefillEmail) {
             const loginEmailEl = document.getElementById('login-email');
             if (loginEmailEl) {
                 loginEmailEl.value = prefillEmail;
                 const loginPwdEl = document.getElementById('login-password');
-                if (loginPwdEl) loginPwdEl.focus();
+                if (loginPwdEl && !loginPwdEl.value) loginPwdEl.focus();
             }
-            sessionStorage.removeItem('login_prefill_email');
+            if (sessionStorage.getItem('login_prefill_email')) {
+                sessionStorage.removeItem('login_prefill_email');
+            }
+        }
+        const rememberMeSaved = localStorage.getItem('intan_elyu_remember_me');
+        const rememberCheckEl = document.getElementById('login-remember');
+        if (rememberCheckEl && rememberMeSaved === '1') {
+            rememberCheckEl.checked = true;
         }
     })();
 
