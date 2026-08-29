@@ -353,23 +353,56 @@ window.initGoogleOAuthHandler = function () {
         return;
     }
 
-    // Display global full-screen OAuth loader
-    const showOverlay = () => {
+    // Display global full-screen OAuth loader with the 3 wave colors
+    const showOverlay = (title = 'Logging in with Google...', subtitle = 'Authenticating your account, please wait') => {
         let overlay = document.getElementById('global-oauth-overlay');
         if (!overlay) {
             overlay = document.createElement('div');
             overlay.id = 'global-oauth-overlay';
-            overlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(10,10,14,0.94); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; color:#fff; font-family:Inter,sans-serif; text-align:center; padding:20px; box-sizing:border-box;';
-            overlay.innerHTML = `
-                <div style="width:68px; height:68px; border-radius:50%; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.35); display:flex; align-items:center; justify-content:center; box-shadow:0 0 28px rgba(56,189,248,0.3);">
-                    <i class="fa-solid fa-spinner fa-spin" style="font-size:28px; color:#38bdf8;"></i>
-                </div>
-                <h3 style="margin:0; font-size:19px; font-weight:700; color:#fff;">Logging in with Google...</h3>
-                <p style="margin:0; font-size:13.5px; color:rgba(255,255,255,0.7);">Authenticating your account, please wait</p>
-            `;
             document.body ? document.body.appendChild(overlay) : document.addEventListener('DOMContentLoaded', () => document.body.appendChild(overlay));
         }
+        overlay.innerHTML = `
+            <div class="oauth-modal-card">
+                <div class="oauth-card-accent"></div>
+                <div class="oauth-spinner-wrapper">
+                    <div class="oauth-ring-outer"></div>
+                    <div class="oauth-spinner-track"></div>
+                    <div class="oauth-inner-core">
+                        <svg class="oauth-google-icon" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.53-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.7c0-.18-.01-.35-.05-.47z"/>
+                            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.11 0-5.74-2.11-6.68-4.96H1.21v3.15C3.18 21.88 7.31 24 12 24z"/>
+                            <path fill="#FBBC05" d="M5.32 14.24A7.16 7.16 0 0 1 5 12c0-.79.13-1.57.32-2.31V6.54H1.21A11.96 11.96 0 0 0 0 12c0 1.92.45 3.74 1.21 5.38l4.11-3.14z"/>
+                            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.18 2.12 1.21 5.46l4.11 3.22c.94-2.85 3.57-4.93 6.68-4.93z"/>
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="oauth-modal-title">${title}</h3>
+                <p class="oauth-modal-subtitle">${subtitle}</p>
+                <div class="oauth-wave-dots">
+                    <div class="oauth-wave-dot dot-1" title="Wave 1: Cyan"></div>
+                    <div class="oauth-wave-dot dot-2" title="Wave 2: Sky Blue"></div>
+                    <div class="oauth-wave-dot dot-3" title="Wave 3: Coastal Elyu"></div>
+                </div>
+                <div class="oauth-card-waves">
+                    <svg viewBox="0 0 500 50" preserveAspectRatio="none">
+                        <path fill="#00f2fe" opacity="0.35" d="M0,25 C150,50 350,0 500,25 L500,50 L0,50 Z"></path>
+                        <path fill="#38bdf8" opacity="0.5" d="M0,32 C200,50 300,10 500,32 L500,50 L0,50 Z"></path>
+                        <path fill="#74a3cf" opacity="0.75" d="M0,38 C250,50 250,20 500,38 L500,50 L0,50 Z"></path>
+                    </svg>
+                </div>
+            </div>
+        `;
         return overlay;
+    };
+
+    window.showGoogleOAuthModal = showOverlay;
+    window.hideGoogleOAuthModal = () => {
+        const ov = document.getElementById('global-oauth-overlay');
+        if (ov) {
+            ov.style.transition = 'opacity 0.3s ease';
+            ov.style.opacity = '0';
+            setTimeout(() => ov.remove(), 300);
+        }
     };
 
     const overlay = showOverlay();
@@ -423,11 +456,19 @@ window.initGoogleOAuthHandler = function () {
             const currentOverlay = document.getElementById('global-oauth-overlay');
             if (currentOverlay) {
                 currentOverlay.innerHTML = `
-                    <div style="width:68px; height:68px; border-radius:50%; background:rgba(52,199,89,0.15); border:1px solid rgba(52,199,89,0.4); display:flex; align-items:center; justify-content:center; box-shadow:0 0 28px rgba(52,199,89,0.35);">
-                        <i class="fa-solid fa-check" style="font-size:30px; color:#34c759;"></i>
+                    <div class="oauth-modal-card">
+                        <div class="oauth-card-accent"></div>
+                        <div class="oauth-success-ring">
+                            <i class="fa-solid fa-check" style="font-size:32px; color:#00f2fe;"></i>
+                        </div>
+                        <h3 class="oauth-modal-title">Welcome${data.user?.name ? ', ' + data.user.name : ''}!</h3>
+                        <p class="oauth-modal-subtitle">Redirecting to dashboard...</p>
+                        <div class="oauth-wave-dots">
+                            <div class="oauth-wave-dot dot-1"></div>
+                            <div class="oauth-wave-dot dot-2"></div>
+                            <div class="oauth-wave-dot dot-3"></div>
+                        </div>
                     </div>
-                    <h3 style="margin:0; font-size:19px; font-weight:700; color:#fff;">Welcome${data.user?.name ? ', ' + data.user.name : ''}!</h3>
-                    <p style="margin:0; font-size:13.5px; color:rgba(255,255,255,0.7);">Redirecting to dashboard...</p>
                 `;
             }
 
