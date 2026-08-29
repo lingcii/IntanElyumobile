@@ -39,7 +39,20 @@ if (strpos($path, 'intan-elyu.apk') !== false || strpos($path, '.apk') !== false
     }
 }
 
-// Check and serve local static assets (supporting URL-encoded characters like spaces %20 and commas)
+// Serve favicon.ico from logo.png if requested
+if ($path === '/favicon.ico') {
+    $iconPath = __DIR__ . '/assets/img/logo.png';
+    if (file_exists($iconPath)) {
+        header('Content-Type: image/png');
+        header('Cache-Control: public, max-age=86400');
+        readfile($iconPath);
+        exit;
+    }
+    http_response_code(204);
+    exit;
+}
+
+// Check and serve local static assets (excluding .php files, supporting URL-encoded characters like spaces %20 and commas)
 $decodedPath = urldecode($path);
 $localStaticFile = __DIR__ . $decodedPath;
 if (file_exists($localStaticFile) && is_file($localStaticFile)) {
@@ -61,12 +74,12 @@ if (file_exists($localStaticFile) && is_file($localStaticFile)) {
         'ico' => 'image/x-icon',
         'html' => 'text/html; charset=utf-8',
     ];
-    if (isset($staticMimeMap[$ext])) {
+    if ($ext !== 'php' && isset($staticMimeMap[$ext])) {
         header('Content-Type: ' . $staticMimeMap[$ext]);
+        header('Cache-Control: public, max-age=86400');
+        readfile($localStaticFile);
+        exit;
     }
-    header('Cache-Control: public, max-age=86400');
-    readfile($localStaticFile);
-    exit;
 }
 
 // Return clean 404 for missing static assets to prevent HTML syntax errors in CSS/JS (excluding /api/ and /storage/ proxy paths)
