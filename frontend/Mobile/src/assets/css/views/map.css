@@ -1321,3 +1321,12 @@ html.keyboard-open .btn-3d-view {
     backface-visibility: hidden;
 }
 
+/* ── Classification Popover & Chips ── */
+.classification-item-chip {
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.classification-item-chip:active {
+    transform: scale(0.97);
+    filter: brightness(1.15);
+}
+
