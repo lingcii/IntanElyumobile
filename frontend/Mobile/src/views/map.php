@@ -77,44 +77,44 @@ if (is_dir($imgDir)) {
         <div class="map-categories" id="map-categories-container">
             <!-- Dynamically populated -->
         </div>
-
-        <!-- Classification Color Legend -->
-        <div class="map-classification-legend" style="display:flex; align-items:center; justify-content:center; gap:10px; padding:4px 12px; margin:6px auto 0 auto; background:rgba(15,23,42,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-radius:100px; border:1px solid rgba(255,255,255,0.14); font-size:10.5px; font-weight:800; color:#ffffff; width:fit-content; box-shadow:0 4px 12px rgba(0,0,0,0.35); pointer-events:none;">
-            <span style="display:inline-flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:50%; background:#34c759; box-shadow:0 0 6px #34c759;"></span> Existing</span>
-            <span style="color:rgba(255,255,255,0.3);">•</span>
-            <span style="display:inline-flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:50%; background:#38bdf8; box-shadow:0 0 6px #38bdf8;"></span> Emerging</span>
-            <span style="color:rgba(255,255,255,0.3);">•</span>
-            <span style="display:inline-flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:50%; background:#f59e0b; box-shadow:0 0 6px #f59e0b;"></span> Potential</span>
-        </div>
     </div>
 
-
-
-    <!-- Locate Me Button -->
-    <div class="btn-locate-me animate-slide-up" id="btn-locate-me"
-        style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
-        <i class="fa-solid fa-crosshairs"></i>
+    <!-- Classification Color Legend (Floating at Bottom Center) -->
+    <div class="map-classification-legend"
+        style="position: absolute; bottom: calc(85px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 890; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 5px 14px; background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 100px; border: 1px solid rgba(255, 255, 255, 0.18); font-size: 10.5px; font-weight: 800; color: #ffffff; white-space: nowrap; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4); pointer-events: none;">
+        <span style="display:inline-flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:50%; background:#34c759; box-shadow:0 0 6px #34c759;"></span> Existing</span>
+        <span style="color:rgba(255,255,255,0.3);">•</span>
+        <span style="display:inline-flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:50%; background:#38bdf8; box-shadow:0 0 6px #38bdf8;"></span> Emerging</span>
+        <span style="color:rgba(255,255,255,0.3);">•</span>
+        <span style="display:inline-flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:50%; background:#f59e0b; box-shadow:0 0 6px #f59e0b;"></span> Potential</span>
     </div>
 
-    <!-- Nearby Tourist Sites Button (Left Side) -->
+    <!-- Action Buttons Stack (Stacked on the Right Side) -->
+    <!-- 1. Layer Toggle Button -->
+    <div class="btn-layer-toggle animate-slide-up" id="btn-layer-toggle"
+        style="position: absolute; bottom: calc(295px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
+        <i class="fa-solid fa-layer-group"></i>
+    </div>
+
+    <!-- 2. 3D Mode Button -->
+    <div class="btn-3d-view animate-slide-up" id="btn-3d-view"
+        style="position: absolute; bottom: calc(235px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
+        <i class="fa-solid fa-cube"></i>
+    </div>
+
+    <!-- 3. Nearby Tourist Sites Button (Aligned with other 3 buttons) -->
     <div class="btn-nearby-sites animate-slide-up" id="btn-nearby-sites" onclick="window.toggleNearbySitesSheet()"
-        style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); left: 10px; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;"
-        title="Nearby Tourist Sites">
+        style="position: absolute; bottom: calc(175px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;"
+        title="Tourist Sites List">
         <i class="fa-solid fa-compass"></i>
         <span id="nearby-sites-badge"
             style="display:none; position:absolute; top:-5px; right:-5px; min-width:18px; height:18px; padding:0 4px; border-radius:9px; background:#00f2fe; color:#0f172a; font-size:10px; font-weight:800; align-items:center; justify-content:center; box-shadow:none;">0</span>
     </div>
 
-    <!-- Layer Toggle Button -->
-    <div class="btn-layer-toggle animate-slide-up" id="btn-layer-toggle"
-        style="position: absolute; bottom: calc(235px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
-        <i class="fa-solid fa-layer-group"></i>
-    </div>
-
-    <!-- 3D Mode Button -->
-    <div class="btn-3d-view animate-slide-up" id="btn-3d-view"
-        style="position: absolute; bottom: calc(175px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
-        <i class="fa-solid fa-cube"></i>
+    <!-- 4. Locate Me Button -->
+    <div class="btn-locate-me animate-slide-up" id="btn-locate-me"
+        style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
+        <i class="fa-solid fa-crosshairs"></i>
     </div>
 
     <!-- Nearby Tourist Sites Sheet (Triggered by Left Button) -->
@@ -1069,45 +1069,46 @@ if (is_dir($imgDir)) {
                     }
                 });
 
-                // Layer 4: Unclustered Point Outer Halo
+                // Layer 4: Unclustered Point Solid Outer Disc (Colored by Classification)
                 window.mapInstance.addLayer({
                     id: 'unclustered-point-halo',
                     type: 'circle',
                     source: 'tourist-spots-source',
                     filter: ['!', ['has', 'point_count']],
                     paint: {
-                        'circle-color': '#ffffff',
-                        'circle-radius': 13,
+                        'circle-color': ['get', 'cat_color'],
+                        'circle-radius': 12,
                         'circle-stroke-width': 2.5,
-                        'circle-stroke-color': ['get', 'cat_color']
+                        'circle-stroke-color': '#ffffff'
                     }
                 });
 
-                // Layer 5: Unclustered Point Inner Dot
+                // Layer 5: Unclustered Point Inner White Center Dot
                 window.mapInstance.addLayer({
                     id: 'unclustered-point',
                     type: 'circle',
                     source: 'tourist-spots-source',
                     filter: ['!', ['has', 'point_count']],
                     paint: {
-                        'circle-color': ['get', 'cat_color'],
-                        'circle-radius': 6.5
+                        'circle-color': '#ffffff',
+                        'circle-radius': 4.5
                     }
                 });
 
-                // Layer 6: Spot Title Label (appears on zoom >= 12.5)
+                // Layer 6: Spot Title Label (appears on zoom >= 9.0)
                 window.mapInstance.addLayer({
                     id: 'unclustered-point-label',
                     type: 'symbol',
                     source: 'tourist-spots-source',
                     filter: ['!', ['has', 'point_count']],
-                    minzoom: 12.5,
+                    minzoom: 9.0,
                     layout: {
                         'text-field': ['get', 'name'],
                         'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
                         'text-size': 11,
-                        'text-offset': [0, 1.3],
+                        'text-offset': [0, 1.4],
                         'text-anchor': 'top',
+                        'text-max-width': 10,
                         'text-allow-overlap': false
                     },
                     paint: {
@@ -1194,36 +1195,44 @@ if (is_dir($imgDir)) {
         function matchesCategoryFilter(loc, targetCat) {
             if (!targetCat || targetCat === 'All') return true;
             const t = targetCat.toLowerCase().trim();
-            const c = (loc.category || '').toLowerCase();
-            const n = (loc.name || '').toLowerCase();
-            const d = (loc.description || '').toLowerCase();
-            const combined = `${c} ${n} ${d}`;
+            const c = (loc.category || '').toLowerCase().trim();
+            const n = (loc.name || '').toLowerCase().trim();
+            const d = (loc.description || '').toLowerCase().trim();
 
-            if (combined.includes(t)) return true;
+            // Direct category match or inclusion
+            if (c === t || c.includes(t) || t.includes(c)) return true;
+            if (` ${c} `.includes(` ${t} `)) return true;
 
-            if (t.includes('cultural') || t.includes('heritage')) {
-                return combined.includes('culture') || combined.includes('cultural') || combined.includes('heritage') || combined.includes('historic') || combined.includes('museum') || combined.includes('church') || combined.includes('shrine') || combined.includes('landmark') || combined.includes('monument');
+            // Specific category semantics
+            if (t === 'nature park') {
+                return c.includes('nature') || (c.includes('park') && !c.includes('amusement'));
             }
-            if (t.includes('resort') || t.includes('stay') || t.includes('hotel')) {
-                return combined.includes('resort') || combined.includes('hotel') || combined.includes('stay') || combined.includes('inn') || combined.includes('lodge') || combined.includes('accommodation');
+            if (t === 'park') {
+                return c.includes('park') || n.includes('park') || n.includes('plaza');
             }
-            if (t.includes('shopping') || t.includes('market')) {
-                return combined.includes('shopping') || combined.includes('market') || combined.includes('mall') || combined.includes('store') || combined.includes('pasalubong');
+            if (t === 'monument') {
+                return c.includes('monument') || n.includes('monument') || n.includes('memorial') || n.includes('marker') || n.includes('shrine');
             }
-            if (t.includes('festival') || t.includes('event')) {
-                return combined.includes('festival') || combined.includes('event') || combined.includes('plaza') || combined.includes('venue');
+            if (t === 'landmark') {
+                return c.includes('landmark') || n.includes('arc') || n.includes('center') || n.includes('house') || n.includes('building');
             }
-            if (t.includes('beach') || t.includes('surf')) {
-                return combined.includes('beach') || combined.includes('surf') || combined.includes('coastal') || combined.includes('island') || combined.includes('cove');
+            if (t === 'food destination' || t === 'food & dining' || t === 'food') {
+                return c.includes('food') || c.includes('dining') || c.includes('restaurant') || n.includes('restaurant') || n.includes('cafe') || n.includes('bistro') || n.includes('grill') || d.includes('dining');
             }
-            if (t.includes('mountain') || t.includes('nature') || t.includes('park')) {
-                return combined.includes('mountain') || combined.includes('hiking') || combined.includes('nature') || combined.includes('park') || combined.includes('hill') || combined.includes('trail') || combined.includes('peak') || combined.includes('viewpoint');
+            if (t === 'cultural heritage' || t === 'heritage') {
+                return c.includes('cultural') || c.includes('heritage') || c.includes('historical') || n.includes('museum') || n.includes('tunnel') || n.includes('station') || n.includes('watchtower');
             }
-            if (t.includes('water') || t.includes('fall') || t.includes('river') || t.includes('lake')) {
-                return combined.includes('waterfall') || combined.includes('fall') || combined.includes('river') || combined.includes('lake') || combined.includes('spring');
+            if (t === 'religious') {
+                return c.includes('religious') || c.includes('church') || n.includes('church') || n.includes('parish') || n.includes('basilica') || n.includes('grotto') || n.includes('cathedral');
             }
-            if (t.includes('food') || t.includes('dining') || t.includes('restaurant')) {
-                return combined.includes('food') || combined.includes('dining') || combined.includes('restaurant') || combined.includes('cafe') || combined.includes('bistro') || combined.includes('eatery');
+            if (t === 'beach') {
+                return c.includes('beach') || c.includes('surf') || c.includes('coastal') || n.includes('beach') || n.includes('cove') || n.includes('surf');
+            }
+            if (t === 'mountain' || t === 'mountains' || t === 'hiking') {
+                return c.includes('mountain') || c.includes('hiking') || n.includes('mountain') || n.includes('peak') || n.includes('hill') || n.includes('trail');
+            }
+            if (t.includes('water') || t.includes('fall') || t.includes('lake') || t.includes('river')) {
+                return c.includes('waterfall') || c.includes('fall') || c.includes('lake') || c.includes('river') || n.includes('falls') || n.includes('lake') || n.includes('river');
             }
 
             return false;
@@ -1244,6 +1253,7 @@ if (is_dir($imgDir)) {
             });
 
             const uniqueCats = [...new Set(rawCats)];
+            uniqueCats.sort((a, b) => a.localeCompare(b));
             let html = `<div class="category-pill active" onclick="filterCategory('All', this)">All</div>`;
             uniqueCats.forEach(cat => {
                 const safeCat = cat.replace(/'/g, "\\'");
@@ -1257,30 +1267,51 @@ if (is_dir($imgDir)) {
             if (element) element.classList.add('active');
 
             const searchInput = document.getElementById('map-search-input');
-            const searchText = searchInput ? searchInput.value.toLowerCase() : '';
+            const searchText = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
             const filtered = (window.allMapLocations || []).filter(loc => {
                 const name = loc.name ? loc.name.toLowerCase() : '';
                 const location = loc.location ? loc.location.toLowerCase() : '';
                 const locCat = loc.category ? loc.category.toLowerCase() : '';
-                const matchesSearch = (name.includes(searchText) || location.includes(searchText) || locCat.includes(searchText));
+                const matchesSearch = !searchText || (name.includes(searchText) || location.includes(searchText) || locCat.includes(searchText));
                 const matchesCat = matchesCategoryFilter(loc, category);
                 return matchesSearch && matchesCat;
             });
 
             window.renderMarkers(filtered);
 
+            // Update badge on tourist sites list button
+            const nearbyBadge = document.getElementById('nearby-sites-badge');
+            if (nearbyBadge) {
+                if (filtered.length > 0 && category !== 'All') {
+                    nearbyBadge.style.display = 'flex';
+                    nearbyBadge.textContent = filtered.length;
+                } else if (category === 'All') {
+                    nearbyBadge.style.display = 'none';
+                }
+            }
+
             const validFiltered = filtered.filter(loc => loc.lat && loc.lng && !isNaN(parseFloat(loc.lat)) && !isNaN(parseFloat(loc.lng)));
             if (validFiltered.length > 0 && window.mapInstance) {
-                const bounds = new maplibregl.LngLatBounds();
-                validFiltered.forEach(loc => bounds.extend([parseFloat(loc.lng), parseFloat(loc.lat)]));
+                if (validFiltered.length === 1) {
+                    // Single destination: fly smoothly right to it with high zoom
+                    window.mapInstance.flyTo({
+                        center: [parseFloat(validFiltered[0].lng), parseFloat(validFiltered[0].lat)],
+                        zoom: 14.5,
+                        offset: [0, -30],
+                        duration: 800
+                    });
+                } else {
+                    const bounds = new maplibregl.LngLatBounds();
+                    validFiltered.forEach(loc => bounds.extend([parseFloat(loc.lng), parseFloat(loc.lat)]));
 
-                // UI padding: top 150px (search header + categories), bottom 120px (bottom nav bar), left/right 40px
-                window.mapInstance.fitBounds(bounds, {
-                    padding: { top: 150, bottom: 120, left: 40, right: 40 },
-                    maxZoom: 14,
-                    duration: 800
-                });
+                    // UI padding: top 180px, bottom 140px, left/right 45px
+                    window.mapInstance.fitBounds(bounds, {
+                        padding: { top: 180, bottom: 140, left: 45, right: 45 },
+                        maxZoom: 14,
+                        duration: 800
+                    });
+                }
                 if (typeof showToast === 'function' && category !== 'All') {
                     showToast(`Showing ${validFiltered.length} spot${validFiltered.length !== 1 ? 's' : ''} for ${category}`);
                 }
