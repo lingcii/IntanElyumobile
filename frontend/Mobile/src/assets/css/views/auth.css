@@ -824,8 +824,8 @@ body[data-view="auth"] {
 }
 
 .fp-header p {
-    font-size: 13px;
-    color: #000000;
+    font-size: 13.5px;
+    color: rgba(255, 255, 255, 0.95);
     margin: 0;
     font-weight: 500;
 }
@@ -834,17 +834,17 @@ body[data-view="auth"] {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: #000000;
+    color: #ffffff;
     text-decoration: none;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     margin-bottom: 20px;
     transition: opacity 0.2s ease;
 }
 
 .back-link:hover {
-    color: #000000;
-    opacity: 0.75;
+    color: #ffffff;
+    opacity: 0.85;
 }
 
 /* ============================================================

@@ -192,12 +192,9 @@
                 </div>
 
                 <!-- Step 2: Enter 6-Digit Code -->
-                <div id="fp-code-state" style="display: none; text-align: center; padding: 6px 0;">
-                    <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 20px; margin: 0 auto 10px auto;">
-                        <i class="fa-solid fa-paper-plane"></i>
-                    </div>
-                    <h3 style="margin: 0 0 4px 0; color: white; font-size: 18px; font-weight: 800;">Reset Code Sent</h3>
-                    <p style="color: #000000; font-size: 12px; margin: 0 0 16px 0; font-weight: 500;">We sent a 6-digit reset code to <br><strong id="fp-target-email" style="color: #1d4ed8; font-family: monospace;"></strong></p>
+                <div id="fp-code-state" style="display: none; text-align: center; padding: 10px 0;">
+                    <h3 style="margin: 0 0 8px 0; color: #ffffff; font-size: 20px; font-weight: 800;">Reset Code Sent</h3>
+                    <p style="color: rgba(255, 255, 255, 0.95); font-size: 13.5px; margin: 0 0 20px 0; font-weight: 500; line-height: 1.5;">We sent a 6-digit reset code to <br><strong id="fp-target-email" style="color: #ffffff; font-weight: 800; font-size: 14px; background: rgba(0, 0, 0, 0.18); padding: 3px 10px; border-radius: 6px; display: inline-block; margin-top: 5px;"></strong></p>
 
                     <form id="form-fp-verify-code" onsubmit="handleVerifyFpCode(event)">
                         <!-- 6 Individual Digit Input Boxes -->
@@ -214,23 +211,20 @@
                             <i class="fa-solid fa-arrow-right"></i>
                         </button>
 
-                        <div style="font-size: 12px; color: #000000; margin-top: 10px; font-weight: 500;">
+                        <div style="font-size: 13px; color: rgba(255, 255, 255, 0.95); margin-top: 14px; font-weight: 500;">
                             Didn't receive email? 
-                            <button type="button" id="fp-resend-btn" onclick="handleResendFpEmail(event)" style="background: none; border: none; color: #1d4ed8; font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0;">
+                            <button type="button" id="fp-resend-btn" onclick="handleResendFpEmail(event)" style="background: none; border: none; color: #ffffff; font-weight: 800; cursor: pointer; text-decoration: underline; padding: 0;">
                                 Resend Code
                             </button>
-                            <span id="fp-countdown-text" style="display: none; color: #b45309; font-weight: 700;">(Resend in <span id="fp-countdown-sec">45</span>s)</span>
+                            <span id="fp-countdown-text" style="display: none; color: #fef08a; font-weight: 700;"> (Resend in <span id="fp-countdown-sec">45</span>s)</span>
                         </div>
                     </form>
                 </div>
 
                 <!-- Step 3: Enter New Password -->
-                <div id="fp-password-state" style="display: none; text-align: center; padding: 6px 0;">
-                    <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 20px; margin: 0 auto 10px auto;">
-                        <i class="fa-solid fa-lock"></i>
-                    </div>
-                    <h3 style="margin: 0 0 4px 0; color: white; font-size: 18px; font-weight: 800;">Create New Password</h3>
-                    <p style="color: #000000; font-size: 12px; margin: 0 0 20px 0; font-weight: 500;">Enter your new password below.</p>
+                <div id="fp-password-state" style="display: none; text-align: center; padding: 10px 0;">
+                    <h3 style="margin: 0 0 6px 0; color: white; font-size: 19px; font-weight: 800;">Create New Password</h3>
+                    <p style="color: rgba(255, 255, 255, 0.9); font-size: 13px; margin: 0 0 20px 0; font-weight: 500;">Enter your new password below.</p>
 
                     <form id="form-fp-password" onsubmit="handleResetPasswordSubmit(event)">
                         <div class="input-group" style="margin-bottom: 16px;">
@@ -427,9 +421,9 @@
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     z-index: 999999;
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     display: none;
     align-items: center;
     justify-content: center;
@@ -443,14 +437,15 @@
     pointer-events: auto;
 }
 .login-success-card {
-    background: rgba(15, 23, 42, 0.96);
-    border: 1.5px solid rgba(56, 189, 248, 0.4);
-    border-radius: 24px;
-    padding: 28px 24px;
-    max-width: 340px;
-    width: 100%;
+    background: #74a3cf;
+    border: none !important;
+    outline: none !important;
+    border-radius: 26px;
+    padding: 34px 24px 28px 24px;
+    max-width: 310px;
+    width: 86%;
     text-align: center;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(56, 189, 248, 0.15);
+    box-shadow: 0 15px 35px rgba(15, 23, 42, 0.25);
     position: relative;
     transform: scale(0.88) translateY(16px);
     transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -462,22 +457,47 @@
     transform: scale(1) translateY(0);
 }
 .success-icon-badge {
-    width: 60px;
-    height: 60px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
-    background: rgba(56, 189, 248, 0.15);
-    border: 2px solid #38bdf8;
+    background: rgba(255, 255, 255, 0.22);
+    border: 2px solid rgba(255, 255, 255, 0.6);
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 16px auto;
-    box-shadow: 0 0 22px rgba(56, 189, 248, 0.35);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
 }
 .success-icon-badge.is-done {
-    background: rgba(52, 199, 89, 0.15);
-    border-color: #34c759;
-    box-shadow: 0 0 22px rgba(52, 199, 89, 0.35);
+    background: #ffffff;
+    border-color: #ffffff;
+    box-shadow: 0 8px 25px rgba(15, 23, 42, 0.2);
+}
+.success-modal-title {
+    color: #ffffff !important;
+    font-size: 19px !important;
+    font-weight: 800 !important;
+    margin: 0 0 6px 0 !important;
+    letter-spacing: -0.2px;
+    text-shadow: 0 2px 6px rgba(15, 23, 42, 0.2);
+}
+.success-modal-sub {
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-size: 13.5px !important;
+    margin: 0 !important;
+    font-weight: 500 !important;
+    text-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+}
+.circular-spinner .spinner-track {
+    stroke: rgba(255, 255, 255, 0.35) !important;
+}
+.circular-spinner .spinner-head {
+    stroke: #ffffff !important;
+}
+.modal-check-mark {
+    color: #0284c7 !important;
+    font-size: 24px !important;
 }
 .auth-2fa-overlay {
     position: fixed;
