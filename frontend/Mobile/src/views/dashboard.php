@@ -913,7 +913,7 @@ if (is_dir($imgDir)) {
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         }
 
-        async function loadNearMe(userLat, userLng) {
+        async function loadNearMe(userLat, userLng, preferredLocationName) {
             const nearContainer = document.getElementById('near-me-container');
             if (!nearContainer) return;
 
@@ -932,13 +932,60 @@ if (is_dir($imgDir)) {
                         <i class="fa-solid fa-location-crosshairs"></i>
                     </div>
                     <div class="dash-empty-title">Location Access Needed</div>
-                    <div class="dash-empty-desc">Enable location access to discover tourist spots near your current location.</div>
+                    <div class="dash-empty-desc">Enable location access to discover tourist spots in your location.</div>
                     <button type="button" onclick="if(window.locateMeForWeather) window.locateMeForWeather();" class="dash-empty-btn">
                         <i class="fa-solid fa-location-arrow"></i> Enable Location
                     </button>
                 </div>
             `;
                 return;
+            }
+
+            // Identify user's municipality in La Union
+            const munis = [
+                { name: 'San Fernando City', lat: 16.6159, lng: 120.3167 },
+                { name: 'San Juan', lat: 16.6731, lng: 120.3320 },
+                { name: 'Bauang', lat: 16.5319, lng: 120.3298 },
+                { name: 'Bacnotan', lat: 16.7340, lng: 120.3530 },
+                { name: 'Balaoan', lat: 16.8200, lng: 120.4000 },
+                { name: 'Luna', lat: 16.8554, lng: 120.3832 },
+                { name: 'Bangar', lat: 16.8942, lng: 120.4298 },
+                { name: 'Sudipen', lat: 16.8734, lng: 120.5200 },
+                { name: 'Santol', lat: 16.7800, lng: 120.5400 },
+                { name: 'San Gabriel', lat: 16.7150, lng: 120.5600 },
+                { name: 'Bagulin', lat: 16.6100, lng: 120.5000 },
+                { name: 'Burgos', lat: 16.5990, lng: 120.5330 },
+                { name: 'Naguilian', lat: 16.5366, lng: 120.3926 },
+                { name: 'Caba', lat: 16.4318, lng: 120.3456 },
+                { name: 'Aringay', lat: 16.3946, lng: 120.3543 },
+                { name: 'Agoo', lat: 16.3223, lng: 120.3670 },
+                { name: 'Tubao', lat: 16.3470, lng: 120.4126 },
+                { name: 'Pugo', lat: 16.3350, lng: 120.4850 },
+                { name: 'Santo Tomas', lat: 16.2650, lng: 120.3850 },
+                { name: 'Rosario', lat: 16.2100, lng: 120.4300 }
+            ];
+
+            let detectedMuni = preferredLocationName || null;
+            let closestMuni = null;
+            let minMuniDistance = 999999;
+            munis.forEach(m => {
+                const dist = getDistance(uLat, uLng, m.lat, m.lng);
+                if (dist < minMuniDistance) {
+                    minMuniDistance = dist;
+                    closestMuni = m;
+                }
+            });
+
+            if (!detectedMuni && closestMuni) {
+                detectedMuni = closestMuni.name;
+            }
+            window.userCurrentMunicipality = detectedMuni;
+
+            // Update Section Header to indicate user's location
+            const nearSectionHeader = document.querySelector('#near-me-container')?.closest('.dash-section')?.querySelector('.section-title h3');
+            if (nearSectionHeader && detectedMuni) {
+                const cleanName = detectedMuni.replace(' City', '').replace(', La Union', '');
+                nearSectionHeader.innerHTML = `Near Me <span style="font-size:12px; font-weight:700; color:#38bdf8; margin-left:6px; background:rgba(56,189,248,0.15); padding:2px 8px; border-radius:12px;"><i class="fa-solid fa-location-dot"></i> ${cleanName}</span>`;
             }
 
             const cacheKey = 'public_map_data';
@@ -987,19 +1034,21 @@ if (is_dir($imgDir)) {
 
                     // Sort by nearest distance first
                     spots.sort((a, b) => a.distance - b.distance);
-                    window.allNearSpots = spots;
 
-                    // Progressive distance filter:
-                    // 1. If spots within 5 km exist, show them.
-                    // 2. If none within 5 km, show spots within 15 km.
-                    // 3. Otherwise show closest 4 spots across La Union.
-                    let nearSpots = spots.filter(s => s.distance <= 5.0);
-                    if (nearSpots.length === 0) {
-                        nearSpots = spots.filter(s => s.distance <= 15.0);
-                    }
-                    if (nearSpots.length === 0 && spots.length > 0) {
-                        nearSpots = spots.filter(s => s.distance < 999999).slice(0, 4);
-                    }
+                    // Filter ONLY spots strictly in the user's location:
+                    // 1. Same municipality as detected user location (<= 12 km), OR
+                    // 2. Immediate proximity (<= 5.0 km)
+                    // Never show spots farther than 10 km away!
+                    const cleanTargetMuni = (detectedMuni || '').toLowerCase().replace(' city', '').replace(', la union', '').trim();
+
+                    let nearSpots = spots.filter(s => {
+                        if (s.distance > 10.0) return false;
+                        const sMuni = (s.municipality || s.location || '').toLowerCase().trim();
+                        const isSameMuni = cleanTargetMuni && (sMuni.includes(cleanTargetMuni) || cleanTargetMuni.includes(sMuni));
+                        return isSameMuni || s.distance <= 5.0;
+                    });
+
+                    window.allNearSpots = nearSpots;
                     window.lastNearSpots = nearSpots;
 
                     if (nearSpots.length > 0) {
@@ -1044,13 +1093,14 @@ if (is_dir($imgDir)) {
                         nearContainer.style.paddingRight = '0';
                         nearContainer.style.marginLeft = '0';
                         nearContainer.style.marginRight = '0';
+                        const locLabel = detectedMuni ? detectedMuni.replace(', La Union', '') : 'your location';
                         nearContainer.innerHTML = `
                         <div class="dash-empty-state">
                             <div class="dash-empty-icon-wrap">
                                 <i class="fa-solid fa-location-dot"></i>
                             </div>
-                            <div class="dash-empty-title">No Spots Nearby</div>
-                            <div class="dash-empty-desc">Discover destinations and attractions across La Union on the map.</div>
+                            <div class="dash-empty-title">No Tourist Sites in ${locLabel}</div>
+                            <div class="dash-empty-desc">There are no tourist spots recorded in your immediate location yet. Discover attractions across La Union on the map.</div>
                             <button type="button" onclick="navigateTo('map')" class="dash-empty-btn">
                                 <i class="fa-solid fa-map-location-dot"></i> Explore Map
                             </button>
@@ -1062,6 +1112,7 @@ if (is_dir($imgDir)) {
                 60000 // 1 minute TTL
             );
         }
+        window.loadNearMe = loadNearMe;
 
         window.buildRecommendedItem = function (dest) {
             const img = window.getDestImage(dest, 300);
@@ -1841,11 +1892,13 @@ if (is_dir($imgDir)) {
                     const parsed = JSON.parse(manual);
                     if (parsed && parsed.lat && parsed.lng) {
                         window.fetchWeather(parsed.lat, parsed.lng, parsed.name || 'La Union', false);
+                        if (typeof window.loadNearMe === 'function') window.loadNearMe(parsed.lat, parsed.lng, parsed.name);
                         return;
                     }
                 }
             } catch (e) { }
             window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
+            if (typeof window.loadNearMe === 'function') window.loadNearMe(16.6159, 120.3209, 'San Fernando City');
         };
 
         if (typeof window.requestPreciseLocation === 'function') {
@@ -1957,6 +2010,9 @@ if (is_dir($imgDir)) {
             const lng = parseFloat(parts[1]);
             const name = parts[2];
             window.fetchWeather(lat, lng, name + ', La Union', false);
+            if (typeof window.loadNearMe === 'function') {
+                window.loadNearMe(lat, lng, name);
+            }
         }
     };
 
