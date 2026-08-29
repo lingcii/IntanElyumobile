@@ -227,8 +227,17 @@ $activeTab = 'leaderboard';
         function renderLeaderboardUI() {
             if (!rawLeadersList) return;
 
+            // Filter out users with no points, no visited, or no XP based on active sort mode
+            let leaders = (rawLeadersList || []).filter(u => {
+                const xp = parseInt(u.total_points || u.total_xp || u.xp || 0);
+                const pts = parseInt(u.claimable_points || u.points || 0);
+                const act = parseInt(u.completed_activities || u.places_visited || 0);
+                if (currentSortMode === 'points') return pts > 0;
+                if (currentSortMode === 'visited') return act > 0;
+                return xp > 0;
+            });
+
             // Sort items based on current sort mode
-            let leaders = [...rawLeadersList];
             if (currentSortMode === 'points') {
                 leaders.sort((a, b) => {
                     const ptsA = parseInt(a.claimable_points || a.points || 0);
@@ -260,7 +269,7 @@ $activeTab = 'leaderboard';
 
             const countBadge = document.getElementById('explorers-count-badge');
             if (countBadge) {
-                countBadge.textContent = `Top ${Math.min(leaders.length, 10)} Explorers`;
+                countBadge.textContent = leaders.length > 0 ? `Top ${Math.min(leaders.length, 10)} Explorers` : '0 Explorers';
             }
 
             // Render Standing Banner
@@ -273,11 +282,12 @@ $activeTab = 'leaderboard';
             if (banner) {
                 banner.style.display = 'flex';
                 const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                const myRankNum = cachedMyRank && cachedMyRank < 999 ? cachedMyRank : 1;
-                const myDisplayName = `${myRankNum}# Explorer`;
                 const myXp = cachedMeData ? parseInt(cachedMeData.xp ?? cachedMeData.total_xp ?? 0) : (authUser.xp || 0);
                 const myPts = cachedMeData ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? cachedMeData.claimable_points ?? 0) : (authUser.points || 0);
                 const myActivities = cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.places_visited ?? 0) : 0;
+                const isUnranked = (myXp === 0 && myPts === 0 && myActivities === 0);
+                const myRankNum = (!isUnranked && cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (isUnranked ? '—' : 1);
+                const myDisplayName = isUnranked ? 'Unranked Explorer' : `${myRankNum}# Explorer`;
                 const myLevel = Math.floor(myXp / 1000) + 1;
                 const myRawName = (cachedMeData ? (cachedMeData.name || cachedMeData.full_name) : (authUser.name || authUser.full_name || 'Explorer')).replace(/[^a-zA-Z\s]/g, '').trim() || 'Explorer';
                 const myAvatar = cachedMeData && cachedMeData.avatar ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myRawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
@@ -296,7 +306,9 @@ $activeTab = 'leaderboard';
                 if (avatarEl) avatarEl.src = myAvatar;
                 if (titleEl) titleEl.textContent = myDisplayName;
                 if (rankCircle) {
-                    if (cachedMyRank && cachedMyRank < 999) {
+                    if (isUnranked) {
+                        rankCircle.textContent = '—';
+                    } else if (cachedMyRank && cachedMyRank < 999) {
                         rankCircle.textContent = '#' + cachedMyRank;
                     } else {
                         rankCircle.textContent = '★';
@@ -309,10 +321,26 @@ $activeTab = 'leaderboard';
 
             // Render Podium (1st, 2nd, 3rd)
             let podiumHTML = '';
-            if (leaders[1]) podiumHTML += generatePodiumPlace(leaders[1], 2);
-            if (leaders[0]) podiumHTML += generatePodiumPlace(leaders[0], 1);
-            if (leaders[2]) podiumHTML += generatePodiumPlace(leaders[2], 3);
-            if (podiumContainer) podiumContainer.innerHTML = podiumHTML;
+            if (leaders.length === 0) {
+                if (podiumContainer) {
+                    podiumContainer.innerHTML = `
+                        <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 32px 16px; background: rgba(30, 58, 138, 0.4); border-radius: 24px; backdrop-filter: blur(16px); margin-bottom: 20px; border:none !important; outline:none !important;">
+                            <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(245, 158, 11, 0.18); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #f59e0b; font-size: 22px; border:none !important;">
+                                <i class="fa-solid fa-trophy"></i>
+                            </div>
+                            <div style="font-size: 15px; font-weight: 800; color: #ffffff; margin-bottom: 5px;">No Ranked Explorers Yet</div>
+                            <div style="font-size: 12px; color: rgba(255,255,255,0.75); max-width: 270px; margin: 0 auto; line-height: 1.4;">
+                                Visit attractions across La Union, check in, and earn XP to claim the #1 spot on the leaderboard!
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                if (leaders[1]) podiumHTML += generatePodiumPlace(leaders[1], 2);
+                if (leaders[0]) podiumHTML += generatePodiumPlace(leaders[0], 1);
+                if (leaders[2]) podiumHTML += generatePodiumPlace(leaders[2], 3);
+                if (podiumContainer) podiumContainer.innerHTML = podiumHTML;
+            }
 
             // Render Rank List (Ranks 4 to 10 - capped strictly at 10 total)
             let rankListHTML = '';
@@ -324,7 +352,7 @@ $activeTab = 'leaderboard';
                 }
             }
 
-            if (cachedMeData && cachedMyRank > 10 && cachedMyRank <= 999) {
+            if (cachedMeData && cachedMyRank > 10 && cachedMyRank <= 999 && !isUnranked) {
                 rankListHTML += generateRankItem(cachedMeData, cachedMyRank, true);
             }
 

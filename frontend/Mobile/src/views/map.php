@@ -79,14 +79,68 @@ if (is_dir($imgDir)) {
         </div>
     </div>
 
-    <!-- Classification Color Legend (Floating at Bottom Center) -->
-    <div class="map-classification-legend"
-        style="position: absolute; bottom: calc(85px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 890; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 5px 14px; background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 100px; border: none !important; outline: none !important; font-size: 10.5px; font-weight: 800; color: #ffffff; white-space: nowrap; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4); pointer-events: none;">
-        <span style="display:inline-flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:50%; background:#34c759; box-shadow:0 0 6px #34c759;"></span> Existing</span>
-        <span style="color:rgba(255,255,255,0.3);">•</span>
-        <span style="display:inline-flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:50%; background:#38bdf8; box-shadow:0 0 6px #38bdf8;"></span> Emerging</span>
-        <span style="color:rgba(255,255,255,0.3);">•</span>
-        <span style="display:inline-flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:50%; background:#f59e0b; box-shadow:0 0 6px #f59e0b;"></span> Potential</span>
+    <!-- Classification Toggle Button & Popover (Replaces plain legend) -->
+    <div class="btn-classification-wrapper" style="position: absolute; bottom: calc(85px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 895;">
+        <!-- Popover showing the 3 Types of Classification -->
+        <div id="classification-popover" style="display: none; position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%) scale(0.95); opacity: 0; min-width: 250px; background: rgba(15, 23, 42, 0.94); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 20px; padding: 12px 14px; box-shadow: 0 12px 32px rgba(0,0,0,0.45); border: none !important; outline: none !important; transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.12);">
+                <span style="font-size: 11px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.6px;">
+                    <i class="fa-solid fa-tags" style="color: #38bdf8; margin-right: 5px;"></i> Classifications
+                </span>
+                <span onclick="window.toggleClassificationMenu(false)" style="cursor: pointer; color: rgba(255,255,255,0.6); font-size: 12px; padding: 2px 4px;"><i class="fa-solid fa-xmark"></i></span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <!-- 1. Existing -->
+                <div class="classification-item-chip" onclick="window.filterByClassification('EXIST')" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(52, 199, 89, 0.15); transition: background 0.15s ease;">
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #34c759; box-shadow: 0 0 8px #34c759; flex-shrink: 0;"></span>
+                    <div style="flex: 1;">
+                        <div style="font-size: 12px; font-weight: 800; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
+                            <span>Existing</span>
+                            <span id="count-exist" style="font-size: 10px; font-weight: 800; color: #34c759;">Site</span>
+                        </div>
+                        <div style="font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 500;">Fully developed spots & facilities</div>
+                    </div>
+                </div>
+                <!-- 2. Emerging -->
+                <div class="classification-item-chip" onclick="window.filterByClassification('EMERGE')" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(56, 189, 248, 0.15); transition: background 0.15s ease;">
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 8px #38bdf8; flex-shrink: 0;"></span>
+                    <div style="flex: 1;">
+                        <div style="font-size: 12px; font-weight: 800; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
+                            <span>Emerging</span>
+                            <span id="count-emerge" style="font-size: 10px; font-weight: 800; color: #38bdf8;">Site</span>
+                        </div>
+                        <div style="font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 500;">Rising attractions gaining visitors</div>
+                    </div>
+                </div>
+                <!-- 3. Potential -->
+                <div class="classification-item-chip" onclick="window.filterByClassification('POTENTIAL')" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(245, 158, 11, 0.15); transition: background 0.15s ease;">
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 8px #f59e0b; flex-shrink: 0;"></span>
+                    <div style="flex: 1;">
+                        <div style="font-size: 12px; font-weight: 800; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
+                            <span>Potential</span>
+                            <span id="count-potential" style="font-size: 10px; font-weight: 800; color: #f59e0b;">Site</span>
+                        </div>
+                        <div style="font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 500;">Unspoiled spots with high promise</div>
+                    </div>
+                </div>
+            </div>
+            <div onclick="window.filterByClassification('ALL')" style="cursor: pointer; margin-top: 8px; text-align: center; font-size: 11px; font-weight: 800; color: #38bdf8; padding: 5px; border-radius: 8px; background: rgba(255,255,255,0.06);">
+                Show All Classifications
+            </div>
+        </div>
+
+        <!-- The Trigger Button -->
+        <button type="button" id="btn-classification-toggle" onclick="window.toggleClassificationMenu()"
+            style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 7px 16px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 100px; border: none !important; outline: none !important; color: #ffffff; font-size: 11.5px; font-weight: 800; white-space: nowrap; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35); cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);"
+            onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+            <span style="display: flex; align-items: center; gap: 4px;">
+                <span style="width: 7px; height: 7px; border-radius: 50%; background: #34c759;"></span>
+                <span style="width: 7px; height: 7px; border-radius: 50%; background: #38bdf8;"></span>
+                <span style="width: 7px; height: 7px; border-radius: 50%; background: #f59e0b;"></span>
+            </span>
+            <span id="classification-btn-label">Classification</span>
+            <i class="fa-solid fa-chevron-up" id="classification-chevron" style="font-size: 9px; opacity: 0.8; transition: transform 0.25s ease;"></i>
+        </button>
     </div>
 
     <!-- Action Buttons Stack (Stacked on the Right Side) -->
@@ -1382,6 +1436,78 @@ if (is_dir($imgDir)) {
             container.innerHTML = html;
         }
 
+        window.activeClassificationFilter = null;
+
+        window.toggleClassificationMenu = function (forceState) {
+            const popover = document.getElementById('classification-popover');
+            const chevron = document.getElementById('classification-chevron');
+            if (!popover) return;
+
+            const isCurrentlyOpen = popover.style.display === 'block';
+            const nextState = typeof forceState === 'boolean' ? forceState : !isCurrentlyOpen;
+
+            if (nextState) {
+                // Update dynamic counts from currently loaded locations
+                const allLocs = window.allMapLocations || [];
+                let cExist = 0, cEmerge = 0, cPot = 0;
+                allLocs.forEach(loc => {
+                    const s = (loc.classification_status || 'EXIST').toUpperCase().trim();
+                    if (s === 'EMERGE' || s === 'EMERGING') cEmerge++;
+                    else if (s === 'POTENTIAL') cPot++;
+                    else cExist++;
+                });
+                const countExist = document.getElementById('count-exist');
+                const countEmerge = document.getElementById('count-emerge');
+                const countPot = document.getElementById('count-potential');
+                if (countExist) countExist.textContent = `${cExist} Sites`;
+                if (countEmerge) countEmerge.textContent = `${cEmerge} Sites`;
+                if (countPot) countPot.textContent = `${cPot} Sites`;
+
+                popover.style.display = 'block';
+                requestAnimationFrame(() => {
+                    popover.style.opacity = '1';
+                    popover.style.transform = 'translateX(-50%) scale(1)';
+                    popover.style.pointerEvents = 'auto';
+                });
+                if (chevron) chevron.style.transform = 'rotate(180deg)';
+            } else {
+                popover.style.opacity = '0';
+                popover.style.transform = 'translateX(-50%) scale(0.95)';
+                popover.style.pointerEvents = 'none';
+                if (chevron) chevron.style.transform = 'rotate(0deg)';
+                setTimeout(() => {
+                    if (popover.style.opacity === '0') popover.style.display = 'none';
+                }, 200);
+            }
+        };
+
+        window.filterByClassification = function (statusKey) {
+            window.activeClassificationFilter = (statusKey === 'ALL') ? null : statusKey;
+            const labelEl = document.getElementById('classification-btn-label');
+            if (labelEl) {
+                if (statusKey === 'ALL' || !statusKey) {
+                    labelEl.textContent = 'Classification';
+                } else if (statusKey === 'EXIST') {
+                    labelEl.textContent = 'Existing';
+                } else if (statusKey === 'EMERGE') {
+                    labelEl.textContent = 'Emerging';
+                } else if (statusKey === 'POTENTIAL') {
+                    labelEl.textContent = 'Potential';
+                }
+            }
+            window.toggleClassificationMenu(false);
+
+            // Re-run filterCategory with the active category
+            const activeCatEl = document.querySelector('.category-pill.active');
+            window.filterCategory(window.currentActiveCategory || 'All', activeCatEl);
+        };
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.btn-classification-wrapper')) {
+                window.toggleClassificationMenu(false);
+            }
+        });
+
         window.filterCategory = function (category, element) {
             window.currentActiveCategory = category;
             document.querySelectorAll('.category-pill').forEach(pill => pill.classList.remove('active'));
@@ -1396,7 +1522,18 @@ if (is_dir($imgDir)) {
                 const locCat = loc.category ? loc.category.toLowerCase() : '';
                 const matchesSearch = !searchText || (name.includes(searchText) || location.includes(searchText) || locCat.includes(searchText));
                 const matchesCat = matchesCategoryFilter(loc, category);
-                return matchesSearch && matchesCat;
+
+                let matchesStatus = true;
+                if (window.activeClassificationFilter) {
+                    const s = (loc.classification_status || 'EXIST').toUpperCase().trim();
+                    if (window.activeClassificationFilter === 'EMERGE') {
+                        matchesStatus = (s === 'EMERGE' || s === 'EMERGING');
+                    } else {
+                        matchesStatus = (s === window.activeClassificationFilter);
+                    }
+                }
+
+                return matchesSearch && matchesCat && matchesStatus;
             });
 
             window.renderMarkers(filtered);

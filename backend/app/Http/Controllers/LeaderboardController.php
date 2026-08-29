@@ -42,6 +42,7 @@ class LeaderboardController extends Controller
                 FROM users u
                 LEFT JOIN municipalities m ON u.municipality_id = m.id
                 WHERE u.role = 'tourist'
+                  AND (COALESCE(u.xp, 0) > 0 OR COALESCE(u.points, 0) > 0 OR COALESCE(u.completed_activities, 0) > 0)
                 GROUP BY u.id, u.name, u.email, u.avatar, u.home_location, m.name, u.bio, u.is_leaderboard_private, u.last_activity, u.xp, u.points, u.completed_activities, u.created_at
             ),
             ranked AS (

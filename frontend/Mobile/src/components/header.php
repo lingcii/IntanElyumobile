@@ -5,14 +5,16 @@
         top: 0;
         left: 0;
         right: 0;
-        background: rgba(30, 58, 138, 0.88) !important;
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(30, 58, 138, 0.92) !important;
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: none !important;
+        outline: none !important;
+        border-bottom: none !important;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 10px 20px; /* 10px top/bottom, 20px sides */
+        padding: 10px 18px;
         z-index: 9000 !important;
         /* Ensure Android gets safe padding since safe-area-inset-top is sometimes 0 on Android WebViews */
         padding-top: max(env(safe-area-inset-top), 40px);
@@ -24,20 +26,38 @@
         font-weight: 800;
         color: #ffffff !important;
         margin: 0;
+        letter-spacing: -0.3px;
+        text-align: center;
+        flex: 1;
     }
     
     .header-icon {
         color: #ffffff !important;
-        font-size: 20px;
+        font-size: 16px;
         cursor: pointer;
-        padding: 8px;
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.14);
+        display: flex;
+        align-items: center;
+        justify-content: center;
         position: relative;
+        border: none !important;
+        outline: none !important;
+        flex-shrink: 0;
+        transition: transform 0.15s ease, background 0.15s ease;
+    }
+    
+    .header-icon:active {
+        transform: scale(0.92);
+        background: rgba(255, 255, 255, 0.24);
     }
     
     .header-icon .bell-dot {
         position: absolute;
-        top: 6px;
-        right: 6px;
+        top: 8px;
+        right: 8px;
         width: 8px;
         height: 8px;
         background: #00f2fe;
@@ -70,16 +90,16 @@
 
 <div class="mobile-header">
     <?php if (isset($backRoute) && $backRoute): ?>
-        <div class="header-icon" style="width: 36px; padding: 8px 0; text-align: left;" onclick="navigateTo('<?php echo htmlspecialchars($backRoute); ?>')">
+        <div class="header-icon" onclick="navigateTo('<?php echo htmlspecialchars($backRoute); ?>')" title="Back">
             <i class="fa-solid fa-arrow-left"></i>
         </div>
     <?php else: ?>
-        <div class="header-icon" style="width: 36px; padding: 8px 0; text-align: left;" onclick="toggleSidebar()">
+        <div class="header-icon" onclick="toggleSidebar()" title="Menu">
             <i class="fa-solid fa-bars"></i>
         </div>
     <?php endif; ?>
     <h1 class="header-title"><?php echo isset($pageTitle) ? $pageTitle : 'Intan Elyu'; ?></h1>
-    <div class="header-icon" onclick="toggleNotifications()">
+    <div class="header-icon" onclick="toggleNotifications()" title="Notifications">
         <i class="fa-regular fa-bell" id="bell-icon"></i>
         <div class="bell-dot" id="bell-dot"></div>
     </div>
@@ -178,9 +198,9 @@
     </div>
 
     <!-- Sidebar Bottom Footer -->
-    <div style="padding: 16px 20px; border-top: none; background: rgba(30, 75, 135, 0.58);">
-        <a href="#" onclick="logoutUser(); return false;" style="color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 13px; background: rgba(239,68,68,0.25); border: none !important; outline: none !important; border-radius: 14px; transition: all 0.2s;">
-            <i class="fa-solid fa-right-from-bracket" style="color: #ff453a;"></i> Log Out
+    <div style="padding: 16px 20px; border-top: none; background: rgba(15, 23, 42, 0.45);">
+        <a href="#" onclick="logoutUser(); return false;" id="sidebar-logout-btn" style="color: #ffffff !important; text-decoration: none; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; border: none !important; outline: none !important; border-radius: 14px; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4); transition: transform 0.15s ease, opacity 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+            <i class="fa-solid fa-right-from-bracket" style="color: #ffffff !important; font-size: 16px;"></i> Log Out
         </a>
     </div>
 </div>
