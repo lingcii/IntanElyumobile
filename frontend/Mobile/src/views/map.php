@@ -79,10 +79,10 @@ if (is_dir($imgDir)) {
         </div>
     </div>
 
-    <!-- Classification Toggle Button & Popover (Positioned on Left Side Corner) -->
-    <div class="btn-classification-wrapper" style="position: absolute; bottom: calc(82px + env(safe-area-inset-bottom)); left: 12px; z-index: 895;">
+    <!-- Classification Toggle Button & Popover (Vertical on Left Side Corner) -->
+    <div class="btn-classification-wrapper" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); left: 10px; z-index: 895;">
         <!-- Popover showing the 3 Types of Classification -->
-        <div id="classification-popover" style="display: none; position: absolute; bottom: calc(100% + 8px); left: 0; transform-origin: bottom left; transform: scale(0.95); opacity: 0; width: 250px; background: rgba(15, 23, 42, 0.94); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 20px; padding: 12px 14px; box-shadow: 0 12px 32px rgba(0,0,0,0.45); border: none !important; outline: none !important; transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none;">
+        <div id="classification-popover" style="display: none; position: absolute; bottom: 0; left: calc(100% + 10px); transform-origin: bottom left; transform: scale(0.95); opacity: 0; width: 250px; background: rgba(15, 23, 42, 0.94); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 20px; padding: 12px 14px; box-shadow: 0 12px 32px rgba(0,0,0,0.45); border: none !important; outline: none !important; transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.12);">
                 <span style="font-size: 11px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.6px;">
                     <i class="fa-solid fa-tags" style="color: #38bdf8; margin-right: 5px;"></i> Classifications
@@ -129,17 +129,19 @@ if (is_dir($imgDir)) {
             </div>
         </div>
 
-        <!-- The Trigger Button -->
+        <!-- The Vertical Trigger Button (Styled with matching blue gradient as other buttons) -->
         <button type="button" id="btn-classification-toggle" onclick="window.toggleClassificationMenu()"
-            style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 7px 16px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 100px; border: none !important; outline: none !important; color: #ffffff; font-size: 11.5px; font-weight: 800; white-space: nowrap; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35); cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);"
-            onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
-            <span style="display: flex; align-items: center; gap: 4px;">
-                <span style="width: 7px; height: 7px; border-radius: 50%; background: #34c759;"></span>
-                <span style="width: 7px; height: 7px; border-radius: 50%; background: #38bdf8;"></span>
-                <span style="width: 7px; height: 7px; border-radius: 50%; background: #f59e0b;"></span>
+            style="width: 44px; min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 8px 4px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%) !important; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 12px; border: none !important; outline: none !important; color: #ffffff; box-shadow: 0 8px 20px rgba(10, 25, 60, 0.3); cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);"
+            onpointerdown="this.style.transform='scale(0.94)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'"
+            title="Classifications">
+            <!-- 3 Vertical Classification Dots -->
+            <span style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                <span id="dot-exist" style="width: 7px; height: 7px; border-radius: 50%; background: #34c759; box-shadow: 0 0 5px rgba(52,199,89,0.8); transition: transform 0.2s ease, opacity 0.2s ease;"></span>
+                <span id="dot-emerge" style="width: 7px; height: 7px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 5px rgba(56,189,248,0.8); transition: transform 0.2s ease, opacity 0.2s ease;"></span>
+                <span id="dot-potential" style="width: 7px; height: 7px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 5px rgba(245,158,11,0.8); transition: transform 0.2s ease, opacity 0.2s ease;"></span>
             </span>
-            <span id="classification-btn-label">Classification</span>
-            <i class="fa-solid fa-chevron-up" id="classification-chevron" style="font-size: 9px; opacity: 0.8; transition: transform 0.25s ease;"></i>
+            <span id="classification-btn-label" style="font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: #ffffff; line-height: 1; text-align: center; max-width: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Class</span>
+            <i class="fa-solid fa-chevron-right" id="classification-chevron" style="font-size: 8px; opacity: 0.85; transition: transform 0.25s ease;"></i>
         </button>
     </div>
 
