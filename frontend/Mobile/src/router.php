@@ -72,6 +72,7 @@ function proxyAndCacheImage($sourceUrl, $cachePath, $cacheDir) {
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HEADER, true);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_ENCODING, '');
     curl_setopt($ch, CURLOPT_TIMEOUT, 15);
     $response = curl_exec($ch);
     $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
@@ -145,15 +146,17 @@ if (strpos($path, '/api/') === 0) {
     curl_setopt($ch, CURLOPT_HEADER, true);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $_SERVER['REQUEST_METHOD']);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_ENCODING, '');
 
-    $headers = getallheaders();
+    $headers = function_exists('getallheaders') ? getallheaders() : [];
     $curlHeaders = [];
     $hasAuth = false;
     foreach ($headers as $key => $value) {
-        if (strtolower($key) !== 'host') {
+        $lower = strtolower($key);
+        if ($lower !== 'host' && $lower !== 'accept-encoding' && $lower !== 'content-length') {
             $curlHeaders[] = "$key: $value";
         }
-        if (strtolower($key) === 'authorization') {
+        if ($lower === 'authorization') {
             $hasAuth = true;
         }
     }

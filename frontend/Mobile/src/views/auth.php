@@ -1879,13 +1879,20 @@
                 };
             }
 
-            const backend = (typeof window.getBackendUrl === 'function') ? window.getBackendUrl() : (window.backendUrl || 'https://app.intan-elyu.online');
+            const backend = (typeof window.getBackendUrl === 'function') ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online');
             const fetchRes = await fetch(backend + '/api/auth/google', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify(payloadData)
             });
-            const data = await fetchRes.json();
+            const text = await fetchRes.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                console.error('Non-JSON response from Google auth endpoint:', text.substring(0, 200));
+                throw new Error('Invalid response from server. Please try again.');
+            }
             
             if (!fetchRes.ok) {
                 throw new Error(data.message || data.error || 'Google login failed');
