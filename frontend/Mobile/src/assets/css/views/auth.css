@@ -587,23 +587,77 @@ body[data-view="auth"] {
     color: #34d399 !important;
 }
 
-/* Forgot Password Link */
-.forgot-pwd {
-    display: block;
-    text-align: right;
-    color: rgba(15, 23, 42, 0.75);
-    font-size: 13px;
-    text-decoration: none;
+/* Auth Options Row (Remember Me + Forgot Password) */
+.auth-options-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
     margin-bottom: 16px;
-    margin-top: 0px;
-    font-weight: 700;
-    transition: color 0.2s ease;
+    margin-top: 2px;
+    padding: 0 4px;
+    box-sizing: border-box;
     opacity: 0;
     animation: popUpSmooth 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.25s;
 }
 
+.remember-me-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(15, 23, 42, 0.75);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.remember-me-label span {
+    transition: color 0.2s ease;
+}
+
+.remember-me-label:hover span {
+    color: #0f172a;
+}
+
+/* Forgot Password Link */
+.forgot-pwd {
+    display: inline-block;
+    text-align: right;
+    color: rgba(15, 23, 42, 0.75);
+    font-size: 13px;
+    text-decoration: none;
+    margin: 0;
+    font-weight: 700;
+    transition: color 0.2s ease;
+}
+
 .forgot-pwd:hover {
     color: #0f172a;
+}
+
+/* Switch between Login and Register Prompts below Google button */
+.auth-switch-prompt {
+    margin: 12px 0 2px 0;
+    font-size: 13px;
+    color: rgba(15, 23, 42, 0.75);
+    font-weight: 500;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.auth-switch-link {
+    color: #1e3a8a;
+    font-weight: 700;
+    text-decoration: none;
+    transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.auth-switch-link:hover,
+.auth-switch-link:active {
+    color: #0f172a;
+    text-decoration: underline;
 }
 
 /* Liquid Morphing Blob Submit Button */
