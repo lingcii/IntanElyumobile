@@ -461,16 +461,6 @@
         <div class="logo-inner">
           <img id="dl-logo" src="assets/img/logo.png" alt="Intan Elyu Logo"
             onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fa-solid fa-compass\'></i>';">
-          <script>
-            (function () {
-              var img = document.getElementById('dl-logo');
-              if (img) {
-                var bUrl = window.backendUrl || 'https://api.intan-elyu.online';
-                img.src = bUrl + '/api/image/storage/Logo/intan-elyu-logo.png';
-                img.onerror = function () { this.onerror = null; this.src = 'assets/img/logo.png'; };
-              }
-            })();
-          </script>
         </div>
       </div>
       <h1>Download <span>Intan Elyu</span></h1>
