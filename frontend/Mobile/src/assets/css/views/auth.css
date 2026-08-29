@@ -51,15 +51,15 @@ body[data-view="auth"] {
 
 /* Circle Logo */
 .logo-container {
-    width: 118px;
-    height: 118px;
+    width: 140px;
+    height: 140px;
     background: #ffffff;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 10px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    margin-bottom: 8px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
     padding: 5px;
     position: relative;
     z-index: 10;
@@ -74,7 +74,7 @@ body[data-view="auth"] {
 }
 
 .auth-top h1 {
-    font-size: 23px;
+    font-size: 21px;
     font-weight: 800;
     color: #ffffff;
     margin: 0;
@@ -106,7 +106,7 @@ body[data-view="auth"] {
 .wave-bottom svg {
     display: block;
     width: 200vw;
-    height: 52px;
+    height: 55px;
 }
 
 .wave-layer {

@@ -146,7 +146,7 @@
 .wave-bottom svg {
     display: block;
     width: 200vw;
-    height: 65px;
+    height: 55px;
 }
 
 .wave-layer {
@@ -177,7 +177,7 @@
 
 /* Transition to Auth State */
 .splash-container.transition-to-auth .wave-wrapper {
-    height: calc(100vh - clamp(280px, 42vh, 350px));
+    height: calc(100vh - clamp(250px, 38vh, 330px));
     /* Matches auth-bottom height */
 }
 
@@ -194,9 +194,8 @@
     display: inline-block;
 }
 
-/* Animate the logo icon to its new position and size on the auth screen */
+/* Animate the logo icon to its new position on the auth screen without shrinking */
 .splash-container.transition-to-auth .splash-logo-container {
-    transform: translateY(calc(-50vh + 210px)) scale(1) !important;
     transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
