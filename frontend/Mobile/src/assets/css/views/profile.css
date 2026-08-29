@@ -42,11 +42,10 @@ body[data-view="profile"] .mobile-header .header-icon {
 }
 
 /* Profile Header Card */
-.profile-header {
-    background: rgba(30, 75, 135, 0.58) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+body[data-view="profile"] .profile-header {
+    background: #6196c8 !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 24px !important;
     padding: 24px 20px !important;
     text-align: center !important;
@@ -94,10 +93,9 @@ body[data-view="profile"] .mobile-header .header-icon {
 }
 
 .stats-container .stat-card {
-    background: rgba(30, 75, 135, 0.58) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+    background: #6196c8 !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 20px !important;
     padding: 16px 8px !important;
     text-align: center !important;
@@ -130,10 +128,9 @@ body[data-view="profile"] .mobile-header .header-icon {
 
 /* Settings & Account Group Card */
 .settings-group {
-    background: rgba(30, 75, 135, 0.58) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+    background: #6196c8 !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 20px !important;
     overflow: hidden !important;
     margin-bottom: 40px !important;
