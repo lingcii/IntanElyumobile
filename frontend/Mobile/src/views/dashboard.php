@@ -35,7 +35,7 @@ if (is_dir($imgDir)) {
 
     <!-- Profile + EXP Card -->
     <div class="profile-header stagger-1" onclick="navigateTo('profile')"
-        style="background: #6196c8 !important; border: none !important; outline: none !important; box-shadow: none !important;">
+        style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: 1.5px solid rgba(255, 255, 255, 0.28) !important; outline: none !important; box-shadow: 0 10px 24px rgba(10, 25, 60, 0.25) !important;">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
             <div class="profile-info-row" style="margin-bottom:0; flex:1;">
                 <div class="profile-avatar">
@@ -128,7 +128,7 @@ if (is_dir($imgDir)) {
     <div id="weather-modal" onclick="if(event.target===this) window.closeWeatherModal()"
         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); backdrop-filter:blur(10px); z-index:99999; justify-content:center; align-items:flex-end;">
         <div
-            style="background:#6196c8; border:none; border-radius:28px 28px 0 0; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; padding:24px 20px; box-shadow:none; animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+            style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: 1.5px solid rgba(255, 255, 255, 0.28); border-radius:28px 28px 0 0; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; padding:24px 20px; box-shadow: 0 -8px 24px rgba(10, 25, 60, 0.3); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                 <div>
                     <h3
@@ -175,7 +175,7 @@ if (is_dir($imgDir)) {
 
     <!-- Gamification Panel -->
     <div class="weather-card stagger-2" onclick="navigateTo('puzzles')"
-        style="background: #6196c8; border: none; border-radius: 24px; box-shadow: none; margin-top: 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
+        style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: 1.5px solid rgba(255, 255, 255, 0.28) !important; border-radius: 24px; box-shadow: 0 10px 24px rgba(10, 25, 60, 0.22) !important; margin-top: 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="font-size: 32px; filter: none;">🧩</div>
             <div>
@@ -317,7 +317,7 @@ if (is_dir($imgDir)) {
 <div id="delete-trip-modal"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center;">
     <div
-        style="background:#6196c8; border:none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:none; text-align:center;">
+        style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: 1.5px solid rgba(255, 255, 255, 0.28); outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow: 0 12px 30px rgba(10, 25, 60, 0.4); text-align:center;">
         <i class="fa-solid fa-trash-can" style="font-size:32px; color:#ffffff; margin-bottom:10px; display:block;"></i>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Delete Saved Trip?</h3>
         <p id="delete-trip-title-text"
@@ -496,7 +496,7 @@ if (is_dir($imgDir)) {
                         </div>
                         <button id="btn-view-more-rec"
                             onclick="window.toggleRecommendedMore()"
-                            style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border:none; outline:none; background:#6196c8; color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:none; transition: all 0.2s;">
+                            style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border: 1.5px solid rgba(255, 255, 255, 0.28); outline:none; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 6px 16px rgba(10, 25, 60, 0.2); transition: all 0.2s;">
                             <i class="fa-solid fa-chevron-down" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i>
                             View ${extras.length} More
                         </button>
@@ -890,7 +890,7 @@ if (is_dir($imgDir)) {
                     </div>
                     <button id="btn-view-more-rec"
                         onclick="window.toggleRecommendedMore()"
-                        style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border:none; outline:none; background:#6196c8; color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:none; transition: all 0.2s;">
+                        style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border: 1.5px solid rgba(255, 255, 255, 0.28); outline:none; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 6px 16px rgba(10, 25, 60, 0.2); transition: all 0.2s;">
                         <i class="fa-solid fa-chevron-down" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i>
                         View ${extras.length} More
                     </button>
@@ -1317,7 +1317,7 @@ if (is_dir($imgDir)) {
                                     <div class="trip-swipe-bg" onclick="window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}')" style="position: absolute; top: 0; right: 0; bottom: 0; width: 85px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 0 20px 20px 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 800; gap: 4px; z-index: 1; opacity: 0; pointer-events: none; transform: translateX(85px); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease; cursor: pointer;">
                                         <i class="fa-solid fa-trash-can"></i> Delete
                                     </div>
-                                    <div class="trip-swipe-content" style="position: relative; z-index: 2; transition: transform 0.2s ease, border-radius 0.2s ease; background: #6196c8 !important; border: none !important; outline: none !important; border-radius: 20px; overflow: hidden; box-shadow: none !important;">
+                                    <div class="trip-swipe-content" style="position: relative; z-index: 2; transition: transform 0.2s ease, border-radius 0.2s ease; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: 1.5px solid rgba(255, 255, 255, 0.28) !important; outline: none !important; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 20px rgba(10, 25, 60, 0.2) !important;">
                                         <div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.toggle-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.paddingTop = '14px'; content.style.paddingBottom = '16px'; content.style.maxHeight = (content.scrollHeight + 50) + 'px'; content.style.opacity = '1'; icon.style.transform = 'rotate(90deg)'; } else { content.style.maxHeight = '0px'; content.style.opacity = '0'; content.style.paddingTop = '0'; content.style.paddingBottom = '0'; icon.style.transform = 'rotate(0deg)'; }" style="cursor:pointer; display:flex; align-items:center; gap: 14px; padding: 16px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.08)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
                                             <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(255, 255, 255, 0.22); border: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: none;">
                                                 <i class="fa-solid fa-map-location-dot" style="color: #ffffff; font-size: 20px;"></i>
@@ -2171,7 +2171,7 @@ if (is_dir($imgDir)) {
 <div id="delete-trip-modal"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center;">
     <div
-        style="background:#6196c8; border:none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:none; text-align:center;">
+        style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: 1.5px solid rgba(255, 255, 255, 0.28); outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow: 0 12px 30px rgba(10, 25, 60, 0.4); text-align:center;">
         <i class="fa-solid fa-trash-can" style="font-size:32px; color:#ffffff; margin-bottom:10px; display:block;"></i>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Delete Saved Trip?</h3>
         <p id="delete-trip-title-text"
