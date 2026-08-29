@@ -1314,11 +1314,73 @@ html.keyboard-open .btn-3d-view {
     transform: scale(0.9);
 }
 
-/* ── Municipality Cluster Markers ── */
+/* ── Smooth Marker Animations & Transitions ── */
+@keyframes elyuSpotBloom {
+    0% {
+        opacity: 0;
+        transform: scale(0.2) translateY(14px);
+    }
+    65% {
+        opacity: 1;
+        transform: scale(1.15) translateY(-3px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes elyuMuniPopIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3) translateY(10px);
+    }
+    70% {
+        opacity: 1;
+        transform: scale(1.12);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
 .elyu-muni-marker {
     will-change: transform;
     transform: translate3d(0, 0, 0);
     backface-visibility: hidden;
+}
+
+.elyu-muni-marker .muni-inner-wrapper {
+    animation: elyuMuniPopIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    transform-origin: center center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.elyu-custom-marker {
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+}
+
+.elyu-custom-marker .spot-inner-wrapper {
+    animation: elyuSpotBloom 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    transform-origin: center bottom;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.elyu-pin-bubble {
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease !important;
+}
+
+.elyu-pin-bubble:hover,
+.elyu-custom-marker:hover .elyu-pin-bubble {
+    transform: scale(1.22) translateY(-3px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3) !important;
 }
 
 /* ── Classification Popover & Chips ── */
