@@ -548,10 +548,10 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     justify-content: center;
     padding: 10px 6px;
     box-sizing: border-box;
-    box-shadow: 0 6px 16px rgba(10, 25, 60, 0.2) !important;
+    box-shadow: none !important;
     cursor: pointer;
     user-select: none;
-    transition: transform 0.25s ease, opacity 0.25s ease, box-shadow 0.25s ease;
+    transition: transform 0.25s ease, opacity 0.25s ease;
     scroll-snap-align: start;
 }
 
