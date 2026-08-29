@@ -10,7 +10,7 @@ $activeTab = 'profile';
 <div class="profile-container has-header has-bottom-nav animate-slide-up" style="padding-bottom: 90px;">
     
     <!-- Profile Main Header Card -->
-    <div class="profile-header stagger-1" style="background: rgba(30, 75, 135, 0.58); border: 1.5px solid rgba(255, 255, 255, 0.28); border-radius: 24px; padding: 24px 20px; text-align: center; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: none; margin-bottom: 20px;">
+    <div class="profile-header stagger-1" style="background: #6196c8; border: none; outline: none; border-radius: 24px; padding: 24px 20px; text-align: center; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: none; margin-bottom: 20px;">
         <div class="profile-avatar-container" style="position: relative; display: inline-block; margin-bottom: 12px;">
             <img src="https://ui-avatars.com/api/?name=User&background=007AFF&color=fff&rounded=true&bold=true&size=128" alt="Profile" class="profile-avatar" id="profile-img" style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #00f2fe; object-fit: cover; box-shadow: none;">
             <span id="profile-badge-icon" style="position: absolute; bottom: 2px; right: 2px; background: linear-gradient(135deg, #00f2fe, #0284c7); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; border: 2px solid #ffffff; box-shadow: none;" title="Explorer Level"><i class="fa-solid fa-shield-halved"></i></span>
@@ -28,22 +28,22 @@ $activeTab = 'profile';
     
     <!-- Stats Cards (XP, Visited, Rank) -->
     <div class="stats-container stagger-2" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
-        <div class="stat-card" style="background: rgba(30, 75, 135, 0.58); border: 1.5px solid rgba(255, 255, 255, 0.28); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 18px; padding: 14px 10px; text-align: center; box-shadow: none;">
+        <div class="stat-card" style="background: #6196c8; border: none; outline: none; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 18px; padding: 14px 10px; text-align: center; box-shadow: none;">
             <div class="stat-value" id="stat-xp" style="font-size: 20px; font-weight: 800; color: #00f2fe;">0</div>
             <div class="stat-label" style="font-size: 11px; font-weight: 700; color: #ffffff; opacity: 0.95; text-transform: uppercase; margin-top: 2px;">Total XP</div>
         </div>
-        <div class="stat-card" style="background: rgba(30, 75, 135, 0.58); border: 1.5px solid rgba(255, 255, 255, 0.28); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 18px; padding: 14px 10px; text-align: center; box-shadow: none;">
+        <div class="stat-card" style="background: #6196c8; border: none; outline: none; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 18px; padding: 14px 10px; text-align: center; box-shadow: none;">
             <div class="stat-value" id="stat-places" style="font-size: 20px; font-weight: 800; color: #ffffff;">0</div>
             <div class="stat-label" style="font-size: 11px; font-weight: 700; color: #ffffff; opacity: 0.95; text-transform: uppercase; margin-top: 2px;">Visited</div>
         </div>
-        <div class="stat-card" style="background: rgba(30, 75, 135, 0.58); border: 1.5px solid rgba(255, 255, 255, 0.28); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 18px; padding: 14px 10px; text-align: center; box-shadow: none;">
+        <div class="stat-card" style="background: #6196c8; border: none; outline: none; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 18px; padding: 14px 10px; text-align: center; box-shadow: none;">
             <div class="stat-value" id="stat-rank" style="font-size: 20px; font-weight: 800; color: #fbbf24;">—</div>
             <div class="stat-label" style="font-size: 11px; font-weight: 700; color: #ffffff; opacity: 0.95; text-transform: uppercase; margin-top: 2px;">Leaderboard</div>
         </div>
     </div>
 
     <!-- Explorer Level Progress Card -->
-    <div class="stagger-2" style="background: rgba(30, 75, 135, 0.58); border: 1.5px solid rgba(255, 255, 255, 0.28); border-radius: 20px; padding: 18px; margin-bottom: 20px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: none;">
+    <div class="stagger-2" style="background: #6196c8; border: none; outline: none; border-radius: 20px; padding: 18px; margin-bottom: 20px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <i class="fa-solid fa-compass" style="color: #00f2fe; font-size: 16px;"></i>
@@ -74,7 +74,7 @@ $activeTab = 'profile';
     </div>
     <div id="trip-history-container" class="stagger-3" style="margin-bottom: 24px;">
         <div id="trip-history-list">
-            <div style="text-align:center; padding:16px; color:#ffffff; opacity:0.95; font-size:13px; background:rgba(30, 75, 135, 0.58); border:1.5px solid rgba(255, 255, 255, 0.28); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-radius:14px;">Loading history...</div>
+            <div style="text-align:center; padding:16px; color:#ffffff; opacity:0.95; font-size:13px; background:#6196c8; border:none; outline:none; border-radius:14px;">Loading history...</div>
         </div>
     </div>
     
@@ -83,7 +83,7 @@ $activeTab = 'profile';
         <i class="fa-solid fa-gift" style="color: #00f2fe;"></i> Points & Rewards
     </h3>
     
-    <div style="background:rgba(30, 75, 135, 0.58); border:1.5px solid rgba(255, 255, 255, 0.28); border-radius:20px; padding:20px; margin-bottom:24px; box-shadow:none; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);" class="stagger-3">
+    <div style="background:#6196c8; border:none; outline:none; border-radius:20px; padding:20px; margin-bottom:24px; box-shadow:none;" class="stagger-3">
         <!-- Display balance -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:16px;">
             <div style="text-align: left;">
@@ -126,7 +126,7 @@ $activeTab = 'profile';
         <i class="fa-solid fa-user-gear" style="color: #00f2fe;"></i> Account Settings
     </h3>
     
-    <div class="settings-group stagger-3" style="background: rgba(30, 75, 135, 0.58); border: 1.5px solid rgba(255, 255, 255, 0.28); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 20px; overflow: hidden; margin-bottom: 24px; box-shadow:none;">
+    <div class="settings-group stagger-3" style="background: #6196c8; border: none; outline: none; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 20px; overflow: hidden; margin-bottom: 24px; box-shadow:none;">
         <a href="#" class="settings-item" onclick="navigateTo('edit_profile'); return false;">
             <div class="settings-icon" style="background: #007AFF;"><i class="fa-solid fa-user-pen"></i></div>
             <div class="settings-text">Edit Personal Information</div>

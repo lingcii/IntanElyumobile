@@ -70,12 +70,13 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 
 /* Profile + EXP Card */
 .profile-header {
-    background: #6196c8;
+    background: #6196c8 !important;
     border-radius: 26px;
     padding: 22px 20px;
     margin-bottom: 20px;
     cursor: pointer;
     border: none !important;
+    outline: none !important;
     box-shadow: none !important;
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
@@ -84,6 +85,13 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 
 .profile-header:active {
     transform: scale(0.98);
+}
+
+.trip-swipe-content {
+    background: #6196c8 !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .profile-info-row {

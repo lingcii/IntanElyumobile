@@ -33,7 +33,7 @@ if (is_dir($imgDir)) {
 <div class="dashboard-container has-header has-bottom-nav animate-slide-up">
 
     <!-- Profile + EXP Card -->
-    <div class="profile-header stagger-1" onclick="navigateTo('profile')">
+    <div class="profile-header stagger-1" onclick="navigateTo('profile')" style="background: #6196c8 !important; border: none !important; outline: none !important; box-shadow: none !important;">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
             <div class="profile-info-row" style="margin-bottom:0; flex:1;">
                 <div class="profile-avatar">
@@ -268,17 +268,17 @@ if (is_dir($imgDir)) {
 </div>
 
 <!-- Delete Trip Confirmation Modal -->
-<div id="delete-trip-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.8); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center;">
-    <div style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); border:1px solid rgba(239, 68, 68, 0.35); border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:0 24px 60px rgba(0,0,0,0.6), 0 0 30px rgba(239, 68, 68, 0.2); text-align:center;">
-        <i class="fa-solid fa-trash-can" style="font-size:32px; color:#ef4444; margin-bottom:10px; display:block;"></i>
+<div id="delete-trip-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center;">
+    <div style="background:#6196c8; border:none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:none; text-align:center;">
+        <i class="fa-solid fa-trash-can" style="font-size:32px; color:#ffffff; margin-bottom:10px; display:block;"></i>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Delete Saved Trip?</h3>
-        <p id="delete-trip-title-text" style="font-size:13px; color:rgba(226, 232, 240, 0.8); margin-bottom:22px; line-height:1.5;">Are you sure you want to delete this trip? All saved itinerary items will be removed.</p>
+        <p id="delete-trip-title-text" style="font-size:13px; color:rgba(255, 255, 255, 0.95); margin-bottom:22px; line-height:1.5;">Are you sure you want to delete this trip? All saved itinerary items will be removed.</p>
 
         <div style="display:flex; gap:10px;">
-            <button type="button" style="flex:1; padding:13px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#e2e8f0; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeDeleteTripModal()">
+            <button type="button" style="flex:1; padding:13px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.22); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeDeleteTripModal()">
                 Cancel
             </button>
-            <button type="button" id="btn-confirm-delete-trip" style="flex:1; padding:13px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border:1px solid rgba(255,255,255,0.2); color:#ffffff; border-radius:14px; box-shadow:0 4px 16px rgba(239,68,68,0.4); cursor:pointer;" onclick="window.executeConfirmDeleteTrip()">
+            <button type="button" id="btn-confirm-delete-trip" style="flex:1; padding:13px; font-size:14px; font-weight:800; background:#ef4444; border:none; outline:none; color:#ffffff; border-radius:14px; box-shadow:none; cursor:pointer;" onclick="window.executeConfirmDeleteTrip()">
                 Delete
             </button>
         </div>
@@ -1065,7 +1065,7 @@ if (is_dir($imgDir)) {
                                     <div class="trip-swipe-bg" onclick="window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}')" style="position: absolute; top: 0; right: 0; bottom: 0; width: 85px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 0 20px 20px 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 800; gap: 4px; z-index: 1; opacity: 0; pointer-events: none; transform: translateX(85px); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease; cursor: pointer;">
                                         <i class="fa-solid fa-trash-can"></i> Delete
                                     </div>
-                                    <div class="trip-swipe-content" style="position: relative; z-index: 2; transition: transform 0.2s ease, border-radius 0.2s ease; background: #6196c8; border: none; border-radius: 20px; overflow: hidden; box-shadow: none;">
+                                    <div class="trip-swipe-content" style="position: relative; z-index: 2; transition: transform 0.2s ease, border-radius 0.2s ease; background: #6196c8 !important; border: none !important; outline: none !important; border-radius: 20px; overflow: hidden; box-shadow: none !important;">
                                         <div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.toggle-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.paddingTop = '14px'; content.style.paddingBottom = '16px'; content.style.maxHeight = (content.scrollHeight + 50) + 'px'; content.style.opacity = '1'; icon.style.transform = 'rotate(90deg)'; } else { content.style.maxHeight = '0px'; content.style.opacity = '0'; content.style.paddingTop = '0'; content.style.paddingBottom = '0'; icon.style.transform = 'rotate(0deg)'; }" style="cursor:pointer; display:flex; align-items:center; gap: 14px; padding: 16px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.08)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
                                             <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(255, 255, 255, 0.22); border: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: none;">
                                                 <i class="fa-solid fa-map-location-dot" style="color: #ffffff; font-size: 20px;"></i>
@@ -1080,17 +1080,14 @@ if (is_dir($imgDir)) {
                                             </div>
                                             <i class="fa-solid fa-chevron-right toggle-icon" style="color: rgba(255,255,255,0.7); font-size: 14px; margin-right:4px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></i>
                                         </div>
-                                        <div style="max-height: 0px; opacity: 0; padding: 0 16px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; background: transparent; border-top: 1px solid rgba(255,255,255,0.15);">
+                                        <div style="max-height: 0px; opacity: 0; padding: 0 16px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; background: transparent; border-top: none;">
                                             ${destinationsHtml}
                                             <div style="display:flex; gap:10px; margin-top:12px; margin-bottom:2px;">
-                                                <button onclick="window.location.href='?view=trip_map&trip_id=${trip.id}'" style="flex:1; background:linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); border:1px solid rgba(255,255,255,0.2); color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:none;">
+                                                <button onclick="window.location.href='?view=trip_map&trip_id=${trip.id}'" style="flex:1; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none; outline:none; color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:none;">
                                                     <i class="fa-solid fa-compass"></i> Start Trip
                                                 </button>
-                                                <button onclick="navigateTo('saved_trips')" style="flex:1; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                                                <button onclick="navigateTo('saved_trips')" style="flex:1; background:rgba(255,255,255,0.22); border:none; outline:none; color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:none;">
                                                     <i class="fa-solid fa-route"></i> View Details
-                                                </button>
-                                                <button onclick="event.stopPropagation(); window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}')" style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:12px 14px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; flex-shrink:0;" title="Delete Trip">
-                                                    <i class="fa-solid fa-trash-can"></i>
                                                 </button>
                                             </div>
                                         </div>
@@ -1910,17 +1907,17 @@ window.toggleRecommendedMore = function() {
 </script>
 
 <!-- Delete Trip Confirmation Modal -->
-<div id="delete-trip-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.8); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center;">
-    <div style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); border:1px solid rgba(239, 68, 68, 0.35); border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:0 24px 60px rgba(0,0,0,0.6), 0 0 30px rgba(239, 68, 68, 0.2); text-align:center;">
-        <i class="fa-solid fa-trash-can" style="font-size:32px; color:#ef4444; margin-bottom:10px; display:block;"></i>
+<div id="delete-trip-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center;">
+    <div style="background:#6196c8; border:none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:none; text-align:center;">
+        <i class="fa-solid fa-trash-can" style="font-size:32px; color:#ffffff; margin-bottom:10px; display:block;"></i>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Delete Saved Trip?</h3>
-        <p id="delete-trip-title-text" style="font-size:13px; color:rgba(226, 232, 240, 0.8); margin-bottom:22px; line-height:1.5;">Are you sure you want to delete this trip? All saved itinerary items will be removed.</p>
+        <p id="delete-trip-title-text" style="font-size:13px; color:rgba(255, 255, 255, 0.95); margin-bottom:22px; line-height:1.5;">Are you sure you want to delete this trip? All saved itinerary items will be removed.</p>
 
         <div style="display:flex; gap:10px;">
-            <button type="button" style="flex:1; padding:13px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#e2e8f0; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeDeleteTripModal()">
+            <button type="button" style="flex:1; padding:13px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.22); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeDeleteTripModal()">
                 Cancel
             </button>
-            <button type="button" id="btn-confirm-delete-trip" style="flex:1; padding:13px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border:1px solid rgba(255,255,255,0.2); color:#ffffff; border-radius:14px; box-shadow:0 4px 16px rgba(239,68,68,0.4); cursor:pointer;" onclick="window.executeConfirmDeleteTrip()">
+            <button type="button" id="btn-confirm-delete-trip" style="flex:1; padding:13px; font-size:14px; font-weight:800; background:#ef4444; border:none; outline:none; color:#ffffff; border-radius:14px; box-shadow:none; cursor:pointer;" onclick="window.executeConfirmDeleteTrip()">
                 Delete
             </button>
         </div>

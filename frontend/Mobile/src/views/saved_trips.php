@@ -138,16 +138,16 @@ $backRoute = 'itinerary';
 
 <!-- Delete Trip Confirmation Modal -->
 <div id="delete-trip-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:999999; justify-content:center; align-items:center;">
-    <div style="background:linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); border:1.5px solid rgba(255, 255, 255, 0.35); border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:none; text-align:center;">
-        <i class="fa-solid fa-trash-can" style="font-size:32px; color:#ef4444; margin-bottom:10px; display:block;"></i>
+    <div style="background:#6196c8; border:none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:none; text-align:center;">
+        <i class="fa-solid fa-trash-can" style="font-size:32px; color:#ffffff; margin-bottom:10px; display:block;"></i>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Delete Saved Trip?</h3>
-        <p id="delete-trip-title-text" style="font-size:13px; color:#ffffff; opacity:0.95; margin-bottom:22px; line-height:1.5;">Are you sure you want to delete this trip? All saved itinerary items will be removed.</p>
+        <p id="delete-trip-title-text" style="font-size:13px; color:rgba(255,255,255,0.95); margin-bottom:22px; line-height:1.5;">Are you sure you want to delete this trip? All saved itinerary items will be removed.</p>
 
         <div style="display:flex; gap:10px;">
-            <button type="button" style="flex:1; padding:13px; border-radius:14px; border:1px solid rgba(255,255,255,0.25); background:rgba(255,255,255,0.12); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeDeleteTripModal()">
+            <button type="button" style="flex:1; padding:13px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.22); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeDeleteTripModal()">
                 Cancel
             </button>
-            <button type="button" id="btn-confirm-delete-trip" style="flex:1; padding:13px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border:1px solid #ffffff; color:#ffffff; border-radius:14px; box-shadow:none; cursor:pointer;" onclick="window.executeConfirmDeleteTrip()">
+            <button type="button" id="btn-confirm-delete-trip" style="flex:1; padding:13px; font-size:14px; font-weight:800; background:#ef4444; border:none; outline:none; color:#ffffff; border-radius:14px; box-shadow:none; cursor:pointer;" onclick="window.executeConfirmDeleteTrip()">
                 Delete
             </button>
         </div>
@@ -271,11 +271,11 @@ $backRoute = 'itinerary';
                 </div>
                 
                 <!-- Rich Glassmorphic Front Card Content (Overlays z-index 2) -->
-                <div class="trip-swipe-content" style="position:relative; z-index:2; background: rgba(30, 75, 135, 0.58); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1.5px solid rgba(255, 255, 255, 0.28); border-radius: 24px; padding: 22px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease, border-color 0.25s ease; box-shadow: none;">
+                <div class="trip-swipe-content" style="position:relative; z-index:2; background: #6196c8; border: none; outline: none; border-radius: 24px; padding: 22px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease; box-shadow: none;">
                     <h3 style="margin: 0 0 6px 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">${trip.title}</h3>
                     <p style="font-size: 13px; color: #ffffff; opacity: 0.95; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                        <span><i class="fa-regular fa-calendar" style="color: #00f2fe; margin-right: 4px;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}</span> 
-                        ${trip.budget ? '&bull; <span style="background: rgba(255,255,255,0.16); border: 1.5px solid rgba(255,255,255,0.3); color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-coins" style="font-size:10px; color:#fbbf24;"></i>Budget: ₱' + parseFloat(trip.budget).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + budgetIndicator + '</span>' : ''}
+                        <span><i class="fa-regular fa-calendar" style="color: #ffffff; margin-right: 4px;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}</span> 
+                        ${trip.budget ? '&bull; <span style="background: rgba(255,255,255,0.22); border: none; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-coins" style="font-size:10px; color:#fbbf24;"></i>Budget: ₱' + parseFloat(trip.budget).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + budgetIndicator + '</span>' : ''}
                     </p>
                     <div class="timeline-collapsible" id="timeline-${trip.id}">
                         <div class="timeline-inner">
@@ -370,7 +370,7 @@ $backRoute = 'itinerary';
 
                 // View Details button
                 html += `
-                <button class="btn-primary" style="flex:1; background: rgba(255, 255, 255, 0.16); border: 1.5px solid rgba(255, 255, 255, 0.35); color: #ffffff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.25s ease;" onclick="window.toggleTripDetails('${trip.id}')">
+                <button class="btn-primary" style="flex:1; background: rgba(255, 255, 255, 0.22); border: none; outline: none; color: #ffffff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.25s ease;" onclick="window.toggleTripDetails('${trip.id}')">
                     <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="margin-right:8px; transition:transform 0.3s ease;"></i> View Details
                 </button>`;
 
@@ -378,17 +378,17 @@ $backRoute = 'itinerary';
                 html += `<div class="start-collapsible" id="start-wrapper-${trip.id}">`;
                 if (isTripCompleted) {
                     html += `
-                    <button class="btn-primary" style="width:100%; white-space:nowrap; background: rgba(16,185,129,0.25); border: 1.5px solid rgba(16,185,129,0.5); color: #ffffff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: default;" disabled>
+                    <button class="btn-primary" style="width:100%; white-space:nowrap; background: rgba(16,185,129,0.25); border: none; outline: none; color: #ffffff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: default;" disabled>
                         <i class="fa-solid fa-circle-check" style="margin-right:6px; color:#34c759;"></i> Completed
                     </button>`;
                 } else if (unvisitedCount === 0 && trip.items && trip.items.length > 0) {
                     html += `
-                    <button class="btn-primary" id="btn-complete-trip-${trip.id}" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: 1.5px solid #ffffff; color: #fff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; box-shadow: none; cursor: pointer;" onclick="window.markTripCompleted('${trip.id}')">
+                    <button class="btn-primary" id="btn-complete-trip-${trip.id}" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; outline: none; color: #fff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; box-shadow: none; cursor: pointer;" onclick="window.markTripCompleted('${trip.id}')">
                         <i class="fa-solid fa-flag-checkered" style="margin-right:6px;"></i> Complete
                     </button>`;
                 } else {
                     html += `
-                    <button class="btn-primary" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border: 1.5px solid #ffffff; color: #fff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; box-shadow: none; cursor: pointer;" onclick="window.startTrip('${trip.id}')">
+                    <button class="btn-primary" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border: none; outline: none; color: #fff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; box-shadow: none; cursor: pointer;" onclick="window.startTrip('${trip.id}')">
                         <i class="fa-solid fa-play" style="margin-right:6px;"></i> Start
                     </button>`;
                 }
