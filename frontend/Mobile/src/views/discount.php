@@ -13,19 +13,24 @@ $backRoute = 'dashboard';
             <i class="fa-solid fa-tags"></i>
         </div>
         <h2 style="margin: 0 0 6px; font-size: 22px; font-weight: 800; color: #fff;">Discounts & Vouchers</h2>
-        <p style="margin: 0; font-size: 13px; color: rgba(148, 163, 184, 0.85); line-height: 1.5; max-width: 340px; margin: 0 auto;">
+        <p style="margin: 0 0 14px; font-size: 13px; color: rgba(148, 163, 184, 0.85); line-height: 1.5; max-width: 340px; margin-left: auto; margin-right: auto;">
             Redeem your hard-earned <strong style="color: #38bdf8;">PTS & XP</strong> for exclusive dining discounts, surf rentals, resort vouchers, and eco-passes!
         </p>
+        <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); padding:6px 16px; border-radius:100px;">
+            <i class="fa-solid fa-coins" style="color:#f59e0b; font-size:13px;"></i>
+            <span style="font-size:12px; color:rgba(226,232,240,0.85); font-weight:600;">Your Balance:</span>
+            <strong id="discount-user-pts" style="color:#38bdf8; font-size:14px; font-weight:900;">-- PTS</strong>
+        </div>
     </div>
 
     <!-- Category Filters -->
     <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 20px; scrollbar-width: none;" id="discount-filters">
         <button class="discount-cat-btn active" onclick="filterDiscounts('All')">All Deals</button>
-        <button class="discount-cat-btn" id="btn-my-claimed" onclick="filterDiscounts('Claimed')">🎟️ My Vouchers (<span id="claimed-count">0</span>)</button>
-        <button class="discount-cat-btn" onclick="filterDiscounts('Food & Dining')">🍔 Food & Dining</button>
-        <button class="discount-cat-btn" onclick="filterDiscounts('Activities')">🏄 Activities & Surf</button>
-        <button class="discount-cat-btn" onclick="filterDiscounts('Accommodations')">🏨 Accommodations</button>
-        <button class="discount-cat-btn" onclick="filterDiscounts('Souvenirs')">🎁 Gear & Passes</button>
+        <button class="discount-cat-btn" id="btn-my-claimed" onclick="filterDiscounts('Claimed')">My Vouchers (<span id="claimed-count">0</span>)</button>
+        <button class="discount-cat-btn" onclick="filterDiscounts('Food & Dining')">Food & Dining</button>
+        <button class="discount-cat-btn" onclick="filterDiscounts('Activities')">Activities & Surf</button>
+        <button class="discount-cat-btn" onclick="filterDiscounts('Accommodations')">Accommodations</button>
+        <button class="discount-cat-btn" onclick="filterDiscounts('Souvenirs')">Gear & Passes</button>
     </div>
 
     <!-- Discounts Grid -->
@@ -84,13 +89,18 @@ $backRoute = 'dashboard';
             </p>
         </div>
 
-        <div id="modal-action-row" style="display:flex; gap:8px; margin-top:12px;">
-            <button onclick="navigateTo('map'); closeVoucherModal();" style="flex:1; padding:10px; border:1px solid rgba(56,189,248,0.3); border-radius:10px; background:rgba(56,189,248,0.12); color:#38bdf8; font-size:11px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
-                <i class="fa-solid fa-map-location-dot"></i> View on Map
+        <div id="modal-action-row" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
+            <button id="modal-redeem-btn" onclick="handleModalRedeem()" style="width:100%; padding:12px; border:none; border-radius:12px; background:linear-gradient(135deg, #38bdf8, #2563eb); color:#fff; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 14px rgba(56,189,248,0.35);">
+                <i class="fa-solid fa-gift"></i> <span id="modal-redeem-btn-label">Redeem for 100 PTS</span>
             </button>
-            <button onclick="closeVoucherModal()" style="flex:1; padding:10px; border:none; border-radius:10px; background:rgba(255,255,255,0.08); color:#fff; font-size:11px; font-weight:800; cursor:pointer;">
-                Done
-            </button>
+            <div style="display:flex; gap:8px;">
+                <button onclick="navigateTo('map'); closeVoucherModal();" style="flex:1; padding:10px; border:1px solid rgba(56,189,248,0.3); border-radius:10px; background:rgba(56,189,248,0.12); color:#38bdf8; font-size:11px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                    <i class="fa-solid fa-map-location-dot"></i> View on Map
+                </button>
+                <button onclick="closeVoucherModal()" style="flex:1; padding:10px; border:none; border-radius:10px; background:rgba(255,255,255,0.08); color:#fff; font-size:11px; font-weight:800; cursor:pointer;">
+                    Close
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -197,6 +207,49 @@ function updateClaimedBadge() {
     if (countEl) countEl.textContent = claimed.length;
 }
 
+let userPointsBalance = 0;
+
+async function fetchUserPointsAndRedemptions() {
+    const token = localStorage.getItem('intan_elyu_token');
+    if (!token) return;
+
+    try {
+        const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+        const res = await fetch(baseUrl + '/api/tourist/points/balance', {
+            headers: {
+                'Accept': 'application/json',
+                'ngrok-skip-browser-warning': 'true',
+                'Authorization': 'Bearer ' + token
+            }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.status === 'success') {
+                userPointsBalance = data.points || 0;
+                const ptsBadge = document.getElementById('discount-user-pts');
+                if (ptsBadge) ptsBadge.textContent = `${userPointsBalance.toLocaleString()} PTS`;
+
+                // Sync database claimed vouchers
+                if (Array.isArray(data.vouchers)) {
+                    let claimed = getClaimedVouchers();
+                    data.vouchers.forEach(v => {
+                        // find matching item in vouchersData if any
+                        const match = vouchersData.find(item => item.code === v.voucher_code || (item.dbId && item.title === v.type));
+                        if (match && !claimed.includes(match.id)) {
+                            claimed.push(match.id);
+                        }
+                    });
+                    localStorage.setItem('intan_elyu_claimed_vouchers', JSON.stringify(claimed));
+                    updateClaimedBadge();
+                    renderDiscounts();
+                }
+            }
+        }
+    } catch(e) {
+        console.warn('Could not fetch user points balance:', e);
+    }
+}
+
 function renderDiscounts() {
     const grid = document.getElementById('discounts-grid');
     if (!grid) return;
@@ -215,9 +268,9 @@ function renderDiscounts() {
 
     if (filtered.length === 0) {
         const msg = activeCategory === 'Claimed' 
-            ? 'You have not claimed any vouchers yet. Tap "Copy" on any voucher code to save it here!' 
+            ? 'You have not claimed any vouchers yet. Redeem vouchers using PTS to save them here!' 
             : 'No vouchers available in this category.';
-        grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: rgba(148,163,184,0.6); padding: 40px; font-size: 13px;">${msg}</div>`;
+        grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: rgba(148,163,184,0.6); padding: 40px; font-size: 13px; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.08); border-radius: 20px;">${msg}</div>`;
         return;
     }
 
@@ -228,7 +281,7 @@ function renderDiscounts() {
         <div class="voucher-card">
             <div>
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                    <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 18px; color: ${v.color};">
+                    <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.25); display: flex; align-items: center; justify-content: center; font-size: 18px; color: ${v.color};">
                         <i class="fa-solid ${v.icon}"></i>
                     </div>
                     <span style="font-size: 10px; font-weight: 800; background: rgba(56,189,248,0.12); color: #38bdf8; border: 1px solid rgba(56,189,248,0.2); padding: 3px 8px; border-radius: 8px; text-transform: uppercase;">${v.badge}</span>
@@ -249,7 +302,7 @@ function renderDiscounts() {
                     <i class="fa-solid fa-gamepad" style="color: #38bdf8; font-size: 13px;"></i>
                     <span style="font-size: 14px; font-weight: 800; color: #38bdf8;">${v.pointsCost} <span style="font-size: 10px; color: rgba(148,163,184,0.6);">PTS</span></span>
                 </div>
-                <button onclick="${getExpiryInfo(v.expires).isExpired ? '' : 'openVoucherModal(' + v.id + ')'}" ${getExpiryInfo(v.expires).isExpired ? 'disabled' : ''} style="background: ${getExpiryInfo(v.expires).isExpired ? 'rgba(255,255,255,0.06)' : (isClaimed ? 'rgba(52,211,153,0.15)' : 'linear-gradient(135deg, #38bdf8, #0284c7)')}; border: ${isClaimed ? '1px solid rgba(52,211,153,0.3)' : (getExpiryInfo(v.expires).isExpired ? '1px solid rgba(255,255,255,0.08)' : 'none')}; color: ${getExpiryInfo(v.expires).isExpired ? 'rgba(148,163,184,0.5)' : (isClaimed ? '#34d399' : '#0f172a')}; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: ${getExpiryInfo(v.expires).isExpired ? 'not-allowed' : 'pointer'}; box-shadow: ${isClaimed || getExpiryInfo(v.expires).isExpired ? 'none' : '0 4px 12px rgba(56,189,248,0.25)'}; opacity: ${getExpiryInfo(v.expires).isExpired ? '0.6' : '1'};">
+                <button onclick="${getExpiryInfo(v.expires).isExpired ? '' : 'openVoucherModal(\'' + v.id + '\')'}" ${getExpiryInfo(v.expires).isExpired ? 'disabled' : ''} style="background: ${getExpiryInfo(v.expires).isExpired ? 'rgba(255,255,255,0.06)' : (isClaimed ? 'rgba(52,211,153,0.15)' : 'linear-gradient(135deg, #38bdf8, #0284c7)')}; border: ${isClaimed ? '1px solid rgba(52,211,153,0.3)' : (getExpiryInfo(v.expires).isExpired ? '1px solid rgba(255,255,255,0.08)' : 'none')}; color: ${getExpiryInfo(v.expires).isExpired ? 'rgba(148,163,184,0.5)' : (isClaimed ? '#34d399' : '#0f172a')}; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: ${getExpiryInfo(v.expires).isExpired ? 'not-allowed' : 'pointer'}; box-shadow: ${isClaimed || getExpiryInfo(v.expires).isExpired ? 'none' : '0 4px 12px rgba(56,189,248,0.25)'}; opacity: ${getExpiryInfo(v.expires).isExpired ? '0.6' : '1'};">
                     ${getExpiryInfo(v.expires).isExpired ? '<i class="fa-solid fa-lock" style="margin-right:4px;"></i> Expired' : (isClaimed ? '<i class="fa-solid fa-check" style="margin-right:4px;"></i> Claimed' : 'Redeem Voucher')}
                 </button>
             </div>
@@ -296,15 +349,27 @@ function openVoucherModal(id) {
     const claimed = getClaimedVouchers();
     const isAlreadyClaimed = claimed.includes(id);
 
+    const redeemBtn = document.getElementById('modal-redeem-btn');
+    const redeemLabel = document.getElementById('modal-redeem-btn-label');
+
+    if (redeemBtn) {
+        if (isAlreadyClaimed) {
+            redeemBtn.style.display = 'none';
+        } else {
+            redeemBtn.style.display = 'flex';
+            if (redeemLabel) redeemLabel.textContent = `Redeem for ${item.pointsCost} PTS`;
+        }
+    }
+
     if (copyBtn) {
         if (isAlreadyClaimed) {
-            copyBtn.disabled = true;
-            copyBtn.style.background = 'rgba(52,211,153,0.15)';
-            copyBtn.style.color = '#34d399';
-            copyBtn.style.cursor = 'not-allowed';
-            copyBtn.style.opacity = '0.9';
-            if (copyLabel) copyLabel.textContent = 'Saved!';
-            if (copyIcon) copyIcon.className = 'fa-solid fa-check';
+            copyBtn.disabled = false;
+            copyBtn.style.background = '#38bdf8';
+            copyBtn.style.color = '#000';
+            copyBtn.style.cursor = 'pointer';
+            copyBtn.style.opacity = '1';
+            if (copyLabel) copyLabel.textContent = 'Copy';
+            if (copyIcon) copyIcon.className = 'fa-solid fa-copy';
             if (banner) banner.style.display = 'block';
         } else {
             copyBtn.disabled = false;
@@ -347,11 +412,8 @@ function copyVoucherCode() {
         document.getElementById('copy-btn-label').textContent = 'Copied!';
         if (icon) icon.className = 'fa-solid fa-check';
         if (btn) {
-            btn.disabled = true;
-            btn.style.background = 'rgba(255,255,255,0.15)';
-            btn.style.color = 'rgba(255,255,255,0.5)';
-            btn.style.cursor = 'not-allowed';
-            btn.style.opacity = '0.7';
+            btn.style.background = 'rgba(52,211,153,0.2)';
+            btn.style.color = '#34d399';
         }
         if (banner) banner.style.display = 'block';
 
@@ -370,36 +432,119 @@ function copyVoucherCode() {
     });
 }
 
+async function handleModalRedeem() {
+    const item = vouchersData.find(v => v.id === currentVoucherId);
+    if (!item) return;
+
+    const token = localStorage.getItem('intan_elyu_token');
+    if (!token) {
+        // Guest mode fallback
+        copyVoucherCode();
+        return;
+    }
+
+    if (userPointsBalance < item.pointsCost) {
+        if (typeof showToast === 'function') {
+            showToast(`Insufficient points. You need ${item.pointsCost} PTS (Balance: ${userPointsBalance} PTS).`);
+        }
+        return;
+    }
+
+    const btn = document.getElementById('modal-redeem-btn');
+    if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Redeeming...';
+        btn.disabled = true;
+    }
+
+    try {
+        const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+        const res = await fetch(baseUrl + '/api/tourist/points/redeem-voucher', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ voucher_id: item.dbId || item.id.replace('db_', '') })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+            if (typeof showToast === 'function') showToast("🎉 Voucher claimed successfully!");
+            if (window.confetti) {
+                window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+
+            // Save to claimed
+            let claimed = getClaimedVouchers();
+            if (!claimed.includes(item.id)) {
+                claimed.push(item.id);
+                localStorage.setItem('intan_elyu_claimed_vouchers', JSON.stringify(claimed));
+            }
+
+            // Refresh points and redemptions
+            fetchUserPointsAndRedemptions();
+            renderDiscounts();
+
+            // Update modal UI
+            if (btn) btn.style.display = 'none';
+            const banner = document.getElementById('copy-success-banner');
+            if (banner) {
+                banner.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:8px; color:#34d399; font-size:12px; font-weight:800; margin-bottom:4px;">
+                        <i class="fa-solid fa-circle-check"></i> Voucher Redeemed & Saved to My Vouchers!
+                    </div>
+                    <p style="margin:0; font-size:11px; color:rgba(226,232,240,0.85); line-height:1.4;">
+                        Present this code (${item.code}) to merchant staff at checkout to enjoy your discount.
+                    </p>
+                `;
+                banner.style.display = 'block';
+            }
+        } else {
+            if (typeof showToast === 'function') showToast(data.message || "Failed to redeem voucher.");
+            if (btn) {
+                btn.innerHTML = `<i class="fa-solid fa-gift"></i> Redeem for ${item.pointsCost} PTS`;
+                btn.disabled = false;
+            }
+        }
+    } catch(e) {
+        console.error("Redemption error:", e);
+        if (typeof showToast === 'function') showToast("Network error. Please try again.");
+        if (btn) {
+            btn.innerHTML = `<i class="fa-solid fa-gift"></i> Redeem for ${item.pointsCost} PTS`;
+            btn.disabled = false;
+        }
+    }
+}
+
 async function fetchLiveDatabaseVouchers() {
     try {
-        const baseUrl = (window.backendUrl || '').replace(/\/+$/, '');
-        const res = await fetch(baseUrl + '/api/public/vouchers', {
+        const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+        const res = await fetch(baseUrl + '/api/vouchers', {
             headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
         });
         if (res.ok) {
             const data = await res.json();
             if (data.status === 'success' && Array.isArray(data.data)) {
-                const categoryMap = {
-                    'percentage': 'Food & Dining',
-                    'fixed': 'Souvenirs',
-                    'General': 'Food & Dining'
-                };
-
-                vouchersData = data.data.map(v => ({
-                    id: 'db_' + v.id,
-                    dbId: v.id,
-                    title: v.title,
-                    category: categoryMap[v.category] || v.category || 'Food & Dining',
-                    partner: v.partner || 'LUPTO Admin',
-                    location: v.location || 'La Union',
-                    badge: v.badge || 'PROMO OFFER',
-                    pointsCost: v.pointsCost || 100,
-                    icon: 'fa-tags',
-                    color: '#38bdf8',
-                    code: v.code || 'ELYU-PROMO',
-                    expires: v.expires || '2026-12-31',
-                    description: v.description || 'Present voucher code at merchant checkout.'
-                }));
+                vouchersData = data.data.map(v => {
+                    const icon = v.category === 'Activities' ? 'fa-person-hiking' : (v.category === 'Accommodations' ? 'fa-hotel' : (v.category === 'Souvenirs' ? 'fa-gift' : 'fa-utensils'));
+                    return {
+                        id: 'db_' + v.id,
+                        dbId: v.id,
+                        title: v.title,
+                        category: v.category || 'Food & Dining',
+                        partner: v.partner || 'LUPTO Tourism',
+                        location: v.location || 'La Union',
+                        badge: v.badge || 'PROMO OFFER',
+                        pointsCost: v.pointsCost || 100,
+                        icon: icon,
+                        color: '#38bdf8',
+                        code: v.code || 'ELYU-PROMO',
+                        expires: v.expires || '2026-12-31',
+                        description: v.description || 'Present voucher code at merchant checkout.'
+                    };
+                });
                 renderDiscounts();
             }
         }
@@ -413,9 +558,10 @@ window.filterDiscounts = filterDiscounts;
 window.openVoucherModal = openVoucherModal;
 window.closeVoucherModal = closeVoucherModal;
 window.copyVoucherCode = copyVoucherCode;
+window.handleModalRedeem = handleModalRedeem;
 window.renderDiscounts = renderDiscounts;
 
-renderDiscounts();
 fetchLiveDatabaseVouchers();
+fetchUserPointsAndRedemptions();
 })();
 </script>

@@ -126,9 +126,37 @@ $backRoute = 'dashboard';
 
     </div>
 
-    <!-- Storage & App Group -->
-    <div class="settings-group-title stagger-3">Data & Maintenance</div>
+    <!-- App Documentation & Support -->
+    <div class="settings-group-title stagger-3">App Documentation & Support</div>
     <div class="settings-card stagger-3">
+        
+        <div class="settings-row clickable" onclick="navigateTo('user_manual')">
+            <div class="settings-label-group">
+                <div class="settings-icon-box blue"><i class="fa-solid fa-book-open"></i></div> 
+                <div>
+                    <div class="settings-title">Official User Manual</div>
+                    <div class="settings-subtitle">Step-by-step guide to all app features & tools</div>
+                </div>
+            </div>
+            <i class="fa-solid fa-chevron-right" style="color: rgba(255,255,255,0.3); font-size: 12px;"></i>
+        </div>
+
+        <div class="settings-row clickable" onclick="navigateTo('help')">
+            <div class="settings-label-group">
+                <div class="settings-icon-box purple"><i class="fa-solid fa-circle-question"></i></div> 
+                <div>
+                    <div class="settings-title">Help & FAQs</div>
+                    <div class="settings-subtitle">Customer support & quick answers</div>
+                </div>
+            </div>
+            <i class="fa-solid fa-chevron-right" style="color: rgba(255,255,255,0.3); font-size: 12px;"></i>
+        </div>
+
+    </div>
+
+    <!-- Storage & App Group -->
+    <div class="settings-group-title stagger-4">Data & Maintenance</div>
+    <div class="settings-card stagger-4">
         
         <div class="settings-row clickable" onclick="clearAppCache()">
             <div class="settings-label-group">
@@ -154,8 +182,8 @@ $backRoute = 'dashboard';
     </div>
 
     <!-- Account Actions -->
-    <div class="settings-group-title stagger-4">Account Action</div>
-    <div class="settings-card stagger-4" style="border: 1px solid rgba(244, 63, 94, 0.3);">
+    <div class="settings-group-title stagger-5">Account Action</div>
+    <div class="settings-card stagger-5" style="border: 1px solid rgba(244, 63, 94, 0.3);">
         <div class="settings-row clickable" onclick="confirmSignOut()" style="background: rgba(244, 63, 94, 0.08);">
             <div class="settings-label-group">
                 <div class="settings-icon-box rose"><i class="fa-solid fa-right-from-bracket"></i></div> 

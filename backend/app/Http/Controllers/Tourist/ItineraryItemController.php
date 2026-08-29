@@ -139,8 +139,9 @@ class ItineraryItemController extends Controller
             }
 
             return response()->json([
+                'success'     => true,
                 'status'      => 'pending',
-                'message'     => "Photo proof saved in database! 📸 Pending admin confirmation before completion.",
+                'message'     => "Photo proof submitted! Pending verification before completion.",
                 'proof_image' => $itemData['proof_image'] ?? null,
                 'distance'    => round($distanceMeters) . 'm',
             ]);

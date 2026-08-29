@@ -85,7 +85,7 @@ $backRoute = 'dashboard';
         </div>
 
         <div style="display: flex; gap: 10px;">
-            <a href="mailto:support@intan-elyu.online?subject=Customer%20Support%20Inquiry%20-%20Intan%20Elyu" style="flex: 1; text-align: center; background: linear-gradient(135deg, #0284c7, #0369a1); color: white; border: none; padding: 12px; border-radius: 12px; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 14px rgba(2,132,199,0.3);">
+            <a href="mailto:acekillersmile@gmail.com?subject=Customer%20Support%20Inquiry%20-%20Intan%20Elyu" style="flex: 1; text-align: center; background: linear-gradient(135deg, #0284c7, #0369a1); color: white; border: none; padding: 12px; border-radius: 12px; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 14px rgba(2,132,199,0.3);">
                 <i class="fa-solid fa-paper-plane"></i> Email Support
             </a>
             <button onclick="copySupportEmail()" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #e2e8f0; padding: 12px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
@@ -118,6 +118,6 @@ window.copySupportEmail = function() {
 
 window.contactSupport = function(e) {
     if (e) e.preventDefault();
-    window.location.href = 'mailto:support@intan-elyu.online?subject=Customer%20Support%20Inquiry%20-%20Intan%20Elyu';
+    window.location.href = 'mailto:acekillersmile@gmail.com?subject=Customer%20Support%20Inquiry%20-%20Intan%20Elyu';
 };
 </script>

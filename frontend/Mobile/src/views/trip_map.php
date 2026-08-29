@@ -49,23 +49,27 @@ require_once __DIR__ . '/../components/header.php';
 </div>
 
 <!-- Prompt Card when within 300m -->
-<div id="checkin-prompt-card" style="position: absolute; top: 80px; left: 16px; right: 16px; z-index: 1001; background: rgba(15,23,42,0.9); border: 1.5px solid rgba(56,189,248,0.4); border-radius: 18px; padding: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; align-items: center; justify-content: space-between; backdrop-filter: blur(10px); animation: slideDown 0.3s ease-out;">
-    <div style="display:flex; align-items:center; gap:10px;">
-        <span style="font-size:24px;">📍</span>
+<div id="checkin-prompt-card" style="position: absolute; top: calc(max(env(safe-area-inset-top), 40px) + 54px); left: 16px; right: 16px; z-index: 1001; background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); border: 1.5px solid rgba(56,189,248,0.4); border-radius: 20px; padding: 14px 18px; box-shadow: 0 12px 36px rgba(0,0,0,0.6), 0 0 20px rgba(56,189,248,0.2); display: none; align-items: center; justify-content: space-between; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+    <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:40px; height:40px; border-radius:12px; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <i class="fa-solid fa-location-dot" style="color:#38bdf8; font-size:18px;"></i>
+        </div>
         <div style="text-align: left;">
-            <h5 style="margin:0; font-size:13px; font-weight:700; color:#fff;">You've arrived!</h5>
-            <p id="checkin-prompt-dest-name" style="margin:2px 0 0; font-size:11px; color:rgba(255,255,255,0.7); font-weight:500;"></p>
+            <h5 style="margin:0 0 2px; font-size:14px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">You've arrived!</h5>
+            <p id="checkin-prompt-dest-name" style="margin:0; font-size:12px; color:rgba(226,232,240,0.8); font-weight:600;"></p>
         </div>
     </div>
-    <button onclick="window.triggerMapCheckinModal()" style="background:#38bdf8; color:#000; border:none; padding:8px 14px; border-radius:10px; font-weight:800; font-size:11px; cursor:pointer; box-shadow: 0 4px 10px rgba(56,189,248,0.25);">
-        Check In
+    <button onclick="window.triggerMapCheckinModal()" style="background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); color:#ffffff; border:1px solid rgba(255,255,255,0.2); padding:9px 18px; border-radius:12px; font-weight:800; font-size:12px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.4); display:flex; align-items:center; gap:6px; flex-shrink:0; transition:transform 0.15s ease;">
+        <i class="fa-solid fa-camera" style="font-size:11px;"></i> Check In
     </button>
 </div>
 
 <!-- Check-in Verification Modal (GPS and Photo Proof) -->
 <div id="checkin-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.78); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:99999; justify-content:center; align-items:center;">
     <div style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(56, 189, 248, 0.3); border-radius:24px; padding:28px 24px; width:90%; max-width:380px; box-shadow:0 24px 60px rgba(0,0,0,0.6), 0 0 30px rgba(56,189,248,0.15); text-align:center;">
-        <div style="font-size:48px; margin-bottom:12px;">📸</div>
+        <div style="width:58px; height:58px; border-radius:50%; background:rgba(56,189,248,0.15); border:1.5px solid rgba(56,189,248,0.35); display:flex; align-items:center; justify-content:center; margin:0 auto 14px;">
+            <i class="fa-solid fa-camera" style="font-size:26px; color:#38bdf8;"></i>
+        </div>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Claim Your Reward</h3>
         <p style="font-size:13px; color:rgba(226, 232, 240, 0.85); margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination to verify your visit and earn <strong style="color:#38bdf8; font-weight:800;">+50 XP</strong> & <strong style="color:#38bdf8; font-weight:800;">+50 Points</strong>.</p>
 
@@ -145,6 +149,37 @@ require_once __DIR__ . '/../components/header.php';
     var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
     var tripMap;
 
+    window.myLat = window.myLat || window.currentGPSLat || null;
+    window.myLng = window.myLng || window.currentGPSLng || null;
+
+    if (typeof window.requestPreciseLocation === 'function') {
+        window.requestPreciseLocation(false).then(loc => {
+            if (loc && loc.lat && loc.lng) {
+                window.myLat = loc.lat;
+                window.myLng = loc.lng;
+            }
+        }).catch(err => {
+            console.warn("Direct GPS attempt in trip_map:", err && err.message);
+        });
+    } else if ((!window.myLat || !window.myLng) && navigator.geolocation && localStorage.getItem('intan_elyu_loc_enabled') !== 'false') {
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                window.myLat = pos.coords.latitude;
+                window.myLng = pos.coords.longitude;
+                window.currentGPSLat = pos.coords.latitude;
+                window.currentGPSLng = pos.coords.longitude;
+                window.currentGPSSource = 'gps';
+                document.dispatchEvent(new CustomEvent('gpsUpdated', {
+                    detail: { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy, source: 'gps' }
+                }));
+            },
+            function(err) {
+                console.warn("Direct GPS attempt in trip_map:", err && err.message);
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
+        );
+    }
+
     function initTripMap() {
         const style = {
             "version": 8,
@@ -152,7 +187,10 @@ require_once __DIR__ . '/../components/header.php';
             "sources": {
                 "osm": {
                     "type": "raster",
-                    "tiles": ["https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"],
+                    "tiles": [
+                        "https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+                        "https://b.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+                    ],
                     "tileSize": 256
                 },
                 "terrain": {
@@ -163,6 +201,11 @@ require_once __DIR__ . '/../components/header.php';
                 }
             },
             "layers": [
+                {
+                    "id": "background",
+                    "type": "background",
+                    "paint": { "background-color": "#eef2f6" }
+                },
                 {
                     "id": "base-map",
                     "type": "raster",
@@ -179,15 +222,13 @@ require_once __DIR__ . '/../components/header.php';
             zoom: 10,
             pitch: 0,
             bearing: 0,
+            fadeDuration: 0,
             attributionControl: false
         });
 
         // tripMap.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
 
         tripMap.on('load', async () => {
-            tripMap.setTerrain({ "source": "terrain", "exaggeration": 1.5 });
-
-            tripMap.setTerrain({ "source": "terrain", "exaggeration": 1.5 });
             loadTripData();
         });
     }
@@ -315,7 +356,7 @@ require_once __DIR__ . '/../components/header.php';
         if (window.tripMarkers) window.tripMarkers.forEach(m => m.remove());
         window.tripMarkers = [];
 
-        const activeIndex = items.findIndex(i => !i.is_visited);
+        const activeIndex = items.findIndex(i => !(i.is_visited || i.proof_status === 'approved' || i.proof_image));
 
         items.forEach((item, idx) => {
             const dest = item.destination;
@@ -331,53 +372,54 @@ require_once __DIR__ . '/../components/header.php';
                     bounds.extend([lng, lat]);
 
                     let iconHtml = '';
-                    let labelHtml = '';
+                    const isVisited = Boolean(item.is_visited || item.proof_status === 'approved' || item.proof_image);
 
-                    if (item.is_visited) {
-                        // VISITED - Green Checkmark
+                    if (isVisited) {
+                        // VISITED - Green Checkmark + Glassmorphic Tag
                         iconHtml = `
-                            <div style="background: #10b981; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; border: 3px solid #ffffff; box-shadow: none;">
-                                <i class="fa-solid fa-check"></i>
-                            </div>
-                        `;
-                        labelHtml = `
-                            <div style="background: rgba(16,185,129,0.8); color: white; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; white-space: nowrap; margin-top: 4px; border: 1px solid rgba(255,255,255,0.2); box-shadow: none; text-align: center; text-decoration: line-through;">
-                                ${dest.name}
+                            <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+                                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(16,185,129,0.4); z-index: 2;">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <div style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); z-index: 1;">
+                                    <span style="color: rgba(226, 232, 240, 0.7); font-size: 11px; font-weight: 600; text-decoration: line-through;">${dest.name}</span>
+                                </div>
                             </div>
                         `;
                     } else if (idx === activeIndex) {
-                        // ACTIVE - Glowing Blue Number
+                        // ACTIVE - Glowing Blue Number + Next Stop Tag
                         iconHtml = `
-                            <div style="background: #38bdf8; color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; border: 3px solid #ffffff; box-shadow: none; animation: pulse 2s infinite;">
-                                ${idx + 1}
-                            </div>
-                        `;
-                        labelHtml = `
-                            <div style="background: #0f172a; color: #38bdf8; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; white-space: nowrap; margin-top: 4px; border: 1px solid #38bdf8; box-shadow: none; text-align: center;">
-                                Next: ${dest.name}
+                            <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+                                <div style="background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); color: #ffffff; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px; border: 2.5px solid #ffffff; box-shadow: 0 0 20px rgba(56, 189, 248, 0.65); z-index: 2;">
+                                    ${idx + 1}
+                                </div>
+                                <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.96) 0%, rgba(15, 23, 42, 0.98) 100%); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1.5px solid rgba(56, 189, 248, 0.4); border-radius: 12px; padding: 5px 10px; margin-top: 6px; display: flex; align-items: center; gap: 6px; box-shadow: 0 8px 20px rgba(0,0,0,0.5); z-index: 1;">
+                                    <span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.4px;">Next</span>
+                                    <span style="color: #ffffff; font-size: 12px; font-weight: 700; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${dest.name}</span>
+                                </div>
                             </div>
                         `;
                     } else {
-                        // LOCKED - Grey Padlock
+                        // LOCKED - Grey Padlock + Stop Number
                         iconHtml = `
-                            <div style="background: #94a3b8; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; border: 3px solid #ffffff; box-shadow: none; opacity: 0.8;">
-                                <i class="fa-solid fa-lock"></i>
-                            </div>
-                        `;
-                        labelHtml = `
-                            <div style="background: rgba(148,163,184,0.8); color: white; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; white-space: nowrap; margin-top: 4px; border: 1px solid rgba(255,255,255,0.2); box-shadow: none; text-align: center; opacity: 0.8;">
-                                Locked
+                            <div style="display: flex; flex-direction: column; align-items: center; opacity: 0.85; cursor: pointer;">
+                                <div style="background: #475569; color: #ffffff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; border: 2px solid rgba(255,255,255,0.4); box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 2;">
+                                    <i class="fa-solid fa-lock" style="font-size: 10px;"></i>
+                                </div>
+                                <div style="background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 8px; padding: 3px 8px; margin-top: 4px; z-index: 1;">
+                                    <span style="color: rgba(148, 163, 184, 0.9); font-size: 10px; font-weight: 600;">Stop ${idx + 1}</span>
+                                </div>
                             </div>
                         `;
                     }
 
                     const el = document.createElement('div');
-                    el.innerHTML = iconHtml + labelHtml;
+                    el.innerHTML = iconHtml;
                     el.style.display = 'flex';
                     el.style.flexDirection = 'column';
                     el.style.alignItems = 'center';
 
-                    const m = new maplibregl.Marker({ element: el, anchor: 'top' })
+                    const m = new maplibregl.Marker({ element: el, anchor: 'center' })
                         .setLngLat([lng, lat])
                         .addTo(tripMap);
                     
@@ -393,7 +435,7 @@ require_once __DIR__ . '/../components/header.php';
             if (!dest) return;
             const lat = parseFloat(dest.lat || dest.latitude);
             const lng = parseFloat(dest.lng || dest.longitude);
-            const isVisited = item.is_visited;
+            const isVisited = Boolean(item.is_visited || item.proof_status === 'approved' || item.proof_image);
             const isActive = idx === activeIndex;
 
             let badgeHtml = '';
@@ -579,12 +621,16 @@ require_once __DIR__ . '/../components/header.php';
 
                             const etaEl = document.createElement('div');
                             etaEl.innerHTML = `
-                                <div style="background: white; border: 1px solid #e2e8f0; padding: 6px 10px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 13px; font-weight: 800; color: #0f172a; display: flex; flex-direction: column; align-items: center; white-space: nowrap;">
-                                    <div style="display: flex; align-items: center; gap: 6px;">
-                                        ${iconHtml} <span style="font-size: 15px;">${Math.round(legDurMin)} min</span>
+                                <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.96) 0%, rgba(15, 23, 42, 0.98) 100%); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1.5px solid rgba(56, 189, 248, 0.4); padding: 6px 12px; border-radius: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 16px rgba(56,189,248,0.2); display: flex; align-items: center; gap: 8px; color: #ffffff; white-space: nowrap; pointer-events: none; transform: translateY(-4px);">
+                                    <div style="width: 26px; height: 26px; border-radius: 8px; background: rgba(56, 189, 248, 0.18); border: 1px solid rgba(56, 189, 248, 0.35); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 12px; flex-shrink: 0;">
+                                        ${iconHtml}
                                     </div>
-                                    <div style="font-size: 11px; color: #64748b; margin-top: 2px; font-weight: 600;">
-                                        ${legDistKm < 1 ? Math.round(legDistKm * 1000) + ' m' : legDistKm.toFixed(1) + ' km'}
+                                    <div style="display: flex; flex-direction: column; line-height: 1.15;">
+                                        <div style="display: flex; align-items: baseline; gap: 3px;">
+                                            <span style="font-size: 13px; font-weight: 800; color: #ffffff;">${Math.round(legDurMin)}</span>
+                                            <span style="font-size: 10px; font-weight: 700; color: #38bdf8;">min</span>
+                                        </div>
+                                        <span style="font-size: 10px; font-weight: 600; color: rgba(226, 232, 240, 0.75);">${legDistKm < 1 ? Math.round(legDistKm * 1000) + ' m' : legDistKm.toFixed(1) + ' km'}</span>
                                     </div>
                                 </div>
                             `;
@@ -762,7 +808,7 @@ require_once __DIR__ . '/../components/header.php';
     window.verifyGpsCheckIn = async function() {
         const imageFile = window.selectedCheckinImageFile || (document.getElementById('checkin-proof-image') ? document.getElementById('checkin-proof-image').files[0] : null);
         if (!imageFile) {
-            if (typeof showToast === 'function') showToast('Please select or capture a photo proof first! 📸');
+            if (typeof showToast === 'function') showToast('Please select or capture a photo proof first.');
             return;
         }
 
@@ -793,8 +839,8 @@ require_once __DIR__ . '/../components/header.php';
             const result = await response.json();
 
             if (response.ok) {
-                if (typeof showToast === 'function') showToast(result.message || 'Checked in! Earned +50 XP & Points');
                 closeCheckinModal();
+                if (typeof showToast === 'function') showToast(result.message || 'Photo proof submitted! Pending verification before completion.');
                 document.getElementById('checkin-prompt-card').style.display = 'none';
                 
                 const item = window.currentTripItems?.find(i => i.id == itemId);
@@ -863,6 +909,49 @@ require_once __DIR__ . '/../components/header.php';
             if (window.currentTripItems) plotTrip(window.currentTripItems, window.currentRouteType);
         }, 2000);
     });
+
+    window.locateTripUser = async function() {
+        const btn = document.getElementById('btn-trip-locate-me');
+        const icon = btn ? btn.querySelector('i') || btn : null;
+        const origClass = icon ? icon.className : '';
+        if (icon) icon.className = 'fa-solid fa-spinner fa-spin';
+        if (typeof showToast === 'function') showToast("Acquiring precise GPS location...");
+
+        try {
+            let loc = null;
+            if (typeof window.requestPreciseLocation === 'function') {
+                loc = await window.requestPreciseLocation(true);
+            } else if (typeof window.resolveUserLocation === 'function') {
+                loc = await window.resolveUserLocation(true);
+            }
+
+            if (loc && loc.lat && loc.lng && !isNaN(loc.lat) && !isNaN(loc.lng)) {
+                window.myLat = loc.lat;
+                window.myLng = loc.lng;
+                window.currentGPSLat = loc.lat;
+                window.currentGPSLng = loc.lng;
+
+                if (tripMap) {
+                    tripMap.flyTo({ center: [parseFloat(loc.lng), parseFloat(loc.lat)], zoom: 15, duration: 1200 });
+                }
+                if (typeof showToast === 'function') {
+                    showToast(loc.source === 'gps' || window.currentGPSSource === 'gps' ? "Centered on your precise GPS location 📍" : "Centered on your estimated location");
+                }
+            } else {
+                throw new Error("Could not acquire coordinates");
+            }
+        } catch (e) {
+            console.warn("Trip locate error:", e);
+            if (typeof showToast === 'function') {
+                showToast("GPS blocked or unavailable. Select your town below.");
+            }
+            if (typeof window.openLocationPickerModal === 'function') {
+                window.openLocationPickerModal();
+            }
+        } finally {
+            if (icon) icon.className = origClass || 'fa-solid fa-location-crosshairs';
+        }
+    };
 
     initTripMap();
 })();

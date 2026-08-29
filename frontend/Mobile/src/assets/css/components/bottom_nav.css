@@ -15,8 +15,26 @@
     max-width: 448px;
     height: 66px;
     z-index: 1000;
-    overflow: visible;
-    transition: transform 0.4s ease-in-out;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, visibility 0.25s ease;
+}
+
+/* ── Hide Navigation Bar when Virtual Keyboard is open on mobile ── */
+body.keyboard-open .magic-nav,
+html.keyboard-open .magic-nav,
+.magic-nav.keyboard-hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translate(-50%, 140px) !important;
+    visibility: hidden !important;
+}
+
+body.keyboard-open #bottom-navigation,
+html.keyboard-open #bottom-navigation,
+#bottom-navigation.keyboard-hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(140px) !important;
+    visibility: hidden !important;
 }
 
 

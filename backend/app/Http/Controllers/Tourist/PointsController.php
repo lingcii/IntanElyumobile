@@ -20,32 +20,27 @@ class PointsController extends Controller
     {
         $user = $request->user();
 
-        // Calculate earned points
-        $earned = 0;
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('user_points') && \Illuminate\Support\Facades\Schema::hasColumn('user_points', 'points')) {
-                $earned = (int) UserPoint::where('user_id', $user->id)->sum('points');
-            }
-        } catch (\Throwable $e) {
-            $earned = 0;
-        }
-
-        // Calculate redeemed points
-        $redeemed = 0;
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions') && \Illuminate\Support\Facades\Schema::hasColumn('point_redemptions', 'points_cost')) {
-                $redeemed = (int) PointRedemption::where('user_id', $user->id)->sum('points_cost');
-            }
-        } catch (\Throwable $e) {
-            $redeemed = 0;
-        }
-
-        $balance = max(0, $earned - $redeemed);
+        // Balance directly from users table
+        $balance = (int) ($user->points ?? 0);
 
         $history = collect();
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('user_points')) {
-                $history = UserPoint::where('user_id', $user->id)->latest()->get();
+            if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
+                $history = \App\Models\ActivityLog::where('user_id', $user->id)
+                    ->whereIn('action', ['Points Awarded', 'Points Redeemed', 'Voucher Redeemed'])
+                    ->latest()
+                    ->limit(50)
+                    ->get()
+                    ->map(function ($log) {
+                        return [
+                            'id'          => $log->id,
+                            'points'      => (int) (preg_match('/([+-]?\d+)\s*Points?/i', $log->details, $m) ? $m[1] : 0),
+                            'source'      => $log->action,
+                            'description' => $log->details,
+                            'created_at'  => $log->created_at ? $log->created_at->toIso8601String() : now()->toIso8601String(),
+                            'date'        => $log->created_at ? $log->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
+                        ];
+                    });
             }
         } catch (\Throwable $e) {
             $history = collect();
@@ -63,8 +58,8 @@ class PointsController extends Controller
         return response()->json([
             'status' => 'success',
             'points' => $balance,
-            'earned_total' => $earned,
-            'redeemed_total' => $redeemed,
+            'earned_total' => $balance,
+            'redeemed_total' => $vouchers->sum('points_cost'),
             'history' => $history,
             'vouchers' => $vouchers
         ]);
@@ -83,9 +78,10 @@ class PointsController extends Controller
 
         $todayCompleted = false;
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('user_points')) {
-                $todayCompleted = UserPoint::where('user_id', $user->id)
-                    ->where('source', 'puzzle')
+            if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
+                $todayCompleted = \App\Models\ActivityLog::where('user_id', $user->id)
+                    ->where('action', 'Points Awarded')
+                    ->where('details', 'LIKE', '%Puzzle%')
                     ->whereDate('created_at', now()->toDateString())
                     ->exists();
             }
@@ -134,9 +130,10 @@ class PointsController extends Controller
 
         $todayCompleted = false;
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('user_points')) {
-                $todayCompleted = UserPoint::where('user_id', $user->id)
-                    ->where('source', 'trivia')
+            if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
+                $todayCompleted = \App\Models\ActivityLog::where('user_id', $user->id)
+                    ->where('action', 'Points Awarded')
+                    ->where('details', 'LIKE', '%Trivia%')
                     ->whereDate('created_at', now()->toDateString())
                     ->exists();
             }
@@ -191,9 +188,10 @@ class PointsController extends Controller
 
         $todayCompleted = false;
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('user_points')) {
-                $todayCompleted = UserPoint::where('user_id', $user->id)
-                    ->where('source', $gameType)
+            if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
+                $todayCompleted = \App\Models\ActivityLog::where('user_id', $user->id)
+                    ->where('action', 'Points Awarded')
+                    ->where('details', 'LIKE', '%' . str_replace('_', ' ', $gameType) . '%')
                     ->whereDate('created_at', now()->toDateString())
                     ->exists();
             }
@@ -259,10 +257,8 @@ class PointsController extends Controller
 
         $cost = $costs[$type];
 
-        // Get points balance
-        $earned = (int) UserPoint::where('user_id', $user->id)->sum('points');
-        $redeemed = (int) PointRedemption::where('user_id', $user->id)->sum('points_cost');
-        $balance = $earned - $redeemed;
+        // Get points balance directly from users table
+        $balance = (int) ($user->points ?? 0);
 
         if ($balance < $cost) {
             return response()->json([
@@ -277,6 +273,12 @@ class PointsController extends Controller
 
         // Start transaction
         $redemption = DB::transaction(function() use ($user, $type, $cost, $code) {
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
+                    $user->decrement('points', $cost);
+                }
+            } catch (\Throwable $e) {}
+
             return PointRedemption::create([
                 'user_id' => $user->id,
                 'type' => $type,
@@ -293,6 +295,18 @@ class PointsController extends Controller
             "Redeemed voucher {$code} ({$type}). Present code at merchant checkout!",
             ['action_url' => '/discount']
         );
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
+                $typeLabel = ucwords(str_replace('_', ' ', $type));
+                \App\Models\ActivityLog::create([
+                    'user_id'    => $user->id,
+                    'action'     => 'Points Redeemed',
+                    'details'    => "Redeemed {$cost} points for {$typeLabel} (Code: {$code})",
+                    'ip_address' => $request->ip() ?? '127.0.0.1',
+                ]);
+            }
+        } catch (\Throwable $e) {}
 
         return response()->json([
             'status' => 'success',

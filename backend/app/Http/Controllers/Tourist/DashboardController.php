@@ -131,25 +131,8 @@ class DashboardController extends Controller
             }
         });
 
-        // Calculate points balance safely
-        $earnedPoints = 0;
-        $redeemedPoints = 0;
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('user_points') && \Illuminate\Support\Facades\Schema::hasColumn('user_points', 'points')) {
-                $earnedPoints = (int) \App\Models\UserPoint::where('user_id', $user->id)->sum('points');
-            }
-        } catch (\Throwable $e) {
-            $earnedPoints = 0;
-        }
-
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions') && \Illuminate\Support\Facades\Schema::hasColumn('point_redemptions', 'points_cost')) {
-                $redeemedPoints = (int) \App\Models\PointRedemption::where('user_id', $user->id)->sum('points_cost');
-            }
-        } catch (\Throwable $e) {
-            $redeemedPoints = 0;
-        }
-        $points = max(0, $earnedPoints - $redeemedPoints);
+        // Points balance directly from users table
+        $points = (int) ($user->points ?? 0);
 
         $unreadNotifications = 0;
         try {

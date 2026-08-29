@@ -32,9 +32,25 @@
     <div class="wave-wrapper" id="splash-wave-wrapper">
         <div class="wave-bottom">
             <svg viewBox="0 0 2000 100" preserveAspectRatio="none">
-                <path class="wave-layer wave-1" fill="rgba(30,41,59,0.3)" d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 C1150,100 1350,0 1500,50 C1650,100 1850,0 2000,50 L2000,100 L0,100 Z"></path>
-                <path class="wave-layer wave-2" fill="rgba(30,41,59,0.5)" d="M0,60 C200,110 300,10 500,60 C700,110 800,10 1000,60 C1200,110 1300,10 1500,60 C1700,110 1800,10 2000,60 L2000,100 L0,100 Z"></path>
-                <path class="wave-layer wave-3" fill="#1e293b" d="M0,70 C250,120 250,20 500,70 C750,120 750,20 1000,70 C1250,120 1250,20 1500,70 C1750,120 1750,20 2000,70 L2000,100 L0,100 Z"></path>
+                <defs>
+                    <linearGradient id="splashWaveGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.85" />
+                        <stop offset="40%" stop-color="#06b6d4" stop-opacity="0.65" />
+                        <stop offset="100%" stop-color="#0284c7" stop-opacity="0.25" />
+                    </linearGradient>
+                    <linearGradient id="splashWaveGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9" />
+                        <stop offset="50%" stop-color="#0284c7" stop-opacity="0.75" />
+                        <stop offset="100%" stop-color="#1e3a8a" stop-opacity="0.45" />
+                    </linearGradient>
+                    <linearGradient id="splashWaveGrad3" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#74a3cf" stop-opacity="1" />
+                        <stop offset="100%" stop-color="#74a3cf" stop-opacity="1" />
+                    </linearGradient>
+                </defs>
+                <path class="wave-layer wave-1" fill="url(#splashWaveGrad1)" d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 C1150,100 1350,0 1500,50 C1650,100 1850,0 2000,50 L2000,160 L0,160 Z"></path>
+                <path class="wave-layer wave-2" fill="url(#splashWaveGrad2)" d="M0,60 C200,110 300,10 500,60 C700,110 800,10 1000,60 C1200,110 1300,10 1500,60 C1700,110 1800,10 2000,60 L2000,160 L0,160 Z"></path>
+                <path class="wave-layer wave-3" fill="#74a3cf" d="M0,70 C250,120 250,20 500,70 C750,120 750,20 1000,70 C1250,120 1250,20 1500,70 C1750,120 1750,20 2000,70 L2000,160 L0,160 Z"></path>
             </svg>
         </div>
     </div>  
@@ -43,6 +59,13 @@
 <script>
     // Simulate loading and check authentication
     setTimeout(() => {
+        const rawHash = window.location.hash || '';
+        const rawSearch = window.location.search || '';
+        if (window._isProcessingGoogleOAuth || rawHash.includes('access_token=') || rawHash.includes('id_token=') || rawSearch.includes('access_token=') || rawSearch.includes('id_token=')) {
+            // OAuth redirect in progress, let main.js handle it
+            return;
+        }
+
         const splashMain = document.getElementById('splash-main');
         const token = localStorage.getItem('intan_elyu_token');
         
@@ -57,8 +80,8 @@
             if(splashMain) {
                 // Dynamically calculate the perfect translateY destination based on auth page layout
                 const vh = window.innerHeight;
-                const authTopHeight = Math.max(vh * 0.45, 350);
-                const destCenter = (authTopHeight - 40) / 2 - 40; // Center of logo in auth flex block
+                const authTopHeight = Math.min(Math.max(vh * 0.42, 280), 350);
+                const destCenter = (authTopHeight / 2) - 37; // Exact center of 140px logo in auth-top
 
                 // Determine current position of the splash logo
                 const logoContainer = splashMain.querySelector('.splash-logo-container');
@@ -92,6 +115,11 @@
                     }
                 }
                 
+                const waveWrapper = document.getElementById('splash-wave-wrapper');
+                if (waveWrapper) {
+                    waveWrapper.style.setProperty('height', `${vh - authTopHeight}px`, 'important');
+                }
+                
                 splashMain.classList.add('transition-to-auth');
             }
             setTimeout(() => {
@@ -99,5 +127,4 @@
             }, 600); // Wait for wave transition
         }
     }, 2500);
-</script>
 </script>

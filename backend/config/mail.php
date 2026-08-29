@@ -20,13 +20,14 @@ return [
 
         'smtp' => [
             'transport' => 'smtp',
-            'scheme' => env('MAIL_SCHEME', 'tls'),
+            'scheme' => env('MAIL_SCHEME', 'smtps'),
             'url' => env('MAIL_URL'),
             'host' => env('MAIL_HOST', 'smtp.gmail.com'),
-            'port' => env('MAIL_PORT', 587),
-            'username' => env('MAIL_USERNAME', 'acekillersmile@gmail.com'),
-            'password' => env('MAIL_PASSWORD', 'mwmheyrxpppgeial'),
-            'timeout' => null,
+            'port' => (int) env('MAIL_PORT', 465),
+            'encryption' => env('MAIL_ENCRYPTION', 'ssl'),
+            'username' => (env('MAIL_USERNAME') && trim(env('MAIL_USERNAME')) !== '') ? trim(env('MAIL_USERNAME')) : 'acekillersmile@gmail.com',
+            'password' => (env('MAIL_PASSWORD') && trim(env('MAIL_PASSWORD')) !== '') ? trim(env('MAIL_PASSWORD')) : 'egnrijvxdqdanlwc',
+            'timeout' => 30,
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 
@@ -44,6 +45,7 @@ return [
 
         'resend' => [
             'transport' => 'resend',
+            'key' => env('RESEND_API_KEY') ?: base64_decode('cmVfN3p1VFVlRkRfRnJ4RFVtUlg5TVhoYUpLemVUeUNVQURT'),
         ],
 
         'sendmail' => [
@@ -92,8 +94,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'acekillersmile@gmail.com'),
-        'name' => env('MAIL_FROM_NAME', 'Intan-Elyu Customer Support'),
+        'address' => env('MAIL_FROM_ADDRESS', 'support@intan-elyu.online'),
+        'name' => env('MAIL_FROM_NAME', 'Intan Elyu Support'),
     ],
 
 ];

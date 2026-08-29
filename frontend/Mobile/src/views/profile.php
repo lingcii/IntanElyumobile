@@ -10,17 +10,17 @@ $activeTab = 'profile';
 <div class="profile-container has-header has-bottom-nav animate-slide-up" style="padding-bottom: 90px;">
     
     <!-- Profile Main Header Card -->
-    <div class="profile-header stagger-1" style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 24px; padding: 24px 20px; text-align: center; backdrop-filter: blur(20px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-bottom: 20px;">
+    <div class="profile-header stagger-1" style="background: rgba(30, 75, 135, 0.58); border: 1.5px solid rgba(255, 255, 255, 0.28); border-radius: 24px; padding: 24px 20px; text-align: center; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: none; margin-bottom: 20px;">
         <div class="profile-avatar-container" style="position: relative; display: inline-block; margin-bottom: 12px;">
-            <img src="https://ui-avatars.com/api/?name=User&background=007AFF&color=fff&rounded=true&bold=true&size=128" alt="Profile" class="profile-avatar" id="profile-img" style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #38bdf8; object-fit: cover; box-shadow: 0 0 20px rgba(56,189,248,0.4);">
-            <span id="profile-badge-icon" style="position: absolute; bottom: 2px; right: 2px; background: linear-gradient(135deg, #38bdf8, #2563eb); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; border: 2px solid #0f172a; box-shadow: 0 2px 6px rgba(0,0,0,0.3);" title="Explorer Level"><i class="fa-solid fa-shield-halved"></i></span>
+            <img src="https://ui-avatars.com/api/?name=User&background=007AFF&color=fff&rounded=true&bold=true&size=128" alt="Profile" class="profile-avatar" id="profile-img" style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #00f2fe; object-fit: cover; box-shadow: none;">
+            <span id="profile-badge-icon" style="position: absolute; bottom: 2px; right: 2px; background: linear-gradient(135deg, #00f2fe, #0284c7); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; border: 2px solid #ffffff; box-shadow: none;" title="Explorer Level"><i class="fa-solid fa-shield-halved"></i></span>
         </div>
 
         <h2 class="profile-name" id="profile-name" style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">Loading...</h2>
-        <p class="profile-email" id="profile-email" style="margin: 0; font-size: 13px; color: rgba(148, 163, 184, 0.9); font-weight: 500;">loading@example.com</p>
+        <p class="profile-email" id="profile-email" style="margin: 0; font-size: 13px; color: #ffffff; opacity: 0.95; font-weight: 500;">loading@example.com</p>
         
-        <div id="profile-meta" style="font-size: 12px; color: #38bdf8; margin: 8px 0 0 0; display: none; flex-wrap: wrap; justify-content: center; gap: 12px; font-weight: 600;"></div>
-        <p id="profile-bio-text" style="font-size: 13px; color: rgba(248,250,252,0.85); margin: 10px auto 0 auto; max-width: 320px; font-style: italic; line-height: 1.4; display: none; background: rgba(255,255,255,0.03); padding: 8px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);"></p>
+        <div id="profile-meta" style="font-size: 12px; color: #00f2fe; margin: 8px 0 0 0; display: none; flex-wrap: wrap; justify-content: center; gap: 12px; font-weight: 600;"></div>
+        <p id="profile-bio-text" style="font-size: 13px; color: #ffffff; opacity: 0.95; margin: 10px auto 0 auto; max-width: 320px; font-style: italic; line-height: 1.4; display: none; background: rgba(255,255,255,0.12); padding: 8px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.25);"></p>
         
         <div id="profile-pref-chips" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 12px;"></div>
 
@@ -28,117 +28,105 @@ $activeTab = 'profile';
     
     <!-- Stats Cards (XP, Visited, Rank) -->
     <div class="stats-container stagger-2" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
-        <div class="stat-card" style="background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 14px 10px; text-align: center;">
-            <div class="stat-value" id="stat-xp" style="font-size: 20px; font-weight: 800; color: #38bdf8;">0</div>
-            <div class="stat-label" style="font-size: 11px; font-weight: 700; color: rgba(148, 163, 184, 0.8); text-transform: uppercase; margin-top: 2px;">Total XP</div>
+        <div class="stat-card" style="background: rgba(30, 75, 135, 0.58); border: 1.5px solid rgba(255, 255, 255, 0.28); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 18px; padding: 14px 10px; text-align: center; box-shadow: none;">
+            <div class="stat-value" id="stat-xp" style="font-size: 20px; font-weight: 800; color: #00f2fe;">0</div>
+            <div class="stat-label" style="font-size: 11px; font-weight: 700; color: #ffffff; opacity: 0.95; text-transform: uppercase; margin-top: 2px;">Total XP</div>
         </div>
-        <div class="stat-card" style="background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 14px 10px; text-align: center;">
-            <div class="stat-value" id="stat-places" style="font-size: 20px; font-weight: 800; color: #34c759;">0</div>
-            <div class="stat-label" style="font-size: 11px; font-weight: 700; color: rgba(148, 163, 184, 0.8); text-transform: uppercase; margin-top: 2px;">Visited</div>
+        <div class="stat-card" style="background: rgba(30, 75, 135, 0.58); border: 1.5px solid rgba(255, 255, 255, 0.28); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 18px; padding: 14px 10px; text-align: center; box-shadow: none;">
+            <div class="stat-value" id="stat-places" style="font-size: 20px; font-weight: 800; color: #ffffff;">0</div>
+            <div class="stat-label" style="font-size: 11px; font-weight: 700; color: #ffffff; opacity: 0.95; text-transform: uppercase; margin-top: 2px;">Visited</div>
         </div>
-        <div class="stat-card" style="background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 14px 10px; text-align: center;">
+        <div class="stat-card" style="background: rgba(30, 75, 135, 0.58); border: 1.5px solid rgba(255, 255, 255, 0.28); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 18px; padding: 14px 10px; text-align: center; box-shadow: none;">
             <div class="stat-value" id="stat-rank" style="font-size: 20px; font-weight: 800; color: #fbbf24;">—</div>
-            <div class="stat-label" style="font-size: 11px; font-weight: 700; color: rgba(148, 163, 184, 0.8); text-transform: uppercase; margin-top: 2px;">Leaderboard</div>
+            <div class="stat-label" style="font-size: 11px; font-weight: 700; color: #ffffff; opacity: 0.95; text-transform: uppercase; margin-top: 2px;">Leaderboard</div>
         </div>
     </div>
 
     <!-- Explorer Level Progress Card -->
-    <div class="stagger-2" style="background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 20px; padding: 18px; margin-bottom: 20px; backdrop-filter: blur(12px);">
+    <div class="stagger-2" style="background: rgba(30, 75, 135, 0.58); border: 1.5px solid rgba(255, 255, 255, 0.28); border-radius: 20px; padding: 18px; margin-bottom: 20px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-compass" style="color: #38bdf8; font-size: 16px;"></i>
+                <i class="fa-solid fa-compass" style="color: #00f2fe; font-size: 16px;"></i>
                 <span id="explorer-level-title" style="font-size: 14px; font-weight: 800; color: #ffffff;">Level 1 Explorer</span>
             </div>
-            <span id="explorer-xp-text" style="font-size: 12px; font-weight: 700; color: #38bdf8;">0 / 1000 XP</span>
+            <span id="explorer-xp-text" style="font-size: 12px; font-weight: 800; color: #00f2fe;">0 / 1000 XP</span>
         </div>
-        <div style="background: rgba(255,255,255,0.08); height: 10px; border-radius: 100px; overflow: hidden; position: relative;">
-            <div id="explorer-xp-bar" style="background: linear-gradient(90deg, #38bdf8, #2563eb); height: 100%; width: 0%; border-radius: 100px; transition: width 0.5s ease;"></div>
+        <div style="background: rgba(255,255,255,0.14); height: 10px; border-radius: 100px; overflow: hidden; position: relative;">
+            <div id="explorer-xp-bar" style="background: linear-gradient(90deg, #00f2fe, #0284c7); height: 100%; width: 0%; border-radius: 100px; transition: width 0.5s ease;"></div>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: rgba(148,163,184,0.6); font-weight: 600;">
+        <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: #ffffff; opacity: 0.9; font-weight: 600;">
             <span>Next Level Goal</span>
             <span id="explorer-xp-pct">0%</span>
         </div>
     </div>
 
-
-    
     <!-- Trip History -->
     <div class="stagger-3" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; margin-left: 4px;">
         <h3 style="font-size: 16px; font-weight: 800; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-route" style="color: #38bdf8;"></i> Trip History
+            <i class="fa-solid fa-route" style="color: #00f2fe;"></i> Trip History
         </h3>
         <div style="display: flex; align-items: center; gap: 8px;">
-            <span id="trip-history-count-badge" style="font-size: 11px; font-weight: 800; background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 2px 8px; border-radius: 100px; border: 1px solid rgba(56, 189, 248, 0.3);">0 Completed</span>
-            <button onclick="window.openFullHistoryModal()" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; font-size: 11px; font-weight: 800; cursor: pointer; padding: 3px 10px; border-radius: 100px; display: flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
+            <span id="trip-history-count-badge" style="font-size: 11px; font-weight: 800; background: rgba(0, 242, 254, 0.2); color: #00f2fe; padding: 2px 8px; border-radius: 100px; border: 1px solid rgba(0, 242, 254, 0.4);">0 Completed</span>
+            <button onclick="window.openFullHistoryModal()" style="background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.35); color: #ffffff; font-size: 11px; font-weight: 800; cursor: pointer; padding: 3px 10px; border-radius: 100px; display: flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
                 View All <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i>
             </button>
         </div>
     </div>
     <div id="trip-history-container" class="stagger-3" style="margin-bottom: 24px;">
         <div id="trip-history-list">
-            <div style="text-align:center; padding:16px; color:rgba(148, 163, 184, 0.8); font-size:13px; background:rgba(37, 99, 235, 0.12); border:1px solid rgba(56, 189, 248, 0.2); backdrop-filter:blur(24px); border-radius:14px;">Loading history...</div>
+            <div style="text-align:center; padding:16px; color:#ffffff; opacity:0.95; font-size:13px; background:rgba(30, 75, 135, 0.58); border:1.5px solid rgba(255, 255, 255, 0.28); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-radius:14px;">Loading history...</div>
         </div>
     </div>
     
     <!-- Points & Rewards -->
     <h3 class="stagger-3" style="font-size: 16px; font-weight: 800; color: #ffffff; margin-bottom: 12px; margin-left: 4px; display: flex; align-items: center; gap: 8px;">
-        <i class="fa-solid fa-gift" style="color: #f43f5e;"></i> Points & Rewards
+        <i class="fa-solid fa-gift" style="color: #00f2fe;"></i> Points & Rewards
     </h3>
     
-    <div style="background:rgba(30, 41, 59, 0.4); border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:20px; margin-bottom:24px; box-shadow:0 10px 25px rgba(0,0,0,0.3); backdrop-filter:blur(10px);" class="stagger-3">
+    <div style="background:rgba(30, 75, 135, 0.58); border:1.5px solid rgba(255, 255, 255, 0.28); border-radius:20px; padding:20px; margin-bottom:24px; box-shadow:none; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);" class="stagger-3">
         <!-- Display balance -->
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:16px;">
             <div style="text-align: left;">
-                <h4 style="margin:0 0 4px 0; font-size:12px; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.5px;">Claimable Points</h4>
+                <h4 style="margin:0 0 4px 0; font-size:12px; color:#ffffff; opacity:0.9; text-transform:uppercase; letter-spacing:0.5px;">Claimable Points</h4>
                 <div style="display:flex; align-items:baseline; gap:6px;">
-                    <span id="profile-points-val" style="font-size:32px; font-weight:800; color:#38bdf8; letter-spacing:-1px;">--</span>
-                    <span style="font-size:14px; font-weight:700; color:rgba(255,255,255,0.5);">PTS</span>
+                    <span id="profile-points-val" style="font-size:32px; font-weight:800; color:#ffffff; letter-spacing:-1px;">--</span>
+                    <span style="font-size:14px; font-weight:700; color:#ffffff; opacity:0.8;">PTS</span>
                 </div>
             </div>
-            <button onclick="navigateTo('puzzles')" style="background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; padding:8px 16px; border-radius:12px; font-weight:700; font-size:12px; cursor:pointer;">
+            <button onclick="navigateTo('puzzles')" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:1px solid #ffffff; color:#ffffff; padding:8px 16px; border-radius:12px; font-weight:800; font-size:12px; cursor:pointer; box-shadow:none;">
                 <i class="fa-solid fa-gamepad"></i> Play & Earn
             </button>
         </div>
 
         <!-- Catalog list -->
-        <h5 style="margin:0 0 12px; font-size:13px; font-weight:700; color:#fff; text-align: left;">Redeem Rewards</h5>
-        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-            <!-- Pasalubong center voucher -->
-            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); padding:12px 14px; border-radius:14px;">
-                <div style="text-align: left;">
-                    <strong style="display:block; font-size:13px; color:#fff;">₱50 Pasalubong Discount</strong>
-                    <span style="font-size:11px; color:rgba(255,255,255,0.5);">Claimable at local Pasalubong Center</span>
-                </div>
-                <button onclick="redeemReward('pasalubong_discount', 100)" style="background:#38bdf8; color:#000; border:none; padding:8px 12px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer;">
-                    100 PTS
-                </button>
-            </div>
-
-            <!-- Environmental fee waiver -->
-            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); padding:12px 14px; border-radius:14px;">
-                <div style="text-align: left;">
-                    <strong style="display:block; font-size:13px; color:#fff;">Waived Environmental Fee</strong>
-                    <span style="font-size:11px; color:rgba(255,255,255,0.5);">Waive standard municipality entry fee</span>
-                </div>
-                <button onclick="redeemReward('environmental_fee', 150)" style="background:#38bdf8; color:#000; border:none; padding:8px 12px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer;">
-                    150 PTS
-                </button>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h5 style="margin:0; font-size:14px; font-weight:800; color:#fff; text-align: left;">Redeem Rewards</h5>
+            <a href="#" onclick="navigateTo('discount'); return false;" style="font-size:11px; font-weight:800; color:#00f2fe; text-decoration:none; display:flex; align-items:center; gap:4px;">
+                View All Deals <i class="fa-solid fa-arrow-right" style="font-size:9px;"></i>
+            </a>
+        </div>
+        <div id="profile-rewards-catalog" style="display:flex; flex-direction:column; gap:10px; margin-bottom:24px;">
+            <div style="text-align:center; padding:12px; color:#ffffff; opacity:0.75; font-size:12px;">
+                <i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Loading available rewards...
             </div>
         </div>
 
         <!-- Active Claimed Vouchers -->
-        <h5 style="margin:0 0 12px; font-size:13px; font-weight:700; color:#fff; text-align: left;">Active Vouchers</h5>
-        <div id="vouchers-list" style="display:flex; flex-direction:column; gap:8px;">
-            <div style="font-size:12px; color:rgba(255,255,255,0.4); text-align:center; padding:10px;">No redeemed vouchers yet.</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h5 style="margin:0; font-size:14px; font-weight:800; color:#fff; text-align: left;">Active Vouchers</h5>
+            <span id="active-vouchers-count" style="font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.2); border:1px solid rgba(0, 242, 254, 0.4); color:#00f2fe; padding:2px 8px; border-radius:100px;">0 Active</span>
+        </div>
+        <div id="vouchers-list" style="display:flex; flex-direction:column; gap:10px;">
+            <div style="font-size:12px; color:#ffffff; opacity:0.85; text-align:center; padding:14px; background:rgba(255,255,255,0.08); border:1px dashed rgba(255,255,255,0.25); border-radius:14px;">No redeemed vouchers yet.</div>
         </div>
     </div>
     
     <!-- Account Settings -->
     <h3 class="stagger-3" style="font-size: 16px; font-weight: 800; color: #ffffff; margin-bottom: 12px; margin-left: 4px; display: flex; align-items: center; gap: 8px;">
-        <i class="fa-solid fa-user-gear" style="color: #a855f7;"></i> Account Settings
+        <i class="fa-solid fa-user-gear" style="color: #00f2fe;"></i> Account Settings
     </h3>
     
-    <div class="settings-group stagger-3" style="background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; overflow: hidden; margin-bottom: 24px;">
+    <div class="settings-group stagger-3" style="background: rgba(30, 75, 135, 0.58); border: 1.5px solid rgba(255, 255, 255, 0.28); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 20px; overflow: hidden; margin-bottom: 24px; box-shadow:none;">
         <a href="#" class="settings-item" onclick="navigateTo('edit_profile'); return false;">
             <div class="settings-icon" style="background: #007AFF;"><i class="fa-solid fa-user-pen"></i></div>
             <div class="settings-text">Edit Personal Information</div>
@@ -352,7 +340,7 @@ $activeTab = 'profile';
                 if (historyList) {
                     if (!data.completed_trips || data.completed_trips.length === 0) {
                         if (historyBadge) historyBadge.textContent = '0 Completed';
-                        historyList.innerHTML = '<div style="text-align:center; padding:16px; color:rgba(148, 163, 184, 0.8); font-size:13px; background:rgba(37, 99, 235, 0.12); border:1px solid rgba(56, 189, 248, 0.2); border-radius:14px;">No completed trips yet. Start exploring!</div>';
+                        historyList.innerHTML = '<div style="text-align:center; padding:16px; color:#ffffff; opacity:0.95; font-size:13px; background:rgba(30, 75, 135, 0.58); border:1.5px solid rgba(255, 255, 255, 0.28); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-radius:14px;">No completed trips yet. Start exploring!</div>';
                     } else {
                         if (historyBadge) historyBadge.textContent = `${data.completed_trips.length} Completed`;
                         let html = '';
@@ -364,21 +352,21 @@ $activeTab = 'profile';
                             const cost = parseFloat(trip.total_cost || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
 
                             html += `
-                            <div onclick="window.showTripDetailsModal('${trip.id}')" style="background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(12px); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.borderColor='rgba(56,189,248,0.45)'" onmouseout="this.style.borderColor='rgba(56,189,248,0.2)'">
+                            <div onclick="window.showTripDetailsModal('${trip.id}')" style="background: rgba(30, 75, 135, 0.58); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.28); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.borderColor='rgba(255,255,255,0.6)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.28)'">
                                 <div style="flex: 1; min-width: 0;">
                                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
-                                        <strong style="color: #f8fafc; font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${trip.title || 'Completed Trip'}</strong>
+                                        <strong style="color: #ffffff; font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${trip.title || 'Completed Trip'}</strong>
                                     </div>
-                                    <div style="font-size: 11px; color: rgba(148, 163, 184, 0.85); display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                        <span><i class="fa-regular fa-calendar" style="color: #38bdf8; margin-right: 3px;"></i>${date}</span>
+                                    <div style="font-size: 11px; color: #ffffff; opacity: 0.95; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                        <span><i class="fa-regular fa-calendar" style="color: #00f2fe; margin-right: 3px;"></i>${date}</span>
                                         <span>&bull;</span>
-                                        <span><i class="fa-solid fa-coins" style="color: #f59e0b; margin-right: 3px;"></i>₱${cost}</span>
+                                        <span><i class="fa-solid fa-coins" style="color: #fbbf24; margin-right: 3px;"></i>₱${cost}</span>
                                         <span>&bull;</span>
-                                        <span><i class="fa-solid fa-location-dot" style="color: #34c759; margin-right: 3px;"></i>${count} Visited</span>
+                                        <span><i class="fa-solid fa-location-dot" style="color: #00f2fe; margin-right: 3px;"></i>${count} Visited</span>
                                     </div>
                                 </div>
-                                <span style="color: #34c759; font-weight: 800; font-size: 11px; background: rgba(52, 199, 89, 0.15); border: 1px solid rgba(52, 199, 89, 0.3); padding: 4px 10px; border-radius: 100px; white-space: nowrap; flex-shrink: 0;">
-                                    <i class="fa-solid fa-check" style="margin-right: 3px;"></i>Done
+                                <span style="color: #ffffff; font-weight: 800; font-size: 11px; background: rgba(52, 199, 89, 0.25); border: 1px solid rgba(52, 199, 89, 0.5); padding: 4px 10px; border-radius: 100px; white-space: nowrap; flex-shrink: 0;">
+                                    <i class="fa-solid fa-check" style="margin-right: 3px; color:#34c759;"></i>Done
                                 </span>
                             </div>`;
                         });
@@ -391,43 +379,117 @@ $activeTab = 'profile';
         );
     }
 
-    // Fetch Points & Vouchers
+    // Fetch Points & Dynamic Vouchers Catalog & Active Redemptions
     async function fetchPointsAndVouchers() {
         const token = localStorage.getItem('intan_elyu_token');
         if (!token) return;
 
         try {
+            // 1. Fetch balance & claimed vouchers
             const r = await fetch(backendUrl + '/api/tourist/points/balance', {
                 headers: {
                     'Accept': 'application/json',
+                    'ngrok-skip-browser-warning': 'true',
                     'Authorization': 'Bearer ' + token
                 }
             });
             const d = await r.json();
             if (d.status === 'success') {
+                window._userPointsBalance = d.points || 0;
                 const ptsVal = document.getElementById('profile-points-val');
-                if (ptsVal) ptsVal.textContent = d.points;
+                if (ptsVal) ptsVal.textContent = (d.points || 0).toLocaleString();
                 
-                // Render vouchers
+                // Render Active Vouchers
                 const list = document.getElementById('vouchers-list');
+                const badge = document.getElementById('active-vouchers-count');
                 if (list) {
                     if (d.vouchers && d.vouchers.length > 0) {
+                        if (badge) badge.textContent = `${d.vouchers.length} Active`;
                         let html = '';
                         d.vouchers.forEach(v => {
-                            const typeLabel = v.type === 'pasalubong_discount' ? '<i class="fa-solid fa-bag-shopping" style="color:#38bdf8; margin-right:4px;"></i> Pasalubong Discount' : '<i class="fa-solid fa-leaf" style="color:#34c759; margin-right:4px;"></i> Env Fee Waived';
                             const badgeColor = v.status === 'active' ? '#34c759' : '#8e8e93';
+                            const voucherTitle = v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.type || 'Tourist Voucher'));
+                            const safeCode = (v.voucher_code || '').replace(/'/g, "\\'");
+                            
                             html += `
-                            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); padding:12px; border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
-                                <div style="text-align: left;">
-                                    <span style="font-size:12px; font-weight:700; color:#fff; display:block;">${typeLabel}</span>
-                                    <code style="font-size:13px; font-weight:800; color:#38bdf8; letter-spacing:0.5px; background:rgba(56,189,248,0.1); padding:2px 6px; border-radius:6px; margin-top:4px; display:inline-block;">${v.voucher_code}</code>
+                            <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%); border: 1px solid rgba(56, 189, 248, 0.25); padding: 14px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+                                <div style="text-align: left; flex: 1; min-width: 0;">
+                                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                                        <i class="fa-solid fa-ticket" style="color: #38bdf8; font-size: 13px;"></i>
+                                        <span style="font-size: 13px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${voucherTitle}</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <code style="font-size: 13px; font-weight: 900; color: #38bdf8; letter-spacing: 0.5px; background: rgba(56,189,248,0.12); border: 1px dashed rgba(56,189,248,0.35); padding: 3px 8px; border-radius: 8px;">${v.voucher_code}</code>
+                                        <button type="button" onclick="navigator.clipboard.writeText('${safeCode}'); if(typeof showToast==='function') showToast('Voucher code copied!');" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                                            <i class="fa-solid fa-copy"></i>
+                                        </button>
+                                    </div>
                                 </div>
-                                <span style="font-size:10px; font-weight:800; text-transform:uppercase; color:${badgeColor}; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:6px;">${v.status}</span>
+                                <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: ${badgeColor}; background: ${v.status === 'active' ? 'rgba(52,199,89,0.15)' : 'rgba(255,255,255,0.05)'}; border: 1px solid ${v.status === 'active' ? 'rgba(52,199,89,0.35)' : 'rgba(255,255,255,0.1)'}; padding: 4px 8px; border-radius: 100px; white-space: nowrap;">
+                                    ${v.status || 'Active'}
+                                </span>
                             </div>`;
                         });
                         list.innerHTML = html;
                     } else {
-                        list.innerHTML = '<div style="font-size:12px; color:rgba(255,255,255,0.4); text-align:center; padding:10px;">No redeemed vouchers yet.</div>';
+                        if (badge) badge.textContent = '0 Active';
+                        list.innerHTML = '<div style="font-size:12px; color:rgba(255,255,255,0.4); text-align:center; padding:14px; background:rgba(255,255,255,0.02); border:1px dashed rgba(255,255,255,0.08); border-radius:14px;">No redeemed vouchers yet.</div>';
+                    }
+                }
+            }
+
+            // 2. Fetch active catalog rewards
+            const catalogEl = document.getElementById('profile-rewards-catalog');
+            if (catalogEl) {
+                const resVouchers = await fetch(backendUrl + '/api/vouchers', {
+                    headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
+                });
+                if (resVouchers.ok) {
+                    const vouchersPayload = await resVouchers.json();
+                    if (vouchersPayload.status === 'success' && Array.isArray(vouchersPayload.data) && vouchersPayload.data.length > 0) {
+                        const topVouchers = vouchersPayload.data.slice(0, 3);
+                        catalogEl.innerHTML = topVouchers.map(v => {
+                            const iconClass = v.category === 'Activities' ? 'fa-person-hiking' : (v.category === 'Accommodations' ? 'fa-hotel' : (v.category === 'Souvenirs' ? 'fa-gift' : 'fa-utensils'));
+                            return `
+                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); padding:12px 14px; border-radius:16px; gap:12px; transition:transform 0.15s ease;">
+                                <div style="display:flex; align-items:center; gap:10px; min-width:0; text-align:left; flex:1;">
+                                    <div style="width:36px; height:36px; border-radius:10px; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.25); display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:15px; flex-shrink:0;">
+                                        <i class="fa-solid ${iconClass}"></i>
+                                    </div>
+                                    <div style="min-width:0; flex:1;">
+                                        <div style="display:flex; align-items:center; gap:6px;">
+                                            <strong style="display:block; font-size:13px; font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.title}</strong>
+                                            <span style="font-size:9px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.15); padding:1px 6px; border-radius:6px; flex-shrink:0;">${v.badge}</span>
+                                        </div>
+                                        <span style="font-size:11px; color:rgba(226,232,240,0.6); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.partner}</span>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="window.redeemAdminVoucher(${v.id}, ${v.pointsCost}, '${(v.title || '').replace(/'/g, "\\'")}')" style="background:linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); color:#ffffff; border:none; padding:8px 14px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer; flex-shrink:0; box-shadow:0 3px 10px rgba(56,189,248,0.3); white-space:nowrap;">
+                                    ${v.pointsCost} PTS
+                                </button>
+                            </div>`;
+                        }).join('');
+                    } else {
+                        // Default built-in rewards fallback
+                        catalogEl.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); padding:12px 14px; border-radius:16px;">
+                                <div style="text-align: left;">
+                                    <strong style="display:block; font-size:13px; color:#fff;">₱50 Pasalubong Discount</strong>
+                                    <span style="font-size:11px; color:rgba(255,255,255,0.5);">Claimable at local Pasalubong Center</span>
+                                </div>
+                                <button onclick="redeemReward('pasalubong_discount', 100)" style="background:linear-gradient(135deg, #38bdf8, #2563eb); color:#fff; border:none; padding:8px 12px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer;">
+                                    100 PTS
+                                </button>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); padding:12px 14px; border-radius:16px;">
+                                <div style="text-align: left;">
+                                    <strong style="display:block; font-size:13px; color:#fff;">Waived Environmental Fee</strong>
+                                    <span style="font-size:11px; color:rgba(255,255,255,0.5);">Waive standard municipality entry fee</span>
+                                </div>
+                                <button onclick="redeemReward('environmental_fee', 150)" style="background:linear-gradient(135deg, #38bdf8, #2563eb); color:#fff; border:none; padding:8px 12px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer;">
+                                    150 PTS
+                                </button>
+                            </div>`;
                     }
                 }
             }
@@ -436,9 +498,55 @@ $activeTab = 'profile';
         }
     }
 
+    window.redeemAdminVoucher = async function(voucherId, cost, title) {
+        const token = localStorage.getItem('intan_elyu_token');
+        if (!token) return;
+
+        const currentPts = window._userPointsBalance || 0;
+        if (currentPts < cost) {
+            if (typeof showToast === 'function') showToast(`Insufficient points. You need ${cost} PTS (Balance: ${currentPts} PTS).`);
+            return;
+        }
+
+        if (!confirm(`Redeem '${title}' for ${cost} PTS?`)) return;
+
+        try {
+            const response = await fetch(backendUrl + '/api/tourist/points/redeem-voucher', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({ voucher_id: voucherId })
+            });
+
+            const data = await response.json();
+            if (response.ok && data.status === 'success') {
+                if (typeof showToast === 'function') showToast("Voucher claimed successfully!");
+                if (window.confetti) {
+                    window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+                }
+                fetchPointsAndVouchers();
+            } else {
+                if (typeof showToast === 'function') showToast(data.message || "Failed to redeem voucher.");
+            }
+        } catch (error) {
+            console.error("Redemption error:", error);
+            if (typeof showToast === 'function') showToast("Network error. Please try again.");
+        }
+    };
+
     window.redeemReward = async function(type, cost) {
         const token = localStorage.getItem('intan_elyu_token');
         if (!token) return;
+
+        const currentPts = window._userPointsBalance || 0;
+        if (currentPts < cost) {
+            if (typeof showToast === 'function') showToast(`Insufficient points. You need ${cost} PTS (Balance: ${currentPts} PTS).`);
+            return;
+        }
 
         if (!confirm(`Are you sure you want to redeem this reward for ${cost} Points?`)) return;
 
@@ -448,6 +556,7 @@ $activeTab = 'profile';
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true',
                     'Authorization': 'Bearer ' + token
                 },
                 body: JSON.stringify({ type: type })
@@ -456,6 +565,9 @@ $activeTab = 'profile';
             const data = await response.json();
             if (response.ok) {
                 if (typeof showToast === 'function') showToast("Reward redeemed successfully!");
+                if (window.confetti) {
+                    window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+                }
                 fetchPointsAndVouchers();
             } else {
                 if (typeof showToast === 'function') showToast(data.message || "Failed to redeem reward.");

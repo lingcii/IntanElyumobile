@@ -17,7 +17,7 @@ window.safeJsonParse = function (str, fallback = {}) {
 window.AppStorage = {
     _dbPromise: null,
 
-    _getDB: function() {
+    _getDB: function () {
         if (!this._dbPromise) {
             this._dbPromise = new Promise((resolve) => {
                 if (!window.indexedDB) {
@@ -25,20 +25,20 @@ window.AppStorage = {
                     return;
                 }
                 const request = window.indexedDB.open('intan_elyu_app_storage', 1);
-                request.onupgradeneeded = function(e) {
+                request.onupgradeneeded = function (e) {
                     const db = e.target.result;
                     if (!db.objectStoreNames.contains('store')) {
                         db.createObjectStore('store');
                     }
                 };
-                request.onsuccess = function(e) { resolve(e.target.result); };
-                request.onerror = function() { resolve(null); };
+                request.onsuccess = function (e) { resolve(e.target.result); };
+                request.onerror = function () { resolve(null); };
             });
         }
         return this._dbPromise;
     },
 
-    getItem: async function(key, fallback = null) {
+    getItem: async function (key, fallback = null) {
         try {
             const db = await this._getDB();
             if (db) {
@@ -50,17 +50,17 @@ window.AppStorage = {
                 });
                 if (val !== undefined && val !== null) return val;
             }
-        } catch (e) {}
+        } catch (e) { }
 
         const raw = localStorage.getItem(key);
         return raw !== null ? raw : fallback;
     },
 
-    setItem: async function(key, val) {
+    setItem: async function (key, val) {
         try {
             const strVal = typeof val === 'string' ? val : JSON.stringify(val);
             localStorage.setItem(key, strVal);
-        } catch (e) {}
+        } catch (e) { }
 
         try {
             const db = await this._getDB();
@@ -68,18 +68,18 @@ window.AppStorage = {
                 const tx = db.transaction('store', 'readwrite');
                 tx.objectStore('store').put(val, key);
             }
-        } catch (e) {}
+        } catch (e) { }
     },
 
-    removeItem: async function(key) {
-        try { localStorage.removeItem(key); } catch (e) {}
+    removeItem: async function (key) {
+        try { localStorage.removeItem(key); } catch (e) { }
         try {
             const db = await this._getDB();
             if (db) {
                 const tx = db.transaction('store', 'readwrite');
                 tx.objectStore('store').delete(key);
             }
-        } catch (e) {}
+        } catch (e) { }
     }
 };
 
@@ -93,18 +93,37 @@ window.setHtml = function (id, html) {
     if (el) el.innerHTML = (html !== undefined && html !== null) ? html : '';
 };
 
+/**
+ * Format destination visitor counts consistently across the application.
+ * If visits < 100, display 'Less than 100 this month'.
+ * If visits >= 100, display '{count} visitors this month' or compact format.
+ */
+window.formatVisitorCount = function (visits, options = {}) {
+    const count = parseInt(visits) || 0;
+    if (count < 100) {
+        return options.compact ? '< 100 this mo.' : 'Less than 100 this month';
+    }
+    if (options.compact) {
+        return `${count.toLocaleString()} visits`;
+    }
+    return `${count.toLocaleString()} visitors this month`;
+};
+
 window.getBackendUrl = function () {
     var url = window.backendUrl || window.BACKEND_URL;
-    if (typeof window !== 'undefined' && window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
-        return 'https://app.intan-elyu.online';
+    if (url) {
+        return url.replace(/\/+$/, '');
     }
-    if (!url || url.indexOf('localhost') !== -1 || url.indexOf('127.0.0.1') !== -1 || url.indexOf('capacitor://') === 0 || url.indexOf('file://') === 0) {
-        if (typeof window !== 'undefined' && window.location && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-            return window.location.origin.replace(/\/+$/, '');
+    if (typeof window !== 'undefined' && window.location) {
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            if (window.location.port === '3000') return 'http://localhost:8000';
+            if (window.location.pathname.includes('/Intan-Elyu-Tourism-Management-System/')) {
+                return window.location.protocol + '//' + window.location.host + '/Intan-Elyu-Tourism-Management-System/backend/public';
+            }
         }
-        return 'https://app.intan-elyu.online';
+        return window.location.origin.replace(/\/+$/, '');
     }
-    return (url || (typeof window !== 'undefined' && window.location ? window.location.origin : '')).replace(/\/+$/, '');
+    return 'https://app.intan-elyu.online';
 };
 
 window.getFullImageUrl = function (url) {
@@ -118,45 +137,41 @@ window.getFullImageUrl = function (url) {
     return base + '/api/image/' + clean;
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Auto-invalidate stale caches from previous builds
-    const CACHE_VER = 'v1.0.5_r2_regex';
-    if (localStorage.getItem('intan_elyu_cache_ver') !== CACHE_VER) {
-        Object.keys(localStorage).forEach(k => {
-            if (k.startsWith('dashboard_') || k.startsWith('trending_') || k.startsWith('map_') || k.startsWith('spots_') || k.startsWith('destinations_') || k.includes('cache')) {
-                localStorage.removeItem(k);
-            }
-        });
-        localStorage.setItem('intan_elyu_cache_ver', CACHE_VER);
+// Extract initial view name from query param (?view=...) or URL path (/download)
+function getInitialViewName() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('view')) return params.get('view');
+    const pathSegs = window.location.pathname.split('/').filter(Boolean);
+    const lastSeg = pathSegs.length > 0 ? pathSegs[pathSegs.length - 1] : '';
+    if (lastSeg && lastSeg !== 'index.php' && !lastSeg.includes('.')) {
+        return lastSeg;
     }
-
-    // Global Auth Enforcement for Initial Direct Load
-    const publicViews = ['splash', 'auth', 'reset-password'];
-    if (!publicViews.includes(state.currentView) && !localStorage.getItem('intan_elyu_token')) {
-        navigateTo('auth');
-        return;
-    }
-
-    // Initialize history state for the initial load so the back button works correctly
-    if (!window.history.state) {
-        const url = new URL(window.location);
-        url.searchParams.set('view', state.currentView);
-        window.history.replaceState({ view: state.currentView }, '', url);
-    }
-    // Initialize dark theme if saved
-    if (localStorage.getItem('intan_elyu_theme') === 'dark') {
-        document.body.classList.add('dark-theme');
-    }
-
-    // Check if we need to initialize any views on load
-    initCurrentView();
-});
+    return 'splash';
+}
 
 // App State
 const state = {
-    currentView: new URLSearchParams(window.location.search).get('view') || 'splash',
+    currentView: getInitialViewName(),
     isNavigating: false
 };
+window.state = state;
+
+/**
+ * Execute scripts injected via innerHTML
+ */
+function executeScripts(container) {
+    if (!container) return;
+    const scripts = container.querySelectorAll('script');
+    scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+        if (oldScript.parentNode) {
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        }
+    });
+}
+window.executeScripts = executeScripts;
 
 /**
  * Navigation Router Function (SPA feel)
@@ -169,12 +184,10 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     if (state.isNavigating) return;
 
     // Global Auth Enforcement: Ensure user is logged in
-    const publicViews = ['splash', 'auth', 'about', 'terms', 'reset-password'];
+    const publicViews = ['splash', 'auth', 'download', 'about', 'terms', 'reset-password', 'user_manual'];
     if (!publicViews.includes(viewName) && !localStorage.getItem('intan_elyu_token')) {
         viewName = 'auth';
     }
-
-    // Redirect hidden pages (no longer redirecting merch view for finals)
 
     // If we're already on this view and it's not a back-button event, do nothing
     if (addToHistory && state.currentView === viewName) return;
@@ -223,7 +236,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
                 // Toggle bottom nav visibility
                 const bottomNav = document.getElementById('bottom-navigation');
-                const noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings'];
+                const noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual'];
                 if (bottomNav) {
                     bottomNav.classList.toggle('nav-hidden', noNavViews.includes(viewName));
                 }
@@ -241,7 +254,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 }
 
                 state.currentView = viewName;
-                initCurrentView();
+                if (typeof initCurrentView === 'function') initCurrentView();
             } catch (err) {
                 console.error("Error during view initialization:", err);
             } finally {
@@ -260,11 +273,216 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     } catch (error) {
         clearTimeout(failsafe);
         console.error('Navigation error:', error);
-        showToast('Failed to load view');
-        if (fade) mainContent.classList.remove('view-transitioning');
+        if (typeof showToast === 'function') showToast('Failed to load view');
+        if (fade && mainContent) mainContent.classList.remove('view-transitioning');
         state.isNavigating = false;
     }
 }
+window.navigateTo = navigateTo;
+
+/**
+ * Global Google OAuth 2.0 Direct Handler
+ * Handles access_token / id_token returned via Google OAuth redirect across all views & platforms (APK / Web)
+ */
+window._isProcessingGoogleOAuth = false;
+
+window.initGoogleOAuthHandler = function () {
+    const rawHash = window.location.hash || '';
+    const rawSearch = window.location.search || '';
+
+    // 1. Check for direct token handoff (?token=...&user=...) from mobile browser to APK
+    const searchParams = new URLSearchParams(rawSearch.startsWith('?') ? rawSearch.substring(1) : rawSearch);
+    const directToken = searchParams.get('token');
+    const directUser = searchParams.get('user');
+
+    if (directToken) {
+        localStorage.setItem('intan_elyu_token', directToken);
+        if (directUser) {
+            try {
+                const parsedUser = typeof directUser === 'object' ? directUser : JSON.parse(directUser);
+                localStorage.setItem('auth_user', JSON.stringify(parsedUser));
+                if (window.AppStorage) window.AppStorage.setItem('auth_user', parsedUser);
+            } catch (e) { }
+        }
+        if (window.AppStorage) window.AppStorage.setItem('intan_elyu_token', directToken);
+
+        if (window.history && window.history.replaceState) {
+            window.history.replaceState({}, document.title, window.location.pathname + '?view=dashboard');
+        }
+        if (typeof showToast === 'function') showToast('Logged in successfully!', 'success');
+        navigateTo('dashboard', true, true);
+        return;
+    }
+
+    const hasAccessToken = rawHash.includes('access_token=') || rawSearch.includes('access_token=');
+    const hasIdToken = rawHash.includes('id_token=') || rawSearch.includes('id_token=');
+    const hasError = rawHash.includes('error=') || rawSearch.includes('error=');
+
+    if (!hasAccessToken && !hasIdToken && !hasError) {
+        return;
+    }
+
+    if (window._isProcessingGoogleOAuth) return;
+    window._isProcessingGoogleOAuth = true;
+
+    const rawParams = rawHash.startsWith('#') ? rawHash.substring(1) : (rawSearch.startsWith('?') ? rawSearch.substring(1) : (rawHash || rawSearch));
+    const params = new URLSearchParams(rawParams);
+
+    // Clean hash from URL so the raw access token is not retained in browser history
+    if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname + '?view=auth');
+    }
+
+    if (hasError) {
+        window._isProcessingGoogleOAuth = false;
+        const errorDesc = params.get('error_description') || params.get('error') || 'Google sign-in was cancelled.';
+        console.warn('Google OAuth returned error:', errorDesc);
+        if (typeof showToast === 'function') showToast(errorDesc, 'error');
+        navigateTo('auth', true, false);
+        return;
+    }
+
+    const accessToken = params.get('access_token');
+    const idToken = params.get('id_token');
+
+    if (!accessToken && !idToken) {
+        window._isProcessingGoogleOAuth = false;
+        return;
+    }
+
+    // Display global full-screen OAuth loader
+    const showOverlay = () => {
+        let overlay = document.getElementById('global-oauth-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'global-oauth-overlay';
+            overlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(10,10,14,0.94); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; color:#fff; font-family:Inter,sans-serif; text-align:center; padding:20px; box-sizing:border-box;';
+            overlay.innerHTML = `
+                <div style="width:68px; height:68px; border-radius:50%; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.35); display:flex; align-items:center; justify-content:center; box-shadow:0 0 28px rgba(56,189,248,0.3);">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size:28px; color:#38bdf8;"></i>
+                </div>
+                <h3 style="margin:0; font-size:19px; font-weight:700; color:#fff;">Logging in with Google...</h3>
+                <p style="margin:0; font-size:13.5px; color:rgba(255,255,255,0.7);">Authenticating your account, please wait</p>
+            `;
+            document.body ? document.body.appendChild(overlay) : document.addEventListener('DOMContentLoaded', () => document.body.appendChild(overlay));
+        }
+        return overlay;
+    };
+
+    const overlay = showOverlay();
+
+    // Retrieve profile info using OAuth access token
+    const fetchProfile = accessToken
+        ? fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${accessToken}` } }).then(r => r.json())
+        : Promise.resolve(null);
+
+    fetchProfile
+        .then(profile => {
+            let payload = {};
+            if (profile && profile.email) {
+                payload = {
+                    email: profile.email,
+                    name: profile.name || (profile.given_name + ' ' + (profile.family_name || '')).trim(),
+                    google_id: 'g_' + profile.sub,
+                    avatar: profile.picture
+                };
+            } else if (idToken) {
+                payload = { credential: idToken };
+            } else {
+                throw new Error('Unable to retrieve profile from Google.');
+            }
+
+            const backend = (typeof window.getBackendUrl === 'function') ? window.getBackendUrl() : (window.backendUrl || 'https://app.intan-elyu.online');
+            return fetch(backend + '/api/auth/google', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+        })
+        .then(async res => {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || data.message || 'Google authentication failed.');
+
+            localStorage.setItem('auth_user', JSON.stringify(data.user));
+            localStorage.setItem('intan_elyu_token', data.token);
+            if (window.AppStorage) {
+                window.AppStorage.setItem('auth_user', data.user);
+                window.AppStorage.setItem('intan_elyu_token', data.token);
+            }
+
+            const currentOverlay = document.getElementById('global-oauth-overlay');
+            if (currentOverlay) {
+                currentOverlay.innerHTML = `
+                    <div style="width:68px; height:68px; border-radius:50%; background:rgba(52,199,89,0.15); border:1px solid rgba(52,199,89,0.4); display:flex; align-items:center; justify-content:center; box-shadow:0 0 28px rgba(52,199,89,0.35);">
+                        <i class="fa-solid fa-check" style="font-size:30px; color:#34c759;"></i>
+                    </div>
+                    <h3 style="margin:0; font-size:19px; font-weight:700; color:#fff;">Welcome${data.user?.name ? ', ' + data.user.name : ''}!</h3>
+                    <p style="margin:0; font-size:13.5px; color:rgba(255,255,255,0.7);">Redirecting to dashboard...</p>
+                `;
+            }
+
+            setTimeout(() => {
+                const ov = document.getElementById('global-oauth-overlay');
+                if (ov) {
+                    ov.style.transition = 'opacity 0.3s ease';
+                    ov.style.opacity = '0';
+                    setTimeout(() => ov.remove(), 300);
+                }
+                window._isProcessingGoogleOAuth = false;
+                navigateTo('dashboard', true, true);
+            }, 1200);
+        })
+        .catch(err => {
+            console.error('Google OAuth Handshake Error:', err);
+            window._isProcessingGoogleOAuth = false;
+            const ov = document.getElementById('global-oauth-overlay');
+            if (ov) ov.remove();
+            if (typeof showToast === 'function') showToast(err.message || 'Google sign-in failed.', 'error');
+            navigateTo('auth', true, false);
+        });
+};
+
+// Check for Google OAuth token immediately on script execution
+window.initGoogleOAuthHandler();
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Check again once DOM is ready if not already handled
+    window.initGoogleOAuthHandler();
+
+    // Auto-invalidate stale caches from previous builds
+    const CACHE_VER = 'v1.0.6_state_order';
+    if (localStorage.getItem('intan_elyu_cache_ver') !== CACHE_VER) {
+        Object.keys(localStorage).forEach(k => {
+            if (k.startsWith('dashboard_') || k.startsWith('trending_') || k.startsWith('map_') || k.startsWith('spots_') || k.startsWith('destinations_') || k.includes('cache')) {
+                localStorage.removeItem(k);
+            }
+        });
+        localStorage.setItem('intan_elyu_cache_ver', CACHE_VER);
+    }
+
+    // Global Auth Enforcement for Initial Direct Load (skip if OAuth handshake in progress)
+    if (!window._isProcessingGoogleOAuth) {
+        const publicViews = ['splash', 'auth', 'download', 'reset-password'];
+        if (!publicViews.includes(state.currentView) && !localStorage.getItem('intan_elyu_token')) {
+            navigateTo('auth');
+            return;
+        }
+    }
+
+    // Initialize history state for the initial load so the back button works correctly
+    if (!window.history.state) {
+        const url = new URL(window.location);
+        url.searchParams.set('view', state.currentView);
+        window.history.replaceState({ view: state.currentView }, '', url);
+    }
+    // Initialize dark theme if saved
+    if (localStorage.getItem('intan_elyu_theme') === 'dark') {
+        document.body.classList.add('dark-theme');
+    }
+
+    // Check if we need to initialize any views on load
+    if (typeof initCurrentView === 'function') initCurrentView();
+});
 
 // Handle Browser Back Button
 window.addEventListener('popstate', (e) => {
@@ -512,14 +730,19 @@ document.addEventListener('viewLoaded', (e) => {
 window.intanElyuLocationWatchId = null;
 
 // Initialize Service Worker
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
     window.addEventListener('load', function () {
-        // Use relative path for Service Worker to support both / and /mobile/ base URLs
-        navigator.serviceWorker.register('sw.js').then(function (registration) {
-            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-        }, function (err) {
-            console.log('ServiceWorker registration failed: ', err);
-        });
+        try {
+            // Resolve sw.js relative to document.baseURI to support clean routes and sub-directories without 404
+            const swUrl = document.baseURI ? new URL('sw.js', document.baseURI).href : 'sw.js';
+            navigator.serviceWorker.register(swUrl).then(function (registration) {
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            }).catch(function (err) {
+                console.warn('ServiceWorker registration note: ', err);
+            });
+        } catch (e) {
+            console.warn('ServiceWorker init skipped: ', e);
+        }
     });
 }
 
@@ -603,13 +826,6 @@ window.toggleLocationServices = function (enabled) {
 
 window.startLocationWatch = function () {
     if (!navigator.geolocation) return;
-    if (localStorage.getItem('intan_elyu_loc_enabled') === 'false') {
-        if (window.intanElyuLocationWatchId) {
-            navigator.geolocation.clearWatch(window.intanElyuLocationWatchId);
-            window.intanElyuLocationWatchId = null;
-        }
-        return;
-    }
 
     if (window.intanElyuLocationWatchId) {
         navigator.geolocation.clearWatch(window.intanElyuLocationWatchId);
@@ -618,36 +834,35 @@ window.startLocationWatch = function () {
     let lastAlertedItems = JSON.parse(localStorage.getItem('intan_elyu_alerted_items') || '{}');
     let lastGpsProcessTime = 0;
 
-    window.intanElyuLocationWatchId = navigator.geolocation.watchPosition(
-        (position) => {
-            // Throttle GPS processing to once every 3 seconds to prevent massive UI lagginess
-            const now = Date.now();
-            if (now - lastGpsProcessTime < 3000) return;
+    const onPos = (position) => {
+        const currentLat = position.coords.latitude;
+        const currentLng = position.coords.longitude;
+        const accuracy = position.coords.accuracy;
+        const altitude = position.coords.altitude;
+        const speed = position.coords.speed;
+
+        // Mark as real verified GPS
+        window.currentGPSSource = 'gps';
+        window.currentGPSLat = currentLat;
+        window.currentGPSLng = currentLng;
+        window.myLat = currentLat;
+        window.myLng = currentLng;
+        window.currentGPSAccuracy = accuracy;
+        window.currentGPSAltitude = altitude;
+        window.currentGPSSpeed = speed;
+
+        // Broadcast dynamic update for real-time map tracking
+        requestAnimationFrame(() => {
+            document.dispatchEvent(new CustomEvent('gpsUpdated', { detail: { lat: currentLat, lng: currentLng, accuracy, altitude, speed, source: 'gps' } }));
+        });
+
+        // Throttle background notification/itinerary checks to once every 3 seconds
+        const now = Date.now();
+        if (now - lastGpsProcessTime >= 3000) {
             lastGpsProcessTime = now;
 
-            const currentLat = position.coords.latitude;
-            const currentLng = position.coords.longitude;
-            const accuracy = position.coords.accuracy;
-            const altitude = position.coords.altitude;
-            const speed = position.coords.speed;
-
-            // Globally store for all maps (itinerary, trip map, etc.)
-            window.currentGPSLat = currentLat;
-            window.currentGPSLng = currentLng;
-            window.currentGPSAccuracy = accuracy;
-            window.currentGPSAltitude = altitude;
-            window.currentGPSSpeed = speed;
-
-            // Broadcast dynamic update inside requestAnimationFrame to prevent layout thrashing
-            requestAnimationFrame(() => {
-                document.dispatchEvent(new CustomEvent('gpsUpdated', { detail: { lat: currentLat, lng: currentLng, accuracy, altitude, speed } }));
-            });
-
-            // Check active itineraries
             const savedTrips = window.savedTripsData || [];
-
             savedTrips.forEach(trip => {
-                // We only care about active/ongoing trips
                 if (trip.status === 'active' && trip.items) {
                     trip.items.forEach(item => {
                         if (item.is_visited) return;
@@ -655,44 +870,355 @@ window.startLocationWatch = function () {
                         const dest = item.destination;
                         if (!dest || !dest.lat || !dest.lng) return;
 
-                        // Calculate distance
                         const dist = calculateDistance(currentLat, currentLng, parseFloat(dest.lat), parseFloat(dest.lng));
 
-                        // If within 500 meters and haven't alerted yet
                         if (dist <= 500 && !lastAlertedItems[item.id]) {
-                            // Fire Notification
                             if (localStorage.getItem('intan_elyu_push_enabled') !== 'false') {
                                 window.showInAppNotification(
                                     "Destination Nearby!",
                                     `You are near ${dest.name}! Open the app to check in and earn XP.`
                                 );
                             }
-
-                            // Save state so we don't spam
                             lastAlertedItems[item.id] = true;
                             localStorage.setItem('intan_elyu_alerted_items', JSON.stringify(lastAlertedItems));
                         }
                     });
                 }
             });
-        },
-        (error) => {
-            // Suppress harmless timeout errors (code 3) and permission denied errors (code 1)
-            // from polluting the console when location access is denied or delayed.
-            if (error.code !== 3 && error.code !== 1) {
-                console.warn("Global Location watch error:", error);
+        }
+    };
+
+    const onErr = (error) => {
+        if (error.code === 2 || error.code === 3) {
+            if (window.intanElyuLocationWatchId) {
+                navigator.geolocation.clearWatch(window.intanElyuLocationWatchId);
+                window.intanElyuLocationWatchId = navigator.geolocation.watchPosition(
+                    onPos,
+                    (e2) => { if (e2.code !== 3 && e2.code !== 1) console.warn("Network location watch error:", e2); },
+                    { enableHighAccuracy: false, maximumAge: 10000, timeout: 20000 }
+                );
             }
-        },
-        { enableHighAccuracy: false, maximumAge: 10000, timeout: 30000 }
+        } else if (error.code === 1) {
+            console.warn("Location permission denied by browser. Please allow location in browser site settings.");
+        }
+    };
+
+    window.intanElyuLocationWatchId = navigator.geolocation.watchPosition(
+        onPos,
+        onErr,
+        { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
     );
 };
 
-// Fast-track location: cached GPS -> IP geolocation -> GPS fallback
-window.fastLocation = function () {
-    if (window.currentGPSLat && window.currentGPSLng) {
-        return Promise.resolve({ lat: window.currentGPSLat, lng: window.currentGPSLng });
+// Request high-accuracy hardware GPS location from the device with Progressive Fallback
+window.requestPreciseLocation = async function (forceFresh = false) {
+    // 0. If we already have a real verified GPS fix and not forcing cold fresh, return it immediately
+    if (!forceFresh && window.currentGPSSource === 'gps' && window.currentGPSLat && window.currentGPSLng) {
+        return { lat: window.currentGPSLat, lng: window.currentGPSLng, source: 'gps', accuracy: window.currentGPSAccuracy || 10 };
     }
-    return Promise.resolve(null);
+
+    // 1. If running under Capacitor native runtime, use Capacitor Geolocation plugin
+    if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+        try {
+            const Geolocation = (window.Capacitor.Plugins && window.Capacitor.Plugins.Geolocation) ||
+                (window.Capacitor.registerPlugin ? window.Capacitor.registerPlugin('Geolocation') : null);
+            if (Geolocation) {
+                const perm = await Geolocation.checkPermissions();
+                if (perm.location !== 'granted') {
+                    const req = await Geolocation.requestPermissions();
+                    if (req.location !== 'granted') throw new Error('Permission denied');
+                }
+                const pos = await Geolocation.getCurrentPosition({
+                    enableHighAccuracy: true,
+                    timeout: 20000,
+                    maximumAge: 10000
+                });
+                if (pos && pos.coords) {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    const accuracy = pos.coords.accuracy || 10;
+                    window.currentGPSLat = lat;
+                    window.currentGPSLng = lng;
+                    window.myLat = lat;
+                    window.myLng = lng;
+                    window.currentGPSSource = 'gps';
+                    window.currentGPSAccuracy = accuracy;
+                    document.dispatchEvent(new CustomEvent('gpsUpdated', {
+                        detail: { lat, lng, accuracy, source: 'gps', altitude: pos.coords.altitude, speed: pos.coords.speed }
+                    }));
+                    return { lat, lng, source: 'gps', accuracy };
+                }
+            }
+        } catch (e) {
+            console.warn("Capacitor precise geolocation error:", e);
+        }
+    }
+
+    // 2. Standard HTML5 Geolocation API with Progressive Fallback (Warm Cache -> High Accuracy -> Network)
+    if (navigator.geolocation) {
+        const getPositionPromise = (options) => new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, options);
+        });
+
+        let pos = null;
+
+        // Pass 1: Try quick warm cache (instant if device recently had a fix)
+        try {
+            pos = await getPositionPromise({
+                enableHighAccuracy: true,
+                timeout: 2500,
+                maximumAge: 60000
+            });
+        } catch (e) {
+            // Warm cache not available, proceed to live request
+        }
+
+        // Pass 2: Request high-accuracy GPS with generous 20-second timeout
+        if (!pos) {
+            try {
+                pos = await getPositionPromise({
+                    enableHighAccuracy: true,
+                    timeout: 20000,
+                    maximumAge: 10000
+                });
+            } catch (err2) {
+                // Pass 3: If high accuracy timed out or is weak indoors, fallback to network/cell/Wi-Fi positioning
+                if (err2.code === 2 || err2.code === 3) {
+                    console.log("High accuracy GPS timed out, trying network/Wi-Fi positioning...");
+                    try {
+                        pos = await getPositionPromise({
+                            enableHighAccuracy: false,
+                            timeout: 20000,
+                            maximumAge: 30000
+                        });
+                    } catch (err3) {
+                        // If all timed out but we have a previous GPS in memory, use it
+                        if (window.currentGPSLat && window.currentGPSLng) {
+                            return { lat: window.currentGPSLat, lng: window.currentGPSLng, source: window.currentGPSSource || 'gps', accuracy: window.currentGPSAccuracy || 20 };
+                        }
+                        throw err3;
+                    }
+                } else {
+                    throw err2;
+                }
+            }
+        }
+
+        if (pos && pos.coords) {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            const accuracy = pos.coords.accuracy || 15;
+            window.currentGPSLat = lat;
+            window.currentGPSLng = lng;
+            window.myLat = lat;
+            window.myLng = lng;
+            window.currentGPSSource = 'gps';
+            window.currentGPSAccuracy = accuracy;
+            document.dispatchEvent(new CustomEvent('gpsUpdated', {
+                detail: { lat, lng, accuracy, source: 'gps', altitude: pos.coords.altitude, speed: pos.coords.speed }
+            }));
+            return { lat, lng, source: 'gps', accuracy };
+        }
+    }
+
+    throw new Error('Geolocation not supported by device');
+};
+
+// Fast-track location: returns real GPS if available, else requests it
+window.fastLocation = function () {
+    if (window.currentGPSSource === 'gps' && window.currentGPSLat && window.currentGPSLng) {
+        return Promise.resolve({ lat: window.currentGPSLat, lng: window.currentGPSLng, source: 'gps' });
+    }
+    return window.resolveUserLocation(false);
+};
+
+// Pure real location resolver (No fake mock locations)
+window.resolveUserLocation = async function (forceFresh = false) {
+    // If we already have a real verified GPS fix and not forcing fresh, return it
+    if (!forceFresh && window.currentGPSSource === 'gps' && window.currentGPSLat && window.currentGPSLng) {
+        return { lat: window.currentGPSLat, lng: window.currentGPSLng, source: 'gps' };
+    }
+
+    // Try real hardware GPS
+    try {
+        const precise = await window.requestPreciseLocation(forceFresh);
+        if (precise && precise.lat && precise.lng) {
+            return precise;
+        }
+    } catch (e) {
+        console.warn("Live GPS acquisition error:", e && e.message);
+    }
+
+    // Check if user manually saved a location
+    try {
+        const manualLocStr = localStorage.getItem('intan_elyu_manual_loc');
+        if (manualLocStr) {
+            const manual = JSON.parse(manualLocStr);
+            if (manual && manual.lat && manual.lng) {
+                window.currentGPSLat = manual.lat;
+                window.currentGPSLng = manual.lng;
+                window.myLat = manual.lat;
+                window.myLng = manual.lng;
+                window.currentGPSSource = 'manual';
+                document.dispatchEvent(new CustomEvent('gpsUpdated', {
+                    detail: { lat: manual.lat, lng: manual.lng, accuracy: 10, source: 'manual', name: manual.name }
+                }));
+                return { lat: manual.lat, lng: manual.lng, source: 'manual', name: manual.name };
+            }
+        }
+    } catch (e) { }
+
+    return null;
+};
+
+// La Union towns catalog for instant manual location picking
+window.LA_UNION_TOWNS = [
+    { name: 'San Juan (Surfing Capital)', lat: 16.6755, lng: 120.3392, icon: '', desc: 'Urbiztondo Beach, Gearlan St., Surf Spots & Cafes' },
+    { name: 'San Fernando City (Capitol)', lat: 16.6159, lng: 120.3167, icon: '', desc: 'City Center, Poro Point & Malls' },
+    { name: 'Bauang', lat: 16.5312, lng: 120.3340, icon: '', desc: 'Grape Farms, Beaches & Resorts' },
+    { name: 'San Gabriel', lat: 16.6853, lng: 120.4042, icon: '', desc: 'Tangadan Falls & Highland Nature' },
+    { name: 'Bacnotan', lat: 16.7197, lng: 120.3541, icon: '', desc: 'Apiary, Surfing & Coastal Views' },
+    { name: 'Luna', lat: 16.8575, lng: 120.3778, icon: '', desc: 'Pebble Beach, Baluarte & Ruins' },
+    { name: 'Balaoan', lat: 16.8222, lng: 120.4000, icon: '', desc: 'Immuki Island & Eco Tourism' },
+    { name: 'Agoo', lat: 16.3214, lng: 120.3653, icon: '', desc: 'Basilica Minore & Eco-Fun Park' },
+    { name: 'Aringay', lat: 16.3939, lng: 120.3592, icon: '', desc: 'Centennial Tunnel & Eco Park' },
+    { name: 'Caba', lat: 16.4318, lng: 120.3394, icon: '', desc: 'Bamboo Crafts, Agri-Tourism' },
+    { name: 'Naguilian', lat: 16.5322, lng: 120.3956, icon: '', desc: 'Basi Wine & Scenic Foothills' },
+    { name: 'Pugo', lat: 16.3167, lng: 120.4667, icon: '', desc: 'Pugad Adventure & Tapuakan River' },
+    { name: 'Tubao', lat: 16.3458, lng: 120.4128, icon: '', desc: 'Mount Franciscan & Grotto' },
+    { name: 'Santo Tomas', lat: 16.2844, lng: 120.3872, icon: '', desc: 'Damortis & Coastal Fishing' },
+    { name: 'Rosario', lat: 16.2300, lng: 120.4850, icon: '', desc: 'Southern Gateway & Canopy' },
+    { name: 'Santol', lat: 16.7667, lng: 120.4500, icon: '', desc: 'Highland Waterfalls & Mountains' }
+];
+
+window.setManualLocation = function (lat, lng, name) {
+    const pLat = parseFloat(lat);
+    const pLng = parseFloat(lng);
+    if (isNaN(pLat) || isNaN(pLng)) return;
+
+    window.currentGPSLat = pLat;
+    window.currentGPSLng = pLng;
+    window.myLat = pLat;
+    window.myLng = pLng;
+    window.currentGPSSource = 'manual';
+
+    localStorage.setItem('intan_elyu_manual_loc', JSON.stringify({ lat: pLat, lng: pLng, name: name || 'Selected Location' }));
+
+    document.dispatchEvent(new CustomEvent('gpsUpdated', {
+        detail: { lat: pLat, lng: pLng, accuracy: 10, source: 'manual', name: name || 'Selected Location' }
+    }));
+
+    if (typeof showToast === 'function') {
+        showToast(`📍 Location set to ${name || 'Selected Spot'}`);
+    }
+
+    if (window.mapInstance) {
+        window.mapInstance.flyTo({ center: [pLng, pLat], zoom: 14, duration: 1000 });
+        if (window.userMarker) {
+            window.userMarker.setLngLat([pLng, pLat]);
+        }
+    }
+    if (typeof draftMap !== 'undefined' && draftMap) {
+        draftMap.flyTo([pLat, pLng], 15);
+        if (window.myDraftMarker) {
+            window.myDraftMarker.setLatLng([pLat, pLng]);
+        }
+    }
+    if (typeof tripMap !== 'undefined' && tripMap) {
+        tripMap.flyTo({ center: [pLng, pLat], zoom: 15 });
+        if (window.tripGpsMarker) {
+            window.tripGpsMarker.setLngLat([pLng, pLat]);
+        }
+    }
+    window.closeLocationPickerModal();
+};
+
+window.openLocationPickerModal = function () {
+    let modal = document.getElementById('location-picker-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'location-picker-modal';
+        modal.style.cssText = "position:fixed; top:0; left:0; right:0; bottom:0; z-index:11000; background:rgba(0,0,0,0.65); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; padding:16px; opacity:0; transition:opacity 0.25s ease;";
+
+        const content = document.createElement('div');
+        content.style.cssText = "background:linear-gradient(135deg, rgba(15,23,42,0.98), rgba(30,41,59,0.98)); border:1px solid rgba(56,189,248,0.3); border-radius:24px; width:100%; max-width:420px; max-height:85vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7);";
+
+        content.innerHTML = `
+            <div style="padding:18px 20px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
+                <div>
+                    <h3 style="margin:0; font-size:16px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-location-crosshairs" style="color:#38bdf8;"></i> Select Your Location
+                    </h3>
+                    <span style="font-size:11px; color:rgba(148,163,184,0.9);">Choose your town or acquire device GPS</span>
+                </div>
+                <button onclick="window.closeLocationPickerModal()" style="background:rgba(255,255,255,0.08); border:none; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div style="padding:14px 20px; background:rgba(56,189,248,0.06); border-bottom:1px solid rgba(56,189,248,0.15); flex-shrink:0;">
+                <button id="btn-modal-gps-acquire" onclick="window.acquireGpsFromModal()" style="width:100%; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:11px 16px; border-radius:14px; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 14px rgba(56,189,248,0.35);">
+                    <i class="fa-solid fa-location-arrow"></i> Use Live Device GPS
+                </button>
+                <div style="font-size:10px; color:rgba(255,255,255,0.6); text-align:center; margin-top:6px;">
+                    Ensure device GPS is turned on and location permission is granted for Intan Elyu.
+                </div>
+            </div>
+            <div style="padding:14px 20px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:8px;">
+                <div style="font-size:11px; font-weight:700; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">
+                    Or Choose La Union Municipality:
+                </div>
+                ${window.LA_UNION_TOWNS.map(t => `
+                    <div onclick="window.setManualLocation(${t.lat}, ${t.lng}, '${t.name.replace(/'/g, "\\'")}')" style="display:flex; align-items:center; gap:12px; padding:10px 14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:14px; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.background='rgba(56,189,248,0.15)'; this.style.borderColor='rgba(56,189,248,0.4)';" onmouseout="this.style.background='rgba(255,255,255,0.04)'; this.style.borderColor='rgba(255,255,255,0.08)';">
+                        <span style="font-size:20px; width:28px; text-align:center;">${t.icon}</span>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-size:13px; font-weight:700; color:#fff;">${t.name}</div>
+                            <div style="font-size:11px; color:rgba(148,163,184,0.8);">${t.desc}</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right" style="color:rgba(255,255,255,0.3); font-size:11px;"></i>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => { modal.style.opacity = '1'; });
+};
+
+window.closeLocationPickerModal = function () {
+    const modal = document.getElementById('location-picker-modal');
+    if (modal) {
+        modal.style.opacity = '0';
+        setTimeout(() => { modal.style.display = 'none'; }, 250);
+    }
+};
+
+window.acquireGpsFromModal = async function () {
+    const btn = document.getElementById('btn-modal-gps-acquire');
+    const origHtml = btn ? btn.innerHTML : '';
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Getting your location...';
+    try {
+        const loc = await window.requestPreciseLocation(false);
+        if (loc && loc.lat && loc.lng) {
+            localStorage.removeItem('intan_elyu_manual_loc');
+            if (typeof showToast === 'function') showToast("Live GPS Locked 📍");
+            window.closeLocationPickerModal();
+        }
+    } catch (err) {
+        console.warn("Modal GPS request failed:", err);
+        if (typeof showToast === 'function') {
+            if (err && err.code === 3) {
+                showToast("GPS signal timed out. Please ensure Location/GPS is ON on your device or pick a town below.");
+            } else if (err && err.code === 1) {
+                showToast("Location Permission Denied. Please enable Location in app settings or choose a town below.");
+            } else {
+                showToast("Could not acquire GPS. Please choose a town below.");
+            }
+        }
+    } finally {
+        if (btn) btn.innerHTML = origHtml;
+    }
 };
 
 // Haversine formula
@@ -707,10 +1233,14 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c; // Distance in m
 }
+window.calculateDistance = calculateDistance;
 
-// Start watching on load automatically
+// Start watching on load automatically and resolve initial location
 document.addEventListener('DOMContentLoaded', () => {
     window.startLocationWatch();
+    if (!window.currentGPSLat || !window.currentGPSLng) {
+        window.resolveUserLocation();
+    }
 });
 
 // View Itinerary from map's "Added to Itinerary!" confirmation modal
@@ -825,7 +1355,7 @@ window.getDestImage = function (dest, width) {
                     if (parsed.host.includes('r2.dev') || parsed.host.includes('r2.cloudflarestorage.com') || parsed.host.includes('cloudinary.com') || parsed.host.includes('unsplash.com') || parsed.host.includes('googleapis.com') || parsed.host.includes('ui-avatars.com')) {
                         return url;
                     }
-                } catch (e) {}
+                } catch (e) { }
                 return url;
             }
         }
@@ -950,7 +1480,7 @@ window.getDestImages = function (dest, width) {
 
     if (dest && typeof dest === 'object') {
         if (Array.isArray(dest.images) && dest.images.length > 0) {
-            dest.images.forEach(function(imgItem) {
+            dest.images.forEach(function (imgItem) {
                 var resolved = window.getDestImage(imgItem, width);
                 if (resolved && !list.includes(resolved) && resolved !== window.noImageFallback) {
                     list.push(resolved);
@@ -1232,3 +1762,83 @@ document.addEventListener('DOMContentLoaded', () => {
         window.processOfflineCheckinQueue();
     }
 });
+
+// =========================================================================
+// Mobile Virtual Keyboard Detection & Auto-Hide Navigation Bar
+// =========================================================================
+(function initVirtualKeyboardDetector() {
+    function isEditableTarget(el) {
+        if (!el) return false;
+        const tag = (el.tagName || '').toUpperCase();
+        if (tag === 'TEXTAREA' || el.isContentEditable) return true;
+        if (tag === 'INPUT') {
+            const type = (el.type || 'text').toLowerCase();
+            return !['submit', 'button', 'checkbox', 'radio', 'file', 'image', 'reset', 'range', 'color'].includes(type);
+        }
+        return false;
+    }
+
+    function hideNavForKeyboard() {
+        document.body.classList.add('keyboard-open');
+        document.documentElement.classList.add('keyboard-open');
+        const bNav = document.getElementById('bottom-navigation');
+        const mNav = document.getElementById('magic-nav');
+        if (bNav) bNav.classList.add('keyboard-hidden');
+        if (mNav) mNav.classList.add('keyboard-hidden');
+    }
+
+    function showNavAfterKeyboard() {
+        document.body.classList.remove('keyboard-open');
+        document.documentElement.classList.remove('keyboard-open');
+        const bNav = document.getElementById('bottom-navigation');
+        const mNav = document.getElementById('magic-nav');
+        if (bNav) bNav.classList.remove('keyboard-hidden');
+        if (mNav) mNav.classList.remove('keyboard-hidden');
+    }
+
+    // 1. Focusin / Focusout listeners (instant reaction when tapping any input)
+    document.addEventListener('focusin', (e) => {
+        if (isEditableTarget(e.target)) {
+            hideNavForKeyboard();
+        }
+    }, true);
+
+    document.addEventListener('focusout', (e) => {
+        if (isEditableTarget(e.target)) {
+            setTimeout(() => {
+                if (!isEditableTarget(document.activeElement)) {
+                    showNavAfterKeyboard();
+                }
+            }, 120);
+        }
+    }, true);
+
+    // 2. VisualViewport API (detects virtual keyboard slide-up on Android & iOS)
+    if (window.visualViewport) {
+        const onViewportChange = () => {
+            const currentHeight = window.visualViewport.height;
+            const screenHeight = window.screen.height || window.innerHeight;
+            const heightDiff = window.innerHeight - currentHeight;
+
+            if (heightDiff > 120 || (isEditableTarget(document.activeElement) && currentHeight < screenHeight * 0.8)) {
+                hideNavForKeyboard();
+            } else if (!isEditableTarget(document.activeElement)) {
+                showNavAfterKeyboard();
+            }
+        };
+
+        window.visualViewport.addEventListener('resize', onViewportChange);
+        window.visualViewport.addEventListener('scroll', onViewportChange);
+    }
+
+    // 3. Capacitor Keyboard plugin events (for native Android / iOS wrapper)
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Keyboard) {
+        try {
+            const { Keyboard } = window.Capacitor.Plugins;
+            Keyboard.addListener('keyboardWillShow', hideNavForKeyboard);
+            Keyboard.addListener('keyboardDidShow', hideNavForKeyboard);
+            Keyboard.addListener('keyboardWillHide', showNavAfterKeyboard);
+            Keyboard.addListener('keyboardDidHide', showNavAfterKeyboard);
+        } catch(e) {}
+    }
+})();

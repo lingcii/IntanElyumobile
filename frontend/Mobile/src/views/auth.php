@@ -21,9 +21,25 @@
         <!-- Animated Seamless SVG Wave -->
         <div class="wave-bottom">
             <svg viewBox="0 0 2000 100" preserveAspectRatio="none">
-                <path class="wave-layer wave-1" fill="rgba(30,41,59,0.3)" d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 C1150,100 1350,0 1500,50 C1650,100 1850,0 2000,50 L2000,100 L0,100 Z"></path>
-                <path class="wave-layer wave-2" fill="rgba(30,41,59,0.5)" d="M0,60 C200,110 300,10 500,60 C700,110 800,10 1000,60 C1200,110 1300,10 1500,60 C1700,110 1800,10 2000,60 L2000,100 L0,100 Z"></path>
-                <path class="wave-layer wave-3" fill="#1e293b" d="M0,70 C250,120 250,20 500,70 C750,120 750,20 1000,70 C1250,120 1250,20 1500,70 C1750,120 1750,20 2000,70 L2000,100 L0,100 Z"></path>
+                <defs>
+                    <linearGradient id="authWaveGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.85" />
+                        <stop offset="40%" stop-color="#06b6d4" stop-opacity="0.65" />
+                        <stop offset="100%" stop-color="#0284c7" stop-opacity="0.25" />
+                    </linearGradient>
+                    <linearGradient id="authWaveGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9" />
+                        <stop offset="50%" stop-color="#0284c7" stop-opacity="0.75" />
+                        <stop offset="100%" stop-color="#1e3a8a" stop-opacity="0.45" />
+                    </linearGradient>
+                    <linearGradient id="authWaveGrad3" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#74a3cf" stop-opacity="1" />
+                        <stop offset="100%" stop-color="#74a3cf" stop-opacity="1" />
+                    </linearGradient>
+                </defs>
+                <path class="wave-layer wave-1" fill="url(#authWaveGrad1)" d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 C1150,100 1350,0 1500,50 C1650,100 1850,0 2000,50 L2000,160 L0,160 Z"></path>
+                <path class="wave-layer wave-2" fill="url(#authWaveGrad2)" d="M0,60 C200,110 300,10 500,60 C700,110 800,10 1000,60 C1200,110 1300,10 1500,60 C1700,110 1800,10 2000,60 L2000,160 L0,160 Z"></path>
+                <path class="wave-layer wave-3" fill="#74a3cf" d="M0,70 C250,120 250,20 500,70 C750,120 750,20 1000,70 C1250,120 1250,20 1500,70 C1750,120 1750,20 2000,70 L2000,160 L0,160 Z"></path>
             </svg>
         </div>
     </div>
@@ -33,6 +49,7 @@
         <div class="auth-tabs" id="auth-tabs">
             <div class="auth-tab active" id="tab-login" onclick="toggleAuthMode(false)">Login</div>
             <div class="auth-tab" id="tab-register" onclick="toggleAuthMode(true)">Register</div>
+            <div class="tab-gooey-glider" id="tab-gooey-glider"></div>
         </div>
         
         <div class="forms-wrapper" id="forms-wrapper">
@@ -56,13 +73,13 @@
                     </button>
                 </form>
 
-                <div style="display:flex; flex-direction:column; align-items:center; margin-top:20px; width:100%;">
-                    <div style="width:100%; display:flex; align-items:center; gap:8px; margin-bottom:16px;">
-                        <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.15);">
-                        <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px;">Or Connect With</span>
-                        <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.15);">
+                <div class="auth-social-section">
+                    <div style="width:100%; display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                        <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.25);">
+                        <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.8); text-transform:uppercase; letter-spacing:1px;">Or Connect With</span>
+                        <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.25);">
                     </div>
-                    <button type="button" class="btn-google" onclick="window.triggerGoogleLogin(event)" style="width:100%; padding:14px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:white; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:background 0.2s, transform 0.1s;">
+                    <button type="button" class="btn-google" onclick="window.triggerGoogleLogin(event)" style="width:100%; padding:13px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:white; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:background 0.2s, transform 0.1s;">
                         <svg viewBox="0 0 24 24" width="18" height="18" style="flex-shrink:0;">
                             <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.53-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.7c0-.18-.01-.35-.05-.47z"/>
                             <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.11 0-5.74-2.11-6.68-4.96H1.21v3.15C3.18 21.88 7.31 24 12 24z"/>
@@ -117,10 +134,10 @@
                         </div>
                     </div>
                     
-                    <div style="font-size: 11px; color: rgba(255,255,255,0.85); margin: 10px 0 16px 4px; display: flex; align-items: center; gap: 8px;">
-                        <input type="checkbox" id="reg-privacy-checkbox" class="circular-checkbox" style="cursor: pointer;" required>
-                        <label for="reg-privacy-checkbox" id="reg-privacy-label" style="cursor: pointer; margin: 0; line-height: 1.35;">
-                            I agree to the <a href="#" id="link-terms-privacy" onclick="openPrivacyPolicyModal(event)" style="color: #38bdf8; font-weight: 700; text-decoration: underline; cursor: pointer;">Terms & Privacy Policy</a>.
+                    <div class="terms-agreement-row">
+                        <input type="checkbox" id="reg-privacy-checkbox" class="custom-terms-checkbox">
+                        <label for="reg-privacy-checkbox" id="reg-privacy-label" class="terms-agreement-label">
+                            I agree to the <a href="#" id="link-terms-privacy" onclick="openPrivacyPolicyModal(event)" class="terms-policy-highlight">Terms &amp; Privacy Policy</a>.
                         </label>
                     </div>
                     
@@ -129,13 +146,13 @@
                     </button>
                 </form>
 
-                <div style="display:flex; flex-direction:column; align-items:center; margin-top:20px; width:100%;">
-                    <div style="width:100%; display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+                <div class="auth-social-section">
+                    <div style="width:100%; display:flex; align-items:center; gap:8px; margin-bottom:12px;">
                         <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.15);">
                         <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px;">Or Connect With</span>
                         <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.15);">
                     </div>
-                    <button type="button" class="btn-google" onclick="window.triggerGoogleLogin(event)" style="width:100%; padding:14px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:white; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:background 0.2s, transform 0.1s;">
+                    <button type="button" class="btn-google" onclick="window.triggerGoogleLogin(event)" style="width:100%; padding:13px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:white; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:background 0.2s, transform 0.1s;">
                         <svg viewBox="0 0 24 24" width="18" height="18" style="flex-shrink:0;">
                             <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.53-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.7c0-.18-.01-.35-.05-.47z"/>
                             <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.11 0-5.74-2.11-6.68-4.96H1.21v3.15C3.18 21.88 7.31 24 12 24z"/>
@@ -149,10 +166,11 @@
 
             <!-- Panel 3: Forgot Password -->
             <div class="form-panel forgot-form">
-                <a href="#" class="back-link" onclick="hideForgotPassword(event)">
+                <a href="#" class="back-link" id="fp-back-link" onclick="handleFpBack(event)">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </a>
 
+                <!-- Step 1: Enter Email -->
                 <div id="fp-form-state">
                     <div class="fp-header">
                         <h3>Reset Password</h3>
@@ -171,16 +189,17 @@
                     </form>
                 </div>
 
-                <div id="fp-success-state" style="display: none; text-align: center; padding: 10px 0;">
+                <!-- Step 2: Enter 6-Digit Code -->
+                <div id="fp-code-state" style="display: none; text-align: center; padding: 6px 0;">
                     <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 20px; margin: 0 auto 10px auto;">
                         <i class="fa-solid fa-paper-plane"></i>
                     </div>
                     <h3 style="margin: 0 0 4px 0; color: white; font-size: 18px; font-weight: 800;">Reset Code Sent</h3>
-                    <p style="color: rgba(255,255,255,0.7); font-size: 12px; margin: 0 0 16px 0;">We sent a 6-digit reset code to <br><strong id="fp-target-email" style="color: #38bdf8; font-family: monospace;"></strong></p>
+                    <p style="color: #000000; font-size: 12px; margin: 0 0 16px 0; font-weight: 500;">We sent a 6-digit reset code to <br><strong id="fp-target-email" style="color: #1d4ed8; font-family: monospace;"></strong></p>
 
-                    <form id="form-fp-reset" onsubmit="handleResetPasswordOtp(event)">
+                    <form id="form-fp-verify-code" onsubmit="handleVerifyFpCode(event)">
                         <!-- 6 Individual Digit Input Boxes -->
-                        <div class="otp-boxes-container" style="margin: 14px 0 16px 0;">
+                        <div class="otp-boxes-container" style="margin: 18px 0 20px 0;">
                             <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" oninput="handleFpOtpBoxInput(this, 0)" onkeydown="handleFpOtpBoxKeydown(this, event, 0)" onpaste="handleFpOtpPaste(event)">
                             <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleFpOtpBoxInput(this, 1)" onkeydown="handleFpOtpBoxKeydown(this, event, 1)" onpaste="handleFpOtpPaste(event)">
                             <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleFpOtpBoxInput(this, 2)" onkeydown="handleFpOtpBoxKeydown(this, event, 2)" onpaste="handleFpOtpPaste(event)">
@@ -188,6 +207,30 @@
                             <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleFpOtpBoxInput(this, 4)" onkeydown="handleFpOtpBoxKeydown(this, event, 4)" onpaste="handleFpOtpPaste(event)">
                             <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleFpOtpBoxInput(this, 5)" onkeydown="handleFpOtpBoxKeydown(this, event, 5)" onpaste="handleFpOtpPaste(event)">
                         </div>
+
+                        <button type="submit" id="fp-verify-btn" class="btn-circle-submit" style="margin-bottom: 14px;">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+
+                        <div style="font-size: 12px; color: #000000; margin-top: 10px; font-weight: 500;">
+                            Didn't receive email? 
+                            <button type="button" id="fp-resend-btn" onclick="handleResendFpEmail(event)" style="background: none; border: none; color: #1d4ed8; font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0;">
+                                Resend Code
+                            </button>
+                            <span id="fp-countdown-text" style="display: none; color: #b45309; font-weight: 700;">(Resend in <span id="fp-countdown-sec">45</span>s)</span>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Step 3: Enter New Password -->
+                <div id="fp-password-state" style="display: none; text-align: center; padding: 6px 0;">
+                    <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 20px; margin: 0 auto 10px auto;">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <h3 style="margin: 0 0 4px 0; color: white; font-size: 18px; font-weight: 800;">Create New Password</h3>
+                    <p style="color: #000000; font-size: 12px; margin: 0 0 20px 0; font-weight: 500;">Enter your new password below.</p>
+
+                    <form id="form-fp-password" onsubmit="handleResetPasswordSubmit(event)">
                         <div class="input-group" style="margin-bottom: 16px;">
                             <i class="fa-solid fa-lock"></i>
                             <input type="password" id="fp-new-password" class="auth-input" placeholder="New Password (min 8 chars)" minlength="8" required>
@@ -199,17 +242,9 @@
                             <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('fp-confirm-password', this)"></i>
                         </div>
 
-                        <button type="submit" id="fp-reset-btn" class="btn-circle-submit" style="margin-bottom: 14px;">
+                        <button type="submit" id="fp-password-btn" class="btn-circle-submit" style="margin-bottom: 10px;">
                             <i class="fa-solid fa-check"></i>
                         </button>
-
-                        <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 10px;">
-                            Didn't receive email? 
-                            <button type="button" id="fp-resend-btn" onclick="handleResendFpEmail(event)" style="background: none; border: none; color: #38bdf8; font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0;">
-                                Resend Code
-                            </button>
-                            <span id="fp-countdown-text" style="display: none; color: #f59e0b; font-weight: 700;">(Resend in <span id="fp-countdown-sec">45</span>s)</span>
-                        </div>
                     </form>
                 </div>
             </div>
@@ -294,54 +329,92 @@
     </div>
 </div>
 
-<!-- Privacy Policy Agreement Modal (Required Before Account Registration) -->
 <div id="privacy-policy-modal" class="auth-2fa-overlay" style="display: none;">
-    <div class="auth-2fa-card" style="max-width: 440px; text-align: left; padding: 24px 20px; border-radius: 28px; max-height: 85vh; display: flex; flex-direction: column;">
-        <button type="button" class="auth-2fa-close" onclick="closePrivacyPolicyModal()"><i class="fa-solid fa-xmark"></i></button>
+    <div class="privacy-modal-card">
+        <button type="button" class="privacy-modal-close" onclick="closePrivacyPolicyModal()" aria-label="Close">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
         
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            <div style="width: 44px; height: 44px; border-radius: 14px; background: rgba(56, 189, 248, 0.15); border: 1.5px solid #38bdf8; display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 20px; flex-shrink: 0;">
+        <div class="privacy-modal-header">
+            <div class="privacy-modal-icon-ring">
                 <i class="fa-solid fa-shield-halved"></i>
             </div>
             <div>
-                <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff;">Terms & Privacy Policy</h3>
-                <span style="font-size: 11px; color: #38bdf8; font-weight: 700;">Step 1 of 2 · Data Protection Terms</span>
+                <h3 class="privacy-modal-title">Terms &amp; Privacy Policy</h3>
+                <span class="privacy-modal-badge">Data Protection · Step 1 of 2</span>
             </div>
         </div>
 
-        <div id="privacy-modal-scroll-body" style="font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.6; overflow-y: auto; padding-right: 8px; margin-bottom: 16px; flex: 1; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 16px; background: rgba(15, 23, 42, 0.5);">
-            <p style="margin-top: 0;">Welcome to <strong>Intan Elyu Tourism Management System</strong>. Please read and scroll through our terms of service and privacy practices before completing your account registration:</p>
+        <div id="privacy-modal-scroll-body" class="privacy-modal-scroll-body">
+            <div class="policy-welcome-banner">
+                <i class="fa-solid fa-circle-info policy-welcome-icon"></i>
+                <p style="margin: 0; font-size: 12px; color: #334155; line-height: 1.55;">
+                    Welcome to <strong>Intan Elyu Tourism Management System</strong>. Please read through our terms of service and privacy practices before activating your account:
+                </p>
+            </div>
             
-            <h4 style="color: #38bdf8; margin: 14px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-user-gear" style="margin-right: 6px;"></i> 1. Account & Registration Responsibilities</h4>
-            <p style="margin: 0 0 10px 0;">By registering an account, you confirm that the personal details provided (Full Name, Email Address) are accurate and belong to you. You are responsible for maintaining the confidentiality of your account credentials.</p>
+            <div class="policy-item-card">
+                <div class="policy-item-header">
+                    <div class="policy-icon-badge"><i class="fa-solid fa-user-check"></i></div>
+                    <span class="policy-item-title">1. Account &amp; Registration</span>
+                </div>
+                <p class="policy-item-desc">By registering, you confirm that personal details provided (Full Name, Email) are accurate and belong to you. You are responsible for safeguarding your credentials.</p>
+            </div>
 
-            <h4 style="color: #38bdf8; margin: 14px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-database" style="margin-right: 6px;"></i> 2. Information We Collect & Encryption</h4>
-            <p style="margin: 0 0 10px 0;">We store your full name, email address, password hashes (Bcrypt encrypted), and optional profile preferences to deliver personalized itinerary recommendations. We never share or sell your personal information to unauthorized third parties.</p>
+            <div class="policy-item-card">
+                <div class="policy-item-header">
+                    <div class="policy-icon-badge"><i class="fa-solid fa-lock"></i></div>
+                    <span class="policy-item-title">2. Information &amp; Encryption</span>
+                </div>
+                <p class="policy-item-desc">We store your name, email, and Bcrypt-encrypted password hashes to personalize your Elyu itinerary. We never sell or share your data with unauthorized third parties.</p>
+            </div>
             
-            <h4 style="color: #38bdf8; margin: 14px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-location-dot" style="margin-right: 6px;"></i> 3. Location Access & Fair Play XP Rewards</h4>
-            <p style="margin: 0 0 10px 0;">Device location coordinates are accessed strictly during active spot check-in tasks to verify XP rewards and badge unlocks. We do not track your location in the background or monitor your movement outside active check-ins.</p>
+            <div class="policy-item-card">
+                <div class="policy-item-header">
+                    <div class="policy-icon-badge"><i class="fa-solid fa-location-dot"></i></div>
+                    <span class="policy-item-title">3. Location &amp; Fair Play XP</span>
+                </div>
+                <p class="policy-item-desc">Device location is accessed strictly during active tourist spot check-ins to verify XP rewards and badge unlocks. We do not track your location in the background.</p>
+            </div>
             
-            <h4 style="color: #38bdf8; margin: 14px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-shield-halved" style="margin-right: 6px;"></i> 4. 2-Factor Email Security (2FA)</h4>
-            <p style="margin: 0 0 10px 0;">After accepting these terms, a 6-digit 2-Factor Authentication (2FA) verification code will be issued to your email address to confirm identity before account activation.</p>
+            <div class="policy-item-card">
+                <div class="policy-item-header">
+                    <div class="policy-icon-badge"><i class="fa-solid fa-shield-halved"></i></div>
+                    <span class="policy-item-title">4. 2-Factor Email Security (2FA)</span>
+                </div>
+                <p class="policy-item-desc">After accepting these terms, a 6-digit verification code will be dispatched to your email address to confirm identity before account activation.</p>
+            </div>
 
-            <h4 style="color: #38bdf8; margin: 14px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-leaf" style="margin-right: 6px;"></i> 5. Responsible Tourism Code of Conduct</h4>
-            <p style="margin: 0 0 10px 0;">As a registered tourist on Intan Elyu, you agree to follow environmental preservation guidelines, respect local La Union heritage sites, avoid littering, and adhere to municipal beach and trail safety rules.</p>
+            <div class="policy-item-card">
+                <div class="policy-item-header">
+                    <div class="policy-icon-badge"><i class="fa-solid fa-leaf"></i></div>
+                    <span class="policy-item-title">5. Responsible Tourism</span>
+                </div>
+                <p class="policy-item-desc">As a registered tourist on Intan Elyu, you agree to respect local La Union heritage, avoid littering, preserve coastal beaches, and follow local municipal guidelines.</p>
+            </div>
 
-            <h4 style="color: #38bdf8; margin: 14px 0 4px 0; font-size: 13px;"><i class="fa-solid fa-user-lock" style="margin-right: 6px;"></i> 6. Privacy Rights & Profile Visibility</h4>
-            <p style="margin: 0 0 4px 0;">Your email address remains private. You can set your profile to Private mode at any time in App Settings to hide your rank on public leaderboards or request account erasure.</p>
+            <div class="policy-item-card">
+                <div class="policy-item-header">
+                    <div class="policy-icon-badge"><i class="fa-solid fa-eye-slash"></i></div>
+                    <span class="policy-item-title">6. Privacy Rights &amp; Profile</span>
+                </div>
+                <p class="policy-item-desc">Your email remains private. You can toggle your profile to Private mode anytime in App Settings to hide your rank on public leaderboards or request account erasure.</p>
+            </div>
         </div>
 
-        <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 14px; padding: 10px 12px; margin-bottom: 16px; font-size: 11px; color: #38bdf8; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" id="chk-accept-privacy" class="circular-checkbox" disabled style="opacity: 0.4; cursor: not-allowed;">
-            <label for="chk-accept-privacy" id="lbl-chk-accept-privacy" style="cursor: not-allowed; margin: 0; line-height: 1.3; opacity: 0.4;">I have read, understood, and accept the Terms & Privacy Policy.</label>
+        <div class="privacy-acceptance-box">
+            <input type="checkbox" id="chk-accept-privacy" class="custom-terms-checkbox" style="cursor: pointer;">
+            <label for="chk-accept-privacy" id="lbl-chk-accept-privacy" style="cursor: pointer; margin: 0; line-height: 1.35; font-size: 11.5px; font-weight: 600; color: #1e293b;">
+                I have read, understood, and accept the Terms &amp; Privacy Policy.
+            </label>
         </div>
 
-        <div style="display: flex; gap: 10px;">
-            <button type="button" onclick="closePrivacyPolicyModal()" class="auth-2fa-btn-primary" style="flex: 1; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #94a3b8; font-size: 13px;">
+        <div class="privacy-modal-actions">
+            <button type="button" onclick="closePrivacyPolicyModal()" class="btn-privacy-decline">
                 Decline
             </button>
-            <button type="button" id="btn-accept-policy-proceed" onclick="acceptPolicyAndProceed()" class="auth-2fa-btn-primary" disabled style="flex: 1.8; background: linear-gradient(135deg, #38bdf8, #2563eb); font-size: 13px; opacity: 0.4; cursor: not-allowed;">
-                <i class="fa-solid fa-lock" style="margin-right: 6px;"></i>Scroll to Bottom to Accept
+            <button type="button" id="btn-accept-policy-proceed" onclick="acceptPolicyAndProceed()" class="btn-privacy-accept">
+                Accept
             </button>
         </div>
     </div>
@@ -829,9 +902,44 @@
         }, 200); // Wait for the 0.2s fade out transition
     }
 
+    function positionTabGlider(isRegister, animate = true) {
+        const glider = document.getElementById('tab-gooey-glider');
+        const targetTab = isRegister ? tabRegister : tabLogin;
+        if (!glider || !targetTab || !tabsContainer) return;
+
+        const targetRect = targetTab.getBoundingClientRect();
+        const containerRect = tabsContainer.getBoundingClientRect();
+        const targetLeft = targetRect.left - containerRect.left + (targetRect.width - 32) / 2;
+
+        if (!animate) {
+            glider.style.transition = 'none';
+            glider.style.left = `${targetLeft}px`;
+            return;
+        }
+
+        glider.style.transition = '';
+        glider.classList.remove('stretching-right', 'stretching-left');
+        void glider.offsetWidth; // trigger reflow
+
+        if (isRegister) {
+            glider.classList.add('stretching-right');
+        } else {
+            glider.classList.add('stretching-left');
+        }
+        glider.style.left = `${targetLeft}px`;
+    }
+
+    // Initialize glider position on load & handle resize
+    setTimeout(() => { positionTabGlider(false, false); }, 80);
+    window.addEventListener('resize', () => {
+        const isReg = wrapper && wrapper.classList.contains('show-register');
+        positionTabGlider(isReg, false);
+    });
+
     function toggleAuthMode(isRegister) {
         tabsContainer.style.display = 'flex';
         wrapper.classList.remove('show-forgot', 'show-otp');
+        positionTabGlider(isRegister, true);
         
         if (isRegister) {
             wrapper.classList.add('show-register');
@@ -846,35 +954,49 @@
         }
     }
 
-    function showForgotPassword(e) {
-        if(e) e.preventDefault();
+    window.showForgotPassword = function(e) {
+        if (e) e.preventDefault();
         
         // Hide tabs
-        tabsContainer.style.display = 'none';
+        if (tabsContainer) tabsContainer.style.display = 'none';
         
-        // Reset forgot form
-        document.getElementById('fp-form-state').style.display = 'block';
-        document.getElementById('fp-success-state').style.display = 'none';
-        document.getElementById('fp-email').value = '';
+        // Reset forgot form steps
+        const formState = document.getElementById('fp-form-state');
+        const codeState = document.getElementById('fp-code-state');
+        const pwdState = document.getElementById('fp-password-state');
+        const emailInput = document.getElementById('fp-email');
+
+        if (formState) formState.style.display = 'block';
+        if (codeState) codeState.style.display = 'none';
+        if (pwdState) pwdState.style.display = 'none';
+        if (emailInput) emailInput.value = '';
         
         const btn = document.getElementById('fp-btn');
-        btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
-        btn.disabled = false;
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
+            btn.disabled = false;
+        }
 
-        wrapper.classList.remove('show-register');
-        wrapper.classList.add('show-forgot');
-        updateTitleWithTransition('Account Recovery');
-    }
+        if (wrapper) {
+            wrapper.classList.remove('show-register');
+            wrapper.classList.add('show-forgot');
+        }
+        if (typeof updateTitleWithTransition === 'function') {
+            updateTitleWithTransition('Account Recovery');
+        }
+    };
 
-    function hideForgotPassword(e) {
-        if(e) e.preventDefault();
+    window.hideForgotPassword = function(e) {
+        if (e) e.preventDefault();
         // Restore tabs
-        tabsContainer.style.display = 'flex';
-        wrapper.classList.remove('show-forgot', 'show-register');
-        tabRegister.classList.remove('active');
-        tabLogin.classList.add('active');
-        updateTitleWithTransition('Welcome to Elyu');
-    }
+        if (tabsContainer) tabsContainer.style.display = 'flex';
+        if (wrapper) wrapper.classList.remove('show-forgot', 'show-register');
+        if (tabRegister) tabRegister.classList.remove('active');
+        if (tabLogin) tabLogin.classList.add('active');
+        if (typeof updateTitleWithTransition === 'function') {
+            updateTitleWithTransition('Welcome to Elyu');
+        }
+    };
 
     function togglePasswordVisibility(inputId, iconElement) {
         const input = document.getElementById(inputId);
@@ -1057,41 +1179,45 @@
         const acceptBtn = document.getElementById('btn-accept-policy-proceed');
         const scrollBody = document.getElementById('privacy-modal-scroll-body');
 
-        if (chk) { chk.checked = false; chk.disabled = true; chk.style.opacity = '0.4'; chk.style.cursor = 'not-allowed'; }
-        if (lblChk) { lblChk.style.cursor = 'not-allowed'; lblChk.style.opacity = '0.4'; }
+        if (chk) { 
+            chk.checked = false; 
+            chk.disabled = false; 
+            chk.style.opacity = '1'; 
+            chk.style.cursor = 'pointer'; 
+        }
+        if (lblChk) { 
+            lblChk.style.cursor = 'pointer'; 
+            lblChk.style.opacity = '1'; 
+        }
         if (acceptBtn) {
-            acceptBtn.disabled = true;
-            acceptBtn.style.opacity = '0.4';
-            acceptBtn.style.cursor = 'not-allowed';
-            acceptBtn.innerHTML = '<i class="fa-solid fa-lock" style="margin-right: 6px;"></i>Scroll to Bottom to Accept';
+            acceptBtn.disabled = false;
+            acceptBtn.style.opacity = '1';
+            acceptBtn.style.cursor = 'pointer';
+            acceptBtn.innerHTML = 'Accept';
         }
 
         if (scrollBody) {
             scrollBody.scrollTop = 0;
-            scrollBody.onscroll = function() {
-                const isBottom = (scrollBody.scrollTop + scrollBody.clientHeight) >= (scrollBody.scrollHeight - 25);
-                if (isBottom) {
-                    if (chk) { chk.disabled = false; chk.style.opacity = '1'; chk.style.cursor = 'pointer'; }
-                    if (lblChk) { lblChk.style.cursor = 'pointer'; lblChk.style.opacity = '1'; }
-                    if (acceptBtn) {
-                        acceptBtn.disabled = false;
-                        acceptBtn.style.opacity = '1';
-                        acceptBtn.style.cursor = 'pointer';
-                        acceptBtn.innerHTML = '<i class="fa-solid fa-check" style="margin-right: 6px;"></i>Accept';
-                    }
-                }
-            };
         }
 
         modal.style.display = 'flex';
         requestAnimationFrame(() => {
             modal.classList.add('active');
+            if (scrollBody) {
+                scrollBody.scrollTop = 0;
+                scrollBody.scrollTo(0, 0);
+            }
         });
     };
 
     window.closePrivacyPolicyModal = function() {
         const modal = document.getElementById('privacy-policy-modal');
+        const scrollBody = document.getElementById('privacy-modal-scroll-body');
         if (modal) modal.classList.remove('active');
+        if (scrollBody) {
+            scrollBody.scrollTop = 0;
+            scrollBody.scrollTo(0, 0);
+        }
         setTimeout(() => {
             if (modal) modal.style.display = 'none';
         }, 300);
@@ -1099,10 +1225,7 @@
 
     window.acceptPolicyAndProceed = async function() {
         const chk = document.getElementById('chk-accept-privacy');
-        if (chk && !chk.checked) {
-            if (typeof showToast === 'function') showToast('Please check the box to accept the Terms & Privacy Policy.');
-            return;
-        }
+        if (chk) chk.checked = true;
 
         const regChk = document.getElementById('reg-privacy-checkbox');
         if (regChk) regChk.checked = true;
@@ -1406,6 +1529,17 @@
             const data = await response.json();
             
             if (!response.ok) {
+                if (data.is_google_user) {
+                    if (modal) {
+                        modal.classList.remove('active');
+                        setTimeout(() => { modal.style.display = 'none'; }, 300);
+                    }
+                    if (typeof showToast === 'function') showToast(data.error || 'Please sign in with Google.', 'info');
+                    setTimeout(() => {
+                        window.hideForgotPassword();
+                    }, 2000);
+                    return;
+                }
                 throw new Error(data.error || data.message || 'Failed to send reset code.');
             }
 
@@ -1432,7 +1566,8 @@
                 if (targetEmailEl) targetEmailEl.textContent = data.email || email;
 
                 document.getElementById('fp-form-state').style.display = 'none';
-                document.getElementById('fp-success-state').style.display = 'block';
+                document.getElementById('fp-password-state').style.display = 'none';
+                document.getElementById('fp-code-state').style.display = 'block';
                 if (typeof showToast === 'function') showToast('Security reset code sent to ' + (data.email || email));
                 startFpResendTimer();
                 
@@ -1453,6 +1588,25 @@
                 btn.innerHTML = oldHtml;
                 btn.disabled = false;
             }
+        }
+    };
+
+    window._verifiedFpOtp = '';
+
+    window.handleFpBack = function(e) {
+        if (e) e.preventDefault();
+        const pwdState = document.getElementById('fp-password-state');
+        const codeState = document.getElementById('fp-code-state');
+        const formState = document.getElementById('fp-form-state');
+
+        if (pwdState && pwdState.style.display === 'block') {
+            pwdState.style.display = 'none';
+            if (codeState) codeState.style.display = 'block';
+        } else if (codeState && codeState.style.display === 'block') {
+            codeState.style.display = 'none';
+            if (formState) formState.style.display = 'block';
+        } else {
+            window.hideForgotPassword(e);
         }
     };
 
@@ -1488,16 +1642,72 @@
         window.handleForgotPassword(null);
     };
 
-    window.handleResetPasswordOtp = async function(e) {
-        e.preventDefault();
+    window.handleVerifyFpCode = async function(e) {
+        if (e) e.preventDefault();
         const email = document.getElementById('fp-target-email').textContent || document.getElementById('fp-email').value;
         const boxes = document.querySelectorAll('.fp-otp-box');
         const otp = Array.from(boxes).map(b => b.value).join('');
+
+        if (otp.length < 6) {
+            if (typeof showToast === 'function') showToast('Please enter all 6 digits of your reset code.');
+            return;
+        }
+
+        const btn = document.getElementById('fp-verify-btn');
+        const oldHtml = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+            btn.disabled = true;
+        }
+
+        try {
+            const response = await fetch(backendUrl + '/api/auth/validate-reset-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ email: email, otp: otp })
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || data.message || 'Invalid or expired code.');
+            }
+
+            window._verifiedFpOtp = otp;
+            if (typeof showToast === 'function') showToast('Code verified! Please create your new password.', 'success');
+
+            document.getElementById('fp-code-state').style.display = 'none';
+            document.getElementById('fp-password-state').style.display = 'block';
+            
+            const newPwdInput = document.getElementById('fp-new-password');
+            if (newPwdInput) {
+                newPwdInput.value = '';
+                newPwdInput.focus();
+            }
+            const confirmPwdInput = document.getElementById('fp-confirm-password');
+            if (confirmPwdInput) confirmPwdInput.value = '';
+
+        } catch (error) {
+            console.error('Code validation error:', error);
+            if (typeof showToast === 'function') showToast(error.message);
+        } finally {
+            if (btn) {
+                btn.innerHTML = oldHtml;
+                btn.disabled = false;
+            }
+        }
+    };
+
+    window.handleResetPasswordSubmit = async function(e) {
+        if (e) e.preventDefault();
+        const email = document.getElementById('fp-target-email').textContent || document.getElementById('fp-email').value;
+        const otp = window._verifiedFpOtp || Array.from(document.querySelectorAll('.fp-otp-box')).map(b => b.value).join('');
         const newPassword = document.getElementById('fp-new-password').value;
         const confirmPassword = document.getElementById('fp-confirm-password').value;
 
-        if (otp.length < 6) {
-            if (typeof showToast === 'function') showToast('Please enter all 6 digits of your security code.');
+        if (!otp || otp.length < 6) {
+            if (typeof showToast === 'function') showToast('Security code missing. Please verify code again.');
+            document.getElementById('fp-password-state').style.display = 'none';
+            document.getElementById('fp-code-state').style.display = 'block';
             return;
         }
 
@@ -1517,14 +1727,14 @@
         const spinnerSvg = document.getElementById('modal-spinner-svg');
         const checkmarkIcon = document.getElementById('modal-checkmark-icon');
 
-        const btn = document.getElementById('fp-reset-btn');
+        const btn = document.getElementById('fp-password-btn');
         const oldHtml = btn ? btn.innerHTML : '';
         if (btn) {
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
             btn.disabled = true;
         }
 
-        // Show full-screen loading modal with active CSS transition
+        // Show full-screen loading modal
         if (modal) {
             modal.style.display = 'flex';
             setTimeout(() => { modal.classList.add('active'); }, 10);
@@ -1553,16 +1763,15 @@
                 throw new Error(data.error || data.message || 'Failed to reset password.');
             }
 
-            // Guarantee spinner stays visible for at least 5 seconds
             const elapsedTime = Date.now() - startTime;
-            const minSpinnerTime = 5000;
+            const minSpinnerTime = 3000;
             if (elapsedTime < minSpinnerTime) {
                 await new Promise(r => setTimeout(r, minSpinnerTime - elapsedTime));
             }
 
             // Animate checkmark success in modal
-            if (titleEl) titleEl.textContent = 'Password Reset Successfully!';
-            if (subEl) subEl.textContent = 'You can now sign in with your new password';
+            if (titleEl) titleEl.textContent = 'Password Changed Successfully!';
+            if (subEl) subEl.textContent = 'Please log in with your new credentials';
             if (spinnerSvg) spinnerSvg.style.display = 'none';
             if (checkmarkIcon) checkmarkIcon.style.display = 'block';
 
@@ -1571,23 +1780,46 @@
                     modal.classList.remove('active');
                     setTimeout(() => { modal.style.display = 'none'; }, 300);
                 }
-                if (typeof showToast === 'function') showToast('🎉 Password reset successfully! Please sign in.');
-                
-                // Auto fill email into login form
-                const loginEmailInput = document.getElementById('login-email');
-                if (loginEmailInput) loginEmailInput.value = email;
-                
-                // Clear inputs and return back to Login tab
-                boxes.forEach(b => b.value = '');
+
+                // Clear and reset forgot password form fields and state
                 document.getElementById('fp-new-password').value = '';
                 document.getElementById('fp-confirm-password').value = '';
+                const fpEmailEl = document.getElementById('fp-email');
+                if (fpEmailEl) fpEmailEl.value = '';
+                window._verifiedFpOtp = '';
+                const fpBoxes = document.querySelectorAll('.fp-otp-box');
+                fpBoxes.forEach(b => b.value = '');
+
+                const formState = document.getElementById('fp-form-state');
+                const codeState = document.getElementById('fp-code-state');
+                const pwdState = document.getElementById('fp-password-state');
+                if (formState) formState.style.display = 'block';
+                if (codeState) codeState.style.display = 'none';
+                if (pwdState) pwdState.style.display = 'none';
+
                 if (btn) {
                     btn.innerHTML = oldHtml;
                     btn.disabled = false;
                 }
-                
-                hideForgotPassword();
-            }, 1800);
+
+                // Switch back to Login Credentials tab / panel
+                window.hideForgotPassword();
+
+                // Pre-fill email in Login Credentials
+                const loginEmailEl = document.getElementById('login-email');
+                if (loginEmailEl && email) {
+                    loginEmailEl.value = email;
+                }
+                const loginPwdEl = document.getElementById('login-password');
+                if (loginPwdEl) {
+                    loginPwdEl.value = '';
+                    loginPwdEl.focus();
+                }
+
+                if (typeof showToast === 'function') {
+                    showToast('Password changed successfully! Please log in with your new credentials.', 'success');
+                }
+            }, 1500);
 
         } catch (error) {
             console.error('Reset Password OTP Error:', error);
@@ -1604,6 +1836,8 @@
     };
 
     window.triggerGoogleLogin = function(event) {
+        if (event && event.preventDefault) event.preventDefault();
+
         const googleBtns = document.querySelectorAll('.btn-google');
         googleBtns.forEach((btn) => {
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connecting to Google...';
@@ -1625,76 +1859,19 @@
             return;
         }
 
-        // 1. Try Google OAuth2 Token Client (In-App popup/overlay for APK & Web)
-        if (window.google && window.google.accounts && window.google.accounts.oauth2) {
-            try {
-                const tokenClient = window.google.accounts.oauth2.initTokenClient({
-                    client_id: clientId,
-                    scope: 'email profile openid',
-                    callback: (tokenResponse) => {
-                        if (tokenResponse && tokenResponse.access_token) {
-                            fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                                headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-                            })
-                            .then(res => res.json())
-                            .then(profile => {
-                                if (profile && profile.email) {
-                                    window.handleCredentialResponse({ profile: profile }, resetBtns);
-                                } else {
-                                    throw new Error('Unable to fetch profile from Google.');
-                                }
-                            })
-                            .catch(err => {
-                                console.error('Google Userinfo Error:', err);
-                                resetBtns();
-                                if (typeof showToast === 'function') showToast('Google login failed.');
-                            });
-                        } else {
-                            resetBtns();
-                        }
-                    },
-                    error_callback: (err) => {
-                        console.warn("Google OAuth popup error, falling back:", err);
-                        performFallbackRedirect();
-                    }
-                });
-                tokenClient.requestAccessToken({ prompt: 'select_account' });
-                return;
-            } catch (e) {
-                console.warn("OAuth2 initTokenClient exception:", e);
-            }
+        // Direct Google OAuth 2.0 Authorization Redirection (Universal for Android APK, WebViews & Web)
+        let redirectUri = window.location.origin + window.location.pathname;
+        if (!redirectUri.endsWith('.php') && !redirectUri.endsWith('/')) {
+            redirectUri += '/index.php';
+        } else if (redirectUri.endsWith('/')) {
+            redirectUri += 'index.php';
         }
 
-        // 2. Try Google One Tap prompt
-        if (window.google && window.google.accounts && window.google.accounts.id) {
-            try {
-                window.google.accounts.id.initialize({
-                    client_id: clientId,
-                    callback: function(response) {
-                        window.handleCredentialResponse(response, resetBtns);
-                    }
-                });
-                window.google.accounts.id.prompt((notification) => {
-                    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                        performFallbackRedirect();
-                    }
-                });
-                return;
-            } catch (e) {
-                console.warn("GSI prompt exception:", e);
-            }
-        }
-
-        performFallbackRedirect();
-
-        function performFallbackRedirect() {
-            let redirectUri = window.location.origin + window.location.pathname;
-            if (!redirectUri.endsWith('.php') && !redirectUri.endsWith('/')) {
-                redirectUri += '/';
-            }
-            const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile%20openid&prompt=select_account`;
-            window.location.href = googleAuthUrl;
-        }
+        const stateObj = { timestamp: Date.now(), returnView: 'auth' };
+        const stateStr = encodeURIComponent(JSON.stringify(stateObj));
+        const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile%20openid&prompt=select_account&state=${stateStr}`;
+        
+        window.location.href = googleAuthUrl;
     };
 
     window.handleCredentialResponse = async function(response, onDone) {
@@ -1712,7 +1889,8 @@
                 };
             }
 
-            const fetchRes = await fetch(backendUrl + '/api/auth/google', {
+            const backend = (typeof window.getBackendUrl === 'function') ? window.getBackendUrl() : (window.backendUrl || 'https://app.intan-elyu.online');
+            const fetchRes = await fetch(backend + '/api/auth/google', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify(payloadData)
@@ -1725,6 +1903,10 @@
             
             localStorage.setItem('auth_user', JSON.stringify(data.user));
             localStorage.setItem('intan_elyu_token', data.token);
+            if (window.AppStorage) {
+                window.AppStorage.setItem('auth_user', data.user);
+                window.AppStorage.setItem('intan_elyu_token', data.token);
+            }
             
             showLoginSuccessModal(data.user);
         } catch (error) {
@@ -1737,71 +1919,29 @@
                 });
             }
             if (typeof showToast === 'function') showToast(error.message);
-            window.openAuthCancelModal(error.message || 'Google sign-in could not be completed.');
+            if (typeof window.openAuthCancelModal === 'function') {
+                window.openAuthCancelModal(error.message || 'Google sign-in could not be completed.');
+            }
         }
     };
 
     (function checkGoogleOAuthRedirect() {
-        const hash = window.location.hash || window.location.search;
-        if (hash && (hash.includes('access_token=') || hash.includes('id_token='))) {
-            const rawParams = hash.startsWith('#') ? hash.substring(1) : (hash.startsWith('?') ? hash.substring(1) : hash);
-            const params = new URLSearchParams(rawParams);
-            const accessToken = params.get('access_token');
-            if (accessToken) {
-                // Clean URL hash so token is not left in history
-                if (window.history && window.history.replaceState) {
-                    window.history.replaceState({}, document.title, window.location.pathname + '?view=auth');
-                }
+        if (typeof window.initGoogleOAuthHandler === 'function') {
+            window.initGoogleOAuthHandler();
+        }
+    })();
 
-                // If running in external browser on Android, trigger Android Intent handoff back to APK package
-                const isCapacitorNative = !!(window.Capacitor && window.Capacitor.isNativePlatform());
-                if (!isCapacitorNative && /Android/i.test(navigator.userAgent)) {
-                    try {
-                        const intentUrl = 'intent://app.intan-elyu.online/index.php#access_token=' + encodeURIComponent(accessToken) + '#Intent;scheme=https;package=com.intan.elyu;end';
-                        window.location.href = intentUrl;
-                    } catch(e) {}
-                }
-
-                // Show full-screen loading modal immediately
-                const modal = document.getElementById('login-success-modal');
-                const titleEl = document.getElementById('login-modal-title');
-                const subEl = document.getElementById('login-success-user-name');
-                const spinnerSvg = document.getElementById('modal-spinner-svg');
-                const checkmarkIcon = document.getElementById('modal-checkmark-icon');
-                
-                if (modal) modal.style.display = 'flex';
-                if (titleEl) titleEl.textContent = 'Logging in with Google...';
-                if (subEl) subEl.textContent = 'Authenticating your account';
-                if (spinnerSvg) spinnerSvg.style.display = 'block';
-                if (checkmarkIcon) checkmarkIcon.style.display = 'none';
-
-                const googleBtns = document.querySelectorAll('.btn-google');
-                googleBtns.forEach(btn => {
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Logging in with Google...';
-                    btn.disabled = true;
-                });
-
-                fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                    headers: { Authorization: `Bearer ${accessToken}` }
-                })
-                .then(res => res.json())
-                .then(profile => {
-                    if (profile && profile.email) {
-                        window.handleCredentialResponse({ profile: profile });
-                    } else {
-                        throw new Error('Unable to retrieve profile from Google.');
-                    }
-                })
-                .catch(err => {
-                    console.error('Google OAuth redirect error:', err);
-                    if (modal) modal.style.display = 'none';
-                    googleBtns.forEach(btn => {
-                        btn.innerHTML = '<span>Sign in with Google</span>';
-                        btn.disabled = false;
-                    });
-                    if (typeof showToast === 'function') showToast('Google login failed. Please try again.');
-                });
+    (function checkPrefillEmail() {
+        const params = new URLSearchParams(window.location.search);
+        const prefillEmail = sessionStorage.getItem('login_prefill_email') || params.get('email');
+        if (prefillEmail) {
+            const loginEmailEl = document.getElementById('login-email');
+            if (loginEmailEl) {
+                loginEmailEl.value = prefillEmail;
+                const loginPwdEl = document.getElementById('login-password');
+                if (loginPwdEl) loginPwdEl.focus();
             }
+            sessionStorage.removeItem('login_prefill_email');
         }
     })();
 </script>

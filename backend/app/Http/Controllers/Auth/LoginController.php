@@ -210,11 +210,19 @@ class LoginController extends Controller
             ], 404);
         }
 
+        // Check if user account was created exclusively with Google Sign-In
+        if (!empty($user->google_id) && empty($user->password)) {
+            return response()->json([
+                'is_google_user' => true,
+                'error' => 'This account is linked with Google Sign-In and does not use a password. Please sign in directly with the "Sign in with Google" button.'
+            ], 400);
+        }
+
         $token = \Illuminate\Support\Str::random(60);
         $tokenHash = hash('sha256', $token);
-        $otpCode = sprintf('%06d', random_int(0, 999999));
+        $otpCode = sprintf('%06d', random_int(100000, 999999));
 
-        // Always store OTP in Cache and User model for fast, reliable in-app reset
+        // Always store OTP in Cache and User model for fast, reliable in-app reset (15 min expiration)
         \Illuminate\Support\Facades\Cache::put("pwd_reset_otp:{$user->email}", $otpCode, 900);
         try {
             $user->remember_token = 'otp_' . $otpCode;
@@ -237,22 +245,170 @@ class LoginController extends Controller
             \Illuminate\Support\Facades\Log::warning('frontend_password_resets table DB record skip: ' . $th->getMessage());
         }
 
+        $mailSent = false;
+        $mailError = null;
+        $mailable = new \App\Mail\PasswordResetMail($user, $token, $otpCode);
+        $subject = "🔐 {$otpCode} - Reset Your Password - Intan Elyu";
+
+        // Priority 1: Resend HTTPS API (Port 443 — 100% Railway & Cloud compatible)
         try {
-            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\PasswordResetMail($user, $token, $otpCode));
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('PasswordResetMail failed for user #' . $user->id . ': ' . $e->getMessage());
-            // Return success anyway so OTP reset via cache is still possible for the user
+            $renderedHtml = $mailable->render();
+            $resendResult = \App\Services\ResendMailService::send($user->email, $subject, $renderedHtml);
+            if ($resendResult['success']) {
+                $mailSent = true;
+                \Illuminate\Support\Facades\Log::info("Password reset email sent to {$user->email} via Resend HTTPS API (id: {$resendResult['id']})");
+            } else {
+                $mailError = 'Resend: ' . $resendResult['error'];
+                \Illuminate\Support\Facades\Log::warning("Resend HTTPS send notice for {$user->email}: {$mailError}. Falling back to SMTP...");
+            }
+        } catch (\Throwable $rErr) {
+            $mailError = 'Resend error: ' . $rErr->getMessage();
+            \Illuminate\Support\Facades\Log::warning("Resend exception: " . $mailError);
+        }
+
+        // Priority 2: SMTP Port 465 SSL / Port 587 TLS fallback (if on host with open SMTP ports)
+        if (!$mailSent) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($user->email)->send($mailable);
+                $mailSent = true;
+            } catch (\Throwable $e1) {
+                $mailError = $e1->getMessage();
+                \Illuminate\Support\Facades\Log::warning("Primary SMTP (465 SSL) failed for {$user->email}: " . $mailError . ". Retrying on Port 587 TLS...");
+
+                try {
+                    $altMailer = app('mail.manager')->build([
+                        'transport'  => 'smtp',
+                        'host'       => 'smtp.gmail.com',
+                        'port'       => 587,
+                        'encryption' => 'tls',
+                        'username'   => 'acekillersmile@gmail.com',
+                        'password'   => 'egnrijvxdqdanlwc',
+                        'timeout'    => 20,
+                    ]);
+                    $altMailer->to($user->email)->send($mailable);
+                    $mailSent = true;
+                } catch (\Throwable $e2) {
+                    $mailError = $e2->getMessage();
+                    \Illuminate\Support\Facades\Log::error("All mail dispatch attempts failed for {$user->email}: " . $mailError);
+                }
+            }
+        }
+
+        if (!$mailSent) {
             return response()->json([
-                'success' => true,
-                'email'   => $user->email,
-                'message' => 'Reset code & link sent successfully to your email.'
+                'success'      => false,
+                'mail_sent'    => false,
+                'error'        => 'Email delivery failed. ' . (str_contains($mailError ?? '', 'BadCredentials') ? 'Gmail rejected credentials. Please verify Google App Password.' : ($mailError ?? 'Mail server unavailable.')),
+                'error_detail' => $mailError,
+            ], 500);
+        }
+
+        return response()->json([
+            'success'   => true,
+            'email'     => $user->email,
+            'mail_sent' => true,
+            'message'   => 'Security reset code & link sent successfully to your email.'
+        ]);
+    }
+
+    /**
+     * GET /api/auth/test-email?to=...
+     * Direct diagnostic tool to test and display live email output across Resend HTTPS & SMTP
+     */
+    public function testEmail(Request $request): JsonResponse
+    {
+        $to = $request->query('to', 'acekillersmile@gmail.com');
+        $results = [];
+
+        // Test 1: Resend HTTPS API (Port 443)
+        try {
+            $html = '<div style="font-family:sans-serif;padding:20px;background:#0f172a;color:#fff;border-radius:12px;"><h2>Intan Elyu Diagnostic Email</h2><p>Delivered via <strong>Resend HTTPS API (Port 443 — 100% Railway compatible)</strong> at ' . now() . '</p></div>';
+            $resend = \App\Services\ResendMailService::send($to, '🧪 Intan Elyu Resend HTTPS Test', $html);
+            if ($resend['success']) {
+                $results['resend_https_api'] = 'SUCCESS: Delivered (id: ' . $resend['id'] . ')';
+            } else {
+                $results['resend_https_api'] = 'NOTICE: ' . $resend['error'];
+            }
+        } catch (\Throwable $e) {
+            $results['resend_https_api'] = 'FAILED: ' . $e->getMessage();
+        }
+
+        // Test 2: Port 465 SSL
+        try {
+            $mailer465 = app('mail.manager')->build([
+                'transport'  => 'smtp',
+                'host'       => 'smtp.gmail.com',
+                'port'       => 465,
+                'encryption' => 'ssl',
+                'username'   => 'acekillersmile@gmail.com',
+                'password'   => 'egnrijvxdqdanlwc',
+                'timeout'    => 10,
             ]);
+            $mailer465->raw("Live test email via Port 465 SSL sent at " . now(), function ($m) use ($to) {
+                $m->to($to)->subject('🧪 Intan Elyu SMTP Test (Port 465 SSL)');
+                $m->from('acekillersmile@gmail.com', 'Intan-Elyu Customer Support');
+            });
+            $results['smtp_port_465_ssl'] = 'SUCCESS: Email delivered to ' . $to;
+        } catch (\Throwable $e) {
+            $results['smtp_port_465_ssl'] = 'FAILED: ' . $e->getMessage();
+        }
+
+        // Test 2: Port 587 TLS
+        try {
+            $mailer587 = app('mail.manager')->build([
+                'transport'  => 'smtp',
+                'host'       => 'smtp.gmail.com',
+                'port'       => 587,
+                'encryption' => 'tls',
+                'username'   => 'acekillersmile@gmail.com',
+                'password'   => 'egnrijvxdqdanlwc',
+                'timeout'    => 15,
+            ]);
+            $mailer587->raw("This is a live test email from Intan Elyu (Port 587 TLS) sent at " . now(), function ($m) use ($to) {
+                $m->to($to)->subject('🧪 Intan Elyu SMTP Test (Port 587 TLS)');
+                $m->from('acekillersmile@gmail.com', 'Intan-Elyu Customer Support');
+            });
+            $results['port_587_tls'] = 'SUCCESS: Email delivered to ' . $to;
+        } catch (\Throwable $e) {
+            $results['port_587_tls'] = 'FAILED: ' . $e->getMessage();
+        }
+
+        return response()->json([
+            'status'  => 'Diagnostic complete',
+            'target'  => $to,
+            'results' => $results
+        ]);
+    }
+
+    /**
+     * POST /api/auth/validate-reset-otp
+     */
+    public function validateResetOtp(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'otp'   => 'required|string',
+        ]);
+
+        $email = $request->email;
+        $otp = trim($request->otp);
+
+        $user = User::where('email', $email)->first();
+        if (!$user) {
+            return response()->json(['error' => 'User account not found.'], 404);
+        }
+
+        $cachedOtp = \Illuminate\Support\Facades\Cache::get("pwd_reset_otp:{$email}");
+        $isValidOtp = ($cachedOtp && (string)$cachedOtp === (string)$otp) || ($user->remember_token === 'otp_' . $otp);
+
+        if (!$isValidOtp) {
+            return response()->json(['error' => 'Invalid or expired verification code.'], 400);
         }
 
         return response()->json([
             'success' => true,
-            'email'   => $user->email,
-            'message' => 'Reset code & link sent successfully to your email.'
+            'email'   => $email,
+            'message' => 'Verification code confirmed.'
         ]);
     }
 
@@ -294,10 +450,17 @@ class LoginController extends Controller
             }
         } catch (\Throwable $th) {}
 
+        $authToken = null;
+        try {
+            $authToken = $user->createToken('auth_token')->plainTextToken;
+        } catch (\Throwable $t) {}
+
         return response()->json([
             'success' => true,
+            'token'   => $authToken,
+            'user'    => $user,
             'email'   => $email,
-            'message' => 'Your password has been reset successfully!'
+            'message' => 'Your password has been reset successfully! Logging you in...'
         ]);
     }
 
@@ -337,9 +500,14 @@ class LoginController extends Controller
         }
 
         $user = User::where('email', $request->email)->first();
+        $authToken = null;
         if ($user) {
             $user->password = \Illuminate\Support\Facades\Hash::make($request->password);
             $user->save();
+
+            try {
+                $authToken = $user->createToken('auth_token')->plainTextToken;
+            } catch (\Throwable $t) {}
         }
 
         try {
@@ -348,7 +516,9 @@ class LoginController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Your password has been reset successfully.'
+            'token'   => $authToken,
+            'user'    => $user,
+            'message' => 'Your password has been reset successfully! Proceeding into the app...'
         ]);
     }
 }

@@ -61,12 +61,12 @@ echo.
 :: 3. Start Backend
 echo [1/3] Starting Laravel Backend (http://localhost:8000)...
 start "Laravel Backend" cmd /k "cd /d ""!BACKEND_DIR!"" && php artisan serve --host=0.0.0.0 --port=8000"
-timeout /t 2 /nobreak >nul
+ping -n 3 127.0.0.1 >nul 2>&1
 
 :: 4. Start Mobile Frontend
 echo [2/3] Starting Mobile Frontend (http://localhost:3000)...
 start "Mobile Frontend" cmd /k "cd /d ""!MOBILE_DIR!"" && npm run start"
-timeout /t 2 /nobreak >nul
+ping -n 3 127.0.0.1 >nul 2>&1
 
 :: 5. Start Named Cloudflare Tunnel via helper script (handles spaces in path)
 echo [3/3] Starting Cloudflare Named Tunnel...

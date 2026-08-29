@@ -78,179 +78,250 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         </div>
     </div>
 
+
+
     <!-- Locate Me Button -->
-    <div class="btn-locate-me animate-slide-up" id="btn-locate-me" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); right: 10px;">
+    <div class="btn-locate-me animate-slide-up" id="btn-locate-me" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-crosshairs"></i>
     </div>
 
+    <!-- Nearby Tourist Sites Button (Left Side) -->
+    <div class="btn-nearby-sites animate-slide-up" id="btn-nearby-sites" onclick="window.toggleNearbySitesSheet()" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); left: 10px; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;" title="Nearby Tourist Sites">
+        <i class="fa-solid fa-compass"></i>
+        <span id="nearby-sites-badge" style="display:none; position:absolute; top:-5px; right:-5px; min-width:18px; height:18px; padding:0 4px; border-radius:9px; background:#00f2fe; color:#0f172a; font-size:10px; font-weight:800; align-items:center; justify-content:center; box-shadow:none;">0</span>
+    </div>
+
     <!-- Layer Toggle Button -->
-    <div class="btn-layer-toggle animate-slide-up" id="btn-layer-toggle" style="position: absolute; bottom: calc(235px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: #1E3A8A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
+    <div class="btn-layer-toggle animate-slide-up" id="btn-layer-toggle" style="position: absolute; bottom: calc(235px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-layer-group"></i>
     </div>
 
     <!-- 3D Mode Button -->
-    <div class="btn-3d-view animate-slide-up" id="btn-3d-view" style="position: absolute; bottom: calc(175px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: #1E3A8A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
+    <div class="btn-3d-view animate-slide-up" id="btn-3d-view" style="position: absolute; bottom: calc(175px + env(safe-area-inset-bottom)); right: 10px; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-cube"></i>
     </div>
 
+    <!-- Nearby Tourist Sites Sheet (Triggered by Left Button) -->
+    <div class="bottom-sheet" id="nearby-sites-sheet" style="display:none;">
+        <div class="sheet-drag-handle" id="nearby-drag-handle"><span class="sheet-drag-dot"></span></div>
+        <div class="draggable-content" id="nearby-sites-scroll" style="max-height: calc(75vh - 70px); overflow-y: auto; padding: 0 4px 16px 4px;">
+            
+            <!-- Header -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding: 0 8px;">
+                <div>
+                    <h3 style="margin:0; font-size:17px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-compass" style="color:#ffffff;"></i> Nearby Tourist Sites
+                    </h3>
+                    <p id="nearby-sites-subtext" style="margin:3px 0 0 0; font-size:12px; color:#ffffff; opacity:0.95;">
+                        Discover attractions close to your current location
+                    </p>
+                </div>
+                <button type="button" onclick="window.closeNearbySitesSheet()" style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:background 0.2s;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Radius filter pills -->
+            <div style="display:flex; gap:6px; overflow-x:auto; padding: 4px 8px 12px 8px; scrollbar-width:none;">
+                <button type="button" class="nearby-radius-btn active" data-radius="2" onclick="window.filterNearbyRadius(2, this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:800; border:1.5px solid #ffffff; background:linear-gradient(135deg, #00f2fe, #0284c7); color:#ffffff; cursor:pointer; white-space:nowrap;">Within 2 km</button>
+                <button type="button" class="nearby-radius-btn" data-radius="5" onclick="window.filterNearbyRadius(5, this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(255,255,255,0.35); background:rgba(30,58,138,0.78); color:#ffffff; cursor:pointer; white-space:nowrap;">Within 5 km</button>
+                <button type="button" class="nearby-radius-btn" data-radius="15" onclick="window.filterNearbyRadius(15, this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(255,255,255,0.35); background:rgba(30,58,138,0.78); color:#ffffff; cursor:pointer; white-space:nowrap;">Within 15 km</button>
+                <button type="button" class="nearby-radius-btn" data-radius="all" onclick="window.filterNearbyRadius('all', this)" style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:1px solid rgba(255,255,255,0.35); background:rgba(30,58,138,0.78); color:#ffffff; cursor:pointer; white-space:nowrap;">All Closest</button>
+            </div>
+
+            <!-- List container -->
+            <div id="nearby-sites-list" style="display:flex; flex-direction:column; gap:10px; padding: 0 4px;">
+                <!-- Rendered dynamically -->
+            </div>
+        </div>
+    </div>
 
     <!-- Bottom Sheet (hidden by default) -->
     <div class="bottom-sheet" id="place-details-sheet">
         <div class="sheet-drag-handle" id="place-drag-handle"><span class="sheet-drag-dot"></span></div>
         <div class="draggable-content" id="place-details-scroll">
-        <!-- Framed Destination Header -->
-        <div id="sheet-title-frame" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-radius:18px; padding:12px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
-            <div style="flex:1; min-width:0; padding-right:12px;">
-                <h3 class="sheet-title" id="sheet-title" style="font-size:20px; font-weight:800; color:#ffffff; letter-spacing:-0.4px; margin:0 0 4px 0; line-height:1.25;">Destination Name</h3>
-                <p class="sheet-location" id="sheet-location-container" style="display:flex; align-items:center; gap:5px; margin:0; font-size:12px; color:#38bdf8; font-weight:600;">
-                    <i class="fa-solid fa-location-dot" style="color:#38bdf8; font-size:11px;"></i>
-                    <span id="sheet-location">Location details</span>
-                </p>
+            
+            <!-- Destination Header -->
+            <div class="dest-sheet-header" id="sheet-title-frame">
+                <div class="dest-sheet-header-main">
+                    <h3 class="sheet-title" id="sheet-title">Destination Name</h3>
+                    <p class="sheet-location" id="sheet-location-container">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span id="sheet-location">Location details</span>
+                    </p>
+                </div>
+                <button type="button" class="dest-sheet-close-btn" onclick="window.closeSheet()" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
-            <button onclick="window.closeSheet()" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:rgba(248,250,252,0.9); font-size:13px; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
 
-        <!-- Slidable Image Banner Carousel -->
-        <div id="sheet-slider-container" style="position:relative; width:100%; height:220px; border-radius:18px; overflow:hidden; margin-top:12px; margin-bottom:12px; background:#0f172a;">
-            <!-- Floating Overlay Badges -->
-            <div id="sheet-badges-overlay" style="position:absolute; top:12px; left:12px; z-index:10; display:flex; gap:6px; flex-wrap:wrap; pointer-events:none;">
-                <div id="sheet-category-badge" style="display:none; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff; background:rgba(56, 189, 248, 0.95); backdrop-filter:blur(8px);"></div>
-                <div id="sheet-status-badge" style="display:none; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff; background:rgba(52, 199, 89, 0.95); backdrop-filter:blur(8px);"></div>
-                <div id="sheet-open-badge" style="display:none; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff; background:rgba(52, 199, 89, 0.95); backdrop-filter:blur(8px);"></div>
+            <!-- Slidable Image Banner Carousel -->
+            <div id="sheet-slider-container" class="dest-slider-container">
+                <!-- Floating Overlay Badges -->
+                <div id="sheet-badges-overlay" class="dest-badges-overlay">
+                    <div id="sheet-category-badge" class="dest-cat-badge-wrap" style="display:none;"></div>
+                    <div id="sheet-status-badge" class="sheet-status-pill" style="display:none;"></div>
+                    <div id="sheet-open-badge" class="sheet-open-pill" style="display:none;"></div>
+                </div>
+                <div id="sheet-slider-track" class="dest-slider-track">
+                    <img src="" alt="Place Image" class="sheet-img" id="sheet-img">
+                </div>
+                <div id="sheet-slider-dots" class="dest-slider-dots" style="display:none;"></div>
             </div>
-            <div id="sheet-slider-track" style="display:flex; width:100%; height:100%; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch;">
-                <img src="" alt="Place Image" class="sheet-img" id="sheet-img" style="flex:0 0 100%; min-width:100%; width:100%; max-width:100%; height:100% !important; object-fit:cover !important; object-position:center !important; border-radius:18px !important; scroll-snap-align:start; scroll-snap-stop:always; display:block !important; margin:0 !important; box-sizing:border-box !important;">
-            </div>
-            <div id="sheet-slider-dots" style="position:absolute; bottom:10px; left:50%; transform:translateX(-50%); display:none; gap:6px; background:rgba(0,0,0,0.5); backdrop-filter:blur(8px); padding:4px 10px; border-radius:20px; z-index:5; pointer-events:none;"></div>
-        </div>
 
-        <!-- About This Location & Tourist Guide Details -->
-        <div id="sheet-desc-container" style="margin-top:16px; margin-bottom:16px; display:none; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:16px;">
-            <div id="vehicle-accessibility-warning" style="display:none; background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.2); border-radius:12px; padding:12px; margin-bottom:12px;">
-                <div style="display:flex; align-items:flex-start; gap:8px;">
-                    <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; margin-top:2px;"></i>
-                    <div>
-                        <h5 style="margin:0 0 4px 0; font-size:12px; font-weight:700; color:#ef4444; text-transform:uppercase; letter-spacing:0.5px;">Inaccessible by Private Car</h5>
-                        <p style="margin:0; font-size:11px; color:rgba(248,250,252,0.8); line-height:1.4;">Prepare to hike or use specialized local transport to reach this destination.</p>
+            <!-- Quick Stats Grid (Distance, Hours, Visitors, Rating) -->
+            <div class="dest-quick-stats-grid">
+                <div class="quick-stat-card">
+                    <div class="quick-stat-icon blue">
+                        <i class="fa-solid fa-route"></i>
+                    </div>
+                    <div class="quick-stat-info">
+                        <span class="quick-stat-label">Distance</span>
+                        <span class="quick-stat-value" id="sheet-distance">Calculating...</span>
                     </div>
                 </div>
-            </div>
-            <div id="sheet-desc-animator" style="overflow:hidden;">
-                <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
-                    <div style="width:30px; height:30px; border-radius:10px; background:rgba(56,189,248,0.15); display:flex; align-items:center; justify-content:center; border:1px solid rgba(56,189,248,0.2);">
-                        <i class="fa-solid fa-book-open" style="color:#38bdf8; font-size:13px;"></i>
-                    </div>
-                    <h5 style="margin:0; font-size:12px; font-weight:800; letter-spacing:1px; color:#f8fafc; text-transform:uppercase;">About this location</h5>
-                </div>
-            
-            <p id="sheet-desc-short" style="font-size:13px; color:rgba(248,250,252,0.8); line-height:1.6; margin:0; font-weight:400; letter-spacing:0.3px;"></p>
-            <p id="sheet-desc-full" style="font-size:13px; color:rgba(248,250,252,0.8); line-height:1.6; margin:0; display:none; font-weight:400; letter-spacing:0.3px;"></p>
-            
-            
-            <style>
-                .btn-details-active:active { transform: scale(0.97); }
-                .selected-vehicle { border-color: #38bdf8 !important; background: rgba(56,189,248,0.08) !important; }
-                .selected-vehicle .vehicle-check { border-color: #38bdf8 !important; background: #38bdf8; }
-                .selected-vehicle .vehicle-check i { opacity: 1 !important; }
-                .disabled-vehicle { opacity: 0.35; pointer-events: none; }
-            </style>
-
-            <!-- Expanded Info (hidden initially) -->
-            <div id="expanded-details" style="display:none; flex-direction:column; margin-top:16px; padding-top:16px; border-top:1px dashed rgba(255,255,255,0.1);">
-                <h4 style="margin:0 0 10px; font-size:11px; font-weight:800; letter-spacing:1px; color:rgba(148,163,184,0.7); text-transform:uppercase;">Location Info</h4>
-
-                <div class="map-info-row">
-                    <span class="map-info-label">
-                        <i class="fa-solid fa-location-arrow"></i>
-                        Distance
-                    </span>
-                    <span class="map-info-value" id="sheet-distance">Calculating...</span>
-                </div>
-
-                <div class="map-info-row" id="sheet-hours-row" style="display:none;">
-                    <span class="map-info-label">
+                <div class="quick-stat-card" id="sheet-hours-stat-card">
+                    <div class="quick-stat-icon emerald">
                         <i class="fa-regular fa-clock"></i>
-                        Hours
-                    </span>
-                    <span class="map-info-value" id="sheet-hours">--</span>
+                    </div>
+                    <div class="quick-stat-info">
+                        <span class="quick-stat-label">Hours</span>
+                        <span class="quick-stat-value" id="sheet-hours">--</span>
+                    </div>
+                </div>
+                <div class="quick-stat-card" id="sheet-visitors-stat-card">
+                    <div class="quick-stat-icon purple">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div class="quick-stat-info">
+                        <span class="quick-stat-label">Visitors</span>
+                        <span class="quick-stat-value" id="sheet-visitors">Less than 100 this month</span>
+                    </div>
+                </div>
+                <div class="quick-stat-card" id="sheet-rating-stat-card">
+                    <div class="quick-stat-icon amber">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                    <div class="quick-stat-info">
+                        <span class="quick-stat-label">Rating</span>
+                        <span class="quick-stat-value" id="sheet-rating">5.0 ★</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Site Fee Summary Banner -->
+            <div id="sheet-fees-card" class="dest-fees-card" style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:10px 14px; margin-bottom:10px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:34px; height:34px; border-radius:10px; background:rgba(16,185,129,0.12); color:#34d399; border:1px solid rgba(52,211,153,0.25); display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;">
+                        <i class="fa-solid fa-ticket"></i>
+                    </div>
+                    <div style="display:flex; flex-direction:column;">
+                        <span style="font-size:10px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px;">Site Fees</span>
+                        <span id="sheet-fee-main-text" style="font-size:13px; font-weight:800; color:#f8fafc;">Free Admission</span>
+                    </div>
+                </div>
+                <div id="sheet-fee-breakdown-tags" style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                    <!-- Injected via JS: e.g. Entrance: ₱50 | Environmental: ₱20 -->
+                </div>
+            </div>
+
+            <!-- About This Location & Travel Details -->
+            <div id="sheet-desc-container" class="dest-info-card" style="display:none;">
+                <div id="vehicle-accessibility-warning" class="dest-warning-card" style="display:none;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div>
+                        <h6>Inaccessible by Private Car</h6>
+                        <p>Prepare to hike or use specialized local transport to reach this destination.</p>
+                    </div>
                 </div>
 
-                <div style="margin-top: 10px; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
-                    <h5 style="margin: 0 0 6px; font-size: 10px; color: rgba(148,163,184,0.7); text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-map" style="margin-right: 4px;"></i> Route Guide</h5>
-                    <p id="sheet-manual-guide" style="margin: 0; font-size: 13px; color: #e2e8f0; line-height: 1.5;"></p>
-                </div>
-                <div style="margin-top: 10px; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
-                    <h5 style="margin: 0 0 6px; font-size: 10px; color: rgba(148,163,184,0.7); text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-circle-info" style="margin-right: 4px;"></i> Tour Guide Notice</h5>
-                    <p style="margin: 0; font-size: 12px; color: #f59e0b; line-height: 1.5;">Some destinations may require a tour guide for entry or navigation. The system only provides informational notices about this requirement; it does not offer, book, or arrange tour guide services directly.</p>
-                </div>
+                <div id="sheet-desc-animator" style="overflow:hidden;">
+                    <div class="dest-section-header">
+                        <div class="dest-section-icon"><i class="fa-solid fa-compass"></i></div>
+                        <h5 class="dest-section-title">About this destination</h5>
+                    </div>
+                
+                    <p id="sheet-desc-short" class="dest-desc-text"></p>
+                    <p id="sheet-desc-full" class="dest-desc-text" style="display:none;"></p>
 
-                <!-- Service Center & Tourist Assistance Details -->
-                <div style="margin-top: 10px; background: rgba(56,189,248,0.04); padding: 12px; border-radius: 12px; border: 1px solid rgba(56,189,248,0.15);">
-                    <h5 style="margin: 0 0 8px; font-size: 10px; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: space-between;">
-                        <span><i class="fa-solid fa-headset" style="margin-right: 4px;"></i> Service Center & Tourist Assistance</span>
-                        <span style="font-size: 9px; background: rgba(56,189,248,0.15); padding: 2px 6px; border-radius: 4px; color: #38bdf8; font-weight: 700;">LUPTO / MTO</span>
-                    </h5>
-                    <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: #e2e8f0;">
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <span style="color: rgba(148,163,184,0.75);"><i class="fa-solid fa-phone" style="margin-right: 4px; font-size: 10px;"></i> Service Hotline:</span>
-                            <span id="sheet-service-phone" style="font-weight: 700; color: #38bdf8;">+63 (072) 888-2454</span>
+                    <!-- Expanded Details -->
+                    <div id="expanded-details" class="dest-expanded-wrapper" style="display:none;">
+                        
+                        <!-- Route Guide -->
+                        <div class="dest-guide-box" id="sheet-route-guide-box">
+                            <div class="dest-guide-title">
+                                <i class="fa-solid fa-signs-post"></i> Route Guide
+                            </div>
+                            <p id="sheet-manual-guide" class="dest-guide-text"></p>
                         </div>
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <span style="color: rgba(148,163,184,0.75);"><i class="fa-solid fa-clock" style="margin-right: 4px; font-size: 10px;"></i> Service Hours:</span>
-                            <span id="sheet-service-hours" style="font-weight: 600;">8:00 AM - 5:00 PM (Daily)</span>
+
+                        <!-- Tour Guide Notice -->
+                        <div class="dest-advisory-box" id="sheet-tour-guide-box">
+                            <div class="dest-advisory-title">
+                                <i class="fa-solid fa-circle-info"></i> Tour Guide Notice
+                            </div>
+                            <p id="sheet-tour-guide-text" class="dest-advisory-text">Some destinations may require a tour guide for entry or navigation. The system only provides informational notices about this requirement; it does not offer, book, or arrange tour guide services directly.</p>
                         </div>
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <span style="color: rgba(148,163,184,0.75);"><i class="fa-solid fa-kit-medical" style="margin-right: 4px; font-size: 10px;"></i> Emergency & Medical:</span>
-                            <span style="font-weight: 600; color: #34d399;">MDRRMO / Call 911</span>
+
+                        <!-- Service Center & Assistance -->
+                        <div class="dest-support-box">
+                            <div class="dest-support-header">
+                                <span style="font-size:12px; font-weight:800; color:#38bdf8; display:flex; align-items:center; gap:6px;">
+                                    <i class="fa-solid fa-headset"></i> Tourist Support & Service Centers
+                                </span>
+                                <span class="dest-support-badge" id="sheet-support-badge">LUPTO / MTO</span>
+                            </div>
+                            
+                            <!-- Dynamic Service Centers list -->
+                            <div id="sheet-service-centers-container" style="display:none; margin-bottom:8px;"></div>
+
+                            <div class="dest-contacts-list">
+                                <div class="dest-contact-row" id="sheet-service-phone-row">
+                                    <span class="dest-contact-label"><i class="fa-solid fa-phone" style="font-size:10px;"></i> Service Hotline:</span>
+                                    <span class="dest-contact-val"><a id="sheet-service-phone" href="tel:+630728882454">+63 (072) 888-2454</a></span>
+                                </div>
+                                <div class="dest-contact-row">
+                                    <span class="dest-contact-label"><i class="fa-solid fa-clock" style="font-size:10px;"></i> Service Hours:</span>
+                                    <span class="dest-contact-val" id="sheet-service-hours">8:00 AM - 5:00 PM (Daily)</span>
+                                </div>
+                                <div class="dest-contact-row">
+                                    <span class="dest-contact-label"><i class="fa-solid fa-kit-medical" style="font-size:10px; color:#34d399;"></i> Emergency / Medical:</span>
+                                    <span class="dest-contact-val emergency"><a href="tel:911">MDRRMO / Call 911</a></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Testimonies Section -->
+                        <div id="sheet-testimonies-section" style="display:none; margin-top:14px; padding-top:14px; border-top:1px dashed rgba(255,255,255,0.08);">
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+                                <h4 style="margin:0; font-size:12.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff;">Tourist Testimonies</h4>
+                            </div>
+                            <div id="testimonies-summary-metrics" style="display:none;"></div>
+                            <div id="testimonies-list-container" style="display:flex; flex-direction:column; gap:8px;">
+                                <div style="font-size:12px; color:rgba(255,255,255,0.45); text-align:center; padding:12px 0;">No testimonies yet. Be the first to share!</div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Testimonies & Policy Recommendations Section -->
-                <div id="sheet-testimonies-section" style="display:none; margin-top:16px; padding-top:16px; border-top:1px dashed rgba(255,255,255,0.1); text-align: left;">
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
-                        <h4 style="margin:0; font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#fff;">Tourist Testimonies</h4>
-                        <span style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.45); background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:6px;">
-                            <i class="fa-solid fa-shield-halved" style="color:#38bdf8; margin-right:4px;"></i> Verified Visitor Reviews
-                        </span>
-                    </div>
+                <button id="btn-view-details" class="dest-toggle-btn" onclick="window.toggleFullDetails()">
+                    <span id="details-btn-text">View Full Details</span>
+                    <i class="fa-solid fa-chevron-down" id="details-chevron" style="transition:transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);"></i>
+                </button>
+            </div>
 
-                    <!-- Aggregated Ratings / Crowd / Cleanliness / Safety metrics display -->
-                    <div id="testimonies-summary-metrics" style="display:none; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:14px; padding:12px; margin-bottom:16px; font-size:11px; color:rgba(255,255,255,0.7);">
-                        <!-- Populated dynamically via JS -->
-                    </div>
+            <!-- Action Buttons -->
+            <div class="sheet-btn-row" style="display:flex; gap:10px; align-items:center; margin-top:14px;">
+                <button id="btn-add-itinerary" onclick="window.addToItinerary()" class="btn-add-itinerary-premium" style="flex:1;">
+                    <i class="fa-solid fa-calendar-plus"></i> Add to Trip
+                </button>
+                <button id="sheet-fav-btn" onclick="window.toggleMapFavorite(this)" class="btn-sheet-fav" aria-label="Save to favorites" style="flex-shrink:0;">
+                    <i class="fa-solid fa-heart"></i>
+                </button>
+            </div>
 
-                    <!-- List of testimonies -->
-                    <div id="testimonies-list-container" style="display:flex; flex-direction:column; gap:10px;">
-                        <div style="font-size:12px; color:rgba(255,255,255,0.4); text-align:center; padding:10px;">No testimonies yet. Be the first to share!</div>
-                    </div>
-                </div>
-            </div> <!-- End sheet-desc-animator -->
-
-            <button id="btn-view-details" class="btn-details-active" onclick="window.toggleFullDetails()" style="background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.15); border-radius:12px; width:100%; color:#38bdf8; font-size:13px; font-weight:700; padding:12px 0; margin-top:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:background 0.2s, transform 0.1s;">
-                <span id="details-btn-text">View Full Details</span>
-                <i class="fa-solid fa-chevron-down" id="details-chevron" style="transition:transform 0.3s ease;"></i>
-            </button>
         </div>
-
-        <!-- Action Buttons -->
-        <div class="sheet-btn-row" style="display: flex; gap: 8px; margin-top: 14px;">
-            <button id="btn-add-itinerary" onclick="window.addToItinerary()" style="flex: 1; padding: 0 10px; font-size: 13px; height: 46px; background: linear-gradient(135deg, #34c759, #00a844); border: none; border-radius: 14px; color: #fff; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: opacity 0.2s, transform 0.1s;">
-                <i class="fa-solid fa-calendar-plus"></i> Add to Itinerary
-            </button>
-            <button id="sheet-fav-btn" onclick="window.toggleMapFavorite(this)" style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); width:46px; height:46px; border-radius:14px; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.4); font-size:16px; cursor:pointer; flex-shrink:0; transition:color 0.2s, background 0.2s;">
-                <i class="fa-solid fa-heart"></i>
-            </button>
-        </div>
-
     </div>
-</div>
-
-
-
-
 </div>
 
 <!-- Itinerary Add Confirmation Dialog -->
@@ -410,7 +481,10 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 },
                 "osm": {
                     "type": "raster",
-                    "tiles": ["https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"],
+                    "tiles": [
+                        "https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+                        "https://b.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+                    ],
                     "tileSize": 256
                 },
                 "terrain": {
@@ -425,7 +499,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                     "id": "background",
                     "type": "background",
                     "paint": {
-                        "background-color": "#0a0f1c"
+                        "background-color": "#eef2f6"
                     }
                 },
                 {
@@ -449,6 +523,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             center: [120.3167, 16.6159],
             zoom: 11,
             pitch: 0,
+            fadeDuration: 0,
             attributionControl: false
         });
 
@@ -460,10 +535,8 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
         // window.mapInstance.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
 
-        // Add 3D Terrain and Region Mask
+        // Map Load Initialization
         window.mapInstance.on('load', async () => {
-            window.mapInstance.setTerrain({ "source": "terrain", "exaggeration": 1.5 });
-
             // Render markers immediately
             try {
                 const data = await mapDataPromise;
@@ -471,6 +544,21 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                     window.allMapLocations = data.destinations || [];
                     setupFilters();
                     renderMarkers(window.allMapLocations);
+
+                    setTimeout(() => {
+                        const filterCat = localStorage.getItem('intan_elyu_filter_category');
+                        if (filterCat) {
+                            localStorage.removeItem('intan_elyu_filter_category');
+                            const pills = document.querySelectorAll('.category-pill');
+                            let matchedPill = null;
+                            pills.forEach(p => {
+                                if (p.textContent.trim().toLowerCase() === filterCat.trim().toLowerCase()) {
+                                    matchedPill = p;
+                                }
+                            });
+                            window.filterCategory(filterCat, matchedPill);
+                        }
+                    }, 100);
 
                     setTimeout(() => {
                         const pendingStr = localStorage.getItem('intan_elyu_pending_route');
@@ -513,17 +601,6 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             } catch (error) {
                 console.error("Map data processing error:", error);
             }
-
-            try {
-                window.mapInstance.setSky({
-                    'sky-color': '#0a0f1c',
-                    'horizon-color': '#0a0f1c',
-                    'sky-horizon-blend': 0,
-                    'horizon-fog-blend': 0,
-                    'fog-color': '#0a0f1c',
-                    'atmosphere-blend': 0
-                });
-            } catch (skyErr) { console.error("setSky error:", skyErr); }
 
             try {
                 // Wait for the parallel region data fetch
@@ -723,11 +800,14 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                     let hoveredId = null;
                     window.mapInstance.on('mousemove', 'municipality-fill', (e) => {
                         if (e.features.length > 0) {
-                            if (hoveredId !== null) {
-                                window.mapInstance.setFeatureState({ source: 'municipality-zones', id: hoveredId }, { hover: false });
+                            const nextId = e.features[0].id;
+                            if (hoveredId !== nextId) {
+                                if (hoveredId !== null) {
+                                    window.mapInstance.setFeatureState({ source: 'municipality-zones', id: hoveredId }, { hover: false });
+                                }
+                                hoveredId = nextId;
+                                window.mapInstance.setFeatureState({ source: 'municipality-zones', id: hoveredId }, { hover: true });
                             }
-                            hoveredId = e.features[0].id;
-                            window.mapInstance.setFeatureState({ source: 'municipality-zones', id: hoveredId }, { hover: true });
                         }
                     });
                     window.mapInstance.on('mouseleave', 'municipality-fill', () => {
@@ -792,28 +872,15 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             }
 
             const container = document.createElement('div');
+            container.style.cssText = 'will-change:transform; transform:translate3d(0,0,0); backface-visibility:hidden;';
             
             const el = document.createElement('div');
             el.className = 'custom-map-marker';
-            el.style.width = '32px';
-            el.style.height = '32px';
-            el.style.backgroundColor = '#FFFFFF';
-            el.style.border = `2px solid ${catColor}`;
-            el.style.borderRadius = '50%';
-            el.style.display = 'flex';
-            el.style.alignItems = 'center';
-            el.style.justifyContent = 'center';
-            el.style.color = catColor;
-            el.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
-            el.style.cursor = 'pointer';
-            el.style.transition = 'transform 0.2s';
+            el.style.cssText = `width:32px; height:32px; background-color:#FFFFFF; border:2px solid ${catColor}; border-radius:50%; display:flex; align-items:center; justify-content:center; color:${catColor}; box-shadow:0 4px 8px rgba(0,0,0,0.15); cursor:pointer; will-change:transform; transform:translate3d(0,0,0); backface-visibility:hidden; contain:layout style;`;
             
             el.innerHTML = `<i class="fa-solid ${iconClass}" style="font-size:14px;"></i>`;
             
             container.appendChild(el);
-            
-            container.addEventListener('mouseenter', () => el.style.transform = 'scale(1.2)');
-            container.addEventListener('mouseleave', () => el.style.transform = 'scale(1)');
             
             container.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -854,29 +921,81 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         });
     }
 
+    function matchesCategoryFilter(loc, targetCat) {
+        if (!targetCat || targetCat === 'All') return true;
+        const t = targetCat.toLowerCase().trim();
+        const c = (loc.category || '').toLowerCase();
+        const n = (loc.name || '').toLowerCase();
+        const d = (loc.description || '').toLowerCase();
+        const combined = `${c} ${n} ${d}`;
+
+        if (combined.includes(t)) return true;
+
+        if (t.includes('cultural') || t.includes('heritage')) {
+            return combined.includes('culture') || combined.includes('cultural') || combined.includes('heritage') || combined.includes('historic') || combined.includes('museum') || combined.includes('church') || combined.includes('shrine') || combined.includes('landmark') || combined.includes('monument');
+        }
+        if (t.includes('resort') || t.includes('stay') || t.includes('hotel')) {
+            return combined.includes('resort') || combined.includes('hotel') || combined.includes('stay') || combined.includes('inn') || combined.includes('lodge') || combined.includes('accommodation');
+        }
+        if (t.includes('shopping') || t.includes('market')) {
+            return combined.includes('shopping') || combined.includes('market') || combined.includes('mall') || combined.includes('store') || combined.includes('pasalubong');
+        }
+        if (t.includes('festival') || t.includes('event')) {
+            return combined.includes('festival') || combined.includes('event') || combined.includes('plaza') || combined.includes('venue');
+        }
+        if (t.includes('beach') || t.includes('surf')) {
+            return combined.includes('beach') || combined.includes('surf') || combined.includes('coastal') || combined.includes('island') || combined.includes('cove');
+        }
+        if (t.includes('mountain') || t.includes('nature') || t.includes('park')) {
+            return combined.includes('mountain') || combined.includes('hiking') || combined.includes('nature') || combined.includes('park') || combined.includes('hill') || combined.includes('trail') || combined.includes('peak') || combined.includes('viewpoint');
+        }
+        if (t.includes('water') || t.includes('fall') || t.includes('river') || t.includes('lake')) {
+            return combined.includes('waterfall') || combined.includes('fall') || combined.includes('river') || combined.includes('lake') || combined.includes('spring');
+        }
+        if (t.includes('food') || t.includes('dining') || t.includes('restaurant')) {
+            return combined.includes('food') || combined.includes('dining') || combined.includes('restaurant') || combined.includes('cafe') || combined.includes('bistro') || combined.includes('eatery');
+        }
+
+        return false;
+    }
+
     function setupFilters() {
         const container = document.getElementById('map-categories-container');
         if (!container) return;
 
-        const categories = [...new Set(window.allMapLocations.map(loc => loc.category).filter(Boolean))];
+        const rawCats = [];
+        (window.allMapLocations || []).forEach(loc => {
+            if (!loc.category) return;
+            const parts = String(loc.category).split(/[,/]/);
+            parts.forEach(p => {
+                const trimmed = p.trim();
+                if (trimmed) rawCats.push(trimmed);
+            });
+        });
+
+        const uniqueCats = [...new Set(rawCats)];
         let html = `<div class="category-pill active" onclick="filterCategory('All', this)">All</div>`;
-        categories.forEach(cat => {
-            html += `<div class="category-pill" onclick="filterCategory('${cat}', this)">${cat}</div>`;
+        uniqueCats.forEach(cat => {
+            const safeCat = cat.replace(/'/g, "\\'");
+            html += `<div class="category-pill" onclick="filterCategory('${safeCat}', this)">${cat}</div>`;
         });
         container.innerHTML = html;
     }
 
     window.filterCategory = function(category, element) {
         document.querySelectorAll('.category-pill').forEach(pill => pill.classList.remove('active'));
-        if(element) element.classList.add('active');
+        if (element) element.classList.add('active');
 
         const searchInput = document.getElementById('map-search-input');
         const searchText = searchInput ? searchInput.value.toLowerCase() : '';
         
-        const filtered = window.allMapLocations.filter(loc => {
+        const filtered = (window.allMapLocations || []).filter(loc => {
             const name = loc.name ? loc.name.toLowerCase() : '';
             const location = loc.location ? loc.location.toLowerCase() : '';
-            return (name.includes(searchText) || location.includes(searchText)) && (category === 'All' || loc.category === category);
+            const locCat = loc.category ? loc.category.toLowerCase() : '';
+            const matchesSearch = (name.includes(searchText) || location.includes(searchText) || locCat.includes(searchText));
+            const matchesCat = matchesCategoryFilter(loc, category);
+            return matchesSearch && matchesCat;
         });
         
         window.renderMarkers(filtered);
@@ -885,46 +1004,36 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         if (validFiltered.length > 0 && window.mapInstance) {
             const bounds = new maplibregl.LngLatBounds();
             validFiltered.forEach(loc => bounds.extend([parseFloat(loc.lng), parseFloat(loc.lat)]));
-            window.mapInstance.fitBounds(bounds, { padding: 50, duration: 1000, maxZoom: 15 });
+            
+            // UI padding: top 150px (search header + categories), bottom 120px (bottom nav bar), left/right 40px
+            window.mapInstance.fitBounds(bounds, {
+                padding: { top: 150, bottom: 120, left: 40, right: 40 },
+                maxZoom: 14,
+                duration: 800
+            });
+            if (typeof showToast === 'function' && category !== 'All') {
+                showToast(`Showing ${validFiltered.length} spot${validFiltered.length !== 1 ? 's' : ''} for ${category}`);
+            }
+        } else if (category !== 'All' && typeof showToast === 'function') {
+            showToast(`No spots found for ${category}`);
         }
     };
 
     function setupEventListeners() {
-        window.getDeviceLocation = async () => {
-            if (typeof window.fastLocation === 'function') {
-                const fast = await window.fastLocation();
-                if (fast) return { coords: { latitude: fast.lat, longitude: fast.lng, accuracy: 5000, source: fast.source } };
-            }
-            if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
-                try {
-                    const Geolocation = (window.Capacitor.Plugins && window.Capacitor.Plugins.Geolocation) || 
-                                      (window.Capacitor.registerPlugin ? window.Capacitor.registerPlugin('Geolocation') : null);
-                    
-                    if (!Geolocation) throw new Error("Geolocation plugin not loaded in Capacitor");
-
-                    const perm = await Geolocation.checkPermissions();
-                    if (perm.location !== 'granted') {
-                        const req = await Geolocation.requestPermissions();
-                        if (req.location !== 'granted') throw new Error('Permission denied by user');
-                    }
-                    const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: false, maximumAge: 60000, timeout: 50000 });
-                    return pos;
-                } catch (e) {
-                    throw new Error("Native location error: " + e.message);
+        window.getDeviceLocation = async (forceFresh = true) => {
+            if (typeof window.requestPreciseLocation === 'function') {
+                const loc = await window.requestPreciseLocation(forceFresh);
+                if (loc && loc.lat && loc.lng) {
+                    return { coords: { latitude: loc.lat, longitude: loc.lng, accuracy: loc.accuracy || 10, source: 'gps' } };
                 }
-            } else {
-                return new Promise((resolve, reject) => {
-                    if ("geolocation" in navigator) {
-                        navigator.geolocation.getCurrentPosition(
-                            (position) => resolve(position), 
-                            () => reject(new Error("Location denied by browser")), 
-                            { enableHighAccuracy: false, timeout: 50000, maximumAge: 60000 }
-                        );
-                    } else {
-                        reject(new Error("Geolocation not supported"));
-                    }
-                });
             }
+            if (typeof window.resolveUserLocation === 'function') {
+                const loc = await window.resolveUserLocation(forceFresh);
+                if (loc && loc.lat && loc.lng) {
+                    return { coords: { latitude: loc.lat, longitude: loc.lng, accuracy: loc.source === 'gps' ? 10 : 5000, source: loc.source } };
+                }
+            }
+            throw new Error("Device GPS location unavailable. Please grant location permissions in browser.");
         };
 
         const searchInput = document.getElementById('map-search-input');
@@ -1015,6 +1124,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             if (!loc) return;
             suggestionsEl.classList.remove('open');
             searchInput.value = loc.name;
+            searchInput.blur(); // Dismiss mobile soft keyboard
             const activeCatEl = document.querySelector('.category-pill.active');
             window.filterCategory('All', document.querySelector('.category-pill'));
             const lat = parseFloat(loc.lat);
@@ -1034,8 +1144,13 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 renderSuggestions(searchInput.value);
             });
 
-            // Focus — show suggestions
+            // Focus — show suggestions and auto-hide navigation bar
             searchInput.addEventListener('focus', () => {
+                document.body.classList.add('keyboard-open');
+                const bNav = document.getElementById('bottom-navigation');
+                const mNav = document.getElementById('magic-nav');
+                if (bNav) bNav.classList.add('keyboard-hidden');
+                if (mNav) mNav.classList.add('keyboard-hidden');
                 renderSuggestions(searchInput.value);
             });
 
@@ -1078,52 +1193,107 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 if (activeIdx >= 0) items[activeIdx].classList.add('active');
             });
 
-            // Blur — hide suggestions with smooth transition
+            // Blur — hide suggestions with smooth transition and restore nav bar
             searchInput.addEventListener('blur', () => {
                 setTimeout(() => {
                     if (suggestionsEl) suggestionsEl.classList.remove('open');
-                }, 200);
+                    const active = document.activeElement;
+                    if (!active || (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA')) {
+                        document.body.classList.remove('keyboard-open');
+                        const bNav = document.getElementById('bottom-navigation');
+                        const mNav = document.getElementById('magic-nav');
+                        if (bNav) bNav.classList.remove('keyboard-hidden');
+                        if (mNav) mNav.classList.remove('keyboard-hidden');
+                    }
+                }, 180);
             });
         }
 
         const locateBtn = document.getElementById('btn-locate-me');
         if (locateBtn) {
-            locateBtn.addEventListener('click', () => {
-                showToast("Locating...");
-                if (window.currentGPSLat && window.currentGPSLng && window.mapInstance) {
-                    window.mapInstance.flyTo({ center: [window.currentGPSLng, window.currentGPSLat], zoom: 15 });
-                } else {
-                    const handleLocation = (position) => {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-                        window.mapInstance.flyTo({ center: [lng, lat], zoom: 15 });
-                    };
-                    window.getDeviceLocation().then(handleLocation).catch(e => showToast(e.message));
+            locateBtn.addEventListener('click', async () => {
+                locateBtn.classList.add('btn-tap-pop');
+                setTimeout(() => locateBtn.classList.remove('btn-tap-pop'), 400);
+                const icon = locateBtn.querySelector('i') || locateBtn;
+                const origIconClass = icon.className;
+                icon.className = 'fa-solid fa-spinner fa-spin';
+                if (typeof showToast === 'function') showToast("Acquiring precise GPS location...");
+
+                try {
+                    const position = await window.getDeviceLocation(true);
+                    const lat = position && position.coords ? position.coords.latitude : null;
+                    const lng = position && position.coords ? position.coords.longitude : null;
+                    const isGps = position && position.coords && (position.coords.source === 'gps' || window.currentGPSSource === 'gps');
+
+                    if (window.mapInstance && lat && lng && !isNaN(lat) && !isNaN(lng)) {
+                        window.mapInstance.flyTo({ center: [parseFloat(lng), parseFloat(lat)], zoom: 15, duration: 1200 });
+
+                        // Ensure user marker is updated
+                        if (window.userMarker) {
+                            window.userMarker.setLngLat([lng, lat]);
+                        } else {
+                            const el = document.createElement('div');
+                            el.innerHTML = `<div style="background:#007AFF; width:20px; height:20px; border-radius:50%; border:3px solid white; box-shadow:0 0 0 5px rgba(0,122,255,0.3);"></div>`;
+                            window.userMarker = new maplibregl.Marker({element: el}).setLngLat([lng, lat]).addTo(window.mapInstance);
+                        }
+
+                        if (typeof showToast === 'function') {
+                            showToast(isGps ? "Centered on your precise GPS location 📍" : "Centered on your estimated location");
+                        }
+                    } else {
+                        throw new Error("Unable to determine coordinates");
+                    }
+                } catch (e) {
+                    console.warn("Location error:", e);
+                    if (typeof showToast === 'function') {
+                        showToast("GPS access denied. Select your town below or allow location permission.");
+                    }
+                    if (typeof window.openLocationPickerModal === 'function') {
+                        window.openLocationPickerModal();
+                    }
+                } finally {
+                    icon.className = origIconClass || 'fa-solid fa-crosshairs';
                 }
             });
         }
 
         // Real-time GPS Tracker Hook with Proximity Auto-Pop Trigger
+        let _hasAutoCenteredGPS = false;
         document.addEventListener('gpsUpdated', function(e) {
             const lat = e.detail.lat;
             const lng = e.detail.lng;
-            if (window.mapInstance) {
+            const isRealGps = (e.detail.source === 'gps' || window.currentGPSSource === 'gps');
+            if (window.mapInstance && lat && lng) {
                 if (window.userMarker) {
                     window.userMarker.setLngLat([lng, lat]);
                 } else {
                     const el = document.createElement('div');
-                    el.innerHTML = `<div style="background:#007AFF; width:20px; height:20px; border-radius:50%; border:3px solid white; box-shadow:0 0 0 5px rgba(0,122,255,0.3);"></div>`;
+                    el.className = 'user-gps-tracking-marker';
+                    el.innerHTML = `
+                        <div style="position:relative; width:22px; height:22px; display:flex; align-items:center; justify-content:center;">
+                            <div style="position:absolute; width:36px; height:36px; border-radius:50%; background:rgba(56,189,248,0.35); animation:pulse 2s infinite;"></div>
+                            <div style="position:relative; background:#0284c7; width:20px; height:20px; border-radius:50%; border:3px solid #ffffff; box-shadow:0 0 12px rgba(2,132,199,0.8); z-index:2;"></div>
+                        </div>
+                    `;
                     window.userMarker = new maplibregl.Marker({element: el}).setLngLat([lng, lat]).addTo(window.mapInstance);
                 }
-                checkProximityAutoPop(lat, lng);
+
+                // If this is the first live GPS signal, smoothly center the map on the user's real position
+                if (isRealGps && !_hasAutoCenteredGPS) {
+                    _hasAutoCenteredGPS = true;
+                    window.mapInstance.flyTo({ center: [parseFloat(lng), parseFloat(lat)], zoom: 15, duration: 1200 });
+                    if (typeof showToast === 'function') {
+                        showToast("📍 Live GPS Tracking Active");
+                    }
+                }
+
+                updateNearbyBadge(lat, lng);
             }
         });
 
-        // ── Proximity Auto-Pop Logic ──
-        window._poppedSpots = window._poppedSpots || {};
-        
-        function getDistanceMeters(lat1, lon1, lat2, lon2) {
-            const R = 6371000;
+        // ── Nearby Tourist Sites Logic ──
+        function getDistanceKm(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth radius in km
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
             const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -1132,57 +1302,280 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         }
 
-        function checkProximityAutoPop(lat, lng) {
+        function updateNearbyBadge(lat, lng) {
             if (!window.allMapLocations || window.allMapLocations.length === 0) return;
-            
-            for (const loc of window.allMapLocations) {
-                const locLat = parseFloat(loc.lat);
-                const locLng = parseFloat(loc.lng);
-                if (isNaN(locLat) || isNaN(locLng)) continue;
-
-                const dist = getDistanceMeters(lat, lng, locLat, locLng);
-                if (dist <= 200 && !window._poppedSpots[loc.id]) { // Within 200m radius
-                    window._poppedSpots[loc.id] = true;
-
-                    showProximityBanner(loc, Math.round(dist));
-
-                    if (window.mapInstance) {
-                        window.mapInstance.flyTo({ center: [locLng, locLat], zoom: 15, duration: 1200 });
-                        window.openSheet(loc);
-                    }
-                    break;
+            const nearbySpots = window.allMapLocations.filter(loc => {
+                const locLat = parseFloat(loc.lat || loc.latitude);
+                const locLng = parseFloat(loc.lng || loc.longitude);
+                if (isNaN(locLat) || isNaN(locLng)) return false;
+                return getDistanceKm(lat, lng, locLat, locLng) <= 2.0;
+            });
+            const badge = document.getElementById('nearby-sites-badge');
+            if (badge) {
+                if (nearbySpots.length > 0) {
+                    badge.textContent = nearbySpots.length;
+                    badge.style.display = 'inline-flex';
+                } else {
+                    badge.style.display = 'none';
                 }
             }
         }
 
-        function showProximityBanner(loc, distMeters) {
-            let banner = document.getElementById('proximity-auto-pop-banner');
-            if (!banner) {
-                banner = document.createElement('div');
-                banner.id = 'proximity-auto-pop-banner';
-                banner.style.cssText = "position:fixed; top:80px; left:50%; transform:translateX(-50%); z-index:10001; background:linear-gradient(135deg,#0f172a,#1e293b); border:1px solid #38bdf8; border-radius:16px; padding:12px 20px; box-shadow:0 12px 32px rgba(0,0,0,0.6); display:flex; align-items:center; gap:12px; color:#fff; transition:all 0.3s; max-width:90vw;";
-                document.body.appendChild(banner);
-            }
-            banner.innerHTML = `
-                <div style="width:38px; height:38px; border-radius:12px; background:rgba(56,189,248,0.2); border:1px solid #38bdf8; display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:18px; flex-shrink:0;">
-                    <i class="fa-solid fa-compass-drafting"></i>
-                </div>
-                <div>
-                    <span style="display:block; font-size:10px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px;">📍 Nearby Destination Discovered</span>
-                    <strong style="font-size:14px; color:#fff;">${loc.name}</strong>
-                    <span style="display:block; font-size:11px; color:rgba(255,255,255,0.7);">${distMeters}m away</span>
-                </div>
-                <button onclick="document.getElementById('proximity-auto-pop-banner').style.display='none'" style="background:none; border:none; color:rgba(255,255,255,0.5); font-size:16px; cursor:pointer; margin-left:8px;">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            `;
-            banner.style.display = 'flex';
-            setTimeout(() => {
-                if (banner) banner.style.display = 'none';
-            }, 8000);
-        }
+        let currentNearbyRadius = 2; // default 2km
 
-        // Auto-check on load in case GPS already acquired globally
+        window.toggleNearbySitesSheet = function() {
+            const btn = document.getElementById('btn-nearby-sites');
+            if (btn) {
+                btn.classList.add('btn-tap-pop');
+                const icon = btn.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('icon-spin-bounce');
+                    void icon.offsetWidth;
+                    icon.classList.add('icon-spin-bounce');
+                }
+                setTimeout(() => btn.classList.remove('btn-tap-pop'), 400);
+            }
+
+            const sheet = document.getElementById('nearby-sites-sheet');
+            if (!sheet) return;
+            if (sheet.classList.contains('active')) {
+                window.closeNearbySitesSheet();
+            } else {
+                window.openNearbySitesSheet();
+            }
+        };
+
+        window.openNearbySitesSheet = async function() {
+            if (window.closeSheet) window.closeSheet();
+            const sheet = document.getElementById('nearby-sites-sheet');
+            const btn = document.getElementById('btn-nearby-sites');
+            if (!sheet) return;
+
+            if (btn) btn.classList.add('active');
+
+            sheet.style.display = 'block';
+            sheet.style.transition = 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease';
+            sheet.style.transform = 'translateY(calc(100% + 120px))';
+            sheet.classList.remove('active');
+
+            void sheet.offsetHeight; // force reflow for smooth slide-up animation
+
+            sheet.classList.add('active');
+            sheet.style.transform = 'translateY(0)';
+
+            await window.renderNearbyTouristSites();
+        };
+
+        window.closeNearbySitesSheet = function() {
+            const sheet = document.getElementById('nearby-sites-sheet');
+            const btn = document.getElementById('btn-nearby-sites');
+            if (btn) btn.classList.remove('active');
+            if (!sheet) return;
+            sheet.style.transition = 'transform 0.38s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease';
+            sheet.style.transform = 'translateY(calc(100% + 120px))';
+            sheet.classList.remove('active');
+            setTimeout(() => {
+                if (!sheet.classList.contains('active')) {
+                    sheet.style.display = 'none';
+                }
+            }, 380);
+        };
+
+        window.filterNearbyRadius = function(radius, btn) {
+            currentNearbyRadius = radius;
+            document.querySelectorAll('.nearby-radius-btn').forEach(b => {
+                b.classList.remove('active');
+            });
+            if (btn) {
+                btn.classList.add('active');
+            }
+            window.renderNearbyTouristSites();
+        };
+
+        window.renderNearbyTouristSites = async function() {
+            const container = document.getElementById('nearby-sites-list');
+            const subtext = document.getElementById('nearby-sites-subtext');
+            if (!container) return;
+
+            container.innerHTML = `
+                <div style="text-align:center; padding:30px 10px; color:rgba(148,163,184,0.8); font-size:13px;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size:22px; color:#38bdf8; margin-bottom:10px; display:block;"></i>
+                    Locating nearby tourist attractions...
+                </div>
+            `;
+
+            let lat = window.currentGPSLat || (window.userCurrentCoords ? window.userCurrentCoords.lat : null);
+            let lng = window.currentGPSLng || (window.userCurrentCoords ? window.userCurrentCoords.lng : null);
+
+            if (!lat || !lng) {
+                try {
+                    if (typeof window.requestPreciseLocation === 'function') {
+                        const loc = await window.requestPreciseLocation(false);
+                        if (loc && loc.lat && loc.lng) {
+                            lat = loc.lat;
+                            lng = loc.lng;
+                        }
+                    } else if (navigator.geolocation) {
+                        const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 6000, enableHighAccuracy: true }));
+                        if (pos && pos.coords) {
+                            lat = pos.coords.latitude;
+                            lng = pos.coords.longitude;
+                        }
+                    }
+                } catch(e) {
+                    console.log("Nearby sites location fallback:", e.message);
+                }
+            }
+
+            if (!lat || !lng) {
+                if (window.mapInstance) {
+                    const center = window.mapInstance.getCenter();
+                    lat = center.lat;
+                    lng = center.lng;
+                } else {
+                    lat = 16.6159;
+                    lng = 120.3209;
+                }
+            }
+
+            let spots = window.allMapLocations || [];
+            if (spots.length === 0) {
+                try {
+                    const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+                    const res = await fetch(backendUrl + '/api/public/map');
+                    if (res.ok) {
+                        const d = await res.json();
+                        spots = d.destinations || [];
+                        window.allMapLocations = spots;
+                    }
+                } catch(e) {}
+            }
+
+            if (spots.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:30px 10px; color:rgba(148,163,184,0.8); font-size:13px;">
+                        <i class="fa-solid fa-triangle-exclamation" style="font-size:24px; color:#f59e0b; margin-bottom:10px; display:block;"></i>
+                        No tourist sites found. Please check your connection.
+                    </div>
+                `;
+                return;
+            }
+
+            const calculatedSpots = spots.map(s => {
+                const copy = { ...s };
+                const sLat = parseFloat(copy.lat || copy.latitude);
+                const sLng = parseFloat(copy.lng || copy.longitude);
+                if (!isNaN(sLat) && !isNaN(sLng)) {
+                    copy.distanceKm = getDistanceKm(lat, lng, sLat, sLng);
+                    copy.distanceMeters = Math.round(copy.distanceKm * 1000);
+                } else {
+                    copy.distanceKm = 999999;
+                    copy.distanceMeters = 999999999;
+                }
+                return copy;
+            });
+
+            calculatedSpots.sort((a, b) => a.distanceKm - b.distanceKm);
+
+            let filtered = [];
+            if (currentNearbyRadius === 'all') {
+                filtered = calculatedSpots.filter(s => s.distanceKm < 999999).slice(0, 15);
+            } else {
+                const radiusNum = parseFloat(currentNearbyRadius);
+                filtered = calculatedSpots.filter(s => s.distanceKm <= radiusNum);
+            }
+
+            if (subtext) {
+                if (filtered.length > 0) {
+                    subtext.textContent = `Found ${filtered.length} attraction${filtered.length > 1 ? 's' : ''} ${currentNearbyRadius === 'all' ? 'closest to you' : 'within ' + currentNearbyRadius + ' km'}`;
+                } else {
+                    subtext.textContent = `No spots found within ${currentNearbyRadius} km`;
+                }
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:28px 14px; background:rgba(255,255,255,0.15); border:1.5px solid rgba(255,255,255,0.35); border-radius:18px; animation: nearbyCardSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+                        <div style="width:48px; height:48px; margin:0 auto 12px; border-radius:50%; background:rgba(255,255,255,0.22); border:1.5px solid rgba(255,255,255,0.45); display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:20px;">
+                            <i class="fa-solid fa-location-dot"></i>
+                        </div>
+                        <div style="font-size:15px; font-weight:800; color:#ffffff; margin-bottom:6px;">No Spots Within ${currentNearbyRadius} km</div>
+                        <div style="font-size:12.5px; color:#ffffff; opacity:0.95; margin-bottom:16px; line-height:1.45; font-weight:500;">
+                            Try expanding your search radius to discover attractions across La Union.
+                        </div>
+                        <button type="button" onclick="window.filterNearbyRadius(15, document.querySelector('[data-radius=\\'15\\']'))" style="padding:9px 20px; border-radius:100px; background:linear-gradient(135deg, #63b1d0, #6192ca); border:1.5px solid #ffffff; color:#ffffff; font-size:12.5px; font-weight:800; cursor:pointer; transition:transform 0.2s ease;">
+                            Show Within 15 km
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            filtered.forEach((spot, idx) => {
+                const img = window.getDestImage ? window.getDestImage(spot, 300) : (spot.image || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300');
+                const rating = spot.rating ? parseFloat(spot.rating).toFixed(1) : (spot.reviews_avg_rating ? parseFloat(spot.reviews_avg_rating).toFixed(1) : 'New');
+                
+                let distBadge = '';
+                if (spot.distanceKm < 0.05) {
+                    distBadge = `${Math.max(5, spot.distanceMeters)}m away`;
+                } else if (spot.distanceKm < 1.0) {
+                    distBadge = `${Math.round(spot.distanceMeters / 10) * 10}m away`;
+                } else {
+                    distBadge = `${spot.distanceKm.toFixed(1)} km away`;
+                }
+
+                const safeSpotStr = encodeURIComponent(JSON.stringify(spot));
+                const delay = (idx * 0.04).toFixed(2);
+
+                html += `
+                    <div class="nearby-site-card" style="animation: nearbyCardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s forwards; opacity: 0; background:rgba(255,255,255,0.14); border:1.5px solid rgba(255,255,255,0.3); border-radius:18px; padding:10px 12px; display:flex; align-items:center; gap:12px;" onclick="window.selectNearbySite('${safeSpotStr}')">
+                        <img src="${img}" alt="${spot.name}" style="width:64px; height:64px; border-radius:12px; object-fit:cover; flex-shrink:0; transition: transform 0.3s ease;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
+                        <div style="flex:1; min-width:0;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:3px;">
+                                <h4 style="margin:0; font-size:14px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${spot.name}</h4>
+                            </div>
+                            <div style="font-size:11.5px; color:#ffffff; opacity:0.92; margin-bottom:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                <i class="fa-solid fa-location-dot" style="color:#ffffff; margin-right:3px;"></i>${spot.municipality || spot.location || 'La Union'}
+                            </div>
+                            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                <span style="font-size:10px; font-weight:800; color:#ffffff; background:rgba(255,255,255,0.22); border:1px solid rgba(255,255,255,0.4); padding:2px 7px; border-radius:100px; display:inline-flex; align-items:center; gap:3px;">
+                                    <i class="fa-solid fa-location-arrow" style="font-size:9px; color:#ffffff;"></i> ${distBadge}
+                                </span>
+                                <span style="font-size:10.5px; font-weight:700; color:#fbbf24; display:inline-flex; align-items:center; gap:3px;">
+                                    <i class="fa-solid fa-star" style="font-size:9.5px;"></i> ${rating}
+                                </span>
+                                ${spot.category ? `<span style="font-size:10px; color:#ffffff; background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.3); padding:2px 6px; border-radius:6px; font-weight:600;">${spot.category}</span>` : ''}
+                            </div>
+                        </div>
+                        <button type="button" class="nearby-site-action-btn" title="View on Map" style="background:rgba(255,255,255,0.22); border:1px solid rgba(255,255,255,0.4); color:#ffffff; width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                            <i class="fa-solid fa-chevron-right" style="font-size:13px; color:#ffffff;"></i>
+                        </button>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        };
+
+        window.selectNearbySite = function(encodedSpot) {
+            try {
+                const spot = JSON.parse(decodeURIComponent(encodedSpot));
+                window.closeNearbySitesSheet();
+                const sLat = parseFloat(spot.lat || spot.latitude);
+                const sLng = parseFloat(spot.lng || spot.longitude);
+                if (!isNaN(sLat) && !isNaN(sLng) && window.mapInstance) {
+                    window.mapInstance.flyTo({ center: [sLng, sLat], zoom: 15, offset: [0, -180], duration: 900 });
+                    setTimeout(() => {
+                        if (window.openSheet) window.openSheet(spot);
+                    }, 500);
+                }
+            } catch(e) {
+                console.error("Error selecting nearby site:", e);
+            }
+        };
+
+        // Auto-check on load in case GPS already acquired globally or request precise fix
         setTimeout(() => {
             if (window.currentGPSLat && window.currentGPSLng && window.mapInstance) {
                 document.dispatchEvent(new CustomEvent('gpsUpdated', { 
@@ -1191,11 +1584,204 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                         lng: window.currentGPSLng,
                         accuracy: window.currentGPSAccuracy || null,
                         altitude: window.currentGPSAltitude || null,
-                        speed: window.currentGPSSpeed || null
+                        speed: window.currentGPSSpeed || null,
+                        source: window.currentGPSSource || 'gps'
                     } 
                 }));
+            } else if (typeof window.requestPreciseLocation === 'function') {
+                window.requestPreciseLocation(false).catch(() => {});
             }
         }, 500);
+
+        // ── Real-Time Live Weather, Marine Swell & Sunset Telemetry ──
+        window._liveMarineTelemetry = window._liveMarineTelemetry || {
+            waveHeight: 1.2,
+            waveLabel: '1.2m - Moderate Swell',
+            sunsetTime: null,
+            temperature: null,
+            weatherCode: null,
+            lastFetched: 0
+        };
+
+        window.toggleWeatherTracker = function(expand) {
+            const tracker = document.getElementById('weather-sunset-tracker');
+            if (!tracker) return;
+
+            if (expand) {
+                tracker.classList.remove('minimized');
+                const exp = document.getElementById('tracker-expanded');
+                if (exp) exp.style.animation = 'nearbyCardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+            } else {
+                tracker.classList.add('minimized');
+                const tab = document.getElementById('tracker-edge-tab');
+                if (tab) tab.style.animation = 'buttonTapPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+            }
+        };
+
+        window.fetchLiveMarineTelemetry = async function(isManual) {
+            const refreshIcon = document.getElementById('tracker-refresh-icon');
+            if (refreshIcon) refreshIcon.classList.add('fa-spin');
+
+            const now = Date.now();
+            // Cache for 5 minutes unless manually requested
+            if (!isManual && (now - window._liveMarineTelemetry.lastFetched) < 300000 && window._liveMarineTelemetry.lastFetched > 0) {
+                if (refreshIcon) setTimeout(() => refreshIcon.classList.remove('fa-spin'), 400);
+                window.updateWeatherSunsetTrackerUI();
+                return;
+            }
+
+            try {
+                // Real-time Marine wave & swell API for San Juan / La Union coast (16.6667, 120.3333)
+                const marinePromise = fetch('https://marine-api.open-meteo.com/v1/marine?latitude=16.6667&longitude=120.3333&current=wave_height,wave_period,swell_wave_height&timezone=Asia%2FManila')
+                    .then(r => r.ok ? r.json() : null)
+                    .catch(() => null);
+
+                // Real-time Weather & exact Sunset/Sunrise for San Juan / La Union
+                const weatherPromise = fetch('https://api.open-meteo.com/v1/forecast?latitude=16.6667&longitude=120.3333&current=temperature_2m,weather_code,wind_speed_10m&daily=sunset,sunrise&timezone=Asia%2FManila')
+                    .then(r => r.ok ? r.json() : null)
+                    .catch(() => null);
+
+                const [marineData, weatherData] = await Promise.all([marinePromise, weatherPromise]);
+
+                if (marineData && marineData.current) {
+                    const waveH = parseFloat(marineData.current.wave_height || marineData.current.swell_wave_height || 1.2);
+                    window._liveMarineTelemetry.waveHeight = waveH;
+                    if (waveH < 0.6) {
+                        window._liveMarineTelemetry.waveLabel = `${waveH.toFixed(1)}m - Calm Beach Waters`;
+                    } else if (waveH < 1.1) {
+                        window._liveMarineTelemetry.waveLabel = `${waveH.toFixed(1)}m - Gentle Beach Waves`;
+                    } else if (waveH < 1.6) {
+                        window._liveMarineTelemetry.waveLabel = `${waveH.toFixed(1)}m - Moderate Swell 🏄`;
+                    } else if (waveH < 2.3) {
+                        window._liveMarineTelemetry.waveLabel = `${waveH.toFixed(1)}m - Peak Surf Swell 🏄‍♂️`;
+                    } else {
+                        window._liveMarineTelemetry.waveLabel = `${waveH.toFixed(1)}m - Heavy Swell Caution ⚠️`;
+                    }
+                }
+
+                if (weatherData) {
+                    if (weatherData.current) {
+                        window._liveMarineTelemetry.temperature = Math.round(weatherData.current.temperature_2m);
+                        window._liveMarineTelemetry.weatherCode = weatherData.current.weather_code;
+                    }
+                    if (weatherData.daily && weatherData.daily.sunset && weatherData.daily.sunset.length > 0) {
+                        window._liveMarineTelemetry.sunsetTime = new Date(weatherData.daily.sunset[0]);
+                    }
+                }
+
+                window._liveMarineTelemetry.lastFetched = now;
+                if (isManual && typeof showToast === 'function') {
+                    showToast("🌊 Live Elyu Marine & Sunset Data Synced");
+                }
+            } catch(e) {
+                console.warn("Marine telemetry live update:", e);
+            } finally {
+                if (refreshIcon) setTimeout(() => refreshIcon.classList.remove('fa-spin'), 500);
+                window.updateWeatherSunsetTrackerUI();
+            }
+        };
+
+        window.updateWeatherSunsetTrackerUI = function() {
+            const now = new Date();
+            
+            // Sunset calculation from live API or realistic astronomical fallback
+            let todaySunset = window._liveMarineTelemetry.sunsetTime;
+            if (!todaySunset || isNaN(todaySunset.getTime())) {
+                todaySunset = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 18, 15, 0);
+            }
+            
+            let diffMs = todaySunset - now;
+            let sunsetText = '';
+            let pillSunsetText = '';
+
+            if (diffMs > 0) {
+                const totalMins = Math.floor(diffMs / 60000);
+                const hours = Math.floor(totalMins / 60);
+                const mins = totalMins % 60;
+                const countdownStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+                
+                sunsetText = `Sunset in <span id="tracker-sunset-countdown">${countdownStr}</span> at San Juan Beach 🌅`;
+                pillSunsetText = `🌅 Sunset in ${countdownStr}`;
+            } else if (diffMs > -3600000) {
+                sunsetText = `Sunset is happening now at San Juan Beach! 🌅`;
+                pillSunsetText = `🌅 Sunset Active`;
+            } else {
+                const fmtSunset = todaySunset.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                sunsetText = `Sunset was at ${fmtSunset} • Golden Hour ended 🌙`;
+                pillSunsetText = `🌙 Evening Beach Vibe`;
+            }
+
+            // Real-time Swell from live telemetry
+            const waveLabel = window._liveMarineTelemetry.waveLabel || '1.2m - Moderate Swell';
+            const wavePill = `${(window._liveMarineTelemetry.waveHeight || 1.2).toFixed(1)}m Swell`;
+
+            // Astronomical Tide Cycle (12h 25m semi-diurnal period for Lingayen Gulf / San Juan Coast)
+            const tideCycleMs = 12.42 * 3600 * 1000;
+            const refTideEpoch = new Date('2026-01-01T06:00:00+08:00').getTime();
+            const phaseMs = (now.getTime() - refTideEpoch) % tideCycleMs;
+            const halfCycle = tideCycleMs / 2;
+            
+            let tideText = '';
+            if (phaseMs < halfCycle) {
+                const remMs = halfCycle - phaseMs;
+                const remHours = Math.floor(remMs / 3600000);
+                const remMins = Math.floor((remMs % 3600000) / 60000);
+                tideText = `RISING TIDE (High in ${remHours > 0 ? remHours + 'h ' : ''}${remMins}m)`;
+            } else {
+                const remMs = tideCycleMs - phaseMs;
+                const remHours = Math.floor(remMs / 3600000);
+                const remMins = Math.floor((remMs % 3600000) / 60000);
+                tideText = `FALLING TIDE (Low in ${remHours > 0 ? remHours + 'h ' : ''}${remMins}m)`;
+            }
+
+            // Temperature info if available
+            const tempStr = window._liveMarineTelemetry.temperature ? ` • ${window._liveMarineTelemetry.temperature}°C` : '';
+
+            const sunsetEl = document.getElementById('tracker-sunset-text');
+            const swellEl = document.getElementById('tracker-swell-text');
+            const tideEl = document.getElementById('tracker-tide-text');
+            const pillEl = document.getElementById('tracker-pill-summary');
+
+            if (sunsetEl) sunsetEl.innerHTML = sunsetText;
+            if (swellEl) swellEl.textContent = waveLabel;
+            if (tideEl) tideEl.textContent = tideText;
+            if (pillEl) pillEl.textContent = `${wavePill}${tempStr} • ${pillSunsetText}`;
+        };
+
+        window.findSunsetSpots = function() {
+            if (typeof showToast === 'function') {
+                showToast("🌅 Top Sunset Viewing Spots in La Union");
+            }
+
+            // Find beach and sunset spots
+            const spots = window.allMapLocations || [];
+            const sunsetSpots = spots.filter(s => {
+                const name = (s.name || '').toLowerCase();
+                const cat = (s.category || '').toLowerCase();
+                const loc = (s.municipality || s.location || '').toLowerCase();
+                return cat.includes('beach') || name.includes('beach') || name.includes('surf') || name.includes('sunset') || name.includes('point') || name.includes('island') || loc.includes('san juan') || loc.includes('bauang');
+            });
+
+            // If San Juan beach exists, fly to it
+            const sanJuan = sunsetSpots.find(s => (s.name || '').toLowerCase().includes('san juan') || (s.name || '').toLowerCase().includes('urbiztondo')) || sunsetSpots[0];
+            if (sanJuan && window.mapInstance) {
+                const sLat = parseFloat(sanJuan.lat || sanJuan.latitude);
+                const sLng = parseFloat(sanJuan.lng || sanJuan.longitude);
+                if (!isNaN(sLat) && !isNaN(sLng)) {
+                    window.mapInstance.flyTo({ center: [sLng, sLat], zoom: 15, offset: [0, -150], duration: 1100 });
+                    setTimeout(() => {
+                        if (window.openSheet) window.openSheet(sanJuan);
+                    }, 600);
+                }
+            } else if (window.openNearbySitesSheet) {
+                window.openNearbySitesSheet();
+            }
+        };
+
+        // Initialize real-time telemetry and schedule live ticks
+        window.fetchLiveMarineTelemetry(false);
+        setInterval(window.updateWeatherSunsetTrackerUI, 15000); // Live countdown tick every 15s
+        setInterval(() => window.fetchLiveMarineTelemetry(false), 300000); // Live API sync every 5 minutes
 
         // Zone Toggle Button
         let zonesVisible = true;
@@ -1232,6 +1818,8 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
         if (btnLayer) {
             btnLayer.addEventListener('click', () => {
+                btnLayer.classList.add('btn-tap-pop');
+                setTimeout(() => btnLayer.classList.remove('btn-tap-pop'), 400);
                 isSatellite = !isSatellite;
                 
                 if (isSatellite) {
@@ -1252,16 +1840,22 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
         if (btn3d) {
             btn3d.addEventListener('click', () => {
+                btn3d.classList.add('btn-tap-pop');
+                setTimeout(() => btn3d.classList.remove('btn-tap-pop'), 400);
                 const is3D = btn3d.classList.toggle('active');
                 if (is3D) {
                     btn3d.style.background = 'var(--primary-color)';
                     btn3d.style.color = 'white';
-                    window.mapInstance.easeTo({ pitch: 65, bearing: -20, duration: 1000 });
+                    window.mapInstance.setTerrain({ "source": "terrain", "exaggeration": 1.2 });
+                    window.mapInstance.easeTo({ pitch: 60, bearing: -20, duration: 800 });
                     showToast("3D Terrain View Enabled");
                 } else {
                     btn3d.style.background = '#1E3A8A';
                     btn3d.style.color = '#ffffff';
-                    window.mapInstance.easeTo({ pitch: 0, bearing: 0, duration: 1000 });
+                    window.mapInstance.easeTo({ pitch: 0, bearing: 0, duration: 800 });
+                    setTimeout(() => {
+                        try { window.mapInstance.setTerrain(null); } catch(e) {}
+                    }, 800);
                     showToast("2D View Restored");
                 }
                 const sheet = document.getElementById('place-details-sheet');
@@ -1313,22 +1907,34 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
         function openSheet(animate) {
             isOpen = true;
-            sheet.classList.add('active');
+            sheet.style.display = 'block';
             if (animate) {
-                sheet.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                sheet.style.transition = 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease';
+                sheet.style.transform = 'translateY(calc(100% + 120px))';
+                sheet.classList.remove('active');
+                
+                void sheet.offsetHeight; // force reflow for smooth slide-up animation
+                
+                sheet.classList.add('active');
+                sheet.style.transform = 'translateY(0)';
+                currentY = 0;
             } else {
-                sheet.classList.add('sheet-dragging');
+                sheet.classList.add('active');
+                applyY(0);
             }
-            applyY(0);
-            if (!animate) sheet.classList.remove('sheet-dragging');
             setTimeout(() => { if (!isDragging) sheet.style.transition = ''; }, 500);
         }
 
         function closeSheet() {
             isOpen = false;
-            sheet.style.transition = 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            sheet.style.transition = 'transform 0.38s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease';
             sheet.style.transform = 'translateY(calc(100% + 120px))';
             sheet.classList.remove('active');
+            setTimeout(() => {
+                if (!sheet.classList.contains('active')) {
+                    sheet.style.display = 'none';
+                }
+            }, 380);
             if (onClose) onClose();
         }
 
@@ -1355,7 +1961,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             sheet.classList.remove('sheet-dragging');
             if (animFrame) cancelAnimationFrame(animFrame);
 
-            sheet.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            sheet.style.transition = 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)';
 
             const peekY = getPeekY();
             const delta = currentY - initialY;
@@ -1403,7 +2009,34 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     }
 
     initDraggableSheet('place-details-sheet', 'place-drag-handle');
+    initDraggableSheet('nearby-sites-sheet', 'nearby-drag-handle');
 
+
+    window.isPlaceSaved = function(destId) {
+        if (!destId) return false;
+        try {
+            const savedIds = JSON.parse(localStorage.getItem('intan_elyu_saved_place_ids') || '[]');
+            return savedIds.some(id => id == destId);
+        } catch(e) {
+            return false;
+        }
+    };
+
+    window.updateSheetFavButton = function(isSaved) {
+        const favBtn = document.getElementById('sheet-fav-btn');
+        if (!favBtn) return;
+        if (isSaved) {
+            favBtn.style.color = '#ff3b30';
+            favBtn.style.background = 'rgba(255, 59, 48, 0.15)';
+            favBtn.style.borderColor = 'rgba(255, 59, 48, 0.35)';
+            favBtn.innerHTML = '<i class="fa-solid fa-heart" style="color:#ff3b30;"></i>';
+        } else {
+            favBtn.style.color = 'rgba(255, 255, 255, 0.4)';
+            favBtn.style.background = 'rgba(255, 255, 255, 0.07)';
+            favBtn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+            favBtn.innerHTML = '<i class="fa-solid fa-heart" style="color:rgba(255,255,255,0.4);"></i>';
+        }
+    };
 
     window.toggleMapFavorite = function(element) {
         if (!window.currentDestinationForRoute) return;
@@ -1414,30 +2047,49 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             return;
         }
         
-        // Save original state for reverting
-        const originalColor = element.style.color;
-        const wasRed = originalColor === 'rgb(255, 59, 48)' || originalColor === '#ff3b30';
+        let savedIds = [];
+        try {
+            savedIds = JSON.parse(localStorage.getItem('intan_elyu_saved_place_ids') || '[]');
+        } catch(e) {}
         
-        // 1. INSTANT OPTIMISTIC UPDATE (Zero Delay)
-        // Trigger pop animation
-        element.classList.remove('heart-pop-anim');
-        void element.offsetWidth; // trigger reflow
-        element.classList.add('heart-pop-anim');
+        const wasSaved = savedIds.some(id => id == destId);
+        const willBeSaved = !wasSaved;
 
-        if (wasRed) {
-            element.style.color = 'rgba(255,255,255,0.4)';
-            if (typeof showToast === 'function') showToast('Removed from Saved Places');
-            if (window.savedPlaceIds) {
-                window.savedPlaceIds = window.savedPlaceIds.filter(id => id !== destId);
-            }
+        // 1. Update localStorage instantly
+        if (willBeSaved) {
+            if (!savedIds.some(id => id == destId)) savedIds.push(destId);
         } else {
-            element.style.color = '#ff3b30';
-            if (typeof showToast === 'function') showToast('Added to Saved Places');
-            if (!window.savedPlaceIds) window.savedPlaceIds = [];
-            if (!window.savedPlaceIds.includes(destId)) window.savedPlaceIds.push(destId);
+            savedIds = savedIds.filter(id => id != destId);
+        }
+        localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(savedIds));
+
+        // 2. Instant UI update with pop animation & red fading/filling
+        element.classList.remove('heart-pop-anim');
+        void element.offsetWidth;
+        element.classList.add('heart-pop-anim');
+        window.updateSheetFavButton(willBeSaved);
+
+        if (typeof showToast === 'function') {
+            showToast(willBeSaved ? 'Added to Saved Places' : 'Removed from Saved Places');
         }
 
-        // 2. BACKGROUND NETWORK REQUEST
+        // 3. Clear cached dashboard data so other views reflect the change immediately
+        const tokenPrefix = token ? token.substring(0, 10) : '';
+        localStorage.removeItem('saved_places_' + tokenPrefix);
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('dashboard_data_')) {
+                const cached = JSON.parse(localStorage.getItem(key) || '{}');
+                if (cached.savedPlaces && Array.isArray(cached.savedPlaces)) {
+                    if (!willBeSaved) {
+                        cached.savedPlaces = cached.savedPlaces.filter(p => p.id != destId);
+                    }
+                    localStorage.setItem(key, JSON.stringify(cached));
+                }
+            }
+        }
+
+        // 4. Background network request
         const _backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
         fetch(_backendUrl + '/api/tourist/destinations/' + destId + '/favorite', {
             method: 'POST',
@@ -1446,35 +2098,23 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 'Accept': 'application/json',
                 'Authorization': 'Bearer ' + token,
             }
-        }).then(r => {
-            // Invalidate saved places & dashboard caches so other views reflect the change
-            const tokenPrefix = token ? token.substring(0, 10) : '';
-            localStorage.removeItem('saved_places_' + tokenPrefix);
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.startsWith('dashboard_data_')) {
-                    localStorage.removeItem(key);
-                    i--;
-                }
-            }
         }).catch(e => {
-            // Revert on error
-            if (typeof showToast === 'function') showToast('Error updating favorite');
-            element.style.color = originalColor;
-            
-            if (wasRed) {
-                if (!window.savedPlaceIds) window.savedPlaceIds = [];
-                if (!window.savedPlaceIds.includes(destId)) window.savedPlaceIds.push(destId);
-            } else {
-                if (window.savedPlaceIds) {
-                    window.savedPlaceIds = window.savedPlaceIds.filter(id => id !== destId);
-                }
-            }
+            console.warn('Background favorite sync error:', e);
         });
     };
 
     window.openSheet = function(locationData) {
         if (!locationData) return;
+        if (window.closeNearbySitesSheet) {
+            window.closeNearbySitesSheet();
+        }
+        const targetSheet = document.getElementById('place-details-sheet');
+        if (!targetSheet) return;
+        const scrollArea = targetSheet.querySelector('.draggable-content');
+        if (scrollArea) {
+            scrollArea.scrollTop = 0;
+            scrollArea.scrollLeft = 0;
+        }
         window.currentDestinationForRoute = locationData;
         if (window.activePopup) {
             window.activePopup.remove();
@@ -1495,9 +2135,17 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
         const catBadge = document.getElementById('sheet-category-badge');
         if (catBadge) {
+            catBadge.innerHTML = '';
             if (locationData.category && locationData.category.trim() !== '') {
-                catBadge.style.display = 'inline-block';
-                catBadge.textContent = locationData.category;
+                const cats = locationData.category.split(',').map(c => c.trim()).filter(Boolean);
+                cats.slice(0, 3).forEach(cat => {
+                    const pill = document.createElement('span');
+                    pill.className = 'sheet-tag-pill';
+                    const formatted = cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase();
+                    pill.innerHTML = `<i class="fa-solid fa-tag" style="font-size:8px; opacity:0.8; margin-right:3px;"></i>${formatted}`;
+                    catBadge.appendChild(pill);
+                });
+                catBadge.style.display = 'flex';
             } else {
                 catBadge.style.display = 'none';
             }
@@ -1506,16 +2154,16 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         const statusBadge = document.getElementById('sheet-status-badge');
         if (statusBadge) {
             if (locationData.classification_status) {
-                statusBadge.style.display = 'inline-block';
+                statusBadge.style.display = 'inline-flex';
                 if (locationData.classification_status === 'EXIST') {
-                    statusBadge.style.background = '#34c759';
-                    statusBadge.textContent = 'EXISTING';
+                    statusBadge.className = 'sheet-status-pill status-exist';
+                    statusBadge.innerHTML = '<i class="fa-solid fa-circle-check" style="font-size:8px; margin-right:3px;"></i>Existing';
                 } else if (locationData.classification_status === 'EMERGE') {
-                    statusBadge.style.background = '#38bdf8';
-                    statusBadge.textContent = 'EMERGING';
+                    statusBadge.className = 'sheet-status-pill status-emerge';
+                    statusBadge.innerHTML = '<i class="fa-solid fa-sparkles" style="font-size:8px; margin-right:3px;"></i>Emerging';
                 } else if (locationData.classification_status === 'POTENTIAL') {
-                    statusBadge.style.background = '#f59e0b';
-                    statusBadge.textContent = 'POTENTIAL';
+                    statusBadge.className = 'sheet-status-pill status-potential';
+                    statusBadge.innerHTML = '<i class="fa-solid fa-compass" style="font-size:8px; margin-right:3px;"></i>Potential';
                 } else {
                     statusBadge.style.display = 'none';
                 }
@@ -1524,7 +2172,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             }
         }
 
-        // Open/Closed badge
+        // Open/Closed badge with pulse indicator
         const openBadge = document.getElementById('sheet-open-badge');
         if (openBadge) {
             if (locationData.opening_time && locationData.closing_time) {
@@ -1536,48 +2184,62 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 const closeMinutes = parseInt(closeParts[0]) * 60 + parseInt(closeParts[1]);
 
                 if (locationData.is_maintenance) {
-                    openBadge.style.display = 'inline-block';
-                    openBadge.style.background = '#ef4444';
-                    openBadge.textContent = 'Under Maintenance';
+                    openBadge.style.display = 'inline-flex';
+                    openBadge.className = 'sheet-open-pill status-maint';
+                    openBadge.innerHTML = '<span class="pulse-dot dot-amber"></span>Maintenance';
                 } else if (currentMinutes >= openMinutes && currentMinutes < closeMinutes) {
-                    openBadge.style.display = 'inline-block';
-                    openBadge.style.background = '#34c759';
-                    openBadge.textContent = 'Open Now';
+                    openBadge.style.display = 'inline-flex';
+                    openBadge.className = 'sheet-open-pill status-open';
+                    openBadge.innerHTML = '<span class="pulse-dot dot-green"></span>Open Now';
                 } else {
-                    openBadge.style.display = 'inline-block';
-                    openBadge.style.background = '#ef4444';
-                    openBadge.textContent = 'Closed';
+                    openBadge.style.display = 'inline-flex';
+                    openBadge.className = 'sheet-open-pill status-closed';
+                    openBadge.innerHTML = '<span class="pulse-dot dot-red"></span>Closed';
                 }
             } else {
                 openBadge.style.display = 'none';
             }
         }
 
-        const favBtn = document.getElementById('sheet-fav-btn');
-        if (favBtn) {
-            if (window.savedPlaceIds && window.savedPlaceIds.includes(locationData.id)) {
-                favBtn.style.color = '#ff3b30';
-            } else {
-                favBtn.style.color = 'rgba(255,255,255,0.4)';
-            }
-            
-            const token = localStorage.getItem('intan_elyu_token');
-            if (token && !window.savedPlaceIdsFetched) {
-                fetch((window.backendUrl || '') + '/api/tourist/dashboard', {
-                    headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
-                }).then(r => r.ok ? r.text() : null).then(txt => {
-                    const d = txt ? window.safeJsonParse(txt, null) : null;
-                    if (d && d.savedPlaces) {
-                        window.savedPlaceIds = d.savedPlaces.map(p => p.id);
-                        window.savedPlaceIdsFetched = true;
-                        if (window.savedPlaceIds.includes(window.currentDestinationForRoute.id)) {
-                            favBtn.style.color = '#ff3b30';
-                        } else {
-                            favBtn.style.color = 'rgba(255,255,255,0.4)';
-                        }
+        // Set Visitors & Rating stats in quick stats grid
+        const visitorsEl = document.getElementById('sheet-visitors');
+        if (visitorsEl) {
+            const vCount = parseInt(locationData.visits) || 0;
+            visitorsEl.textContent = window.formatVisitorCount ? window.formatVisitorCount(vCount) : (vCount < 100 ? 'Less than 100 this month' : `${vCount.toLocaleString()} visitors this month`);
+        }
+
+        const ratingEl = document.getElementById('sheet-rating');
+        if (ratingEl) {
+            const rVal = (locationData.rating && parseFloat(locationData.rating) > 0) ? parseFloat(locationData.rating).toFixed(1) : '5.0';
+            ratingEl.textContent = `${rVal} ★`;
+        }
+
+        // Reset check-in button state
+        const checkinBtn = document.getElementById('btn-checkin-spot');
+        if (checkinBtn) {
+            checkinBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Check In (+50 XP)';
+            checkinBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+            checkinBtn.disabled = false;
+        }
+
+        // Sync heart button state (red if saved, faded if unsaved)
+        window.updateSheetFavButton(window.isPlaceSaved(locationData.id));
+        
+        const token = localStorage.getItem('intan_elyu_token');
+        if (token && !window.savedPlaceIdsFetched) {
+            fetch((window.backendUrl || '') + '/api/tourist/dashboard', {
+                headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
+            }).then(r => r.ok ? r.text() : null).then(txt => {
+                const d = txt ? window.safeJsonParse(txt, null) : null;
+                if (d && d.savedPlaces) {
+                    const ids = d.savedPlaces.map(p => p.id);
+                    localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(ids));
+                    window.savedPlaceIdsFetched = true;
+                    if (window.currentDestinationForRoute) {
+                        window.updateSheetFavButton(window.isPlaceSaved(window.currentDestinationForRoute.id));
                     }
-                }).catch(e => console.error(e));
-            }
+                }
+            }).catch(e => console.error(e));
         }
         
         const fallbackBanner = window.noImageFallback || 'assets/img/no_image.svg';
@@ -1596,7 +2258,7 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 img.src = (imgUrl && imgUrl !== window.noImageFallback) ? imgUrl : fallbackBanner;
                 img.alt = locationData.name || 'Place Image';
                 img.className = 'sheet-img';
-                img.style.cssText = 'flex:0 0 100%; min-width:100%; width:100%; max-width:100%; height:100% !important; object-fit:cover !important; object-position:center !important; border-radius:18px !important; scroll-snap-align:start; scroll-snap-stop:always; display:block !important; margin:0 !important; box-sizing:border-box !important;';
+                img.style.cssText = 'flex:0 0 100%; min-width:100%; width:100%; max-width:100%; height:100% !important; object-fit:cover !important; object-position:center !important; border-radius:20px !important; scroll-snap-align:start; scroll-snap-stop:always; display:block !important; margin:0 !important; box-sizing:border-box !important;';
                 img.onerror = function() {
                     this.onerror = null;
                     if (window.handleImgError) {
@@ -1664,33 +2326,109 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
         }
         
 
+        // 1. Accessibility Warning
         const warningEl = document.getElementById('vehicle-accessibility-warning');
         if (warningEl) {
             if (locationData.accessible_by_private_vehicle === false || locationData.accessible_by_private_vehicle === 0) {
-                warningEl.style.display = 'block';
+                warningEl.style.display = 'flex';
             } else {
                 warningEl.style.display = 'none';
             }
         }
 
-        let manualGuide = "From the town proper of " + (locationData.municipality || "La Union") + ", take a local tricycle heading to " + (locationData.location || "the barangay") + ". Ask the driver to drop you off at " + (locationData.name || "this location") + ".";
-        
+        // 2. Fees & Pricing Breakdown
+        const feeMainText = document.getElementById('sheet-fee-main-text');
+        const feeTags = document.getElementById('sheet-fee-breakdown-tags');
+        if (feeMainText && feeTags) {
+            const entranceFee = parseFloat(locationData.entrance_fee || 0);
+            const environmentalFee = parseFloat(locationData.environmental_fee || 0);
+            const feeTypes = Array.isArray(locationData.fee_types) ? locationData.fee_types : [];
+            const hasEntrance = feeTypes.includes('entrance') || feeTypes.includes('Entrance Fee') || entranceFee > 0;
+            const hasEnvironmental = feeTypes.includes('environmental') || feeTypes.includes('Environmental Fee') || environmentalFee > 0;
+
+            let tagsHtml = '';
+            if (hasEntrance && entranceFee > 0) {
+                tagsHtml += `<span style="font-size:11px; font-weight:800; background:rgba(56,189,248,0.12); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); padding:3px 8px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-ticket" style="font-size:10px;"></i> Entrance: ₱${entranceFee.toFixed(2)}</span>`;
+            }
+            if (hasEnvironmental && environmentalFee > 0) {
+                tagsHtml += `<span style="font-size:11px; font-weight:800; background:rgba(52,211,153,0.12); color:#34d399; border:1px solid rgba(52,211,153,0.3); padding:3px 8px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-leaf" style="font-size:10px;"></i> Envi: ₱${environmentalFee.toFixed(2)}</span>`;
+            }
+
+            if (tagsHtml !== '') {
+                const total = (hasEntrance ? entranceFee : 0) + (hasEnvironmental ? environmentalFee : 0);
+                feeMainText.textContent = total > 0 ? `₱${total.toFixed(2)} Total Fees` : 'Free Admission';
+                feeTags.innerHTML = tagsHtml;
+            } else {
+                feeMainText.textContent = 'Free Admission';
+                feeTags.innerHTML = `<span style="font-size:10.5px; font-weight:800; background:rgba(52,211,153,0.15); color:#34d399; border:1px solid rgba(52,211,153,0.3); padding:3px 8px; border-radius:8px;">No Entrance Fee</span>`;
+            }
+        }
+
+        // 3. Route Guide
         const manualGuideEl = document.getElementById('sheet-manual-guide');
-        if (manualGuideEl) manualGuideEl.textContent = manualGuide;
+        if (manualGuideEl) {
+            let manualGuide = (locationData.route_guide && locationData.route_guide.trim())
+                ? locationData.route_guide.trim()
+                : ("From the town proper of " + (locationData.municipality || "La Union") + ", take a local tricycle heading to " + (locationData.barangay || locationData.location || "the barangay") + ". Ask the driver to drop you off at " + (locationData.name || "this location") + ".");
+            manualGuideEl.textContent = manualGuide;
+        }
+
+        // 4. Tour Guide Notice
+        const tourGuideTextEl = document.getElementById('sheet-tour-guide-text');
+        if (tourGuideTextEl) {
+            let tourGuideNotice = (locationData.tour_guide_notice && locationData.tour_guide_notice.trim())
+                ? locationData.tour_guide_notice.trim()
+                : "Some destinations may require a tour guide for entry or navigation. The system only provides informational notices about this requirement; it does not offer, book, or arrange tour guide services directly.";
+            tourGuideTextEl.textContent = tourGuideNotice;
+        }
+
+        // 5. Service Centers & Support
+        const scContainer = document.getElementById('sheet-service-centers-container');
+        const supportBadgeEl = document.getElementById('sheet-support-badge');
+        if (scContainer) {
+            if (locationData.service_centers && locationData.service_centers.length > 0) {
+                scContainer.style.display = 'flex';
+                scContainer.style.flexDirection = 'column';
+                scContainer.style.gap = '6px';
+                if (supportBadgeEl) supportBadgeEl.textContent = `${locationData.service_centers.length} Service Center${locationData.service_centers.length > 1 ? 's' : ''}`;
+                scContainer.innerHTML = locationData.service_centers.map(sc => `
+                    <div style="background:rgba(56,189,248,0.06); border:1px solid rgba(56,189,248,0.2); border-radius:12px; padding:8px 10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                            <span style="font-size:12px; font-weight:800; color:#38bdf8; display:flex; align-items:center; gap:5px;">
+                                <i class="fa-solid fa-building-flag" style="font-size:11px;"></i> ${sc.name}
+                            </span>
+                            <span style="font-size:9.5px; font-weight:700; color:#94a3b8; background:rgba(255,255,255,0.08); padding:1px 6px; border-radius:4px;">${sc.type || 'Terminal'}</span>
+                        </div>
+                        ${sc.address ? `<div style="font-size:11px; color:rgba(226,232,240,0.85); margin-bottom:2px;"><i class="fa-solid fa-location-dot" style="font-size:10px; color:#38bdf8; margin-right:4px;"></i>${sc.address}</div>` : ''}
+                        ${sc.contact_number ? `<div style="font-size:11px; color:#34d399; font-weight:700;"><i class="fa-solid fa-phone" style="font-size:10px; margin-right:4px;"></i><a href="tel:${sc.contact_number}" style="color:#34d399; text-decoration:none;">${sc.contact_number}</a></div>` : ''}
+                    </div>
+                `).join('');
+            } else {
+                scContainer.style.display = 'none';
+                scContainer.innerHTML = '';
+                if (supportBadgeEl) supportBadgeEl.textContent = 'LUPTO / MTO';
+            }
+        }
         
         const distanceEl = document.getElementById('sheet-distance');
         if (distanceEl) distanceEl.textContent = 'Calculating...';
 
-        const hoursRow = document.getElementById('sheet-hours-row');
+        const hoursCard = document.getElementById('sheet-hours-stat-card');
         const hoursEl = document.getElementById('sheet-hours');
-        if (hoursRow && hoursEl) {
+        if (hoursEl) {
             if (locationData.opening_time && locationData.closing_time) {
-                hoursRow.style.display = 'flex';
+                if (hoursCard) hoursCard.style.display = 'flex';
                 const fmt = (t) => { const p = t.split(':'); const h = parseInt(p[0]), m = p[1]; return (h % 12 || 12) + ':' + m + (h < 12 ? ' AM' : ' PM'); };
                 hoursEl.textContent = fmt(locationData.opening_time) + ' — ' + fmt(locationData.closing_time);
             } else {
-                hoursRow.style.display = 'none';
+                if (hoursCard) hoursCard.style.display = 'none';
             }
+        }
+
+        const servicePhoneEl = document.getElementById('sheet-service-phone');
+        if (servicePhoneEl && locationData.service_phone) {
+            servicePhoneEl.textContent = locationData.service_phone;
+            servicePhoneEl.href = 'tel:' + locationData.service_phone.replace(/[^0-9+]/g, '');
         }
 
         if (window.getDeviceLocation) {
@@ -2190,24 +2928,33 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 // Render summary metrics
                 if (d.summary && d.summary.total_reviews > 0) {
                     const sm = d.summary;
+                    const reviewCount = parseInt(sm.total_reviews) || 0;
+                    const reviewText = reviewCount === 1 ? '1 Review' : `${reviewCount} Reviews`;
+                    const avgRating = parseFloat(sm.average_rating || 5).toFixed(1);
+
+                    const cleanVal = sm.cleanliness.clean >= sm.cleanliness.moderate && sm.cleanliness.clean >= sm.cleanliness.dirty ? 'Clean' : (sm.cleanliness.moderate >= sm.cleanliness.dirty ? 'Moderate' : 'Dirty');
+                    const cleanColor = cleanVal === 'Clean' ? '#34c759' : (cleanVal === 'Moderate' ? '#f59e0b' : '#ef4444');
+                    const cleanBg = cleanVal === 'Clean' ? 'rgba(52,199,89,0.12)' : (cleanVal === 'Moderate' ? 'rgba(245,158,11,0.12)' : 'rgba(239,68,68,0.12)');
+
+                    const safeVal = sm.safety.safe >= sm.safety.moderate && sm.safety.safe >= sm.safety.unsafe ? 'Safe' : (sm.safety.moderate >= sm.safety.unsafe ? 'Moderate' : 'Unsafe');
+                    const safeColor = safeVal === 'Safe' ? '#34c759' : (safeVal === 'Moderate' ? '#f59e0b' : '#ef4444');
+                    const safeBg = safeVal === 'Safe' ? 'rgba(52,199,89,0.12)' : (safeVal === 'Moderate' ? 'rgba(245,158,11,0.12)' : 'rgba(239,68,68,0.12)');
+
                     summary.style.display = 'block';
                     summary.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:6px;">
-                            <strong style="color:#fff;">Visitor Insights (${sm.total_reviews} reviews)</strong>
-                            <strong style="color:#38bdf8;">★ ${sm.average_rating}</strong>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:8px;">
+                            <strong style="color:#ffffff; font-size:13px; font-weight:800; display:flex; align-items:center; gap:6px;">
+                                <i class="fa-solid fa-chart-simple" style="color:#38bdf8; font-size:11px;"></i> Visitor Insights (${reviewText})
+                            </strong>
                         </div>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-                            <div>
-                                <span style="display:block; font-size:9px; color:rgba(255,255,255,0.45); text-transform:uppercase;">Cleanliness</span>
-                                <span style="font-weight:700; color:#fff;">
-                                    ${sm.cleanliness.clean >= sm.cleanliness.moderate && sm.cleanliness.clean >= sm.cleanliness.dirty ? 'Clean' : (sm.cleanliness.moderate >= sm.cleanliness.dirty ? 'Moderate' : 'Dirty')}
-                                </span>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
+                            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:10px; color:rgba(226,232,240,0.6); text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Cleanliness</span>
+                                <span style="font-size:11px; font-weight:800; color:${cleanColor}; background:${cleanBg}; border:1px solid ${cleanColor}40; padding:2px 8px; border-radius:6px;">${cleanVal}</span>
                             </div>
-                            <div>
-                                <span style="display:block; font-size:9px; color:rgba(255,255,255,0.45); text-transform:uppercase;">Safety</span>
-                                <span style="font-weight:700; color:#fff;">
-                                    ${sm.safety.safe >= sm.safety.moderate && sm.safety.safe >= sm.safety.unsafe ? 'Safe' : (sm.safety.moderate >= sm.safety.unsafe ? 'Moderate' : 'Unsafe')}
-                                </span>
+                            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:10px; color:rgba(226,232,240,0.6); text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Safety</span>
+                                <span style="font-size:11px; font-weight:800; color:${safeColor}; background:${safeBg}; border:1px solid ${safeColor}40; padding:2px 8px; border-radius:6px;">${safeVal}</span>
                             </div>
                         </div>`;
                 } else {
@@ -2216,25 +2963,68 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
 
                 // Render testimonies list
                 if (d.data && d.data.length > 0) {
+                    const maskUserName = (name) => {
+                        if (!name || typeof name !== 'string') return 'Explorer';
+                        const trimmed = name.trim();
+                        if (!trimmed) return 'Explorer';
+                        
+                        const parts = trimmed.split(/\s+/);
+                        if (parts.length === 1) {
+                            const w = parts[0];
+                            if (w.length <= 2) return w.charAt(0) + '*';
+                            if (w.length <= 4) return w.slice(0, 2) + '*'.repeat(w.length - 2);
+                            return w.slice(0, 2) + '*'.repeat(w.length - 4) + w.slice(-2);
+                        }
+                        
+                        return parts.map((part, index) => {
+                            const len = part.length;
+                            if (len <= 2) return part.charAt(0) + '*';
+                            
+                            if (index === 0) {
+                                // First name (e.g. "temi" -> "te**")
+                                const visible = Math.min(2, Math.max(1, len - 2));
+                                return part.slice(0, visible) + '*'.repeat(len - visible);
+                            } else if (index === parts.length - 1) {
+                                // Last name (e.g. "simer" -> "***er")
+                                const visible = Math.min(2, Math.max(1, len - 2));
+                                return '*'.repeat(len - visible) + part.slice(-visible);
+                            } else {
+                                // Middle names
+                                return '*'.repeat(len);
+                            }
+                        }).join(' ');
+                    };
+
                     const renderCard = (fb) => {
                         const user = fb.user || { name: 'Explorer' };
-                        const stars = '★'.repeat(fb.rating || 0) + '☆'.repeat(5 - (fb.rating || 0));
-                        const date = new Date(fb.created_at).toLocaleDateString();
+                        const rawName = user.name || user.full_name || 'Explorer';
+                        const maskedName = maskUserName(rawName);
+                        const initial = (rawName || 'E').charAt(0).toUpperCase();
+                        const date = fb.created_at ? new Date(fb.created_at).toLocaleDateString() : '';
                         const policyHtml = fb.policy_recommendation ? `
-                            <div style="background:rgba(56,189,248,0.06); border-left:2px solid #38bdf8; padding:8px 10px; border-radius:4px; margin-top:8px; font-size:11px;">
-                                <strong style="display:block; font-size:10px; color:#38bdf8; text-transform:uppercase; margin-bottom:2px;">Policy Recommendation:</strong>
-                                <span style="color:rgba(255,255,255,0.85);">${fb.policy_recommendation}</span>
+                            <div style="background:rgba(56,189,248,0.06); border:1px solid rgba(56,189,248,0.2); padding:10px 12px; border-radius:12px; margin-top:10px;">
+                                <div style="display:flex; align-items:center; gap:5px; margin-bottom:4px;">
+                                    <i class="fa-solid fa-lightbulb" style="color:#38bdf8; font-size:11px;"></i>
+                                    <strong style="font-size:10px; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; font-weight:800;">Policy Recommendation</strong>
+                                </div>
+                                <span style="color:rgba(226,232,240,0.9); font-size:12px; line-height:1.4; display:block;">${fb.policy_recommendation}</span>
                             </div>` : '';
 
                         return `
-                        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); padding:12px; border-radius:14px; font-size:12px;">
-                            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-                                <strong style="color:#fff;">${user.name}</strong>
-                                <span style="color:#f59e0b; font-weight:700;">${stars}</span>
+                        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); padding:14px; border-radius:16px; font-size:12px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <div style="width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg, #38bdf8, #2563eb); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:11px;">
+                                        ${initial}
+                                    </div>
+                                    <strong style="color:#ffffff; font-size:13px; font-weight:700;">${maskedName}</strong>
+                                </div>
                             </div>
-                            <p style="margin:0; color:rgba(255,255,255,0.85); line-height:1.4;">${fb.testimony || 'Visited and checked in.'}</p>
+                            <p style="margin:0; color:rgba(226,232,240,0.88); font-size:12.5px; line-height:1.5;">${fb.testimony || 'Visited and checked in.'}</p>
                             ${policyHtml}
-                            <span style="display:block; font-size:9px; color:rgba(255,255,255,0.35); text-align:right; margin-top:6px;">${date}</span>
+                            <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+                                <span style="font-size:10px; color:rgba(148,163,184,0.6); font-weight:600;"><i class="fa-regular fa-clock" style="margin-right:3px; font-size:9px;"></i>${date}</span>
+                            </div>
                         </div>`;
                     };
 
@@ -2454,15 +3244,86 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
             const text = await response.text();
             const data = window.safeJsonParse(text, {});
             if (response.ok) {
-                if (typeof showToast === 'function') showToast("Thank you for your feedback! 🗣️");
+                if (typeof showToast === 'function') showToast(data.message || "Thank you for your rating & feedback! 🗣️");
                 window.closeWriteTestimonyModal();
                 fetchTestimonies(spotId);
+
+                // Update rating in current sheet live
+                if (window.currentDestinationForRoute && window.currentDestinationForRoute.id == spotId) {
+                    const newRating = data.spot_rating || rating;
+                    window.currentDestinationForRoute.rating = newRating;
+                    const ratingEl = document.getElementById('sheet-rating');
+                    if (ratingEl) ratingEl.textContent = parseFloat(newRating).toFixed(1) + ' ★';
+                }
             } else {
                 if (typeof showToast === 'function') showToast(data.message || "Failed to submit review.");
             }
         } catch (error) {
             console.error("Testimony submission error:", error);
             if (typeof showToast === 'function') showToast("Network error.");
+        }
+    };
+
+    window.checkInAtCurrentSpot = async function() {
+        if (!window.currentDestinationForRoute || !window.currentDestinationForRoute.id) return;
+        const dest = window.currentDestinationForRoute;
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+
+        const btn = document.getElementById('btn-checkin-spot');
+        const origHtml = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking in...';
+            btn.disabled = true;
+        }
+
+        const _backendUrl = (window.backendUrl && window.backendUrl.trim() !== '') 
+            ? window.backendUrl 
+            : (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : 'https://api.intan-elyu.online');
+
+        const headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        try {
+            const res = await fetch(_backendUrl + '/api/tourist/destinations/' + dest.id + '/check-in', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({
+                    lat: window.myLat || dest.lat || dest.latitude,
+                    lng: window.myLng || dest.lng || dest.longitude
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok && (data.status === 'success' || data.success)) {
+                if (typeof showToast === 'function') showToast(data.message || `🎉 Check-in verified! Earned +50 XP & +50 Points at ${dest.name}!`);
+                
+                // Update local spot visitors count
+                const newVisits = data.visits || ((parseInt(dest.visits) || 0) + 1);
+                dest.visits = newVisits;
+                const visitorsEl = document.getElementById('sheet-visitors');
+                if (visitorsEl) visitorsEl.textContent = window.formatVisitorCount ? window.formatVisitorCount(newVisits) : (newVisits < 100 ? 'Less than 100 this month' : `${newVisits.toLocaleString()} visitors this month`);
+                
+                if (btn) {
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Checked In!';
+                    btn.style.background = 'linear-gradient(135deg, #059669, #047857)';
+                }
+            } else {
+                if (typeof showToast === 'function') showToast(data.message || 'Check-in completed!');
+                if (btn) {
+                    btn.innerHTML = origHtml;
+                    btn.disabled = false;
+                }
+            }
+        } catch (err) {
+            console.error('Check-in error:', err);
+            if (typeof showToast === 'function') showToast('Network error during check-in.');
+            if (btn) {
+                btn.innerHTML = origHtml;
+                btn.disabled = false;
+            }
         }
     };
 

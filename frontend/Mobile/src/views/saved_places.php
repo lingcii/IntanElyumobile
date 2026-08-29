@@ -75,11 +75,13 @@ if (is_dir($imgDir)) {
         if (!list) return;
         if (!spots.length) {
             list.innerHTML = `
-                <div style="padding:40px 20px; text-align:center; color:rgba(255,255,255,0.4);">
-                    <i class="fa-solid fa-map-location-dot" style="font-size:40px; margin-bottom:12px; display:block;"></i>
-                    No saved places yet.
-                    <br><br>
-                    <button onclick="navigateTo('map')" style="background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; border: none; padding: 11px 22px; border-radius: 100px; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(56,189,248,0.3);">
+                <div class="dash-empty-state" style="margin-top: 24px !important;">
+                    <div class="dash-empty-icon-wrap">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                    </div>
+                    <div class="dash-empty-title">No Saved Places Yet</div>
+                    <div class="dash-empty-desc">Discover destinations across La Union on the map and tap the heart icon to save them.</div>
+                    <button type="button" onclick="navigateTo('map')" class="dash-empty-btn">
                         <i class="fa-solid fa-location-arrow"></i> Go to Map
                     </button>
                 </div>
@@ -124,6 +126,13 @@ if (is_dir($imgDir)) {
                 // Invalidate caches
                 const cacheKey = 'saved_places_' + (token ? token.substring(0, 10) : '');
                 localStorage.removeItem(cacheKey);
+                
+                try {
+                    let savedIds = JSON.parse(localStorage.getItem('intan_elyu_saved_place_ids') || '[]');
+                    savedIds = savedIds.filter(item => item != id);
+                    localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(savedIds));
+                } catch(e) {}
+
                 // Also clear dashboard data caches
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
