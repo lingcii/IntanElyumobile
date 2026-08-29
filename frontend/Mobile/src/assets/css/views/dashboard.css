@@ -348,25 +348,27 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 }
 
 .section-title a {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     color: #ffffff;
     text-decoration: none;
     text-transform: uppercase;
     letter-spacing: 0.6px;
-    padding: 4px 12px;
+    padding: 5px 13px;
     border-radius: 100px;
-    background: rgba(15, 23, 42, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(8px);
+    background: #6196c8;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
     transition: all 0.2s ease;
 }
 
 .section-title a:hover,
 .section-title a:active {
-    background: rgba(15, 23, 42, 0.85);
+    background: #4f85b8;
     color: #ffffff;
-    border-color: rgba(255, 255, 255, 0.45);
+    border: none !important;
+    outline: none !important;
 }
 
 /* Horizontal Scroll Cards Row with Center Snap */
