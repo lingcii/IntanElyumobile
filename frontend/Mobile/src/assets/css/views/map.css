@@ -254,7 +254,7 @@ body[data-view="map"] #main-content {
     cursor: pointer;
     letter-spacing: 0.3px;
     scroll-snap-align: start;
-    box-shadow: 0 4px 12px rgba(10, 25, 60, 0.2) !important;
+    box-shadow: none !important;
 }
 
 .category-pill.active {
@@ -263,7 +263,7 @@ body[data-view="map"] #main-content {
     font-weight: 800 !important;
     border: none !important;
     outline: none !important;
-    box-shadow: 0 4px 14px rgba(0, 242, 254, 0.3) !important;
+    box-shadow: none !important;
 }
 
 .category-pill:not(.active):active {

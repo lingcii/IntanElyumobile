@@ -344,6 +344,11 @@ if (is_dir($imgDir)) {
     window.filterCategoryDash = function (cat, el) {
         document.querySelectorAll('#dash-categories-list .category-card').forEach(card => card.classList.remove('active'));
         if (el) el.classList.add('active');
+        if (cat && cat !== 'All') {
+            localStorage.setItem('intan_elyu_filter_category', cat);
+        } else {
+            localStorage.removeItem('intan_elyu_filter_category');
+        }
 
         const matchesCategory = (cardCategory, cardName, cardMuni, targetCat) => {
             if (!targetCat || targetCat === 'All') return true;

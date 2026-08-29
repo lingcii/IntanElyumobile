@@ -657,12 +657,15 @@ if (is_dir($imgDir)) {
                                 localStorage.removeItem('intan_elyu_filter_category');
                                 const pills = document.querySelectorAll('.category-pill');
                                 let matchedPill = null;
+                                const fText = filterCat.trim().toLowerCase();
                                 pills.forEach(p => {
-                                    if (p.textContent.trim().toLowerCase() === filterCat.trim().toLowerCase()) {
-                                        matchedPill = p;
+                                    const pText = p.textContent.trim().toLowerCase();
+                                    if (pText === fText || pText.includes(fText) || fText.includes(pText)) {
+                                        if (!matchedPill) matchedPill = p;
                                     }
                                 });
-                                window.filterCategory(filterCat, matchedPill);
+                                const targetCategory = matchedPill ? matchedPill.textContent.trim() : filterCat;
+                                window.filterCategory(targetCategory, matchedPill);
                             }
                         }, 100);
 
@@ -938,246 +941,110 @@ if (is_dir($imgDir)) {
         window.renderMarkers = function (locations) {
             if (!window.mapInstance) return;
 
-            // Clean any legacy DOM markers
+            // Remove any WebGL source/layers from earlier attempts
+            try {
+                const source = window.mapInstance.getSource('tourist-spots-source');
+                if (source) {
+                    const layers = ['clusters', 'clusters-glow', 'cluster-count', 'unclustered-point-label', 'unclustered-point', 'unclustered-point-halo'];
+                    layers.forEach(lid => {
+                        if (window.mapInstance.getLayer(lid)) {
+                            window.mapInstance.removeLayer(lid);
+                        }
+                    });
+                    window.mapInstance.removeSource('tourist-spots-source');
+                }
+            } catch (e) { }
+
+            // Clean any existing DOM markers
             if (window.mapMarkers) {
                 window.mapMarkers.forEach(m => m.remove());
             }
             window.mapMarkers = [];
 
-            const features = [];
             (locations || []).forEach(loc => {
                 const locLat = parseFloat(loc.lat || loc.latitude);
                 const locLng = parseFloat(loc.lng || loc.longitude);
                 if (isNaN(locLat) || isNaN(locLng)) return;
 
-                let catColor = '#38bdf8';
-                if (loc.classification_status === 'EXIST') {
-                    catColor = '#34c759';
-                } else if (loc.classification_status === 'EMERGE') {
-                    catColor = '#38bdf8';
-                } else if (loc.classification_status === 'POTENTIAL') {
-                    catColor = '#f59e0b';
+                const cat = (loc.category || 'Other').toLowerCase();
+                let iconClass = 'fa-location-dot';
+
+                if (cat.includes('beach') || cat.includes('surf') || cat.includes('coastal') || cat.includes('island')) {
+                    iconClass = 'fa-umbrella-beach';
+                } else if (cat.includes('nature') || cat.includes('park') || cat.includes('agro-forestry') || cat.includes('tree') || cat.includes('mangrove') || cat.includes('lagoon')) {
+                    iconClass = 'fa-tree';
+                } else if (cat.includes('water') || cat.includes('fall') || cat.includes('river') || cat.includes('lake') || cat.includes('spring') || cat.includes('dam')) {
+                    iconClass = 'fa-water';
+                } else if (cat.includes('mountain') || cat.includes('hiking') || cat.includes('trail') || cat.includes('peak') || cat.includes('view')) {
+                    iconClass = 'fa-mountain';
+                } else if (cat.includes('cultural') || cat.includes('heritage') || cat.includes('historical') || cat.includes('museum')) {
+                    iconClass = 'fa-landmark';
+                } else if (cat.includes('monument')) {
+                    iconClass = 'fa-monument';
+                } else if (cat.includes('landmark')) {
+                    iconClass = 'fa-archway';
+                } else if (cat.includes('religio') || cat.includes('church') || cat.includes('shrine') || cat.includes('parish')) {
+                    iconClass = 'fa-place-of-worship';
+                } else if (cat.includes('food') || cat.includes('dining') || cat.includes('restaurant') || cat.includes('cafe')) {
+                    iconClass = 'fa-utensils';
+                } else if (cat.includes('art') || cat.includes('craft') || cat.includes('weaving') || cat.includes('pottery')) {
+                    iconClass = 'fa-palette';
+                } else if (cat.includes('farm') || cat.includes('agro') || cat.includes('plant')) {
+                    iconClass = 'fa-tractor';
+                } else if (cat.includes('cave')) {
+                    iconClass = 'fa-dungeon';
+                } else if (cat.includes('recreation') || cat.includes('resort')) {
+                    iconClass = 'fa-person-swimming';
                 }
 
-                features.push({
-                    type: 'Feature',
-                    geometry: {
-                        type: 'Point',
-                        coordinates: [locLng, locLat]
-                    },
-                    properties: {
-                        id: loc.id,
-                        name: loc.name || 'Tourist Spot',
-                        category: loc.category || 'Other',
-                        classification_status: loc.classification_status || 'EXIST',
-                        cat_color: catColor,
-                        municipality: loc.municipality || '',
-                        raw_json: JSON.stringify(loc)
-                    }
-                });
-            });
+                // Classification status colors (Strict compliance):
+                // Existing = #34c759, Emerging = #38bdf8, Potential = #f59e0b
+                const status = (loc.classification_status || 'EXIST').toUpperCase().trim();
+                let catColor = '#34c759';
+                let statusLabel = 'Existing';
+                if (status === 'EMERGE' || status === 'EMERGING') {
+                    catColor = '#38bdf8';
+                    statusLabel = 'Emerging';
+                } else if (status === 'POTENTIAL') {
+                    catColor = '#f59e0b';
+                    statusLabel = 'Potential';
+                }
 
-            const geojsonData = {
-                type: 'FeatureCollection',
-                features: features
-            };
+                const container = document.createElement('div');
+                container.className = 'elyu-custom-marker';
+                container.style.cssText = 'cursor:pointer; display:flex; flex-direction:column; align-items:center; user-select:none; will-change:transform; transform:translate3d(0,0,0); backface-visibility:hidden; z-index:10;';
 
-            const source = window.mapInstance.getSource('tourist-spots-source');
-            if (source) {
-                source.setData(geojsonData);
-            } else {
-                window.mapInstance.addSource('tourist-spots-source', {
-                    type: 'geojson',
-                    data: geojsonData,
-                    cluster: true,
-                    clusterMaxZoom: 9,
-                    clusterRadius: 28
-                });
+                const pin = document.createElement('div');
+                pin.className = 'elyu-pin-bubble';
+                pin.style.cssText = `width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:2.5px solid ${catColor}; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 4px 12px rgba(0,0,0,0.35), 0 0 10px ${catColor}70; transition:transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);`;
+                pin.innerHTML = `<i class="fa-solid ${iconClass}" style="font-size:13.5px; color:${catColor};"></i>`;
 
-                // Layer 1: Cluster Outer Ambient Glow
-                window.mapInstance.addLayer({
-                    id: 'clusters-glow',
-                    type: 'circle',
-                    source: 'tourist-spots-source',
-                    filter: ['has', 'point_count'],
-                    paint: {
-                        'circle-color': [
-                            'step',
-                            ['get', 'point_count'],
-                            'rgba(2, 132, 199, 0.35)',
-                            5,
-                            'rgba(37, 99, 235, 0.35)',
-                            15,
-                            'rgba(124, 58, 237, 0.35)'
-                        ],
-                        'circle-radius': [
-                            'step',
-                            ['get', 'point_count'],
-                            22,
-                            5,
-                            26,
-                            15,
-                            32
-                        ]
-                    }
-                });
+                const label = document.createElement('div');
+                label.className = 'elyu-pin-label';
+                label.style.cssText = 'margin-top:3px; padding:2px 7px; border-radius:6px; background:rgba(15,23,42,0.92); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); color:#ffffff; font-size:10px; font-weight:700; white-space:nowrap; max-width:115px; overflow:hidden; text-overflow:ellipsis; pointer-events:none; box-shadow:0 2px 6px rgba(0,0,0,0.4); text-align:center;';
+                label.textContent = loc.name;
 
-                // Layer 2: Cluster Solid Core Circle
-                window.mapInstance.addLayer({
-                    id: 'clusters',
-                    type: 'circle',
-                    source: 'tourist-spots-source',
-                    filter: ['has', 'point_count'],
-                    paint: {
-                        'circle-color': [
-                            'step',
-                            ['get', 'point_count'],
-                            '#0284c7',
-                            5,
-                            '#2563eb',
-                            15,
-                            '#7c3aed'
-                        ],
-                        'circle-radius': [
-                            'step',
-                            ['get', 'point_count'],
-                            16,
-                            5,
-                            20,
-                            15,
-                            24
-                        ],
-                        'circle-stroke-width': 2.5,
-                        'circle-stroke-color': '#ffffff'
-                    }
-                });
+                container.appendChild(pin);
+                container.appendChild(label);
 
-                // Layer 3: Cluster Count Label
-                window.mapInstance.addLayer({
-                    id: 'cluster-count',
-                    type: 'symbol',
-                    source: 'tourist-spots-source',
-                    filter: ['has', 'point_count'],
-                    layout: {
-                        'text-field': '{point_count_abbreviated}',
-                        'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
-                        'text-size': 12,
-                        'text-allow-overlap': true
-                    },
-                    paint: {
-                        'text-color': '#ffffff'
-                    }
-                });
-
-                // Layer 4: Unclustered Point Solid Outer Disc (Colored by Classification)
-                window.mapInstance.addLayer({
-                    id: 'unclustered-point-halo',
-                    type: 'circle',
-                    source: 'tourist-spots-source',
-                    filter: ['!', ['has', 'point_count']],
-                    paint: {
-                        'circle-color': ['get', 'cat_color'],
-                        'circle-radius': 12,
-                        'circle-stroke-width': 2.5,
-                        'circle-stroke-color': '#ffffff'
-                    }
-                });
-
-                // Layer 5: Unclustered Point Inner White Center Dot
-                window.mapInstance.addLayer({
-                    id: 'unclustered-point',
-                    type: 'circle',
-                    source: 'tourist-spots-source',
-                    filter: ['!', ['has', 'point_count']],
-                    paint: {
-                        'circle-color': '#ffffff',
-                        'circle-radius': 4.5
-                    }
-                });
-
-                // Layer 6: Spot Title Label (appears on zoom >= 9.0)
-                window.mapInstance.addLayer({
-                    id: 'unclustered-point-label',
-                    type: 'symbol',
-                    source: 'tourist-spots-source',
-                    filter: ['!', ['has', 'point_count']],
-                    minzoom: 9.0,
-                    layout: {
-                        'text-field': ['get', 'name'],
-                        'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
-                        'text-size': 11,
-                        'text-offset': [0, 1.4],
-                        'text-anchor': 'top',
-                        'text-max-width': 10,
-                        'text-allow-overlap': false,
-                        'text-optional': true
-                    },
-                    paint: {
-                        'text-color': '#ffffff',
-                        'text-halo-color': 'rgba(15, 23, 42, 0.95)',
-                        'text-halo-width': 2
-                    }
-                });
-
-                // Click on Cluster -> Smooth expansion zoom
-                const handleClusterClick = async (e) => {
-                    const features = window.mapInstance.queryRenderedFeatures(e.point, { layers: ['clusters', 'clusters-glow', 'cluster-count'] });
-                    if (!features || !features.length) return;
-                    const clusterId = features[0].properties.cluster_id;
-                    if (clusterId === undefined || clusterId === null) return;
-                    try {
-                        const zoom = await window.mapInstance.getSource('tourist-spots-source').getClusterExpansionZoom(clusterId);
-                        window.mapInstance.easeTo({
-                            center: features[0].geometry.coordinates,
-                            zoom: Math.min(zoom + 0.5, 15),
-                            duration: 500
-                        });
-                    } catch (err) {
-                        window.mapInstance.easeTo({
-                            center: features[0].geometry.coordinates,
-                            zoom: window.mapInstance.getZoom() + 2,
-                            duration: 500
-                        });
-                    }
-                };
-
-                window.mapInstance.on('click', 'clusters', handleClusterClick);
-                window.mapInstance.on('click', 'clusters-glow', handleClusterClick);
-                window.mapInstance.on('click', 'cluster-count', handleClusterClick);
-
-                // Click on Unclustered Spot Point
-                const handleSpotClick = (e) => {
-                    if (!e.features || !e.features.length) return;
-                    const props = e.features[0].properties;
-                    let loc = props;
-                    if (props.raw_json) {
-                        try { loc = JSON.parse(props.raw_json); } catch (err) { }
-                    }
-
-                    const coords = e.features[0].geometry.coordinates.slice();
-                    const lng = coords[0];
-                    const lat = coords[1];
-
+                container.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     if (window.activePopup) window.activePopup.remove();
-
-                    const status = (loc.classification_status || '').toUpperCase().trim();
-                    const badgeColor = (status === 'EXIST' || status === 'EXISTING') ? '#34c759' : ((status === 'EMERGE' || status === 'EMERGING') ? '#38bdf8' : '#f59e0b');
-                    const badgeLabel = (status === 'EXIST' || status === 'EXISTING') ? 'EXISTING' : ((status === 'EMERGE' || status === 'EMERGING') ? 'EMERGING' : 'POTENTIAL');
 
                     const popupContent = document.createElement('div');
                     popupContent.style.cssText = "font-weight:700; font-size:13px; color:var(--text-dark); padding: 4px 6px; cursor: pointer; display: flex; align-items: center; gap: 7px;";
-                    popupContent.innerHTML = `<span style="font-size:8px; font-weight:800; padding:2px 6px; border-radius:6px; background:${badgeColor}; color:#ffffff; text-transform:uppercase; letter-spacing:0.5px;">${badgeLabel}</span> <span style="max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${loc.name}</span> <i class="fa-solid fa-chevron-right" style="font-size:10px; color:var(--primary-color);"></i>`;
+                    popupContent.innerHTML = `<span style="font-size:8px; font-weight:800; padding:2px 6px; border-radius:6px; background:${catColor}; color:#ffffff; text-transform:uppercase; letter-spacing:0.5px;">${statusLabel}</span> <span style="max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${loc.name}</span> <i class="fa-solid fa-chevron-right" style="font-size:10px; color:var(--primary-color);"></i>`;
 
                     popupContent.addEventListener('click', () => {
                         const cz = window.mapInstance.getZoom();
-                        window.mapInstance.flyTo({ center: [lng, lat], zoom: Math.max(cz, 14), offset: [0, -180], duration: 400 });
+                        window.mapInstance.flyTo({ center: [locLng, locLat], zoom: Math.max(cz, 14), offset: [0, -180], duration: 400 });
                         window.openSheet(loc);
                     });
 
                     window.activePopup = new maplibregl.Popup({
-                        closeButton: false, closeOnClick: false, offset: 15, className: 'smooth-map-popup'
+                        closeButton: false, closeOnClick: false, offset: 20, className: 'smooth-map-popup'
                     })
-                        .setLngLat([lng, lat])
+                        .setLngLat([locLng, locLat])
                         .setDOMContent(popupContent)
                         .addTo(window.mapInstance);
 
@@ -1185,17 +1052,24 @@ if (is_dir($imgDir)) {
                     if (popupEl) popupEl.style.zIndex = 9999;
 
                     const cz = window.mapInstance.getZoom();
-                    window.mapInstance.flyTo({ center: [lng, lat], zoom: Math.max(cz, 14), offset: [0, -180], duration: 600 });
-                };
-
-                window.mapInstance.on('click', 'unclustered-point', handleSpotClick);
-                window.mapInstance.on('click', 'unclustered-point-halo', handleSpotClick);
-
-                ['clusters', 'clusters-glow', 'cluster-count', 'unclustered-point-halo', 'unclustered-point'].forEach(layerId => {
-                    window.mapInstance.on('mouseenter', layerId, () => { window.mapInstance.getCanvas().style.cursor = 'pointer'; });
-                    window.mapInstance.on('mouseleave', layerId, () => { window.mapInstance.getCanvas().style.cursor = ''; });
+                    window.mapInstance.flyTo({ center: [locLng, locLat], zoom: Math.max(cz, 14), offset: [0, -180], duration: 600 });
                 });
-            }
+
+                container.addEventListener('mouseenter', () => {
+                    pin.style.transform = 'scale(1.2)';
+                    container.style.zIndex = '100';
+                });
+                container.addEventListener('mouseleave', () => {
+                    pin.style.transform = 'scale(1)';
+                    container.style.zIndex = '10';
+                });
+
+                const marker = new maplibregl.Marker({ element: container, anchor: 'top' })
+                    .setLngLat([locLng, locLat])
+                    .addTo(window.mapInstance);
+
+                window.mapMarkers.push(marker);
+            });
         };
 
         function matchesCategoryFilter(loc, targetCat) {
@@ -1336,6 +1210,7 @@ if (is_dir($imgDir)) {
         }
 
         window.filterCategory = function (category, element) {
+            window.currentActiveCategory = category;
             document.querySelectorAll('.category-pill').forEach(pill => pill.classList.remove('active'));
             if (element) element.classList.add('active');
 
@@ -1851,34 +1726,41 @@ if (is_dir($imgDir)) {
 
                 calculatedSpots.sort((a, b) => a.distanceKm - b.distanceKm);
 
+                let activeCatSpots = calculatedSpots;
+                if (window.currentActiveCategory && window.currentActiveCategory !== 'All') {
+                    activeCatSpots = calculatedSpots.filter(s => matchesCategoryFilter(s, window.currentActiveCategory));
+                }
+
                 let filtered = [];
                 if (currentNearbyRadius === 'all') {
-                    filtered = calculatedSpots.filter(s => s.distanceKm < 999999).slice(0, 15);
+                    filtered = activeCatSpots.filter(s => s.distanceKm < 999999).slice(0, 30);
                 } else {
                     const radiusNum = parseFloat(currentNearbyRadius);
-                    filtered = calculatedSpots.filter(s => s.distanceKm <= radiusNum);
+                    filtered = activeCatSpots.filter(s => s.distanceKm <= radiusNum);
                 }
 
                 if (subtext) {
+                    const catLabel = (window.currentActiveCategory && window.currentActiveCategory !== 'All') ? ` in ${window.currentActiveCategory}` : '';
                     if (filtered.length > 0) {
-                        subtext.textContent = `Found ${filtered.length} attraction${filtered.length > 1 ? 's' : ''} ${currentNearbyRadius === 'all' ? 'closest to you' : 'within ' + currentNearbyRadius + ' km'}`;
+                        subtext.textContent = `Found ${filtered.length} attraction${filtered.length > 1 ? 's' : ''}${catLabel} ${currentNearbyRadius === 'all' ? 'closest to you' : 'within ' + currentNearbyRadius + ' km'}`;
                     } else {
-                        subtext.textContent = `No spots found within ${currentNearbyRadius} km`;
+                        subtext.textContent = `No spots found${catLabel} within ${currentNearbyRadius} km`;
                     }
                 }
 
                 if (filtered.length === 0) {
+                    const catTitle = (window.currentActiveCategory && window.currentActiveCategory !== 'All') ? `No ${window.currentActiveCategory} Spots Within ${currentNearbyRadius} km` : `No Spots Within ${currentNearbyRadius} km`;
                     container.innerHTML = `
-                    <div style="text-align:center; padding:28px 14px; background:rgba(255,255,255,0.15); border:1.5px solid rgba(255,255,255,0.35); border-radius:18px; animation: nearbyCardSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
-                        <div style="width:48px; height:48px; margin:0 auto 12px; border-radius:50%; background:rgba(255,255,255,0.22); border:1.5px solid rgba(255,255,255,0.45); display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:20px;">
+                    <div style="text-align:center; padding:28px 14px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; border-radius:18px; animation: nearbyCardSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+                        <div style="width:48px; height:48px; margin:0 auto 12px; border-radius:50%; background:rgba(255,255,255,0.22); border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:20px;">
                             <i class="fa-solid fa-location-dot"></i>
                         </div>
-                        <div style="font-size:15px; font-weight:800; color:#ffffff; margin-bottom:6px;">No Spots Within ${currentNearbyRadius} km</div>
+                        <div style="font-size:15px; font-weight:800; color:#ffffff; margin-bottom:6px;">${catTitle}</div>
                         <div style="font-size:12.5px; color:#ffffff; opacity:0.95; margin-bottom:16px; line-height:1.45; font-weight:500;">
                             Try expanding your search radius to discover attractions across La Union.
                         </div>
-                        <button type="button" onclick="window.filterNearbyRadius(15, document.querySelector('[data-radius=\\'15\\']'))" style="padding:9px 20px; border-radius:100px; background:linear-gradient(135deg, #63b1d0, #6192ca); border:1.5px solid #ffffff; color:#ffffff; font-size:12.5px; font-weight:800; cursor:pointer; transition:transform 0.2s ease;">
-                            Show Within 15 km
+                        <button type="button" onclick="window.filterNearbyRadius('all', document.querySelector('[data-radius=\\'all\\']'))" style="padding:9px 20px; border-radius:100px; background:linear-gradient(135deg, #1e3a8a, #3f7db7); border:none !important; outline:none !important; color:#ffffff; font-size:12.5px; font-weight:800; cursor:pointer; transition:transform 0.2s ease;">
+                            Show All in La Union
                         </button>
                     </div>
                 `;
@@ -1903,7 +1785,7 @@ if (is_dir($imgDir)) {
                     const delay = (idx * 0.04).toFixed(2);
 
                     html += `
-                    <div class="nearby-site-card" style="animation: nearbyCardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s forwards; opacity: 0; background:rgba(255,255,255,0.14); border:1.5px solid rgba(255,255,255,0.3); border-radius:18px; padding:10px 12px; display:flex; align-items:center; gap:12px;" onclick="window.selectNearbySite('${safeSpotStr}')">
+                    <div class="nearby-site-card" style="animation: nearbyCardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s forwards; opacity: 0; background:rgba(255,255,255,0.14); border:none !important; outline:none !important; border-radius:18px; padding:10px 12px; display:flex; align-items:center; gap:12px;" onclick="window.selectNearbySite('${safeSpotStr}')">
                         <img src="${img}" alt="${spot.name}" style="width:64px; height:64px; border-radius:12px; object-fit:cover; flex-shrink:0; transition: transform 0.3s ease;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
                         <div style="flex:1; min-width:0;">
                             <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:3px;">
@@ -1913,16 +1795,16 @@ if (is_dir($imgDir)) {
                                 <i class="fa-solid fa-location-dot" style="color:#ffffff; margin-right:3px;"></i>${spot.municipality || spot.location || 'La Union'}
                             </div>
                             <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                                <span style="font-size:10px; font-weight:800; color:#ffffff; background:rgba(255,255,255,0.22); border:1px solid rgba(255,255,255,0.4); padding:2px 7px; border-radius:100px; display:inline-flex; align-items:center; gap:3px;">
+                                <span style="font-size:10px; font-weight:800; color:#ffffff; background:rgba(255,255,255,0.22); border:none !important; outline:none !important; padding:2px 7px; border-radius:100px; display:inline-flex; align-items:center; gap:3px;">
                                     <i class="fa-solid fa-location-arrow" style="font-size:9px; color:#ffffff;"></i> ${distBadge}
                                 </span>
                                 <span style="font-size:10.5px; font-weight:700; color:#fbbf24; display:inline-flex; align-items:center; gap:3px;">
                                     <i class="fa-solid fa-star" style="font-size:9.5px;"></i> ${rating}
                                 </span>
-                                ${spot.category ? `<span style="font-size:10px; color:#ffffff; background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.3); padding:2px 6px; border-radius:6px; font-weight:600;">${spot.category}</span>` : ''}
+                                ${spot.category ? `<span style="font-size:10px; color:#ffffff; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; padding:2px 6px; border-radius:6px; font-weight:600;">${spot.category}</span>` : ''}
                             </div>
                         </div>
-                        <button type="button" class="nearby-site-action-btn" title="View on Map" style="background:rgba(255,255,255,0.22); border:1px solid rgba(255,255,255,0.4); color:#ffffff; width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                        <button type="button" class="nearby-site-action-btn" title="View on Map" style="background:rgba(255,255,255,0.22); border:none !important; outline:none !important; color:#ffffff; width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
                             <i class="fa-solid fa-chevron-right" style="font-size:13px; color:#ffffff;"></i>
                         </button>
                     </div>
