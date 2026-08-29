@@ -1016,7 +1016,7 @@ if (is_dir($imgDir)) {
 
                 const pin = document.createElement('div');
                 pin.className = 'elyu-pin-bubble';
-                pin.style.cssText = `width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:2.5px solid ${catColor}; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 4px 12px rgba(0,0,0,0.35), 0 0 10px ${catColor}70; transition:transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);`;
+                pin.style.cssText = `width:34px; height:34px; border-radius:50%; background:#ffffff; border:2.5px solid ${catColor}; display:flex; align-items:center; justify-content:center; color:${catColor}; box-shadow:0 4px 10px rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.12); transition:transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);`;
                 pin.innerHTML = `<i class="fa-solid ${iconClass}" style="font-size:13.5px; color:${catColor};"></i>`;
 
                 container.appendChild(pin);
