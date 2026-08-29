@@ -70,8 +70,8 @@
             if(splashMain) {
                 // Dynamically calculate the perfect translateY destination based on auth page layout
                 const vh = window.innerHeight;
-                const authTopHeight = Math.min(Math.max(vh * 0.42, 280), 350);
-                const destCenter = (authTopHeight / 2) - 37; // Exact center of 140px logo in auth-top
+                const authTopHeight = Math.min(Math.max(vh * 0.38, 250), 330);
+                const destCenter = (authTopHeight / 2) - 32; // Exact center of 140px logo in auth-top
 
                 // Determine current position of the splash logo
                 const logoContainer = splashMain.querySelector('.splash-logo-container');
@@ -86,8 +86,8 @@
                     logoContainer.style.setProperty('z-index', '99999', 'important');
                     logoContainer.style.setProperty('position', 'relative', 'important');
                     
-                    // Override CSS with exact inline style
-                    logoContainer.style.setProperty('transform', `translateY(${translateY}px) scale(1)`, 'important');
+                    // Override CSS with exact inline style (never shrink scale)
+                    logoContainer.style.setProperty('transform', `translateY(${translateY}px)`, 'important');
                     logoContainer.style.setProperty('transition', 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)', 'important');
                     
                     // Freeze the float animation exactly where it is so it doesn't drift during transition
