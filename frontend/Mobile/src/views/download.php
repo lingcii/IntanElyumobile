@@ -283,8 +283,11 @@ $hideBottomNav = true;
       Download APK for Android
     </a>
     <?php
-      $localApk = dirname(__DIR__) . '/downloads/intan-elyu.apk';
-      $apkSizeStr = file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 * 1024), 1) . ' MB' : '~32 MB';
+      $localApk = __DIR__ . '/../downloads/intan-elyu.apk';
+      if (!file_exists($localApk)) {
+          $localApk = dirname(__DIR__, 2) . '/public/downloads/intan-elyu.apk';
+      }
+      $apkSizeStr = file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 * 1024), 1) . ' MB' : '~39.4 MB';
     ?>
     <div class="file-info">
       <span><i class="fa-solid fa-file-zipper"></i> APK File</span>
