@@ -421,96 +421,142 @@ if (is_dir($imgDir)) {
             return false;
         };
 
-        const filterContainer = (containerId, emptyMsg) => {
-            const container = document.getElementById(containerId);
-            if (!container) return;
+        window.currentDashCategory = cat;
 
-            const oldEmpty = container.querySelector('.dash-filter-empty-state');
-            if (oldEmpty) oldEmpty.remove();
-
-            const children = Array.from(container.children).filter(child => !child.classList.contains('dash-filter-empty-state'));
-            let visibleCount = 0;
-
-            for (let i = 0; i < children.length; i++) {
-                const child = children[i];
-                if (child.innerText && (child.innerText.includes('Loading') || child.innerText.includes('Enable location') || child.innerText.includes('Go to the map'))) {
-                    continue;
-                }
-
-                if (child.id === 'btn-view-more-rec' || child.id === 'rec-extras') {
-                    if (child.id === 'btn-view-more-rec') {
-                        child.style.display = (cat === 'All') ? '' : 'none';
-                    }
-                    if (child.id === 'rec-extras') {
-                        Array.from(child.children).forEach(subChild => {
-                            const subCat = subChild.getAttribute('data-category') || '';
-                            const subName = subChild.getAttribute('data-name') || subChild.querySelector('.fav-card-name, h4')?.innerText || '';
-                            const subMuni = subChild.getAttribute('data-municipality') || '';
-                            if (matchesCategory(subCat, subName, subMuni, cat)) {
-                                subChild.style.display = '';
-                                visibleCount++;
-                            } else {
-                                subChild.style.display = 'none';
-                            }
-                        });
-                    }
-                    continue;
-                }
-
-                const cardCat = child.getAttribute('data-category') || '';
-                const cardName = child.getAttribute('data-name') || child.querySelector('.fav-card-name, h4')?.innerText || '';
-                const cardMuni = child.getAttribute('data-municipality') || '';
-
-                if (matchesCategory(cardCat, cardName, cardMuni, cat)) {
-                    child.style.display = '';
-                    child.style.animation = 'none';
-                    void child.offsetWidth;
-                    child.style.animation = 'filterFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards';
-                    visibleCount++;
-                } else {
-                    child.style.display = 'none';
-                }
-            }
-
-            if (cat !== 'All' && visibleCount === 0) {
-                container.classList.add('is-empty');
-                container.style.paddingLeft = '0';
-                container.style.paddingRight = '0';
-                container.style.marginLeft = '0';
-                container.style.marginRight = '0';
-
-                const emptyDiv = document.createElement('div');
-                emptyDiv.className = 'dash-filter-empty-state dash-empty-state';
-                emptyDiv.innerHTML = `
+        const renderEmpty = (container, emptyMsg) => {
+            container.classList.add('is-empty');
+            container.style.paddingLeft = '0';
+            container.style.paddingRight = '0';
+            container.style.marginLeft = '0';
+            container.style.marginRight = '0';
+            container.innerHTML = `
+                <div class="dash-filter-empty-state dash-empty-state">
                     <div class="dash-empty-icon-wrap">
                         <i class="fa-solid fa-compass"></i>
                     </div>
                     <div class="dash-empty-title">${emptyMsg}</div>
                     <div class="dash-empty-desc">Try selecting another category or tap All to view all destinations.</div>
-                `;
-
-                const btnMore = container.querySelector('#btn-view-more-rec');
-                if (btnMore) {
-                    btnMore.style.display = 'none';
-                    container.insertBefore(emptyDiv, btnMore);
-                } else {
-                    container.appendChild(emptyDiv);
-                }
-            } else {
-                const hasVisibleCards = Array.from(container.children).some(c => c.classList.contains('fav-card') && c.style.display !== 'none');
-                if (hasVisibleCards) {
-                    container.classList.remove('is-empty');
-                    container.style.paddingLeft = '';
-                    container.style.paddingRight = '';
-                    container.style.marginLeft = '';
-                    container.style.marginRight = '';
-                }
-            }
+                </div>
+            `;
         };
 
-        filterContainer('trending-container', 'No trending sites in this category.');
-        filterContainer('recommended-container', 'No recommended sites in this category.');
-        filterContainer('near-me-container', 'No nearby sites found in this category.');
+        const renderFavCard = (dest) => {
+            const img = window.getDestImage(dest, 600);
+            const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
+            const encodedDest = encodeURIComponent(JSON.stringify(dest));
+            return `
+                <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
+                    ${badgeHtml}
+                    <img src="${img}" alt="${dest.name}" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
+                    <div class="fav-card-overlay"><span class="fav-card-name">${dest.name}</span></div>
+                    <i class="fa-solid fa-fire fav-heart" style="color: #ff9500; font-size: 14px;"></i>
+                </div>
+            `;
+        };
+
+        // 1. Filter Trending Section
+        const trendingContainer = document.getElementById('trending-container');
+        if (trendingContainer && window.dashTrending) {
+            let list = [];
+            if (cat === 'All') {
+                list = window.dashTrending.slice(0, 5);
+            } else {
+                list = window.dashTrending.filter(d => matchesCategory(d.category, d.name, d.municipality || d.location, cat));
+            }
+            if (list.length > 0) {
+                trendingContainer.classList.remove('is-empty');
+                trendingContainer.style.paddingLeft = '';
+                trendingContainer.style.paddingRight = '';
+                trendingContainer.style.marginLeft = '';
+                trendingContainer.style.marginRight = '';
+                trendingContainer.innerHTML = list.map(renderFavCard).join('');
+                window.initLoopingFocusCarousel('trending-container');
+            } else {
+                renderEmpty(trendingContainer, 'No trending sites in this category.');
+            }
+        }
+
+        // 2. Filter Recommended Section
+        const recContainer = document.getElementById('recommended-container');
+        if (recContainer && window.dashRecommended && typeof window.buildRecommendedItem === 'function') {
+            if (cat === 'All') {
+                recContainer.classList.remove('is-empty');
+                recContainer.innerHTML = '';
+                const INITIAL_SHOW = 2;
+                const allDests = window.dashRecommended;
+                allDests.slice(0, INITIAL_SHOW).forEach(dest => {
+                    recContainer.innerHTML += window.buildRecommendedItem(dest);
+                });
+                if (allDests.length > INITIAL_SHOW) {
+                    const extras = allDests.slice(INITIAL_SHOW);
+                    const extraHtml = extras.map(dest => window.buildRecommendedItem(dest)).join('');
+                    recContainer.innerHTML += `
+                        <div id="rec-extras" style="overflow:hidden; max-height:0; transition: max-height 0.4s ease;">
+                            ${extraHtml}
+                        </div>
+                        <button id="btn-view-more-rec"
+                            onclick="window.toggleRecommendedMore()"
+                            style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border:none; outline:none; background:#6196c8; color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:none; transition: all 0.2s;">
+                            <i class="fa-solid fa-chevron-down" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i>
+                            View ${extras.length} More
+                        </button>
+                    `;
+                }
+            } else {
+                const list = window.dashRecommended.filter(d => matchesCategory(d.category, d.name, d.municipality || d.location, cat));
+                if (list.length > 0) {
+                    recContainer.classList.remove('is-empty');
+                    recContainer.innerHTML = list.map(dest => window.buildRecommendedItem(dest)).join('');
+                } else {
+                    renderEmpty(recContainer, 'No recommended sites in this category.');
+                }
+            }
+        }
+
+        // 3. Filter Near Me Section
+        const nearContainer = document.getElementById('near-me-container');
+        if (nearContainer) {
+            const sourceSpots = window.allNearSpots || window.lastNearSpots || [];
+            if (sourceSpots.length > 0) {
+                let list = [];
+                if (cat === 'All') {
+                    list = window.lastNearSpots || sourceSpots.slice(0, 4);
+                } else {
+                    list = sourceSpots.filter(d => matchesCategory(d.category, d.name, d.municipality || d.location, cat));
+                }
+                if (list.length > 0) {
+                    nearContainer.classList.remove('is-empty');
+                    nearContainer.style.paddingLeft = '';
+                    nearContainer.style.paddingRight = '';
+                    nearContainer.style.marginLeft = '';
+                    nearContainer.style.marginRight = '';
+                    nearContainer.innerHTML = list.map(dest => {
+                        const img = window.getDestImage(dest, 600);
+                        const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
+                        let distText = '';
+                        if (dest.distance !== undefined && dest.distance < 999999) {
+                            if (dest.distance < 0.05) distText = `${Math.max(5, Math.round(dest.distance * 1000))}m away`;
+                            else if (dest.distance < 1.0) distText = `${Math.round((dest.distance * 1000) / 10) * 10}m away`;
+                            else distText = `${dest.distance.toFixed(1)} km away`;
+                        }
+                        const encodedDest = encodeURIComponent(JSON.stringify(dest));
+                        return `
+                            <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
+                                ${badgeHtml}
+                                <img src="${img}" alt="${dest.name}" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
+                                <div class="fav-card-overlay">
+                                    <span class="fav-card-name">${dest.name}</span>
+                                    ${distText ? `<span style="display:block; font-size:10px; color:#38bdf8; margin-top:2px; font-weight:700;"><i class="fa-solid fa-location-arrow"></i> ${distText}</span>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    window.initLoopingFocusCarousel('near-me-container');
+                } else if (cat !== 'All') {
+                    renderEmpty(nearContainer, 'No nearby sites found in this category.');
+                }
+            }
+        }
     };
 
     window.initLoopingFocusCarousel = function (containerId) {
@@ -646,12 +692,16 @@ if (is_dir($imgDir)) {
             }
         }
 
-        let apiUrl = backendUrl + '/api/tourist/dashboard';
-        if (lat && lng) apiUrl += `?lat=${lat}&lng=${lng}`;
+        let apiUrl = backendUrl + '/api/tourist/dashboard?limit=50';
+        if (lat && lng) apiUrl += `&lat=${lat}&lng=${lng}`;
 
         const cacheKey = 'dashboard_data_' + (lat && lng ? `${lat.toFixed(3)}_${lng.toFixed(3)}` : 'default');
 
         function renderDashboard(data) {
+            window.dashTrending = data.trending || [];
+            window.dashRecommended = data.recommended || [];
+            window.dashSaved = data.savedPlaces || [];
+
             // Update notification badge
             if (data.stats && typeof window.updateUnreadBadge === 'function') {
                 window.updateUnreadBadge(data.stats.unread_notifications || 0);
@@ -937,6 +987,7 @@ if (is_dir($imgDir)) {
 
                     // Sort by nearest distance first
                     spots.sort((a, b) => a.distance - b.distance);
+                    window.allNearSpots = spots;
 
                     // Progressive distance filter:
                     // 1. If spots within 5 km exist, show them.
@@ -949,6 +1000,7 @@ if (is_dir($imgDir)) {
                     if (nearSpots.length === 0 && spots.length > 0) {
                         nearSpots = spots.filter(s => s.distance < 999999).slice(0, 4);
                     }
+                    window.lastNearSpots = nearSpots;
 
                     if (nearSpots.length > 0) {
                         nearContainer.classList.remove('is-empty');
@@ -1011,7 +1063,7 @@ if (is_dir($imgDir)) {
             );
         }
 
-        function buildRecommendedItem(dest) {
+        window.buildRecommendedItem = function (dest) {
             const img = window.getDestImage(dest, 300);
             const rating = dest.rating ? parseFloat(dest.rating).toFixed(1) : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating).toFixed(1) : 'New');
             const desc = dest.description ? dest.description.substring(0, 150) + (dest.description.length > 150 ? '...' : '') : 'A beautiful destination waiting to be explored.';
