@@ -76,7 +76,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     margin-bottom: 20px;
     cursor: pointer;
     border: none !important;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
+    box-shadow: none !important;
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
@@ -99,7 +99,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     border-radius: 50%;
     overflow: hidden;
     border: 2.5px solid #63b1d0;
-    box-shadow: 0 0 20px rgba(99, 177, 208, 0.45);
+    box-shadow: none !important;
     animation: pulseGlow 4s infinite ease-in-out;
     flex-shrink: 0;
     position: relative;
@@ -207,7 +207,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     animation: shimmerFill 3s ease infinite;
     border-radius: 100px;
     transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 0 14px rgba(0, 242, 254, 0.65);
+    box-shadow: none !important;
 }
 
 /* Stats Row Grid */
@@ -226,7 +226,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     text-align: center;
     cursor: pointer;
     transition: transform 0.25s ease, opacity 0.25s ease;
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.14);
+    box-shadow: none !important;
 }
 
 .stat-card:active {
@@ -238,7 +238,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     font-size: 24px;
     margin-bottom: 8px;
     display: inline-block;
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.25));
+    filter: none !important;
 }
 
 .stat-value {
@@ -268,7 +268,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
+    box-shadow: none !important;
     transition: transform 0.25s ease, opacity 0.25s ease;
 }
 
@@ -317,7 +317,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 
 .weather-icon {
     font-size: 48px;
-    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.4));
+    filter: none !important;
     line-height: 1;
 }
 
@@ -416,7 +416,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     scroll-snap-align: center;
     cursor: pointer;
     border: none !important;
-    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.25) !important;
+    box-shadow: none !important;
     flex-shrink: 0;
     will-change: transform, opacity;
     transform: scale(0.88) translate3d(0, 0, 0);
@@ -428,7 +428,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     transform: scale(1.00) translate3d(0, 0, 0) !important;
     opacity: 1 !important;
     z-index: 10;
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.35) !important;
+    box-shadow: none !important;
     border: none !important;
 }
 
@@ -482,7 +482,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     align-items: center;
     justify-content: center;
     font-size: 14px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    box-shadow: none !important;
     cursor: pointer;
     transition: transform 0.2s ease;
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -534,7 +534,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     justify-content: center;
     padding: 10px 6px;
     box-sizing: border-box;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12) !important;
+    box-shadow: none !important;
     cursor: pointer;
     user-select: none;
     border: none !important;
@@ -554,7 +554,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 .category-card.active {
     background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
     border: none !important;
-    box-shadow: 0 6px 20px rgba(0, 242, 254, 0.4) !important;
+    box-shadow: none !important;
     animation: filterFadeIn 0.25s ease-out;
 }
 
@@ -619,7 +619,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     background: #6196c8 !important;
     border: none !important;
     border-radius: 22px;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16) !important;
+    box-shadow: none !important;
     animation: dashEmptyFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     margin: 0 !important;
 }
@@ -647,7 +647,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     justify-content: center;
     font-size: 22px;
     color: #ffffff;
-    box-shadow: none;
+    box-shadow: none !important;
     margin-bottom: 2px;
     flex-shrink: 0;
 }
@@ -685,7 +685,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    box-shadow: none;
+    box-shadow: none !important;
     transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
     text-decoration: none;
     white-space: nowrap;
@@ -717,7 +717,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     font-size: 13px;
     font-weight: 600;
     margin: 0 !important;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16) !important;
+    box-shadow: none !important;
 }
 
 .dash-loading-state i {
@@ -732,7 +732,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     border: none !important;
     border-radius: 18px;
     overflow: hidden;
-    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.14) !important;
+    box-shadow: none !important;
     transition: all 0.25s ease;
 }
 
