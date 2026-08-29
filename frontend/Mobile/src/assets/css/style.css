@@ -609,10 +609,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 /* ============================================================
- * 3-Wave Colors Google OAuth Modal
- * Wave 1: #00f2fe (Electric Cyan)
- * Wave 2: #38bdf8 (Ocean Sky Blue)
- * Wave 3: #74a3cf (Coastal Elyu Periwinkle)
+ * 3-Colors Google OAuth Modal (Clean Minimalist)
+ * Color 1: #00f2fe (Electric Cyan)
+ * Color 2: #38bdf8 (Ocean Sky Blue)
+ * Color 3: #74a3cf (Coastal Elyu Periwinkle)
  * ============================================================ */
 
 #global-oauth-overlay {
@@ -621,9 +621,9 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   width: 100vw;
   height: 100vh;
   height: 100dvh;
-  background: radial-gradient(circle at 50% 36%, rgba(0, 242, 254, 0.16) 0%, rgba(56, 189, 248, 0.12) 32%, rgba(116, 163, 207, 0.08) 60%, rgba(10, 15, 29, 0.96) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(10, 10, 14, 0.94);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   z-index: 999999;
   display: flex;
   flex-direction: column;
@@ -636,118 +636,68 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   box-sizing: border-box;
   overflow: hidden;
   opacity: 0;
-  animation: oauthModalFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: oauthModalFadeIn 0.25s ease forwards;
 }
 
 @keyframes oauthModalFadeIn {
-  from { opacity: 0; transform: scale(0.96); }
+  from { opacity: 0; transform: scale(0.98); }
   to { opacity: 1; transform: scale(1); }
 }
 
-.oauth-modal-card {
-  position: relative;
-  width: 88%;
-  max-width: 330px;
-  background: rgba(15, 23, 42, 0.86);
-  border-radius: 26px;
-  padding: 34px 22px 28px;
+.oauth-modal-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
-  border: 1.5px solid rgba(56, 189, 248, 0.32);
-  box-shadow: 
-    0 24px 60px rgba(0, 0, 0, 0.75),
-    0 0 35px rgba(0, 242, 254, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
-  overflow: hidden;
+  justify-content: center;
+  gap: 16px;
+  max-width: 320px;
+  width: 100%;
 }
 
-/* Top 3-Wave Gradient Accent Line */
-.oauth-card-accent {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #00f2fe 0%, #38bdf8 50%, #74a3cf 100%);
-  box-shadow: 0 1px 10px rgba(0, 242, 254, 0.6);
-}
-
-/* 3-Wave Animated Concentric Spinner */
-.oauth-spinner-wrapper {
+/* Glowing Circle Container using the 3 colors */
+.oauth-spinner-circle {
   position: relative;
-  width: 84px;
-  height: 84px;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.14) 0%, rgba(116, 163, 207, 0.06) 60%, rgba(10, 10, 14, 0.6) 100%);
+  border: 1.5px solid transparent;
+  background-image: 
+    linear-gradient(rgba(10, 10, 14, 0.85), rgba(10, 10, 14, 0.85)),
+    linear-gradient(135deg, #00f2fe, #38bdf8, #74a3cf);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 2px;
+  box-shadow: 
+    0 0 24px rgba(0, 242, 254, 0.35),
+    0 0 45px rgba(56, 189, 248, 0.2),
+    inset 0 0 14px rgba(116, 163, 207, 0.18);
 }
 
-/* Outer Glow Ring (Wave 1: #00f2fe) */
-.oauth-ring-outer {
-  position: absolute;
-  inset: -6px;
+/* Rotating Spinner Ring blending the 3 colors */
+.oauth-spinner-ring {
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(0, 242, 254, 0.28) 0%, rgba(56, 189, 248, 0.1) 70%, transparent 100%);
-  animation: oauthPulseRing 2.4s ease-in-out infinite;
-}
-
-/* Rotating Conic Gradient Ring (All 3 Wave Colors) */
-.oauth-spinner-track {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  padding: 3.5px;
-  background: conic-gradient(from 0deg, #00f2fe 0%, #38bdf8 45%, #74a3cf 80%, transparent 100%);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  animation: oauthSpin 1.2s linear infinite;
-}
-
-/* Inner Glow Core (Wave 3: #74a3cf + Wave 2: #38bdf8) */
-.oauth-inner-core {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, rgba(116, 163, 207, 0.14) 60%, rgba(15, 23, 42, 0.92) 100%);
-  border: 1px solid rgba(116, 163, 207, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: inset 0 0 16px rgba(0, 242, 254, 0.3);
-}
-
-.oauth-google-icon {
-  width: 28px;
-  height: 28px;
-  display: block;
-  animation: oauthFloat 2.6s ease-in-out infinite;
+  border: 3px solid transparent;
+  border-top-color: #00f2fe;    /* Color 1: Electric Cyan */
+  border-right-color: #38bdf8;  /* Color 2: Sky Blue */
+  border-bottom-color: #74a3cf; /* Color 3: Coastal Elyu Blue */
+  animation: oauthSpin 0.9s linear infinite;
 }
 
 @keyframes oauthSpin {
   to { transform: rotate(360deg); }
 }
 
-@keyframes oauthPulseRing {
-  0%, 100% { transform: scale(0.96); opacity: 0.55; }
-  50% { transform: scale(1.16); opacity: 0.95; }
-}
-
-@keyframes oauthFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2.5px); }
-}
-
-/* 3-Wave Gradient Heading */
+/* Title styled with 3-color gradient */
 .oauth-modal-title {
   margin: 0;
-  font-size: 19.5px;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-  background: linear-gradient(135deg, #00f2fe 0%, #38bdf8 52%, #74a3cf 100%);
+  font-size: 19px;
+  font-weight: 700;
+  background: linear-gradient(90deg, #00f2fe 0%, #38bdf8 50%, #74a3cf 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -757,90 +707,27 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 /* Subtitle */
 .oauth-modal-subtitle {
   margin: 0;
-  font-size: 13px;
-  color: rgba(226, 232, 240, 0.85);
-  font-weight: 500;
-  line-height: 1.4;
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 400;
 }
 
-/* 3-Wave Colored Indicator Dots */
-.oauth-wave-dots {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.oauth-wave-dot {
-  width: 8.5px;
-  height: 8.5px;
-  border-radius: 50%;
-  animation: oauthWaveBounce 1.2s ease-in-out infinite;
-}
-
-.oauth-wave-dot.dot-1 {
-  background: #00f2fe; /* Wave 1: Electric Cyan */
-  box-shadow: 0 0 12px rgba(0, 242, 254, 0.85);
-  animation-delay: 0s;
-}
-
-.oauth-wave-dot.dot-2 {
-  background: #38bdf8; /* Wave 2: Sky Blue */
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.85);
-  animation-delay: 0.18s;
-}
-
-.oauth-wave-dot.dot-3 {
-  background: #74a3cf; /* Wave 3: Coastal Elyu Blue */
-  box-shadow: 0 0 12px rgba(116, 163, 207, 0.85);
-  animation-delay: 0.36s;
-}
-
-@keyframes oauthWaveBounce {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-    opacity: 0.6;
-  }
-  50% {
-    transform: translateY(-8px) scale(1.25);
-    opacity: 1;
-  }
-}
-
-/* 3-Wave Subtle Waves Ribbon at Bottom of Card */
-.oauth-card-waves {
-  width: 100%;
-  height: 28px;
-  margin-top: -6px;
-  overflow: hidden;
-  line-height: 0;
-  pointer-events: none;
-  opacity: 0.85;
-}
-
-.oauth-card-waves svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-/* Success State in Modal */
-.oauth-success-ring {
+/* Success Circle on login complete */
+.oauth-success-circle {
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(0, 242, 254, 0.22) 0%, rgba(52, 199, 89, 0.28) 100%);
-  border: 2px solid #00f2fe;
+  background: radial-gradient(circle, rgba(52, 199, 89, 0.18) 0%, rgba(0, 242, 254, 0.1) 70%, rgba(10, 10, 14, 0.6) 100%);
+  border: 1.5px solid #00f2fe;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 32px rgba(0, 242, 254, 0.5);
-  animation: oauthSuccessPop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  box-shadow: 0 0 28px rgba(0, 242, 254, 0.45), 0 0 40px rgba(52, 199, 89, 0.25);
+  animation: oauthSuccessPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 @keyframes oauthSuccessPop {
-  0% { transform: scale(0.6); opacity: 0; }
+  0% { transform: scale(0.7); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
 
