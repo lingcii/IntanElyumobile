@@ -39,8 +39,8 @@ if (strpos($path, 'intan-elyu.apk') !== false || strpos($path, '.apk') !== false
     }
 }
 
-// Return clean 404 for missing static assets to prevent HTML syntax errors in CSS/JS
-if (preg_match('/\.(css|js|png|jpg|jpeg|gif|svg|ico|json|woff|woff2|ttf|map)$/i', $path) && !file_exists(__DIR__ . $path)) {
+// Return clean 404 for missing static assets to prevent HTML syntax errors in CSS/JS (excluding /api/ and /storage/ proxy paths)
+if (strpos($path, '/api/') !== 0 && strpos($path, '/storage/') !== 0 && preg_match('/\.(css|js|png|jpg|jpeg|gif|svg|ico|json|woff|woff2|ttf|map)$/i', $path) && !file_exists(__DIR__ . $path)) {
     http_response_code(404);
     exit;
 }

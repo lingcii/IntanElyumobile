@@ -121,9 +121,12 @@ window.getBackendUrl = function () {
                 return window.location.protocol + '//' + window.location.host + '/Intan-Elyu-Tourism-Management-System/backend/public';
             }
         }
-        return window.location.origin.replace(/\/+$/, '');
+        if (window.location.hostname === 'app.intan-elyu.online') {
+            return 'https://api.intan-elyu.online';
+        }
+        return window.location.origin.replace('app.', 'api.').replace(/\/+$/, '');
     }
-    return 'https://app.intan-elyu.online';
+    return 'https://api.intan-elyu.online';
 };
 
 window.getFullImageUrl = function (url) {
