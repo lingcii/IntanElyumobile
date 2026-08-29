@@ -12,12 +12,13 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     libzip-dev \
     libcurl4-openssl-dev \
+    libicu-dev \
     zip \
     unzip \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions required by Laravel
-RUN docker-php-ext-install pdo_mysql mbstring bcmath gd xml zip curl
+RUN docker-php-ext-configure intl && docker-php-ext-install pdo_mysql mbstring bcmath gd xml zip curl intl
 
 # Copy Composer binary from official image
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
