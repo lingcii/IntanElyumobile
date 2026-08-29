@@ -1981,7 +1981,7 @@ if (is_dir($imgDir)) {
     };
 
     // Live continuous GPS sync listener for real-time Near Me distances (debounced to eliminate twitching)
-    let _gpsDebounceTimer = null;
+    window._gpsDebounceTimer = window._gpsDebounceTimer || null;
     document.addEventListener('gpsUpdated', function (e) {
         if (e.detail && e.detail.lat && e.detail.lng) {
             const liveLat = parseFloat(e.detail.lat);
@@ -1991,8 +1991,8 @@ if (is_dir($imgDir)) {
                 window.currentGPSLat = liveLat;
                 window.currentGPSLng = liveLng;
                 if (typeof window.loadNearMe === 'function') {
-                    clearTimeout(_gpsDebounceTimer);
-                    _gpsDebounceTimer = setTimeout(() => {
+                    clearTimeout(window._gpsDebounceTimer);
+                    window._gpsDebounceTimer = setTimeout(() => {
                         window.loadNearMe(liveLat, liveLng);
                     }, 1500);
                 }

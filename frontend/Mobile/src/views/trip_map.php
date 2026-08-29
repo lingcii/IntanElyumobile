@@ -861,7 +861,7 @@ require_once __DIR__ . '/../components/header.php';
     };
 
     // Real-time GPS Listener for live navigation mode on Saved Trips
-    let _tripGpsTimeout = null;
+    window._tripGpsTimeout = window._tripGpsTimeout || null;
     document.addEventListener('gpsUpdated', (e) => {
         window.myLat = e.detail.lat;
         window.myLng = e.detail.lng;
