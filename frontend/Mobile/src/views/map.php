@@ -79,10 +79,10 @@ if (is_dir($imgDir)) {
         </div>
     </div>
 
-    <!-- Classification Toggle Button & Popover (Replaces plain legend) -->
-    <div class="btn-classification-wrapper" style="position: absolute; bottom: calc(85px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 895;">
+    <!-- Classification Toggle Button & Popover (Positioned on Left Side Corner) -->
+    <div class="btn-classification-wrapper" style="position: absolute; bottom: calc(82px + env(safe-area-inset-bottom)); left: 12px; z-index: 895;">
         <!-- Popover showing the 3 Types of Classification -->
-        <div id="classification-popover" style="display: none; position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%) scale(0.95); opacity: 0; min-width: 250px; background: rgba(15, 23, 42, 0.94); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 20px; padding: 12px 14px; box-shadow: 0 12px 32px rgba(0,0,0,0.45); border: none !important; outline: none !important; transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none;">
+        <div id="classification-popover" style="display: none; position: absolute; bottom: calc(100% + 8px); left: 0; transform-origin: bottom left; transform: scale(0.95); opacity: 0; width: 250px; background: rgba(15, 23, 42, 0.94); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 20px; padding: 12px 14px; box-shadow: 0 12px 32px rgba(0,0,0,0.45); border: none !important; outline: none !important; transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.12);">
                 <span style="font-size: 11px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.6px;">
                     <i class="fa-solid fa-tags" style="color: #38bdf8; margin-right: 5px;"></i> Classifications
@@ -1466,13 +1466,13 @@ if (is_dir($imgDir)) {
                 popover.style.display = 'block';
                 requestAnimationFrame(() => {
                     popover.style.opacity = '1';
-                    popover.style.transform = 'translateX(-50%) scale(1)';
+                    popover.style.transform = 'scale(1)';
                     popover.style.pointerEvents = 'auto';
                 });
                 if (chevron) chevron.style.transform = 'rotate(180deg)';
             } else {
                 popover.style.opacity = '0';
-                popover.style.transform = 'translateX(-50%) scale(0.95)';
+                popover.style.transform = 'scale(0.95)';
                 popover.style.pointerEvents = 'none';
                 if (chevron) chevron.style.transform = 'rotate(0deg)';
                 setTimeout(() => {
