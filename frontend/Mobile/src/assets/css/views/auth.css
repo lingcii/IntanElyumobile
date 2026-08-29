@@ -35,32 +35,32 @@ body[data-view="auth"] {
 .auth-top {
     position: relative;
     width: 100%;
-    height: 33vh;
-    min-height: 185px;
-    max-height: 245px;
+    height: 38vh;
+    min-height: 250px;
+    max-height: 330px;
     flex-shrink: 0;
     background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding-bottom: 22px;
+    padding-bottom: 26px;
     /* Space for wave */
     overflow: hidden;
 }
 
 /* Circle Logo */
 .logo-container {
-    width: 96px;
-    height: 96px;
+    width: 118px;
+    height: 118px;
     background: #ffffff;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 8px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-    padding: 4px;
+    margin-bottom: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    padding: 5px;
     position: relative;
     z-index: 10;
     box-sizing: border-box;
@@ -74,7 +74,7 @@ body[data-view="auth"] {
 }
 
 .auth-top h1 {
-    font-size: 21px;
+    font-size: 23px;
     font-weight: 800;
     color: #ffffff;
     margin: 0;
@@ -106,7 +106,7 @@ body[data-view="auth"] {
 .wave-bottom svg {
     display: block;
     width: 200vw;
-    height: 46px;
+    height: 52px;
 }
 
 .wave-layer {
@@ -138,7 +138,7 @@ body[data-view="auth"] {
 .auth-bottom {
     flex: 1;
     background: #74a3cf;
-    padding: 12px 26px calc(14px + env(safe-area-inset-bottom, 0px)) 26px;
+    padding: 10px 26px calc(14px + env(safe-area-inset-bottom, 0px)) 26px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -263,6 +263,9 @@ body[data-view="auth"] {
 .forms-wrapper {
     display: flex;
     width: 400%;
+    flex: 1;
+    height: 100%;
+    min-height: 0;
     transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
@@ -271,12 +274,24 @@ body[data-view="auth"] {
     flex-shrink: 0;
     padding: 0 4px;
     transition: opacity 0.3s;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
 }
 
 .form-panel.login-form {
     overflow: hidden !important;
     overscroll-behavior: none !important;
     touch-action: manipulation;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.form-panel.login-form form {
+    margin: auto 0;
+    width: 100%;
 }
 
 .form-panel.register-form,
@@ -284,10 +299,13 @@ body[data-view="auth"] {
 .form-panel.otp-form {
     overflow-y: auto;
     overflow-x: hidden;
-    max-height: calc(67vh - 20px);
+    max-height: 100%;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    padding-bottom: 24px;
+    padding-bottom: 6px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .form-panel.register-form::-webkit-scrollbar,
@@ -300,9 +318,11 @@ body[data-view="auth"] {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 8px;
+    margin-top: auto;
     width: 100%;
     flex-shrink: 0;
+    padding-top: 10px;
+    padding-bottom: 2px;
 }
 
 /* Slide states */
