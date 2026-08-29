@@ -231,6 +231,30 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         const updateContent = () => {
             try {
+                // ── Teardown previous view resources to prevent mobile lag & leaks ──
+                if (window._mapSpotsCheckInterval) {
+                    clearInterval(window._mapSpotsCheckInterval);
+                    window._mapSpotsCheckInterval = null;
+                }
+                if (window._mapWeatherTickInterval) {
+                    clearInterval(window._mapWeatherTickInterval);
+                    window._mapWeatherTickInterval = null;
+                }
+                if (window._mapMarineSyncInterval) {
+                    clearInterval(window._mapMarineSyncInterval);
+                    window._mapMarineSyncInterval = null;
+                }
+                if (window._gpsDebounceTimer) {
+                    clearTimeout(window._gpsDebounceTimer);
+                    window._gpsDebounceTimer = null;
+                }
+                if (viewName !== 'map' && window.mapInstance) {
+                    try {
+                        window.mapInstance.remove();
+                    } catch (e) {}
+                    window.mapInstance = null;
+                }
+
                 mainContent.innerHTML = html;
                 document.body.setAttribute('data-view', viewName);
 

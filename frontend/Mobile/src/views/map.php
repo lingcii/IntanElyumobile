@@ -2028,10 +2028,20 @@ if (is_dir($imgDir)) {
                 }
             };
 
-            // Initialize real-time telemetry and schedule live ticks
+            // Initialize real-time telemetry and schedule live ticks cleanly
             window.fetchLiveMarineTelemetry(false);
-            setInterval(window.updateWeatherSunsetTrackerUI, 15000); // Live countdown tick every 15s
-            setInterval(() => window.fetchLiveMarineTelemetry(false), 300000); // Live API sync every 5 minutes
+            if (window._mapWeatherTickInterval) clearInterval(window._mapWeatherTickInterval);
+            if (window._mapMarineSyncInterval) clearInterval(window._mapMarineSyncInterval);
+            window._mapWeatherTickInterval = setInterval(() => {
+                if (document.visibilityState === 'visible' && document.body.getAttribute('data-view') === 'map') {
+                    if (typeof window.updateWeatherSunsetTrackerUI === 'function') window.updateWeatherSunsetTrackerUI();
+                }
+            }, 30000); // 30s tick
+            window._mapMarineSyncInterval = setInterval(() => {
+                if (document.visibilityState === 'visible' && document.body.getAttribute('data-view') === 'map') {
+                    if (typeof window.fetchLiveMarineTelemetry === 'function') window.fetchLiveMarineTelemetry(false);
+                }
+            }, 300000); // 5 min sync
 
             // Zone Toggle Button
             let zonesVisible = true;
@@ -3579,9 +3589,13 @@ if (is_dir($imgDir)) {
 
         setTimeout(window.initMap, 50);
 
-        // Auto-refresh: poll for new spots every 10s
+        // Auto-refresh: poll for new spots cleanly (throttled & visibility-aware)
+        if (window._mapSpotsCheckInterval) {
+            clearInterval(window._mapSpotsCheckInterval);
+            window._mapSpotsCheckInterval = null;
+        }
         async function checkForNewSpots() {
-            if (!window.mapInstance) return;
+            if (!window.mapInstance || document.visibilityState !== 'visible' || document.body.getAttribute('data-view') !== 'map') return;
             try {
                 const res = await fetch((window.backendUrl || '') + '/api/public/map', {
                     headers: { 'Accept': 'application/json' }
@@ -3601,6 +3615,6 @@ if (is_dir($imgDir)) {
                 }
             } catch (e) { console.error('Auto-refresh error:', e); }
         }
-        setInterval(checkForNewSpots, 10000);
+        window._mapSpotsCheckInterval = setInterval(checkForNewSpots, 60000); // Poll every 60s instead of 10s to prevent mobile lag
     })();
 </script>
