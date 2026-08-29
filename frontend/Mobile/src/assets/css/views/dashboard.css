@@ -71,12 +71,12 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 /* Profile + EXP Card */
 .profile-header {
     background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 26px;
     padding: 22px 20px;
     margin-bottom: 20px;
     cursor: pointer;
-    outline: none !important;
     box-shadow: 0 10px 24px rgba(10, 25, 60, 0.25) !important;
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
@@ -89,7 +89,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 
 .trip-swipe-content {
     background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+    border: none !important;
     outline: none !important;
     box-shadow: 0 8px 20px rgba(10, 25, 60, 0.2) !important;
 }
@@ -228,7 +228,8 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 
 .stat-card {
     background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 22px;
     padding: 16px 12px;
     text-align: center;
@@ -269,7 +270,8 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 /* Weather Widget */
 .weather-card {
     background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 24px;
     padding: 20px 22px;
     margin-bottom: 20px;
@@ -357,7 +359,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     padding: 5px 13px;
     border-radius: 100px;
     background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.28) !important;
+    border: none !important;
     outline: none !important;
     box-shadow: 0 4px 10px rgba(10, 25, 60, 0.2) !important;
     transition: all 0.2s ease;
@@ -367,7 +369,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 .section-title a:active {
     background: linear-gradient(135deg, #2549ac 0%, #4f8ec8 100%) !important;
     color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    border: none !important;
     outline: none !important;
 }
 
@@ -537,7 +539,8 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     width: 98px;
     height: 102px;
     background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 22px;
     display: flex;
     flex-direction: column;
@@ -627,7 +630,8 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     justify-content: center;
     gap: 10px;
     background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 22px;
     box-shadow: 0 8px 20px rgba(10, 25, 60, 0.2) !important;
     animation: dashEmptyFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -721,7 +725,8 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     justify-content: center;
     gap: 10px;
     background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 20px;
     color: #ffffff;
     font-size: 13px;
@@ -739,7 +744,8 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 .rec-item-card {
     margin-bottom: 12px;
     background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 18px;
     overflow: hidden;
     box-shadow: 0 6px 16px rgba(10, 25, 60, 0.2) !important;
