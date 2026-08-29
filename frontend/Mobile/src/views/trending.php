@@ -7,7 +7,8 @@ $imgDir = __DIR__ . '/../assets/img/MUNICIPALITIES';
 if (is_dir($imgDir)) {
     $munis = scandir($imgDir);
     foreach ($munis as $muni) {
-        if ($muni === '.' || $muni === '..') continue;
+        if ($muni === '.' || $muni === '..')
+            continue;
         if (is_dir("$imgDir/$muni")) {
             $files = scandir("$imgDir/$muni");
             foreach ($files as $f) {
@@ -24,12 +25,14 @@ if (is_dir($imgDir)) {
 
 <link rel="stylesheet" href="assets/css/views/trending.css">
 <div class="saved-trips-page-container has-header animate-slide-up" style="padding-left: 16px; padding-right: 16px;">
-    
+
     <!-- Search Bar -->
     <div class="trending-search-wrap">
         <i class="fa-solid fa-magnifying-glass trending-search-icon"></i>
-        <input type="text" id="trending-search-input" class="trending-search-input" placeholder="Search trending spots, municipality..." autocomplete="off">
-        <button type="button" id="trending-search-clear" class="trending-search-clear" style="display:none;" onclick="window.clearTrendingSearch()">
+        <input type="text" id="trending-search-input" class="trending-search-input"
+            placeholder="Search trending spots, municipality..." autocomplete="off">
+        <button type="button" id="trending-search-clear" class="trending-search-clear" style="display:none;"
+            onclick="window.clearTrendingSearch()">
             <i class="fa-solid fa-circle-xmark"></i>
         </button>
     </div>
@@ -60,9 +63,11 @@ if (is_dir($imgDir)) {
     </div>
 
     <!-- Meta Info Bar -->
-    <div id="trending-meta-bar" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; font-size:11.5px; color:rgba(226,232,240,0.65); font-weight:600;">
+    <div id="trending-meta-bar"
+        style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; font-size:11.5px; color:rgba(226,232,240,0.65); font-weight:600;">
         <span id="trending-count-label">Loading trending sites...</span>
-        <span id="trending-filter-active" style="display:none; color:#38bdf8; cursor:pointer;" onclick="window.resetTrendingFilters()">
+        <span id="trending-filter-active" style="display:none; color:#38bdf8; cursor:pointer;"
+            onclick="window.resetTrendingFilters()">
             <i class="fa-solid fa-rotate-left" style="margin-right:3px;"></i> Reset
         </span>
     </div>
@@ -76,141 +81,141 @@ if (is_dir($imgDir)) {
 </div>
 
 <script>
-(function() {
-    var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
-    window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
+    (function () {
+        var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+        window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
 
-    let allSpots = [];
-    let currentCategory = 'All';
-    let currentSearch = '';
+        let allSpots = [];
+        let currentCategory = 'All';
+        let currentSearch = '';
 
-    const matchesCategory = (cardCategory, cardName, targetCat) => {
-        if (!targetCat || targetCat === 'All') return true;
-        const c = (cardCategory || '').toLowerCase();
-        const n = (cardName || '').toLowerCase();
-        const combined = c + ' ' + n;
-        const t = targetCat.toLowerCase();
+        const matchesCategory = (cardCategory, cardName, targetCat) => {
+            if (!targetCat || targetCat === 'All') return true;
+            const c = (cardCategory || '').toLowerCase();
+            const n = (cardName || '').toLowerCase();
+            const combined = c + ' ' + n;
+            const t = targetCat.toLowerCase();
 
-        if (combined.includes(t)) return true;
+            if (combined.includes(t)) return true;
 
-        if (t === 'beach' && (combined.includes('beach') || combined.includes('island') || combined.includes('coastal') || combined.includes('surf'))) return true;
-        if (t === 'mountains' && (combined.includes('mountain') || combined.includes('hiking') || combined.includes('hill') || combined.includes('peak') || combined.includes('viewpoint') || combined.includes('nature'))) return true;
-        if (t === 'lakes' && (combined.includes('lake') || combined.includes('fall') || combined.includes('waterfall') || combined.includes('river') || combined.includes('spring') || combined.includes('water'))) return true;
-        if (t === 'heritage' && (combined.includes('heritage') || combined.includes('historical') || combined.includes('church') || combined.includes('monument') || combined.includes('landmark') || combined.includes('museum') || combined.includes('cultural') || combined.includes('religious') || combined.includes('parish') || combined.includes('shrine'))) return true;
-        if (t.includes('food') && (combined.includes('food') || combined.includes('dining') || combined.includes('restaurant') || combined.includes('cafe') || combined.includes('bistro') || combined.includes('grill'))) return true;
-        if (t === 'nightlife' && (combined.includes('nightlife') || combined.includes('bar') || combined.includes('resort') || combined.includes('shopping') || combined.includes('festival') || combined.includes('club'))) return true;
+            if (t === 'beach' && (combined.includes('beach') || combined.includes('island') || combined.includes('coastal') || combined.includes('surf'))) return true;
+            if (t === 'mountains' && (combined.includes('mountain') || combined.includes('hiking') || combined.includes('hill') || combined.includes('peak') || combined.includes('viewpoint') || combined.includes('nature'))) return true;
+            if (t === 'lakes' && (combined.includes('lake') || combined.includes('fall') || combined.includes('waterfall') || combined.includes('river') || combined.includes('spring') || combined.includes('water'))) return true;
+            if (t === 'heritage' && (combined.includes('heritage') || combined.includes('historical') || combined.includes('church') || combined.includes('monument') || combined.includes('landmark') || combined.includes('museum') || combined.includes('cultural') || combined.includes('religious') || combined.includes('parish') || combined.includes('shrine'))) return true;
+            if (t.includes('food') && (combined.includes('food') || combined.includes('dining') || combined.includes('restaurant') || combined.includes('cafe') || combined.includes('bistro') || combined.includes('grill'))) return true;
+            if (t === 'nightlife' && (combined.includes('nightlife') || combined.includes('bar') || combined.includes('resort') || combined.includes('shopping') || combined.includes('festival') || combined.includes('club'))) return true;
 
-        return false;
-    };
+            return false;
+        };
 
-    async function fetchTrending() {
-        const token = localStorage.getItem('intan_elyu_token');
-        if (!token) return;
+        async function fetchTrending() {
+            const token = localStorage.getItem('intan_elyu_token');
+            if (!token) return;
 
-        const cacheKey = 'trending_spots_' + (token ? token.substring(0, 10) : '');
+            const cacheKey = 'trending_spots_' + (token ? token.substring(0, 10) : '');
 
-        await window.useCache(
-            cacheKey,
-            async () => {
-                const res = await fetch(backendUrl + '/api/tourist/dashboard?limit=50', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer ' + token
+            await window.useCache(
+                cacheKey,
+                async () => {
+                    const res = await fetch(backendUrl + '/api/tourist/dashboard?limit=50', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        }
+                    });
+                    if (!res.ok) throw new Error("Failed to fetch trending sites");
+                    const data = await res.json();
+                    return data.trending || [];
+                },
+                (spots) => {
+                    if (spots) {
+                        allSpots = spots;
+                        applyFilters();
+                    } else {
+                        const list = document.getElementById('trending-list');
+                        if (list) list.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">Failed to load trending sites.</p>';
+                        updateMetaLabel(0);
                     }
-                });
-                if (!res.ok) throw new Error("Failed to fetch trending sites");
-                const data = await res.json();
-                return data.trending || [];
-            },
-            (spots) => {
-                if (spots) {
-                    allSpots = spots;
-                    applyFilters();
-                } else {
-                    const list = document.getElementById('trending-list');
-                    if (list) list.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">Failed to load trending sites.</p>';
-                    updateMetaLabel(0);
-                }
-            },
-            false,
-            60000 // 1 minute TTL
-        );
-    }
-
-    function applyFilters() {
-        if (!allSpots || !allSpots.length) {
-            renderEmptyState('No Trending Sites', 'Check back soon for newly popular attractions and trending destinations in La Union.');
-            updateMetaLabel(0);
-            return;
+                },
+                false,
+                60000 // 1 minute TTL
+            );
         }
 
-        const filtered = allSpots.filter(dest => {
-            // Category filter
-            if (!matchesCategory(dest.category, dest.name, currentCategory)) {
-                return false;
+        function applyFilters() {
+            if (!allSpots || !allSpots.length) {
+                renderEmptyState('No Trending Sites', 'Check back soon for newly popular attractions and trending destinations in La Union.');
+                updateMetaLabel(0);
+                return;
             }
 
-            // Search filter
-            if (currentSearch.trim()) {
-                const q = currentSearch.trim().toLowerCase();
-                const n = (dest.name || '').toLowerCase();
-                const m = (dest.municipality || dest.location || '').toLowerCase();
-                const c = (dest.category || '').toLowerCase();
-                const d = (dest.description || '').toLowerCase();
-                if (!n.includes(q) && !m.includes(q) && !c.includes(q) && !d.includes(q)) {
+            const filtered = allSpots.filter(dest => {
+                // Category filter
+                if (!matchesCategory(dest.category, dest.name, currentCategory)) {
                     return false;
                 }
-            }
 
-            return true;
-        });
+                // Search filter
+                if (currentSearch.trim()) {
+                    const q = currentSearch.trim().toLowerCase();
+                    const n = (dest.name || '').toLowerCase();
+                    const m = (dest.municipality || dest.location || '').toLowerCase();
+                    const c = (dest.category || '').toLowerCase();
+                    const d = (dest.description || '').toLowerCase();
+                    if (!n.includes(q) && !m.includes(q) && !c.includes(q) && !d.includes(q)) {
+                        return false;
+                    }
+                }
 
-        updateMetaLabel(filtered.length);
+                return true;
+            });
 
-        if (!filtered.length) {
-            renderFilterEmptyState();
-        } else {
-            renderGrid(filtered);
-        }
-    }
+            updateMetaLabel(filtered.length);
 
-    function updateMetaLabel(count) {
-        const countLabel = document.getElementById('trending-count-label');
-        const resetBtn = document.getElementById('trending-filter-active');
-        const hasActiveFilter = (currentCategory !== 'All' || currentSearch.trim().length > 0);
-
-        if (countLabel) {
-            if (count === 0) {
-                countLabel.textContent = 'No matching destinations';
-            } else if (count === 1) {
-                countLabel.textContent = 'Showing 1 trending destination';
+            if (!filtered.length) {
+                renderFilterEmptyState();
             } else {
-                countLabel.textContent = `Showing ${count} trending destinations`;
+                renderGrid(filtered);
             }
         }
 
-        if (resetBtn) {
-            resetBtn.style.display = hasActiveFilter ? 'inline-flex' : 'none';
+        function updateMetaLabel(count) {
+            const countLabel = document.getElementById('trending-count-label');
+            const resetBtn = document.getElementById('trending-filter-active');
+            const hasActiveFilter = (currentCategory !== 'All' || currentSearch.trim().length > 0);
+
+            if (countLabel) {
+                if (count === 0) {
+                    countLabel.textContent = 'No matching destinations';
+                } else if (count === 1) {
+                    countLabel.textContent = 'Showing 1 trending destination';
+                } else {
+                    countLabel.textContent = `Showing ${count} trending destinations`;
+                }
+            }
+
+            if (resetBtn) {
+                resetBtn.style.display = hasActiveFilter ? 'inline-flex' : 'none';
+            }
         }
-    }
 
-    function renderGrid(spots) {
-        const list = document.getElementById('trending-list');
-        if (!list) return;
+        function renderGrid(spots) {
+            const list = document.getElementById('trending-list');
+            if (!list) return;
 
-        let html = '<div class="trending-grid">';
-        spots.forEach((dest, i) => {
-            const img = window.getDestImage(dest);
-            const badgeColor = dest.classification_status === 'EXIST' ? '#34c759' :
-                (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b');
-            const badgeLabel = dest.classification_status === 'EXIST' ? 'EXISTING' :
-                (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL');
-            
-            const visits = parseInt(dest.visits) || 0;
-            const visitorText = window.formatVisitorCount ? window.formatVisitorCount(visits) : (visits < 100 ? 'Less than 100 this month' : `${visits.toLocaleString()} visits`);
-            const muni = dest.municipality || dest.location || '';
+            let html = '<div class="trending-grid">';
+            spots.forEach((dest, i) => {
+                const img = window.getDestImage(dest);
+                const badgeColor = dest.classification_status === 'EXIST' ? '#34c759' :
+                    (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b');
+                const badgeLabel = dest.classification_status === 'EXIST' ? 'EXISTING' :
+                    (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL');
 
-            html += `
+                const visits = parseInt(dest.visits) || 0;
+                const visitorText = window.formatVisitorCount ? window.formatVisitorCount(visits) : (visits < 100 ? 'Less than 100 this month' : `${visits.toLocaleString()} visits`);
+                const muni = dest.municipality || dest.location || '';
+
+                html += `
                 <div class="trending-card" style="animation-delay:${Math.min(i * 0.05, 0.4)}s" onclick="window.viewTrendingDest(${dest.id}, '${dest.name.replace(/'/g, "\\'")}', '${encodeURIComponent(JSON.stringify(dest))}')">
                     ${dest.classification_status ? `<div class="badge" style="background:${badgeColor};">${badgeLabel}</div>` : ''}
                     <div class="fire-icon"><i class="fa-solid fa-fire"></i></div>
@@ -222,15 +227,15 @@ if (is_dir($imgDir)) {
                     </div>
                 </div>
             `;
-        });
-        html += '</div>';
-        list.innerHTML = html;
-    }
+            });
+            html += '</div>';
+            list.innerHTML = html;
+        }
 
-    function renderEmptyState(title, desc) {
-        const list = document.getElementById('trending-list');
-        if (!list) return;
-        list.innerHTML = `
+        function renderEmptyState(title, desc) {
+            const list = document.getElementById('trending-list');
+            if (!list) return;
+            list.innerHTML = `
             <div class="dash-empty-state" style="margin-top: 24px !important;">
                 <div class="dash-empty-icon-wrap">
                     <i class="fa-solid fa-fire-flame-curved"></i>
@@ -242,12 +247,12 @@ if (is_dir($imgDir)) {
                 </button>
             </div>
         `;
-    }
+        }
 
-    function renderFilterEmptyState() {
-        const list = document.getElementById('trending-list');
-        if (!list) return;
-        list.innerHTML = `
+        function renderFilterEmptyState() {
+            const list = document.getElementById('trending-list');
+            if (!list) return;
+            list.innerHTML = `
             <div class="dash-empty-state" style="margin-top: 24px !important;">
                 <div class="dash-empty-icon-wrap">
                     <i class="fa-solid fa-compass"></i>
@@ -259,64 +264,64 @@ if (is_dir($imgDir)) {
                 </button>
             </div>
         `;
-    }
-
-    window.filterTrendingCat = function(category, element) {
-        currentCategory = category;
-        document.querySelectorAll('#trending-cat-bar .trending-cat-pill').forEach(pill => pill.classList.remove('active'));
-        if (element) element.classList.add('active');
-        applyFilters();
-    };
-
-    window.clearTrendingSearch = function() {
-        const input = document.getElementById('trending-search-input');
-        const clearBtn = document.getElementById('trending-search-clear');
-        if (input) input.value = '';
-        if (clearBtn) clearBtn.style.display = 'none';
-        currentSearch = '';
-        applyFilters();
-    };
-
-    window.resetTrendingFilters = function() {
-        currentCategory = 'All';
-        currentSearch = '';
-        const input = document.getElementById('trending-search-input');
-        const clearBtn = document.getElementById('trending-search-clear');
-        if (input) input.value = '';
-        if (clearBtn) clearBtn.style.display = 'none';
-
-        const pills = document.querySelectorAll('#trending-cat-bar .trending-cat-pill');
-        pills.forEach((p, idx) => {
-            if (idx === 0) p.classList.add('active');
-            else p.classList.remove('active');
-        });
-
-        applyFilters();
-    };
-
-    // Live search event handling
-    const searchInput = document.getElementById('trending-search-input');
-    const searchClearBtn = document.getElementById('trending-search-clear');
-    if (searchInput) {
-        searchInput.addEventListener('input', function(e) {
-            currentSearch = e.target.value;
-            if (searchClearBtn) {
-                searchClearBtn.style.display = currentSearch.length > 0 ? 'flex' : 'none';
-            }
-            applyFilters();
-        });
-    }
-
-    window.viewTrendingDest = function(id, name, encodedDest) {
-        try {
-            const dest = JSON.parse(decodeURIComponent(encodedDest));
-            localStorage.setItem('intan_elyu_view_destination', JSON.stringify(dest));
-            window.location.href = '?view=map';
-        } catch (e) {
-            console.error('Failed to view destination:', e);
         }
-    };
 
-    fetchTrending();
-})();
+        window.filterTrendingCat = function (category, element) {
+            currentCategory = category;
+            document.querySelectorAll('#trending-cat-bar .trending-cat-pill').forEach(pill => pill.classList.remove('active'));
+            if (element) element.classList.add('active');
+            applyFilters();
+        };
+
+        window.clearTrendingSearch = function () {
+            const input = document.getElementById('trending-search-input');
+            const clearBtn = document.getElementById('trending-search-clear');
+            if (input) input.value = '';
+            if (clearBtn) clearBtn.style.display = 'none';
+            currentSearch = '';
+            applyFilters();
+        };
+
+        window.resetTrendingFilters = function () {
+            currentCategory = 'All';
+            currentSearch = '';
+            const input = document.getElementById('trending-search-input');
+            const clearBtn = document.getElementById('trending-search-clear');
+            if (input) input.value = '';
+            if (clearBtn) clearBtn.style.display = 'none';
+
+            const pills = document.querySelectorAll('#trending-cat-bar .trending-cat-pill');
+            pills.forEach((p, idx) => {
+                if (idx === 0) p.classList.add('active');
+                else p.classList.remove('active');
+            });
+
+            applyFilters();
+        };
+
+        // Live search event handling
+        const searchInput = document.getElementById('trending-search-input');
+        const searchClearBtn = document.getElementById('trending-search-clear');
+        if (searchInput) {
+            searchInput.addEventListener('input', function (e) {
+                currentSearch = e.target.value;
+                if (searchClearBtn) {
+                    searchClearBtn.style.display = currentSearch.length > 0 ? 'flex' : 'none';
+                }
+                applyFilters();
+            });
+        }
+
+        window.viewTrendingDest = function (id, name, encodedDest) {
+            try {
+                const dest = JSON.parse(decodeURIComponent(encodedDest));
+                localStorage.setItem('intan_elyu_view_destination', JSON.stringify(dest));
+                window.location.href = '?view=map';
+            } catch (e) {
+                console.error('Failed to view destination:', e);
+            }
+        };
+
+        fetchTrending();
+    })();
 </script>
