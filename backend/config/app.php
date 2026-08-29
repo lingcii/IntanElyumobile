@@ -39,7 +39,7 @@ return [
     |
     */
 
-    'debug' => true,
+    'debug' => (bool) env('APP_DEBUG', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -65,7 +65,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'Asia/Manila'),
 
     /*
     |--------------------------------------------------------------------------
@@ -97,7 +97,7 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
-    'key' => env('APP_KEY', 'base64:mm3wyUenwv1jdgabiAGvYluW66UUhtS5kVlGjd/4R6s='),
+    'key' => env('APP_KEY'),
 
     'previous_keys' => [
         ...array_filter(
