@@ -395,7 +395,7 @@ window.initGoogleOAuthHandler = function () {
                 throw new Error('Unable to retrieve profile from Google.');
             }
 
-            const backend = (typeof window.getBackendUrl === 'function') ? window.getBackendUrl() : (window.backendUrl || 'https://app.intan-elyu.online');
+            const backend = (typeof window.getBackendUrl === 'function') ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online');
             return fetch(backend + '/api/auth/google', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -403,7 +403,14 @@ window.initGoogleOAuthHandler = function () {
             });
         })
         .then(async res => {
-            const data = await res.json();
+            const text = await res.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                console.error('Non-JSON response from Google auth endpoint:', text.substring(0, 200));
+                throw new Error('Invalid response from server. Please try again.');
+            }
             if (!res.ok) throw new Error(data.error || data.message || 'Google authentication failed.');
 
             localStorage.setItem('auth_user', JSON.stringify(data.user));
