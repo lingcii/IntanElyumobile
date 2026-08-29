@@ -81,7 +81,7 @@ if (is_dir($imgDir)) {
 
     <!-- Classification Color Legend (Floating at Bottom Center) -->
     <div class="map-classification-legend"
-        style="position: absolute; bottom: calc(85px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 890; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 5px 14px; background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 100px; border: 1px solid rgba(255, 255, 255, 0.18); font-size: 10.5px; font-weight: 800; color: #ffffff; white-space: nowrap; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4); pointer-events: none;">
+        style="position: absolute; bottom: calc(85px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 890; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 5px 14px; background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 100px; border: none !important; outline: none !important; font-size: 10.5px; font-weight: 800; color: #ffffff; white-space: nowrap; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4); pointer-events: none;">
         <span style="display:inline-flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:50%; background:#34c759; box-shadow:0 0 6px #34c759;"></span> Existing</span>
         <span style="color:rgba(255,255,255,0.3);">•</span>
         <span style="display:inline-flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:50%; background:#38bdf8; box-shadow:0 0 6px #38bdf8;"></span> Emerging</span>
@@ -92,19 +92,19 @@ if (is_dir($imgDir)) {
     <!-- Action Buttons Stack (Stacked on the Right Side) -->
     <!-- 1. Layer Toggle Button -->
     <div class="btn-layer-toggle animate-slide-up" id="btn-layer-toggle"
-        style="position: absolute; bottom: calc(295px + env(safe-area-inset-bottom)); right: 10px !important; left: auto !important; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
+        style="position: absolute; bottom: calc(295px + env(safe-area-inset-bottom)); right: 10px !important; left: auto !important; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: none !important; outline: none !important; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: 0 8px 20px rgba(10, 25, 60, 0.3); z-index: 900; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-layer-group"></i>
     </div>
 
     <!-- 2. 3D Mode Button -->
     <div class="btn-3d-view animate-slide-up" id="btn-3d-view"
-        style="position: absolute; bottom: calc(235px + env(safe-area-inset-bottom)); right: 10px !important; left: auto !important; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
+        style="position: absolute; bottom: calc(235px + env(safe-area-inset-bottom)); right: 10px !important; left: auto !important; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: none !important; outline: none !important; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: 0 8px 20px rgba(10, 25, 60, 0.3); z-index: 900; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-cube"></i>
     </div>
 
     <!-- 3. Nearby Tourist Sites Button (Aligned with other 3 buttons) -->
     <div class="btn-nearby-sites animate-slide-up" id="btn-nearby-sites" onclick="window.toggleNearbySitesSheet()"
-        style="position: absolute; bottom: calc(175px + env(safe-area-inset-bottom)); right: 10px !important; left: auto !important; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;"
+        style="position: absolute; bottom: calc(175px + env(safe-area-inset-bottom)); right: 10px !important; left: auto !important; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: none !important; outline: none !important; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: 0 8px 20px rgba(10, 25, 60, 0.3); z-index: 900; cursor: pointer; transition: all 0.2s;"
         title="Tourist Sites List">
         <i class="fa-solid fa-compass"></i>
         <span id="nearby-sites-badge"
@@ -113,7 +113,7 @@ if (is_dir($imgDir)) {
 
     <!-- 4. Locate Me Button -->
     <div class="btn-locate-me animate-slide-up" id="btn-locate-me"
-        style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); right: 10px !important; left: auto !important; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: none; z-index: 900; cursor: pointer; transition: all 0.2s;">
+        style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); right: 10px !important; left: auto !important; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: none !important; outline: none !important; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: 0 8px 20px rgba(10, 25, 60, 0.3); z-index: 900; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-crosshairs"></i>
     </div>
 

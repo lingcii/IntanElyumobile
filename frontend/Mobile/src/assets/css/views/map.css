@@ -69,8 +69,9 @@ body[data-view="map"] #main-content {
     background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1.5px solid rgba(255, 255, 255, 0.45);
-    box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
     border-radius: 100px;
     display: flex;
     align-items: center;
@@ -79,8 +80,9 @@ body[data-view="map"] #main-content {
 }
 
 .map-search:focus-within {
-    border-color: #00f2fe;
     background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(2, 132, 199, 0.92) 100%);
+    border: none !important;
+    outline: none !important;
 }
 
 .map-search input {
@@ -114,9 +116,10 @@ body[data-view="map"] #main-content {
     background: linear-gradient(180deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 50%, rgba(2, 132, 199, 0.96) 100%);
     backdrop-filter: blur(32px);
     -webkit-backdrop-filter: blur(32px);
-    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    border: none !important;
+    outline: none !important;
     border-radius: 20px;
-    box-shadow: none !important;
+    box-shadow: 0 10px 30px rgba(10, 25, 60, 0.35) !important;
     max-height: min(280px, calc(100vh - 360px));
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -239,7 +242,8 @@ body[data-view="map"] #main-content {
     background: rgba(30, 58, 138, 0.78);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    border: none !important;
+    outline: none !important;
     border-radius: 100px;
     padding: 8px 18px;
     font-size: 12px;
@@ -250,15 +254,16 @@ body[data-view="map"] #main-content {
     cursor: pointer;
     letter-spacing: 0.3px;
     scroll-snap-align: start;
-    box-shadow: none !important;
+    box-shadow: 0 4px 12px rgba(10, 25, 60, 0.2) !important;
 }
 
 .category-pill.active {
     background: linear-gradient(135deg, #00f2fe 0%, #0284c7 60%, #1e3a8a 100%) !important;
     color: #ffffff !important;
     font-weight: 800 !important;
-    border: 1.5px solid #ffffff !important;
-    box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 4px 14px rgba(0, 242, 254, 0.3) !important;
 }
 
 .category-pill:not(.active):active {
@@ -278,14 +283,12 @@ body[data-view="map"] #main-content {
     background: linear-gradient(180deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.98) 45%, rgba(2, 132, 199, 0.98) 85%, rgba(6, 182, 212, 0.98) 100%);
     backdrop-filter: blur(32px);
     -webkit-backdrop-filter: blur(32px);
-    border-top: 2px solid rgba(255, 255, 255, 0.45);
-    border-left: none;
-    border-right: none;
-    border-bottom: none;
+    border: none !important;
+    outline: none !important;
     border-radius: 28px 28px 0 0;
     padding: 8px 16px calc(98px + env(safe-area-inset-bottom));
     max-height: calc(100vh - 70px);
-    box-shadow: none !important;
+    box-shadow: 0 -8px 30px rgba(10, 25, 60, 0.35) !important;
     opacity: 0;
     pointer-events: none;
     transform: translateY(calc(100% + 120px));
@@ -1024,11 +1027,12 @@ body[data-view="map"] #main-content {
     background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.45) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 12px !important;
     color: #ffffff !important;
-    box-shadow: none !important;
-    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, visibility 0.2s ease, background 0.22s ease, border-color 0.22s ease, color 0.22s ease !important;
+    box-shadow: 0 8px 20px rgba(10, 25, 60, 0.3) !important;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, visibility 0.2s ease, background 0.22s ease, color 0.22s ease !important;
     user-select: none;
     -webkit-user-select: none;
 }
