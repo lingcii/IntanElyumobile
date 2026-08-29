@@ -70,34 +70,20 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 
 /* Profile + EXP Card */
 .profile-header {
-    background: linear-gradient(135deg, rgba(38, 85, 150, 0.65) 0%, rgba(24, 62, 118, 0.55) 100%);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: #74a3cf;
     border-radius: 26px;
     padding: 22px 20px;
     margin-bottom: 20px;
     cursor: pointer;
-    box-shadow: none;
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+    border: none !important;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
 }
 
-.profile-header::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -20%;
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(circle, rgba(99, 177, 208, 0.15) 0%, transparent 70%);
-    pointer-events: none;
-}
-
 .profile-header:active {
     transform: scale(0.98);
-    border-color: rgba(99, 177, 208, 0.5);
 }
 
 .profile-info-row {
@@ -233,29 +219,26 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 }
 
 .stat-card {
-    background: rgba(30, 75, 135, 0.58);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: #74a3cf;
+    border: none !important;
     border-radius: 22px;
     padding: 16px 12px;
     text-align: center;
     cursor: pointer;
-    transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
-    box-shadow: none;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.14);
 }
 
 .stat-card:active {
     transform: scale(0.95);
-    background: rgba(42, 95, 165, 0.75);
-    border-color: #00f2fe;
+    opacity: 0.9;
 }
 
 .stat-icon {
     font-size: 24px;
     margin-bottom: 8px;
     display: inline-block;
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.25));
 }
 
 .stat-value {
@@ -277,24 +260,21 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 
 /* Weather Widget */
 .weather-card {
-    background: linear-gradient(135deg, rgba(38, 85, 150, 0.65) 0%, rgba(24, 62, 118, 0.55) 100%);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: #74a3cf;
+    border: none !important;
     border-radius: 24px;
     padding: 20px 22px;
     margin-bottom: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: none;
-    transition: transform 0.25s ease, border-color 0.25s ease;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
+    transition: transform 0.25s ease, opacity 0.25s ease;
 }
 
 .weather-card:active {
     transform: scale(0.98);
-    background: rgba(42, 95, 165, 0.75);
-    border-color: #00f2fe;
+    opacity: 0.9;
 }
 
 .weather-left {
@@ -435,21 +415,21 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     overflow: hidden;
     scroll-snap-align: center;
     cursor: pointer;
-    border: 1.5px solid rgba(56, 189, 248, 0.4);
-    box-shadow: none !important;
+    border: none !important;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.25) !important;
     flex-shrink: 0;
     will-change: transform, opacity;
     transform: scale(0.88) translate3d(0, 0, 0);
     opacity: 0.85;
-    transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s ease, border-color 0.25s ease;
+    transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s ease;
 }
 
 .fav-card.active-card {
     transform: scale(1.00) translate3d(0, 0, 0) !important;
     opacity: 1 !important;
     z-index: 10;
-    box-shadow: none !important;
-    border: 2px solid #00f2fe !important;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.35) !important;
+    border: none !important;
 }
 
 .fav-card:active {
@@ -546,9 +526,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     flex: 0 0 98px;
     width: 98px;
     height: 102px;
-    background: rgba(30, 75, 135, 0.58);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: #74a3cf;
     border-radius: 22px;
     display: flex;
     flex-direction: column;
@@ -556,18 +534,17 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     justify-content: center;
     padding: 10px 6px;
     box-sizing: border-box;
-    box-shadow: none !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12) !important;
     cursor: pointer;
     user-select: none;
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+    border: none !important;
+    transition: transform 0.25s ease, opacity 0.25s ease;
     scroll-snap-align: start;
 }
 
 .category-card:hover {
     transform: translateY(-2px);
-    border-color: #00f2fe;
-    background: rgba(42, 95, 165, 0.75);
+    opacity: 0.92;
 }
 
 .category-card:active {
@@ -575,9 +552,9 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 }
 
 .category-card.active {
-    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%);
-    border-color: #00f2fe;
-    box-shadow: none !important;
+    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
+    border: none !important;
+    box-shadow: 0 6px 20px rgba(0, 242, 254, 0.4) !important;
     animation: filterFadeIn 0.25s ease-out;
 }
 
@@ -589,7 +566,7 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     align-items: center;
     justify-content: center;
     font-size: 22px;
-    color: #00f2fe;
+    color: #ffffff;
     margin-bottom: 6px;
     transition: color 0.25s ease, transform 0.25s ease;
 }
@@ -639,12 +616,10 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    background: rgba(30, 75, 135, 0.58);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: #74a3cf !important;
+    border: none !important;
     border-radius: 22px;
-    box-shadow: none !important;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16) !important;
     animation: dashEmptyFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     margin: 0 !important;
 }
@@ -665,13 +640,13 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     width: 50px;
     height: 50px;
     border-radius: 16px;
-    background: rgba(0, 242, 254, 0.18);
-    border: 1px solid rgba(0, 242, 254, 0.35);
+    background: rgba(255, 255, 255, 0.22);
+    border: none;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 22px;
-    color: #00f2fe;
+    color: #ffffff;
     box-shadow: none;
     margin-bottom: 2px;
     flex-shrink: 0;
@@ -735,37 +710,34 @@ body[data-view="dashboard"] .mobile-header .header-icon {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    background: rgba(30, 75, 135, 0.58);
-    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: #74a3cf !important;
+    border: none !important;
     border-radius: 20px;
-    color: #e0f2fe;
+    color: #ffffff;
     font-size: 13px;
     font-weight: 600;
     margin: 0 !important;
-    box-shadow: none !important;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16) !important;
 }
 
 .dash-loading-state i {
-    color: #00f2fe;
+    color: #ffffff;
     font-size: 15px;
 }
 
 /* Recommended Destination Card (Wave Oceanic Theme) */
 .rec-item-card {
     margin-bottom: 12px;
-    background: rgba(30, 75, 135, 0.58);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: #74a3cf;
+    border: none !important;
     border-radius: 18px;
     overflow: hidden;
-    box-shadow: none !important;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.14) !important;
     transition: all 0.25s ease;
 }
 
 .rec-item-card:hover {
-    border-color: #00f2fe;
-    background: rgba(42, 95, 165, 0.75);
+    opacity: 0.95;
 }
 
 .rec-item-card .rec-title {
