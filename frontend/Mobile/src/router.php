@@ -39,8 +39,38 @@ if (strpos($path, 'intan-elyu.apk') !== false || strpos($path, '.apk') !== false
     }
 }
 
+// Check and serve local static assets (supporting URL-encoded characters like spaces %20 and commas)
+$decodedPath = urldecode($path);
+$localStaticFile = __DIR__ . $decodedPath;
+if (file_exists($localStaticFile) && is_file($localStaticFile)) {
+    $ext = strtolower(pathinfo($localStaticFile, PATHINFO_EXTENSION));
+    $staticMimeMap = [
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'png' => 'image/png',
+        'gif' => 'image/gif',
+        'webp' => 'image/webp',
+        'avif' => 'image/avif',
+        'svg' => 'image/svg+xml',
+        'css' => 'text/css; charset=utf-8',
+        'js' => 'application/javascript; charset=utf-8',
+        'json' => 'application/json; charset=utf-8',
+        'woff' => 'font/woff',
+        'woff2' => 'font/woff2',
+        'ttf' => 'font/ttf',
+        'ico' => 'image/x-icon',
+        'html' => 'text/html; charset=utf-8',
+    ];
+    if (isset($staticMimeMap[$ext])) {
+        header('Content-Type: ' . $staticMimeMap[$ext]);
+    }
+    header('Cache-Control: public, max-age=86400');
+    readfile($localStaticFile);
+    exit;
+}
+
 // Return clean 404 for missing static assets to prevent HTML syntax errors in CSS/JS (excluding /api/ and /storage/ proxy paths)
-if (strpos($path, '/api/') !== 0 && strpos($path, '/storage/') !== 0 && preg_match('/\.(css|js|png|jpg|jpeg|gif|svg|ico|json|woff|woff2|ttf|map)$/i', $path) && !file_exists(__DIR__ . $path)) {
+if (strpos($path, '/api/') !== 0 && strpos($path, '/storage/') !== 0 && preg_match('/\.(css|js|png|jpg|jpeg|gif|svg|ico|json|woff|woff2|ttf|map)$/i', $path)) {
     http_response_code(404);
     exit;
 }
