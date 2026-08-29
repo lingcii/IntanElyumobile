@@ -1137,16 +1137,20 @@ if (is_dir($imgDir)) {
                                 clusterEl.className = 'elyu-muni-marker';
                                 clusterEl.style.cssText = 'cursor:pointer; display:flex; flex-direction:column; align-items:center; user-select:none; will-change:transform; transform:translate3d(0,0,0); backface-visibility:hidden; z-index:25;';
 
+                                const innerWrap = document.createElement('div');
+                                innerWrap.className = 'muni-inner-wrapper';
+
                                 const bubble = document.createElement('div');
-                                bubble.style.cssText = 'width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); border:2.5px solid #ffffff; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:16px; box-shadow:0 6px 16px rgba(0,0,0,0.32), 0 2px 5px rgba(0,0,0,0.22); transition:transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);';
+                                bubble.style.cssText = 'width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); border:2.5px solid #ffffff; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:16px; box-shadow:0 6px 16px rgba(0,0,0,0.32), 0 2px 5px rgba(0,0,0,0.22); transition:transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);';
                                 bubble.innerHTML = '<i class="fa-solid fa-building-columns"></i>';
 
                                 const label = document.createElement('div');
                                 label.style.cssText = 'margin-top:4px; background:rgba(15,23,42,0.92); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); color:#ffffff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:100px; white-space:nowrap; box-shadow:0 3px 8px rgba(0,0,0,0.35); display:flex; align-items:center; gap:4px; pointer-events:none;';
                                 label.innerHTML = `<span>${g.name}</span><span style="background:rgba(255,255,255,0.25); color:#38bdf8; font-size:9px; font-weight:900; padding:1px 5px; border-radius:8px;">${g.count}</span>`;
 
-                                clusterEl.appendChild(bubble);
-                                clusterEl.appendChild(label);
+                                innerWrap.appendChild(bubble);
+                                innerWrap.appendChild(label);
+                                clusterEl.appendChild(innerWrap);
 
                                 clusterEl.addEventListener('mouseenter', () => {
                                     bubble.style.transform = 'scale(1.15)';
@@ -1162,7 +1166,9 @@ if (is_dir($imgDir)) {
                                     window.mapInstance.flyTo({
                                         center: [g.lng, g.lat],
                                         zoom: 14.2,
-                                        duration: 650
+                                        duration: 850,
+                                        essential: true,
+                                        curve: 1.42
                                     });
                                 });
 
@@ -1234,12 +1240,18 @@ if (is_dir($imgDir)) {
                                 container.className = 'elyu-custom-marker';
                                 container.style.cssText = 'cursor:pointer; display:flex; flex-direction:column; align-items:center; user-select:none; will-change:transform; transform:translate3d(0,0,0); backface-visibility:hidden; z-index:10;';
 
+                                const innerWrap = document.createElement('div');
+                                innerWrap.className = 'spot-inner-wrapper';
+                                const staggerDelay = Math.min((i % 15) * 0.025, 0.35);
+                                innerWrap.style.animationDelay = `${staggerDelay}s`;
+
                                 const pin = document.createElement('div');
                                 pin.className = 'elyu-pin-bubble';
-                                pin.style.cssText = `width:34px; height:34px; border-radius:50%; background:#ffffff; border:2.5px solid ${catColor}; display:flex; align-items:center; justify-content:center; color:${catColor}; box-shadow:0 4px 10px rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.12); transition:transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);`;
+                                pin.style.cssText = `width:34px; height:34px; border-radius:50%; background:#ffffff; border:2.5px solid ${catColor}; display:flex; align-items:center; justify-content:center; color:${catColor}; box-shadow:0 4px 10px rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.12);`;
                                 pin.innerHTML = `<i class="fa-solid ${iconClass}" style="font-size:13.5px; color:${catColor};"></i>`;
 
-                                container.appendChild(pin);
+                                innerWrap.appendChild(pin);
+                                container.appendChild(innerWrap);
 
                                 container.addEventListener('click', (e) => {
                                     e.stopPropagation();
