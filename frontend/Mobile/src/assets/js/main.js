@@ -436,7 +436,7 @@ window.initGoogleOAuthHandler = function () {
                 currentOverlay.innerHTML = `
                     <div class="oauth-modal-content">
                         <div class="oauth-success-circle">
-                            <i class="fa-solid fa-check" style="font-size:28px; color:#00f2fe;"></i>
+                            <i class="fa-solid fa-check" style="font-size:28px; color:#0284c7;"></i>
                         </div>
                         <h3 class="oauth-modal-title">Welcome${data.user?.name ? ', ' + data.user.name : ''}!</h3>
                         <p class="oauth-modal-subtitle">Redirecting to dashboard...</p>
