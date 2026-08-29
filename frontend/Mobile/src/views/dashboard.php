@@ -205,6 +205,10 @@ if (is_dir($imgDir)) {
                 <div class="category-icon-box"><i class="fa-solid fa-umbrella-beach"></i></div>
                 <div class="category-card-label">Beach</div>
             </div>
+            <div class="category-card" onclick="window.filterCategoryDash('Nature', this)">
+                <div class="category-icon-box"><i class="fa-solid fa-tree"></i></div>
+                <div class="category-card-label">Nature & Parks</div>
+            </div>
             <div class="category-card" onclick="window.filterCategoryDash('Mountains', this)">
                 <div class="category-icon-box"><i class="fa-solid fa-mountain-sun"></i></div>
                 <div class="category-card-label">Mountains</div>
@@ -220,6 +224,14 @@ if (is_dir($imgDir)) {
             <div class="category-card" onclick="window.filterCategoryDash('Food & Dining', this)">
                 <div class="category-icon-box"><i class="fa-solid fa-utensils"></i></div>
                 <div class="category-card-label">Food</div>
+            </div>
+            <div class="category-card" onclick="window.filterCategoryDash('Farm', this)">
+                <div class="category-icon-box"><i class="fa-solid fa-seedling"></i></div>
+                <div class="category-card-label">Farms</div>
+            </div>
+            <div class="category-card" onclick="window.filterCategoryDash('Arts & craft', this)">
+                <div class="category-icon-box"><i class="fa-solid fa-palette"></i></div>
+                <div class="category-card-label">Arts & Crafts</div>
             </div>
             <div class="category-card" onclick="window.filterCategoryDash('Nightlife', this)">
                 <div class="category-icon-box"><i class="fa-solid fa-martini-glass-citrus"></i></div>
@@ -333,21 +345,78 @@ if (is_dir($imgDir)) {
         document.querySelectorAll('#dash-categories-list .category-card').forEach(card => card.classList.remove('active'));
         if (el) el.classList.add('active');
 
-        const matchesCategory = (cardCategory, cardName, targetCat) => {
-            if (targetCat === 'All') return true;
-            const c = (cardCategory || '').toLowerCase();
-            const n = (cardName || '').toLowerCase();
-            const combined = c + ' ' + n;
-            const t = targetCat.toLowerCase();
+        const matchesCategory = (cardCategory, cardName, cardMuni, targetCat) => {
+            if (!targetCat || targetCat === 'All') return true;
+            const c = (cardCategory || '').toLowerCase().trim();
+            const n = (cardName || '').toLowerCase().trim();
+            const m = (cardMuni || '').toLowerCase().trim();
+            const combined = `${c} ${n} ${m}`;
+            const t = targetCat.toLowerCase().trim();
 
-            if (combined.includes(t)) return true;
+            // Direct or token match
+            if (c === t || c.includes(t) || t.includes(c)) return true;
+            if (` ${c} `.includes(` ${t} `)) return true;
 
-            if (t === 'beach' && (combined.includes('beach') || combined.includes('island') || combined.includes('coastal') || combined.includes('surf'))) return true;
-            if (t === 'mountains' && (combined.includes('mountain') || combined.includes('hiking') || combined.includes('hill') || combined.includes('peak') || combined.includes('viewpoint') || combined.includes('nature'))) return true;
-            if (t === 'lakes' && (combined.includes('lake') || combined.includes('fall') || combined.includes('waterfall') || combined.includes('river') || combined.includes('spring') || combined.includes('water'))) return true;
-            if (t === 'heritage' && (combined.includes('heritage') || combined.includes('historical') || combined.includes('church') || combined.includes('monument') || combined.includes('landmark') || combined.includes('museum') || combined.includes('cultural') || combined.includes('religious') || combined.includes('parish') || combined.includes('shrine'))) return true;
-            if (t.includes('food') && (combined.includes('food') || combined.includes('dining') || combined.includes('restaurant') || combined.includes('cafe') || combined.includes('bistro') || combined.includes('grill'))) return true;
-            if (t === 'nightlife' && (combined.includes('nightlife') || combined.includes('bar') || combined.includes('resort') || combined.includes('shopping') || combined.includes('festival') || combined.includes('club'))) return true;
+            // Beach, Coastal & Surfing
+            if (t.includes('beach') || t.includes('surf') || t.includes('coastal') || t.includes('island')) {
+                return combined.includes('beach') || combined.includes('surf') || combined.includes('coastal') || 
+                       combined.includes('island') || combined.includes('seascape') || combined.includes('water sports');
+            }
+
+            // Nature & Parks
+            if (t.includes('nature') || t.includes('park')) {
+                return c.includes('nature') || c.includes('park') || combined.includes('park') || 
+                       combined.includes('plaza') || combined.includes('agro-forestry') || combined.includes('tree') ||
+                       combined.includes('mangrove') || combined.includes('lagoon') || combined.includes('baywalk');
+            }
+
+            // Mountains & Hiking
+            if (t.includes('mountain') || t.includes('hiking') || t.includes('trail') || t.includes('view')) {
+                return c.includes('mountain') || c.includes('hiking') || combined.includes('trail') || 
+                       combined.includes('peak') || combined.includes('view deck') || combined.includes('viewdeck') || 
+                       combined.includes('terrace') || combined.includes('mt.') || combined.includes('mountain');
+            }
+
+            // Lakes, Falls & Waterways
+            if (t.includes('lake') || t.includes('fall') || t.includes('water') || t.includes('river')) {
+                return c.includes('waterfall') || c.includes('river') || c.includes('lake') || 
+                       combined.includes('fall') || combined.includes('river') || combined.includes('lake') || 
+                       combined.includes('dam') || combined.includes('spring');
+            }
+
+            // Heritage, Cultural, Historical & Monuments
+            if (t.includes('heritage') || t.includes('cultural') || t.includes('historical') || t.includes('monument') || t.includes('museum')) {
+                return c.includes('cultural') || c.includes('heritage') || c.includes('historical') || 
+                       c.includes('monument') || c.includes('museum') || combined.includes('watchtower') || 
+                       combined.includes('tunnel') || combined.includes('marker') || combined.includes('station') || 
+                       combined.includes('memorial') || combined.includes('ancestral') || combined.includes('church') || 
+                       combined.includes('shrine') || combined.includes('parish') || combined.includes('basilica');
+            }
+
+            // Food & Dining
+            if (t.includes('food') || t.includes('dining') || t.includes('restaurant')) {
+                return c.includes('food') || combined.includes('restaurant') || combined.includes('seafood') || 
+                       combined.includes('dining') || combined.includes('eatery') || combined.includes('cafe') || 
+                       combined.includes('bistro') || combined.includes('grill');
+            }
+
+            // Arts & Crafts
+            if (t.includes('art') || t.includes('craft') || t.includes('weaving')) {
+                return c.includes('arts') || combined.includes('weaving') || combined.includes('pottery') || 
+                       combined.includes('gallery') || combined.includes('craft') || combined.includes('paper');
+            }
+
+            // Farms & Agriculture
+            if (t.includes('farm') || t.includes('agro') || t.includes('plant')) {
+                return c.includes('farm') || combined.includes('plantation') || combined.includes('grapes') || 
+                       combined.includes('mushroom') || combined.includes('fishery') || combined.includes('agri');
+            }
+
+            // Nightlife & Recreation
+            if (t.includes('nightlife') || t.includes('bar') || t.includes('resort') || t.includes('recreation')) {
+                return combined.includes('nightlife') || combined.includes('bar') || combined.includes('resort') || 
+                       combined.includes('shopping') || combined.includes('festival') || combined.includes('club') || combined.includes('recreation');
+            }
 
             return false;
         };
@@ -375,8 +444,9 @@ if (is_dir($imgDir)) {
                     if (child.id === 'rec-extras') {
                         Array.from(child.children).forEach(subChild => {
                             const subCat = subChild.getAttribute('data-category') || '';
-                            const subName = subChild.querySelector('.fav-card-name, h4')?.innerText || '';
-                            if (matchesCategory(subCat, subName, cat)) {
+                            const subName = subChild.getAttribute('data-name') || subChild.querySelector('.fav-card-name, h4')?.innerText || '';
+                            const subMuni = subChild.getAttribute('data-municipality') || '';
+                            if (matchesCategory(subCat, subName, subMuni, cat)) {
                                 subChild.style.display = '';
                                 visibleCount++;
                             } else {
@@ -388,9 +458,10 @@ if (is_dir($imgDir)) {
                 }
 
                 const cardCat = child.getAttribute('data-category') || '';
-                const cardName = child.querySelector('.fav-card-name, h4')?.innerText || '';
+                const cardName = child.getAttribute('data-name') || child.querySelector('.fav-card-name, h4')?.innerText || '';
+                const cardMuni = child.getAttribute('data-municipality') || '';
 
-                if (matchesCategory(cardCat, cardName, cat)) {
+                if (matchesCategory(cardCat, cardName, cardMuni, cat)) {
                     child.style.display = '';
                     child.style.animation = 'none';
                     void child.offsetWidth;
@@ -665,7 +736,7 @@ if (is_dir($imgDir)) {
                         const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
                         const encodedDest = encodeURIComponent(JSON.stringify(dest));
                         trendingContainer.innerHTML += `
-                        <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
+                        <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                             ${badgeHtml}
                             <img src="${img}" alt="${dest.name}" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
                             <div class="fav-card-overlay"><span class="fav-card-name">${dest.name}</span></div>
@@ -713,7 +784,7 @@ if (is_dir($imgDir)) {
                         const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
                         const encodedDest = encodeURIComponent(JSON.stringify(dest));
                         savedContainer.innerHTML += `
-                        <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
+                        <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                             ${badgeHtml}
                             <img src="${img}" alt="${dest.name}" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
                             <div class="fav-card-overlay"><span class="fav-card-name">${dest.name}</span></div>
@@ -904,7 +975,7 @@ if (is_dir($imgDir)) {
 
                             const encodedDest = encodeURIComponent(JSON.stringify(dest));
                             nearContainer.innerHTML += `
-                            <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
+                            <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                                 ${badgeHtml}
                                 <img src="${img}" alt="${dest.name}" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
                                 <div class="fav-card-overlay">
@@ -947,7 +1018,7 @@ if (is_dir($imgDir)) {
 
             const encodedDest = encodeURIComponent(JSON.stringify(dest));
             return `
-            <div class="rec-item-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}">
+            <div class="rec-item-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}">
                 <div onclick="window.toggleRecommendedCard(this)" style="cursor:pointer; display:flex; align-items:center; gap: 12px; padding: 12px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(56, 189, 248, 0.18)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
                     <img src="${img}" alt="${dest.name}" style="width:60px; height:60px; border-radius:12px; object-fit:cover;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
                     <div style="flex:1; min-width:0;">

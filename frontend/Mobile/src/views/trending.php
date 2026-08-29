@@ -45,6 +45,9 @@ if (is_dir($imgDir)) {
         <button type="button" class="trending-cat-pill" onclick="window.filterTrendingCat('Beach', this)">
             <i class="fa-solid fa-umbrella-beach"></i> Beach
         </button>
+        <button type="button" class="trending-cat-pill" onclick="window.filterTrendingCat('Nature', this)">
+            <i class="fa-solid fa-tree"></i> Nature & Parks
+        </button>
         <button type="button" class="trending-cat-pill" onclick="window.filterTrendingCat('Mountains', this)">
             <i class="fa-solid fa-mountain-sun"></i> Mountains
         </button>
@@ -56,6 +59,12 @@ if (is_dir($imgDir)) {
         </button>
         <button type="button" class="trending-cat-pill" onclick="window.filterTrendingCat('Food & Dining', this)">
             <i class="fa-solid fa-utensils"></i> Food
+        </button>
+        <button type="button" class="trending-cat-pill" onclick="window.filterTrendingCat('Farm', this)">
+            <i class="fa-solid fa-seedling"></i> Farms
+        </button>
+        <button type="button" class="trending-cat-pill" onclick="window.filterTrendingCat('Arts & craft', this)">
+            <i class="fa-solid fa-palette"></i> Arts & Crafts
         </button>
         <button type="button" class="trending-cat-pill" onclick="window.filterTrendingCat('Nightlife', this)">
             <i class="fa-solid fa-martini-glass-citrus"></i> Nightlife
@@ -89,21 +98,78 @@ if (is_dir($imgDir)) {
         let currentCategory = 'All';
         let currentSearch = '';
 
-        const matchesCategory = (cardCategory, cardName, targetCat) => {
+        const matchesCategory = (cardCategory, cardName, cardMuni, targetCat) => {
             if (!targetCat || targetCat === 'All') return true;
-            const c = (cardCategory || '').toLowerCase();
-            const n = (cardName || '').toLowerCase();
-            const combined = c + ' ' + n;
-            const t = targetCat.toLowerCase();
+            const c = (cardCategory || '').toLowerCase().trim();
+            const n = (cardName || '').toLowerCase().trim();
+            const m = (cardMuni || '').toLowerCase().trim();
+            const combined = `${c} ${n} ${m}`;
+            const t = targetCat.toLowerCase().trim();
 
-            if (combined.includes(t)) return true;
+            // Direct or token match
+            if (c === t || c.includes(t) || t.includes(c)) return true;
+            if (` ${c} `.includes(` ${t} `)) return true;
 
-            if (t === 'beach' && (combined.includes('beach') || combined.includes('island') || combined.includes('coastal') || combined.includes('surf'))) return true;
-            if (t === 'mountains' && (combined.includes('mountain') || combined.includes('hiking') || combined.includes('hill') || combined.includes('peak') || combined.includes('viewpoint') || combined.includes('nature'))) return true;
-            if (t === 'lakes' && (combined.includes('lake') || combined.includes('fall') || combined.includes('waterfall') || combined.includes('river') || combined.includes('spring') || combined.includes('water'))) return true;
-            if (t === 'heritage' && (combined.includes('heritage') || combined.includes('historical') || combined.includes('church') || combined.includes('monument') || combined.includes('landmark') || combined.includes('museum') || combined.includes('cultural') || combined.includes('religious') || combined.includes('parish') || combined.includes('shrine'))) return true;
-            if (t.includes('food') && (combined.includes('food') || combined.includes('dining') || combined.includes('restaurant') || combined.includes('cafe') || combined.includes('bistro') || combined.includes('grill'))) return true;
-            if (t === 'nightlife' && (combined.includes('nightlife') || combined.includes('bar') || combined.includes('resort') || combined.includes('shopping') || combined.includes('festival') || combined.includes('club'))) return true;
+            // Beach, Coastal & Surfing
+            if (t.includes('beach') || t.includes('surf') || t.includes('coastal') || t.includes('island')) {
+                return combined.includes('beach') || combined.includes('surf') || combined.includes('coastal') || 
+                       combined.includes('island') || combined.includes('seascape') || combined.includes('water sports');
+            }
+
+            // Nature & Parks
+            if (t.includes('nature') || t.includes('park')) {
+                return c.includes('nature') || c.includes('park') || combined.includes('park') || 
+                       combined.includes('plaza') || combined.includes('agro-forestry') || combined.includes('tree') ||
+                       combined.includes('mangrove') || combined.includes('lagoon') || combined.includes('baywalk');
+            }
+
+            // Mountains & Hiking
+            if (t.includes('mountain') || t.includes('hiking') || t.includes('trail') || t.includes('view')) {
+                return c.includes('mountain') || c.includes('hiking') || combined.includes('trail') || 
+                       combined.includes('peak') || combined.includes('view deck') || combined.includes('viewdeck') || 
+                       combined.includes('terrace') || combined.includes('mt.') || combined.includes('mountain');
+            }
+
+            // Lakes, Falls & Waterways
+            if (t.includes('lake') || t.includes('fall') || t.includes('water') || t.includes('river')) {
+                return c.includes('waterfall') || c.includes('river') || c.includes('lake') || 
+                       combined.includes('fall') || combined.includes('river') || combined.includes('lake') || 
+                       combined.includes('dam') || combined.includes('spring');
+            }
+
+            // Heritage, Cultural, Historical & Monuments
+            if (t.includes('heritage') || t.includes('cultural') || t.includes('historical') || t.includes('monument') || t.includes('museum')) {
+                return c.includes('cultural') || c.includes('heritage') || c.includes('historical') || 
+                       c.includes('monument') || c.includes('museum') || combined.includes('watchtower') || 
+                       combined.includes('tunnel') || combined.includes('marker') || combined.includes('station') || 
+                       combined.includes('memorial') || combined.includes('ancestral') || combined.includes('church') || 
+                       combined.includes('shrine') || combined.includes('parish') || combined.includes('basilica');
+            }
+
+            // Food & Dining
+            if (t.includes('food') || t.includes('dining') || t.includes('restaurant')) {
+                return c.includes('food') || combined.includes('restaurant') || combined.includes('seafood') || 
+                       combined.includes('dining') || combined.includes('eatery') || combined.includes('cafe') || 
+                       combined.includes('bistro') || combined.includes('grill');
+            }
+
+            // Arts & Crafts
+            if (t.includes('art') || t.includes('craft') || t.includes('weaving')) {
+                return c.includes('arts') || combined.includes('weaving') || combined.includes('pottery') || 
+                       combined.includes('gallery') || combined.includes('craft') || combined.includes('paper');
+            }
+
+            // Farms & Agriculture
+            if (t.includes('farm') || t.includes('agro') || t.includes('plant')) {
+                return c.includes('farm') || combined.includes('plantation') || combined.includes('grapes') || 
+                       combined.includes('mushroom') || combined.includes('fishery') || combined.includes('agri');
+            }
+
+            // Nightlife & Recreation
+            if (t.includes('nightlife') || t.includes('bar') || t.includes('resort') || t.includes('recreation')) {
+                return combined.includes('nightlife') || combined.includes('bar') || combined.includes('resort') || 
+                       combined.includes('shopping') || combined.includes('festival') || combined.includes('club') || combined.includes('recreation');
+            }
 
             return false;
         };
@@ -151,7 +217,7 @@ if (is_dir($imgDir)) {
 
             const filtered = allSpots.filter(dest => {
                 // Category filter
-                if (!matchesCategory(dest.category, dest.name, currentCategory)) {
+                if (!matchesCategory(dest.category, dest.name, dest.municipality || dest.location, currentCategory)) {
                     return false;
                 }
 
