@@ -798,24 +798,26 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                     });
 
                     let hoveredId = null;
-                    window.mapInstance.on('mousemove', 'municipality-fill', (e) => {
-                        if (e.features.length > 0) {
-                            const nextId = e.features[0].id;
-                            if (hoveredId !== nextId) {
-                                if (hoveredId !== null) {
-                                    window.mapInstance.setFeatureState({ source: 'municipality-zones', id: hoveredId }, { hover: false });
+                    if (window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+                        window.mapInstance.on('mousemove', 'municipality-fill', (e) => {
+                            if (e.features.length > 0) {
+                                const nextId = e.features[0].id;
+                                if (hoveredId !== nextId) {
+                                    if (hoveredId !== null) {
+                                        window.mapInstance.setFeatureState({ source: 'municipality-zones', id: hoveredId }, { hover: false });
+                                    }
+                                    hoveredId = nextId;
+                                    window.mapInstance.setFeatureState({ source: 'municipality-zones', id: hoveredId }, { hover: true });
                                 }
-                                hoveredId = nextId;
-                                window.mapInstance.setFeatureState({ source: 'municipality-zones', id: hoveredId }, { hover: true });
                             }
-                        }
-                    });
-                    window.mapInstance.on('mouseleave', 'municipality-fill', () => {
-                        if (hoveredId !== null) {
-                            window.mapInstance.setFeatureState({ source: 'municipality-zones', id: hoveredId }, { hover: false });
-                        }
-                        hoveredId = null;
-                    });
+                        });
+                        window.mapInstance.on('mouseleave', 'municipality-fill', () => {
+                            if (hoveredId !== null) {
+                                window.mapInstance.setFeatureState({ source: 'municipality-zones', id: hoveredId }, { hover: false });
+                            }
+                            hoveredId = null;
+                        });
+                    }
 
                     window.zonesLoaded = true;
                 }
@@ -828,41 +830,21 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
     };
 
     window.renderMarkers = function(locations) {
+        if (!window.mapInstance) return;
+
+        // Clean any legacy DOM markers
         if (window.mapMarkers) {
             window.mapMarkers.forEach(m => m.remove());
         }
         window.mapMarkers = [];
 
-        locations.forEach(loc => {
+        const features = [];
+        (locations || []).forEach(loc => {
             const locLat = parseFloat(loc.lat || loc.latitude);
             const locLng = parseFloat(loc.lng || loc.longitude);
             if (isNaN(locLat) || isNaN(locLng)) return;
-            
-            const cat = loc.category || 'Other';
-            let iconClass = 'fa-location-dot';
-            const catLower = cat.toLowerCase();
-            
-            if (catLower.includes('beach') || catLower.includes('surf')) {
-                iconClass = 'fa-umbrella-beach';
-            } else if (catLower.includes('mountain') || catLower.includes('nature') || catLower.includes('park')) {
-                iconClass = 'fa-mountain';
-            } else if (catLower.includes('historic') || catLower.includes('culture') || catLower.includes('museum')) {
-                iconClass = 'fa-landmark';
-            } else if (catLower.includes('water') || catLower.includes('fall') || catLower.includes('river')) {
-                iconClass = 'fa-water';
-            } else if (catLower.includes('adventure')) {
-                iconClass = 'fa-person-hiking';
-            } else if (catLower.includes('farm')) {
-                iconClass = 'fa-tractor';
-            } else if (catLower.includes('religio') || catLower.includes('church')) {
-                iconClass = 'fa-place-of-worship';
-            } else if (catLower.includes('hotel') || catLower.includes('resort') || catLower.includes('stay')) {
-                iconClass = 'fa-bed';
-            } else if (catLower.includes('food') || catLower.includes('restaurant') || catLower.includes('cafe')) {
-                iconClass = 'fa-utensils';
-            }
 
-            let catColor = '#888';
+            let catColor = '#38bdf8';
             if (loc.classification_status === 'EXIST') {
                 catColor = '#34c759';
             } else if (loc.classification_status === 'EMERGE') {
@@ -871,55 +853,233 @@ window.getFareFromMatrix = function(vehicleType, distanceKm) {
                 catColor = '#f59e0b';
             }
 
-            const container = document.createElement('div');
-            container.style.cssText = 'will-change:transform; transform:translate3d(0,0,0); backface-visibility:hidden;';
-            
-            const el = document.createElement('div');
-            el.className = 'custom-map-marker';
-            el.style.cssText = `width:32px; height:32px; background-color:#FFFFFF; border:2px solid ${catColor}; border-radius:50%; display:flex; align-items:center; justify-content:center; color:${catColor}; box-shadow:0 4px 8px rgba(0,0,0,0.15); cursor:pointer; will-change:transform; transform:translate3d(0,0,0); backface-visibility:hidden; contain:layout style;`;
-            
-            el.innerHTML = `<i class="fa-solid ${iconClass}" style="font-size:14px;"></i>`;
-            
-            container.appendChild(el);
-            
-            container.addEventListener('click', (e) => {
-                e.stopPropagation();
-                // Clear any existing active popup
+            features.push({
+                type: 'Feature',
+                geometry: {
+                    type: 'Point',
+                    coordinates: [locLng, locLat]
+                },
+                properties: {
+                    id: loc.id,
+                    name: loc.name || 'Tourist Spot',
+                    category: loc.category || 'Other',
+                    classification_status: loc.classification_status || 'EXIST',
+                    cat_color: catColor,
+                    municipality: loc.municipality || '',
+                    raw_json: JSON.stringify(loc)
+                }
+            });
+        });
+
+        const geojsonData = {
+            type: 'FeatureCollection',
+            features: features
+        };
+
+        const source = window.mapInstance.getSource('tourist-spots-source');
+        if (source) {
+            source.setData(geojsonData);
+        } else {
+            window.mapInstance.addSource('tourist-spots-source', {
+                type: 'geojson',
+                data: geojsonData,
+                cluster: true,
+                clusterMaxZoom: 13,
+                clusterRadius: 45
+            });
+
+            // Layer 1: Cluster Outer Ambient Glow
+            window.mapInstance.addLayer({
+                id: 'clusters-glow',
+                type: 'circle',
+                source: 'tourist-spots-source',
+                filter: ['has', 'point_count'],
+                paint: {
+                    'circle-color': [
+                        'step',
+                        ['get', 'point_count'],
+                        'rgba(2, 132, 199, 0.35)',
+                        5,
+                        'rgba(37, 99, 235, 0.35)',
+                        15,
+                        'rgba(124, 58, 237, 0.35)'
+                    ],
+                    'circle-radius': [
+                        'step',
+                        ['get', 'point_count'],
+                        22,
+                        5,
+                        26,
+                        15,
+                        32
+                    ]
+                }
+            });
+
+            // Layer 2: Cluster Solid Core Circle
+            window.mapInstance.addLayer({
+                id: 'clusters',
+                type: 'circle',
+                source: 'tourist-spots-source',
+                filter: ['has', 'point_count'],
+                paint: {
+                    'circle-color': [
+                        'step',
+                        ['get', 'point_count'],
+                        '#0284c7',
+                        5,
+                        '#2563eb',
+                        15,
+                        '#7c3aed'
+                    ],
+                    'circle-radius': [
+                        'step',
+                        ['get', 'point_count'],
+                        16,
+                        5,
+                        20,
+                        15,
+                        24
+                    ],
+                    'circle-stroke-width': 2.5,
+                    'circle-stroke-color': '#ffffff'
+                }
+            });
+
+            // Layer 3: Cluster Count Label
+            window.mapInstance.addLayer({
+                id: 'cluster-count',
+                type: 'symbol',
+                source: 'tourist-spots-source',
+                filter: ['has', 'point_count'],
+                layout: {
+                    'text-field': '{point_count_abbreviated}',
+                    'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+                    'text-size': 12,
+                    'text-allow-overlap': true
+                },
+                paint: {
+                    'text-color': '#ffffff'
+                }
+            });
+
+            // Layer 4: Unclustered Point Outer Halo
+            window.mapInstance.addLayer({
+                id: 'unclustered-point-halo',
+                type: 'circle',
+                source: 'tourist-spots-source',
+                filter: ['!', ['has', 'point_count']],
+                paint: {
+                    'circle-color': '#ffffff',
+                    'circle-radius': 13,
+                    'circle-stroke-width': 2.5,
+                    'circle-stroke-color': ['get', 'cat_color']
+                }
+            });
+
+            // Layer 5: Unclustered Point Inner Dot
+            window.mapInstance.addLayer({
+                id: 'unclustered-point',
+                type: 'circle',
+                source: 'tourist-spots-source',
+                filter: ['!', ['has', 'point_count']],
+                paint: {
+                    'circle-color': ['get', 'cat_color'],
+                    'circle-radius': 6.5
+                }
+            });
+
+            // Layer 6: Spot Title Label (appears on zoom >= 12.5)
+            window.mapInstance.addLayer({
+                id: 'unclustered-point-label',
+                type: 'symbol',
+                source: 'tourist-spots-source',
+                filter: ['!', ['has', 'point_count']],
+                minzoom: 12.5,
+                layout: {
+                    'text-field': ['get', 'name'],
+                    'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+                    'text-size': 11,
+                    'text-offset': [0, 1.3],
+                    'text-anchor': 'top',
+                    'text-allow-overlap': false
+                },
+                paint: {
+                    'text-color': '#ffffff',
+                    'text-halo-color': 'rgba(15, 23, 42, 0.95)',
+                    'text-halo-width': 2
+                }
+            });
+
+            // Click on Cluster -> Smooth expansion zoom
+            window.mapInstance.on('click', 'clusters', async (e) => {
+                const features = window.mapInstance.queryRenderedFeatures(e.point, { layers: ['clusters'] });
+                if (!features || !features.length) return;
+                const clusterId = features[0].properties.cluster_id;
+                try {
+                    const zoom = await window.mapInstance.getSource('tourist-spots-source').getClusterExpansionZoom(clusterId);
+                    window.mapInstance.easeTo({
+                        center: features[0].geometry.coordinates,
+                        zoom: Math.min(zoom + 0.5, 16),
+                        duration: 500
+                    });
+                } catch(err) {
+                    window.mapInstance.easeTo({
+                        center: features[0].geometry.coordinates,
+                        zoom: window.mapInstance.getZoom() + 2,
+                        duration: 500
+                    });
+                }
+            });
+
+            // Click on Unclustered Spot Point
+            const handleSpotClick = (e) => {
+                if (!e.features || !e.features.length) return;
+                const props = e.features[0].properties;
+                let loc = props;
+                if (props.raw_json) {
+                    try { loc = JSON.parse(props.raw_json); } catch(err) {}
+                }
+
+                const coords = e.features[0].geometry.coordinates.slice();
+                const lng = coords[0];
+                const lat = coords[1];
+
                 if (window.activePopup) window.activePopup.remove();
 
                 const popupContent = document.createElement('div');
                 popupContent.style.cssText = "font-weight:700; font-size:14px; color:var(--text-dark); padding: 4px 8px; cursor: pointer; display: flex; align-items: center; gap: 6px;";
                 popupContent.innerHTML = `${loc.name} <i class="fa-solid fa-chevron-right" style="font-size:12px; color:var(--primary-color);"></i>`;
-                
+
                 popupContent.addEventListener('click', () => {
-                    const cp = window.mapInstance.getCenter();
                     const cz = window.mapInstance.getZoom();
-                    window.mapInstance.flyTo({ center: [locLng, locLat], zoom: Math.max(cz, 14), offset: [0, -180], duration: 400 });
+                    window.mapInstance.flyTo({ center: [lng, lat], zoom: Math.max(cz, 14), offset: [0, -180], duration: 400 });
                     window.openSheet(loc);
                 });
 
                 window.activePopup = new maplibregl.Popup({
                     closeButton: false, closeOnClick: false, offset: 15, className: 'smooth-map-popup'
                 })
-                .setLngLat([locLng, locLat])
+                .setLngLat([lng, lat])
                 .setDOMContent(popupContent)
                 .addTo(window.mapInstance);
 
                 const popupEl = window.activePopup.getElement();
-                if(popupEl) popupEl.style.zIndex = 9999;
-                
-                const cp = window.mapInstance.getCenter();
+                if (popupEl) popupEl.style.zIndex = 9999;
+
                 const cz = window.mapInstance.getZoom();
-                window.mapInstance.flyTo({ center: [locLng, locLat], zoom: Math.max(cz, 14), offset: [0, -180], duration: 1000 });
-            });
-            
-            const marker = new maplibregl.Marker({ element: container })
-                .setLngLat([locLng, locLat])
-                .addTo(window.mapInstance);
-                
-            window.mapMarkers.push(marker);
-        });
-    }
+                window.mapInstance.flyTo({ center: [lng, lat], zoom: Math.max(cz, 14), offset: [0, -180], duration: 600 });
+            };
+
+            window.mapInstance.on('click', 'unclustered-point', handleSpotClick);
+            window.mapInstance.on('click', 'unclustered-point-halo', handleSpotClick);
+
+            window.mapInstance.on('mouseenter', 'clusters', () => { window.mapInstance.getCanvas().style.cursor = 'pointer'; });
+            window.mapInstance.on('mouseleave', 'clusters', () => { window.mapInstance.getCanvas().style.cursor = ''; });
+            window.mapInstance.on('mouseenter', 'unclustered-point-halo', () => { window.mapInstance.getCanvas().style.cursor = 'pointer'; });
+            window.mapInstance.on('mouseleave', 'unclustered-point-halo', () => { window.mapInstance.getCanvas().style.cursor = ''; });
+        }
+    };
 
     function matchesCategoryFilter(loc, targetCat) {
         if (!targetCat || targetCat === 'All') return true;
