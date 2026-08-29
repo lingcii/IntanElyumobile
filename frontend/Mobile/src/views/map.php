@@ -990,8 +990,8 @@ if (is_dir($imgDir)) {
                     type: 'geojson',
                     data: geojsonData,
                     cluster: true,
-                    clusterMaxZoom: 13,
-                    clusterRadius: 45
+                    clusterMaxZoom: 9,
+                    clusterRadius: 28
                 });
 
                 // Layer 1: Cluster Outer Ambient Glow
@@ -1109,7 +1109,8 @@ if (is_dir($imgDir)) {
                         'text-offset': [0, 1.4],
                         'text-anchor': 'top',
                         'text-max-width': 10,
-                        'text-allow-overlap': false
+                        'text-allow-overlap': false,
+                        'text-optional': true
                     },
                     paint: {
                         'text-color': '#ffffff',
@@ -1119,15 +1120,16 @@ if (is_dir($imgDir)) {
                 });
 
                 // Click on Cluster -> Smooth expansion zoom
-                window.mapInstance.on('click', 'clusters', async (e) => {
-                    const features = window.mapInstance.queryRenderedFeatures(e.point, { layers: ['clusters'] });
+                const handleClusterClick = async (e) => {
+                    const features = window.mapInstance.queryRenderedFeatures(e.point, { layers: ['clusters', 'clusters-glow', 'cluster-count'] });
                     if (!features || !features.length) return;
                     const clusterId = features[0].properties.cluster_id;
+                    if (clusterId === undefined || clusterId === null) return;
                     try {
                         const zoom = await window.mapInstance.getSource('tourist-spots-source').getClusterExpansionZoom(clusterId);
                         window.mapInstance.easeTo({
                             center: features[0].geometry.coordinates,
-                            zoom: Math.min(zoom + 0.5, 16),
+                            zoom: Math.min(zoom + 0.5, 15),
                             duration: 500
                         });
                     } catch (err) {
@@ -1137,7 +1139,11 @@ if (is_dir($imgDir)) {
                             duration: 500
                         });
                     }
-                });
+                };
+
+                window.mapInstance.on('click', 'clusters', handleClusterClick);
+                window.mapInstance.on('click', 'clusters-glow', handleClusterClick);
+                window.mapInstance.on('click', 'cluster-count', handleClusterClick);
 
                 // Click on Unclustered Spot Point
                 const handleSpotClick = (e) => {
@@ -1185,10 +1191,10 @@ if (is_dir($imgDir)) {
                 window.mapInstance.on('click', 'unclustered-point', handleSpotClick);
                 window.mapInstance.on('click', 'unclustered-point-halo', handleSpotClick);
 
-                window.mapInstance.on('mouseenter', 'clusters', () => { window.mapInstance.getCanvas().style.cursor = 'pointer'; });
-                window.mapInstance.on('mouseleave', 'clusters', () => { window.mapInstance.getCanvas().style.cursor = ''; });
-                window.mapInstance.on('mouseenter', 'unclustered-point-halo', () => { window.mapInstance.getCanvas().style.cursor = 'pointer'; });
-                window.mapInstance.on('mouseleave', 'unclustered-point-halo', () => { window.mapInstance.getCanvas().style.cursor = ''; });
+                ['clusters', 'clusters-glow', 'cluster-count', 'unclustered-point-halo', 'unclustered-point'].forEach(layerId => {
+                    window.mapInstance.on('mouseenter', layerId, () => { window.mapInstance.getCanvas().style.cursor = 'pointer'; });
+                    window.mapInstance.on('mouseleave', layerId, () => { window.mapInstance.getCanvas().style.cursor = ''; });
+                });
             }
         };
 
@@ -1198,41 +1204,86 @@ if (is_dir($imgDir)) {
             const c = (loc.category || '').toLowerCase().trim();
             const n = (loc.name || '').toLowerCase().trim();
             const d = (loc.description || '').toLowerCase().trim();
+            const m = (loc.municipality || '').toLowerCase().trim();
+            const combined = `${c} ${n} ${d} ${m}`;
 
-            // Direct category match or inclusion
+            // 1. Direct match or inclusion
             if (c === t || c.includes(t) || t.includes(c)) return true;
             if (` ${c} `.includes(` ${t} `)) return true;
 
-            // Specific category semantics
-            if (t === 'nature park') {
-                return c.includes('nature') || (c.includes('park') && !c.includes('amusement'));
+            // 2. Beach, Coastal & Surfing
+            if (t.includes('beach') || t.includes('surf') || t.includes('coastal') || t.includes('island')) {
+                return combined.includes('beach') || combined.includes('surf') || combined.includes('coastal') || 
+                       combined.includes('island') || combined.includes('seascape') || combined.includes('water sports');
             }
-            if (t === 'park') {
-                return c.includes('park') || n.includes('park') || n.includes('plaza');
+
+            // 3. Nature, Eco-Parks & Town Plazas
+            if (t.includes('nature') || t.includes('park')) {
+                return c.includes('nature') || c.includes('park') || n.includes('park') || 
+                       n.includes('plaza') || c.includes('agro-forestry') || c.includes('tree') ||
+                       n.includes('mangrove') || n.includes('lagoon') || n.includes('baywalk');
             }
-            if (t === 'monument') {
-                return c.includes('monument') || n.includes('monument') || n.includes('memorial') || n.includes('marker') || n.includes('shrine');
-            }
-            if (t === 'landmark') {
-                return c.includes('landmark') || n.includes('arc') || n.includes('center') || n.includes('house') || n.includes('building');
-            }
-            if (t === 'food destination' || t === 'food & dining' || t === 'food') {
-                return c.includes('food') || c.includes('dining') || c.includes('restaurant') || n.includes('restaurant') || n.includes('cafe') || n.includes('bistro') || n.includes('grill') || d.includes('dining');
-            }
-            if (t === 'cultural heritage' || t === 'heritage') {
-                return c.includes('cultural') || c.includes('heritage') || c.includes('historical') || n.includes('museum') || n.includes('tunnel') || n.includes('station') || n.includes('watchtower');
-            }
-            if (t === 'religious') {
-                return c.includes('religious') || c.includes('church') || n.includes('church') || n.includes('parish') || n.includes('basilica') || n.includes('grotto') || n.includes('cathedral');
-            }
-            if (t === 'beach') {
-                return c.includes('beach') || c.includes('surf') || c.includes('coastal') || n.includes('beach') || n.includes('cove') || n.includes('surf');
-            }
-            if (t === 'mountain' || t === 'mountains' || t === 'hiking') {
-                return c.includes('mountain') || c.includes('hiking') || n.includes('mountain') || n.includes('peak') || n.includes('hill') || n.includes('trail');
-            }
+
+            // 4. Waterfalls, Rivers, Lakes & Springs
             if (t.includes('water') || t.includes('fall') || t.includes('lake') || t.includes('river')) {
-                return c.includes('waterfall') || c.includes('fall') || c.includes('lake') || c.includes('river') || n.includes('falls') || n.includes('lake') || n.includes('river');
+                return c.includes('waterfall') || c.includes('river') || c.includes('lake') || 
+                       n.includes('fall') || n.includes('river') || n.includes('lake') || n.includes('dam') || n.includes('spring');
+            }
+
+            // 5. Mountains, Hiking & View Decks
+            if (t.includes('mountain') || t.includes('hiking') || t.includes('trail') || t.includes('view')) {
+                return c.includes('mountain') || c.includes('hiking') || n.includes('trail') || 
+                       n.includes('peak') || n.includes('view deck') || n.includes('viewdeck') || n.includes('terrace') || n.includes('mt.') || n.includes('mountain');
+            }
+
+            // 6. Cultural Heritage, Historical, Monuments & Museums
+            if (t.includes('cultural') || t.includes('heritage') || t.includes('historical') || t.includes('monument') || t.includes('museum')) {
+                return c.includes('cultural') || c.includes('heritage') || c.includes('historical') || 
+                       c.includes('monument') || c.includes('museum') || n.includes('watchtower') || 
+                       n.includes('tunnel') || n.includes('marker') || n.includes('station') || 
+                       n.includes('memorial') || n.includes('ancestral') || n.includes('museum');
+            }
+
+            // 7. Churches & Religious
+            if (t.includes('religious') || t.includes('church') || t.includes('shrine')) {
+                return c.includes('religious') || n.includes('church') || n.includes('parish') || 
+                       n.includes('basilica') || n.includes('shrine') || n.includes('grotto') || n.includes('chapel');
+            }
+
+            // 8. Landmarks
+            if (t.includes('landmark')) {
+                return c.includes('landmark') || n.includes('arc') || n.includes('center') || 
+                       n.includes('bridge') || n.includes('tree house') || n.includes('port') || 
+                       n.includes('srdi') || n.includes('building') || n.includes('institute');
+            }
+
+            // 9. Food & Dining
+            if (t.includes('food') || t.includes('dining') || t.includes('restaurant')) {
+                return c.includes('food') || combined.includes('restaurant') || combined.includes('seafood') || 
+                       combined.includes('dining') || combined.includes('eatery') || combined.includes('cafe') || 
+                       combined.includes('bistro') || combined.includes('grill');
+            }
+
+            // 10. Arts, Crafts & Weaving
+            if (t.includes('art') || t.includes('craft') || t.includes('weaving')) {
+                return c.includes('arts') || combined.includes('weaving') || combined.includes('pottery') || 
+                       combined.includes('gallery') || combined.includes('craft') || combined.includes('paper');
+            }
+
+            // 11. Farms & Agriculture
+            if (t.includes('farm') || t.includes('agro') || t.includes('plant')) {
+                return c.includes('farm') || combined.includes('plantation') || combined.includes('grapes') || 
+                       combined.includes('mushroom') || combined.includes('fishery') || combined.includes('agri');
+            }
+
+            // 12. Recreation & Resorts
+            if (t.includes('recreation') || t.includes('resort')) {
+                return c.includes('recreation') || combined.includes('resort') || combined.includes('eco-park');
+            }
+
+            // 13. Cave
+            if (t.includes('cave')) {
+                return c.includes('cave') || n.includes('cave');
             }
 
             return false;
@@ -1242,22 +1293,44 @@ if (is_dir($imgDir)) {
             const container = document.getElementById('map-categories-container');
             if (!container) return;
 
-            const rawCats = [];
+            const primaryOrder = [
+                'All',
+                'Beach',
+                'Nature Park',
+                'Park',
+                'Waterfalls',
+                'Mountain',
+                'Landmark',
+                'Monument',
+                'Cultural Heritage',
+                'Religious',
+                'Food Destination',
+                'Arts & craft',
+                'Farm',
+                'Hiking',
+                'Lake',
+                'River'
+            ];
+
+            const otherCats = [];
             (window.allMapLocations || []).forEach(loc => {
                 if (!loc.category) return;
                 const parts = String(loc.category).split(/[,/]/);
                 parts.forEach(p => {
                     const trimmed = p.trim();
-                    if (trimmed) rawCats.push(trimmed);
+                    if (trimmed && !primaryOrder.includes(trimmed) && !otherCats.includes(trimmed)) {
+                        otherCats.push(trimmed);
+                    }
                 });
             });
+            otherCats.sort((a, b) => a.localeCompare(b));
 
-            const uniqueCats = [...new Set(rawCats)];
-            uniqueCats.sort((a, b) => a.localeCompare(b));
-            let html = `<div class="category-pill active" onclick="filterCategory('All', this)">All</div>`;
-            uniqueCats.forEach(cat => {
+            const finalCats = [...primaryOrder, ...otherCats];
+            let html = '';
+            finalCats.forEach((cat, idx) => {
                 const safeCat = cat.replace(/'/g, "\\'");
-                html += `<div class="category-pill" onclick="filterCategory('${safeCat}', this)">${cat}</div>`;
+                const activeClass = idx === 0 ? 'active' : '';
+                html += `<div class="category-pill ${activeClass}" onclick="filterCategory('${safeCat}', this)">${cat}</div>`;
             });
             container.innerHTML = html;
         }
