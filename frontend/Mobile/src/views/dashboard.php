@@ -3,24 +3,6 @@
 $pageTitle = 'Discover La Union';
 $activeTab = 'dashboard';
 
-// Scan municipality images from local assets
-$municipalityImages = [];
-$imgDir = __DIR__ . '/../assets/img/MUNICIPALITIES';
-if (is_dir($imgDir)) {
-    $munis = scandir($imgDir);
-    foreach ($munis as $muni) {
-        if ($muni === '.' || $muni === '..') continue;
-        if (is_dir("$imgDir/$muni")) {
-            $files = scandir("$imgDir/$muni");
-            foreach ($files as $f) {
-                $fLower = strtolower($f);
-                if (preg_match('/\.(jpg|jpeg|png|webp|gif)$/', $fLower)) {
-                    $municipalityImages[strtoupper($muni)][] = $f;
-                }
-            }
-        }
-    }
-}
 ?>
 
 <link rel="stylesheet" href="assets/css/views/dashboard.css?v=<?= time() ?>">
@@ -286,7 +268,6 @@ if (is_dir($imgDir)) {
 </div>
 
 <script>
-    window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
     window.filterCategoryDash = function(cat, el) {
         document.querySelectorAll('#dash-categories-list .category-card').forEach(card => card.classList.remove('active'));
         if (el) el.classList.add('active');

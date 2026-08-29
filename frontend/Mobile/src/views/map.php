@@ -3,28 +3,9 @@
 $pageTitle = 'Explore Map';
 $activeTab = 'map';
 
-$municipalityImages = [];
-$imgDir = __DIR__ . '/../assets/img/MUNICIPALITIES';
-if (is_dir($imgDir)) {
-    $munis = scandir($imgDir);
-    foreach ($munis as $muni) {
-        if ($muni === '.' || $muni === '..') continue;
-        if (is_dir("$imgDir/$muni")) {
-            $files = scandir("$imgDir/$muni");
-            foreach ($files as $f) {
-                $fLower = strtolower($f);
-                if (preg_match('/\.(jpg|jpeg|png|webp|gif)$/', $fLower)) {
-                    $municipalityImages[strtoupper($muni)][] = $f;
-                }
-            }
-        }
-    }
-}
 ?>
 
 <script>
-window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
-
 window.getFareFromMatrix = function(vehicleType, distanceKm) {
     if (!window.fareData) return null;
     // Map frontend vehicle names to fare data keys
