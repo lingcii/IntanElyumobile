@@ -1019,13 +1019,7 @@ if (is_dir($imgDir)) {
                 pin.style.cssText = `width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:2.5px solid ${catColor}; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 4px 12px rgba(0,0,0,0.35), 0 0 10px ${catColor}70; transition:transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);`;
                 pin.innerHTML = `<i class="fa-solid ${iconClass}" style="font-size:13.5px; color:${catColor};"></i>`;
 
-                const label = document.createElement('div');
-                label.className = 'elyu-pin-label';
-                label.style.cssText = 'margin-top:3px; padding:2px 7px; border-radius:6px; background:rgba(15,23,42,0.92); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); color:#ffffff; font-size:10px; font-weight:700; white-space:nowrap; max-width:115px; overflow:hidden; text-overflow:ellipsis; pointer-events:none; box-shadow:0 2px 6px rgba(0,0,0,0.4); text-align:center;';
-                label.textContent = loc.name;
-
                 container.appendChild(pin);
-                container.appendChild(label);
 
                 container.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -1064,7 +1058,7 @@ if (is_dir($imgDir)) {
                     container.style.zIndex = '10';
                 });
 
-                const marker = new maplibregl.Marker({ element: container, anchor: 'top' })
+                const marker = new maplibregl.Marker({ element: container, anchor: 'center' })
                     .setLngLat([locLng, locLat])
                     .addTo(window.mapInstance);
 
