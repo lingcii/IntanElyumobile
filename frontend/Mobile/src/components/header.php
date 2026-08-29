@@ -98,21 +98,21 @@
 
 <!-- Sidebar Menu Drawer -->
 <div id="sidebar-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 99990; transition: opacity 0.3s ease;" onclick="toggleSidebar()"></div>
-<div id="sidebar-menu" style="position: fixed; top: 0; left: -310px; width: 300px; bottom: 0; background: radial-gradient(ellipse at 90% 10%, rgba(0, 242, 254, 0.3) 0%, transparent 60%), radial-gradient(ellipse at 10% 50%, rgba(56, 189, 248, 0.25) 0%, transparent 60%), linear-gradient(180deg, #1e3a8a 0%, #2b5c9e 30%, #0284c7 70%, #06b6d4 100%); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); z-index: 99991; transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; box-shadow: 15px 0 50px rgba(0,0,0,0.5); border-right: 1.5px solid rgba(255, 255, 255, 0.3); overflow: hidden;">
+<div id="sidebar-menu" style="position: fixed; top: 0; left: -310px; width: 300px; bottom: 0; background: radial-gradient(ellipse at 90% 10%, rgba(0, 242, 254, 0.3) 0%, transparent 60%), radial-gradient(ellipse at 10% 50%, rgba(56, 189, 248, 0.25) 0%, transparent 60%), linear-gradient(180deg, #1e3a8a 0%, #2b5c9e 30%, #0284c7 70%, #06b6d4 100%); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); z-index: 99991; transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; box-shadow: 15px 0 50px rgba(0,0,0,0.5); border: none !important; outline: none !important; overflow: hidden;">
     
     <!-- User Profile Header Banner -->
-    <div style="padding: 24px 20px 18px 20px; border-bottom: 1.5px solid rgba(255,255,255,0.22); background: rgba(30, 75, 135, 0.58); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); margin-top: max(env(safe-area-inset-top), 20px); position: relative;">
-        <button onclick="toggleSidebar()" style="position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.3); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s;">
+    <div style="padding: 24px 20px 18px 20px; border-bottom: none; background: rgba(30, 75, 135, 0.58); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); margin-top: max(env(safe-area-inset-top), 20px); position: relative;">
+        <button onclick="toggleSidebar()" style="position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.16); border: none !important; outline: none !important; color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s;">
             <i class="fa-solid fa-xmark"></i>
         </button>
         
         <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 4px;">
-            <div style="width: 52px; height: 52px; border-radius: 50%; overflow: hidden; border: 2.5px solid #00f2fe; box-shadow: none; flex-shrink: 0;">
+            <div style="width: 52px; height: 52px; border-radius: 50%; overflow: hidden; border: none !important; outline: none !important; box-shadow: none; flex-shrink: 0;">
                 <img id="sidebar-avatar" src="https://ui-avatars.com/api/?name=Tourist&background=007AFF&color=fff&rounded=true&bold=true&size=128" alt="Avatar" style="width:100%; height:100%; object-fit:cover;">
             </div>
             <div style="flex: 1; min-width: 0;">
                 <h3 id="sidebar-user-name" style="margin: 0 0 4px 0; font-size: 16px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Hi, Explorer!</h3>
-                <span style="font-size: 11px; font-weight: 800; color: #00f2fe; background: rgba(0, 242, 254, 0.2); padding: 3px 10px; border-radius: 100px; border: 1px solid rgba(0, 242, 254, 0.4); display: inline-flex; align-items: center; gap: 4px;">
+                <span style="font-size: 11px; font-weight: 800; color: #00f2fe; background: rgba(0, 242, 254, 0.2); padding: 3px 10px; border-radius: 100px; border: none !important; outline: none !important; display: inline-flex; align-items: center; gap: 4px;">
                     <i class="fa-solid fa-compass" style="font-size: 10px;"></i> Elyu Tourist
                 </span>
             </div>
@@ -126,12 +126,12 @@
         <div>
             <div style="font-size: 11px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding-left: 6px;">Your Stuff</div>
             <div style="display: flex; flex-direction: column; gap: 6px;">
-                <a href="#" onclick="toggleSidebar(); navigateTo('saved_places'); return false;" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 16px; background: rgba(30, 75, 135, 0.58); border: 1.5px solid rgba(255,255,255,0.25); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.2s;">
-                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(255,59,48,0.25); border: 1px solid rgba(255,59,48,0.4); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-heart" style="color: #ff453a; font-size: 14px;"></i></span>
+                <a href="#" onclick="toggleSidebar(); navigateTo('saved_places'); return false;" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 16px; background: rgba(30, 75, 135, 0.58); border: none !important; outline: none !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.2s;">
+                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(255,59,48,0.25); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-heart" style="color: #ff453a; font-size: 14px;"></i></span>
                     Saved Places
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('saved_trips'); return false;" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 16px; background: rgba(30, 75, 135, 0.58); border: 1.5px solid rgba(255,255,255,0.25); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.2s;">
-                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(52,199,89,0.25); border: 1px solid rgba(52,199,89,0.4); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-route" style="color: #30d158; font-size: 14px;"></i></span>
+                <a href="#" onclick="toggleSidebar(); navigateTo('saved_trips'); return false;" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 16px; background: rgba(30, 75, 135, 0.58); border: none !important; outline: none !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.2s;">
+                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(52,199,89,0.25); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-route" style="color: #30d158; font-size: 14px;"></i></span>
                     Saved Trips
                 </a>
             </div>
@@ -141,16 +141,16 @@
         <div>
             <div style="font-size: 11px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding-left: 6px;">Discover & Explore</div>
             <div style="display: flex; flex-direction: column; gap: 6px;">
-                <a href="#" onclick="toggleSidebar(); navigateTo('trending'); return false;" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 16px; background: rgba(30, 75, 135, 0.58); border: 1.5px solid rgba(255,255,255,0.25); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.2s;">
-                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(239,68,68,0.25); border: 1px solid rgba(239,68,68,0.4); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-fire" style="color: #ff453a; font-size: 14px;"></i></span>
+                <a href="#" onclick="toggleSidebar(); navigateTo('trending'); return false;" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 16px; background: rgba(30, 75, 135, 0.58); border: none !important; outline: none !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.2s;">
+                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(239,68,68,0.25); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-fire" style="color: #ff453a; font-size: 14px;"></i></span>
                     Trending Sites
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('puzzles'); return false;" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 16px; background: rgba(30, 75, 135, 0.58); border: 1.5px solid rgba(255,255,255,0.25); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.2s;">
-                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(0,242,254,0.25); border: 1px solid rgba(0,242,254,0.4); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-gamepad" style="color: #00f2fe; font-size: 14px;"></i></span>
+                <a href="#" onclick="toggleSidebar(); navigateTo('puzzles'); return false;" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 16px; background: rgba(30, 75, 135, 0.58); border: none !important; outline: none !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.2s;">
+                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(0,242,254,0.25); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-gamepad" style="color: #00f2fe; font-size: 14px;"></i></span>
                     GameZone
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('discount'); return false;" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 16px; background: rgba(30, 75, 135, 0.58); border: 1.5px solid rgba(255,255,255,0.25); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.2s;">
-                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(236,72,153,0.25); border: 1px solid rgba(236,72,153,0.4); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-tags" style="color: #ff375f; font-size: 14px;"></i></span>
+                <a href="#" onclick="toggleSidebar(); navigateTo('discount'); return false;" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 16px; background: rgba(30, 75, 135, 0.58); border: none !important; outline: none !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.2s;">
+                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(236,72,153,0.25); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-tags" style="color: #ff375f; font-size: 14px;"></i></span>
                     Discounts & Vouchers
                 </a>
             </div>
@@ -178,8 +178,8 @@
     </div>
 
     <!-- Sidebar Bottom Footer -->
-    <div style="padding: 16px 20px; border-top: 1.5px solid rgba(255,255,255,0.22); background: rgba(30, 75, 135, 0.58);">
-        <a href="#" onclick="logoutUser(); return false;" style="color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 13px; background: rgba(239,68,68,0.25); border: 1.5px solid rgba(239,68,68,0.5); border-radius: 14px; transition: all 0.2s;">
+    <div style="padding: 16px 20px; border-top: none; background: rgba(30, 75, 135, 0.58);">
+        <a href="#" onclick="logoutUser(); return false;" style="color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 13px; background: rgba(239,68,68,0.25); border: none !important; outline: none !important; border-radius: 14px; transition: all 0.2s;">
             <i class="fa-solid fa-right-from-bracket" style="color: #ff453a;"></i> Log Out
         </a>
     </div>
