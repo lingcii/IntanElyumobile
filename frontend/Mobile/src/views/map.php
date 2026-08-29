@@ -129,19 +129,17 @@ if (is_dir($imgDir)) {
             </div>
         </div>
 
-        <!-- The Vertical Trigger Button (Styled with matching blue gradient as other buttons) -->
+        <!-- The Classification Button (Exact 44px x 44px matching other map buttons) -->
         <button type="button" id="btn-classification-toggle" onclick="window.toggleClassificationMenu()"
-            style="width: 44px; min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 8px 4px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%) !important; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 12px; border: none !important; outline: none !important; color: #ffffff; box-shadow: 0 8px 20px rgba(10, 25, 60, 0.3); cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);"
-            onpointerdown="this.style.transform='scale(0.94)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'"
+            style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%) !important; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 12px; border: none !important; outline: none !important; color: #ffffff; box-shadow: 0 8px 20px rgba(10, 25, 60, 0.3); cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);"
+            onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'"
             title="Classifications">
             <!-- 3 Vertical Classification Dots -->
-            <span style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                <span id="dot-exist" style="width: 7px; height: 7px; border-radius: 50%; background: #34c759; box-shadow: 0 0 5px rgba(52,199,89,0.8); transition: transform 0.2s ease, opacity 0.2s ease;"></span>
-                <span id="dot-emerge" style="width: 7px; height: 7px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 5px rgba(56,189,248,0.8); transition: transform 0.2s ease, opacity 0.2s ease;"></span>
-                <span id="dot-potential" style="width: 7px; height: 7px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 5px rgba(245,158,11,0.8); transition: transform 0.2s ease, opacity 0.2s ease;"></span>
+            <span style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
+                <span id="dot-exist" style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #34c759; box-shadow: 0 0 5px rgba(52,199,89,0.9); transition: transform 0.2s ease, opacity 0.2s ease;"></span>
+                <span id="dot-emerge" style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 5px rgba(56,189,248,0.9); transition: transform 0.2s ease, opacity 0.2s ease;"></span>
+                <span id="dot-potential" style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 5px rgba(245,158,11,0.9); transition: transform 0.2s ease, opacity 0.2s ease;"></span>
             </span>
-            <span id="classification-btn-label" style="font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: #ffffff; line-height: 1; text-align: center; max-width: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Class</span>
-            <i class="fa-solid fa-chevron-right" id="classification-chevron" style="font-size: 8px; opacity: 0.85; transition: transform 0.25s ease;"></i>
         </button>
     </div>
 
@@ -1485,18 +1483,34 @@ if (is_dir($imgDir)) {
 
         window.filterByClassification = function (statusKey) {
             window.activeClassificationFilter = (statusKey === 'ALL') ? null : statusKey;
-            const labelEl = document.getElementById('classification-btn-label');
-            if (labelEl) {
-                if (statusKey === 'ALL' || !statusKey) {
-                    labelEl.textContent = 'Classification';
-                } else if (statusKey === 'EXIST') {
-                    labelEl.textContent = 'Existing';
+
+            const dotExist = document.getElementById('dot-exist');
+            const dotEmerge = document.getElementById('dot-emerge');
+            const dotPot = document.getElementById('dot-potential');
+
+            if (dotExist && dotEmerge && dotPot) {
+                dotExist.style.transform = 'scale(1)';
+                dotExist.style.opacity = '1';
+                dotEmerge.style.transform = 'scale(1)';
+                dotEmerge.style.opacity = '1';
+                dotPot.style.transform = 'scale(1)';
+                dotPot.style.opacity = '1';
+
+                if (statusKey === 'EXIST') {
+                    dotExist.style.transform = 'scale(1.4)';
+                    dotEmerge.style.opacity = '0.35';
+                    dotPot.style.opacity = '0.35';
                 } else if (statusKey === 'EMERGE') {
-                    labelEl.textContent = 'Emerging';
+                    dotEmerge.style.transform = 'scale(1.4)';
+                    dotExist.style.opacity = '0.35';
+                    dotPot.style.opacity = '0.35';
                 } else if (statusKey === 'POTENTIAL') {
-                    labelEl.textContent = 'Potential';
+                    dotPot.style.transform = 'scale(1.4)';
+                    dotExist.style.opacity = '0.35';
+                    dotEmerge.style.opacity = '0.35';
                 }
             }
+
             window.toggleClassificationMenu(false);
 
             // Re-run filterCategory with the active category
