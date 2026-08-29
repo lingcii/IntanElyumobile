@@ -987,6 +987,38 @@ if (is_dir($imgDir)) {
             window.updateVisibleMarkers();
         };
 
+        const MUNI_METADATA = {
+            'san juan': { icon: 'fa-person-surfing', label: 'San Juan', gradient: ['#0284c7', '#00f2fe'] },
+            'san fernando': { icon: 'fa-city', label: 'San Fernando', gradient: ['#1e3a8a', '#3b82f6'] },
+            'city of san fernando': { icon: 'fa-city', label: 'San Fernando', gradient: ['#1e3a8a', '#3b82f6'] },
+            'bauang': { icon: 'fa-wine-bottle', label: 'Bauang', gradient: ['#7c3aed', '#a855f7'] },
+            'luna': { icon: 'fa-gem', label: 'Luna', gradient: ['#0d9488', '#2dd4bf'] },
+            'agoo': { icon: 'fa-place-of-worship', label: 'Agoo', gradient: ['#059669', '#10b981'] },
+            'bacnotan': { icon: 'fa-tree', label: 'Bacnotan', gradient: ['#15803d', '#22c55e'] },
+            'balaoan': { icon: 'fa-umbrella-beach', label: 'Balaoan', gradient: ['#0369a1', '#38bdf8'] },
+            'bangar': { icon: 'fa-palette', label: 'Bangar', gradient: ['#e11d48', '#fb7185'] },
+            'san gabriel': { icon: 'fa-water', label: 'San Gabriel', gradient: ['#0891b2', '#06b6d4'] },
+            'bagulin': { icon: 'fa-mountain-sun', label: 'Bagulin', gradient: ['#166534', '#15803d'] },
+            'burgos': { icon: 'fa-leaf', label: 'Burgos', gradient: ['#65a30d', '#84cc16'] },
+            'naguilian': { icon: 'fa-wine-glass', label: 'Naguilian', gradient: ['#c2410c', '#f97316'] },
+            'aringay': { icon: 'fa-seedling', label: 'Aringay', gradient: ['#047857', '#10b981'] },
+            'caba': { icon: 'fa-hammer', label: 'Caba', gradient: ['#b45309', '#f59e0b'] },
+            'tubao': { icon: 'fa-landmark', label: 'Tubao', gradient: ['#9a3412', '#ea580c'] },
+            'pugo': { icon: 'fa-compass', label: 'Pugo', gradient: ['#d97706', '#fbbf24'] },
+            'santo tomas': { icon: 'fa-fish', label: 'Santo Tomas', gradient: ['#0284c7', '#38bdf8'] },
+            'sudipen': { icon: 'fa-bridge', label: 'Sudipen', gradient: ['#1d4ed8', '#60a5fa'] },
+            'santol': { icon: 'fa-person-hiking', label: 'Santol', gradient: ['#0f766e', '#14b8a6'] },
+            'rosario': { icon: 'fa-archway', label: 'Rosario', gradient: ['#b91c1c', '#ef4444'] }
+        };
+
+        function getMuniMeta(loc) {
+            const raw = ((loc.municipality || loc.location || '') + ' ' + (loc.name || '')).toLowerCase();
+            for (const key in MUNI_METADATA) {
+                if (raw.includes(key)) return { key, ...MUNI_METADATA[key] };
+            }
+            return { key: 'elyu', icon: 'fa-location-dot', label: loc.municipality || 'La Union', gradient: ['#1e3a8a', '#0284c7'] };
+        }
+
         window.updateVisibleMarkers = function () {
             if (!window.mapInstance) return;
             if (_viewportUpdateRaf) cancelAnimationFrame(_viewportUpdateRaf);
@@ -1021,43 +1053,44 @@ if (is_dir($imgDir)) {
                     }
                 }
 
-                // 2. Clustering: when zoomed out (zoom < 13.5), group nearby points within 52px
+                // 2. Municipality Grouping: when zoomed out (zoom < 13.5), group spots by municipality
                 let itemsToRender = [];
                 if (zoom >= 13.5) {
-                    // Zoomed in: display all individual markers without clustering
-                    itemsToRender = inViewport.map(item => ({ isCluster: false, loc: item.loc, lat: item.lat, lng: item.lng }));
+                    // Zoomed in: display individual tourist spot markers
+                    itemsToRender = inViewport.map(item => ({ isMuniCluster: false, loc: item.loc, lat: item.lat, lng: item.lng }));
                 } else {
-                    const clusterDistancePx = 52;
-                    const visited = new Set();
+                    // Zoomed out: display municipality markers with their iconic badges
+                    const muniGroups = {};
                     for (let i = 0; i < inViewport.length; i++) {
-                        if (visited.has(i)) continue;
-                        const p1 = window.mapInstance.project([inViewport[i].lng, inViewport[i].lat]);
-                        const clusterGroup = [inViewport[i]];
-                        visited.add(i);
-
-                        for (let j = i + 1; j < inViewport.length; j++) {
-                            if (visited.has(j)) continue;
-                            const p2 = window.mapInstance.project([inViewport[j].lng, inViewport[j].lat]);
-                            const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
-                            if (dist < clusterDistancePx) {
-                                clusterGroup.push(inViewport[j]);
-                                visited.add(j);
-                            }
+                        const spotItem = inViewport[i];
+                        const meta = getMuniMeta(spotItem.loc);
+                        const groupKey = meta.key;
+                        if (!muniGroups[groupKey]) {
+                            muniGroups[groupKey] = {
+                                meta: meta,
+                                spots: [],
+                                sumLat: 0,
+                                sumLng: 0
+                            };
                         }
+                        muniGroups[groupKey].spots.push(spotItem);
+                        muniGroups[groupKey].sumLat += spotItem.lat;
+                        muniGroups[groupKey].sumLng += spotItem.lng;
+                    }
 
-                        if (clusterGroup.length === 1) {
-                            itemsToRender.push({ isCluster: false, loc: clusterGroup[0].loc, lat: clusterGroup[0].lat, lng: clusterGroup[0].lng });
-                        } else {
-                            let sumLat = 0, sumLng = 0;
-                            clusterGroup.forEach(g => { sumLat += g.lat; sumLng += g.lng; });
-                            itemsToRender.push({
-                                isCluster: true,
-                                count: clusterGroup.length,
-                                lat: sumLat / clusterGroup.length,
-                                lng: sumLng / clusterGroup.length,
-                                members: clusterGroup.map(g => g.loc)
-                            });
-                        }
+                    for (const key in muniGroups) {
+                        const g = muniGroups[key];
+                        const count = g.spots.length;
+                        const centroidLat = g.sumLat / count;
+                        const centroidLng = g.sumLng / count;
+                        itemsToRender.push({
+                            isMuniCluster: true,
+                            meta: g.meta,
+                            count: count,
+                            lat: centroidLat,
+                            lng: centroidLng,
+                            spots: g.spots.map(s => s.loc)
+                        });
                     }
                 }
 
@@ -1069,17 +1102,22 @@ if (is_dir($imgDir)) {
 
                 // 3. Render items
                 itemsToRender.forEach(item => {
-                    if (item.isCluster) {
-                        // ── CLUSTER BUBBLE ──
+                    if (item.isMuniCluster) {
+                        // ── MUNICIPALITY ICON CLUSTER MARKER ──
                         const clusterEl = document.createElement('div');
-                        clusterEl.className = 'elyu-cluster-marker';
-                        clusterEl.style.cssText = 'cursor:pointer; user-select:none; will-change:transform; transform:translate3d(0,0,0); backface-visibility:hidden; z-index:20;';
+                        clusterEl.className = 'elyu-muni-marker';
+                        clusterEl.style.cssText = 'cursor:pointer; display:flex; flex-direction:column; align-items:center; user-select:none; will-change:transform; transform:translate3d(0,0,0); backface-visibility:hidden; z-index:25;';
 
                         const bubble = document.createElement('div');
-                        bubble.style.cssText = `width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); border:2.5px solid #ffffff; display:flex; align-items:center; justify-content:center; color:#ffffff; font-weight:900; font-size:13px; box-shadow:0 4px 14px rgba(2, 132, 199, 0.45), 0 2px 5px rgba(0,0,0,0.25); transition:transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);`;
-                        bubble.innerHTML = `<span>${item.count}</span>`;
+                        bubble.style.cssText = `width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg, ${item.meta.gradient[0]}, ${item.meta.gradient[1]}); border:2.5px solid #ffffff; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:17px; box-shadow:0 6px 16px rgba(0,0,0,0.32), 0 2px 5px rgba(0,0,0,0.22); transition:transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);`;
+                        bubble.innerHTML = `<i class="fa-solid ${item.meta.icon}"></i>`;
+
+                        const label = document.createElement('div');
+                        label.style.cssText = 'margin-top:4px; background:rgba(15,23,42,0.92); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); color:#ffffff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:100px; white-space:nowrap; box-shadow:0 3px 8px rgba(0,0,0,0.35); display:flex; align-items:center; gap:4px; pointer-events:none;';
+                        label.innerHTML = `<span>${item.meta.label}</span><span style="background:rgba(255,255,255,0.25); color:#ffffff; font-size:9px; font-weight:900; padding:1px 5px; border-radius:8px;">${item.count}</span>`;
 
                         clusterEl.appendChild(bubble);
+                        clusterEl.appendChild(label);
 
                         clusterEl.addEventListener('mouseenter', () => {
                             bubble.style.transform = 'scale(1.15)';
@@ -1087,16 +1125,16 @@ if (is_dir($imgDir)) {
                         });
                         clusterEl.addEventListener('mouseleave', () => {
                             bubble.style.transform = 'scale(1)';
-                            clusterEl.style.zIndex = '20';
+                            clusterEl.style.zIndex = '25';
                         });
 
                         clusterEl.addEventListener('click', (e) => {
                             e.stopPropagation();
-                            const curZoom = window.mapInstance.getZoom();
+                            // Zoom in to that municipality to reveal all tourist spots
                             window.mapInstance.flyTo({
                                 center: [item.lng, item.lat],
-                                zoom: Math.min(curZoom + 2.5, 15),
-                                duration: 450
+                                zoom: 14.2,
+                                duration: 650
                             });
                         });
 
@@ -1107,7 +1145,7 @@ if (is_dir($imgDir)) {
                         window.mapMarkers.push(marker);
 
                     } else {
-                        // ── INDIVIDUAL PIN ──
+                        // ── INDIVIDUAL TOURIST SITE PIN ──
                         const loc = item.loc;
                         const locLat = item.lat;
                         const locLng = item.lng;

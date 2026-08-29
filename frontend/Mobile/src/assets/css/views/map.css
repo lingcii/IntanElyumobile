@@ -1314,5 +1314,18 @@ html.keyboard-open .btn-3d-view {
     transform: scale(0.9);
 }
 
+/* ── Municipality Cluster Markers ── */
+.elyu-muni-marker {
+    animation: muniMarkerPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
 
-
+@keyframes muniMarkerPop {
+    0% {
+        transform: scale(0.65);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
