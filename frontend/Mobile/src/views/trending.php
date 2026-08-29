@@ -2,23 +2,6 @@
 $pageTitle = 'Trending Sites';
 $backRoute = 'dashboard';
 
-$municipalityImages = [];
-$imgDir = __DIR__ . '/../assets/img/MUNICIPALITIES';
-if (is_dir($imgDir)) {
-    $munis = scandir($imgDir);
-    foreach ($munis as $muni) {
-        if ($muni === '.' || $muni === '..') continue;
-        if (is_dir("$imgDir/$muni")) {
-            $files = scandir("$imgDir/$muni");
-            foreach ($files as $f) {
-                $fLower = strtolower($f);
-                if (preg_match('/\.(jpg|jpeg|png|webp|gif)$/', $fLower)) {
-                    $municipalityImages[strtoupper($muni)][] = $f;
-                }
-            }
-        }
-    }
-}
 ?>
 <?php include __DIR__ . '/../components/header.php'; ?>
 
@@ -78,7 +61,6 @@ if (is_dir($imgDir)) {
 <script>
 (function() {
     var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
-    window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
 
     let allSpots = [];
     let currentCategory = 'All';
