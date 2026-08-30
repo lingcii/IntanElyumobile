@@ -14,17 +14,28 @@ body[data-view="user_manual"] {
         linear-gradient(180deg, #1e3a8a 0%, #3f7db7 30%, #0284c7 65%, #06b6d4 90%, #00f2fe 100%) !important;
     background-attachment: fixed !important;
     color: #ffffff !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+body[data-view="user_manual"]::-webkit-scrollbar,
+.user-manual-page::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 
 .user-manual-page {
-    padding-top: max(calc(env(safe-area-inset-top) + 75px), 115px);
+    padding-top: max(calc(env(safe-area-inset-top) + 68px), 88px);
     padding-left: 16px;
     padding-right: 16px;
-    padding-bottom: 80px;
+    padding-bottom: 30px;
     color: #ffffff;
     font-family: 'Inter', sans-serif;
     max-width: 800px;
     margin: 0 auto;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
 }
 
 #bottom-navigation {
