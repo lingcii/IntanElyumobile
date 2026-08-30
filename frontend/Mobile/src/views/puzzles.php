@@ -380,8 +380,8 @@ button:active, .trivia-option-btn:active {
 }
 .scramble-input {
     width: 100% !important;
-    background: rgba(255, 255, 255, 0.22) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.45) !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: none !important;
     outline: none !important;
     border-radius: 14px !important;
     padding: 14px 16px !important;
@@ -391,7 +391,7 @@ button:active, .trivia-option-btn:active {
     letter-spacing: 1.5px !important;
     box-sizing: border-box !important;
     text-transform: uppercase !important;
-    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.25) !important;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2) !important;
     -webkit-text-fill-color: #ffffff !important;
 }
 .scramble-input::placeholder {
@@ -403,11 +403,11 @@ button:active, .trivia-option-btn:active {
 }
 .scramble-input:focus {
     outline: none !important;
-    border-color: #00f2fe !important;
-    background: rgba(255, 255, 255, 0.3) !important;
+    border: none !important;
+    background: rgba(255, 255, 255, 0.28) !important;
     color: #ffffff !important;
     -webkit-text-fill-color: #ffffff !important;
-    box-shadow: 0 0 15px rgba(0, 242, 254, 0.4), inset 0 2px 6px rgba(0, 0, 0, 0.25) !important;
+    box-shadow: 0 0 16px rgba(0, 242, 254, 0.35), inset 0 2px 6px rgba(0, 0, 0, 0.2) !important;
 }
 </style>
 
@@ -1006,13 +1006,13 @@ function initScrambleGame() {
                 <span style="font-size:12px; font-weight:800; color:#00f2fe; text-transform:uppercase; letter-spacing:0.8px;">Word #${index + 1}</span>
                 <span id="scramble-status-${index}" style="font-size:14px; color:rgba(255,255,255,0.4);"><i class="fa-solid fa-pen"></i></span>
             </div>
-            <div style="font-size:22px; font-weight:900; color:#ffffff !important; letter-spacing:3px; margin-bottom:10px; text-align:center; background:rgba(0,0,0,0.3) !important; padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,0.2) !important; text-shadow:0 2px 4px rgba(0,0,0,0.4);">
+            <div style="font-size:22px; font-weight:900; color:#ffffff !important; letter-spacing:3px; margin-bottom:10px; text-align:center; background:rgba(0,0,0,0.25) !important; padding:12px; border-radius:14px; border:none !important; outline:none !important; text-shadow:0 2px 4px rgba(0,0,0,0.4);">
                 ${item.scrambled}
             </div>
             <p style="margin:0 0 12px 0; font-size:12.5px; color:#ffffff !important; font-weight:600; text-shadow:0 1px 2px rgba(0,0,0,0.4); line-height:1.4;">
                 <span style="color:#facc15; font-size:13px; font-weight:800;">💡 Hint:</span> <span style="color:#ffffff !important; font-weight:700;">${item.hint}</span>
             </p>
-            <input type="text" id="scramble-input-${index}" class="scramble-input" placeholder="TYPE ANSWER HERE..." oninput="checkScrambleWord(${index})" style="color:#ffffff !important; -webkit-text-fill-color:#ffffff !important;">
+            <input type="text" id="scramble-input-${index}" class="scramble-input" placeholder="TYPE ANSWER HERE..." oninput="checkScrambleWord(${index})" style="color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; border:none !important; outline:none !important;">
         `;
 
         container.appendChild(card);
@@ -1027,16 +1027,16 @@ function checkScrambleWord(index) {
     const val = input.value.trim().toUpperCase();
     if (val === scrambleData[index].answer) {
         status.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#34d399; font-size:18px;"></i>';
-        input.style.border = '2px solid #34d399';
+        input.style.border = 'none';
         input.style.outline = 'none';
-        input.style.background = 'rgba(52, 211, 153, 0.25)';
+        input.style.background = 'rgba(52, 211, 153, 0.3)';
         input.style.color = '#ffffff';
         input.style.webkitTextFillColor = '#ffffff';
     } else {
         status.innerHTML = '<i class="fa-solid fa-pen" style="color:rgba(255,255,255,0.4); font-size:14px;"></i>';
-        input.style.border = '1.5px solid rgba(255, 255, 255, 0.45)';
+        input.style.border = 'none';
         input.style.outline = 'none';
-        input.style.background = 'rgba(255, 255, 255, 0.22)';
+        input.style.background = 'rgba(255, 255, 255, 0.2)';
         input.style.color = '#ffffff';
         input.style.webkitTextFillColor = '#ffffff';
     }
