@@ -227,6 +227,67 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         user-select: none;
     }
 
+    /* Redesigned Route Connector */
+    .timeline-route-connector {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 6px 0 !important;
+        margin: 0 auto !important;
+        position: relative !important;
+        z-index: 1 !important;
+        background: none !important;
+        width: 100% !important;
+        height: auto !important;
+        opacity: 1 !important;
+    }
+
+    .route-connector-track {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        position: relative !important;
+        height: 32px !important;
+        width: 24px !important;
+    }
+
+    .route-connector-line {
+        width: 2.5px !important;
+        flex: 1 !important;
+        background: linear-gradient(to bottom, rgba(0, 242, 254, 0.8), rgba(56, 189, 248, 0.4)) !important;
+        border-radius: 999px !important;
+        box-shadow: 0 0 8px rgba(0, 242, 254, 0.35) !important;
+    }
+
+    .route-connector-node {
+        width: 20px !important;
+        height: 20px !important;
+        border-radius: 50% !important;
+        background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: #ffffff !important;
+        font-size: 9px !important;
+        box-shadow: 0 2px 10px rgba(0, 242, 254, 0.5) !important;
+        margin: 2px 0 !important;
+        animation: connectorPulse 2s ease-in-out infinite !important;
+        border: none !important;
+        outline: none !important;
+    }
+
+    @keyframes connectorPulse {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 2px 10px rgba(0, 242, 254, 0.5);
+        }
+        50% {
+            transform: scale(1.1);
+            box-shadow: 0 2px 16px rgba(0, 242, 254, 0.8);
+        }
+    }
+
     .hide-scrollbar {
         -ms-overflow-style: none;
         scrollbar-width: none;
@@ -1102,8 +1163,8 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             html += `
         <div class="starting-point-item stagger-1" onclick="window.routeToMyLocation()">
-            <div class="starting-point-card" style="background:linear-gradient(135deg, rgba(30,58,138,0.88) 0%, rgba(63,125,183,0.88) 100%) !important; border:1.5px solid rgba(0,242,254,0.6) !important; outline:none !important; border-radius:22px !important; padding:16px 18px !important; box-shadow:0 8px 26px rgba(10,25,60,0.35), 0 0 20px rgba(0,242,254,0.22), inset 0 1px 2px rgba(255,255,255,0.35) !important; display:flex; align-items:center; justify-content:space-between; gap:14px; cursor:pointer; backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);">
-                <div class="starting-point-icon-box" style="width:46px; height:46px; border-radius:50%; background:linear-gradient(135deg, rgba(56,189,248,0.25) 0%, rgba(37,99,235,0.35) 100%) !important; border:1.5px solid rgba(0,242,254,0.45) !important; outline:none !important; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0; box-shadow:0 4px 14px rgba(0,0,0,0.2), 0 0 12px rgba(0,242,254,0.25);">
+            <div class="starting-point-card" style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border:none !important; outline:none !important; border-radius:22px !important; padding:16px 18px !important; box-shadow:0 8px 24px rgba(10,25,60,0.28) !important; display:flex; align-items:center; justify-content:space-between; gap:14px; cursor:pointer;">
+                <div class="starting-point-icon-box" style="width:46px; height:46px; border-radius:50%; background:linear-gradient(135deg, rgba(56,189,248,0.25) 0%, rgba(37,99,235,0.35) 100%) !important; border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0; box-shadow:0 4px 14px rgba(0,0,0,0.2);">
                     <i class="fa-solid fa-location-crosshairs" style="color:#00f2fe; font-size:20px;"></i>
                     <div class="starting-point-pulse" style="position:absolute; inset:-4px; border-radius:50%; background:rgba(0,242,254,0.25); border:none !important; outline:none !important; pointer-events:none;"></div>
                 </div>
@@ -1118,7 +1179,15 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     <i class="fa-solid fa-location-arrow" style="font-size:11px;"></i> Locate
                 </button>
             </div>
-            <div class="timeline-route-connector"></div>
+            <div class="timeline-route-connector">
+                <div class="route-connector-track">
+                    <div class="route-connector-line"></div>
+                    <div class="route-connector-node">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+                    <div class="route-connector-line"></div>
+                </div>
+            </div>
         </div>`;
 
             if (draft.length > 0) {
