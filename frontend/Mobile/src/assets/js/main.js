@@ -2,14 +2,41 @@
  * Intan Elyu - Mobile PHP Frontend Main Logic
  */
 
-// Suppress benign browser-extension / VM performance profiler errors (e.g. Web Vitals / reportAllChanges)
-window.addEventListener('error', function (e) {
-    if (e.message && (e.message.includes('startTime') || e.message.includes('reportAllChanges'))) {
-        e.preventDefault();
-        e.stopPropagation();
-        return true;
+// Suppress benign browser-extension / VM performance profiler errors (e.g. Web Vitals / reportAllChanges / startTime)
+(function () {
+    function shouldSuppress(err) {
+        if (!err) return false;
+        const str = typeof err === 'string' ? err : (err.message || err.stack || String(err));
+        return str.includes('startTime') || str.includes('reportAllChanges');
     }
-});
+
+    window.addEventListener('error', function (e) {
+        if (shouldSuppress(e.message) || shouldSuppress(e.error)) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return true;
+        }
+    }, true);
+
+    window.addEventListener('unhandledrejection', function (e) {
+        if (shouldSuppress(e.reason)) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return true;
+        }
+    }, true);
+
+    const prevOnError = window.onerror;
+    window.onerror = function (msg, url, lineNo, columnNo, error) {
+        if (shouldSuppress(msg) || shouldSuppress(error)) {
+            return true;
+        }
+        if (typeof prevOnError === 'function') {
+            return prevOnError.apply(this, arguments);
+        }
+        return false;
+    };
+})();
 
 window.safeJsonParse = function (str, fallback = {}) {
     if (!str || str === 'undefined' || str === 'null' || str === 'NaN') return fallback;
