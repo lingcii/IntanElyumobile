@@ -299,8 +299,7 @@ if (is_dir($imgDir)) {
             <div id="sheet-fees-card" class="dest-fees-card"
                 style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; border-radius:16px; padding:10px 14px; margin-bottom:10px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <div
-                        style="width:34px; height:34px; border-radius:10px; background:rgba(16,185,129,0.22); color:#34d399; border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;">
+                    <div class="dest-fee-icon-box">
                         <i class="fa-solid fa-ticket"></i>
                     </div>
                     <div style="display:flex; flex-direction:column;">
@@ -319,7 +318,9 @@ if (is_dir($imgDir)) {
             <!-- About This Location & Travel Details -->
             <div id="sheet-desc-container" class="dest-info-card" style="display:none;">
                 <div id="vehicle-accessibility-warning" class="dest-warning-card" style="display:none;">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div class="dest-warning-icon-box" style="width:36px; height:36px; border-radius:10px; background:#FF3B30 !important; color:#ffffff !important; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.25);">
+                        <i class="fa-solid fa-triangle-exclamation" style="color:#ffffff !important;"></i>
+                    </div>
                     <div>
                         <h6>Inaccessible by Private Car</h6>
                         <p>Prepare to hike or use specialized local transport to reach this destination.</p>
