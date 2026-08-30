@@ -245,22 +245,95 @@ $backRoute = 'dashboard';
 
     // Synchronize keys across all storage conventions
     const pushEnabled = localStorage.getItem('intan_elyu_push_enabled') !== 'false' && localStorage.getItem('Intan_Elyu_push_enabled') !== 'false';
-    const locEnabled = localStorage.getItem('intan_elyu_loc_enabled') !== 'false' && localStorage.getItem('Intan_Elyu_loc_enabled') !== 'false';
-    const offlineCacheEnabled = localStorage.getItem('intan_elyu_offline_cache') !== 'false';
     const autoSyncEnabled = localStorage.getItem('intan_elyu_auto_sync') !== 'false';
-    const appLang = localStorage.getItem('intan_elyu_app_language') || 'en';
 
     const pushToggle = document.getElementById('push-notif-toggle');
     const locToggle = document.getElementById('location-service-toggle');
-    const offlineToggle = document.getElementById('offline-cache-toggle');
     const syncToggle = document.getElementById('auto-sync-toggle');
-    const langSelect = document.getElementById('app-language-select');
 
     if (pushToggle) pushToggle.checked = pushEnabled;
-    if (locToggle) locToggle.checked = locEnabled;
-    if (offlineToggle) offlineToggle.checked = offlineCacheEnabled;
     if (syncToggle) syncToggle.checked = autoSyncEnabled;
-    if (langSelect) langSelect.value = appLang;
+
+    // Helper to persist location state and update UI toggle
+    function saveLocState(enabled) {
+        localStorage.setItem('intan_elyu_loc_enabled', enabled ? 'true' : 'false');
+        localStorage.setItem('Intan_Elyu_loc_enabled', enabled ? 'true' : 'false');
+        const toggle = document.getElementById('location-service-toggle');
+        if (toggle) toggle.checked = Boolean(enabled);
+    }
+
+    // Dynamic verification of device GPS and permission state
+    function syncRealtimeLocationStatus() {
+        if (!navigator.geolocation) {
+            saveLocState(false);
+            return;
+        }
+
+        // Check if user previously explicitly turned it off
+        const storedLoc = localStorage.getItem('intan_elyu_loc_enabled');
+        if (storedLoc === 'false') {
+            saveLocState(false);
+            return;
+        }
+
+        // Check permission state via Permissions API if available
+        if (navigator.permissions && navigator.permissions.query) {
+            navigator.permissions.query({ name: 'geolocation' }).then(function(permissionStatus) {
+                function onPermChange(state) {
+                    if (state === 'denied') {
+                        // Location is blocked/off
+                        saveLocState(false);
+                        if (typeof window.stopLocationWatch === 'function') window.stopLocationWatch();
+                    } else if (state === 'granted') {
+                        // Permission granted, test if device GPS is physically open & working
+                        verifyPhysicalGps();
+                    } else {
+                        // Prompt state: do not force open unless verified
+                        if (storedLoc === 'false') saveLocState(false);
+                    }
+                }
+
+                onPermChange(permissionStatus.state);
+                permissionStatus.onchange = function() { onPermChange(permissionStatus.state); };
+            }).catch(function() {
+                verifyPhysicalGps();
+            });
+        } else {
+            verifyPhysicalGps();
+        }
+    }
+
+    function verifyPhysicalGps() {
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                // Device GPS is open and working!
+                saveLocState(true);
+                localStorage.setItem('user_lat', pos.coords.latitude);
+                localStorage.setItem('user_lng', pos.coords.longitude);
+                if (typeof window.startLocationWatch === 'function') {
+                    window.startLocationWatch();
+                }
+            },
+            function(err) {
+                // If device location is turned off or denied, turn OFF the toggle!
+                console.warn('GPS check failed / Location off:', err);
+                if (err.code === 1 || err.code === 2) {
+                    saveLocState(false);
+                    if (typeof window.stopLocationWatch === 'function') window.stopLocationWatch();
+                }
+            },
+            { enableHighAccuracy: false, timeout: 6000, maximumAge: 30000 }
+        );
+    }
+
+    syncRealtimeLocationStatus();
+
+    // Listen to global locationStatusChanged events from main.js
+    document.addEventListener('locationStatusChanged', function(e) {
+        if (e && e.detail) {
+            saveLocState(Boolean(e.detail.enabled));
+        }
+    });
 
     // Check 2FA initial state from API / localStorage
     let is2FAActive = localStorage.getItem('intan_elyu_2fa_active') === 'true';
@@ -329,61 +402,60 @@ $backRoute = 'dashboard';
 
     // ── 2. Location Services Functionality ────────────────────────────────────
     window.toggleLocationServices = function(checked) {
-        localStorage.setItem('intan_elyu_loc_enabled', checked);
-        localStorage.setItem('Intan_Elyu_loc_enabled', checked);
+        const toggle = document.getElementById('location-service-toggle');
         
-        if (checked) {
-            if ('geolocation' in navigator) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-                        localStorage.setItem('user_lat', lat);
-                        localStorage.setItem('user_lng', lng);
-                        if (typeof window.startLocationWatch === 'function') {
-                            window.startLocationWatch();
-                        }
-                        if (typeof showToast === 'function') showToast(`📍 Location active! (${lat.toFixed(3)}, ${lng.toFixed(3)})`);
-                    },
-                    (error) => {
-                        console.warn('Geolocation Error:', error);
-                        if (typeof showToast === 'function') showToast('Location permission requested. Please allow GPS access.');
-                    },
-                    { enableHighAccuracy: true, timeout: 10000 }
-                );
-            } else {
-                if (typeof showToast === 'function') showToast('Location services enabled');
-            }
-        } else {
+        if (!checked) {
+            // User manually turns off location
+            saveLocState(false);
             if (typeof window.stopLocationWatch === 'function') window.stopLocationWatch();
             if (typeof showToast === 'function') showToast('Location services disabled');
+            return;
         }
+
+        // User toggles ON: verify if GPS is physically open & accessible
+        if (!navigator.geolocation) {
+            saveLocState(false);
+            if (typeof showToast === 'function') showToast('⚠️ Geolocation is not supported on this device.');
+            return;
+        }
+
+        if (typeof showToast === 'function') showToast('Connecting to GPS location...');
+
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                // Location is OPEN: turn on toggle and activate watch
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                localStorage.setItem('user_lat', lat);
+                localStorage.setItem('user_lng', lng);
+                saveLocState(true);
+                if (typeof window.startLocationWatch === 'function') {
+                    window.startLocationWatch();
+                }
+                if (typeof showToast === 'function') showToast(`📍 Location active! GPS location verified.`);
+            },
+            function(error) {
+                // Location is OFF or permission denied: immediately turn toggle OFF!
+                console.warn('Geolocation Error / Location Off:', error);
+                saveLocState(false);
+                if (typeof window.stopLocationWatch === 'function') window.stopLocationWatch();
+
+                if (error.code === 1) { // PERMISSION_DENIED
+                    if (typeof showToast === 'function') showToast('⚠️ Location permission denied. Please enable Location in device settings.');
+                } else if (error.code === 2) { // POSITION_UNAVAILABLE (GPS turned off)
+                    if (typeof showToast === 'function') showToast('⚠️ Device location (GPS) is OFF. Please turn on Location on your device.');
+                } else {
+                    if (typeof showToast === 'function') showToast('⚠️ GPS location timed out. Please ensure location is enabled.');
+                }
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
     };
 
-    // ── 3. Offline Maps & Spot Caching ────────────────────────────────────────
-    window.toggleOfflineCaching = function(checked) {
-        localStorage.setItem('intan_elyu_offline_cache', checked);
-        if (checked) {
-            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-                navigator.serviceWorker.controller.postMessage({ type: 'CACHE_OFFLINE_SPOTS' });
-            }
-            if (typeof showToast === 'function') showToast('📦 Offline maps & spot caching enabled!');
-        } else {
-            if (typeof showToast === 'function') showToast('Offline caching disabled');
-        }
-    };
-
-    // ── 4. Automatic Cloud Sync ────────────────────────────────────────────────
+    // ── 3. Automatic Cloud Sync ────────────────────────────────────────────────
     window.toggleAutoSync = function(checked) {
         localStorage.setItem('intan_elyu_auto_sync', checked);
         if (typeof showToast === 'function') showToast(checked ? '☁️ Live cloud sync enabled for trip changes' : 'Auto sync disabled');
-    };
-
-    // ── 5. App Language Selector ──────────────────────────────────────────────
-    window.changeAppLanguage = function(lang) {
-        localStorage.setItem('intan_elyu_app_language', lang);
-        const labels = { 'en': 'English', 'fil': 'Tagalog / Filipino', 'ilo': 'Ilocano' };
-        if (typeof showToast === 'function') showToast(`🌐 App language updated to ${labels[lang] || lang}!`);
     };
 
     window.openChangePasswordModal = function() {
