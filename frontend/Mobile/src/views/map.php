@@ -297,7 +297,7 @@ if (is_dir($imgDir)) {
 
             <!-- Site Fee Summary Banner -->
             <div id="sheet-fees-card" class="dest-fees-card"
-                style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.08); border:none !important; outline:none !important; border-radius:16px; padding:10px 14px; margin-bottom:10px; box-shadow:0 4px 16px rgba(0,0,0,0.2);">
+                style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; border-radius:16px; padding:10px 14px; margin-bottom:10px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <div
                         style="width:34px; height:34px; border-radius:10px; background:rgba(16,185,129,0.22); color:#34d399; border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;">
