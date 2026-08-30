@@ -511,9 +511,9 @@ body[data-view="map"] #main-content {
 }
 
 .sheet-status-pill {
-    padding: 4px 9px;
+    padding: 4px 10px;
     border-radius: 9px;
-    font-size: 10px;
+    font-size: 10.5px;
     font-weight: 800;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -523,33 +523,38 @@ body[data-view="map"] #main-content {
     display: inline-flex;
     align-items: center;
     letter-spacing: 0.3px;
+    color: #ffffff !important;
+}
+
+.sheet-status-pill i {
+    color: #ffffff !important;
 }
 
 .sheet-status-pill.status-exist {
-    background: rgba(16, 185, 129, 0.35);
+    background: rgba(16, 185, 129, 0.7) !important;
     border: none !important;
     outline: none !important;
-    color: #34d399;
+    color: #ffffff !important;
 }
 
 .sheet-status-pill.status-emerge {
-    background: rgba(14, 165, 233, 0.35);
+    background: rgba(14, 165, 233, 0.7) !important;
     border: none !important;
     outline: none !important;
-    color: #38bdf8;
+    color: #ffffff !important;
 }
 
 .sheet-status-pill.status-potential {
-    background: rgba(245, 158, 11, 0.35);
+    background: rgba(217, 119, 6, 0.75) !important;
     border: none !important;
     outline: none !important;
-    color: #fbbf24;
+    color: #ffffff !important;
 }
 
 .sheet-open-pill {
-    padding: 4px 9px;
+    padding: 4px 10px;
     border-radius: 9px;
-    font-size: 10px;
+    font-size: 10.5px;
     font-weight: 800;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -560,27 +565,28 @@ body[data-view="map"] #main-content {
     align-items: center;
     gap: 5px;
     letter-spacing: 0.3px;
+    color: #ffffff !important;
 }
 
 .sheet-open-pill.status-open {
-    background: rgba(16, 185, 129, 0.35);
+    background: rgba(16, 185, 129, 0.7) !important;
     border: none !important;
     outline: none !important;
-    color: #34d399;
+    color: #ffffff !important;
 }
 
 .sheet-open-pill.status-closed {
-    background: rgba(239, 68, 68, 0.35);
+    background: rgba(220, 38, 38, 0.75) !important;
     border: none !important;
     outline: none !important;
-    color: #f87171;
+    color: #ffffff !important;
 }
 
 .sheet-open-pill.status-maint {
-    background: rgba(245, 158, 11, 0.35);
+    background: rgba(217, 119, 6, 0.75) !important;
     border: none !important;
     outline: none !important;
-    color: #fbbf24;
+    color: #ffffff !important;
 }
 
 .pulse-dot {
@@ -588,20 +594,21 @@ body[data-view="map"] #main-content {
     height: 6px;
     border-radius: 50%;
     display: inline-block;
+    background: #ffffff !important;
 }
 
 .pulse-dot.dot-green {
-    background: #34d399;
+    background: #ffffff !important;
     box-shadow: none !important;
 }
 
 .pulse-dot.dot-red {
-    background: #f87171;
+    background: #ffffff !important;
     box-shadow: none !important;
 }
 
 .pulse-dot.dot-amber {
-    background: #fbbf24;
+    background: #ffffff !important;
     box-shadow: none !important;
 }
 

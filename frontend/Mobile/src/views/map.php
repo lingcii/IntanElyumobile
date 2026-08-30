@@ -2769,13 +2769,13 @@ if (is_dir($imgDir)) {
                     statusBadge.style.display = 'inline-flex';
                     if (locationData.classification_status === 'EXIST') {
                         statusBadge.className = 'sheet-status-pill status-exist';
-                        statusBadge.innerHTML = '<i class="fa-solid fa-circle-check" style="font-size:8px; margin-right:3px;"></i>Existing';
+                        statusBadge.innerHTML = '<i class="fa-solid fa-circle-check" style="font-size:9px; margin-right:4px; color:#ffffff;"></i>Existing';
                     } else if (locationData.classification_status === 'EMERGE') {
                         statusBadge.className = 'sheet-status-pill status-emerge';
-                        statusBadge.innerHTML = '<i class="fa-solid fa-sparkles" style="font-size:8px; margin-right:3px;"></i>Emerging';
+                        statusBadge.innerHTML = '<i class="fa-solid fa-sparkles" style="font-size:9px; margin-right:4px; color:#ffffff;"></i>Emerging';
                     } else if (locationData.classification_status === 'POTENTIAL') {
                         statusBadge.className = 'sheet-status-pill status-potential';
-                        statusBadge.innerHTML = '<i class="fa-solid fa-compass" style="font-size:8px; margin-right:3px;"></i>Potential';
+                        statusBadge.innerHTML = '<i class="fa-solid fa-compass" style="font-size:9px; margin-right:4px; color:#ffffff;"></i>Potential';
                     } else {
                         statusBadge.style.display = 'none';
                     }
