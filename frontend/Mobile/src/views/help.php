@@ -17,107 +17,173 @@ $backRoute = 'dashboard';
 <div class="help-container has-header animate-slide-up" style="margin-top: 20px;">
 
     <div class="help-section">
-        <h2 style="font-size: 22px; margin-bottom: 8px;">Frequently Asked Questions</h2>
-        <p style="color: rgba(148,163,184,0.8); font-size: 14px; margin-bottom: 20px;">Find quick answers to common questions.</p>
+        <h2 class="help-main-title">Frequently Asked Questions</h2>
+        <p class="help-main-subtitle">Find quick answers to common questions.</p>
     </div>
 
-    <div class="faq-item">
-        <div class="faq-question" onclick="toggleFaq(this)">
+    <!-- FAQ Item 1 -->
+    <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-question">
             <i class="fa-solid fa-circle-question"></i>
             <span>How do I plan a trip?</span>
-            <i class="fa-solid fa-chevron-down" style="margin-left: auto;"></i>
+            <i class="fa-solid fa-chevron-down"></i>
         </div>
-        <div class="faq-answer" style="display:none;">
-            Browse tourist spots on the map, tap a spot, then tap "Add to Itinerary." Go to the Itinerary tab to review and save your trip.
+        <div class="faq-answer-wrapper">
+            <div class="faq-answer">
+                Browse tourist spots on the interactive map, tap any attraction to view details, then tap "Add to Itinerary." Head over to the Itinerary tab to adjust your schedule and finalize your personalized travel route.
+            </div>
         </div>
     </div>
 
-    <div class="faq-item">
-        <div class="faq-question" onclick="toggleFaq(this)">
+    <!-- FAQ Item 2 -->
+    <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-question">
             <i class="fa-solid fa-circle-question"></i>
             <span>How is XP calculated?</span>
-            <i class="fa-solid fa-chevron-down" style="margin-left: auto;"></i>
+            <i class="fa-solid fa-chevron-down"></i>
         </div>
-        <div class="faq-answer" style="display:none;">
-            Earn XP by visiting places, completing trips, and engaging with the community. The more you explore, the higher your rank!
+        <div class="faq-answer-wrapper">
+            <div class="faq-answer">
+                Earn XP by checking in at destinations, completing itinerary trips, and solving daily challenges. Collecting XP increases your rank level and unlocks exclusive badges and discounts.
+            </div>
         </div>
     </div>
 
-    <div class="faq-item">
-        <div class="faq-question" onclick="toggleFaq(this)">
+    <!-- FAQ Item 3 -->
+    <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-question">
             <i class="fa-solid fa-circle-question"></i>
             <span>Can I remove a saved trip?</span>
-            <i class="fa-solid fa-chevron-down" style="margin-left: auto;"></i>
+            <i class="fa-solid fa-chevron-down"></i>
         </div>
-        <div class="faq-answer" style="display:none;">
-            Yes — go to Saved Trips, swipe left on a trip, and tap Delete to remove it from your list.
+        <div class="faq-answer-wrapper">
+            <div class="faq-answer">
+                Yes — navigate to Saved Trips from your profile or side drawer, locate the trip card, and tap the delete trash button to remove it anytime.
+            </div>
         </div>
     </div>
 
-    <div class="faq-item">
-        <div class="faq-question" onclick="toggleFaq(this)">
+    <!-- FAQ Item 4 -->
+    <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-question">
             <i class="fa-solid fa-circle-question"></i>
             <span>The map isn't loading — what should I do?</span>
-            <i class="fa-solid fa-chevron-down" style="margin-left: auto;"></i>
+            <i class="fa-solid fa-chevron-down"></i>
         </div>
-        <div class="faq-answer" style="display:none;">
-            Make sure you have an active internet connection. Try refreshing the page or re-opening the app. If it persists, reach out to customer service.
+        <div class="faq-answer-wrapper">
+            <div class="faq-answer">
+                Ensure you have GPS / location services enabled and an active internet connection. Try refreshing the view or re-opening the app. If the issue persists, reach out directly to customer service below.
+            </div>
         </div>
     </div>
 
     <!-- Customer Service Card -->
-    <div style="margin-top: 32px; padding: 22px; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 20px; box-shadow: 0 8px 24px rgba(10,25,60,0.25);">
-        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 12px;">
-            <div style="width: 46px; height: 46px; border-radius: 14px; background: rgba(56,189,248,0.2); border: none; display: flex; align-items: center; justify-content: center; color: #00f2fe; font-size: 20px;">
+    <div class="support-card">
+        <div class="support-header">
+            <div class="support-icon-wrap">
                 <i class="fa-solid fa-headset"></i>
             </div>
             <div>
-                <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #ffffff;">Customer Service</h3>
-                <span style="font-size: 12px; color: #34c759; font-weight: 700;"><i class="fa-solid fa-circle" style="font-size: 8px; margin-right: 4px;"></i>Available 24/7 • Fast Response</span>
+                <h3 class="support-title">Customer Service</h3>
+                <span class="support-status">
+                    <span class="dot"></span>
+                    Available 24/7 • Fast Response
+                </span>
             </div>
         </div>
 
-        <p style="margin: 0 0 16px 0; color: rgba(255,255,255,0.9); font-size: 13px; line-height: 1.5;">Have questions, account inquiries, or need trip assistance? Reach out to our dedicated support team.</p>
+        <p class="support-desc">
+            Have questions, account inquiries, or need trip assistance? Reach out to our dedicated support team anytime.
+        </p>
 
-        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(0,0,0,0.25); border: none; border-radius: 12px; margin-bottom: 16px;">
-            <i class="fa-solid fa-envelope" style="color: #00f2fe; font-size: 16px;"></i>
-            <span style="font-size: 14px; font-weight: 600; color: #ffffff; font-family: monospace;">support@intan-elyu.online</span>
+        <!-- Interactive Email Display Box -->
+        <div class="support-email-box" onclick="handleEmailSupport(event)" title="Tap to compose an email">
+            <div class="support-email-left">
+                <i class="fa-solid fa-envelope" style="color: #00f2fe; font-size: 17px;"></i>
+                <span class="support-email-text">support@intan-elyu.online</span>
+            </div>
+            <i class="fa-solid fa-arrow-up-right-from-square support-email-link-icon"></i>
         </div>
 
-        <div style="display: flex; gap: 10px;">
-            <a href="mailto:acekillersmile@gmail.com?subject=Customer%20Support%20Inquiry%20-%20Intan%20Elyu" style="flex: 1; text-align: center; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color: white; border: none; outline: none; padding: 12px; border-radius: 12px; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 14px rgba(0,242,254,0.3);">
+        <!-- Action Buttons -->
+        <div class="support-actions">
+            <a href="mailto:support@intan-elyu.online?subject=Customer%20Support%20Inquiry%20-%20Intan%20Elyu" 
+               onclick="handleEmailSupport(event)" 
+               class="btn-email-support" 
+               title="Send email to support@intan-elyu.online">
                 <i class="fa-solid fa-paper-plane"></i> Email Support
             </a>
-            <button onclick="copySupportEmail()" style="background: rgba(255,255,255,0.15); border: none; outline: none; color: #ffffff; padding: 12px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                <i class="fa-regular fa-copy"></i> Copy
+            <button id="btn-copy-support" onclick="copySupportEmail(this)" class="btn-copy-support" title="Copy email address">
+                <i class="fa-regular fa-copy"></i> <span>Copy</span>
             </button>
         </div>
     </div>
 
 </div>
 
-
 <script>
+// Smooth FAQ Accordion Toggle with Elastic Click Feedback
 window.toggleFaq = function(el) {
-    const answer = el.nextElementSibling;
-    const icon = el.querySelector('.fa-chevron-down');
-    if (answer.style.display === 'none' || !answer.style.display) {
-        answer.style.display = 'block';
-        if (icon) icon.style.transform = 'rotate(180deg)';
-    } else {
-        answer.style.display = 'none';
-        if (icon) icon.style.transform = 'rotate(0deg)';
+    if (!el) return;
+    const isAlreadyActive = el.classList.contains('active');
+    
+    // Optional: close other accordion items smoothly if desired, or toggle current
+    el.classList.toggle('active');
+};
+
+// Open default mail client for support@intan-elyu.online
+window.handleEmailSupport = function(e) {
+    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+    const mailtoUrl = 'mailto:support@intan-elyu.online?subject=Customer%20Support%20Inquiry%20-%20Intan%20Elyu';
+    
+    try {
+        window.location.href = mailtoUrl;
+    } catch(err) {
+        window.open(mailtoUrl, '_system');
     }
 };
 
-window.copySupportEmail = function() {
-    navigator.clipboard.writeText('support@intan-elyu.online').then(() => {
-        if (typeof showToast === 'function') showToast('Copied support@intan-elyu.online to clipboard! 📋');
-    });
+// Copy email address to clipboard with animated button feedback
+window.copySupportEmail = function(btn) {
+    const email = 'support@intan-elyu.online';
+    
+    function showSuccessUI() {
+        if (typeof showToast === 'function') {
+            showToast('Copied support@intan-elyu.online to clipboard! 📋');
+        }
+        if (btn) {
+            const originalHTML = btn.innerHTML;
+            btn.classList.add('copied');
+            btn.innerHTML = '<i class="fa-solid fa-check" style="color:#00f2fe;"></i> <span>Copied!</span>';
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = originalHTML;
+            }, 2000);
+        }
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(email).then(showSuccessUI).catch(() => fallbackCopy(email, showSuccessUI));
+    } else {
+        fallbackCopy(email, showSuccessUI);
+    }
 };
 
-window.contactSupport = function(e) {
-    if (e) e.preventDefault();
-    window.location.href = 'mailto:acekillersmile@gmail.com?subject=Customer%20Support%20Inquiry%20-%20Intan%20Elyu';
-};
+function fallbackCopy(text, onSuccess) {
+    try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.top = '-9999px';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        if (typeof onSuccess === 'function') onSuccess();
+    } catch (e) {
+        if (typeof showToast === 'function') showToast(text);
+    }
+}
 </script>
