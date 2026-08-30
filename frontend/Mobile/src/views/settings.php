@@ -200,25 +200,25 @@ $backRoute = 'dashboard';
 
 <!-- Change Password Modal -->
 <div id="change-password-modal" class="profile-modal-overlay">
-    <div class="profile-modal-card" style="background: rgba(15, 23, 42, 0.96); border: 1.5px solid rgba(56, 189, 248, 0.4); border-radius: 24px; padding: 24px; max-width: 380px; width: 90%;">
+    <div class="profile-modal-card" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; border-radius: 24px; padding: 24px; max-width: 380px; width: 90%; box-shadow: 0 20px 50px rgba(10, 25, 60, 0.5);">
         <button class="profile-modal-close" onclick="closeChangePasswordModal()"><i class="fa-solid fa-xmark"></i></button>
         <h3 style="font-size: 18px; font-weight: 800; color: #fff; margin: 0 0 4px 0; text-align: center;"><i class="fa-solid fa-lock" style="color:#38bdf8;"></i> Change Password</h3>
-        <p style="font-size: 12px; color: rgba(148, 163, 184, 0.8); text-align: center; margin: 0 0 16px 0;">Enter your current password and new password</p>
+        <p style="font-size: 12px; color: rgba(255, 255, 255, 0.85); text-align: center; margin: 0 0 16px 0;">Enter your current password and new password</p>
 
         <form onsubmit="submitChangePassword(event)">
             <div style="margin-bottom: 12px;">
                 <label style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); display: block; margin-bottom: 4px;">Current Password</label>
-                <input type="password" id="curr-password" required placeholder="••••••••" style="width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; font-size: 14px;">
+                <input type="password" id="curr-password" required placeholder="••••••••" style="width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.12); border: none; outline: none; color: #fff; font-size: 14px;">
             </div>
             <div style="margin-bottom: 12px;">
                 <label style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); display: block; margin-bottom: 4px;">New Password</label>
-                <input type="password" id="new-password" required placeholder="••••••••" style="width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; font-size: 14px;">
+                <input type="password" id="new-password" required placeholder="••••••••" style="width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.12); border: none; outline: none; color: #fff; font-size: 14px;">
             </div>
             <div style="margin-bottom: 18px;">
                 <label style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); display: block; margin-bottom: 4px;">Confirm New Password</label>
-                <input type="password" id="conf-password" required placeholder="••••••••" style="width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; font-size: 14px;">
+                <input type="password" id="conf-password" required placeholder="••••••••" style="width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.12); border: none; outline: none; color: #fff; font-size: 14px;">
             </div>
-            <button type="submit" style="width: 100%; padding: 14px; border-radius: 100px; background: linear-gradient(135deg, #38bdf8, #2563eb); border: none; color: #fff; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 14px rgba(56,189,248,0.3);">
+            <button type="submit" style="width: 100%; padding: 14px; border-radius: 100px; background: linear-gradient(135deg, #00f2fe, #0284c7); border: none; outline: none; color: #fff; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 14px rgba(0,242,254,0.3);">
                 Update Password
             </button>
         </form>
@@ -227,7 +227,7 @@ $backRoute = 'dashboard';
 
 <!-- Two-Factor Authentication Modal -->
 <div id="two-factor-modal" class="profile-modal-overlay">
-    <div class="profile-modal-card" style="background: rgba(15, 23, 42, 0.96); border: 1.5px solid rgba(56, 189, 248, 0.4); border-radius: 24px; padding: 24px; max-width: 400px; width: 92%; text-align: center;">
+    <div class="profile-modal-card" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; border-radius: 24px; padding: 24px; max-width: 400px; width: 92%; text-align: center; box-shadow: 0 20px 50px rgba(10, 25, 60, 0.5);">
         <button class="profile-modal-close" onclick="close2FAModal()"><i class="fa-solid fa-xmark"></i></button>
         
         <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);">
