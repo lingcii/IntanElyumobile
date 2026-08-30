@@ -42,7 +42,7 @@ include __DIR__ . '/../components/header.php';
     <!-- SLIDING PUZZLE TAB -->
     <div id="game-tab-puzzle" class="game-tab-content">
         <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 18px 20px; margin-bottom: 16px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;">
-            <h3 id="puzzle-title" style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800; color: #ffffff;">Immuki Island Slide Puzzle</h3>
+            <h3 id="puzzle-title" style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800; color: #ffffff;">Slide Puzzle</h3>
             <p id="puzzle-desc" style="margin: 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.4;">
                 Rearrange the tiles to reveal the crystal clear lagoons of Immuki Island in Balaoan! Solve to earn <strong style="color: #00f2fe;">+100 Points</strong>.
             </p>
@@ -50,7 +50,7 @@ include __DIR__ . '/../components/header.php';
             <!-- Target Reference Image Preview -->
             <div id="puzzle-target-container" style="margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(0,0,0,0.2) !important; border: none !important; outline: none !important; border-radius: 12px; padding: 6px 12px; width: fit-content; margin-left: auto; margin-right: auto;">
                 <span style="font-size: 11px; color: rgba(226,232,240,0.9); font-weight: 700;">Target Goal:</span>
-                <img id="puzzle-target-img" src="https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a686f4d0f48b.jpg" alt="Immuki Island Target" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover; border: none !important; outline: none !important; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+                <img id="puzzle-target-img" src="https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a686f4d0f48b.jpg" alt="Target" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover; border: none !important; outline: none !important; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
             </div>
             
             <!-- Moves and Timer info -->
@@ -60,8 +60,8 @@ include __DIR__ . '/../components/header.php';
             </div>
 
             <!-- Finished Banner -->
-            <div id="puzzle-finished-banner" style="display: none; margin-top: 14px; padding: 18px 16px; background: rgba(0,0,0,0.22); border-radius: 16px; text-align: center;">
-                <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(56,189,248,0.2); color: #38bdf8; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 10px;">
+            <div id="puzzle-finished-banner" style="display: none; margin: 0; padding: 22px 16px; background: rgba(0,0,0,0.2); border-radius: 16px; text-align: center;">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(56,189,248,0.2); color: #38bdf8; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 12px;">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
                 <p style="margin: 0; font-size: 15px; font-weight: 800; color: #ffffff; line-height: 1.5;">
@@ -90,7 +90,7 @@ include __DIR__ . '/../components/header.php';
     <!-- MEMORY MATCH TAB -->
     <div id="game-tab-memory" class="game-tab-content" style="display: none;">
         <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 18px 20px; margin-bottom: 16px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;">
-            <h3 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800; color: #ffffff;">Elyu Spot Memory Match</h3>
+            <h3 id="memory-title" style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800; color: #ffffff;">Elyu Spot Memory Match</h3>
             <p id="memory-desc" style="margin: 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.4;">
                 Flip cards and match all 6 pairs of famous La Union landmarks & activities to earn <strong style="color: #00f2fe;">+75 Points</strong>!
             </p>
@@ -100,8 +100,8 @@ include __DIR__ . '/../components/header.php';
             </div>
 
             <!-- Finished Banner -->
-            <div id="memory-finished-banner" style="display: none; margin-top: 14px; padding: 18px 16px; background: rgba(0,0,0,0.22); border-radius: 16px; text-align: center;">
-                <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(56,189,248,0.2); color: #38bdf8; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 10px;">
+            <div id="memory-finished-banner" style="display: none; margin: 0; padding: 22px 16px; background: rgba(0,0,0,0.2); border-radius: 16px; text-align: center;">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(56,189,248,0.2); color: #38bdf8; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 12px;">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
                 <p style="margin: 0; font-size: 15px; font-weight: 800; color: #ffffff; line-height: 1.5;">
@@ -124,14 +124,14 @@ include __DIR__ . '/../components/header.php';
     <!-- WORD SCRAMBLE TAB -->
     <div id="game-tab-scramble" class="game-tab-content" style="display: none;">
         <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 18px 20px; margin-bottom: 16px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;">
-            <h3 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800; color: #ffffff;">La Union Eco Explorer Scramble</h3>
+            <h3 id="scramble-title" style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800; color: #ffffff;">La Union Eco Explorer Scramble</h3>
             <p id="scramble-desc" style="margin: 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.4;">
                 Unscramble all 4 La Union municipal & landmark names to earn <strong style="color: #00f2fe;">+75 Points</strong>!
             </p>
 
             <!-- Finished Banner -->
-            <div id="scramble-finished-banner" style="display: none; margin-top: 14px; padding: 18px 16px; background: rgba(0,0,0,0.22); border-radius: 16px; text-align: center;">
-                <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(56,189,248,0.2); color: #38bdf8; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 10px;">
+            <div id="scramble-finished-banner" style="display: none; margin: 0; padding: 22px 16px; background: rgba(0,0,0,0.2); border-radius: 16px; text-align: center;">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(56,189,248,0.2); color: #38bdf8; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 12px;">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
                 <p style="margin: 0; font-size: 15px; font-weight: 800; color: #ffffff; line-height: 1.5;">
@@ -660,7 +660,6 @@ function updateAllGamesFinishedUI() {
 }
 
 function updatePuzzleInfoUI() {
-    if (!currentPuzzleItem) return;
     const titleEl = document.getElementById('puzzle-title');
     const descEl = document.getElementById('puzzle-desc');
     const targetContainer = document.getElementById('puzzle-target-container');
@@ -669,12 +668,11 @@ function updatePuzzleInfoUI() {
     const controlsWrapper = document.getElementById('puzzle-controls');
     const finishedBanner = document.getElementById('puzzle-finished-banner');
 
-    if (titleEl) titleEl.textContent = currentPuzzleItem.name + ' Slide Puzzle';
-
     const isDone = isGameDoneToday('puzzle');
 
     if (isDone) {
-        // User requested: "if the puzzle is finished dont show any image, and the text will hide and show You have finished this mode please come back tomorrow."
+        // User requested: "dont show Immuki Island Slide Puzzle" and "dont show any image, and the text will hide and show You have finished this mode please come back tomorrow"
+        if (titleEl) titleEl.style.display = 'none';
         if (descEl) descEl.style.display = 'none';
         if (targetContainer) targetContainer.style.display = 'none';
         if (statsContainer) statsContainer.style.display = 'none';
@@ -683,13 +681,17 @@ function updatePuzzleInfoUI() {
         if (finishedBanner) finishedBanner.style.display = 'block';
         if (window._puzzleTimerInterval) clearInterval(window._puzzleTimerInterval);
     } else {
-        if (descEl) {
+        if (titleEl) {
+            titleEl.style.display = 'block';
+            titleEl.textContent = 'Slide Puzzle';
+        }
+        if (descEl && currentPuzzleItem) {
             descEl.style.display = 'block';
             descEl.innerHTML = currentPuzzleItem.desc;
         }
         if (targetContainer) targetContainer.style.display = 'flex';
         const targetImgEl = document.getElementById('puzzle-target-img');
-        if (targetImgEl) targetImgEl.src = currentPuzzleItem.image;
+        if (targetImgEl && currentPuzzleItem) targetImgEl.src = currentPuzzleItem.image;
         if (statsContainer) statsContainer.style.display = 'flex';
         if (boardWrapper) boardWrapper.style.display = 'flex';
         if (controlsWrapper) controlsWrapper.style.display = 'flex';
@@ -698,6 +700,7 @@ function updatePuzzleInfoUI() {
 }
 
 function updateMemoryInfoUI() {
+    const titleEl = document.getElementById('memory-title');
     const descEl = document.getElementById('memory-desc');
     const statsContainer = document.getElementById('memory-stats-container');
     const boardEl = document.getElementById('memory-board');
@@ -707,12 +710,14 @@ function updateMemoryInfoUI() {
     const isDone = isGameDoneToday('memory_match');
 
     if (isDone) {
+        if (titleEl) titleEl.style.display = 'none';
         if (descEl) descEl.style.display = 'none';
         if (statsContainer) statsContainer.style.display = 'none';
         if (boardEl) boardEl.style.display = 'none';
         if (controlsEl) controlsEl.style.display = 'none';
         if (finishedBanner) finishedBanner.style.display = 'block';
     } else {
+        if (titleEl) titleEl.style.display = 'block';
         if (descEl) {
             descEl.style.display = 'block';
             descEl.innerHTML = `Flip cards and match all 6 pairs of famous La Union landmarks & activities to earn <strong style="color: #00f2fe;">+75 Points</strong>!`;
@@ -725,6 +730,7 @@ function updateMemoryInfoUI() {
 }
 
 function updateScrambleInfoUI() {
+    const titleEl = document.getElementById('scramble-title');
     const descEl = document.getElementById('scramble-desc');
     const containerEl = document.getElementById('scramble-container');
     const submitBtn = document.getElementById('scramble-submit-btn');
@@ -733,11 +739,13 @@ function updateScrambleInfoUI() {
     const isDone = isGameDoneToday('word_scramble');
 
     if (isDone) {
+        if (titleEl) titleEl.style.display = 'none';
         if (descEl) descEl.style.display = 'none';
         if (containerEl) containerEl.style.display = 'none';
         if (submitBtn) submitBtn.style.display = 'none';
         if (finishedBanner) finishedBanner.style.display = 'block';
     } else {
+        if (titleEl) titleEl.style.display = 'block';
         if (descEl) {
             descEl.style.display = 'block';
             descEl.innerHTML = `Unscramble all 4 La Union municipal & landmark names to earn <strong style="color: #00f2fe;">+75 Points</strong>!`;
@@ -780,7 +788,6 @@ function initPuzzle(forceNewImage = false) {
 
 function promptResetPuzzle() {
     if (isGameDoneToday('puzzle')) {
-        openGameAlert('Puzzle already completed today! Come back tomorrow.', 'Completed Today');
         return;
     }
 
@@ -803,7 +810,6 @@ function resetPuzzle() {
 
 function promptChangePuzzle() {
     if (isGameDoneToday('puzzle')) {
-        openGameAlert('Puzzle already completed today! Come back tomorrow.', 'Completed Today');
         return;
     }
 
@@ -900,7 +906,6 @@ function checkPuzzleSolved() {
         if (window._puzzleTimerInterval) clearInterval(window._puzzleTimerInterval);
         if (isGameDoneToday('puzzle')) {
             updatePuzzleInfoUI();
-            openGameAlert('Puzzle already completed today! Come back tomorrow.', 'Completed Today');
         } else {
             claimMiniGamePoints('puzzle');
         }
@@ -936,12 +941,9 @@ const triviaData = [
 ];
 
 function initTrivia() {
-    try {
-        if (localStorage.getItem('game_done_trivia') === new Date().toDateString()) {
-            openGameAlert('Trivia already completed today! Come back tomorrow.');
-            return;
-        }
-    } catch(e) {}
+    if (isGameDoneToday('trivia')) {
+        return;
+    }
     triviaData.forEach(q => q.selected = null);
     const container = document.getElementById('trivia-questions-container');
     if (!container) return;
@@ -1020,12 +1022,10 @@ let memoryFlips = 0;
 let isMemoryBusy = false;
 
 function initMemoryGame() {
-    try {
-        if (localStorage.getItem('game_done_memory_match') === new Date().toDateString()) {
-            openGameAlert('Memory Match already completed today! Come back tomorrow.');
-            return;
-        }
-    } catch(e) {}
+    if (isGameDoneToday('memory_match')) {
+        updateMemoryInfoUI();
+        return;
+    }
     memoryFlips = 0;
     matchedPairsCount = 0;
     flippedCards = [];
@@ -1160,12 +1160,10 @@ const scrambleData = [
 ];
 
 function initScrambleGame() {
-    try {
-        if (localStorage.getItem('game_done_word_scramble') === new Date().toDateString()) {
-            openGameAlert('Word Scramble already completed today! Come back tomorrow.');
-            return;
-        }
-    } catch(e) {}
+    if (isGameDoneToday('word_scramble')) {
+        updateScrambleInfoUI();
+        return;
+    }
     const container = document.getElementById('scramble-container');
     if (!container) return;
     container.innerHTML = '';
