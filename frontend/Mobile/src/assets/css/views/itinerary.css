@@ -361,6 +361,13 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     animation: none !important;
 }
 
+.itinerary-stops-container .starting-point-item {
+    margin-bottom: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    animation: none !important;
+}
+
 .stop-thumbnail-wrapper {
     width: 72px;
     height: 72px;
