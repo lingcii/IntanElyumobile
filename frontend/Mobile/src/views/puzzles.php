@@ -80,7 +80,7 @@ include __DIR__ . '/../components/header.php';
     <div id="game-tab-memory" class="game-tab-content" style="display: none;">
         <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 18px 20px; margin-bottom: 16px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;">
             <h3 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800; color: #ffffff;">Elyu Spot Memory Match</h3>
-            <p style="margin: 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.4;">
+            <p id="memory-desc" style="margin: 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.4;">
                 Flip cards and match all 6 pairs of famous La Union landmarks & activities to earn <strong style="color: #00f2fe;">+75 Points</strong>!
             </p>
             <div style="display: flex; justify-content: center; gap: 20px; margin-top: 14px;">
@@ -104,7 +104,7 @@ include __DIR__ . '/../components/header.php';
     <div id="game-tab-scramble" class="game-tab-content" style="display: none;">
         <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 18px 20px; margin-bottom: 16px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;">
             <h3 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800; color: #ffffff;">La Union Eco Explorer Scramble</h3>
-            <p style="margin: 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.4;">
+            <p id="scramble-desc" style="margin: 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.4;">
                 Unscramble all 4 La Union municipal & landmark names to earn <strong style="color: #00f2fe;">+75 Points</strong>!
             </p>
         </div>
@@ -428,6 +428,22 @@ async function loadGamePoints() {
             if (window.updateProfilePointsDisplay) {
                 window.updateProfilePointsDisplay(d.points);
             }
+            // Check history for today's completed games
+            if (d.history && Array.isArray(d.history)) {
+                const todayStr = new Date().toDateString();
+                const nowIsoDate = new Date().toISOString().slice(0, 10);
+                d.history.forEach(item => {
+                    const itemDate = item.created_at ? item.created_at.slice(0, 10) : '';
+                    if (itemDate === nowIsoDate) {
+                        const desc = (item.description || '').toLowerCase();
+                        if (desc.includes('puzzle')) localStorage.setItem('game_done_puzzle', todayStr);
+                        if (desc.includes('memory')) localStorage.setItem('game_done_memory_match', todayStr);
+                        if (desc.includes('scramble')) localStorage.setItem('game_done_word_scramble', todayStr);
+                        if (desc.includes('trivia')) localStorage.setItem('game_done_trivia', todayStr);
+                    }
+                });
+                updateAllGamesFinishedUI();
+            }
         }
     } catch (e) {
         console.error("Points load error:", e);
@@ -562,6 +578,20 @@ function shuffleTiles() {
     } while (!isSolvable(tiles));
 }
 
+function isGameDoneToday(gameType) {
+    try {
+        return localStorage.getItem('game_done_' + gameType) === new Date().toDateString();
+    } catch (e) {
+        return false;
+    }
+}
+
+function updateAllGamesFinishedUI() {
+    updatePuzzleInfoUI();
+    updateMemoryInfoUI();
+    updateScrambleInfoUI();
+}
+
 function updatePuzzleInfoUI() {
     if (!currentPuzzleItem) return;
     const titleEl = document.getElementById('puzzle-title');
@@ -569,8 +599,39 @@ function updatePuzzleInfoUI() {
     const targetImgEl = document.getElementById('puzzle-target-img');
 
     if (titleEl) titleEl.textContent = currentPuzzleItem.name + ' Slide Puzzle';
-    if (descEl) descEl.innerHTML = currentPuzzleItem.desc;
     if (targetImgEl) targetImgEl.src = currentPuzzleItem.image;
+
+    if (descEl) {
+        if (isGameDoneToday('puzzle')) {
+            // Finished -> Change it to Come back Tomorrow
+            const baseText = currentPuzzleItem.desc ? currentPuzzleItem.desc.replace(/Solve to earn.*?Points\.?/i, '').trim() : `Rearrange the tiles to reveal the crystal clear lagoons of ${currentPuzzleItem.name} in Balaoan!`;
+            descEl.innerHTML = `${baseText} <strong style="color: #facc15; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; margin-left: 4px;"><i class="fa-solid fa-circle-check" style="color: #34d399;"></i> Come back Tomorrow</strong>`;
+        } else {
+            descEl.innerHTML = currentPuzzleItem.desc;
+        }
+    }
+}
+
+function updateMemoryInfoUI() {
+    const descEl = document.getElementById('memory-desc');
+    if (descEl) {
+        if (isGameDoneToday('memory_match')) {
+            descEl.innerHTML = `Flip cards and match all 6 pairs of famous La Union landmarks & activities. <strong style="color: #facc15; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; margin-left: 4px;"><i class="fa-solid fa-circle-check" style="color: #34d399;"></i> Come back Tomorrow</strong>`;
+        } else {
+            descEl.innerHTML = `Flip cards and match all 6 pairs of famous La Union landmarks & activities to earn <strong style="color: #00f2fe;">+75 Points</strong>!`;
+        }
+    }
+}
+
+function updateScrambleInfoUI() {
+    const descEl = document.getElementById('scramble-desc');
+    if (descEl) {
+        if (isGameDoneToday('word_scramble')) {
+            descEl.innerHTML = `Unscramble all 4 La Union municipal & landmark names. <strong style="color: #facc15; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; margin-left: 4px;"><i class="fa-solid fa-circle-check" style="color: #34d399;"></i> Come back Tomorrow</strong>`;
+        } else {
+            descEl.innerHTML = `Unscramble all 4 La Union municipal & landmark names to earn <strong style="color: #00f2fe;">+75 Points</strong>!`;
+        }
+    }
 }
 
 function resetPuzzleState() {
@@ -588,14 +649,6 @@ function resetPuzzleState() {
 }
 
 function initPuzzle(forceNewImage = false) {
-    // Daily limit check
-    try {
-        if (localStorage.getItem('game_done_puzzle') === new Date().toDateString()) {
-            openGameAlert('Puzzle already completed today! Come back tomorrow.');
-            return;
-        }
-    } catch(e) {}
-
     const pool = (dbPuzzleSpots && dbPuzzleSpots.length > 0) ? dbPuzzleSpots : PUZZLE_IMAGES;
     if (forceNewImage || !currentPuzzleItem) {
         const randomIdx = Math.floor(Math.random() * pool.length);
@@ -607,12 +660,10 @@ function initPuzzle(forceNewImage = false) {
 }
 
 function promptResetPuzzle() {
-    try {
-        if (localStorage.getItem('game_done_puzzle') === new Date().toDateString()) {
-            openGameAlert('Puzzle already completed today! Come back tomorrow.');
-            return;
-        }
-    } catch(e) {}
+    if (isGameDoneToday('puzzle')) {
+        openGameAlert('Puzzle already completed today! Come back tomorrow.', 'Completed Today');
+        return;
+    }
 
     openGameConfirm({
         title: 'Reset Puzzle?',
@@ -632,12 +683,10 @@ function resetPuzzle() {
 }
 
 function promptChangePuzzle() {
-    try {
-        if (localStorage.getItem('game_done_puzzle') === new Date().toDateString()) {
-            openGameAlert('Puzzle already completed today! Come back tomorrow.');
-            return;
-        }
-    } catch(e) {}
+    if (isGameDoneToday('puzzle')) {
+        openGameAlert('Puzzle already completed today! Come back tomorrow.', 'Completed Today');
+        return;
+    }
 
     openGameConfirm({
         title: 'Change Puzzle?',
@@ -730,7 +779,12 @@ function checkPuzzleSolved() {
     if (isCorrect) {
         puzzleSolved = true;
         if (window._puzzleTimerInterval) clearInterval(window._puzzleTimerInterval);
-        claimMiniGamePoints('puzzle');
+        if (isGameDoneToday('puzzle')) {
+            updatePuzzleInfoUI();
+            openGameAlert('Puzzle already completed today! Come back tomorrow.', 'Completed Today');
+        } else {
+            claimMiniGamePoints('puzzle');
+        }
     }
 }
 
@@ -1094,10 +1148,15 @@ async function claimMiniGamePoints(gameType) {
         if (r.ok && d.status === 'success') {
             // Mark as completed today for local checks
             try { localStorage.setItem('game_done_' + gameType, new Date().toDateString()); } catch(e) {}
+            updateAllGamesFinishedUI();
             openGameSuccess(d.message);
         } else {
+            if (r.status === 429) {
+                try { localStorage.setItem('game_done_' + gameType, new Date().toDateString()); } catch(e) {}
+                updateAllGamesFinishedUI();
+            }
             const title = (r.status === 429) ? "Already Done!" : (r.status >= 500 ? "Server Error" : "Notice");
-            openGameAlert(d.message || "Game already completed today!", title);
+            openGameAlert(d.message || "Game already completed today! Come back tomorrow.", title);
         }
     } catch (e) {
         console.error("Points claim error:", e);
@@ -1120,6 +1179,7 @@ function openGameSuccess(message) {
 function closeGameSuccess() {
     const modal = document.getElementById('game-success-modal');
     if (modal) modal.style.display = 'none';
+    updateAllGamesFinishedUI();
 }
 
 function openGameAlert(message, title = "Already Done!") {
@@ -1201,6 +1261,7 @@ document.addEventListener('click', (e) => {
 });
 
 // Startup
+updateAllGamesFinishedUI();
 loadGamePoints();
 switchGameTab('puzzle');
 
