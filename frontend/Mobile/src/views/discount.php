@@ -151,6 +151,50 @@ $backRoute = 'dashboard';
 
 <script>
 (function() {
+function getVoucherImageUrl(v) {
+    if (!v) return 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png';
+    const r2Base = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev';
+    if (v.image && typeof v.image === 'string' && v.image.trim() !== '') {
+        const clean = v.image.trim();
+        if (clean.startsWith('http://') || clean.startsWith('https://') || clean.startsWith('data:')) {
+            return clean;
+        }
+        return `${r2Base}/${clean.replace(/^\/+/, '')}`;
+    }
+
+    const text = ((v.partner || '') + ' ' + (v.location || '') + ' ' + (v.title || '')).toLowerCase();
+    const muniMap = {
+        'san fernando': 'SAN-FERNANDO.png',
+        'san gabriel': 'SAN-GABRIEL.png',
+        'san juan': 'SAN-JUAN.png',
+        'santo tomas': 'SANTO-TOMAS.png',
+        'agoo': 'AGOO.png',
+        'aringay': 'ARINGAY.png',
+        'bacnotan': 'BACNOTAN.png',
+        'bagulin': 'BAGULIN.png',
+        'balaoan': 'BALAOAN.png',
+        'bangar': 'BANGAR.png',
+        'bauang': 'BAUANG.png',
+        'burgos': 'BURGOS.png',
+        'caba': 'CABA.png',
+        'luna': 'LUNA.png',
+        'naguilian': 'NAGUILIAN.png',
+        'pugo': 'PUGO.png',
+        'rosario': 'ROSARIO.png',
+        'santol': 'SANTOL.png',
+        'sudipen': 'SUDIPEN.png',
+        'tubao': 'TUBAO.png'
+    };
+
+    for (const [muni, logo] of Object.entries(muniMap)) {
+        if (text.includes(muni)) {
+            return `${r2Base}/logo/${logo}`;
+        }
+    }
+
+    return `${r2Base}/logo/LUPTO.png`;
+}
+
 let activeCategory = 'All';
 let vouchersData = [];
 
@@ -280,12 +324,13 @@ function renderDiscounts() {
     let html = '';
     filtered.forEach(v => {
         const isClaimed = claimed.includes(v.id);
+        const imgUrl = getVoucherImageUrl(v);
         html += `
         <div class="voucher-card">
             <div>
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                    <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(255,255,255,0.12); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 18px; color: ${v.color || '#00f2fe'};">
-                        <i class="fa-solid ${v.icon}"></i>
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.14); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.25);">
+                        <img src="${imgUrl}" alt="${v.title}" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
                     </div>
                     <span style="font-size: 10px; font-weight: 800; background: rgba(0,242,254,0.25); color: #ffffff; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 8px; text-transform: uppercase;">${v.badge}</span>
                 </div>
@@ -338,8 +383,8 @@ function openVoucherModal(id) {
     
     const iconWrap = document.getElementById('modal-icon-wrap');
     if (iconWrap) {
-        iconWrap.innerHTML = `<i class="fa-solid ${item.icon}"></i>`;
-        iconWrap.style.color = item.color;
+        const modalImg = getVoucherImageUrl(item);
+        iconWrap.innerHTML = `<img src="${modalImg}" alt="${item.title}" style="width: 100%; height: 100%; object-fit: contain; padding: 6px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">`;
     }
 
     const banner = document.getElementById('copy-success-banner');

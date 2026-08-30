@@ -453,8 +453,8 @@ $activeTab = 'profile';
                             return `
                             <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.08); border:none !important; outline:none !important; padding:12px 14px; border-radius:16px; gap:12px; transition:transform 0.15s ease;">
                                 <div style="display:flex; align-items:center; gap:10px; min-width:0; text-align:left; flex:1;">
-                                    <div style="width:36px; height:36px; border-radius:10px; background:rgba(56,189,248,0.18); border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:15px; flex-shrink:0;">
-                                        <i class="fa-solid ${iconClass}"></i>
+                                    <div style="width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,0.14); border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.25);">
+                                        <img src="${v.image || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png'}" alt="${v.title}" style="width:100%; height:100%; object-fit:contain; padding:3px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
                                     </div>
                                     <div style="min-width:0; flex:1;">
                                         <div style="display:flex; align-items:center; gap:6px;">
