@@ -175,11 +175,11 @@ if (is_dir($imgDir)) {
     <div class="bottom-sheet" id="nearby-sites-sheet" style="display:none;">
         <div class="sheet-drag-handle" id="nearby-drag-handle"><span class="sheet-drag-dot"></span></div>
         <div class="draggable-content" id="nearby-sites-scroll"
-            style="max-height: calc(75vh - 70px); overflow-y: auto; padding: 0 4px 16px 4px;">
+            style="max-height: calc(85vh - 80px); overflow-y: auto; padding: 0 6px calc(30px + env(safe-area-inset-bottom)) 6px;">
 
             <!-- Header -->
             <div
-                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding: 0 8px;">
+                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding: 2px 8px;">
                 <div>
                     <h3
                         style="margin:0; font-size:17px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
@@ -190,13 +190,13 @@ if (is_dir($imgDir)) {
                     </p>
                 </div>
                 <button type="button" onclick="window.closeNearbySitesSheet()"
-                    style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:background 0.2s;">
+                    style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:background 0.2s;">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
             <!-- Radius filter pills -->
-            <div style="display:flex; gap:6px; overflow-x:auto; padding: 4px 8px 12px 8px; scrollbar-width:none;">
+            <div style="display:flex; gap:8px; overflow-x:auto; padding: 4px 8px 16px 8px; scrollbar-width:none;">
                 <button type="button" class="nearby-radius-btn active" data-radius="2"
                     onclick="window.filterNearbyRadius(2, this)"
                     style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:800; border:none !important; outline:none !important; background:linear-gradient(135deg, #00f2fe, #0284c7); color:#ffffff; cursor:pointer; white-space:nowrap;">Within
@@ -216,7 +216,7 @@ if (is_dir($imgDir)) {
             </div>
 
             <!-- List container -->
-            <div id="nearby-sites-list" style="display:flex; flex-direction:column; gap:10px; padding: 0 4px;">
+            <div id="nearby-sites-list" style="display:flex; flex-direction:column; gap:12px; padding: 0 4px 16px 4px;">
                 <!-- Rendered dynamically -->
             </div>
         </div>
@@ -1931,6 +1931,7 @@ if (is_dir($imgDir)) {
                 if (!sheet) return;
 
                 if (btn) btn.classList.add('active');
+                document.body.classList.add('sheet-open');
 
                 sheet.style.display = 'block';
                 sheet.style.transition = 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease';
@@ -1946,6 +1947,7 @@ if (is_dir($imgDir)) {
             };
 
             window.closeNearbySitesSheet = function () {
+                document.body.classList.remove('sheet-open');
                 const sheet = document.getElementById('nearby-sites-sheet');
                 const btn = document.getElementById('btn-nearby-sites');
                 if (btn) btn.classList.remove('active');
@@ -2081,15 +2083,15 @@ if (is_dir($imgDir)) {
                 if (filtered.length === 0) {
                     const catTitle = (window.currentActiveCategory && window.currentActiveCategory !== 'All') ? `No ${window.currentActiveCategory} Spots Within ${currentNearbyRadius} km` : `No Spots Within ${currentNearbyRadius} km`;
                     container.innerHTML = `
-                    <div style="text-align:center; padding:28px 14px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; border-radius:18px; animation: nearbyCardSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+                    <div style="text-align:center; padding:26px 16px 22px; margin-bottom:24px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; border-radius:18px; animation: nearbyCardSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
                         <div style="width:48px; height:48px; margin:0 auto 12px; border-radius:50%; background:rgba(255,255,255,0.22); border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:20px;">
                             <i class="fa-solid fa-location-dot"></i>
                         </div>
                         <div style="font-size:15px; font-weight:800; color:#ffffff; margin-bottom:6px;">${catTitle}</div>
-                        <div style="font-size:12.5px; color:#ffffff; opacity:0.95; margin-bottom:16px; line-height:1.45; font-weight:500;">
+                        <div style="font-size:12.5px; color:#ffffff; opacity:0.95; margin-bottom:18px; line-height:1.45; font-weight:500;">
                             Try expanding your search radius to discover attractions across La Union.
                         </div>
-                        <button type="button" onclick="window.filterNearbyRadius('all', document.querySelector('[data-radius=\\'all\\']'))" style="padding:9px 20px; border-radius:100px; background:linear-gradient(135deg, #1e3a8a, #3f7db7); border:none !important; outline:none !important; color:#ffffff; font-size:12.5px; font-weight:800; cursor:pointer; transition:transform 0.2s ease;">
+                        <button type="button" onclick="window.filterNearbyRadius('all', document.querySelector('[data-radius=\\'all\\']'))" style="padding:10px 24px; border-radius:100px; background:linear-gradient(135deg, #1e3a8a, #3f7db7); border:none !important; outline:none !important; color:#ffffff; font-size:12.5px; font-weight:800; cursor:pointer; transition:transform 0.2s ease;">
                             Show All in La Union
                         </button>
                     </div>
