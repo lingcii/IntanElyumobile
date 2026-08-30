@@ -202,6 +202,9 @@ $activeTab = 'leaderboard';
     window.setLeaderboardSort = setLeaderboardSort;
 
     function renderLeaderboardUI() {
+        const podiumContainer = document.getElementById('podium-container');
+        const rankListContainer = document.getElementById('rank-list-container');
+        if (!podiumContainer && !rankListContainer) return;
         if (!rawLeadersList) return;
 
             // Filter out users with no points, no visited, or no XP based on active sort mode
