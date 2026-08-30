@@ -63,7 +63,7 @@ $backRoute = 'dashboard';
 
         <div class="settings-row clickable" onclick="window.scrollTo(0, 0); navigateTo('edit_profile')">
             <div class="settings-label-group">
-                <div class="settings-icon-box blue"><i class="fa-solid fa-user-gear"></i></div> 
+                <div class="settings-icon-box blue"><i class="fa-solid fa-user-pen"></i></div> 
                 <div>
                     <div class="settings-title">Edit Profile Details</div>
                     <div class="settings-subtitle">Avatar, bio, preferences, location</div>
@@ -85,7 +85,7 @@ $backRoute = 'dashboard';
 
         <div class="settings-row clickable" onclick="open2FAModal()">
             <div class="settings-label-group">
-                <div class="settings-icon-box blue"><i class="fa-solid fa-user-shield"></i></div> 
+                <div class="settings-icon-box indigo"><i class="fa-solid fa-user-shield"></i></div> 
                 <div>
                     <div class="settings-title">Two-Factor Authentication</div>
                     <div class="settings-subtitle">Extra layer of login verification</div>
@@ -103,7 +103,7 @@ $backRoute = 'dashboard';
         
         <div class="settings-row clickable" onclick="navigateTo('user_manual')">
             <div class="settings-label-group">
-                <div class="settings-icon-box blue"><i class="fa-solid fa-book-open"></i></div> 
+                <div class="settings-icon-box purple"><i class="fa-solid fa-book-open"></i></div> 
                 <div>
                     <div class="settings-title">User Manual</div>
                     <div class="settings-subtitle">Step-by-step guide to all app features & tools</div>
@@ -131,7 +131,7 @@ $backRoute = 'dashboard';
 
         <div class="settings-row">
             <div class="settings-label-group">
-                <div class="settings-icon-box green"><i class="fa-solid fa-circle-info"></i></div> 
+                <div class="settings-icon-box gray"><i class="fa-solid fa-circle-info"></i></div> 
                 <div>
                     <div class="settings-title">Intan Elyu App Version</div>
                     <div class="settings-subtitle">Mobile PWA Edition v2.4.0 (Latest)</div>
