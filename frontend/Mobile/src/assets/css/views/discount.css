@@ -9,13 +9,22 @@
 .merch-view {
     width: 100%;
     min-height: 100vh;
-    background-color: #0a0f1c;
-    /* Dark premium background */
-    color: #f8fafc;
+    background:
+        radial-gradient(ellipse at 85% 5%, rgba(0, 242, 254, 0.35) 0%, transparent 55%),
+        radial-gradient(ellipse at 15% 45%, rgba(56, 189, 248, 0.3) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(63, 125, 183, 0.4) 0%, transparent 60%),
+        linear-gradient(180deg, #1e3a8a 0%, #3f7db7 30%, #0284c7 65%, #06b6d4 90%, #00f2fe 100%) !important;
+    background-attachment: fixed !important;
+    color: #ffffff;
     position: relative;
     padding: env(safe-area-inset-top, 16px) env(safe-area-inset-right, 16px) env(safe-area-inset-bottom, 16px) env(safe-area-inset-left, 16px);
     box-sizing: border-box;
     overflow-x: hidden;
+}
+
+body[data-view="discount"] {
+    background: #1e3a8a !important;
+    color: #ffffff !important;
 }
 
 /* ============================================================
@@ -28,18 +37,18 @@
 }
 
 .merch-view::-webkit-scrollbar-track {
-    background: #0a0f1c;
+    background: #1e3a8a;
 }
 
 .merch-view::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #38bdf8 0%, #2563eb 100%);
+    background: linear-gradient(180deg, #00f2fe 0%, #0284c7 100%);
     border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(56, 189, 248, 0.25);
+    box-shadow: 0 2px 8px rgba(0, 242, 254, 0.25);
 }
 
 /* Firefox */
 * {
-    scrollbar-color: #38bdf8 #0a0f1c;
+    scrollbar-color: #00f2fe #1e3a8a;
     scrollbar-width: thin;
 }
 
@@ -56,10 +65,11 @@
 .merch-back-btn {
     width: 40px;
     height: 40px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(56, 189, 248, 0.25);
+    border: none !important;
+    outline: none !important;
     border-radius: 100px;
     display: flex;
     align-items: center;
@@ -68,12 +78,12 @@
     font-size: 14px;
     cursor: pointer;
     transition: all 0.25s ease;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(56, 189, 248, 0.05);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .merch-back-btn:active {
     transform: scale(0.92);
-    background: rgba(56, 189, 248, 0.35);
+    background: rgba(0, 242, 254, 0.35);
 }
 
 /* ============================================================
@@ -82,12 +92,14 @@
 .merch-coming-soon-banner {
     margin-top: 80px;
     padding: 28px 20px;
-    background: linear-gradient(135deg, rgba(56, 189, 248, 0.18) 0%, rgba(148, 163, 184, 0.12) 100%);
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(56, 189, 248, 0.35);
-    border-radius: 16px;
+    border: none !important;
+    outline: none !important;
+    border-radius: 20px;
     text-align: center;
+    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
     animation: bannerSlideIn 0.6s cubic-bezier(0.25, 1, 0.5, 1) backwards;
     animation-delay: 0.1s;
 }
@@ -114,24 +126,24 @@
 
     0%,
     100% {
-        text-shadow: 0 0 16px rgba(56, 189, 248, 0.5);
+        text-shadow: 0 0 16px rgba(0, 242, 254, 0.5);
     }
 
     50% {
-        text-shadow: 0 0 24px rgba(56, 189, 248, 0.8);
+        text-shadow: 0 0 24px rgba(0, 242, 254, 0.8);
     }
 }
 
 .merch-banner-title {
     font-size: 18px;
     font-weight: 800;
-    color: #f8fafc;
+    color: #ffffff;
     letter-spacing: 0.5px;
 }
 
 .merch-banner-subtitle {
     font-size: 12px;
-    color: #94a3b8;
+    color: rgba(255, 255, 255, 0.85);
     margin-top: 6px;
     font-weight: 600;
     text-transform: uppercase;
@@ -156,13 +168,13 @@
 .merch-grid-title {
     font-size: 16px;
     font-weight: 800;
-    color: #f8fafc;
+    color: #ffffff;
 }
 
 .merch-view-all-btn {
     font-size: 11px;
     font-weight: 700;
-    color: #38bdf8;
+    color: #00f2fe;
     text-transform: uppercase;
     letter-spacing: 0.8px;
     text-decoration: none;
@@ -184,20 +196,22 @@
 }
 
 /* ============================================================
- * 6. Product Card - Dark Premium Theme
+ * 6. Product Card - Theme
  * ============================================================ */
 .product-card {
-    background: rgba(20, 50, 100, 0.95);
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(56, 189, 248, 0.25);
-    border-radius: 16px;
-    padding: 12px;
+    border: none !important;
+    outline: none !important;
+    border-radius: 20px;
+    padding: 14px;
     position: relative;
     overflow: hidden;
     transition: all 0.35s ease;
     text-decoration: none;
     color: inherit;
+    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
     animation: fadeInUp 0.5s ease backwards;
 }
 
