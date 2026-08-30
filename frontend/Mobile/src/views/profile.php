@@ -66,15 +66,15 @@ $activeTab = 'profile';
             <i class="fa-solid fa-route" style="color: #00f2fe;"></i> Trip History
         </h3>
         <div style="display: flex; align-items: center; gap: 8px;">
-            <span id="trip-history-count-badge" style="font-size: 11px; font-weight: 800; background: rgba(0, 242, 254, 0.2); color: #00f2fe; padding: 2px 8px; border-radius: 100px; border: 1px solid rgba(0, 242, 254, 0.4);">0 Completed</span>
-            <button onclick="window.openFullHistoryModal()" style="background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.35); color: #ffffff; font-size: 11px; font-weight: 800; cursor: pointer; padding: 3px 10px; border-radius: 100px; display: flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
+            <span id="trip-history-count-badge" style="font-size: 11px; font-weight: 800; background: rgba(0, 242, 254, 0.2); color: #00f2fe; padding: 3px 10px; border-radius: 100px; border: none !important; outline: none !important;">0 Completed</span>
+            <button onclick="window.openFullHistoryModal()" style="background: rgba(255, 255, 255, 0.16); border: none !important; outline: none !important; color: #ffffff; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 12px; border-radius: 100px; display: flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
                 View All <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i>
             </button>
         </div>
     </div>
     <div id="trip-history-container" class="stagger-3" style="margin-bottom: 24px;">
         <div id="trip-history-list">
-            <div style="text-align:center; padding:16px; color:#ffffff; opacity:0.95; font-size:13px; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none; outline:none; border-radius:14px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">Loading history...</div>
+            <div style="text-align:center; padding:20px; color:#ffffff; opacity:0.95; font-size:13px; font-weight:600; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:20px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">Loading history...</div>
         </div>
     </div>
     
@@ -83,7 +83,7 @@ $activeTab = 'profile';
         <i class="fa-solid fa-gift" style="color: #00f2fe;"></i> Points & Rewards
     </h3>
     
-    <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none; outline:none; border-radius:20px; padding:20px; margin-bottom:24px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);" class="stagger-3">
+    <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:20px; padding:20px; margin-bottom:24px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);" class="stagger-3">
         <!-- Display balance -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:16px;">
             <div style="text-align: left;">
@@ -93,7 +93,7 @@ $activeTab = 'profile';
                     <span style="font-size:14px; font-weight:700; color:#ffffff; opacity:0.8;">PTS</span>
                 </div>
             </div>
-            <button onclick="navigateTo('puzzles')" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:1px solid #ffffff; color:#ffffff; padding:8px 16px; border-radius:12px; font-weight:800; font-size:12px; cursor:pointer; box-shadow:none;">
+            <button onclick="navigateTo('puzzles')" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; padding:8px 16px; border-radius:12px; font-weight:800; font-size:12px; cursor:pointer; box-shadow: 0 4px 12px rgba(0, 242, 254, 0.3);">
                 <i class="fa-solid fa-gamepad"></i> Play & Earn
             </button>
         </div>
@@ -114,10 +114,10 @@ $activeTab = 'profile';
         <!-- Active Claimed Vouchers -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h5 style="margin:0; font-size:14px; font-weight:800; color:#fff; text-align: left;">Active Vouchers</h5>
-            <span id="active-vouchers-count" style="font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.2); border:1px solid rgba(0, 242, 254, 0.4); color:#00f2fe; padding:2px 8px; border-radius:100px;">0 Active</span>
+            <span id="active-vouchers-count" style="font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.2); border:none !important; outline:none !important; color:#00f2fe; padding:3px 10px; border-radius:100px;">0 Active</span>
         </div>
         <div id="vouchers-list" style="display:flex; flex-direction:column; gap:10px;">
-            <div style="font-size:12px; color:#ffffff; opacity:0.85; text-align:center; padding:14px; background:rgba(255,255,255,0.08); border:1px dashed rgba(255,255,255,0.25); border-radius:14px;">No redeemed vouchers yet.</div>
+            <div style="font-size:12px; color:#ffffff; opacity:0.85; text-align:center; padding:16px; background:rgba(255,255,255,0.08); border:none !important; outline:none !important; border-radius:14px;">No redeemed vouchers yet.</div>
         </div>
     </div>
     
@@ -340,7 +340,7 @@ $activeTab = 'profile';
                 if (historyList) {
                     if (!data.completed_trips || data.completed_trips.length === 0) {
                         if (historyBadge) historyBadge.textContent = '0 Completed';
-                        historyList.innerHTML = '<div style="text-align:center; padding:16px; color:#ffffff; opacity:0.95; font-size:13px; background:linear-gradient(135deg, rgba(30, 58, 138, 0.65) 0%, rgba(63, 125, 183, 0.75) 100%); border:1px solid rgba(255, 255, 255, 0.2); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-radius:14px;">No completed trips yet. Start exploring!</div>';
+                        historyList.innerHTML = '<div style="text-align:center; padding:20px; color:#ffffff; opacity:0.95; font-size:13px; font-weight:600; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:20px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">No completed trips yet. Start exploring!</div>';
                     } else {
                         if (historyBadge) historyBadge.textContent = `${data.completed_trips.length} Completed`;
                         let html = '';
@@ -352,7 +352,7 @@ $activeTab = 'profile';
                             const cost = parseFloat(trip.total_cost || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
 
                             html += `
-                            <div onclick="window.showTripDetailsModal('${trip.id}')" style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.65) 0%, rgba(63, 125, 183, 0.75) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.borderColor='rgba(255,255,255,0.6)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.22)'">
+                            <div onclick="window.showTripDetailsModal('${trip.id}')" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 20px; padding: 16px 18px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">
                                 <div style="flex: 1; min-width: 0;">
                                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
                                         <strong style="color: #ffffff; font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${trip.title || 'Completed Trip'}</strong>
@@ -365,7 +365,7 @@ $activeTab = 'profile';
                                         <span><i class="fa-solid fa-location-dot" style="color: #00f2fe; margin-right: 3px;"></i>${count} Visited</span>
                                     </div>
                                 </div>
-                                <span style="color: #ffffff; font-weight: 800; font-size: 11px; background: rgba(52, 199, 89, 0.25); border: 1px solid rgba(52, 199, 89, 0.5); padding: 4px 10px; border-radius: 100px; white-space: nowrap; flex-shrink: 0;">
+                                <span style="color: #ffffff; font-weight: 800; font-size: 11px; background: rgba(52, 199, 89, 0.25); border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; flex-shrink: 0;">
                                     <i class="fa-solid fa-check" style="margin-right: 3px; color:#34c759;"></i>Done
                                 </span>
                             </div>`;
@@ -412,20 +412,20 @@ $activeTab = 'profile';
                             const safeCode = (v.voucher_code || '').replace(/'/g, "\\'");
                             
                             html += `
-                            <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%); border: 1px solid rgba(56, 189, 248, 0.25); padding: 14px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+                            <div style="background: rgba(255, 255, 255, 0.08); border: none !important; outline: none !important; padding: 14px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
                                 <div style="text-align: left; flex: 1; min-width: 0;">
                                     <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                                         <i class="fa-solid fa-ticket" style="color: #38bdf8; font-size: 13px;"></i>
                                         <span style="font-size: 13px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${voucherTitle}</span>
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 8px;">
-                                        <code style="font-size: 13px; font-weight: 900; color: #38bdf8; letter-spacing: 0.5px; background: rgba(56,189,248,0.12); border: 1px dashed rgba(56,189,248,0.35); padding: 3px 8px; border-radius: 8px;">${v.voucher_code}</code>
-                                        <button type="button" onclick="navigator.clipboard.writeText('${safeCode}'); if(typeof showToast==='function') showToast('Voucher code copied!');" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                                        <code style="font-size: 13px; font-weight: 900; color: #38bdf8; letter-spacing: 0.5px; background: rgba(56,189,248,0.15); border: none !important; outline: none !important; padding: 3px 8px; border-radius: 8px;">${v.voucher_code}</code>
+                                        <button type="button" onclick="navigator.clipboard.writeText('${safeCode}'); if(typeof showToast==='function') showToast('Voucher code copied!');" style="background: rgba(255,255,255,0.12); border: none !important; outline: none !important; color: #ffffff; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer;">
                                             <i class="fa-solid fa-copy"></i>
                                         </button>
                                     </div>
                                 </div>
-                                <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: ${badgeColor}; background: ${v.status === 'active' ? 'rgba(52,199,89,0.15)' : 'rgba(255,255,255,0.05)'}; border: 1px solid ${v.status === 'active' ? 'rgba(52,199,89,0.35)' : 'rgba(255,255,255,0.1)'}; padding: 4px 8px; border-radius: 100px; white-space: nowrap;">
+                                <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: ${badgeColor}; background: ${v.status === 'active' ? 'rgba(52,199,89,0.25)' : 'rgba(255,255,255,0.1)'}; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap;">
                                     ${v.status || 'Active'}
                                 </span>
                             </div>`;
@@ -433,7 +433,7 @@ $activeTab = 'profile';
                         list.innerHTML = html;
                     } else {
                         if (badge) badge.textContent = '0 Active';
-                        list.innerHTML = '<div style="font-size:12px; color:rgba(255,255,255,0.4); text-align:center; padding:14px; background:rgba(255,255,255,0.02); border:1px dashed rgba(255,255,255,0.08); border-radius:14px;">No redeemed vouchers yet.</div>';
+                        list.innerHTML = '<div style="font-size:12px; color:rgba(255,255,255,0.7); text-align:center; padding:16px; background:rgba(255,255,255,0.08); border:none !important; outline:none !important; border-radius:14px;">No redeemed vouchers yet.</div>';
                     }
                 }
             }
@@ -451,20 +451,20 @@ $activeTab = 'profile';
                         catalogEl.innerHTML = topVouchers.map(v => {
                             const iconClass = v.category === 'Activities' ? 'fa-person-hiking' : (v.category === 'Accommodations' ? 'fa-hotel' : (v.category === 'Souvenirs' ? 'fa-gift' : 'fa-utensils'));
                             return `
-                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); padding:12px 14px; border-radius:16px; gap:12px; transition:transform 0.15s ease;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.08); border:none !important; outline:none !important; padding:12px 14px; border-radius:16px; gap:12px; transition:transform 0.15s ease;">
                                 <div style="display:flex; align-items:center; gap:10px; min-width:0; text-align:left; flex:1;">
-                                    <div style="width:36px; height:36px; border-radius:10px; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.25); display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:15px; flex-shrink:0;">
+                                    <div style="width:36px; height:36px; border-radius:10px; background:rgba(56,189,248,0.18); border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:15px; flex-shrink:0;">
                                         <i class="fa-solid ${iconClass}"></i>
                                     </div>
                                     <div style="min-width:0; flex:1;">
                                         <div style="display:flex; align-items:center; gap:6px;">
                                             <strong style="display:block; font-size:13px; font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.title}</strong>
-                                            <span style="font-size:9px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.15); padding:1px 6px; border-radius:6px; flex-shrink:0;">${v.badge}</span>
+                                            <span style="font-size:9px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.2); padding:2px 7px; border-radius:6px; border:none !important; flex-shrink:0;">${v.badge}</span>
                                         </div>
-                                        <span style="font-size:11px; color:rgba(226,232,240,0.6); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.partner}</span>
+                                        <span style="font-size:11px; color:rgba(226,232,240,0.7); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.partner}</span>
                                     </div>
                                 </div>
-                                <button type="button" onclick="window.redeemAdminVoucher(${v.id}, ${v.pointsCost}, '${(v.title || '').replace(/'/g, "\\'")}')" style="background:linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); color:#ffffff; border:none; padding:8px 14px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer; flex-shrink:0; box-shadow:0 3px 10px rgba(56,189,248,0.3); white-space:nowrap;">
+                                <button type="button" onclick="window.redeemAdminVoucher(${v.id}, ${v.pointsCost}, '${(v.title || '').replace(/'/g, "\\'")}')" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; border:none !important; outline:none !important; padding:8px 14px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer; flex-shrink:0; box-shadow:0 3px 10px rgba(0,242,254,0.3); white-space:nowrap;">
                                     ${v.pointsCost} PTS
                                 </button>
                             </div>`;
@@ -472,21 +472,21 @@ $activeTab = 'profile';
                     } else {
                         // Default built-in rewards fallback
                         catalogEl.innerHTML = `
-                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); padding:12px 14px; border-radius:16px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.08); border:none !important; outline:none !important; padding:12px 14px; border-radius:16px;">
                                 <div style="text-align: left;">
                                     <strong style="display:block; font-size:13px; color:#fff;">₱50 Pasalubong Discount</strong>
-                                    <span style="font-size:11px; color:rgba(255,255,255,0.5);">Claimable at local Pasalubong Center</span>
+                                    <span style="font-size:11px; color:rgba(255,255,255,0.6);">Claimable at local Pasalubong Center</span>
                                 </div>
-                                <button onclick="redeemReward('pasalubong_discount', 100)" style="background:linear-gradient(135deg, #38bdf8, #2563eb); color:#fff; border:none; padding:8px 12px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer;">
+                                <button onclick="redeemReward('pasalubong_discount', 100)" style="background:linear-gradient(135deg, #00f2fe, #0284c7); color:#fff; border:none !important; outline:none !important; padding:8px 12px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer;">
                                     100 PTS
                                 </button>
                             </div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); padding:12px 14px; border-radius:16px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.08); border:none !important; outline:none !important; padding:12px 14px; border-radius:16px; margin-top:8px;">
                                 <div style="text-align: left;">
                                     <strong style="display:block; font-size:13px; color:#fff;">Waived Environmental Fee</strong>
-                                    <span style="font-size:11px; color:rgba(255,255,255,0.5);">Waive standard municipality entry fee</span>
+                                    <span style="font-size:11px; color:rgba(255,255,255,0.6);">Waive standard municipality entry fee</span>
                                 </div>
-                                <button onclick="redeemReward('environmental_fee', 150)" style="background:linear-gradient(135deg, #38bdf8, #2563eb); color:#fff; border:none; padding:8px 12px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer;">
+                                <button onclick="redeemReward('environmental_fee', 150)" style="background:linear-gradient(135deg, #00f2fe, #0284c7); color:#fff; border:none !important; outline:none !important; padding:8px 12px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer;">
                                     150 PTS
                                 </button>
                             </div>`;
