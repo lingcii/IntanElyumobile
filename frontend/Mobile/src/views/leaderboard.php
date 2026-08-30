@@ -174,11 +174,35 @@ $activeTab = 'leaderboard';
 </div>
 
 <script>
+    var currentSortMode = 'xp';
+    var renderLeaderboardUI = function () { };
+
+    function setLeaderboardSort(mode) {
+        if (currentSortMode === mode && arguments[1] !== true) return;
+        currentSortMode = mode;
+
+        const tabsWrapper = document.querySelector('.leaderboard-tabs-wrapper');
+        if (tabsWrapper) {
+            tabsWrapper.classList.remove('mode-xp', 'mode-points', 'mode-visited');
+            tabsWrapper.classList.add(`mode-${mode}`);
+        }
+
+        const tabXp = document.getElementById('tab-sort-xp');
+        const tabPoints = document.getElementById('tab-sort-points');
+        const tabVisited = document.getElementById('tab-sort-visited');
+
+        if (tabXp) tabXp.classList.toggle('active', mode === 'xp');
+        if (tabPoints) tabPoints.classList.toggle('active', mode === 'points');
+        if (tabVisited) tabVisited.classList.toggle('active', mode === 'visited');
+
+        renderLeaderboardUI();
+    }
+    window.setLeaderboardSort = setLeaderboardSort;
+
     (async function () {
         const podiumContainer = document.getElementById('podium-container');
         const rankListContainer = document.getElementById('rank-list-container');
         let rawLeadersList = [];
-        let currentSortMode = 'xp';
         let cachedMeData = null;
         let cachedMyRank = 999;
 
@@ -225,7 +249,7 @@ $activeTab = 'leaderboard';
             if (podiumContainer) podiumContainer.innerHTML = "<div style='color:rgba(239,68,68,0.8); text-align:center; width:100%; padding:20px; font-size:14px;'>Failed to load leaderboard.</div>";
         }
 
-        function renderLeaderboardUI() {
+        renderLeaderboardUI = function () {
             if (!rawLeadersList) return;
 
             // Filter out users with no points, no visited, or no XP based on active sort mode
@@ -367,46 +391,6 @@ $activeTab = 'leaderboard';
             }
             if (rankListSec) rankListSec.style.display = 'block';
         }
-
-        window.setLeaderboardSort = function (mode) {
-            if (currentSortMode === mode) return;
-            const prevMode = currentSortMode;
-            currentSortMode = mode;
-
-            const tabsWrapper = document.querySelector('.leaderboard-tabs-wrapper');
-            if (tabsWrapper) {
-                tabsWrapper.classList.remove('mode-xp', 'mode-points', 'mode-visited');
-                tabsWrapper.classList.add(`mode-${mode}`);
-            }
-
-            const tabXp = document.getElementById('tab-sort-xp');
-            const tabPoints = document.getElementById('tab-sort-points');
-            const tabVisited = document.getElementById('tab-sort-visited');
-
-            if (tabXp) tabXp.classList.toggle('active', mode === 'xp');
-            if (tabPoints) tabPoints.classList.toggle('active', mode === 'points');
-            if (tabVisited) tabVisited.classList.toggle('active', mode === 'visited');
-
-            const podiumContainer = document.getElementById('podium-container');
-            const rankListWrapper = document.getElementById('rank-list-wrapper');
-
-            const modeOrder = { 'xp': 0, 'points': 1, 'visited': 2 };
-            const isRight = (modeOrder[mode] ?? 0) > (modeOrder[prevMode] ?? 0);
-            const slideClass = isRight ? 'tab-slide-left' : 'tab-slide-right';
-
-            if (podiumContainer) {
-                podiumContainer.classList.remove('tab-slide-left', 'tab-slide-right');
-                void podiumContainer.offsetWidth;
-                podiumContainer.classList.add(slideClass);
-            }
-            if (rankListWrapper) {
-                rankListWrapper.classList.remove('tab-slide-left', 'tab-slide-right');
-                void rankListWrapper.offsetWidth;
-                rankListWrapper.classList.add(slideClass);
-            }
-
-            renderLeaderboardUI();
-        };
 
         function getUserDisplayName(user, rank) {
             if (rank) {
