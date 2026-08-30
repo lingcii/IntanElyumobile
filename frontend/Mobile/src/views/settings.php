@@ -141,20 +141,6 @@ $backRoute = 'dashboard';
 
     </div>
 
-    <!-- Account Actions -->
-    <div class="settings-group-title stagger-5" style="color: #ffffff;">Account Action</div>
-    <div class="settings-card stagger-5" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; border: none !important; outline: none !important; box-shadow: 0 8px 24px rgba(220, 38, 38, 0.35) !important;">
-        <div class="settings-row clickable" onclick="confirmSignOut()" style="background: transparent !important;">
-            <div class="settings-label-group">
-                <div class="settings-icon-box" style="background: rgba(255, 255, 255, 0.2); color: #ffffff;"><i class="fa-solid fa-right-from-bracket"></i></div> 
-                <div>
-                    <div class="settings-title" style="color: #ffffff; font-weight: 700;">Sign Out Account</div>
-                    <div class="settings-subtitle" style="color: rgba(255, 255, 255, 0.85);">Log out of your tourist session</div>
-                </div>
-            </div>
-            <i class="fa-solid fa-arrow-right-to-bracket" style="color: #ffffff; font-size: 13px;"></i>
-        </div>
-    </div>
 
 </div>
 
