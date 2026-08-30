@@ -996,8 +996,7 @@ $backRoute = 'itinerary';
                 if (diff > 0) {
                     const moveX = Math.min(diff, 95);
                     content.style.transform = `translateX(-${moveX}px)`;
-                    content.style.borderRadius = moveX > 5 ? '24px 0 0 24px' : '24px';
-                    content.style.borderRightColor = moveX > 5 ? 'transparent' : '';
+                    content.style.borderRadius = '24px';
                     if (bg) {
                         bg.style.opacity = '1';
                         bg.style.pointerEvents = 'auto';
@@ -1006,7 +1005,6 @@ $backRoute = 'itinerary';
                 } else if (diff < -5) {
                     content.style.transform = 'translateX(0px)';
                     content.style.borderRadius = '24px';
-                    content.style.borderRightColor = '';
                     if (bg) {
                         bg.style.opacity = '0';
                         bg.style.pointerEvents = 'none';
@@ -1017,15 +1015,14 @@ $backRoute = 'itinerary';
 
             const handleEnd = () => {
                 if (!isSwiping) return;
-                content.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease';
+                content.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
                 if (bg) bg.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease';
 
                 const diff = startX - currentX;
                 if (moved && diff > 90) {
                     // Full swipe across -> Trigger confirmation modal directly!
                     content.style.transform = 'translateX(-95px)';
-                    content.style.borderRadius = '24px 0 0 24px';
-                    content.style.borderRightColor = 'transparent';
+                    content.style.borderRadius = '24px';
                     if (bg) {
                         bg.style.opacity = '1';
                         bg.style.pointerEvents = 'auto';
@@ -1035,8 +1032,7 @@ $backRoute = 'itinerary';
                 } else if (moved && diff > 35) {
                     // Partial swipe -> Reveal red delete action button
                     content.style.transform = 'translateX(-95px)';
-                    content.style.borderRadius = '24px 0 0 24px';
-                    content.style.borderRightColor = 'transparent';
+                    content.style.borderRadius = '24px';
                     if (bg) {
                         bg.style.opacity = '1';
                         bg.style.pointerEvents = 'auto';

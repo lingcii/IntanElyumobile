@@ -245,10 +245,12 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     position: relative !important;
     overflow: hidden !important;
     border-radius: 20px !important;
+    transform: translate3d(0, 0, 0) !important;
+    -webkit-transform: translate3d(0, 0, 0) !important;
+    -webkit-backface-visibility: hidden !important;
+    backface-visibility: hidden !important;
     -webkit-mask-image: -webkit-radial-gradient(white, black) !important;
     mask-image: radial-gradient(white, black) !important;
-    isolation: isolate !important;
-    contain: paint !important;
 }
 
 .swipe-delete-bg {
@@ -278,7 +280,7 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     border-radius: 20px !important;
     padding: 18px 20px !important;
     box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
-    transition: transform 0.2s ease, border-radius 0.2s ease, box-shadow 0.2s ease !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
 }
 
 .swipe-content .time-label {

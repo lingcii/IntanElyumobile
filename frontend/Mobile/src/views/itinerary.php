@@ -749,9 +749,9 @@ $activeTab = 'itinerary';
                 html += `
             <div class="timeline-item ${isNextStop ? 'is-next-stop' : ''}" draggable="true" data-index="${index}" data-id="${place.id}" style="animation-delay: ${(index + 1) * 0.08}s">
                 <div class="timeline-dot"></div>
-                <div class="swipe-container" style="position:relative; overflow:hidden; border-radius:20px; -webkit-mask-image:-webkit-radial-gradient(white, black); mask-image:radial-gradient(white, black); isolation:isolate; contain:paint;">
-                    <div class="swipe-delete-bg" style="position:absolute; top:0; right:0; bottom:0; width:80px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 20px 20px 0; display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800; gap:4px; transform:translateX(100%); z-index:1; opacity:0; pointer-events:none; transition:transform 0.2s ease, opacity 0.2s ease;"><i class="fa-solid fa-trash-can"></i> Delete</div>
-                    <div class="swipe-content" style="position:relative; z-index:2; transition:transform 0.2s ease, border-radius 0.2s ease; border-radius:20px; padding:18px 20px; border:none !important; outline:none !important; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; box-shadow:0 8px 24px rgba(10, 25, 60, 0.25) !important;">
+                <div class="swipe-container" style="position:relative; overflow:hidden; border-radius:20px !important; transform:translate3d(0,0,0); -webkit-transform:translate3d(0,0,0); -webkit-backface-visibility:hidden; backface-visibility:hidden; -webkit-mask-image:-webkit-radial-gradient(white, black); mask-image:radial-gradient(white, black);">
+                    <div class="swipe-delete-bg" style="position:absolute; top:0; right:0; bottom:0; width:80px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 20px 20px 0 !important; display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800; gap:4px; transform:translateX(100%); z-index:1; opacity:0; pointer-events:none; transition:transform 0.2s ease, opacity 0.2s ease;"><i class="fa-solid fa-trash-can"></i> Delete</div>
+                    <div class="swipe-content" style="position:relative; z-index:2; transition:transform 0.2s ease; border-radius:20px !important; padding:18px 20px; border:none !important; outline:none !important; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; box-shadow:0 8px 24px rgba(10, 25, 60, 0.25) !important;">
                         <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px;">
                             <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                                 <span class="time-label" style="border:none !important; outline:none !important; box-shadow:none !important;">Stop ${index + 1} &bull; Approx ${timeStr}</span>
@@ -902,8 +902,7 @@ $activeTab = 'itinerary';
                     if (diff < 0) diff = 0;
                     const translate = Math.min(diff, 80);
                     content.style.transform = `translateX(-${translate}px)`;
-                    content.style.borderRadius = translate > 5 ? '20px 0 0 20px' : '20px';
-                    content.style.borderRightColor = translate > 5 ? 'transparent' : '';
+                    content.style.borderRadius = '20px';
                     if (bg) {
                         bg.style.opacity = '1';
                         bg.style.pointerEvents = 'auto';
@@ -912,7 +911,7 @@ $activeTab = 'itinerary';
                 }, { passive: true });
 
                 content.addEventListener('touchend', (e) => {
-                    content.style.transition = 'transform 0.2s ease, border-radius 0.2s ease';
+                    content.style.transition = 'transform 0.2s ease';
                     if (bg) bg.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
                     const diff = startX - currentX;
                     if (diff > 60 && isSwiping) {
@@ -921,7 +920,6 @@ $activeTab = 'itinerary';
                     } else {
                         content.style.transform = '';
                         content.style.borderRadius = '20px';
-                        content.style.borderRightColor = '';
                         if (bg) {
                             bg.style.opacity = '0';
                             bg.style.pointerEvents = 'none';
