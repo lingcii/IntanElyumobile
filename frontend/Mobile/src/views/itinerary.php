@@ -167,9 +167,12 @@ $activeTab = 'itinerary';
         #save-trip-modal input[type="text"],
         #save-trip-modal input[type="tel"],
         #save-trip-modal input[type="number"] {
-            background: rgba(255, 255, 255, 0.05) !important;
-            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            background: rgba(255, 255, 255, 0.12) !important;
+            border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
             color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
+            font-weight: 600 !important;
+            font-size: 14px !important;
             box-shadow: none !important;
             transition: all 0.2s ease;
         }
@@ -178,8 +181,37 @@ $activeTab = 'itinerary';
         #save-trip-modal input[type="number"]:focus {
             outline: none !important;
             border-color: #38bdf8 !important;
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2) !important;
-            background: rgba(255, 255, 255, 0.08) !important;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.3) !important;
+            background: rgba(255, 255, 255, 0.18) !important;
+        }
+        #save-trip-modal input::placeholder {
+            color: rgba(255, 255, 255, 0.8) !important;
+            -webkit-text-fill-color: rgba(255, 255, 255, 0.8) !important;
+            opacity: 1 !important;
+            font-weight: 500 !important;
+        }
+        #save-trip-modal input::-webkit-input-placeholder {
+            color: rgba(255, 255, 255, 0.8) !important;
+            -webkit-text-fill-color: rgba(255, 255, 255, 0.8) !important;
+            opacity: 1 !important;
+            font-weight: 500 !important;
+        }
+        #save-trip-modal input::-moz-placeholder {
+            color: rgba(255, 255, 255, 0.8) !important;
+            opacity: 1 !important;
+            font-weight: 500 !important;
+        }
+        #save-trip-modal input:-ms-input-placeholder {
+            color: rgba(255, 255, 255, 0.8) !important;
+            font-weight: 500 !important;
+        }
+        #save-trip-modal label {
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            font-size: 13px !important;
+        }
+        #save-trip-modal p {
+            color: rgba(255, 255, 255, 0.9) !important;
         }
     </style>
 
@@ -188,24 +220,24 @@ $activeTab = 'itinerary';
         <h3 style="margin-top:0; color:#ffffff; font-size:20px; font-weight:800; display:flex; align-items:center; gap:8px;">
             <i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8; font-size:18px;"></i> Save Your Trip
         </h3>
-        <p style="font-size:13px; color:rgba(226, 232, 240, 0.85); margin-bottom:18px; line-height:1.4;">Give your awesome adventure a name so you can pull it up later!</p>
+        <p style="font-size:13px; color:rgba(255, 255, 255, 0.9); margin-bottom:18px; line-height:1.4;">Give your awesome adventure a name so you can pull it up later!</p>
 
-        <label style="font-size:12px; color:rgba(226, 232, 240, 0.85); margin-bottom:6px; display:block; font-weight:600;">Trip Name</label>
+        <label style="font-size:13px; color:#ffffff; margin-bottom:6px; display:block; font-weight:700;">Trip Name</label>
         <input type="text" id="trip-title" placeholder="e.g. La Union Weekend"
-            style="width:100%; padding:12px 16px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#ffffff; margin-bottom:16px; font-family:inherit; font-size:14px; box-sizing:border-box;">
+            style="width:100%; padding:12px 16px; border-radius:14px; border:1.5px solid rgba(255,255,255,0.28); background:rgba(255,255,255,0.12); color:#ffffff; -webkit-text-fill-color:#ffffff; margin-bottom:16px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box;">
 
         <!-- Custom Designed Calendar Date Picker -->
-        <label style="font-size:12px; color:rgba(226, 232, 240, 0.85); margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; font-weight:600;">
+        <label style="font-size:13px; color:#ffffff; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; font-weight:700;">
             <span><i class="fa-regular fa-calendar-days" style="color:#38bdf8; margin-right:5px;"></i> Trip Date (Optional)</span>
             <span id="calendar-clear-link" onclick="window.customClearDate(event)" style="display:none; font-size:11px; color:#ef4444; cursor:pointer; font-weight:700;">Clear</span>
         </label>
         
-        <div id="custom-date-trigger" onclick="window.toggleCustomCalendar(event)" style="position:relative; width:100%; padding:11px 16px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:white; margin-bottom:16px; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:all 0.2s ease; user-select:none;">
+        <div id="custom-date-trigger" onclick="window.toggleCustomCalendar(event)" style="position:relative; width:100%; padding:11px 16px; border-radius:14px; border:1.5px solid rgba(255,255,255,0.28); background:rgba(255,255,255,0.12); color:white; margin-bottom:16px; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:all 0.2s ease; user-select:none;">
             <div style="display:flex; align-items:center; gap:10px;">
                 <i class="fa-solid fa-calendar-day" style="color:#38bdf8; font-size:14px;"></i>
-                <span id="custom-date-display" style="color:rgba(255,255,255,0.5);">Select trip date</span>
+                <span id="custom-date-display" style="color:rgba(255,255,255,0.85); font-weight:600;">Select trip date</span>
             </div>
-            <i class="fa-solid fa-chevron-down" id="custom-date-arrow" style="font-size:11px; color:rgba(255,255,255,0.4); transition:transform 0.25s ease;"></i>
+            <i class="fa-solid fa-chevron-down" id="custom-date-arrow" style="font-size:11px; color:rgba(255,255,255,0.8); transition:transform 0.25s ease;"></i>
         </div>
         <input type="hidden" id="trip-date" value="">
 
@@ -249,13 +281,13 @@ $activeTab = 'itinerary';
             </div>
         </div>
 
-        <label style="font-size:12px; color:rgba(255,255,255,0.7); margin-bottom:8px; display:block;">Transport Type</label>
+        <label style="font-size:13px; color:#ffffff; margin-bottom:8px; display:block; font-weight:700;">Transport Type</label>
         <div
-            style="display:flex; gap:8px; margin-bottom:16px; background:rgba(255,255,255,0.05); padding:4px; border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
+            style="display:flex; gap:8px; margin-bottom:16px; background:rgba(0,0,0,0.2); padding:5px; border-radius:14px; border:1px solid rgba(255,255,255,0.18);">
             <button class="btn-transport-toggle" id="btn-trans-public" onclick="window.setTransportType('public')"
-                style="flex:1; padding:10px; border-radius:10px; border:none; background:transparent; font-size:13px; font-weight:600; color:rgba(255,255,255,0.7); transition:0.2s; cursor:pointer;">Public</button>
+                style="flex:1; padding:10px; border-radius:10px; border:none; background:transparent; font-size:13px; font-weight:700; color:rgba(255,255,255,0.85); transition:0.2s; cursor:pointer;">Public</button>
             <button class="btn-transport-toggle" id="btn-trans-private" onclick="window.setTransportType('private')"
-                style="flex:1; padding:10px; border-radius:10px; border:none; background:transparent; font-size:13px; font-weight:600; color:rgba(255,255,255,0.7); transition:0.2s; cursor:pointer;">Private</button>
+                style="flex:1; padding:10px; border-radius:10px; border:none; background:transparent; font-size:13px; font-weight:700; color:rgba(255,255,255,0.85); transition:0.2s; cursor:pointer;">Private</button>
         </div>
 
         <div id="transport-slider-wrapper" style="display:none;">
@@ -363,20 +395,27 @@ $activeTab = 'itinerary';
                         }
                     });
                     el.classList.add('active');
+                    document.getElementById('trip-transport').value = val;
                 } else {
                     // Public: multi-select allowed
                     el.classList.toggle('active');
+                    const activePublic = [];
+                    document.querySelectorAll('.transport-option.active').forEach(opt => {
+                        const oVal = opt.getAttribute('data-val');
+                        if (!privateKeys.includes(oVal)) {
+                            activePublic.push(oVal);
+                        }
+                    });
+                    document.getElementById('trip-transport').value = activePublic.join(',');
                 }
 
-                const selected = [...document.querySelectorAll('.transport-option.active')].map(o => o.getAttribute('data-val'));
-                document.getElementById('trip-transport').value = selected.join(',');
-
+                // Show/Hide Fuel details for Own Car
                 const fuelPanel = document.getElementById('own-car-fuel-panel');
                 if (fuelPanel) {
-                    if (selected.includes('own_car')) {
+                    if (val === 'own_car' && el.classList.contains('active')) {
                         fuelPanel.style.maxHeight = '200px';
                         fuelPanel.style.opacity = '1';
-                    } else {
+                    } else if (isPrivate) {
                         fuelPanel.style.maxHeight = '0';
                         fuelPanel.style.opacity = '0';
                     }
@@ -386,15 +425,16 @@ $activeTab = 'itinerary';
             };
         </script>
 
-        <!-- Own Car: Fuel Inputs (hidden until own_car selected) -->
+        <!-- Dynamic Fuel Details Panel for Own Car -->
         <div id="own-car-fuel-panel"
-            style="max-height:0; overflow:hidden; opacity:0; transition: max-height 0.4s ease, opacity 0.35s ease; margin-bottom:0;">
+            style="max-height:0; opacity:0; overflow:hidden; transition:all 0.3s cubic-bezier(0.16, 1, 0.3, 1); margin-bottom:12px;">
             <div
-                style="background:rgba(56,189,248,0.06); border:1px solid rgba(56,189,248,0.15); border-radius:12px; padding:12px 14px; margin-bottom:12px;">
-                <p
-                    style="font-size:11px; color:#38bdf8; font-weight:700; margin:0 0 10px 0; text-transform:uppercase; letter-spacing:0.5px;">
-                    <i class="fa-solid fa-gas-pump" style="margin-right:6px;"></i>Fuel Cost Calculator
-                </p>
+                style="background:rgba(56, 189, 248, 0.05); border:1px solid rgba(56, 189, 248, 0.2); border-radius:12px; padding:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span style="font-size:11px; font-weight:700; color:#38bdf8; text-transform:uppercase;"><i
+                            class="fa-solid fa-gas-pump" style="margin-right:4px;"></i> Estimated Fuel Cost</span>
+                    <span id="fuel-cost-calc" style="font-size:12px; font-weight:700; color:white;">₱0.00</span>
+                </div>
                 <div style="display:flex; gap:10px;">
                     <div style="flex:1;">
                         <label
@@ -418,10 +458,10 @@ $activeTab = 'itinerary';
         </div>
 
         <div style="position:relative; margin-bottom:12px;">
-            <span style="position:absolute; left:16px; top:14px; color:white; font-weight:600;">₱</span>
+            <span style="position:absolute; left:16px; top:14px; color:#38bdf8; font-weight:800; font-size:15px;">₱</span>
             <input type="tel" id="trip-budget" placeholder="Set a budget (optional)"
                 oninput="this.value=this.value.replace(/\D/g,'');if(this.value.length>5)this.value=this.value.slice(0,5);window.calculateModalBudget()"
-                style="width:100%; padding:12px 16px 12px 32px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:white; font-family:inherit; font-size:14px;">
+                style="width:100%; padding:12px 16px 12px 34px; border-radius:14px; border:1.5px solid rgba(255,255,255,0.28); background:rgba(255,255,255,0.12); color:#ffffff; -webkit-text-fill-color:#ffffff; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box;">
         </div>
 
         <div id="save-budget-details"
@@ -454,10 +494,10 @@ $activeTab = 'itinerary';
 
         <div style="display:flex; gap:12px; margin-top:20px;">
             <button class="btn-primary"
-                style="flex:1; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:#e2e8f0; padding:12px; border-radius:14px; font-weight:700; font-size:14px; cursor:pointer;"
+                style="flex:1; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25); color:#ffffff; padding:12px; border-radius:14px; font-weight:700; font-size:14px; cursor:pointer;"
                 onclick="closeSaveModal()">Cancel</button>
             <button class="btn-primary"
-                style="flex:1; background:linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); border:1px solid rgba(255,255,255,0.2); color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:14px; box-shadow:0 4px 16px rgba(56,189,248,0.4); cursor:pointer;"
+                style="flex:1; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none; color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:14px; box-shadow:0 4px 18px rgba(0,242,254,0.35); cursor:pointer;"
                 onclick="submitItinerary()" id="btn-submit-trip">Save Trip</button>
         </div>
     </div>
@@ -1443,8 +1483,8 @@ $activeTab = 'itinerary';
             if (hiddenInput) hiddenInput.value = '';
             if (displayEl) {
                 displayEl.textContent = 'Select trip date';
-                displayEl.style.color = 'rgba(255,255,255,0.5)';
-                displayEl.style.fontWeight = 'normal';
+                displayEl.style.color = 'rgba(255,255,255,0.85)';
+                displayEl.style.fontWeight = '600';
             }
             if (clearLink) clearLink.style.display = 'none';
             window.renderCalendarGrid();
@@ -2222,18 +2262,21 @@ $activeTab = 'itinerary';
             btnPrivate.classList.remove('active');
 
             btnPublic.style.background = 'transparent';
-            btnPublic.style.color = 'rgba(255,255,255,0.7)';
+            btnPublic.style.color = 'rgba(255,255,255,0.85)';
+            btnPublic.style.fontWeight = '700';
             btnPublic.style.boxShadow = 'none';
             btnPrivate.style.background = 'transparent';
-            btnPrivate.style.color = 'rgba(255,255,255,0.7)';
+            btnPrivate.style.color = 'rgba(255,255,255,0.85)';
+            btnPrivate.style.fontWeight = '700';
             btnPrivate.style.boxShadow = 'none';
 
             const activeBtn = document.getElementById('btn-trans-' + type);
             if (activeBtn) {
                 activeBtn.classList.add('active');
-                activeBtn.style.background = 'white';
-                activeBtn.style.color = '#333';
-                activeBtn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+                activeBtn.style.background = '#ffffff';
+                activeBtn.style.color = '#1e3a8a';
+                activeBtn.style.fontWeight = '800';
+                activeBtn.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
             }
 
             const wrapper = document.getElementById('transport-slider-wrapper');
