@@ -16,7 +16,10 @@ body[data-view="settings"]::-webkit-scrollbar,
 }
 
 .settings-container {
-    padding: max(calc(env(safe-area-inset-top) + 64px), 80px) 16px 20px 16px !important;
+    padding-top: max(calc(env(safe-area-inset-top) + 68px), 108px) !important;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-bottom: 24px !important;
     max-width: 600px;
     margin: 0 auto;
     background:
