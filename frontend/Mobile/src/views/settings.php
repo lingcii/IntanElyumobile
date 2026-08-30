@@ -7,7 +7,7 @@ $backRoute = 'dashboard';
 
 <link rel="stylesheet" href="assets/css/views/settings.css?v=<?php echo time(); ?>">
 
-<div class="settings-container has-header has-bottom-nav animate-slide-up">
+<div class="settings-container has-header animate-slide-up">
     
     <!-- Preferences Group -->
     <div class="settings-group-title stagger-1" style="margin-top: 0;">Preferences & App Behavior</div>

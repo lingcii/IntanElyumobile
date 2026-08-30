@@ -1,6 +1,22 @@
 /* Settings View Styles */
+html:has(body[data-view="settings"]),
+body[data-view="settings"] {
+    background: #1e3a8a !important;
+    color: #ffffff !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+html:has(body[data-view="settings"])::-webkit-scrollbar,
+body[data-view="settings"]::-webkit-scrollbar,
+.settings-container::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
 .settings-container {
-    padding: 115px 16px 100px 16px;
+    padding: max(calc(env(safe-area-inset-top) + 64px), 80px) 16px 20px 16px !important;
     max-width: 600px;
     margin: 0 auto;
     background:
@@ -11,20 +27,17 @@
     background-attachment: fixed !important;
     min-height: 100vh;
     box-sizing: border-box;
-}
-
-body[data-view="settings"] {
-    background: #1e3a8a !important;
-    color: #ffffff !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
 }
 
 .settings-group-title {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.8px;
     color: rgba(255, 255, 255, 0.85);
-    margin: 16px 4px 8px 4px;
+    margin: 10px 4px 5px 4px;
 }
 
 .settings-card {
@@ -33,7 +46,7 @@ body[data-view="settings"] {
     -webkit-backdrop-filter: blur(20px);
     border: none !important;
     outline: none !important;
-    border-radius: 20px;
+    border-radius: 18px;
     overflow: hidden;
     box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
 }
@@ -42,7 +55,7 @@ body[data-view="settings"] {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 16px;
+    padding: 10px 14px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     transition: background 0.2s ease;
 }
