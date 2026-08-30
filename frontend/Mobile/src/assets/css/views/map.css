@@ -283,15 +283,15 @@ body[data-view="map"] #main-content {
     width: 100%;
     max-width: 100vw;
     z-index: 2000 !important;
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 58, 138, 0.97) 45%, rgba(15, 23, 42, 0.98) 100%) !important;
-    backdrop-filter: blur(32px);
-    -webkit-backdrop-filter: blur(32px);
+    background: linear-gradient(180deg, rgba(30, 58, 138, 0.96) 0%, rgba(45, 90, 155, 0.95) 40%, rgba(63, 125, 183, 0.94) 80%, rgba(37, 99, 235, 0.92) 100%) !important;
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
     border: none !important;
     outline: none !important;
     border-radius: 28px 28px 0 0;
     padding: 8px 16px calc(24px + env(safe-area-inset-bottom));
     max-height: calc(100vh - 65px);
-    box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.55) !important;
+    box-shadow: 0 -8px 32px rgba(10, 25, 60, 0.35) !important;
     opacity: 0;
     pointer-events: none;
     transform: translateY(calc(100% + 120px));
@@ -717,13 +717,13 @@ body[data-view="map"] #main-content {
 
 /* ── Destination Details Card ── */
 .dest-info-card {
-    background: rgba(255, 255, 255, 0.08) !important;
+    background: rgba(255, 255, 255, 0.12) !important;
     border: none !important;
     outline: none !important;
     border-radius: 20px;
     padding: 16px;
     margin-top: 8px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25) !important;
+    box-shadow: 0 4px 16px rgba(10, 25, 60, 0.15) !important;
 }
 
 .dest-section-header {
