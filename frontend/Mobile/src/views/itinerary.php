@@ -18,8 +18,8 @@ $activeTab = 'itinerary';
     }
 
     .route-toggle-container {
-        display: inline-flex;
-        align-items: center;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
         position: relative;
         background: rgba(10, 25, 60, 0.45);
         backdrop-filter: blur(16px);
@@ -27,32 +27,34 @@ $activeTab = 'itinerary';
         border: none !important;
         outline: none !important;
         border-radius: 9999px;
-        padding: 4px;
+        padding: 3px;
         margin-bottom: 14px;
-        width: fit-content;
+        width: 240px;
         max-width: 100%;
         box-sizing: border-box;
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.15);
         user-select: none;
         -webkit-tap-highlight-color: transparent;
+        overflow: hidden;
     }
 
     .route-toggle-slider {
         position: absolute;
-        top: 4px;
-        bottom: 4px;
-        left: 4px;
-        width: calc(50% - 4px);
+        top: 3px;
+        bottom: 3px;
+        left: 3px;
+        width: calc(50% - 3px);
         border-radius: 9999px;
         background: linear-gradient(135deg, #00f2fe 0%, #0284c7 60%, #1e3a8a 100%);
         box-shadow: 0 4px 14px rgba(0, 242, 254, 0.35);
-        transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), width 0.3s ease;
+        transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
         z-index: 1;
         pointer-events: none;
+        transform: translateX(0);
     }
 
     .route-toggle-container.alt-active .route-toggle-slider {
-        transform: translateX(100%);
+        transform: translateX(100%) !important;
     }
 
     .btn-route-type {
@@ -62,9 +64,9 @@ $activeTab = 'itinerary';
         border: none !important;
         outline: none !important;
         color: rgba(255, 255, 255, 0.75) !important;
-        padding: 8px 18px !important;
+        padding: 8px 0 !important;
         border-radius: 9999px !important;
-        font-size: 13px !important;
+        font-size: 12.5px !important;
         font-weight: 700 !important;
         cursor: pointer !important;
         transition: color 0.25s ease, transform 0.15s ease !important;
@@ -74,6 +76,8 @@ $activeTab = 'itinerary';
         display: flex;
         align-items: center;
         justify-content: center;
+        width: 100%;
+        margin: 0 !important;
     }
 
     .btn-route-type:active {
@@ -86,6 +90,7 @@ $activeTab = 'itinerary';
         outline: none !important;
         color: #ffffff !important;
         font-weight: 800 !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
 
     .hide-scrollbar::-webkit-scrollbar {
@@ -780,12 +785,6 @@ $activeTab = 'itinerary';
                 if (toggleContainer) {
                     if (isAlt) toggleContainer.classList.add('alt-active');
                     else toggleContainer.classList.remove('alt-active');
-                }
-                if (toggleSlider && toggleContainer) {
-                    const activeBtn = isAlt ? altBtn : recBtn;
-                    const offset = activeBtn.offsetLeft - toggleContainer.offsetLeft;
-                    toggleSlider.style.width = activeBtn.offsetWidth + 'px';
-                    toggleSlider.style.transform = `translateX(${Math.max(0, offset - 4)}px)`;
                 }
             }
 
@@ -2132,20 +2131,14 @@ $activeTab = 'itinerary';
                 if (activeBtn) activeBtn.classList.add('active');
             }
 
-            // Smooth slider animation
+            // Smooth slider animation via CSS alt-active class
             const container = document.getElementById('route-toggle-container');
-            const slider = document.getElementById('route-toggle-slider');
             if (container) {
                 if (type === 'alternate') {
                     container.classList.add('alt-active');
                 } else {
                     container.classList.remove('alt-active');
                 }
-            }
-            if (slider && activeBtn && container) {
-                const offset = activeBtn.offsetLeft - container.offsetLeft;
-                slider.style.width = activeBtn.offsetWidth + 'px';
-                slider.style.transform = `translateX(${Math.max(0, offset - 4)}px)`;
             }
 
             const draft = window.getEffectiveDraft();

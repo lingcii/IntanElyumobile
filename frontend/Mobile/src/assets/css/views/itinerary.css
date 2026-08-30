@@ -87,8 +87,8 @@ body[data-view="itinerary"] .mobile-header .header-icon {
 
 /* Route Mode Buttons & Segmented Slider */
 .route-toggle-container {
-    display: inline-flex;
-    align-items: center;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
     position: relative;
     background: rgba(10, 25, 60, 0.45);
     backdrop-filter: blur(16px);
@@ -96,32 +96,34 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     border: none !important;
     outline: none !important;
     border-radius: 9999px;
-    padding: 4px;
+    padding: 3px;
     margin-bottom: 14px;
-    width: fit-content;
+    width: 240px;
     max-width: 100%;
     box-sizing: border-box;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.15);
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
 }
 
 .route-toggle-slider {
     position: absolute;
-    top: 4px;
-    bottom: 4px;
-    left: 4px;
-    width: calc(50% - 4px);
+    top: 3px;
+    bottom: 3px;
+    left: 3px;
+    width: calc(50% - 3px);
     border-radius: 9999px;
     background: linear-gradient(135deg, #00f2fe 0%, #0284c7 60%, #1e3a8a 100%);
     box-shadow: 0 4px 14px rgba(0, 242, 254, 0.35);
-    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), width 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
     z-index: 1;
     pointer-events: none;
+    transform: translateX(0);
 }
 
 .route-toggle-container.alt-active .route-toggle-slider {
-    transform: translateX(100%);
+    transform: translateX(100%) !important;
 }
 
 .btn-route-type {
@@ -131,9 +133,9 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     border: none !important;
     outline: none !important;
     color: rgba(255, 255, 255, 0.75) !important;
-    padding: 8px 18px !important;
+    padding: 8px 0 !important;
     border-radius: 9999px !important;
-    font-size: 13px !important;
+    font-size: 12.5px !important;
     font-weight: 700 !important;
     cursor: pointer !important;
     transition: color 0.25s ease, transform 0.15s ease !important;
@@ -143,6 +145,8 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
+    margin: 0 !important;
 }
 
 .btn-route-type:active {
@@ -155,6 +159,7 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     outline: none !important;
     color: #ffffff !important;
     font-weight: 800 !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 /* Empty State Card Styling */
