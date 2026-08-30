@@ -10,24 +10,18 @@ $hideBottomNav = true;
 
     body {
       font-family: 'Inter', sans-serif;
-      background: #060b19;
-      color: #f8fafc;
+      background:
+        radial-gradient(ellipse at 85% 5%, rgba(0, 242, 254, 0.35) 0%, transparent 55%),
+        radial-gradient(ellipse at 15% 45%, rgba(56, 189, 248, 0.3) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(63, 125, 183, 0.4) 0%, transparent 60%),
+        linear-gradient(180deg, #1e3a8a 0%, #3f7db7 30%, #0284c7 65%, #06b6d4 90%, #00f2fe 100%) !important;
+      background-attachment: fixed !important;
+      color: #ffffff;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       overflow-x: hidden;
-    }
-
-    /* Ambient background */
-    body::before {
-      content: '';
-      position: fixed; inset: 0;
-      background:
-        radial-gradient(ellipse 70% 50% at 30% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 40% at 70% 70%, rgba(99, 102, 241, 0.08) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 50% at 50% 90%, rgba(52, 199, 89, 0.04) 0%, transparent 60%);
-      pointer-events: none; z-index: 0;
     }
 
     .page-wrapper {
@@ -44,10 +38,10 @@ $hideBottomNav = true;
     .logo-ring {
       width: 96px; height: 96px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #38bdf8, #6366f1);
+      background: linear-gradient(135deg, #00f2fe, #0284c7);
       padding: 3px;
       margin: 0 auto 18px;
-      box-shadow: 0 0 40px rgba(56, 189, 248, 0.3), 0 8px 24px rgba(0,0,0,0.4);
+      box-shadow: 0 0 40px rgba(0, 242, 254, 0.35), 0 8px 24px rgba(10,25,60,0.4);
     }
     .logo-inner {
       width: 100%; height: 100%;
@@ -63,17 +57,18 @@ $hideBottomNav = true;
     }
     .logo-inner i {
       font-size: 38px;
-      color: #38bdf8;
+      color: #0284c7;
     }
     .header h1 {
       font-family: 'Outfit', sans-serif;
       font-size: 28px; font-weight: 900;
       letter-spacing: -0.8px; margin-bottom: 6px;
+      color: #ffffff;
     }
-    .header h1 span { color: #38bdf8; }
+    .header h1 span { color: #00f2fe; }
     .header p {
       font-size: 14px;
-      color: rgba(148, 163, 184, 0.85);
+      color: rgba(255, 255, 255, 0.9);
       font-weight: 400;
       line-height: 1.5;
     }
@@ -85,43 +80,45 @@ $hideBottomNav = true;
     }
     .badge {
       display: inline-flex; align-items: center; gap: 5px;
-      font-size: 11px; font-weight: 700;
+      font-size: 11px; font-weight: 800;
       padding: 4px 12px; border-radius: 100px;
+      border: none !important; outline: none !important;
     }
-    .badge.blue { background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.25); color: #38bdf8; }
-    .badge.green { background: rgba(52,199,89,0.1); border: 1px solid rgba(52,199,89,0.25); color: #34c759; }
-    .badge.purple { background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.25); color: #a78bfa; }
+    .badge.blue { background: rgba(0, 242, 254, 0.25); color: #ffffff; }
+    .badge.green { background: rgba(52, 199, 89, 0.25); color: #ffffff; }
+    .badge.purple { background: rgba(168, 85, 247, 0.25); color: #ffffff; }
 
     /* Download card */
     .download-card {
-      background: rgba(30, 41, 59, 0.6);
-      border: 1px solid rgba(56, 189, 248, 0.2);
+      background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+      border: none !important;
+      outline: none !important;
       border-radius: 24px;
       padding: 28px 24px;
       margin-top: 28px;
       backdrop-filter: blur(20px);
       text-align: center;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+      box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
     }
 
     .download-btn {
       display: flex; align-items: center; justify-content: center; gap: 12px;
       width: 100%;
       padding: 16px 24px;
-      border: none; border-radius: 16px;
-      background: linear-gradient(135deg, #38bdf8, #2563eb);
+      border: none !important; outline: none !important; border-radius: 16px;
+      background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
       color: white;
       font-family: 'Inter', sans-serif;
       font-size: 16px; font-weight: 800;
       letter-spacing: -0.2px;
       cursor: pointer;
       transition: all 0.25s ease;
-      box-shadow: 0 8px 24px rgba(56, 189, 248, 0.3);
+      box-shadow: 0 8px 24px rgba(0, 242, 254, 0.35);
       text-decoration: none;
     }
     .download-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 12px 32px rgba(56, 189, 248, 0.4);
+      box-shadow: 0 12px 32px rgba(0, 242, 254, 0.5);
     }
     .download-btn:active { transform: translateY(0); }
     .download-btn i { font-size: 20px; }
@@ -129,27 +126,29 @@ $hideBottomNav = true;
     .file-info {
       display: flex; justify-content: center; gap: 18px;
       margin-top: 14px;
-      font-size: 12px; color: rgba(148,163,184,0.7); font-weight: 500;
+      font-size: 12px; color: rgba(255, 255, 255, 0.85); font-weight: 600;
     }
     .file-info span { display: flex; align-items: center; gap: 4px; }
-    .file-info i { font-size: 11px; color: rgba(148,163,184,0.5); }
+    .file-info i { font-size: 11px; color: #00f2fe; }
 
     /* QR Section */
     .qr-section {
-      background: rgba(30, 41, 59, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+      border: none !important;
+      outline: none !important;
       border-radius: 24px;
       padding: 28px 24px;
       margin-top: 16px;
       text-align: center;
+      box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
     }
     .qr-section h3 {
       font-size: 15px; font-weight: 800;
-      color: #f8fafc; margin-bottom: 4px;
+      color: #ffffff; margin-bottom: 4px;
       display: flex; align-items: center; justify-content: center; gap: 8px;
     }
     .qr-section p {
-      font-size: 12px; color: rgba(148,163,184,0.7);
+      font-size: 12px; color: rgba(255, 255, 255, 0.85);
       margin-bottom: 18px; font-weight: 400;
     }
     .qr-box {
@@ -160,20 +159,23 @@ $hideBottomNav = true;
       display: flex; align-items: center; justify-content: center;
       box-shadow: 0 8px 24px rgba(0,0,0,0.3);
       overflow: hidden;
+      border: none !important; outline: none !important;
     }
     .qr-box img { width: 100%; height: 100%; object-fit: contain; }
     .qr-box canvas { border-radius: 12px; }
 
     /* Install steps */
     .install-section {
-      background: rgba(30, 41, 59, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+      border: none !important;
+      outline: none !important;
       border-radius: 24px;
       padding: 24px;
       margin-top: 16px;
+      box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
     }
     .install-section h3 {
-      font-size: 15px; font-weight: 800; color: #f8fafc;
+      font-size: 15px; font-weight: 800; color: #ffffff;
       margin-bottom: 16px;
       display: flex; align-items: center; gap: 8px;
     }
@@ -184,17 +186,17 @@ $hideBottomNav = true;
     .install-step:last-child { margin-bottom: 0; }
     .step-circle {
       width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0;
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.2);
+      background: rgba(0, 242, 254, 0.25);
+      border: none !important; outline: none !important;
       display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 900; color: #38bdf8;
+      font-size: 13px; font-weight: 900; color: #00f2fe;
     }
     .step-text h4 {
-      font-size: 14px; font-weight: 700; color: #f8fafc;
+      font-size: 14px; font-weight: 700; color: #ffffff;
       margin-bottom: 2px;
     }
     .step-text p {
-      font-size: 12.5px; color: rgba(148,163,184,0.8);
+      font-size: 12.5px; color: rgba(255, 255, 255, 0.85);
       line-height: 1.5; font-weight: 400;
     }
 
@@ -204,21 +206,21 @@ $hideBottomNav = true;
       margin-top: 16px;
     }
     .req-card {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none !important; outline: none !important;
+      border-radius: 16px;
       padding: 14px;
       text-align: center;
     }
-    .req-card i { font-size: 20px; margin-bottom: 8px; display: block; }
-    .req-card h4 { font-size: 12px; font-weight: 700; color: #f8fafc; margin-bottom: 2px; }
-    .req-card p { font-size: 11px; color: rgba(148,163,184,0.6); font-weight: 500; }
+    .req-card i { font-size: 20px; margin-bottom: 8px; display: block; color: #00f2fe; }
+    .req-card h4 { font-size: 12px; font-weight: 700; color: #ffffff; margin-bottom: 2px; }
+    .req-card p { font-size: 11px; color: rgba(255, 255, 255, 0.8); font-weight: 500; }
 
     /* Warning card */
     .warning-card {
-      background: rgba(251, 191, 36, 0.06);
-      border: 1px solid rgba(251, 191, 36, 0.15);
-      border-radius: 14px;
+      background: rgba(251, 191, 36, 0.15);
+      border: none !important; outline: none !important;
+      border-radius: 16px;
       padding: 14px 16px;
       margin-top: 16px;
       display: flex; gap: 10px; align-items: flex-start;

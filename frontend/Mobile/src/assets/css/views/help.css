@@ -1,27 +1,42 @@
 .help-container {
-    padding: 0 20px 20px;
+    padding: 20px 20px 100px;
     max-width: 600px;
     margin: 0 auto;
+    background:
+        radial-gradient(ellipse at 85% 5%, rgba(0, 242, 254, 0.35) 0%, transparent 55%),
+        radial-gradient(ellipse at 15% 45%, rgba(56, 189, 248, 0.3) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(63, 125, 183, 0.4) 0%, transparent 60%),
+        linear-gradient(180deg, #1e3a8a 0%, #3f7db7 30%, #0284c7 65%, #06b6d4 90%, #00f2fe 100%) !important;
+    background-attachment: fixed !important;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+body[data-view="help"] {
+    background: #1e3a8a !important;
+    color: #ffffff !important;
 }
 
 .faq-item {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 12px;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    border: none !important;
+    outline: none !important;
+    border-radius: 20px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
     backdrop-filter: blur(12px);
     transition: all 0.2s;
 }
 
 .faq-item:active {
-    background: rgba(255,255,255,0.08);
+    transform: scale(0.99);
 }
 
 .faq-question {
-    font-weight: 600;
+    font-weight: 700;
     font-size: 15px;
-    color: #e2e8f0;
+    color: #ffffff;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -30,31 +45,33 @@
 }
 
 .faq-question i:first-child {
-    color: #38bdf8;
+    color: #00f2fe;
     font-size: 18px;
 }
 
 .faq-question .fa-chevron-down {
-    color: rgba(148,163,184,0.4);
+    color: rgba(255, 255, 255, 0.7);
     transition: transform 0.3s ease;
     margin-left: auto;
     font-size: 12px;
 }
 
 .faq-answer {
-    color: rgba(148,163,184,0.8);
-    font-size: 14px;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 13.5px;
     line-height: 1.6;
-    padding: 16px 30px 4px 30px;
+    padding: 14px 0 4px 30px;
     display: none;
 }
 
 .contact-card {
-    background: linear-gradient(135deg, rgba(56,189,248,0.1), rgba(37,99,235,0.1));
-    border: 1px solid rgba(56,189,248,0.15);
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 20px;
     padding: 24px;
     text-align: center;
     margin-top: 32px;
+    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
     backdrop-filter: blur(12px);
 }
