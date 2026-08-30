@@ -2,6 +2,15 @@
  * Intan Elyu - Mobile PHP Frontend Main Logic
  */
 
+// Suppress benign browser-extension / VM performance profiler errors (e.g. Web Vitals / reportAllChanges)
+window.addEventListener('error', function (e) {
+    if (e.message && (e.message.includes('startTime') || e.message.includes('reportAllChanges'))) {
+        e.preventDefault();
+        e.stopPropagation();
+        return true;
+    }
+});
+
 window.safeJsonParse = function (str, fallback = {}) {
     if (!str || str === 'undefined' || str === 'null' || str === 'NaN') return fallback;
     try {

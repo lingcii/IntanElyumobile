@@ -4,29 +4,29 @@ $backRoute = 'dashboard';
 include __DIR__ . '/../components/header.php';
 ?>
 
-<div class="puzzles-container has-header animate-slide-up" style="padding-left: 16px; padding-right: 16px; padding-bottom: 40px; min-height: 100vh; box-sizing: border-box; background: #0a0a0e; color: #f8fafc;">
+<div class="puzzles-container has-header animate-slide-up" style="padding-left: 16px; padding-right: 16px; padding-bottom: 40px; min-height: 100vh; box-sizing: border-box; background: radial-gradient(ellipse at 85% 5%, rgba(0, 242, 254, 0.35) 0%, transparent 55%), radial-gradient(ellipse at 15% 45%, rgba(56, 189, 248, 0.3) 0%, transparent 60%), radial-gradient(ellipse at 80% 80%, rgba(63, 125, 183, 0.4) 0%, transparent 60%), linear-gradient(180deg, #1e3a8a 0%, #3f7db7 30%, #0284c7 65%, #06b6d4 90%, #00f2fe 100%) !important; background-attachment: fixed !important; color: #ffffff;">
     
     <!-- Points Status Header -->
-    <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.8)); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 16px; display: flex; align-items: center; justify-content: space-between; margin-top: 16px; margin-bottom: 20px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); backdrop-filter: blur(10px);">
+    <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; margin-top: 16px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;">
         <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #38bdf8;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(56, 189, 248, 0.2); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #ffffff; border: none !important; outline: none !important;">
                 <i class="fa-solid fa-gamepad"></i>
             </div>
             <div>
-                <h4 style="margin: 0 0 2px 0; font-size: 14px; color: rgba(148, 163, 184, 0.8); font-weight: 500;">Your Points Balance</h4>
+                <h4 style="margin: 0 0 2px 0; font-size: 13px; color: rgba(226, 232, 240, 0.85); font-weight: 600;">Your Points Balance</h4>
                 <div style="display: flex; align-items: baseline; gap: 6px;">
-                    <span id="game-points-val" style="font-size: 22px; font-weight: 800; color: #38bdf8; letter-spacing: -0.5px;">--</span>
-                    <span style="font-size: 12px; color: rgba(148, 163, 184, 0.6); font-weight: 600;">PTS</span>
+                    <span id="game-points-val" style="font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">--</span>
+                    <span style="font-size: 12px; color: rgba(226, 232, 240, 0.7); font-weight: 700;">PTS</span>
                 </div>
             </div>
         </div>
-        <button onclick="navigateTo('discount')" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 8px 14px; border-radius: 12px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s;">
+        <button onclick="navigateTo('discount')" style="background: rgba(255,255,255,0.18) !important; border: none !important; outline: none !important; color: #fff; padding: 8px 16px; border-radius: 100px; font-size: 12px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; box-shadow: none !important;">
             Redeem <i class="fa-solid fa-arrow-right" style="font-size: 10px;"></i>
         </button>
     </div>
 
     <!-- Tab Selector -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 6px; border-radius: 16px; margin-bottom: 20px;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; background: rgba(15, 23, 42, 0.4) !important; border: none !important; outline: none !important; padding: 6px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.12) !important;">
         <button id="tab-btn-puzzle" onclick="switchGameTab('puzzle')" class="game-nav-tab active">
             <i class="fa-solid fa-puzzle-piece"></i> Slide Puzzle
         </button>
@@ -40,37 +40,37 @@ include __DIR__ . '/../components/header.php';
 
     <!-- SLIDING PUZZLE TAB -->
     <div id="game-tab-puzzle" class="game-tab-content">
-        <div style="background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 16px; margin-bottom: 16px; text-align: center;">
-            <h3 id="puzzle-title" style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800;">Immuki Island Slide Puzzle</h3>
-            <p id="puzzle-desc" style="margin: 0; font-size: 12px; color: rgba(148, 163, 184, 0.8); line-height: 1.4;">
-                Rearrange the tiles to reveal the crystal clear lagoons of Immuki Island in Balaoan! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.
+        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 18px 20px; margin-bottom: 16px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;">
+            <h3 id="puzzle-title" style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800; color: #ffffff;">Immuki Island Slide Puzzle</h3>
+            <p id="puzzle-desc" style="margin: 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.4;">
+                Rearrange the tiles to reveal the crystal clear lagoons of Immuki Island in Balaoan! Solve to earn <strong style="color: #00f2fe;">+100 Points</strong>.
             </p>
 
             <!-- Target Reference Image Preview -->
-            <div style="margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 6px 12px; width: fit-content; margin-left: auto; margin-right: auto;">
-                <span style="font-size: 11px; color: rgba(226,232,240,0.8); font-weight: 700;">Target Goal:</span>
-                <img id="puzzle-target-img" src="https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a686f4d0f48b.jpg" alt="Immuki Island Target" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover; border: 1.5px solid #38bdf8; box-shadow: 0 2px 8px rgba(56,189,248,0.3);">
+            <div style="margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(0,0,0,0.2) !important; border: none !important; outline: none !important; border-radius: 12px; padding: 6px 12px; width: fit-content; margin-left: auto; margin-right: auto;">
+                <span style="font-size: 11px; color: rgba(226,232,240,0.9); font-weight: 700;">Target Goal:</span>
+                <img id="puzzle-target-img" src="https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a686f4d0f48b.jpg" alt="Immuki Island Target" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover; border: none !important; outline: none !important; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
             </div>
             
             <!-- Moves and Timer info -->
             <div style="display: flex; justify-content: center; gap: 20px; margin-top: 14px;">
-                <div style="font-size: 13px; color: rgba(255,255,255,0.6);">Moves: <span id="puzzle-moves" style="font-weight: 800; color: #fff;">0</span></div>
-                <div style="font-size: 13px; color: rgba(255,255,255,0.6);">Time: <span id="puzzle-timer" style="font-weight: 800; color: #fff;">00:00</span></div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.75);">Moves: <span id="puzzle-moves" style="font-weight: 800; color: #fff;">0</span></div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.75);">Time: <span id="puzzle-timer" style="font-weight: 800; color: #fff;">00:00</span></div>
             </div>
         </div>
 
         <!-- Puzzle Board Container -->
         <div style="display: flex; justify-content: center; margin-bottom: 20px;">
-            <div id="puzzle-board" style="width: 300px; height: 300px; background: rgba(15,23,42,0.8); border: 4px solid rgba(255,255,255,0.1); border-radius: 12px; position: relative; overflow: hidden; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 2px; box-shadow: 0 15px 30px rgba(0,0,0,0.5);">
+            <div id="puzzle-board" style="width: 300px; height: 300px; background: rgba(15,23,42,0.85); border: none !important; outline: none !important; border-radius: 14px; position: relative; overflow: hidden; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 2px; box-shadow: 0 15px 30px rgba(0,0,0,0.35);">
                 <!-- 9 Grid items dynamic -->
             </div>
         </div>
 
         <div style="display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap;">
-            <button onclick="promptResetPuzzle()" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px;">
+            <button onclick="promptResetPuzzle()" style="background: rgba(255,255,255,0.18) !important; border: none !important; outline: none !important; color: #fff; padding: 10px 18px; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; box-shadow: none !important;">
                 <i class="fa-solid fa-arrows-rotate"></i> Reset Puzzle
             </button>
-            <button onclick="promptChangePuzzle()" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(37, 99, 235, 0.2)); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px;">
+            <button onclick="promptChangePuzzle()" style="background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important; border: none !important; outline: none !important; color: #ffffff !important; padding: 10px 18px; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; box-shadow: 0 4px 15px rgba(0,242,254,0.3) !important;">
                 <i class="fa-solid fa-shuffle"></i> Change Puzzle
             </button>
         </div>
@@ -78,14 +78,14 @@ include __DIR__ . '/../components/header.php';
 
     <!-- MEMORY MATCH TAB -->
     <div id="game-tab-memory" class="game-tab-content" style="display: none;">
-        <div style="background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 16px; margin-bottom: 16px; text-align: center;">
-            <h3 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800;">Elyu Spot Memory Match</h3>
-            <p style="margin: 0; font-size: 12px; color: rgba(148, 163, 184, 0.8); line-height: 1.4;">
-                Flip cards and match all 6 pairs of famous La Union landmarks & activities to earn <strong style="color: #38bdf8;">+75 Points</strong>!
+        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 18px 20px; margin-bottom: 16px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;">
+            <h3 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800; color: #ffffff;">Elyu Spot Memory Match</h3>
+            <p style="margin: 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.4;">
+                Flip cards and match all 6 pairs of famous La Union landmarks & activities to earn <strong style="color: #00f2fe;">+75 Points</strong>!
             </p>
             <div style="display: flex; justify-content: center; gap: 20px; margin-top: 14px;">
-                <div style="font-size: 13px; color: rgba(255,255,255,0.6);">Flips: <span id="memory-flips" style="font-weight: 800; color: #fff;">0</span></div>
-                <div style="font-size: 13px; color: rgba(255,255,255,0.6);">Pairs: <span id="memory-pairs" style="font-weight: 800; color: #fff;">0/6</span></div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.75);">Flips: <span id="memory-flips" style="font-weight: 800; color: #fff;">0</span></div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.75);">Pairs: <span id="memory-pairs" style="font-weight: 800; color: #fff;">0/6</span></div>
             </div>
         </div>
 
@@ -94,7 +94,7 @@ include __DIR__ . '/../components/header.php';
         </div>
 
         <div style="display: flex; justify-content: center;">
-            <button onclick="initMemoryGame()" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px 20px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer;">
+            <button onclick="initMemoryGame()" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; color: #fff; padding: 10px 20px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 15px rgba(10, 25, 60, 0.2) !important;">
                 <i class="fa-solid fa-arrows-rotate"></i> Reset Game
             </button>
         </div>
@@ -102,10 +102,10 @@ include __DIR__ . '/../components/header.php';
 
     <!-- WORD SCRAMBLE TAB -->
     <div id="game-tab-scramble" class="game-tab-content" style="display: none;">
-        <div style="background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 16px; margin-bottom: 16px; text-align: center;">
-            <h3 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800;">La Union Eco Explorer Scramble</h3>
-            <p style="margin: 0; font-size: 12px; color: rgba(148, 163, 184, 0.8); line-height: 1.4;">
-                Unscramble all 4 La Union municipal & landmark names to earn <strong style="color: #38bdf8;">+75 Points</strong>!
+        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 18px 20px; margin-bottom: 16px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;">
+            <h3 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800; color: #ffffff;">La Union Eco Explorer Scramble</h3>
+            <p style="margin: 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.4;">
+                Unscramble all 4 La Union municipal & landmark names to earn <strong style="color: #00f2fe;">+75 Points</strong>!
             </p>
         </div>
 
@@ -113,24 +113,24 @@ include __DIR__ . '/../components/header.php';
             <!-- 4 Scrambled Words -->
         </div>
 
-        <button onclick="submitScrambleAnswers()" style="width: 100%; border: none; background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 10px 20px rgba(37,99,235,0.25);">
+        <button onclick="submitScrambleAnswers()" style="width: 100%; border: none !important; outline: none !important; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important; color: white; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 8px 24px rgba(2, 132, 199, 0.35);">
             Submit Answers
         </button>
     </div>
 
     <!-- Confirm Modal popup -->
     <div id="game-confirm-modal" style="display: none; position: fixed; inset: 0; z-index: 10002; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(10px);">
-        <div style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid rgba(255,255,255,0.15); border-radius: 24px; width: 100%; max-width: 350px; padding: 28px 20px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); transform: scale(0.9); animation: modalEnter 0.3s forwards cubic-bezier(0.34, 1.56, 0.64, 1);">
-            <div id="confirm-modal-icon-bg" style="width: 64px; height: 64px; border-radius: 50%; background: rgba(56,189,248,0.15); border: 2px solid #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #38bdf8; margin: 0 auto 16px;">
+        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 24px; width: 100%; max-width: 350px; padding: 28px 20px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6) !important; transform: scale(0.9); animation: modalEnter 0.3s forwards cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <div id="confirm-modal-icon-bg" style="width: 64px; height: 64px; border-radius: 50%; background: rgba(56,189,248,0.2); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #38bdf8; margin: 0 auto 16px;">
                 <i id="confirm-modal-icon" class="fa-solid fa-arrows-rotate"></i>
             </div>
             <h2 id="confirm-modal-title" style="margin: 0 0 10px; font-size: 20px; font-weight: 800; color: #fff;">Reset Puzzle?</h2>
-            <p id="confirm-modal-msg" style="margin: 0 0 24px; font-size: 13px; color: rgba(148,163,184,0.9); line-height: 1.5;">Are you sure you want to reset puzzle?</p>
+            <p id="confirm-modal-msg" style="margin: 0 0 24px; font-size: 13px; color: rgba(226,232,240,0.9); line-height: 1.5;">Are you sure you want to reset puzzle?</p>
             <div style="display: flex; gap: 10px;">
-                <button onclick="closeGameConfirm()" style="flex: 1; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #cbd5e1; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer;">
+                <button onclick="closeGameConfirm()" style="flex: 1; border: none !important; outline: none !important; background: rgba(255,255,255,0.18); color: #ffffff; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer;">
                     Cancel
                 </button>
-                <button id="confirm-modal-action-btn" onclick="executeGameConfirm()" style="flex: 1; border: none; background: #38bdf8; color: #0f172a; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer;">
+                <button id="confirm-modal-action-btn" onclick="executeGameConfirm()" style="flex: 1; border: none !important; outline: none !important; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color: #ffffff; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 242, 254, 0.3);">
                     Yes, Reset
                 </button>
             </div>
@@ -139,26 +139,26 @@ include __DIR__ . '/../components/header.php';
 
     <!-- Success Modal popup -->
     <div id="game-success-modal" style="display: none; position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(10px);">
-        <div style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid rgba(255,255,255,0.15); border-radius: 24px; width: 100%; max-width: 350px; padding: 30px 20px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); transform: scale(0.9); animation: modalEnter 0.3s forwards cubic-bezier(0.34, 1.56, 0.64, 1);">
-            <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(34,197,94,0.15); border: 2px solid #22c55e; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #22c55e; margin: 0 auto 20px;">
+        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 24px; width: 100%; max-width: 350px; padding: 30px 20px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6) !important; transform: scale(0.9); animation: modalEnter 0.3s forwards cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(34,197,94,0.2); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #22c55e; margin: 0 auto 20px;">
                 <i class="fa-solid fa-circle-check"></i>
             </div>
             <h2 style="margin: 0 0 10px; font-size: 22px; font-weight: 800; color: #fff;">Awesome Job!</h2>
-            <p id="success-points-msg" style="margin: 0 0 24px; font-size: 14px; color: rgba(148,163,184,0.9); line-height: 1.5;">You solved the game and claimed your points!</p>
-            <button onclick="closeGameSuccess()" style="width: 100%; border: none; background: #38bdf8; color: #000; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer;">
+            <p id="success-points-msg" style="margin: 0 0 24px; font-size: 14px; color: rgba(226,232,240,0.9); line-height: 1.5;">You solved the game and claimed your points!</p>
+            <button onclick="closeGameSuccess()" style="width: 100%; border: none !important; outline: none !important; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color: #ffffff; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 242, 254, 0.3);">
                 Awesome!
             </button>
         </div>
     </div>
 
     <div id="game-alert-modal" style="display: none; position: fixed; inset: 0; z-index: 10001; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(10px);">
-        <div style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid rgba(255,255,255,0.15); border-radius: 24px; width: 100%; max-width: 350px; padding: 30px 20px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); transform: scale(0.9); animation: modalEnter 0.3s forwards cubic-bezier(0.34, 1.56, 0.64, 1);">
-            <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(250,204,21,0.15); border: 2px solid #facc15; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #facc15; margin: 0 auto 20px;">
+        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 24px; width: 100%; max-width: 350px; padding: 30px 20px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6) !important; transform: scale(0.9); animation: modalEnter 0.3s forwards cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(250,204,21,0.2); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #facc15; margin: 0 auto 20px;">
                 <i class="fa-solid fa-clock"></i>
             </div>
             <h2 style="margin: 0 0 10px; font-size: 22px; font-weight: 800; color: #fff;">Already Done!</h2>
-            <p id="alert-points-msg" style="margin: 0 0 24px; font-size: 14px; color: rgba(148,163,184,0.9); line-height: 1.5;">You already completed this game today!</p>
-            <button onclick="closeGameAlert()" style="width: 100%; border: none; background: #facc15; color: #000; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer;">
+            <p id="alert-points-msg" style="margin: 0 0 24px; font-size: 14px; color: rgba(226,232,240,0.9); line-height: 1.5;">You already completed this game today!</p>
+            <button onclick="closeGameAlert()" style="width: 100%; border: none !important; outline: none !important; background: linear-gradient(135deg, #facc15 0%, #eab308 100%); color: #000; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 14px rgba(250, 204, 21, 0.3);">
                 Got it!
             </button>
         </div>
@@ -171,9 +171,10 @@ include __DIR__ . '/../components/header.php';
     to { transform: scale(1); }
 }
 .game-nav-tab {
-    border: none;
+    border: none !important;
+    outline: none !important;
     background: transparent;
-    color: rgba(255,255,255,0.6);
+    color: rgba(255,255,255,0.7);
     padding: 10px;
     border-radius: 12px;
     font-weight: 700;
@@ -191,11 +192,13 @@ include __DIR__ . '/../components/header.php';
     transform: scale(0.94);
 }
 .game-nav-tab.active {
-    background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
-    color: #0f172a;
+    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 60%, #1e3a8a 100%) !important;
+    color: #ffffff !important;
     font-weight: 800;
-    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.35);
+    box-shadow: 0 4px 15px rgba(2, 132, 199, 0.35);
     transform: translateY(-1px);
+    border: none !important;
+    outline: none !important;
 }
 
 .game-tab-content {
@@ -223,6 +226,8 @@ include __DIR__ . '/../components/header.php';
     background-repeat: no-repeat;
     cursor: pointer;
     border-radius: 6px;
+    border: none !important;
+    outline: none !important;
     transition: transform 0.15s ease, filter 0.2s;
     display: flex;
     align-items: center;
@@ -240,12 +245,16 @@ include __DIR__ . '/../components/header.php';
     background: transparent;
     cursor: default;
     box-shadow: none;
+    border: none !important;
+    outline: none !important;
 }
 .trivia-card, .scramble-card {
-    background: rgba(30,41,59,0.3);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 16px;
-    padding: 16px;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    border: none !important;
+    outline: none !important;
+    border-radius: 18px !important;
+    padding: 16px !important;
+    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
 }
 .trivia-q-text, .scramble-q-text {
     margin: 0 0 12px;
@@ -262,9 +271,10 @@ include __DIR__ . '/../components/header.php';
 .trivia-option-btn {
     width: 100%;
     text-align: left;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.08);
-    color: rgba(248, 250, 252, 0.8);
+    background: rgba(255,255,255,0.15) !important;
+    border: none !important;
+    outline: none !important;
+    color: #ffffff !important;
     padding: 10px 14px;
     border-radius: 10px;
     font-size: 13px;
@@ -273,18 +283,21 @@ include __DIR__ . '/../components/header.php';
     transition: all 0.2s;
 }
 .trivia-option-btn:hover {
-    background: rgba(255,255,255,0.07);
+    background: rgba(255,255,255,0.22) !important;
 }
 .trivia-option-btn.selected {
-    background: rgba(56, 189, 248, 0.15);
-    border-color: #38bdf8;
-    color: #38bdf8;
+    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
+    border: none !important;
+    outline: none !important;
+    color: #ffffff !important;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 242, 254, 0.3);
 }
 
 /* General Button Smooth Animations */
 button, .game-nav-tab, .trivia-option-btn {
+    border: none !important;
+    outline: none !important;
     transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, filter 0.15s ease !important;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -345,39 +358,43 @@ button:active, .trivia-option-btn:active {
     box-sizing: border-box;
 }
 .memory-card-front {
-    background: linear-gradient(135deg, #1e293b, #0f172a);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: #38bdf8;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 4px 14px rgba(10, 25, 60, 0.25) !important;
+    color: #ffffff;
     font-size: 24px;
 }
 .memory-card-back {
-    background: linear-gradient(135deg, #0284c7, #0369a1);
-    border: 2px solid #38bdf8;
-    color: #fff;
+    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
+    border: none !important;
+    outline: none !important;
+    color: #ffffff;
     transform: rotateY(180deg);
     padding: 6px;
 }
 .memory-card.matched .memory-card-back {
-    background: linear-gradient(135deg, #059669, #047857);
-    border-color: #34d399;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    border: none !important;
+    outline: none !important;
 }
 .scramble-input {
     width: 100%;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.14) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 12px;
     padding: 12px 14px;
-    color: #fff;
+    color: #ffffff;
     font-size: 14px;
     font-weight: 700;
     letter-spacing: 1px;
     box-sizing: border-box;
     text-transform: uppercase;
-}
 .scramble-input:focus {
-    outline: none;
-    border-color: #38bdf8;
-    background: rgba(56, 189, 248, 0.08);
+    outline: none !important;
+    border: none !important;
+    background: rgba(255,255,255,0.2) !important;
 }
 </style>
 
@@ -976,10 +993,10 @@ function initScrambleGame() {
                 <span style="font-size:11px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px;">Word #${index + 1}</span>
                 <span id="scramble-status-${index}" style="font-size:12px; color:rgba(255,255,255,0.3);"><i class="fa-solid fa-pen"></i></span>
             </div>
-            <div style="font-size:20px; font-weight:900; color:#fff; letter-spacing:2px; margin-bottom:6px; text-align:center; background:rgba(255,255,255,0.03); padding:10px; border-radius:12px; border:1px dashed rgba(255,255,255,0.15);">
+            <div style="font-size:20px; font-weight:900; color:#fff; letter-spacing:2px; margin-bottom:6px; text-align:center; background:rgba(0,0,0,0.2) !important; padding:10px; border-radius:12px; border:none !important; outline:none !important;">
                 ${item.scrambled}
             </div>
-            <p style="margin:0 0 10px 0; font-size:11px; color:rgba(148,163,184,0.7); font-style:italic;">💡 Hint: ${item.hint}</p>
+            <p style="margin:0 0 10px 0; font-size:11px; color:rgba(226,232,240,0.85); font-style:italic;">💡 Hint: ${item.hint}</p>
             <input type="text" id="scramble-input-${index}" class="scramble-input" placeholder="Type answer..." oninput="checkScrambleWord(${index})">
         `;
 
@@ -995,12 +1012,14 @@ function checkScrambleWord(index) {
     const val = input.value.trim().toUpperCase();
     if (val === scrambleData[index].answer) {
         status.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#34d399; font-size:16px;"></i>';
-        input.style.borderColor = '#34d399';
-        input.style.background = 'rgba(52, 211, 153, 0.1)';
+        input.style.border = 'none';
+        input.style.outline = 'none';
+        input.style.background = 'rgba(52, 211, 153, 0.2)';
     } else {
-        status.innerHTML = '<i class="fa-solid fa-pen" style="color:rgba(255,255,255,0.3);"></i>';
-        input.style.borderColor = 'rgba(255,255,255,0.15)';
-        input.style.background = 'rgba(255,255,255,0.05)';
+        status.innerHTML = '<i class="fa-solid fa-pen" style="color:rgba(255,255,255,0.4);"></i>';
+        input.style.border = 'none';
+        input.style.outline = 'none';
+        input.style.background = 'rgba(255,255,255,0.14)';
     }
 }
 

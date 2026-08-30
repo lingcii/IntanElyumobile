@@ -698,18 +698,20 @@ $activeTab = 'itinerary';
 
             html += `
         <div class="starting-point-item stagger-1" onclick="window.routeToMyLocation()">
-            <div class="starting-point-card">
-                <div class="starting-point-icon-box">
-                    <i class="fa-solid fa-location-crosshairs"></i>
-                    <div class="starting-point-pulse"></div>
+            <div class="starting-point-card" style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border:none !important; outline:none !important; border-radius:22px !important; padding:16px 18px !important; box-shadow:0 8px 24px rgba(10,25,60,0.28) !important; display:flex; align-items:center; justify-content:space-between; gap:14px; cursor:pointer;">
+                <div class="starting-point-icon-box" style="width:46px; height:46px; border-radius:50%; background:linear-gradient(135deg, rgba(56,189,248,0.25) 0%, rgba(37,99,235,0.35) 100%) !important; border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0; box-shadow:0 4px 14px rgba(0,0,0,0.2);">
+                    <i class="fa-solid fa-location-crosshairs" style="color:#00f2fe; font-size:20px;"></i>
+                    <div class="starting-point-pulse" style="position:absolute; inset:-4px; border-radius:50%; background:rgba(0,242,254,0.25); border:none !important; outline:none !important; pointer-events:none;"></div>
                 </div>
-                <div class="starting-point-info">
-                    <div class="starting-point-label"><i class="fa-solid fa-play" style="font-size:8px;"></i> Starting Point</div>
-                    <h3 class="starting-point-title">Your Current Location</h3>
-                    <div class="starting-point-status" id="itinerary-starting-status">${startingStatus}</div>
+                <div class="starting-point-info" style="flex:1; min-width:0;">
+                    <div class="starting-point-label" style="font-size:10.5px; font-weight:800; color:#00f2fe; text-transform:uppercase; letter-spacing:0.7px; display:inline-flex; align-items:center; gap:5px; margin-bottom:3px;">
+                        <i class="fa-solid fa-satellite-dish" style="font-size:9px;"></i> Starting Point
+                    </div>
+                    <h3 class="starting-point-title" style="margin:0 0 3px 0; font-size:15.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.2px;">Your Current Location</h3>
+                    <div class="starting-point-status" id="itinerary-starting-status" style="font-size:11.5px; color:rgba(226,232,240,0.9); display:flex; align-items:center; gap:5px; font-weight:600;">${startingStatus}</div>
                 </div>
-                <button type="button" onclick="event.stopPropagation(); window.routeToMyLocation();" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:flex; align-items:center; gap:4px; flex-shrink:0;">
-                    <i class="fa-solid fa-crosshairs"></i> Locate
+                <button type="button" onclick="event.stopPropagation(); window.routeToMyLocation();" class="btn-locate-me" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important; border:none !important; outline:none !important; color:#ffffff !important; font-size:12px; font-weight:800; padding:9px 16px; border-radius:100px; cursor:pointer; display:flex; align-items:center; gap:6px; flex-shrink:0; box-shadow:0 4px 14px rgba(0,242,254,0.35); transition:all 0.2s ease;">
+                    <i class="fa-solid fa-location-arrow" style="font-size:11px;"></i> Locate
                 </button>
             </div>
             <div class="timeline-route-connector"></div>
@@ -725,20 +727,20 @@ $activeTab = 'itinerary';
                 let nextStopEtaHtml = '';
 
                 if (isNextStop) {
-                    nextStopBadge = `<span class="badge-next-stop"><i class="fa-solid fa-location-dot"></i> NEXT STOP</span>`;
+                    nextStopBadge = `<span class="badge-next-stop" style="border:none !important; outline:none !important; box-shadow:none !important;"><i class="fa-solid fa-location-dot"></i> NEXT STOP</span>`;
                     const lat = place.lat || place.latitude;
                     const lng = place.lng || place.longitude;
                     const eta = window.getDistanceAndETA(lat, lng);
                     if (eta) {
                         nextStopEtaHtml = `
-                    <div class="next-stop-distance-chip" id="itinerary-next-eta">
-                        <i class="fa-solid fa-route" style="color:#38bdf8;"></i> 
+                    <div class="next-stop-distance-chip" id="itinerary-next-eta" style="border:none !important; outline:none !important; box-shadow:none !important;">
+                        <i class="fa-solid fa-route" style="color:#00f2fe;"></i> 
                         <span>${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>
                     </div>`;
                     } else {
                         nextStopEtaHtml = `
-                    <div class="next-stop-distance-chip" id="itinerary-next-eta">
-                        <i class="fa-solid fa-location-arrow" style="color:#38bdf8;"></i> 
+                    <div class="next-stop-distance-chip" id="itinerary-next-eta" style="border:none !important; outline:none !important; box-shadow:none !important;">
+                        <i class="fa-solid fa-location-arrow" style="color:#00f2fe;"></i> 
                         <span>First destination on your itinerary route</span>
                     </div>`;
                     }
@@ -752,14 +754,11 @@ $activeTab = 'itinerary';
                     <div class="swipe-content" style="position:relative; z-index:2; transition:transform 0.2s ease, border-radius 0.2s ease; border-radius:20px; padding:18px 20px; border:none !important; outline:none !important; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; box-shadow:0 8px 24px rgba(10, 25, 60, 0.25) !important;">
                         <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px;">
                             <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                                <span class="time-label">Stop ${index + 1} &bull; Approx ${timeStr}</span>
+                                <span class="time-label" style="border:none !important; outline:none !important; box-shadow:none !important;">Stop ${index + 1} &bull; Approx ${timeStr}</span>
                                 ${nextStopBadge}
                             </div>
                             <div style="display:flex; align-items:center; gap:6px;">
-                                <button type="button" onclick="event.stopPropagation(); window.removeItineraryItem('${place.id}');" title="Remove stop" style="background:rgba(239,68,68,0.15); border:none !important; outline:none !important; color:#ef4444; border-radius:8px; cursor:pointer; font-size:11px; padding:4px 8px; display:inline-flex; align-items:center; gap:3px;">
-                                    <i class="fa-solid fa-trash-can" style="font-size:10px;"></i>
-                                </button>
-                                <i class="fa-solid fa-grip-vertical" style="color:rgba(148,163,184,0.4); font-size:14px; cursor:grab; touch-action:none;"></i>
+                                <i class="fa-solid fa-grip-vertical" style="color:rgba(255,255,255,0.45); font-size:16px; cursor:grab; touch-action:none; padding:4px;"></i>
                             </div>
                         </div>
                         <h3 class="place-name">${place.name}</h3>
