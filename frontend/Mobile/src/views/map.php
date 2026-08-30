@@ -365,8 +365,8 @@ if (is_dir($imgDir)) {
                         <div class="dest-support-box">
                             <div class="dest-support-header">
                                 <span
-                                    style="font-size:12px; font-weight:800; color:#38bdf8; display:flex; align-items:center; gap:6px;">
-                                    <i class="fa-solid fa-headset"></i> Tourist Support & Service Centers
+                                    style="font-size:12.5px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:6px;">
+                                    <i class="fa-solid fa-headset" style="color:#ffffff;"></i> Tourist Support & Service Centers
                                 </span>
                                 <span class="dest-support-badge" id="sheet-support-badge">LUPTO / MTO</span>
                             </div>
@@ -377,20 +377,20 @@ if (is_dir($imgDir)) {
                             <div class="dest-contacts-list">
                                 <div class="dest-contact-row" id="sheet-service-phone-row">
                                     <span class="dest-contact-label"><i class="fa-solid fa-phone"
-                                            style="font-size:10px;"></i> Service Hotline:</span>
+                                            style="font-size:10px; color:#ffffff;"></i> Service Hotline:</span>
                                     <span class="dest-contact-val"><a id="sheet-service-phone"
-                                            href="tel:+630728882454">+63 (072) 888-2454</a></span>
+                                            href="tel:+630728882454" style="color:#ffffff; text-decoration:none; font-weight:700;">+63 (072) 888-2454</a></span>
                                 </div>
                                 <div class="dest-contact-row">
                                     <span class="dest-contact-label"><i class="fa-solid fa-clock"
-                                            style="font-size:10px;"></i> Service Hours:</span>
-                                    <span class="dest-contact-val" id="sheet-service-hours">8:00 AM - 5:00 PM
+                                            style="font-size:10px; color:#ffffff;"></i> Service Hours:</span>
+                                    <span class="dest-contact-val" id="sheet-service-hours" style="color:#ffffff; font-weight:700;">8:00 AM - 5:00 PM
                                         (Daily)</span>
                                 </div>
                                 <div class="dest-contact-row">
                                     <span class="dest-contact-label"><i class="fa-solid fa-kit-medical"
                                             style="font-size:10px; color:#34d399;"></i> Emergency / Medical:</span>
-                                    <span class="dest-contact-val emergency"><a href="tel:911">MDRRMO / Call
+                                    <span class="dest-contact-val emergency"><a href="tel:911" style="color:#34d399; font-weight:800; text-decoration:none;">MDRRMO / Call
                                             911</a></span>
                                 </div>
                             </div>
@@ -408,7 +408,7 @@ if (is_dir($imgDir)) {
                             <div id="testimonies-summary-metrics" style="display:none;"></div>
                             <div id="testimonies-list-container" style="display:flex; flex-direction:column; gap:8px;">
                                 <div
-                                    style="font-size:12px; color:rgba(255,255,255,0.45); text-align:center; padding:12px 0;">
+                                    style="font-size:12.5px; color:#ffffff; opacity:0.95; font-weight:500; text-align:center; padding:12px 0;">
                                     No testimonies yet. Be the first to share!</div>
                             </div>
                         </div>
@@ -3628,12 +3628,12 @@ if (is_dir($imgDir)) {
 
                         list.innerHTML = html;
                     } else {
-                        list.innerHTML = '<div style="font-size:12px; color:rgba(255,255,255,0.4); text-align:center; padding:10px;">No testimonies yet. Be the first to share!</div>';
+                        list.innerHTML = '<div style="font-size:12.5px; color:#ffffff; opacity:0.95; font-weight:500; text-align:center; padding:12px 10px;">No testimonies yet. Be the first to share!</div>';
                     }
                 }
             } catch (e) {
                 console.error("Testimonies load error:", e);
-                list.innerHTML = '<div style="font-size:12px; color:rgba(255,255,255,0.4); text-align:center; padding:10px;">Failed to load reviews.</div>';
+                list.innerHTML = '<div style="font-size:12.5px; color:#ffffff; opacity:0.95; font-weight:500; text-align:center; padding:12px 10px;">Failed to load reviews.</div>';
             }
         }
 
