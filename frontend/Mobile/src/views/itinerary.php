@@ -18,22 +18,26 @@ $activeTab = 'itinerary';
     }
 
     .btn-route-type {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: rgba(255, 255, 255, 0.6);
+        background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+        border: none !important;
+        outline: none !important;
+        color: #ffffff;
         padding: 8px 16px;
         border-radius: 20px;
         font-size: 12px;
-        font-weight: 600;
+        font-weight: 700;
         cursor: pointer;
         transition: all 0.2s;
         white-space: nowrap;
+        box-shadow: none !important;
     }
 
     .btn-route-type.active {
-        background: rgba(56, 189, 248, 0.15);
-        border-color: rgba(56, 189, 248, 0.3);
-        color: #38bdf8;
+        background: linear-gradient(135deg, #00f2fe 0%, #0284c7 60%, #1e3a8a 100%) !important;
+        border: none !important;
+        outline: none !important;
+        color: #ffffff !important;
+        font-weight: 800;
     }
 
     .hide-scrollbar::-webkit-scrollbar {
@@ -103,7 +107,7 @@ $activeTab = 'itinerary';
 
         <!-- Map Route Stats -->
         <div
-            style="display:flex; justify-content:space-around; align-items:center; margin-top:12px; background:rgba(30,75,135,0.58); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border: none !important; outline: none !important; border-radius:16px; padding:14px; box-shadow:none;">
+            style="display:flex; justify-content:space-around; align-items:center; margin-top:12px; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border: none !important; outline: none !important; border-radius:18px; padding:14px; box-shadow:0 8px 24px rgba(10, 25, 60, 0.25);">
             <div style="color:white; font-size:14px; font-weight:700;">
                 <i class="fa-solid fa-route" style="color:#00f2fe; margin-right:6px; font-size:16px;"></i> <span
                     id="draft-map-dist">0 km</span>
@@ -704,7 +708,7 @@ $activeTab = 'itinerary';
                     <h3 class="starting-point-title">Your Current Location</h3>
                     <div class="starting-point-status" id="itinerary-starting-status">${startingStatus}</div>
                 </div>
-                <button type="button" onclick="event.stopPropagation(); window.routeToMyLocation();" style="background:rgba(255,255,255,0.18); border:1.5px solid rgba(255,255,255,0.35); color:#ffffff; font-size:11px; font-weight:800; padding:6px 12px; border-radius:100px; cursor:pointer; display:flex; align-items:center; gap:4px; flex-shrink:0;">
+                <button type="button" onclick="event.stopPropagation(); window.routeToMyLocation();" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:flex; align-items:center; gap:4px; flex-shrink:0;">
                     <i class="fa-solid fa-crosshairs"></i> Locate
                 </button>
             </div>
@@ -745,14 +749,14 @@ $activeTab = 'itinerary';
                 <div class="timeline-dot"></div>
                 <div class="swipe-container" style="position:relative; overflow:hidden; border-radius:20px; -webkit-mask-image:-webkit-radial-gradient(white, black); mask-image:radial-gradient(white, black); isolation:isolate; contain:paint;">
                     <div class="swipe-delete-bg" style="position:absolute; top:0; right:0; bottom:0; width:80px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 20px 20px 0; display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800; gap:4px; transform:translateX(100%); z-index:1; opacity:0; pointer-events:none; transition:transform 0.2s ease, opacity 0.2s ease;"><i class="fa-solid fa-trash-can"></i> Delete</div>
-                    <div class="swipe-content" style="position:relative; z-index:2; transition:transform 0.2s ease, border-radius 0.2s ease, border-color 0.2s ease; border-radius:20px; padding:16px;">
+                    <div class="swipe-content" style="position:relative; z-index:2; transition:transform 0.2s ease, border-radius 0.2s ease; border-radius:20px; padding:18px 20px; border:none !important; outline:none !important; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; box-shadow:0 8px 24px rgba(10, 25, 60, 0.25) !important;">
                         <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px;">
                             <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                                 <span class="time-label">Stop ${index + 1} &bull; Approx ${timeStr}</span>
                                 ${nextStopBadge}
                             </div>
                             <div style="display:flex; align-items:center; gap:6px;">
-                                <button type="button" onclick="event.stopPropagation(); window.removeItineraryItem('${place.id}');" title="Remove stop" style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.25); color:#ef4444; border-radius:8px; cursor:pointer; font-size:11px; padding:4px 8px; display:inline-flex; align-items:center; gap:3px;">
+                                <button type="button" onclick="event.stopPropagation(); window.removeItineraryItem('${place.id}');" title="Remove stop" style="background:rgba(239,68,68,0.15); border:none !important; outline:none !important; color:#ef4444; border-radius:8px; cursor:pointer; font-size:11px; padding:4px 8px; display:inline-flex; align-items:center; gap:3px;">
                                     <i class="fa-solid fa-trash-can" style="font-size:10px;"></i>
                                 </button>
                                 <i class="fa-solid fa-grip-vertical" style="color:rgba(148,163,184,0.4); font-size:14px; cursor:grab; touch-action:none;"></i>
@@ -769,7 +773,7 @@ $activeTab = 'itinerary';
                             </span>
                         </div>
                         ${nextStopEtaHtml}
-                        ${place.selected_vehicles && place.selected_vehicles.length > 0 ? `<div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:8px;">${place.selected_vehicles.map(v => `<span style="padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; background:rgba(56,189,248,0.1); color:#38bdf8; border:1px solid rgba(56,189,248,0.2);"><i class="fa-solid fa-car" style="margin-right:3px;font-size:9px;"></i>${v}</span>`).join('')}</div>` : ''}
+                        ${place.selected_vehicles && place.selected_vehicles.length > 0 ? `<div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:8px;">${place.selected_vehicles.map(v => `<span style="padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; background:rgba(56,189,248,0.15); color:#38bdf8; border:none !important; outline:none !important;"><i class="fa-solid fa-car" style="margin-right:3px;font-size:9px;"></i>${v}</span>`).join('')}</div>` : ''}
                     </div>
                 </div>
             </div>`;

@@ -28,7 +28,7 @@ body[data-view="itinerary"] .mobile-header {
     background: rgba(30, 58, 138, 0.88) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border-bottom: none !important;
     box-shadow: none !important;
 }
 
@@ -87,10 +87,9 @@ body[data-view="itinerary"] .mobile-header .header-icon {
 
 /* Route Mode Buttons */
 .btn-route-type {
-    background: rgba(30, 58, 138, 0.78) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    border: none !important;
+    outline: none !important;
     color: #ffffff !important;
     padding: 8px 18px !important;
     border-radius: 100px !important;
@@ -104,7 +103,8 @@ body[data-view="itinerary"] .mobile-header .header-icon {
 
 .btn-route-type.active {
     background: linear-gradient(135deg, #00f2fe 0%, #0284c7 60%, #1e3a8a 100%) !important;
-    border: 1.5px solid #ffffff !important;
+    border: none !important;
+    outline: none !important;
     color: #ffffff !important;
     font-weight: 800 !important;
     box-shadow: none !important;
@@ -113,16 +113,14 @@ body[data-view="itinerary"] .mobile-header .header-icon {
 /* Empty State Card Styling */
 #itinerary-empty-state,
 .itinerary-container .empty-state-card {
-    background: rgba(30, 75, 135, 0.58) !important;
-    backdrop-filter: blur(24px) !important;
-    -webkit-backdrop-filter: blur(24px) !important;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
     border: none !important;
     outline: none !important;
     border-radius: 26px !important;
     padding: 38px 24px !important;
     margin: 24px 0 !important;
     text-align: center !important;
-    box-shadow: none !important;
+    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -203,14 +201,15 @@ body[data-view="itinerary"] .mobile-header .header-icon {
 /* Save Draft Plan Button */
 #btn-save-itinerary {
     background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
-    color: #0f172a !important;
-    border: 1.5px solid #ffffff !important;
+    color: #ffffff !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 20px !important;
     padding: 16px 24px !important;
     font-weight: 900 !important;
     font-size: 15px !important;
     letter-spacing: 0.3px !important;
-    box-shadow: none !important;
+    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
     cursor: pointer !important;
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
     display: flex;
@@ -273,14 +272,13 @@ body[data-view="itinerary"] .mobile-header .header-icon {
 .swipe-content {
     position: relative !important;
     z-index: 2 !important;
-    background: rgba(30, 75, 135, 0.58) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
-    border-radius: 20px;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    border: none !important;
+    outline: none !important;
+    border-radius: 20px !important;
     padding: 18px 20px !important;
-    box-shadow: none !important;
-    transition: transform 0.2s ease, border-radius 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
+    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
+    transition: transform 0.2s ease, border-radius 0.2s ease, box-shadow 0.2s ease !important;
 }
 
 .swipe-content .time-label {
@@ -288,7 +286,8 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     font-weight: 800 !important;
     color: #ffffff !important;
     background: rgba(255, 255, 255, 0.18) !important;
-    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    border: none !important;
+    outline: none !important;
     padding: 4px 10px !important;
     border-radius: 100px !important;
     letter-spacing: 0.4px !important;
@@ -335,9 +334,10 @@ body[data-view="itinerary"] .mobile-header .header-icon {
 }
 
 #save-trip-modal > div {
-    background: linear-gradient(145deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%) !important;
-    border: 1px solid rgba(56, 189, 248, 0.35) !important;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 35px rgba(56, 189, 248, 0.2) !important;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 8px 24px rgba(10, 25, 60, 0.3) !important;
     color: #ffffff !important;
     border-radius: 26px !important;
 }
@@ -361,32 +361,33 @@ body[data-view="itinerary"] .mobile-header .header-icon {
 }
 
 .starting-point-card {
-    background: rgba(30, 75, 135, 0.58) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 20px !important;
     padding: 16px 18px !important;
-    box-shadow: none !important;
+    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     cursor: pointer;
-    transition: transform 0.2s ease, border-color 0.2s ease;
+    transition: transform 0.2s ease;
 }
 
 .starting-point-card:hover {
     transform: translateY(-2px);
-    border-color: #00f2fe !important;
+    border: none !important;
+    outline: none !important;
 }
 
 .starting-point-icon-box {
     width: 44px;
     height: 44px;
     border-radius: 14px;
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.3) 100%);
-    border: 1.5px solid rgba(245, 158, 11, 0.5);
+    background: rgba(245, 158, 11, 0.2) !important;
+    border: none !important;
+    outline: none !important;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -401,7 +402,9 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     width: 100%;
     height: 100%;
     border-radius: 14px;
-    border: 2px solid #f59e0b;
+    border: none !important;
+    outline: none !important;
+    background: rgba(245, 158, 11, 0.3);
     animation: gpsRadarPulse 2.5s infinite ease-out;
     pointer-events: none;
 }
@@ -459,16 +462,18 @@ body[data-view="itinerary"] .mobile-header .header-icon {
 
 /* Next Stop Card Special Highlighting */
 .timeline-item.is-next-stop .swipe-content {
-    border: 1.5px solid #00f2fe !important;
-    background: rgba(38, 85, 150, 0.72) !important;
-    box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
     position: relative;
 }
 
 /* Glowing NEXT STOP Badge */
 .badge-next-stop {
     background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
-    border: 1px solid #ffffff !important;
+    border: none !important;
+    outline: none !important;
     color: #ffffff !important;
     font-size: 10px !important;
     font-weight: 900 !important;
@@ -488,7 +493,8 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     align-items: center;
     gap: 6px;
     background: rgba(255, 255, 255, 0.16) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 100px;
     padding: 4px 12px;
     font-size: 11px;
@@ -581,7 +587,21 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     image-rendering: crisp-edges;
     transform: translate3d(0, 0, 0);
     will-change: transform;
-    mix-blend-mode: normal;
 }
 
+/* Universal container gradient & outline removal */
+.itinerary-container .starting-point-card,
+.itinerary-container .swipe-content,
+.itinerary-container .empty-state-card,
+.itinerary-container .timeline-item .swipe-content,
+.itinerary-container .timeline-item.is-next-stop .swipe-content {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
+}
 
+.itinerary-container .starting-point-card *,
+.itinerary-container .swipe-content * {
+    outline: none !important;
+}
