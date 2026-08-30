@@ -227,6 +227,34 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         user-select: none;
     }
 
+    .starting-leg-divider {
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 12px 0 10px !important;
+        height: 36px !important;
+    }
+
+    .starting-leg-icon-pill {
+        position: relative !important;
+        background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        outline: none !important;
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: 0 4px 14px rgba(0, 242, 254, 0.4) !important;
+        font-size: 11px !important;
+        z-index: 2 !important;
+        flex-shrink: 0 !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
     /* Redesigned Route Connector */
     .timeline-route-connector {
         display: flex !important;
@@ -1161,6 +1189,32 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 ? `<i class="fa-solid fa-circle-dot" style="color:#10b981; font-size:9px;"></i> Real-time GPS Locked`
                 : `<i class="fa-solid fa-spinner fa-spin" style="color:#f59e0b; font-size:9px;"></i> Acquiring GPS position...`;
 
+            let startingLegHtml = '';
+            if (draft.length > 0) {
+                const firstStop = draft[0];
+                const firstLat = firstStop.lat || firstStop.latitude;
+                const firstLng = firstStop.lng || firstStop.longitude;
+                const startEta = window.getDistanceAndETA(firstLat, firstLng);
+
+                const startLegText = startEta
+                    ? `${startEta.distanceText} to Stop 1 &bull; ~${startEta.durationText} drive`
+                    : `Route to Stop 1 &bull; ${firstStop.name}`;
+
+                startingLegHtml = `
+            <div class="stops-swap-divider starting-leg-divider">
+                <div class="stops-swap-line"></div>
+                <div class="stops-leg-wrapper" style="display:flex; align-items:center; gap:8px; z-index:3;">
+                    <div class="stops-leg-chip">
+                        <i class="fa-solid fa-car-side" style="color:#00f2fe; font-size:10px;"></i>
+                        <span>${startLegText}</span>
+                    </div>
+                    <div class="starting-leg-icon-pill" title="Start of Itinerary Route">
+                        <i class="fa-solid fa-arrow-down"></i>
+                    </div>
+                </div>
+            </div>`;
+            }
+
             html += `
         <div class="starting-point-item stagger-1" onclick="window.routeToMyLocation()">
             <div class="starting-point-card" style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border:none !important; outline:none !important; border-radius:22px !important; padding:16px 18px !important; box-shadow:0 8px 24px rgba(10,25,60,0.28) !important; display:flex; align-items:center; justify-content:space-between; gap:14px; cursor:pointer;">
@@ -1179,15 +1233,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     <i class="fa-solid fa-location-arrow" style="font-size:11px;"></i> Locate
                 </button>
             </div>
-            <div class="timeline-route-connector">
-                <div class="route-connector-track">
-                    <div class="route-connector-line"></div>
-                    <div class="route-connector-node">
-                        <i class="fa-solid fa-chevron-down"></i>
-                    </div>
-                    <div class="route-connector-line"></div>
-                </div>
-            </div>
+            ${startingLegHtml}
         </div>`;
 
             if (draft.length > 0) {
