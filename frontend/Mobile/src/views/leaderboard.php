@@ -175,7 +175,9 @@ $activeTab = 'leaderboard';
 
 <script>
     var currentSortMode = 'xp';
-    var renderLeaderboardUI = function () { };
+    var rawLeadersList = [];
+    var cachedMeData = null;
+    var cachedMyRank = 999;
 
     function setLeaderboardSort(mode) {
         if (currentSortMode === mode && arguments[1] !== true) return;
@@ -199,58 +201,8 @@ $activeTab = 'leaderboard';
     }
     window.setLeaderboardSort = setLeaderboardSort;
 
-    (async function () {
-        const podiumContainer = document.getElementById('podium-container');
-        const rankListContainer = document.getElementById('rank-list-container');
-        let rawLeadersList = [];
-        let cachedMeData = null;
-        let cachedMyRank = 999;
-
-        try {
-            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-            const headers = { 'Accept': 'application/json' };
-
-            var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
-            let url = backendUrl + '/api/public/leaderboard';
-            if (token) {
-                headers['Authorization'] = 'Bearer ' + token;
-                url = backendUrl + '/api/tourist/leaderboard';
-            }
-
-            const cacheKey = 'leaderboard_data_v13_' + (token ? token.substring(0, 10) : 'public');
-            const fetchCache = window.useCache || (async (key, fetcher, renderer) => { const d = await fetcher(); if (renderer) renderer(d); return d; });
-
-            await fetchCache(
-                cacheKey,
-                async () => {
-                    let res = await fetch(url, { headers: { ...headers } });
-                    if (res.status === 401 && token) {
-                        localStorage.removeItem('intan_elyu_token');
-                        localStorage.removeItem('Intan_Elyu_Token');
-                        res = await fetch(backendUrl + '/api/public/leaderboard', { headers: { 'Accept': 'application/json' } });
-                    }
-                    if (!res.ok) throw new Error("Failed to fetch leaderboard");
-                    return await res.json();
-                },
-                (data) => {
-                    if (!data) return;
-                    rawLeadersList = data.users || data.leaders || [];
-                    cachedMeData = data.me || null;
-                    cachedMyRank = data.my_rank || 999;
-                    renderLeaderboardUI();
-                },
-                Boolean(window.leaderboardNeedsRefresh),
-                60000 // 1 minute TTL
-            );
-            window.leaderboardNeedsRefresh = false;
-
-        } catch (e) {
-            console.error("Leaderboard error:", e);
-            if (podiumContainer) podiumContainer.innerHTML = "<div style='color:rgba(239,68,68,0.8); text-align:center; width:100%; padding:20px; font-size:14px;'>Failed to load leaderboard.</div>";
-        }
-
-        renderLeaderboardUI = function () {
-            if (!rawLeadersList) return;
+    function renderLeaderboardUI() {
+        if (!rawLeadersList) return;
 
             // Filter out users with no points, no visited, or no XP based on active sort mode
             let leaders = (rawLeadersList || []).filter(u => {
@@ -590,5 +542,76 @@ $activeTab = 'leaderboard';
         window.closeUserProfile = function () {
             document.getElementById('user-profile-modal').classList.remove('active');
         };
-    })();
-</script>
+
+        window.initLeaderboardView = async function () {
+            const podiumContainer = document.getElementById('podium-container');
+            const rankListContainer = document.getElementById('rank-list-container');
+
+            // 1. If we already have leaders in memory, render immediately!
+            if (rawLeadersList && rawLeadersList.length > 0) {
+                renderLeaderboardUI();
+            }
+
+            try {
+                const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                const headers = { 'Accept': 'application/json' };
+
+                var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+                let url = backendUrl + '/api/public/leaderboard';
+                if (token) {
+                    headers['Authorization'] = 'Bearer ' + token;
+                    url = backendUrl + '/api/tourist/leaderboard';
+                }
+
+                const cacheKey = 'leaderboard_data_v13_' + (token ? token.substring(0, 10) : 'public');
+                const fetchCache = window.useCache || (async (key, fetcher, renderer) => { const d = await fetcher(); if (renderer) renderer(d); return d; });
+
+                await fetchCache(
+                    cacheKey,
+                    async () => {
+                        let res = await fetch(url, { headers: { ...headers } });
+                        if (res.status === 401 && token) {
+                            localStorage.removeItem('intan_elyu_token');
+                            localStorage.removeItem('Intan_Elyu_Token');
+                            res = await fetch(backendUrl + '/api/public/leaderboard', { headers: { 'Accept': 'application/json' } });
+                        }
+                        if (!res.ok) throw new Error("Failed to fetch leaderboard");
+                        return await res.json();
+                    },
+                    (data) => {
+                        if (!data) return;
+                        rawLeadersList = data.users || data.leaders || [];
+                        cachedMeData = data.me || null;
+                        cachedMyRank = data.my_rank || 999;
+                        renderLeaderboardUI();
+                    },
+                    Boolean(window.leaderboardNeedsRefresh),
+                    60000 // 1 minute TTL
+                );
+                window.leaderboardNeedsRefresh = false;
+
+                // 2. Re-render after fetch to ensure latest data is displayed
+                if (rawLeadersList && rawLeadersList.length > 0) {
+                    renderLeaderboardUI();
+                }
+
+            } catch (e) {
+                console.error("Leaderboard error:", e);
+                if (podiumContainer && (!rawLeadersList || rawLeadersList.length === 0)) {
+                    podiumContainer.innerHTML = "<div style='color:rgba(239,68,68,0.8); text-align:center; width:100%; padding:20px; font-size:14px;'>Failed to load leaderboard.</div>";
+                }
+            }
+        };
+
+        // Initialize immediately
+        window.initLeaderboardView();
+
+        // Also listen for SPA viewLoaded event when navigating back to leaderboard
+        document.addEventListener('viewLoaded', function (e) {
+            if (e.detail && e.detail.view === 'leaderboard') {
+                if (typeof window.initLeaderboardView === 'function') {
+                    window.initLeaderboardView();
+                }
+            }
+        });
+    </script>
