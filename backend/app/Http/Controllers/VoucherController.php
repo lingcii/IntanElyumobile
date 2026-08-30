@@ -48,6 +48,35 @@ class VoucherController extends Controller
                     $badge = $v->discount_type === 'percentage' ? $v->discount_value . '% OFF' : '₱' . $v->discount_value . ' OFF';
                 }
 
+                // Resolve image to Cloudflare R2 URL
+                $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
+                $imageUrl = null;
+                if (!empty($v->image)) {
+                    if (str_starts_with($v->image, 'http://') || str_starts_with($v->image, 'https://')) {
+                        $imageUrl = $v->image;
+                    } else {
+                        $imageUrl = $r2PublicUrl . '/' . ltrim($v->image, '/');
+                    }
+                } else {
+                    $muniName = $v->municipality ? $v->municipality->name : null;
+                    if (!$muniName) {
+                        $partnerLower = strtolower($v->partner_establishment ?? '');
+                        $muniList = ['san fernando', 'san gabriel', 'san juan', 'santo tomas', 'agoo', 'aringay', 'bacnotan', 'bagulin', 'balaoan', 'bangar', 'bauang', 'burgos', 'caba', 'luna', 'naguilian', 'pugo', 'rosario', 'santol', 'sudipen', 'tubao'];
+                        foreach ($muniList as $m) {
+                            if (str_contains($partnerLower, $m)) {
+                                $muniName = strtoupper(str_replace(' ', '-', $m));
+                                break;
+                            }
+                        }
+                    }
+                    if ($muniName) {
+                        $slug = strtoupper(str_replace(' ', '-', trim($muniName)));
+                        $imageUrl = $r2PublicUrl . '/logo/' . $slug . '.png';
+                    } else {
+                        $imageUrl = $r2PublicUrl . '/logo/LUPTO.png';
+                    }
+                }
+
                 return [
                     'id' => $v->id,
                     'title' => $v->voucher_name,
@@ -59,7 +88,7 @@ class VoucherController extends Controller
                     'code' => $v->voucher_code,
                     'expires' => $v->expires_at ? $v->expires_at->format('Y-m-d') : '2026-12-31',
                     'description' => $v->description ?: $v->terms_and_conditions ?: 'Present voucher code at merchant checkout.',
-                    'image' => $v->image,
+                    'image' => $imageUrl,
                     'available_quantity' => $v->available_quantity,
                     'remaining_quantity' => $v->remaining_quantity,
                 ];
