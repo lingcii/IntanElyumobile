@@ -43,7 +43,8 @@ $activeTab = 'leaderboard';
     </div>
 
     <!-- Sort Filter Tabs -->
-    <div class="leaderboard-tabs-wrapper stagger-1">
+    <div class="leaderboard-tabs-wrapper mode-xp stagger-1">
+        <div class="leaderboard-tab-glider" id="tab-glider"></div>
         <button class="leaderboard-tab-btn active" id="tab-sort-xp" onclick="setLeaderboardSort('xp')">
             <i class="fa-solid fa-bolt" style="color:#fbbf24;"></i> Top XP
         </button>
@@ -369,7 +370,14 @@ $activeTab = 'leaderboard';
 
         window.setLeaderboardSort = function (mode) {
             if (currentSortMode === mode) return;
+            const prevMode = currentSortMode;
             currentSortMode = mode;
+
+            const tabsWrapper = document.querySelector('.leaderboard-tabs-wrapper');
+            if (tabsWrapper) {
+                tabsWrapper.classList.remove('mode-xp', 'mode-points', 'mode-visited');
+                tabsWrapper.classList.add(`mode-${mode}`);
+            }
 
             const tabXp = document.getElementById('tab-sort-xp');
             const tabPoints = document.getElementById('tab-sort-points');
@@ -378,6 +386,24 @@ $activeTab = 'leaderboard';
             if (tabXp) tabXp.classList.toggle('active', mode === 'xp');
             if (tabPoints) tabPoints.classList.toggle('active', mode === 'points');
             if (tabVisited) tabVisited.classList.toggle('active', mode === 'visited');
+
+            const podiumContainer = document.getElementById('podium-container');
+            const rankListWrapper = document.getElementById('rank-list-wrapper');
+
+            const modeOrder = { 'xp': 0, 'points': 1, 'visited': 2 };
+            const isRight = (modeOrder[mode] ?? 0) > (modeOrder[prevMode] ?? 0);
+            const slideClass = isRight ? 'tab-slide-left' : 'tab-slide-right';
+
+            if (podiumContainer) {
+                podiumContainer.classList.remove('tab-slide-left', 'tab-slide-right');
+                void podiumContainer.offsetWidth;
+                podiumContainer.classList.add(slideClass);
+            }
+            if (rankListWrapper) {
+                rankListWrapper.classList.remove('tab-slide-left', 'tab-slide-right');
+                void rankListWrapper.offsetWidth;
+                rankListWrapper.classList.add(slideClass);
+            }
 
             renderLeaderboardUI();
         };
