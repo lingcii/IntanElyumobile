@@ -1,8 +1,24 @@
-<!-- Itinerary View -->
 <?php
 $pageTitle = 'My Itinerary';
 $activeTab = 'itinerary';
+
+// Load spots map with R2 photo_urls for instant client-side thumbnail lookup
+$spotsPhotoMap = [];
+try {
+    if (class_exists('App\Models\TouristSpot')) {
+        $spotsWithPhotos = App\Models\TouristSpot::whereNotNull('photo_url')->where('photo_url', '!=', '')->get(['id', 'name', 'photo_url']);
+        foreach ($spotsWithPhotos as $sp) {
+            $spotsPhotoMap[$sp->id] = [
+                'photo_url' => $sp->photo_url,
+                'name' => $sp->name
+            ];
+        }
+    }
+} catch (\Throwable $e) {}
 ?>
+<script>
+window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
+</script>
 
 
 
@@ -169,6 +185,45 @@ $activeTab = 'itinerary';
         width: 100% !important;
         box-sizing: border-box !important;
         will-change: transform;
+    }
+
+    .stop-thumbnail-wrapper {
+        width: 72px;
+        height: 72px;
+        border-radius: 16px !important;
+        overflow: hidden !important;
+        flex-shrink: 0 !important;
+        position: relative !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+        background: rgba(15, 23, 42, 0.45) !important;
+        border: none !important;
+        outline: none !important;
+    }
+
+    .stop-thumbnail-wrapper img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        display: block !important;
+        transition: transform 0.3s ease !important;
+    }
+
+    .stops-leg-chip {
+        background: rgba(15, 23, 42, 0.88) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        border-radius: 100px !important;
+        padding: 5px 13px !important;
+        font-size: 11px !important;
+        font-weight: 700 !important;
+        color: rgba(255, 255, 255, 0.95) !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3) !important;
+        border: none !important;
+        outline: none !important;
+        user-select: none;
     }
 
     .hide-scrollbar {
@@ -723,6 +778,80 @@ $activeTab = 'itinerary';
             };
         };
 
+        // Helper to calculate travel distance and time between two consecutive itinerary stops
+        window.calculateLegETA = function (lat1, lon1, lat2, lon2) {
+            if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+            const l1 = parseFloat(lat1), o1 = parseFloat(lon1);
+            const l2 = parseFloat(lat2), o2 = parseFloat(lon2);
+            if (isNaN(l1) || isNaN(o1) || isNaN(l2) || isNaN(o2)) return null;
+
+            const p = 0.017453292519943295;
+            const c = Math.cos;
+            const a = 0.5 - c((l2 - l1) * p) / 2 + c(l1 * p) * c(l2 * p) * (1 - c((o2 - o1) * p)) / 2;
+            const distKm = 12742 * Math.asin(Math.sqrt(a));
+
+            let durationMin = Math.round((distKm / 30) * 60);
+            if (durationMin < 1) durationMin = 1;
+
+            return {
+                distanceKm: distKm,
+                distanceText: distKm < 1 ? Math.round(distKm * 1000) + ' m' : distKm.toFixed(1) + ' km',
+                durationMin: durationMin,
+                durationText: durationMin >= 60 ? `${Math.floor(durationMin / 60)}h ${durationMin % 60}m` : `${durationMin} mins`
+            };
+        };
+
+        // Helper to resolve destination thumbnail URL on Cloudflare R2
+        window.getSpotR2Thumbnail = function (place) {
+            const r2Base = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev';
+            const defaultR2 = `${r2Base}/tourist_spots/spot_6a686f4d0f48b.jpg`;
+
+            if (!place) return defaultR2;
+
+            // 1. Direct R2 URL
+            const url = place.photo_url || place.image || place.avatar || '';
+            if (typeof url === 'string' && url.includes('r2.dev')) {
+                return url;
+            }
+
+            // 2. Extract spot_xxx from serve-image or storage path
+            const spotMatch = String(url).match(/(spot_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+            if (spotMatch && spotMatch[1]) {
+                return `${r2Base}/tourist_spots/${spotMatch[1]}`;
+            }
+
+            // 3. Normalized spot name match for prominent destinations on Cloudflare R2
+            const nameNorm = (place.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (nameNorm.includes('bacnotanwatchtower')) {
+                return `${r2Base}/tourist_spots/spot_bacnotan_watchtower.jpg`;
+            }
+            if (nameNorm.includes('barorobattlemarker')) {
+                return `${r2Base}/tourist_spots/spot_baroro_battle_marker.jpg`;
+            }
+
+            // 4. If window.SPOTS_R2_MAP is available
+            if (window.SPOTS_R2_MAP && place.id && window.SPOTS_R2_MAP[place.id]) {
+                const mapSpot = window.SPOTS_R2_MAP[place.id];
+                if (mapSpot.photo_url && mapSpot.photo_url.includes('r2.dev')) {
+                    return mapSpot.photo_url;
+                }
+            }
+
+            // 5. Fallback to main.js getDestImage if it resolves to R2
+            if (typeof window.getDestImage === 'function') {
+                const resolved = window.getDestImage(place, 300);
+                if (resolved && resolved.includes('r2.dev')) {
+                    return resolved;
+                }
+                const resolvedMatch = String(resolved).match(/(spot_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+                if (resolvedMatch && resolvedMatch[1]) {
+                    return `${r2Base}/tourist_spots/${resolvedMatch[1]}`;
+                }
+            }
+
+            return defaultR2;
+        };
+
         // ---- Custom confirm modal (replaces native confirm) ----
         window.showConfirmModal = function (msg) {
             // Prevent stacking multiple confirm modals
@@ -1005,40 +1134,64 @@ $activeTab = 'itinerary';
                     }
 
                     if (index > 0) {
+                        const prevPlace = draft[index - 1];
+                        const prevLat = prevPlace.lat || prevPlace.latitude;
+                        const prevLng = prevPlace.lng || prevPlace.longitude;
+                        const curLat = place.lat || place.latitude;
+                        const curLng = place.lng || place.longitude;
+                        const legEta = window.calculateLegETA(prevLat, prevLng, curLat, curLng);
+
                         html += `
                         <div class="stops-swap-divider">
                             <div class="stops-swap-line"></div>
-                            <button type="button" class="btn-swap-pill" onclick="event.stopPropagation(); window.swapDraftStops(${index - 1}, ${index});" title="Swap Stop ${index} and Stop ${index + 1}" aria-label="Swap order">
-                                <i class="fa-solid fa-arrows-up-down"></i>
-                            </button>
+                            <div class="stops-leg-wrapper" style="display:flex; align-items:center; gap:8px; z-index:3;">
+                                ${legEta ? `
+                                <div class="stops-leg-chip">
+                                    <i class="fa-solid fa-car-side" style="color:#00f2fe; font-size:10px;"></i>
+                                    <span>${legEta.distanceText} &bull; ~${legEta.durationText} drive</span>
+                                </div>` : ''}
+                                <button type="button" class="btn-swap-pill" onclick="event.stopPropagation(); window.swapDraftStops(${index - 1}, ${index});" title="Swap Stop ${index} and Stop ${index + 1}" aria-label="Swap order">
+                                    <i class="fa-solid fa-arrows-up-down"></i>
+                                </button>
+                            </div>
                         </div>`;
                     }
 
                     const placeKey = String(place.id || ('place_' + (place.name || index)));
+                    const r2ThumbUrl = window.getSpotR2Thumbnail(place);
+
                     html += `
                 <div class="timeline-item ${isNextStop ? 'is-next-stop' : ''}" draggable="true" data-index="${index}" data-id="${place.id}" data-key="${placeKey}" style="animation-delay: ${(index + 1) * 0.08}s">
                     <div class="timeline-dot"></div>
                     <div class="swipe-container" style="position:relative; overflow:hidden; border-radius:20px !important; transform:translate3d(0,0,0); -webkit-transform:translate3d(0,0,0); -webkit-backface-visibility:hidden; backface-visibility:hidden; -webkit-mask-image:-webkit-radial-gradient(white, black); mask-image:radial-gradient(white, black);">
                         <div class="swipe-delete-bg" style="position:absolute; top:0; right:0; bottom:0; width:80px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 20px 20px 0 !important; display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800; gap:4px; transform:translateX(100%); z-index:1; opacity:0; pointer-events:none; transition:transform 0.2s ease, opacity 0.2s ease;"><i class="fa-solid fa-trash-can"></i> Delete</div>
-                        <div class="swipe-content" style="position:relative; z-index:2; transition:transform 0.2s ease; border-radius:20px !important; padding:18px 20px; border:none !important; outline:none !important; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; box-shadow:0 6px 20px rgba(10, 25, 60, 0.25) !important;">
-                            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px;">
+                        <div class="swipe-content" style="position:relative; z-index:2; transition:transform 0.2s ease; border-radius:20px !important; padding:16px 18px; border:none !important; outline:none !important; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; box-shadow:0 6px 20px rgba(10, 25, 60, 0.25) !important;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;">
                                 <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                                     <span class="time-label" style="border:none !important; outline:none !important; box-shadow:none !important;">Stop ${index + 1} &bull; Approx ${timeStr}</span>
                                     ${nextStopBadge}
                                 </div>
                                 <div style="display:flex; align-items:center; gap:6px;">
-                                    <i class="fa-solid fa-grip-vertical" style="color:rgba(255,255,255,0.45); font-size:16px; cursor:grab; touch-action:none; padding:4px;"></i>
+                                    <i class="fa-solid fa-grip-vertical" style="color:rgba(255,255,255,0.45); font-size:16px; cursor:grab; touch-action:none; padding:4px;" title="Drag to reorder"></i>
                                 </div>
                             </div>
-                            <h3 class="place-name">${place.name}</h3>
-                            <p style="font-size:12.5px; color:#ffffff; opacity:0.95; font-weight:500; margin: 4px 0 8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.4;">
-                                ${place.description && place.description !== 'null' ? place.description : (place.category && place.category !== 'null' ? place.category : 'A beautiful destination to explore in La Union.')}
-                            </p>
-                            <div class="place-details">
-                                <i class="fa-solid fa-location-dot"></i>
-                                <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                    ${place.location && place.location !== 'null' ? place.location : (place.address && place.address !== 'null' ? place.address : (place.municipality ? place.municipality + ', La Union' : 'San Fernando, La Union'))}
-                                </span>
+                            <div style="display:flex; gap:14px; align-items:flex-start;">
+                                <div class="stop-thumbnail-wrapper">
+                                    <img src="${r2ThumbUrl}" alt="${place.name}" loading="lazy" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a686f4d0f48b.jpg';">
+                                </div>
+                                <div style="flex:1; min-width:0;">
+                                    <h3 class="place-name" style="margin:0 0 3px 0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px; line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${place.name}</h3>
+                                    <div style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; margin-bottom:4px; display:flex; align-items:center; gap:5px;">
+                                        <i class="fa-solid fa-tag" style="color:#38bdf8; font-size:10px;"></i>
+                                        <span>${place.category && place.category !== 'null' ? place.category : 'Tourist Destination'}</span>
+                                    </div>
+                                    <div class="place-details" style="font-size:12px; color:rgba(255,255,255,0.75); display:flex; align-items:center; gap:5px;">
+                                        <i class="fa-solid fa-location-dot" style="color:#00f2fe; font-size:11px; flex-shrink:0;"></i>
+                                        <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                            ${place.location && place.location !== 'null' ? place.location : (place.address && place.address !== 'null' ? place.address : (place.municipality ? place.municipality + ', La Union' : 'San Fernando, La Union'))}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                             ${nextStopEtaHtml}
                             ${place.selected_vehicles && place.selected_vehicles.length > 0 ? `<div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:8px;">${place.selected_vehicles.map(v => `<span style="padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; background:rgba(56,189,248,0.15); color:#38bdf8; border:none !important; outline:none !important;"><i class="fa-solid fa-car" style="margin-right:3px;font-size:9px;"></i>${v}</span>`).join('')}</div>` : ''}
