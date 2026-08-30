@@ -437,8 +437,8 @@ if (is_dir($imgDir)) {
     style="position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.3s ease; background:rgba(10,25,60,0.6); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);">
     <div
         style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:24px; padding:32px 28px 24px; margin:0 24px; width:100%; max-width:320px; text-align:center; box-shadow:0 20px 60px rgba(10,25,60,0.5); transform:scale(0.85); transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);">
-        <div
-            style="width:68px; height:68px; border-radius:50%; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+        <div id="itin-add-confirm-icon-wrap"
+            style="width:68px; height:68px; border-radius:50%; background:rgba(16,185,129,0.28); border:2.5px solid #34d399 !important; box-shadow:0 0 20px rgba(16,185,129,0.45), inset 0 1px 1px rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
             <i class="fa-solid fa-check" style="font-size:30px; color:#ffffff;"></i>
         </div>
         <h3 style="margin:0 0 6px; font-size:20px; font-weight:800; color:#ffffff; letter-spacing:-0.3px;">Added to
@@ -3413,13 +3413,12 @@ if (is_dir($imgDir)) {
                 const confirmName = document.getElementById('itin-add-confirm-name');
                 if (confirmName) confirmName.textContent = dest.name;
                 const titleEl = document.querySelector('#itin-add-confirm h3');
-                const iconWrap = document.querySelector('#itin-add-confirm div > div');
+                const iconWrap = document.getElementById('itin-add-confirm-icon-wrap') || document.querySelector('#itin-add-confirm div > div');
                 const btnView = document.querySelector('#itin-add-confirm button[onclick*="viewItinerary"]');
                 if (titleEl) titleEl.textContent = 'Added to Itinerary!';
                 if (iconWrap) {
-                    iconWrap.innerHTML = '<i class="fa-solid fa-check" style="font-size:30px; color:#34c759;"></i>';
-                    iconWrap.style.borderColor = 'rgba(52,199,89,0.25)';
-                    iconWrap.style.background = 'rgba(52,199,89,0.12)';
+                    iconWrap.innerHTML = '<i class="fa-solid fa-check" style="font-size:30px; color:#ffffff;"></i>';
+                    iconWrap.style.cssText = 'width:68px; height:68px; border-radius:50%; background:rgba(16,185,129,0.28); border:2.5px solid #34d399 !important; box-shadow:0 0 20px rgba(16,185,129,0.45), inset 0 1px 1px rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;';
                 }
                 if (btnView) btnView.style.display = '';
             } else {
@@ -3427,13 +3426,12 @@ if (is_dir($imgDir)) {
                 const confirmName = document.getElementById('itin-add-confirm-name');
                 if (confirmName) confirmName.textContent = dest.name + ' is already added to itinerary.';
                 const titleEl = document.querySelector('#itin-add-confirm h3');
-                const iconWrap = document.querySelector('#itin-add-confirm div > div');
+                const iconWrap = document.getElementById('itin-add-confirm-icon-wrap') || document.querySelector('#itin-add-confirm div > div');
                 const btnView = document.querySelector('#itin-add-confirm button[onclick*="viewItinerary"]');
                 if (titleEl) titleEl.textContent = 'Already in Itinerary';
                 if (iconWrap) {
-                    iconWrap.innerHTML = '<i class="fa-solid fa-bookmark" style="font-size:30px; color:#f59e0b;"></i>';
-                    iconWrap.style.borderColor = 'rgba(245,158,11,0.25)';
-                    iconWrap.style.background = 'rgba(245,158,11,0.12)';
+                    iconWrap.innerHTML = '<i class="fa-solid fa-bookmark" style="font-size:30px; color:#fbbf24;"></i>';
+                    iconWrap.style.cssText = 'width:68px; height:68px; border-radius:50%; background:rgba(245,158,11,0.28); border:2.5px solid #fbbf24 !important; box-shadow:0 0 20px rgba(245,158,11,0.45), inset 0 1px 1px rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;';
                 }
                 if (btnView) btnView.style.display = 'none';
             }
