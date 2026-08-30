@@ -70,6 +70,36 @@ if ($isAjax) {
 <html lang="en">
 
 <head>
+    <!-- Early Console Error Shield for DevTools / Web-Vitals Extensions -->
+    <script>
+        (function () {
+            function shouldSuppress(err) {
+                if (!err) return false;
+                var str = typeof err === 'string' ? err : (err.message || err.stack || String(err));
+                return str.indexOf('startTime') !== -1 || str.indexOf('reportAllChanges') !== -1;
+            }
+            window.addEventListener('error', function (e) {
+                if (shouldSuppress(e.message) || shouldSuppress(e.error)) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    return true;
+                }
+            }, true);
+            window.addEventListener('unhandledrejection', function (e) {
+                if (shouldSuppress(e.reason)) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    return true;
+                }
+            }, true);
+            var prevOnError = window.onerror;
+            window.onerror = function (msg, url, line, col, err) {
+                if (shouldSuppress(msg) || shouldSuppress(err)) return true;
+                if (typeof prevOnError === 'function') return prevOnError.apply(this, arguments);
+                return false;
+            };
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
