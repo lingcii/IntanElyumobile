@@ -438,8 +438,8 @@ if (is_dir($imgDir)) {
     <div
         style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:24px; padding:32px 28px 24px; margin:0 24px; width:100%; max-width:320px; text-align:center; box-shadow:0 20px 60px rgba(10,25,60,0.5); transform:scale(0.85); transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);">
         <div id="itin-add-confirm-icon-wrap"
-            style="width:68px; height:68px; border-radius:50%; background:rgba(16,185,129,0.28); border:2.5px solid #34d399 !important; box-shadow:0 0 20px rgba(16,185,129,0.45), inset 0 1px 1px rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
-            <i class="fa-solid fa-check" style="font-size:30px; color:#ffffff;"></i>
+            style="width:68px; height:68px; border-radius:50%; background:linear-gradient(135deg, #34d399 0%, #10b981 100%); border:3px solid rgba(255,255,255,0.4) !important; box-shadow:0 8px 24px rgba(16,185,129,0.5), 0 0 20px rgba(52,211,153,0.45); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+            <i class="fa-solid fa-check" style="font-size:32px; color:#ffffff;"></i>
         </div>
         <h3 style="margin:0 0 6px; font-size:20px; font-weight:800; color:#ffffff; letter-spacing:-0.3px;">Added to
             Itinerary!</h3>
@@ -3419,8 +3419,8 @@ if (is_dir($imgDir)) {
                 const btnView = document.querySelector('#itin-add-confirm button[onclick*="viewItinerary"]');
                 if (titleEl) titleEl.textContent = 'Added to Itinerary!';
                 if (iconWrap) {
-                    iconWrap.innerHTML = '<i class="fa-solid fa-check" style="font-size:30px; color:#ffffff;"></i>';
-                    iconWrap.style.cssText = 'width:68px; height:68px; border-radius:50%; background:rgba(16,185,129,0.28); border:2.5px solid #34d399 !important; box-shadow:0 0 20px rgba(16,185,129,0.45), inset 0 1px 1px rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;';
+                    iconWrap.innerHTML = '<i class="fa-solid fa-check" style="font-size:32px; color:#ffffff;"></i>';
+                    iconWrap.style.cssText = 'width:68px; height:68px; border-radius:50%; background:linear-gradient(135deg, #34d399 0%, #10b981 100%); border:3px solid rgba(255,255,255,0.4) !important; box-shadow:0 8px 24px rgba(16,185,129,0.5), 0 0 20px rgba(52,211,153,0.45); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;';
                 }
                 if (btnView) btnView.style.display = '';
             } else {
@@ -3432,8 +3432,8 @@ if (is_dir($imgDir)) {
                 const btnView = document.querySelector('#itin-add-confirm button[onclick*="viewItinerary"]');
                 if (titleEl) titleEl.textContent = 'Already in Itinerary';
                 if (iconWrap) {
-                    iconWrap.innerHTML = '<i class="fa-solid fa-bookmark" style="font-size:30px; color:#fbbf24;"></i>';
-                    iconWrap.style.cssText = 'width:68px; height:68px; border-radius:50%; background:rgba(245,158,11,0.28); border:2.5px solid #fbbf24 !important; box-shadow:0 0 20px rgba(245,158,11,0.45), inset 0 1px 1px rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;';
+                    iconWrap.innerHTML = '<i class="fa-solid fa-bookmark" style="font-size:30px; color:#ffffff;"></i>';
+                    iconWrap.style.cssText = 'width:68px; height:68px; border-radius:50%; background:linear-gradient(135deg, #fbbf24 0%, #d97706 100%); border:3px solid rgba(255,255,255,0.4) !important; box-shadow:0 8px 24px rgba(245,158,11,0.5), 0 0 20px rgba(251,191,36,0.45); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;';
                 }
                 if (btnView) btnView.style.display = 'none';
             }
