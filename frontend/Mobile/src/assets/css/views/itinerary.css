@@ -409,13 +409,34 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     pointer-events: none;
 }
 
-.btn-locate-me {
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
+.starting-point-locate-btn {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: unset !important;
+    max-width: unset !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 8px 16px !important;
+    border-radius: 100px !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 4px 14px rgba(0, 242, 254, 0.35) !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    user-select: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    transition: transform 0.15s ease !important;
 }
 
-.btn-locate-me:active {
-    transform: scale(0.95) !important;
+.starting-point-locate-btn:active {
+    transform: scale(0.94) !important;
 }
 
 @keyframes gpsRadarPulse {

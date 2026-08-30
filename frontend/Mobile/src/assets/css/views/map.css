@@ -1065,11 +1065,11 @@ body[data-view="map"] #main-content {
     background: rgba(56, 189, 248, 0.24);
 }
 
-/* ── Map Control Buttons ── */
-.btn-locate-me,
-.btn-nearby-sites,
-.btn-layer-toggle,
-.btn-3d-view {
+/* ── Map Control Buttons (Scoped to Map View) ── */
+body[data-view="map"] .btn-locate-me,
+body[data-view="map"] .btn-nearby-sites,
+body[data-view="map"] .btn-layer-toggle,
+body[data-view="map"] .btn-3d-view {
     background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
@@ -1084,21 +1084,21 @@ body[data-view="map"] #main-content {
 }
 
 /* ── Hide floating map buttons when virtual keyboard is open ── */
-body.keyboard-open .btn-locate-me,
-body.keyboard-open .btn-nearby-sites,
-body.keyboard-open .btn-layer-toggle,
-body.keyboard-open .btn-3d-view,
-html.keyboard-open .btn-locate-me,
-html.keyboard-open .btn-nearby-sites,
-html.keyboard-open .btn-layer-toggle,
-html.keyboard-open .btn-3d-view {
+body[data-view="map"].keyboard-open .btn-locate-me,
+body[data-view="map"].keyboard-open .btn-nearby-sites,
+body[data-view="map"].keyboard-open .btn-layer-toggle,
+body[data-view="map"].keyboard-open .btn-3d-view,
+html.keyboard-open body[data-view="map"] .btn-locate-me,
+html.keyboard-open body[data-view="map"] .btn-nearby-sites,
+html.keyboard-open body[data-view="map"] .btn-layer-toggle,
+html.keyboard-open body[data-view="map"] .btn-3d-view {
     opacity: 0 !important;
     pointer-events: none !important;
     visibility: hidden !important;
     transform: scale(0.7) !important;
 }
 
-.btn-locate-me {
+body[data-view="map"] .btn-locate-me {
     position: absolute;
     bottom: calc(115px + env(safe-area-inset-bottom));
     right: 10px !important;
