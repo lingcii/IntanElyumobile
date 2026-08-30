@@ -90,7 +90,7 @@ $backRoute = 'dashboard';
     <div class="settings-group-title stagger-2">Account Security</div>
     <div class="settings-card stagger-2">
 
-        <div class="settings-row clickable" onclick="navigateTo('edit_profile')">
+        <div class="settings-row clickable" onclick="window.scrollTo(0, 0); navigateTo('edit_profile')">
             <div class="settings-label-group">
                 <div class="settings-icon-box blue"><i class="fa-solid fa-user-gear"></i></div> 
                 <div>
