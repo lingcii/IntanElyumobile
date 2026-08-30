@@ -585,14 +585,14 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
         <label style="font-size:13px; color:#ffffff; margin-bottom:8px; display:block; font-weight:700;">Transport Type</label>
         <div id="transport-toggle-track"
-            style="position:relative; display:flex; gap:0; margin-bottom:16px; background:rgba(0,0,0,0.25); padding:4px; border-radius:14px; border:none !important; outline:none !important; box-shadow:none !important; user-select:none;">
-            <!-- Smooth Sliding Pill Indicator -->
+            style="position:relative; display:grid; grid-template-columns:1fr 1fr; margin-bottom:16px; background:rgba(0,0,0,0.25); padding:4px; border-radius:14px; border:none !important; outline:none !important; box-shadow:none !important; user-select:none; height:44px; box-sizing:border-box; contain:layout style paint; -webkit-tap-highlight-color:transparent;">
+            <!-- Smooth Sliding Pill Indicator with zero-twitch 3D transform -->
             <div id="transport-toggle-pill"
-                style="position:absolute; top:4px; bottom:4px; left:4px; width:calc(50% - 4px); background:#ffffff; border-radius:10px; transition:transform 0.32s cubic-bezier(0.16, 1, 0.3, 1); pointer-events:none; z-index:1; transform:translateX(0%); border:none !important; outline:none !important; box-shadow:none !important;"></div>
+                style="position:absolute; top:4px; bottom:4px; left:4px; width:calc(50% - 4px); background:#ffffff; border-radius:10px; will-change:transform; transform:translate3d(0,0,0); -webkit-transform:translate3d(0,0,0); transition:transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important; pointer-events:none; z-index:1; border:none !important; outline:none !important; box-shadow:none !important; -webkit-backface-visibility:hidden; backface-visibility:hidden;"></div>
             <button type="button" class="btn-transport-toggle active" id="btn-trans-public" onclick="window.setTransportType('public')"
-                style="position:relative; z-index:2; flex:1; padding:10px; border-radius:10px; border:none !important; outline:none !important; background:transparent !important; font-size:13px; font-weight:800; color:#1e3a8a; transition:color 0.25s ease, font-weight 0.25s ease; cursor:pointer; box-shadow:none !important; text-align:center;">Public</button>
+                style="position:relative; z-index:2; height:36px; line-height:36px; padding:0; border-radius:10px; border:none !important; outline:none !important; background:transparent !important; font-size:13px; font-weight:800 !important; color:#1e3a8a; transition:color 0.2s ease; cursor:pointer; box-shadow:none !important; text-align:center; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; touch-action:manipulation; user-select:none;">Public</button>
             <button type="button" class="btn-transport-toggle" id="btn-trans-private" onclick="window.setTransportType('private')"
-                style="position:relative; z-index:2; flex:1; padding:10px; border-radius:10px; border:none !important; outline:none !important; background:transparent !important; font-size:13px; font-weight:700; color:rgba(255,255,255,0.85); transition:color 0.25s ease, font-weight 0.25s ease; cursor:pointer; box-shadow:none !important; text-align:center;">Private</button>
+                style="position:relative; z-index:2; height:36px; line-height:36px; padding:0; border-radius:10px; border:none !important; outline:none !important; background:transparent !important; font-size:13px; font-weight:800 !important; color:rgba(255,255,255,0.85); transition:color 0.2s ease; cursor:pointer; box-shadow:none !important; text-align:center; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; touch-action:manipulation; user-select:none;">Private</button>
         </div>
 
         <div id="transport-slider-wrapper" style="display:block; margin-bottom:16px;">
@@ -2825,28 +2825,24 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             const pill = document.getElementById('transport-toggle-pill');
 
             if (type === 'private') {
-                if (pill) pill.style.transform = 'translateX(100%)';
+                if (pill) pill.style.transform = 'translate3d(100%, 0, 0)';
                 if (btnPrivate) {
                     btnPrivate.classList.add('active');
                     btnPrivate.style.color = '#1e3a8a';
-                    btnPrivate.style.fontWeight = '800';
                 }
                 if (btnPublic) {
                     btnPublic.classList.remove('active');
                     btnPublic.style.color = 'rgba(255,255,255,0.85)';
-                    btnPublic.style.fontWeight = '700';
                 }
             } else {
-                if (pill) pill.style.transform = 'translateX(0%)';
+                if (pill) pill.style.transform = 'translate3d(0, 0, 0)';
                 if (btnPublic) {
                     btnPublic.classList.add('active');
                     btnPublic.style.color = '#1e3a8a';
-                    btnPublic.style.fontWeight = '800';
                 }
                 if (btnPrivate) {
                     btnPrivate.classList.remove('active');
                     btnPrivate.style.color = 'rgba(255,255,255,0.85)';
-                    btnPrivate.style.fontWeight = '700';
                 }
             }
 
@@ -2857,14 +2853,6 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             // Dynamically render vehicle options from Railway DB!
             window.renderRailwayVehicleOptions(type);
-
-            // Animate slider items smoothly
-            const slider = document.getElementById('transport-slider');
-            if (slider) {
-                slider.style.animation = 'none';
-                slider.offsetHeight;
-                slider.style.animation = 'smoothReveal 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards';
-            }
 
             const fuelPanel = document.getElementById('own-car-fuel-panel');
             const isCarSelected = (document.getElementById('trip-transport').value || '').includes('own_car');
