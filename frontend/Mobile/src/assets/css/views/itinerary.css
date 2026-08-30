@@ -574,23 +574,26 @@ body[data-view="itinerary"] .mobile-header .header-icon {
 }
 
 .starting-point-card {
-    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
-    border: none !important;
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.88) 0%, rgba(63, 125, 183, 0.88) 100%) !important;
+    border: 1.5px solid rgba(0, 242, 254, 0.6) !important;
     outline: none !important;
-    border-radius: 20px !important;
+    border-radius: 22px !important;
     padding: 16px 18px !important;
-    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
+    box-shadow: 0 8px 26px rgba(10, 25, 60, 0.35), 0 0 20px rgba(0, 242, 254, 0.22), inset 0 1px 2px rgba(255, 255, 255, 0.35) !important;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     cursor: pointer;
-    transition: transform 0.2s ease;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    transition: transform 0.2s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 .starting-point-card:hover {
     transform: translateY(-2px);
-    border: none !important;
+    border: 1.5px solid rgba(0, 242, 254, 0.85) !important;
+    box-shadow: 0 10px 28px rgba(10, 25, 60, 0.4), 0 0 26px rgba(0, 242, 254, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.4) !important;
     outline: none !important;
 }
 
@@ -599,7 +602,7 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     height: 46px;
     border-radius: 50% !important;
     background: linear-gradient(135deg, rgba(56, 189, 248, 0.25) 0%, rgba(37, 99, 235, 0.35) 100%) !important;
-    border: none !important;
+    border: 1.5px solid rgba(0, 242, 254, 0.45) !important;
     outline: none !important;
     display: flex;
     align-items: center;
@@ -608,7 +611,7 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     font-size: 20px !important;
     flex-shrink: 0;
     position: relative;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2), 0 0 12px rgba(0, 242, 254, 0.25) !important;
 }
 
 .starting-point-pulse {
@@ -833,7 +836,6 @@ body[data-view="itinerary"] .mobile-header .header-icon {
 }
 
 /* Universal container gradient & outline removal */
-.itinerary-container .starting-point-card,
 .itinerary-container .swipe-content,
 .itinerary-container .empty-state-card,
 .itinerary-container .timeline-item .swipe-content,
