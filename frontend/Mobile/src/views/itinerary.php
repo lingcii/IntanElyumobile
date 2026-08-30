@@ -188,6 +188,13 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         animation: none !important;
     }
 
+    .itinerary-stops-container .starting-point-item {
+        margin-bottom: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        animation: none !important;
+    }
+
     .stop-thumbnail-wrapper {
         width: 72px;
         height: 72px;
@@ -1215,9 +1222,11 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             </div>`;
             }
 
+            html += `<div class="itinerary-stops-container" id="itinerary-stops-container">`;
+
             html += `
-        <div class="starting-point-item stagger-1" onclick="window.routeToMyLocation()">
-            <div class="starting-point-card" style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border:none !important; outline:none !important; border-radius:22px !important; padding:16px 18px !important; box-shadow:0 8px 24px rgba(10,25,60,0.28) !important; display:flex; align-items:center; justify-content:space-between; gap:14px; cursor:pointer;">
+        <div class="starting-point-item" onclick="window.routeToMyLocation()">
+            <div class="starting-point-card" style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border:none !important; outline:none !important; border-radius:20px !important; padding:16px 18px !important; box-shadow:0 8px 24px rgba(10,25,60,0.28) !important; display:flex; align-items:center; justify-content:space-between; gap:14px; cursor:pointer;">
                 <div class="starting-point-icon-box" style="width:46px; height:46px; border-radius:50%; background:linear-gradient(135deg, rgba(56,189,248,0.25) 0%, rgba(37,99,235,0.35) 100%) !important; border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0; box-shadow:0 4px 14px rgba(0,0,0,0.2);">
                     <i class="fa-solid fa-location-crosshairs" style="color:#00f2fe; font-size:20px;"></i>
                     <div class="starting-point-pulse" style="position:absolute; inset:-4px; border-radius:50%; background:rgba(0,242,254,0.25); border:none !important; outline:none !important; pointer-events:none;"></div>
@@ -1233,11 +1242,10 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     <i class="fa-solid fa-location-arrow" style="font-size:11px;"></i> Locate
                 </button>
             </div>
-            ${startingLegHtml}
-        </div>`;
+        </div>
+        ${startingLegHtml}`;
 
             if (draft.length > 0) {
-                html += `<div class="itinerary-stops-container" id="itinerary-stops-container">`;
                 draft.forEach((place, index) => {
                     const hour = 9 + Math.floor(((index + 1) * 90) / 60);
                     const min = ((index + 1) * 90) % 60;
