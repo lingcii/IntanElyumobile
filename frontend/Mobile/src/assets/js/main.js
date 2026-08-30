@@ -395,7 +395,7 @@ window.initGoogleOAuthHandler = function () {
             document.body ? document.body.appendChild(overlay) : document.addEventListener('DOMContentLoaded', () => document.body.appendChild(overlay));
         }
         overlay.innerHTML = `
-            <div class="oauth-modal-content">
+            <div class="oauth-modal-content" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; box-shadow: 0 15px 35px rgba(10, 25, 60, 0.4), 0 0 25px rgba(63, 125, 183, 0.25) !important;">
                 <div class="oauth-spinner-circle">
                     <div class="oauth-spinner-ring"></div>
                 </div>
@@ -467,9 +467,9 @@ window.initGoogleOAuthHandler = function () {
             const currentOverlay = document.getElementById('global-oauth-overlay');
             if (currentOverlay) {
                 currentOverlay.innerHTML = `
-                    <div class="oauth-modal-content">
+                    <div class="oauth-modal-content" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; box-shadow: 0 15px 35px rgba(10, 25, 60, 0.4), 0 0 25px rgba(63, 125, 183, 0.25) !important;">
                         <div class="oauth-success-circle">
-                            <i class="fa-solid fa-check" style="font-size:28px; color:#0284c7;"></i>
+                            <i class="fa-solid fa-check" style="font-size:28px; color:#1e3a8a;"></i>
                         </div>
                         <h3 class="oauth-modal-title">Welcome${data.user?.name ? ', ' + data.user.name : ''}!</h3>
                         <p class="oauth-modal-subtitle">Redirecting to dashboard...</p>
