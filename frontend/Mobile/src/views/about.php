@@ -23,16 +23,48 @@ $backRoute = 'dashboard';
         <div class="team-member">
             <div class="member-avatar">J</div>
             <div>
-                <div class="member-name">James Vergel</div>
-                <div class="member-role">Lead Developer</div>
+                <div class="member-name">James Vergel Garcia</div>
+                <div class="member-role">Mobile Developer</div>
+            </div>
+        </div>
+
+        <div class="team-member">
+            <div class="member-avatar">S</div>
+            <div>
+                <div class="member-name">Stacy Coely Sanchez</div>
+                <div class="member-role">Team Member</div>
             </div>
         </div>
 
         <div class="team-member">
             <div class="member-avatar">M</div>
             <div>
-                <div class="member-name">Team Member</div>
-                <div class="member-role">Designer</div>
+                <div class="member-name">Maria Gabrielle Lelina</div>
+                <div class="member-role">Team Member</div>
+            </div>
+        </div>
+
+        <div class="team-member">
+            <div class="member-avatar">G</div>
+            <div>
+                <div class="member-name">Grace Anne Magpantay</div>
+                <div class="member-role">Team Member</div>
+            </div>
+        </div>
+
+        <div class="team-member">
+            <div class="member-avatar">C</div>
+            <div>
+                <div class="member-name">Claude Benedict Navarro</div>
+                <div class="member-role">Team Member</div>
+            </div>
+        </div>
+
+        <div class="team-member">
+            <div class="member-avatar">V</div>
+            <div>
+                <div class="member-name">Vince Alvendia</div>
+                <div class="member-role">Team Member</div>
             </div>
         </div>
     </div>
