@@ -350,7 +350,7 @@ body[data-view="user_manual"] {
 
     <!-- HERO -->
     <div class="manual-hero">
-        <div class="manual-hero-badge"><i class="fa-solid fa-book-open"></i> Official System Guide</div>
+        <div class="manual-hero-badge"><i class="fa-solid fa-book-open"></i> User Manual Guide</div>
         <h1>Intan Elyu <span>User Manual</span></h1>
         <p>Complete step-by-step guide for exploring La Union, Philippines &mdash; from trip planning to earning XP, completing AR check-ins, playing games, and redeeming local vouchers.</p>
         
@@ -595,7 +595,7 @@ body[data-view="user_manual"] {
         <div class="manual-section-header">
             <div class="manual-section-icon blue"><i class="fa-solid fa-gamepad"></i></div>
             <div>
-                <h2 class="manual-section-title">Step 8 &mdash; GameZone Mini-Games</h2>
+                <h2 class="manual-section-title">Step 7 &mdash; GameZone Mini-Games</h2>
                 <p class="manual-section-sub">Interactive puzzles for extra reward points</p>
             </div>
         </div>
@@ -603,21 +603,21 @@ body[data-view="user_manual"] {
             <div class="step-num">1</div>
             <div class="step-content">
                 <div class="step-title">Slide Puzzle (+100 PTS)</div>
-                <div class="step-desc">Rearrange image tiles of La Union landmarks into their complete picture.</div>
+                <div class="step-desc">Rearrange image tiles of iconic La Union landmarks into their complete picture.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">2</div>
             <div class="step-content">
                 <div class="step-title">Memory Match (+80 PTS)</div>
-                <div class="step-desc">Flip cards and match matching pairs of tourist spots.</div>
+                <div class="step-desc">Flip cards and match matching pairs of famous Elyu tourist spots.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">3</div>
             <div class="step-content">
                 <div class="step-title">Word Scramble (+60 PTS)</div>
-                <div class="step-desc">Unscramble letters to spell La Union municipalities and beaches.</div>
+                <div class="step-desc">Unscramble letters to spell La Union municipalities, attractions, and beaches.</div>
             </div>
         </div>
     </div>
@@ -627,7 +627,7 @@ body[data-view="user_manual"] {
         <div class="manual-section-header">
             <div class="manual-section-icon yellow"><i class="fa-solid fa-trophy"></i></div>
             <div>
-                <h2 class="manual-section-title">Step 9 &mdash; Leaderboard &amp; Ranks</h2>
+                <h2 class="manual-section-title">Step 8 &mdash; Leaderboard &amp; Ranks</h2>
                 <p class="manual-section-sub">Community rankings and level progression</p>
             </div>
         </div>
@@ -635,7 +635,7 @@ body[data-view="user_manual"] {
             <div class="step-num">1</div>
             <div class="step-content">
                 <div class="step-title">Check Your Rank</div>
-                <div class="step-desc">View your global rank among all tourists exploring La Union.</div>
+                <div class="step-desc">View your global rank among all tourists and explorers travelling across La Union.</div>
             </div>
         </div>
         <div class="step-card">
@@ -652,22 +652,29 @@ body[data-view="user_manual"] {
         <div class="manual-section-header">
             <div class="manual-section-icon green"><i class="fa-solid fa-tags"></i></div>
             <div>
-                <h2 class="manual-section-title">Step 10 &mdash; Discounts &amp; Vouchers</h2>
-                <p class="manual-section-sub">Redeem points for dining, surf lessons, and hotels</p>
+                <h2 class="manual-section-title">Step 9 &mdash; Discounts &amp; Vouchers</h2>
+                <p class="manual-section-sub">Redeem points for dining, surf lessons, and hotel savings</p>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">1</div>
             <div class="step-content">
-                <div class="step-title">Redeem Points for Vouchers</div>
-                <div class="step-desc">Use accumulated points to unlock discounts at partner restaurants, surf schools, and resorts.</div>
+                <div class="step-title">Browse Merchant Deals</div>
+                <div class="step-desc">Explore available vouchers from local partner restaurants, surf camps, cafes, and hotels.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">2</div>
             <div class="step-content">
-                <div class="step-title">Show QR Code at Merchant</div>
-                <div class="step-desc">Open your redeemed voucher under <strong>My Vouchers</strong> and present the QR code to the merchant to apply your discount.</div>
+                <div class="step-title">Redeem Points for Vouchers</div>
+                <div class="step-desc">Use accumulated points from AR check-ins and GameZone mini-games to unlock active promo discounts.</div>
+            </div>
+        </div>
+        <div class="step-card">
+            <div class="step-num">3</div>
+            <div class="step-content">
+                <div class="step-title">Copy Code &amp; Claim Discount</div>
+                <div class="step-desc">Copy your unique voucher discount code or present the QR code directly to the merchant upon payment.</div>
             </div>
         </div>
     </div>
@@ -677,22 +684,29 @@ body[data-view="user_manual"] {
         <div class="manual-section-header">
             <div class="manual-section-icon blue"><i class="fa-solid fa-user-circle"></i></div>
             <div>
-                <h2 class="manual-section-title">Step 11 &mdash; My Profile</h2>
-                <p class="manual-section-sub">Profile details, trip history, and preferences</p>
+                <h2 class="manual-section-title">Step 10 &mdash; My Profile</h2>
+                <p class="manual-section-sub">Profile details, trip history, badges, and session management</p>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">1</div>
             <div class="step-content">
-                <div class="step-title">Edit Details &amp; Avatar</div>
-                <div class="step-desc">Update your profile picture, bio, and travel preference tags (Beach Lover, Foodie, Adventurer).</div>
+                <div class="step-title">Edit Details &amp; Preferences</div>
+                <div class="step-desc">Tap <strong>Edit Profile</strong> to customize your avatar, bio, and travel preference tags with seamless auto-scroll to top.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">2</div>
             <div class="step-content">
-                <div class="step-title">Review Trip History</div>
-                <div class="step-desc">View all completed visits, check-in timestamps, and uploaded photos.</div>
+                <div class="step-title">Review Visits &amp; Badges</div>
+                <div class="step-desc">Track completed destination visits, check-in history, earned XP milestones, and unlocked badges.</div>
+            </div>
+        </div>
+        <div class="step-card">
+            <div class="step-num">3</div>
+            <div class="step-content">
+                <div class="step-title">Secure Sign Out</div>
+                <div class="step-desc">End your tourist session safely anytime by tapping <strong>Log Out</strong> at the bottom of the Profile menu.</div>
             </div>
         </div>
     </div>
@@ -703,28 +717,28 @@ body[data-view="user_manual"] {
             <div class="manual-section-icon red"><i class="fa-solid fa-sliders"></i></div>
             <div>
                 <h2 class="manual-section-title">Step 11 &mdash; Settings &amp; Security</h2>
-                <p class="manual-section-sub">Preferences, 2FA security, language, and account actions</p>
+                <p class="manual-section-sub">Preferences, account security, two-factor auth, and data management</p>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">1</div>
             <div class="step-content">
                 <div class="step-title">App Preferences</div>
-                <div class="step-desc">Toggle Push Notifications, Location Services, Offline Maps, and Cloud Sync.</div>
+                <div class="step-desc">Manage real-time <strong>Push Notifications</strong>, high-precision GPS <strong>Location Services</strong>, and <strong>Automatic Trip Cloud Sync</strong>.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">2</div>
             <div class="step-content">
-                <div class="step-title">App Language &amp; 2FA</div>
-                <div class="step-desc">Select preferred language (English, Tagalog, Ilocano) and enable Two-Factor Authentication.</div>
+                <div class="step-title">Account Security &amp; 2FA</div>
+                <div class="step-desc">Update your login security password or activate <strong>Two-Factor Authentication (2FA)</strong> with instant OTP email codes.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">3</div>
             <div class="step-content">
-                <div class="step-title">Maintenance &amp; Sign Out</div>
-                <div class="step-desc">Clear storage cache or sign out securely from your current device.</div>
+                <div class="step-title">Documentation &amp; Storage Maintenance</div>
+                <div class="step-desc">Access the in-app <strong>User Manual</strong>, clear temporary cache memory with <strong>Clear Storage Cache</strong>, and check the latest app version.</div>
             </div>
         </div>
     </div>

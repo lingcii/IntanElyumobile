@@ -105,7 +105,7 @@ $backRoute = 'dashboard';
             <div class="settings-label-group">
                 <div class="settings-icon-box blue"><i class="fa-solid fa-book-open"></i></div> 
                 <div>
-                    <div class="settings-title">Official User Manual</div>
+                    <div class="settings-title">User Manual</div>
                     <div class="settings-subtitle">Step-by-step guide to all app features & tools</div>
                 </div>
             </div>
