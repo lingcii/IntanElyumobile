@@ -2,17 +2,10 @@
 $uri = $_SERVER['REQUEST_URI'];
 $path = parse_url($uri, PHP_URL_PATH);
 
-// Serve user_manual_mobile.html directly if requested
+// Redirect legacy user_manual_mobile.html to the in-app user manual view
 if (strpos($path, 'user_manual_mobile.html') !== false) {
-    $manualPath = __DIR__ . '/user_manual_mobile.html';
-    if (!file_exists($manualPath)) {
-        $manualPath = dirname(__DIR__, 2) . '/user_manual_mobile.html';
-    }
-    if (file_exists($manualPath)) {
-        header('Content-Type: text/html; charset=utf-8');
-        readfile($manualPath);
-        exit;
-    }
+    header('Location: index.php?view=user_manual');
+    exit;
 }
 
 // Serve APK binary files directly

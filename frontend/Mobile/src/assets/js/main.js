@@ -1022,6 +1022,11 @@ window.startLocationWatch = function () {
             }
         } else if (error.code === 1) {
             console.warn("Location permission denied by browser. Please allow location in browser site settings.");
+            localStorage.setItem('intan_elyu_loc_enabled', 'false');
+            localStorage.setItem('Intan_Elyu_loc_enabled', 'false');
+            const locToggle = document.getElementById('location-service-toggle');
+            if (locToggle) locToggle.checked = false;
+            document.dispatchEvent(new CustomEvent('locationStatusChanged', { detail: { enabled: false, error } }));
         }
     };
 
@@ -1030,6 +1035,15 @@ window.startLocationWatch = function () {
         onErr,
         { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
     );
+};
+
+window.stopLocationWatch = function () {
+    if (window.intanElyuLocationWatchId && navigator.geolocation) {
+        navigator.geolocation.clearWatch(window.intanElyuLocationWatchId);
+        window.intanElyuLocationWatchId = null;
+    }
+    window.currentGPSSource = null;
+    document.dispatchEvent(new CustomEvent('locationStatusChanged', { detail: { enabled: false } }));
 };
 
 // Request high-accuracy hardware GPS location from the device with Progressive Fallback
