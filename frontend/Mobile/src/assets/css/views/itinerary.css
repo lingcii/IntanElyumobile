@@ -360,6 +360,45 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     will-change: transform;
 }
 
+.stop-thumbnail-wrapper {
+    width: 72px;
+    height: 72px;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    flex-shrink: 0 !important;
+    position: relative !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+    background: rgba(15, 23, 42, 0.45) !important;
+    border: none !important;
+    outline: none !important;
+}
+
+.stop-thumbnail-wrapper img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+    transition: transform 0.3s ease !important;
+}
+
+.stops-leg-chip {
+    background: rgba(15, 23, 42, 0.88) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border-radius: 100px !important;
+    padding: 5px 13px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: rgba(255, 255, 255, 0.95) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3) !important;
+    border: none !important;
+    outline: none !important;
+    user-select: none;
+}
+
 .timeline-item {
     margin-bottom: 16px !important;
     position: relative !important;
