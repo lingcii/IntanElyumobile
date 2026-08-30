@@ -1677,8 +1677,7 @@ if (is_dir($imgDir)) {
                 if (diff > 0) {
                     const translate = Math.min(diff, 85);
                     content.style.transform = `translateX(-${translate}px)`;
-                    content.style.borderRadius = translate > 5 ? '20px 0 0 20px' : '20px';
-                    content.style.borderRightColor = translate > 5 ? 'transparent' : '';
+                    content.style.borderRadius = '20px';
                     if (bg) {
                         bg.style.opacity = '1';
                         bg.style.pointerEvents = 'auto';
@@ -1687,7 +1686,6 @@ if (is_dir($imgDir)) {
                 } else if (diff < -5) {
                     content.style.transform = 'translateX(0px)';
                     content.style.borderRadius = '20px';
-                    content.style.borderRightColor = '';
                     if (bg) {
                         bg.style.opacity = '0';
                         bg.style.pointerEvents = 'none';
@@ -1698,7 +1696,7 @@ if (is_dir($imgDir)) {
 
             const handleEnd = () => {
                 if (!isSwiping) return;
-                content.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.2s ease, border-color 0.2s ease';
+                content.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
                 if (bg) bg.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease';
                 const diff = startX - currentX;
                 const tripId = container.dataset.tripId;
@@ -1706,8 +1704,7 @@ if (is_dir($imgDir)) {
                 if (diff > 75 && moved) {
                     // Full swipe across -> Reveal red button & trigger confirmation modal
                     content.style.transform = 'translateX(-85px)';
-                    content.style.borderRadius = '20px 0 0 20px';
-                    content.style.borderRightColor = 'transparent';
+                    content.style.borderRadius = '20px';
                     if (bg) {
                         bg.style.opacity = '1';
                         bg.style.pointerEvents = 'auto';
@@ -1717,8 +1714,7 @@ if (is_dir($imgDir)) {
                 } else if (diff > 30 && moved) {
                     // Partial swipe -> Reveal red delete button for tap
                     content.style.transform = 'translateX(-85px)';
-                    content.style.borderRadius = '20px 0 0 20px';
-                    content.style.borderRightColor = 'transparent';
+                    content.style.borderRadius = '20px';
                     if (bg) {
                         bg.style.opacity = '1';
                         bg.style.pointerEvents = 'auto';
