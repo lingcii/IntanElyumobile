@@ -187,6 +187,8 @@ window.executeScripts = executeScripts;
 
 /**
  * Navigation Router Function (SPA feel)
+ */
+
 // Ensure browser does not try to restore previous scroll position on view transitions
 if ('scrollRestoration' in history) {
     try {
