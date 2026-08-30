@@ -297,7 +297,7 @@ if (is_dir($imgDir)) {
 
             <!-- Site Fee Summary Banner -->
             <div id="sheet-fees-card" class="dest-fees-card"
-                style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14) !important; outline:none !important; border-radius:16px; padding:10px 14px; margin-bottom:10px; box-shadow:0 4px 16px rgba(0,0,0,0.2);">
+                style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.08); border:none !important; outline:none !important; border-radius:16px; padding:10px 14px; margin-bottom:10px; box-shadow:0 4px 16px rgba(0,0,0,0.2);">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <div
                         style="width:34px; height:34px; border-radius:10px; background:rgba(16,185,129,0.22); color:#34d399; border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;">
@@ -398,7 +398,7 @@ if (is_dir($imgDir)) {
 
                         <!-- Testimonies Section -->
                         <div id="sheet-testimonies-section"
-                            style="display:none; margin-top:14px; padding-top:14px; border-top:1px dashed rgba(255,255,255,0.08);">
+                            style="display:none; margin-top:14px; padding-top:4px; border:none !important; outline:none !important;">
                             <div
                                 style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
                                 <h4
@@ -436,9 +436,9 @@ if (is_dir($imgDir)) {
 <div id="itin-add-confirm" onclick="if(event.target===this)window.closeAddConfirm()"
     style="position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.3s ease; background:rgba(0,0,0,0.55); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);">
     <div
-        style="background:linear-gradient(135deg, #1a2a4a 0%, #0f172a 100%); border:1px solid rgba(255,255,255,0.08); border-radius:24px; padding:32px 28px 24px; margin:0 24px; width:100%; max-width:320px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.6); transform:scale(0.85); transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);">
+        style="background:linear-gradient(135deg, #1a2a4a 0%, #0f172a 100%); border:none !important; outline:none !important; border-radius:24px; padding:32px 28px 24px; margin:0 24px; width:100%; max-width:320px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.6); transform:scale(0.85); transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);">
         <div
-            style="width:68px; height:68px; border-radius:50%; background:rgba(52,199,89,0.12); border:2px solid rgba(52,199,89,0.25); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+            style="width:68px; height:68px; border-radius:50%; background:rgba(52,199,89,0.12); border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
             <i class="fa-solid fa-check" style="font-size:30px; color:#34c759;"></i>
         </div>
         <h3 style="margin:0 0 6px; font-size:20px; font-weight:800; color:#f8fafc; letter-spacing:-0.3px;">Added to
@@ -450,7 +450,7 @@ if (is_dir($imgDir)) {
             <i class="fa-solid fa-list"></i> View Itinerary
         </button>
         <button onclick="window.closeAddConfirm()"
-            style="width:100%; padding:12px; border:1px solid rgba(255,255,255,0.08); border-radius:12px; background:rgba(255,255,255,0.04); color:rgba(148,163,184,0.9); font-size:14px; font-weight:700; cursor:pointer;">
+            style="width:100%; padding:12px; border:none !important; outline:none !important; border-radius:12px; background:rgba(255,255,255,0.06); color:rgba(148,163,184,0.9); font-size:14px; font-weight:700; cursor:pointer;">
             Continue Exploring
         </button>
     </div>
@@ -470,7 +470,7 @@ if (is_dir($imgDir)) {
 <div id="testimony-modal"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:99999; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); opacity:0; transition:opacity 0.3s ease;">
     <div class="testimony-card-anim"
-        style="background:linear-gradient(135deg, #1e293b, #0f172a); border:1px solid rgba(255,255,255,0.1); border-radius:24px; padding:24px; width:100%; max-width:380px; max-height:85vh; overflow-y:auto; box-shadow:0 20px 40px rgba(0,0,0,0.3); text-align:left; box-sizing:border-box; transform:scale(0.88) translateY(16px); opacity:0; transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;">
+        style="background:linear-gradient(135deg, #1e293b, #0f172a); border:none !important; outline:none !important; border-radius:24px; padding:24px; width:100%; max-width:380px; max-height:85vh; overflow-y:auto; box-shadow:0 20px 40px rgba(0,0,0,0.3); text-align:left; box-sizing:border-box; transform:scale(0.88) translateY(16px); opacity:0; transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;">
         <h3 style="margin:0 0 4px; color:#fff; font-size:18px; font-weight:800;">Review Destination</h3>
         <p style="font-size:12px; color:rgba(255,255,255,0.6); margin-bottom:16px;">Help the tourism office and fellow
             travellers by sharing your site testimony and policy recommendations.</p>
@@ -512,17 +512,17 @@ if (is_dir($imgDir)) {
                     <div style="display:flex; gap:6px;">
                         <button type="button" class="option-pill clean-pill active" data-val="clean"
                             onclick="window.selectCleanliness('clean')"
-                            style="flex:1; padding:8px 4px; border-radius:10px; border:1px solid #10b981; background:rgba(16,185,129,0.18); color:#10b981; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease; box-shadow:0 0 10px rgba(16,185,129,0.2);">
+                            style="flex:1; padding:8px 4px; border-radius:10px; border:none !important; outline:none !important; background:rgba(16,185,129,0.22); color:#10b981; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease; box-shadow:0 0 10px rgba(16,185,129,0.2);">
                             ✨ Clean
                         </button>
                         <button type="button" class="option-pill clean-pill" data-val="moderate"
                             onclick="window.selectCleanliness('moderate')"
-                            style="flex:1; padding:8px 4px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.7); font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                            style="flex:1; padding:8px 4px; border-radius:10px; border:none !important; outline:none !important; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
                             🧹 Moderate
                         </button>
                         <button type="button" class="option-pill clean-pill" data-val="dirty"
                             onclick="window.selectCleanliness('dirty')"
-                            style="flex:1; padding:8px 4px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.7); font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                            style="flex:1; padding:8px 4px; border-radius:10px; border:none !important; outline:none !important; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
                             ⚠️ Dirty
                         </button>
                     </div>
@@ -541,17 +541,17 @@ if (is_dir($imgDir)) {
                     <div style="display:flex; gap:6px;">
                         <button type="button" class="option-pill safety-pill active" data-val="safe"
                             onclick="window.selectSafety('safe')"
-                            style="flex:1; padding:8px 4px; border-radius:10px; border:1px solid #10b981; background:rgba(16,185,129,0.18); color:#10b981; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease; box-shadow:0 0 10px rgba(16,185,129,0.2);">
+                            style="flex:1; padding:8px 4px; border-radius:10px; border:none !important; outline:none !important; background:rgba(16,185,129,0.22); color:#10b981; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease; box-shadow:0 0 10px rgba(16,185,129,0.2);">
                             🛡️ Safe
                         </button>
                         <button type="button" class="option-pill safety-pill" data-val="moderate"
                             onclick="window.selectSafety('moderate')"
-                            style="flex:1; padding:8px 4px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.7); font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                            style="flex:1; padding:8px 4px; border-radius:10px; border:none !important; outline:none !important; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
                             ⚡ Moderate
                         </button>
                         <button type="button" class="option-pill safety-pill" data-val="unsafe"
                             onclick="window.selectSafety('unsafe')"
-                            style="flex:1; padding:8px 4px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.7); font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                            style="flex:1; padding:8px 4px; border-radius:10px; border:none !important; outline:none !important; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
                             🚨 Unsafe
                         </button>
                     </div>
@@ -565,7 +565,7 @@ if (is_dir($imgDir)) {
                     style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); text-transform:uppercase; display:block; margin-bottom:6px;">Your
                     Testimony:</label>
                 <textarea id="testimony-comment" placeholder="Describe your experience during this site visit..."
-                    style="width:100%; height:60px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:10px; color:#fff; font-size:12px; font-family:inherit; resize:none; box-sizing:border-box;"
+                    style="width:100%; height:60px; background:rgba(255,255,255,0.05); border:none !important; outline:none !important; border-radius:12px; padding:10px; color:#fff; font-size:12px; font-family:inherit; resize:none; box-sizing:border-box;"
                     required></textarea>
             </div>
 
@@ -576,16 +576,16 @@ if (is_dir($imgDir)) {
                     Recommendations (Optional):</label>
                 <textarea id="testimony-policy"
                     placeholder="Any suggestions or recommendations for safety, cleanliness, or crowd control policies?..."
-                    style="width:100%; height:60px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:10px; color:#fff; font-size:12px; font-family:inherit; resize:none; box-sizing:border-box;"></textarea>
+                    style="width:100%; height:60px; background:rgba(255,255,255,0.05); border:none !important; outline:none !important; border-radius:12px; padding:10px; color:#fff; font-size:12px; font-family:inherit; resize:none; box-sizing:border-box;"></textarea>
             </div>
 
             <button type="submit" class="btn-primary"
-                style="width:100%; padding:14px; font-size:14px; margin-bottom:10px; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:#fff; border-radius:12px; font-weight:800; cursor:pointer;">
+                style="width:100%; padding:14px; font-size:14px; margin-bottom:10px; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none !important; outline:none !important; color:#fff; border-radius:12px; font-weight:800; cursor:pointer;">
                 Submit Feedback
             </button>
         </form>
         <button
-            style="width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:rgba(255,255,255,0.5); font-size:13px; font-weight:600; cursor:pointer;"
+            style="width:100%; padding:12px; border-radius:12px; border:none !important; outline:none !important; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.7); font-size:13px; font-weight:600; cursor:pointer;"
             onclick="window.closeWriteTestimonyModal()">Cancel</button>
     </div>
 </div>
@@ -927,7 +927,7 @@ if (is_dir($imgDir)) {
                             if (window.activePopup) window.activePopup.remove();
 
                             const popupEl = document.createElement('div');
-                            popupEl.style.cssText = 'background:rgba(15,23,42,0.95); border-radius:14px; padding:14px 16px; min-width:180px; border:1px solid rgba(255,255,255,0.1);';
+                            popupEl.style.cssText = 'background:rgba(15,23,42,0.95); border-radius:14px; padding:14px 16px; min-width:180px; border:none !important; outline:none !important; box-shadow:0 12px 30px rgba(0,0,0,0.5);';
                             popupEl.innerHTML = `
                             <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
                                 <div style="width:10px; height:10px; border-radius:50%; background:${color}; flex-shrink:0;"></div>
@@ -2960,10 +2960,10 @@ if (is_dir($imgDir)) {
 
                 let tagsHtml = '';
                 if (hasEntrance && entranceFee > 0) {
-                    tagsHtml += `<span style="font-size:11px; font-weight:800; background:rgba(56,189,248,0.22); color:#7dd3fc; border:1px solid rgba(125,211,252,0.4); padding:4px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-ticket" style="font-size:10px;"></i> Entrance: ₱${entranceFee.toFixed(2)}</span>`;
+                    tagsHtml += `<span style="font-size:11px; font-weight:800; background:rgba(56,189,248,0.22); color:#7dd3fc; border:none !important; outline:none !important; padding:4px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-ticket" style="font-size:10px;"></i> Entrance: ₱${entranceFee.toFixed(2)}</span>`;
                 }
                 if (hasEnvironmental && environmentalFee > 0) {
-                    tagsHtml += `<span style="font-size:11px; font-weight:800; background:rgba(52,211,153,0.22); color:#6ee7b7; border:1px solid rgba(110,231,183,0.4); padding:4px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-leaf" style="font-size:10px;"></i> Envi: ₱${environmentalFee.toFixed(2)}</span>`;
+                    tagsHtml += `<span style="font-size:11px; font-weight:800; background:rgba(52,211,153,0.22); color:#6ee7b7; border:none !important; outline:none !important; padding:4px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-leaf" style="font-size:10px;"></i> Envi: ₱${environmentalFee.toFixed(2)}</span>`;
                 }
 
                 if (tagsHtml !== '') {
@@ -2972,7 +2972,7 @@ if (is_dir($imgDir)) {
                     feeTags.innerHTML = tagsHtml;
                 } else {
                     feeMainText.textContent = 'Free Admission';
-                    feeTags.innerHTML = `<span style="font-size:11px; font-weight:800; background:rgba(16,185,129,0.22); color:#6ee7b7; border:1px solid rgba(110,231,183,0.4); padding:4px 9px; border-radius:8px;">No Entrance Fee</span>`;
+                    feeTags.innerHTML = `<span style="font-size:11px; font-weight:800; background:rgba(16,185,129,0.22); color:#6ee7b7; border:none !important; outline:none !important; padding:4px 9px; border-radius:8px;">No Entrance Fee</span>`;
                 }
             }
 
@@ -3004,7 +3004,7 @@ if (is_dir($imgDir)) {
                     scContainer.style.gap = '6px';
                     if (supportBadgeEl) supportBadgeEl.textContent = `${locationData.service_centers.length} Service Center${locationData.service_centers.length > 1 ? 's' : ''}`;
                     scContainer.innerHTML = locationData.service_centers.map(sc => `
-                    <div style="background:rgba(56,189,248,0.06); border:1px solid rgba(56,189,248,0.2); border-radius:12px; padding:8px 10px;">
+                    <div style="background:rgba(56,189,248,0.08); border:none !important; outline:none !important; border-radius:12px; padding:8px 10px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
                             <span style="font-size:12px; font-weight:800; color:#38bdf8; display:flex; align-items:center; gap:5px;">
                                 <i class="fa-solid fa-building-flag" style="font-size:11px;"></i> ${sc.name}
@@ -3280,7 +3280,7 @@ if (is_dir($imgDir)) {
 
             if (isPeak) {
                 faresHtml += `
-            <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 14px; padding: 10px 14px; font-size: 11px; font-weight: 700; color: #f59e0b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <div style="background: rgba(245, 158, 11, 0.15); border: none !important; outline: none !important; border-radius: 14px; padding: 10px 14px; font-size: 11px; font-weight: 700; color: #fbbf24; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
                 ☀️ <span>Peak Season Active (Oct-May): Fares include +20% surcharge</span>
             </div>`;
             }
@@ -3292,9 +3292,9 @@ if (is_dir($imgDir)) {
             <div onclick="toggleVehicle(this)"
                  data-vehicle='${JSON.stringify({ name, icon, color, desc, fare: finalFare })}'
                  data-type="${isPublic ? 'public' : 'private'}"
-                 style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border:1px solid rgba(255,255,255,0.07); border-radius:18px; background:rgba(255,255,255,0.04); margin-bottom:10px; transition:transform 0.15s, background 0.15s, border-color 0.15s;">
+                 style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border:none !important; outline:none !important; border-radius:18px; background:rgba(255,255,255,0.06); margin-bottom:10px; transition:transform 0.15s, background 0.15s;">
                 <div style="display:flex; align-items:center; gap:14px;">
-                    <div style="width:46px; height:46px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:20px; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.15); color:${color}; flex-shrink:0;">
+                    <div style="width:46px; height:46px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:20px; background:rgba(56,189,248,0.14); border:none !important; outline:none !important; color:${color}; flex-shrink:0;">
                         <i class="fa-solid ${icon}"></i>
                     </div>
                     <div style="text-align: left;">
@@ -3304,8 +3304,8 @@ if (is_dir($imgDir)) {
                     </div>
                 </div>
                 <div style="display:flex; align-items:center; gap:8px;">
-                    <div style="background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.2); padding:6px 12px; border-radius:10px; font-weight:800; color:#38bdf8; font-size:15px; flex-shrink:0;">₱${finalFare}</div>
-                    <div class="vehicle-check" style="width:22px;height:22px;border-radius:50%;border:2px solid rgba(148,163,184,0.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;transition:all 0.15s;"><i class="fa-solid fa-check" style="opacity:0;transition:opacity 0.15s;"></i></div>
+                    <div style="background:rgba(56,189,248,0.16); border:none !important; outline:none !important; padding:6px 12px; border-radius:10px; font-weight:800; color:#38bdf8; font-size:15px; flex-shrink:0;">₱${finalFare}</div>
+                    <div class="vehicle-check" style="width:22px;height:22px;border-radius:50%;border:none !important;outline:none !important;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;transition:all 0.15s;"><i class="fa-solid fa-check" style="opacity:0;transition:opacity 0.15s;"></i></div>
                 </div>
             </div>`;
             };
@@ -3526,13 +3526,13 @@ if (is_dir($imgDir)) {
                             </strong>
                         </div>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
-                            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
-                                <span style="font-size:10px; color:rgba(226,232,240,0.6); text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Cleanliness</span>
-                                <span style="font-size:11px; font-weight:800; color:${cleanColor}; background:${cleanBg}; border:1px solid ${cleanColor}40; padding:2px 8px; border-radius:6px;">${cleanVal}</span>
+                            <div style="background:rgba(255,255,255,0.06); border:none !important; outline:none !important; border-radius:12px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:10px; color:rgba(226,232,240,0.7); text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Cleanliness</span>
+                                <span style="font-size:11px; font-weight:800; color:${cleanColor}; background:${cleanBg}; border:none !important; outline:none !important; padding:2px 8px; border-radius:6px;">${cleanVal}</span>
                             </div>
-                            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
-                                <span style="font-size:10px; color:rgba(226,232,240,0.6); text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Safety</span>
-                                <span style="font-size:11px; font-weight:800; color:${safeColor}; background:${safeBg}; border:1px solid ${safeColor}40; padding:2px 8px; border-radius:6px;">${safeVal}</span>
+                            <div style="background:rgba(255,255,255,0.06); border:none !important; outline:none !important; border-radius:12px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:10px; color:rgba(226,232,240,0.7); text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Safety</span>
+                                <span style="font-size:11px; font-weight:800; color:${safeColor}; background:${safeBg}; border:none !important; outline:none !important; padding:2px 8px; border-radius:6px;">${safeVal}</span>
                             </div>
                         </div>`;
                     } else {
@@ -3555,6 +3555,7 @@ if (is_dir($imgDir)) {
                             }
 
                             return parts.map((part, index) => {
+                                part = part || '';
                                 const len = part.length;
                                 if (len <= 2) return part.charAt(0) + '*';
 
@@ -3580,7 +3581,7 @@ if (is_dir($imgDir)) {
                             const initial = (rawName || 'E').charAt(0).toUpperCase();
                             const date = fb.created_at ? new Date(fb.created_at).toLocaleDateString() : '';
                             const policyHtml = fb.policy_recommendation ? `
-                            <div style="background:rgba(56,189,248,0.06); border:1px solid rgba(56,189,248,0.2); padding:10px 12px; border-radius:12px; margin-top:10px;">
+                            <div style="background:rgba(56,189,248,0.08); border:none !important; outline:none !important; padding:10px 12px; border-radius:12px; margin-top:10px;">
                                 <div style="display:flex; align-items:center; gap:5px; margin-bottom:4px;">
                                     <i class="fa-solid fa-lightbulb" style="color:#38bdf8; font-size:11px;"></i>
                                     <strong style="font-size:10px; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; font-weight:800;">Policy Recommendation</strong>
@@ -3589,7 +3590,7 @@ if (is_dir($imgDir)) {
                             </div>` : '';
 
                             return `
-                        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); padding:14px; border-radius:16px; font-size:12px;">
+                        <div style="background:rgba(255,255,255,0.06); border:none !important; outline:none !important; padding:14px; border-radius:16px; font-size:12px;">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                                 <div style="display:flex; align-items:center; gap:8px;">
                                     <div style="width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg, #38bdf8, #2563eb); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:11px;">
