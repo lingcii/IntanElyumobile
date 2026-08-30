@@ -382,18 +382,18 @@ body[data-view="itinerary"] .mobile-header .header-icon {
 }
 
 .stops-leg-chip {
-    background: rgba(15, 23, 42, 0.88) !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
+    background: rgba(255, 255, 255, 0.16) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
     border-radius: 100px !important;
     padding: 5px 13px !important;
     font-size: 11px !important;
     font-weight: 700 !important;
-    color: rgba(255, 255, 255, 0.95) !important;
+    color: #ffffff !important;
     display: inline-flex !important;
     align-items: center !important;
     gap: 6px !important;
-    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16) !important;
     border: none !important;
     outline: none !important;
     user-select: none;
