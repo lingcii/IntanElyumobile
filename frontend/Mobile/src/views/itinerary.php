@@ -185,6 +185,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         width: 100% !important;
         box-sizing: border-box !important;
         will-change: transform;
+        animation: none !important;
     }
 
     .stop-thumbnail-wrapper {
@@ -943,52 +944,59 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 return;
             }
 
+            // 1. FIRST: Measure current screen positions of all existing cards
             const firstRects = new Map();
             existingCards.forEach(card => {
                 const key = card.dataset.key;
                 firstRects.set(key, card.getBoundingClientRect());
             });
 
+            // 2. Perform DOM re-render
             if (typeof renderFn === 'function') renderFn();
 
-            requestAnimationFrame(() => {
-                const newCards = document.querySelectorAll('.timeline-item[data-key]');
-                const toAnimate = [];
+            // 3. INVERT: Must be SYNCHRONOUS in the same event-loop turn so the browser
+            // NEVER paints the swapped DOM at translateY(0) before inverting (eliminating twitch/flicker)
+            const newCards = document.querySelectorAll('.timeline-item[data-key]');
+            const toAnimate = [];
 
-                newCards.forEach(card => {
-                    const key = card.dataset.key;
-                    const firstRect = firstRects.get(key);
-                    if (firstRect) {
-                        const lastRect = card.getBoundingClientRect();
-                        const deltaY = firstRect.top - lastRect.top;
-                        if (Math.abs(deltaY) > 2) {
-                            card.style.transition = 'none';
-                            card.style.transform = `translate3d(0, ${deltaY}px, 0)`;
-                            card.style.zIndex = '10';
-                            toAnimate.push(card);
-                        }
+            newCards.forEach(card => {
+                // Disable CSS keyframe animations to prevent transform/opacity conflict
+                card.style.animation = 'none';
+                card.style.transition = 'none';
+
+                const key = card.dataset.key;
+                const firstRect = firstRects.get(key);
+                if (firstRect) {
+                    const lastRect = card.getBoundingClientRect();
+                    const deltaY = firstRect.top - lastRect.top;
+                    if (Math.abs(deltaY) > 1) {
+                        card.style.transform = `translate3d(0, ${deltaY}px, 0)`;
+                        card.style.zIndex = '10';
+                        toAnimate.push(card);
                     }
+                }
+            });
+
+            if (toAnimate.length === 0) return;
+
+            // Force synchronous layout reflow so the browser registers the inverted positions before the next paint
+            void document.body.offsetHeight;
+
+            // 4. PLAY: Animate smoothly to natural position (translateY 0) on the very next frame
+            requestAnimationFrame(() => {
+                toAnimate.forEach(card => {
+                    card.style.transition = 'transform 0.42s cubic-bezier(0.2, 0.85, 0.25, 1)';
+                    card.style.transform = 'translate3d(0, 0, 0)';
                 });
 
-                if (toAnimate.length === 0) return;
-
-                // Force layout reflow
-                document.body.offsetHeight;
-
-                requestAnimationFrame(() => {
+                setTimeout(() => {
                     toAnimate.forEach(card => {
-                        card.style.transition = 'transform 0.45s cubic-bezier(0.2, 0.85, 0.25, 1)';
-                        card.style.transform = 'translate3d(0, 0, 0)';
+                        card.style.transition = '';
+                        card.style.transform = '';
+                        card.style.zIndex = '';
+                        card.style.animation = '';
                     });
-
-                    setTimeout(() => {
-                        toAnimate.forEach(card => {
-                            card.style.transition = '';
-                            card.style.transform = '';
-                            card.style.zIndex = '';
-                        });
-                    }, 480);
-                });
+                }, 450);
             });
         };
 
@@ -1010,7 +1018,18 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 if (recBtn) recBtn.classList.add('active');
                 if (altBtn) altBtn.classList.remove('active');
 
-                window.renderItinerary(false);
+                // Render stops with skipMap = true so map doesn't re-init mid-animation
+                window.renderItinerary(true);
+
+                // Seamlessly update map polyline without jarring viewport resets
+                if (typeof draftMap !== 'undefined' && draftMap && window.initDraftMap) {
+                    var _savedCenter = draftMap.getCenter();
+                    var _savedZoom = draftMap.getZoom();
+                    window.initDraftMap(draft, false);
+                    if (_savedCenter && _savedZoom) {
+                        draftMap.setView(_savedCenter, _savedZoom, { animate: false });
+                    }
+                }
             });
 
             if (typeof showToast === 'function') {
@@ -2458,7 +2477,10 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             window.animateTimelineSwap(() => {
                 const draft = window.getEffectiveDraft();
 
-                // Save user's viewport before re-rendering so we can restore it afterwards
+                // Render stops with skipMap = true so map doesn't re-init mid-animation
+                window.renderItinerary(true);
+
+                // Save user's viewport before re-rendering map
                 var _savedCenter = null, _savedZoom = null;
                 if (typeof draftMap !== 'undefined' && draftMap) {
                     _savedCenter = draftMap.getCenter();
@@ -2472,9 +2494,6 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 if (_savedCenter !== null && _savedZoom !== null && typeof draftMap !== 'undefined' && draftMap) {
                     draftMap.setView(_savedCenter, _savedZoom, { animate: false });
                 }
-
-                // Re-render the timeline stops to reflect the new stop sequence!
-                window.renderItinerary(true);
             });
 
             if (typeof showToast === 'function') {

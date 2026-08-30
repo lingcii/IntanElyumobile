@@ -358,6 +358,7 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     width: 100% !important;
     box-sizing: border-box !important;
     will-change: transform;
+    animation: none !important;
 }
 
 .stop-thumbnail-wrapper {
