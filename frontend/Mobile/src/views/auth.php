@@ -437,7 +437,7 @@
     pointer-events: auto;
 }
 .login-success-card {
-    background: #74a3cf;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
     border: none !important;
     outline: none !important;
     border-radius: 26px;
@@ -445,7 +445,7 @@
     max-width: 310px;
     width: 86%;
     text-align: center;
-    box-shadow: 0 15px 35px rgba(15, 23, 42, 0.25);
+    box-shadow: 0 15px 35px rgba(10, 25, 60, 0.4), 0 0 25px rgba(63, 125, 183, 0.25);
     position: relative;
     transform: scale(0.88) translateY(16px);
     transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);

@@ -643,7 +643,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   to { opacity: 1; }
 }
 
-/* Distinct #74a3cf Container Card (No Outline) */
+/* Distinct Brand Gradient Container Card (No Outline) */
 .oauth-modal-content {
   position: relative;
   display: flex;
@@ -653,11 +653,11 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   gap: 14px;
   max-width: 310px;
   width: 86%;
-  background: #74a3cf;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
   border-radius: 26px;
   padding: 34px 22px 28px 22px;
   box-sizing: border-box;
-  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.25);
+  box-shadow: 0 15px 35px rgba(10, 25, 60, 0.4), 0 0 25px rgba(63, 125, 183, 0.25);
   border: none !important;
   outline: none !important;
   animation: oauthCardPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
