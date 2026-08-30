@@ -6,12 +6,22 @@ $backRoute = 'settings';
 <?php include __DIR__ . '/../components/header.php'; ?>
 
 <style>
+body[data-view="user_manual"] {
+    background:
+        radial-gradient(ellipse at 85% 5%, rgba(0, 242, 254, 0.35) 0%, transparent 55%),
+        radial-gradient(ellipse at 15% 45%, rgba(56, 189, 248, 0.3) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(63, 125, 183, 0.4) 0%, transparent 60%),
+        linear-gradient(180deg, #1e3a8a 0%, #3f7db7 30%, #0284c7 65%, #06b6d4 90%, #00f2fe 100%) !important;
+    background-attachment: fixed !important;
+    color: #ffffff !important;
+}
+
 .user-manual-page {
     padding-top: max(calc(env(safe-area-inset-top) + 75px), 115px);
     padding-left: 16px;
     padding-right: 16px;
     padding-bottom: 80px;
-    color: #f8fafc;
+    color: #ffffff;
     font-family: 'Inter', sans-serif;
     max-width: 800px;
     margin: 0 auto;
@@ -22,24 +32,28 @@ $backRoute = 'settings';
 }
 
 .manual-hero {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 58, 138, 0.4) 100%);
-    border: 1px solid rgba(56, 189, 248, 0.25);
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 24px;
     padding: 24px 20px;
     margin-bottom: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
 }
 
 .manual-hero-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: rgba(56, 189, 248, 0.15);
-    border: 1px solid rgba(56, 189, 248, 0.3);
-    color: #38bdf8;
+    background: rgba(255, 255, 255, 0.15);
+    border: none !important;
+    outline: none !important;
+    color: #00f2fe;
     font-size: 11px;
     font-weight: 800;
-    padding: 4px 12px;
+    padding: 5px 12px;
     border-radius: 100px;
     margin-bottom: 12px;
     text-transform: uppercase;
@@ -55,14 +69,15 @@ $backRoute = 'settings';
 }
 
 .manual-hero h1 span {
-    color: #38bdf8;
+    color: #00f2fe;
 }
 
 .manual-hero p {
     font-size: 13px;
-    color: rgba(148, 163, 184, 0.9);
+    color: #f1f5f9;
     line-height: 1.5;
     margin: 0 0 16px 0;
+    opacity: 0.95;
 }
 
 .manual-search-box {
@@ -73,19 +88,19 @@ $backRoute = 'settings';
 .manual-search-box input {
     width: 100%;
     padding: 12px 16px 12px 42px;
-    background: rgba(15, 23, 42, 0.8);
-    border: 1px solid rgba(56, 189, 248, 0.3);
+    background: rgba(0, 0, 0, 0.25);
+    border: none !important;
+    outline: none !important;
     border-radius: 14px;
     color: #ffffff;
     font-size: 13px;
-    outline: none;
-    transition: border-color 0.2s;
+    transition: all 0.2s;
     box-sizing: border-box;
 }
 
 .manual-search-box input:focus {
-    border-color: #38bdf8;
-    box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+    background: rgba(0, 0, 0, 0.35);
+    box-shadow: 0 0 0 2px #00f2fe;
 }
 
 .manual-search-box i {
@@ -93,7 +108,7 @@ $backRoute = 'settings';
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: #38bdf8;
+    color: #00f2fe;
     font-size: 15px;
 }
 
@@ -108,12 +123,13 @@ $backRoute = 'settings';
 
 .manual-chip {
     flex-shrink: 0;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #94a3b8;
+    background: rgba(255, 255, 255, 0.12);
+    border: none !important;
+    outline: none !important;
+    color: #ffffff;
     font-size: 11px;
     font-weight: 700;
-    padding: 6px 14px;
+    padding: 7px 14px;
     border-radius: 100px;
     cursor: pointer;
     text-decoration: none;
@@ -122,18 +138,23 @@ $backRoute = 'settings';
 }
 
 .manual-chip:hover, .manual-chip.active {
-    background: rgba(56, 189, 248, 0.2);
-    border-color: #38bdf8;
-    color: #38bdf8;
+    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
+    border: none !important;
+    outline: none !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(0, 242, 254, 0.35);
 }
 
 .manual-section {
-    background: rgba(15, 23, 42, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 20px;
     padding: 20px;
     margin-bottom: 20px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
 }
 
 .manual-section-header {
@@ -141,7 +162,7 @@ $backRoute = 'settings';
     align-items: center;
     gap: 12px;
     margin-bottom: 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     padding-bottom: 12px;
 }
 
@@ -154,13 +175,15 @@ $backRoute = 'settings';
     justify-content: center;
     font-size: 18px;
     flex-shrink: 0;
+    border: none !important;
+    outline: none !important;
 }
 
-.manual-section-icon.blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
-.manual-section-icon.purple { background: rgba(167, 139, 250, 0.15); color: #a78bfa; border: 1px solid rgba(167, 139, 250, 0.3); }
-.manual-section-icon.green { background: rgba(52, 199, 89, 0.15); color: #34c759; border: 1px solid rgba(52, 199, 89, 0.3); }
-.manual-section-icon.yellow { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); }
-.manual-section-icon.red { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+.manual-section-icon.blue { background: rgba(0, 242, 254, 0.2); color: #00f2fe; }
+.manual-section-icon.purple { background: rgba(167, 139, 250, 0.2); color: #c4b5fd; }
+.manual-section-icon.green { background: rgba(52, 199, 89, 0.2); color: #4ade80; }
+.manual-section-icon.yellow { background: rgba(251, 191, 36, 0.2); color: #fde047; }
+.manual-section-icon.red { background: rgba(239, 68, 68, 0.2); color: #f87171; }
 
 .manual-section-title {
     font-size: 17px;
@@ -171,17 +194,19 @@ $backRoute = 'settings';
 
 .manual-section-sub {
     font-size: 12px;
-    color: rgba(148, 163, 184, 0.8);
+    color: #f1f5f9;
     margin: 0;
+    opacity: 0.9;
 }
 
 .step-card {
     display: flex;
     gap: 12px;
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.22);
+    border: none !important;
+    outline: none !important;
     border-radius: 14px;
-    padding: 12px 14px;
+    padding: 14px;
     margin-bottom: 10px;
 }
 
@@ -189,14 +214,15 @@ $backRoute = 'settings';
     width: 26px;
     height: 26px;
     border-radius: 50%;
-    background: rgba(56, 189, 248, 0.18);
-    color: #38bdf8;
+    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%);
+    color: #ffffff;
     font-weight: 900;
     font-size: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 242, 254, 0.35);
 }
 
 .step-content {
@@ -206,14 +232,15 @@ $backRoute = 'settings';
 .step-title {
     font-size: 13px;
     font-weight: 700;
-    color: #f1f5f9;
+    color: #ffffff;
     margin-bottom: 4px;
 }
 
 .step-desc {
     font-size: 12px;
-    color: rgba(148, 163, 184, 0.85);
+    color: #f1f5f9;
     line-height: 1.5;
+    opacity: 0.95;
 }
 
 .step-desc ul {
@@ -226,8 +253,9 @@ $backRoute = 'settings';
 }
 
 .manual-info-box {
-    background: rgba(56, 189, 248, 0.08);
-    border: 1px solid rgba(56, 189, 248, 0.25);
+    background: rgba(0, 0, 0, 0.25);
+    border: none !important;
+    outline: none !important;
     border-radius: 12px;
     padding: 12px;
     margin-top: 12px;
@@ -235,18 +263,19 @@ $backRoute = 'settings';
     align-items: flex-start;
     gap: 10px;
     font-size: 12px;
-    color: #e2e8f0;
+    color: #f1f5f9;
 }
 
 .manual-info-box i {
-    color: #38bdf8;
+    color: #00f2fe;
     font-size: 16px;
     margin-top: 1px;
 }
 
 .manual-info-box.warning {
-    background: rgba(245, 158, 11, 0.08);
-    border-color: rgba(245, 158, 11, 0.3);
+    background: rgba(245, 158, 11, 0.15);
+    border: none !important;
+    outline: none !important;
     color: #fef3c7;
 }
 
@@ -260,8 +289,9 @@ $backRoute = 'settings';
 }
 
 .grid-card-item {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(0, 0, 0, 0.2);
+    border: none !important;
+    outline: none !important;
     border-radius: 14px;
     padding: 12px;
     text-align: center;
@@ -275,15 +305,16 @@ $backRoute = 'settings';
 .grid-card-item h4 {
     font-size: 12px;
     font-weight: 800;
-    color: #f1f5f9;
+    color: #ffffff;
     margin: 0 0 4px 0;
 }
 
 .grid-card-item p {
     font-size: 10px;
-    color: rgba(148, 163, 184, 0.8);
+    color: #f1f5f9;
     margin: 0;
     line-height: 1.4;
+    opacity: 0.9;
 }
 
 .ref-table {
@@ -294,19 +325,20 @@ $backRoute = 'settings';
 }
 
 .ref-table th {
-    background: rgba(56, 189, 248, 0.15);
-    color: #38bdf8;
+    background: rgba(0, 0, 0, 0.28);
+    color: #00f2fe;
     text-align: left;
     padding: 8px 12px;
     font-size: 11px;
     font-weight: 800;
     text-transform: uppercase;
+    border: none !important;
 }
 
 .ref-table td {
     padding: 8px 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    color: #cbd5e1;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: #f1f5f9;
 }
 
 .ref-table tr:last-child td {

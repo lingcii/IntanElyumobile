@@ -43,21 +43,7 @@ $backRoute = 'dashboard';
 
         <div class="settings-row">
             <div class="settings-label-group">
-                <div class="settings-icon-box teal"><i class="fa-solid fa-map-location-dot"></i></div> 
-                <div>
-                    <div class="settings-title">Offline Maps & Spot Caching</div>
-                    <div class="settings-subtitle">Access saved trips and spot info offline</div>
-                </div>
-            </div>
-            <label class="switch">
-                <input type="checkbox" id="offline-cache-toggle" onchange="window.toggleOfflineCaching(this.checked)">
-                <span class="slider"></span>
-            </label>
-        </div>
-
-        <div class="settings-row">
-            <div class="settings-label-group">
-                <div class="settings-icon-box blue"><div class="settings-icon-box blue"><i class="fa-solid fa-cloud-arrow-up"></i></div></div> 
+                <div class="settings-icon-box blue"><i class="fa-solid fa-cloud-arrow-up"></i></div> 
                 <div>
                     <div class="settings-title">Automatic Trip Cloud Sync</div>
                     <div class="settings-subtitle">Sync itinerary changes to account live</div>
@@ -67,21 +53,6 @@ $backRoute = 'dashboard';
                 <input type="checkbox" id="auto-sync-toggle" onchange="window.toggleAutoSync(this.checked)">
                 <span class="slider"></span>
             </label>
-        </div>
-
-        <div class="settings-row">
-            <div class="settings-label-group">
-                <div class="settings-icon-box purple"><i class="fa-solid fa-language"></i></div> 
-                <div>
-                    <div class="settings-title">App Language</div>
-                    <div class="settings-subtitle">Select preferred language interface</div>
-                </div>
-            </div>
-            <select id="app-language-select" onchange="window.changeAppLanguage(this.value)" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #38bdf8; border-radius: 10px; padding: 6px 10px; font-size: 12px; font-weight: 700; outline: none; cursor: pointer;">
-                <option value="en" style="background:#1e293b; color:#fff;">English</option>
-                <option value="fil" style="background:#1e293b; color:#fff;">Tagalog / Filipino</option>
-                <option value="ilo" style="background:#1e293b; color:#fff;">Ilocano</option>
-            </select>
         </div>
 
     </div>
@@ -141,17 +112,6 @@ $backRoute = 'dashboard';
             <i class="fa-solid fa-chevron-right" style="color: rgba(255,255,255,0.3); font-size: 12px;"></i>
         </div>
 
-        <div class="settings-row clickable" onclick="navigateTo('help')">
-            <div class="settings-label-group">
-                <div class="settings-icon-box purple"><i class="fa-solid fa-circle-question"></i></div> 
-                <div>
-                    <div class="settings-title">Help & FAQs</div>
-                    <div class="settings-subtitle">Customer support & quick answers</div>
-                </div>
-            </div>
-            <i class="fa-solid fa-chevron-right" style="color: rgba(255,255,255,0.3); font-size: 12px;"></i>
-        </div>
-
     </div>
 
     <!-- Storage & App Group -->
@@ -182,17 +142,17 @@ $backRoute = 'dashboard';
     </div>
 
     <!-- Account Actions -->
-    <div class="settings-group-title stagger-5">Account Action</div>
-    <div class="settings-card stagger-5" style="border: 1px solid rgba(244, 63, 94, 0.3);">
-        <div class="settings-row clickable" onclick="confirmSignOut()" style="background: rgba(244, 63, 94, 0.08);">
+    <div class="settings-group-title stagger-5" style="color: #ffffff;">Account Action</div>
+    <div class="settings-card stagger-5" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; border: none !important; outline: none !important; box-shadow: 0 8px 24px rgba(220, 38, 38, 0.35) !important;">
+        <div class="settings-row clickable" onclick="confirmSignOut()" style="background: transparent !important;">
             <div class="settings-label-group">
-                <div class="settings-icon-box rose"><i class="fa-solid fa-right-from-bracket"></i></div> 
+                <div class="settings-icon-box" style="background: rgba(255, 255, 255, 0.2); color: #ffffff;"><i class="fa-solid fa-right-from-bracket"></i></div> 
                 <div>
-                    <div class="settings-title" style="color: #f43f5e;">Sign Out Account</div>
-                    <div class="settings-subtitle" style="color: rgba(244, 63, 94, 0.8);">Log out of your tourist session</div>
+                    <div class="settings-title" style="color: #ffffff; font-weight: 700;">Sign Out Account</div>
+                    <div class="settings-subtitle" style="color: rgba(255, 255, 255, 0.85);">Log out of your tourist session</div>
                 </div>
             </div>
-            <i class="fa-solid fa-arrow-right-to-bracket" style="color: #f43f5e; font-size: 13px;"></i>
+            <i class="fa-solid fa-arrow-right-to-bracket" style="color: #ffffff; font-size: 13px;"></i>
         </div>
     </div>
 
