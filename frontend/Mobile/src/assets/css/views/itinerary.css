@@ -236,14 +236,14 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     display: inline-flex !important;
     align-items: center !important;
     gap: 8px !important;
-    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4) !important;
+    box-shadow: none !important;
     cursor: pointer !important;
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease !important;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .btn-open-map:hover {
     transform: translateY(-2px) scale(1.02) !important;
-    box-shadow: 0 8px 28px rgba(56, 189, 248, 0.55) !important;
+    box-shadow: none !important;
 }
 
 .btn-open-map:active {
@@ -261,7 +261,7 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     font-weight: 900 !important;
     font-size: 15px !important;
     letter-spacing: 0.3px !important;
-    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
+    box-shadow: none !important;
     cursor: pointer !important;
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
     display: flex;
@@ -295,7 +295,7 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     outline: none !important;
     border-radius: 26px !important;
     padding: 14px !important;
-    box-shadow: 0 8px 28px rgba(10, 25, 60, 0.25) !important;
+    box-shadow: none !important;
     display: flex !important;
     flex-direction: column !important;
     gap: 8px !important;
@@ -337,15 +337,15 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     align-items: center !important;
     justify-content: center !important;
     cursor: pointer !important;
-    box-shadow: 0 4px 14px rgba(0, 242, 254, 0.4) !important;
+    box-shadow: none !important;
     font-size: 12px !important;
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease !important;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
     z-index: 2 !important;
 }
 
 .btn-swap-pill:hover {
     transform: scale(1.12) !important;
-    box-shadow: 0 6px 18px rgba(0, 242, 254, 0.55) !important;
+    box-shadow: none !important;
 }
 
 .btn-swap-pill:active {
@@ -375,7 +375,7 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     overflow: hidden !important;
     flex-shrink: 0 !important;
     position: relative !important;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: none !important;
     background: rgba(15, 23, 42, 0.45) !important;
     border: none !important;
     outline: none !important;
@@ -401,7 +401,7 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     display: inline-flex !important;
     align-items: center !important;
     gap: 6px !important;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16) !important;
+    box-shadow: none !important;
     border: none !important;
     outline: none !important;
     user-select: none;
@@ -452,8 +452,8 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     outline: none !important;
     border-radius: 20px !important;
     padding: 18px 20px !important;
-    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
-    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    box-shadow: none !important;
+    transition: transform 0.2s ease !important;
 }
 
 .swipe-content .time-label {
@@ -586,20 +586,20 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     outline: none !important;
     border-radius: 22px !important;
     padding: 16px 18px !important;
-    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.28) !important;
+    box-shadow: none !important;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease;
 }
 
 .starting-point-card:hover {
     transform: translateY(-2px);
     border: none !important;
     outline: none !important;
-    box-shadow: 0 10px 28px rgba(10, 25, 60, 0.35) !important;
+    box-shadow: none !important;
 }
 
 .starting-point-icon-box {
@@ -616,18 +616,11 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     font-size: 20px !important;
     flex-shrink: 0;
     position: relative;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: none !important;
 }
 
 .starting-point-pulse {
-    position: absolute;
-    inset: -4px;
-    border-radius: 50% !important;
-    border: none !important;
-    outline: none !important;
-    background: rgba(0, 242, 254, 0.28);
-    animation: gpsRadarPulse 2.5s infinite ease-out;
-    pointer-events: none;
+    display: none !important;
 }
 
 .starting-point-locate-btn {
@@ -648,7 +641,7 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
     border: none !important;
     outline: none !important;
-    box-shadow: 0 4px 14px rgba(0, 242, 254, 0.35) !important;
+    box-shadow: none !important;
     cursor: pointer !important;
     flex-shrink: 0 !important;
     user-select: none !important;
@@ -723,11 +716,11 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    box-shadow: 0 4px 14px rgba(0, 242, 254, 0.4) !important;
+    box-shadow: none !important;
     font-size: 11px !important;
     z-index: 2 !important;
     flex-shrink: 0 !important;
-    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    transition: transform 0.2s ease !important;
 }
 
 /* Timeline Route Connector Line */
@@ -760,7 +753,7 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     flex: 1 !important;
     background: linear-gradient(to bottom, rgba(0, 242, 254, 0.8), rgba(56, 189, 248, 0.4)) !important;
     border-radius: 999px !important;
-    box-shadow: 0 0 8px rgba(0, 242, 254, 0.35) !important;
+    box-shadow: none !important;
 }
 
 .route-connector-node {
@@ -773,9 +766,8 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     justify-content: center !important;
     color: #ffffff !important;
     font-size: 9px !important;
-    box-shadow: 0 2px 10px rgba(0, 242, 254, 0.5) !important;
+    box-shadow: none !important;
     margin: 2px 0 !important;
-    animation: connectorPulse 2s ease-in-out infinite !important;
     border: none !important;
     outline: none !important;
 }
@@ -785,7 +777,7 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     border: none !important;
     outline: none !important;
     background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
-    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
+    box-shadow: none !important;
     position: relative;
 }
 
@@ -909,7 +901,7 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     will-change: transform;
 }
 
-/* Universal container gradient & outline removal */
+/* Universal container gradient, outline & shadow/glow removal */
 .itinerary-container .starting-point-card,
 .itinerary-container .swipe-content,
 .itinerary-container .empty-state-card,
@@ -918,10 +910,21 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
     border: none !important;
     outline: none !important;
-    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
+    box-shadow: none !important;
 }
 
-.itinerary-container .starting-point-card *,
-.itinerary-container .swipe-content * {
+.itinerary-container *,
+.itinerary-stops-container,
+.itinerary-stops-container *,
+.starting-point-card,
+.starting-point-card *,
+.swipe-content,
+.swipe-content * {
     outline: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+.starting-point-pulse {
+    display: none !important;
 }

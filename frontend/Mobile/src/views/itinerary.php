@@ -122,7 +122,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         outline: none !important;
         border-radius: 26px !important;
         padding: 14px !important;
-        box-shadow: 0 8px 28px rgba(10, 25, 60, 0.25) !important;
+        box-shadow: none !important;
         display: flex !important;
         flex-direction: column !important;
         gap: 8px !important;
@@ -164,15 +164,15 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         align-items: center !important;
         justify-content: center !important;
         cursor: pointer !important;
-        box-shadow: 0 4px 14px rgba(0, 242, 254, 0.4) !important;
+        box-shadow: none !important;
         font-size: 12px !important;
-        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease !important;
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
         z-index: 2 !important;
     }
 
     .btn-swap-pill:hover {
         transform: scale(1.12) !important;
-        box-shadow: 0 6px 18px rgba(0, 242, 254, 0.55) !important;
+        box-shadow: none !important;
     }
 
     .btn-swap-pill:active {
@@ -202,7 +202,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         overflow: hidden !important;
         flex-shrink: 0 !important;
         position: relative !important;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+        box-shadow: none !important;
         background: rgba(15, 23, 42, 0.45) !important;
         border: none !important;
         outline: none !important;
@@ -228,7 +228,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         display: inline-flex !important;
         align-items: center !important;
         gap: 6px !important;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16) !important;
+        box-shadow: none !important;
         border: none !important;
         outline: none !important;
         user-select: none;
@@ -255,11 +255,11 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        box-shadow: 0 4px 14px rgba(0, 242, 254, 0.4) !important;
+        box-shadow: none !important;
         font-size: 11px !important;
         z-index: 2 !important;
         flex-shrink: 0 !important;
-        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+        transition: transform 0.2s ease !important;
     }
 
     /* Redesigned Route Connector */
@@ -292,7 +292,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         flex: 1 !important;
         background: linear-gradient(to bottom, rgba(0, 242, 254, 0.8), rgba(56, 189, 248, 0.4)) !important;
         border-radius: 999px !important;
-        box-shadow: 0 0 8px rgba(0, 242, 254, 0.35) !important;
+        box-shadow: none !important;
     }
 
     .route-connector-node {
@@ -305,22 +305,14 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         justify-content: center !important;
         color: #ffffff !important;
         font-size: 9px !important;
-        box-shadow: 0 2px 10px rgba(0, 242, 254, 0.5) !important;
+        box-shadow: none !important;
         margin: 2px 0 !important;
-        animation: connectorPulse 2s ease-in-out infinite !important;
         border: none !important;
         outline: none !important;
     }
 
-    @keyframes connectorPulse {
-        0%, 100% {
-            transform: scale(1);
-            box-shadow: 0 2px 10px rgba(0, 242, 254, 0.5);
-        }
-        50% {
-            transform: scale(1.1);
-            box-shadow: 0 2px 16px rgba(0, 242, 254, 0.8);
-        }
+    .starting-point-pulse {
+        display: none !important;
     }
 
     .hide-scrollbar {
@@ -386,7 +378,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
         <!-- Map Route Stats -->
         <div
-            style="display:flex; justify-content:space-around; align-items:center; margin-top:12px; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border: none !important; outline: none !important; border-radius:18px; padding:14px; box-shadow:0 8px 24px rgba(10, 25, 60, 0.25);">
+            style="display:flex; justify-content:space-around; align-items:center; margin-top:12px; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border: none !important; outline: none !important; border-radius:18px; padding:14px; box-shadow:none !important;">
             <div style="color:white; font-size:14px; font-weight:700;">
                 <i class="fa-solid fa-route" style="color:#00f2fe; margin-right:6px; font-size:16px;"></i> <span
                     id="draft-map-dist">0 km</span>
@@ -1226,10 +1218,9 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             html += `
         <div class="starting-point-item" onclick="window.routeToMyLocation()">
-            <div class="starting-point-card" style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border:none !important; outline:none !important; border-radius:20px !important; padding:16px 18px !important; box-shadow:0 8px 24px rgba(10,25,60,0.28) !important; display:flex; align-items:center; justify-content:space-between; gap:14px; cursor:pointer;">
-                <div class="starting-point-icon-box" style="width:46px; height:46px; border-radius:50%; background:linear-gradient(135deg, rgba(56,189,248,0.25) 0%, rgba(37,99,235,0.35) 100%) !important; border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0; box-shadow:0 4px 14px rgba(0,0,0,0.2);">
+            <div class="starting-point-card" style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border:none !important; outline:none !important; border-radius:20px !important; padding:16px 18px !important; box-shadow:none !important; display:flex; align-items:center; justify-content:space-between; gap:14px; cursor:pointer;">
+                <div class="starting-point-icon-box" style="width:46px; height:46px; border-radius:50%; background:linear-gradient(135deg, rgba(56,189,248,0.25) 0%, rgba(37,99,235,0.35) 100%) !important; border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0; box-shadow:none !important;">
                     <i class="fa-solid fa-location-crosshairs" style="color:#00f2fe; font-size:20px;"></i>
-                    <div class="starting-point-pulse" style="position:absolute; inset:-4px; border-radius:50%; background:rgba(0,242,254,0.25); border:none !important; outline:none !important; pointer-events:none;"></div>
                 </div>
                 <div class="starting-point-info" style="flex:1; min-width:0;">
                     <div class="starting-point-label" style="font-size:10.5px; font-weight:800; color:#00f2fe; text-transform:uppercase; letter-spacing:0.7px; display:inline-flex; align-items:center; gap:5px; margin-bottom:3px;">
@@ -1238,7 +1229,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     <h3 class="starting-point-title" style="margin:0 0 3px 0; font-size:15.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.2px;">Your Current Location</h3>
                     <div class="starting-point-status" id="itinerary-starting-status" style="font-size:11.5px; color:rgba(226,232,240,0.9); display:flex; align-items:center; gap:5px; font-weight:600;">${startingStatus}</div>
                 </div>
-                <button type="button" onclick="event.stopPropagation(); window.routeToMyLocation();" class="starting-point-locate-btn" style="position:relative !important; width:auto !important; height:auto !important; min-width:auto !important; max-width:none !important; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important; border:none !important; outline:none !important; color:#ffffff !important; font-size:12px; font-weight:800; padding:8px 16px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; flex-shrink:0; box-shadow:0 4px 14px rgba(0,242,254,0.35); transition:transform 0.15s ease;">
+                <button type="button" onclick="event.stopPropagation(); window.routeToMyLocation();" class="starting-point-locate-btn" style="position:relative !important; width:auto !important; height:auto !important; min-width:auto !important; max-width:none !important; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important; border:none !important; outline:none !important; color:#ffffff !important; font-size:12px; font-weight:800; padding:8px 16px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; flex-shrink:0; box-shadow:none !important; transition:transform 0.15s ease;">
                     <i class="fa-solid fa-location-arrow" style="font-size:11px;"></i> Locate
                 </button>
             </div>
@@ -1307,7 +1298,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     <div class="timeline-dot"></div>
                     <div class="swipe-container" style="position:relative; overflow:hidden; border-radius:20px !important; transform:translate3d(0,0,0); -webkit-transform:translate3d(0,0,0); -webkit-backface-visibility:hidden; backface-visibility:hidden; -webkit-mask-image:-webkit-radial-gradient(white, black); mask-image:radial-gradient(white, black);">
                         <div class="swipe-delete-bg" style="position:absolute; top:0; right:0; bottom:0; width:80px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 20px 20px 0 !important; display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800; gap:4px; transform:translateX(100%); z-index:1; opacity:0; pointer-events:none; transition:transform 0.2s ease, opacity 0.2s ease;"><i class="fa-solid fa-trash-can"></i> Delete</div>
-                        <div class="swipe-content" style="position:relative; z-index:2; transition:transform 0.2s ease; border-radius:20px !important; padding:16px 18px; border:none !important; outline:none !important; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; box-shadow:0 6px 20px rgba(10, 25, 60, 0.25) !important;">
+                        <div class="swipe-content" style="position:relative; z-index:2; transition:transform 0.2s ease; border-radius:20px !important; padding:16px 18px; border:none !important; outline:none !important; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; box-shadow:none !important;">
                             <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;">
                                 <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                                     <span class="time-label" style="border:none !important; outline:none !important; box-shadow:none !important;">Stop ${index + 1} &bull; Approx ${timeStr}</span>
