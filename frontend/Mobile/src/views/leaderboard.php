@@ -276,6 +276,7 @@ $activeTab = 'leaderboard';
                     name: myDisplayName,
                     avatar: myAvatar,
                     xp: myXp,
+                    pts: myPts,
                     rank: myRankNum,
                     level: myLevel,
                     activities: myActivities,
@@ -483,19 +484,12 @@ $activeTab = 'leaderboard';
         }
 
         window.showUserProfile = function (name, avatar, xp, pts, rank, level, activities, location, bio, isMe = false) {
-            document.getElementById('modal-avatar').src = avatar;
-            document.getElementById('modal-name').innerText = name;
-            document.getElementById('modal-xp').innerText = Number(xp || 0).toLocaleString();
-            document.getElementById('modal-pts').innerText = Number(pts || 0).toLocaleString();
-            document.getElementById('modal-rank-badge').innerText = rank;
-            document.getElementById('modal-level').innerText = 'Lvl ' + (level || 1);
-            document.getElementById('modal-activities').innerText = activities ? Number(activities).toLocaleString() : '0';
-
             // Determine if the viewed profile is the current logged-in user
             const isSelf = Boolean(
                 isMe === true || 
                 (window.myUserData && window.myUserData.name && name === window.myUserData.name) ||
                 (window.myUserData && name === 'Unranked Explorer') ||
+                (name && (name.includes('(You)') || name.includes('Your Standing'))) ||
                 (cachedMeData && (
                     (cachedMeData.name && name === cachedMeData.name) ||
                     (cachedMeData.full_name && name === cachedMeData.full_name) ||
@@ -503,6 +497,53 @@ $activeTab = 'leaderboard';
                     (cachedMeData.id && String(rank).includes(String(cachedMyRank)))
                 ))
             );
+
+            let displayPts = Number(pts || 0);
+            if (isSelf) {
+                const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                const knownPts = cachedMeData ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? 0) : parseInt(authUser.points || 0);
+                if (knownPts > displayPts) {
+                    displayPts = knownPts;
+                }
+                if (window.myUserData && window.myUserData.pts && window.myUserData.pts > displayPts) {
+                    displayPts = window.myUserData.pts;
+                }
+            }
+
+            document.getElementById('modal-avatar').src = avatar;
+            document.getElementById('modal-name').innerText = name;
+            document.getElementById('modal-xp').innerText = Number(xp || 0).toLocaleString();
+            document.getElementById('modal-pts').innerText = displayPts.toLocaleString();
+            document.getElementById('modal-rank-badge').innerText = rank;
+            document.getElementById('modal-level').innerText = 'Lvl ' + (level || 1);
+            document.getElementById('modal-activities').innerText = activities ? Number(activities).toLocaleString() : '0';
+
+            // When viewing self, fetch fresh live balance to guarantee accuracy
+            if (isSelf) {
+                const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                if (token) {
+                    const backendUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+                    fetch(backendUrl + '/api/tourist/points/balance', {
+                        headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+                    }).then(r => r.json()).then(d => {
+                        if (d && d.status === 'success' && d.points !== undefined) {
+                            const livePts = parseInt(d.points);
+                            const ptsEl = document.getElementById('modal-pts');
+                            if (ptsEl) ptsEl.innerText = livePts.toLocaleString();
+                            if (window.myUserData) window.myUserData.pts = livePts;
+                            const subtext = document.getElementById('my-standing-subtext');
+                            if (subtext && window.myUserData) {
+                                subtext.textContent = `${(window.myUserData.xp || 0).toLocaleString()} XP • ${livePts.toLocaleString()} PTS • ${window.myUserData.activities || 0} Visited`;
+                            }
+                            try {
+                                const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                                authUser.points = livePts;
+                                localStorage.setItem('auth_user', JSON.stringify(authUser));
+                            } catch(e) {}
+                        }
+                    }).catch(() => {});
+                }
+            }
 
             const rankPill = document.getElementById('modal-rank-pill');
             if (rankPill) {
@@ -556,14 +597,32 @@ $activeTab = 'leaderboard';
             }
 
             try {
-                const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
                 const headers = { 'Accept': 'application/json' };
 
-                var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+                var backendUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
                 let url = backendUrl + '/api/public/leaderboard';
                 if (token) {
                     headers['Authorization'] = 'Bearer ' + token;
                     url = backendUrl + '/api/tourist/leaderboard';
+                }
+
+                // In parallel, fetch live points balance if user is authenticated
+                if (token) {
+                    fetch(backendUrl + '/api/tourist/points/balance', {
+                        headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+                    }).then(r => r.json()).then(d => {
+                        if (d && d.status === 'success' && d.points !== undefined) {
+                            const ptsVal = parseInt(d.points);
+                            if (window.myUserData) {
+                                window.myUserData.pts = ptsVal;
+                                const subtext = document.getElementById('my-standing-subtext');
+                                if (subtext) {
+                                    subtext.textContent = `${(window.myUserData.xp || 0).toLocaleString()} XP • ${ptsVal.toLocaleString()} PTS • ${window.myUserData.activities || 0} Visited`;
+                                }
+                            }
+                        }
+                    }).catch(() => {});
                 }
 
                 const cacheKey = 'leaderboard_data_v13_' + (token ? token.substring(0, 10) : 'public');
@@ -576,6 +635,7 @@ $activeTab = 'leaderboard';
                         if (res.status === 401 && token) {
                             localStorage.removeItem('intan_elyu_token');
                             localStorage.removeItem('Intan_Elyu_Token');
+                            localStorage.removeItem('api_token');
                             res = await fetch(backendUrl + '/api/public/leaderboard', { headers: { 'Accept': 'application/json' } });
                         }
                         if (!res.ok) throw new Error("Failed to fetch leaderboard");
@@ -589,7 +649,7 @@ $activeTab = 'leaderboard';
                         renderLeaderboardUI();
                     },
                     Boolean(window.leaderboardNeedsRefresh),
-                    60000 // 1 minute TTL
+                    30000 // 30 seconds TTL
                 );
                 window.leaderboardNeedsRefresh = false;
 
