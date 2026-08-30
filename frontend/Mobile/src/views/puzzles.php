@@ -1264,7 +1264,13 @@ async function claimMiniGamePoints(gameType) {
         const d = await r.json();
         if (r.ok && d.status === 'success') {
             // Mark as completed today for local checks
-            try { localStorage.setItem('game_done_' + gameType, new Date().toDateString()); } catch(e) {}
+            try { 
+                localStorage.setItem('game_done_' + gameType, new Date().toDateString()); 
+                window.leaderboardNeedsRefresh = true;
+                Object.keys(localStorage).forEach(k => {
+                    if (k.startsWith('leaderboard_data_')) localStorage.removeItem(k);
+                });
+            } catch(e) {}
             updateAllGamesFinishedUI();
             openGameSuccess(d.message);
         } else {
