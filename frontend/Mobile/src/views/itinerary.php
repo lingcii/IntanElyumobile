@@ -584,12 +584,15 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         </div>
 
         <label style="font-size:13px; color:#ffffff; margin-bottom:8px; display:block; font-weight:700;">Transport Type</label>
-        <div
-            style="display:flex; gap:8px; margin-bottom:16px; background:rgba(0,0,0,0.2); padding:5px; border-radius:14px; border:none !important; outline:none !important; box-shadow:none !important;">
-            <button class="btn-transport-toggle active" id="btn-trans-public" onclick="window.setTransportType('public')"
-                style="flex:1; padding:10px; border-radius:10px; border:none !important; outline:none !important; background:#ffffff; font-size:13px; font-weight:800; color:#1e3a8a; transition:0.2s; cursor:pointer; box-shadow:none !important;">Public</button>
-            <button class="btn-transport-toggle" id="btn-trans-private" onclick="window.setTransportType('private')"
-                style="flex:1; padding:10px; border-radius:10px; border:none !important; outline:none !important; background:transparent; font-size:13px; font-weight:700; color:rgba(255,255,255,0.85); transition:0.2s; cursor:pointer; box-shadow:none !important;">Private</button>
+        <div id="transport-toggle-track"
+            style="position:relative; display:flex; gap:0; margin-bottom:16px; background:rgba(0,0,0,0.25); padding:4px; border-radius:14px; border:none !important; outline:none !important; box-shadow:none !important; user-select:none;">
+            <!-- Smooth Sliding Pill Indicator -->
+            <div id="transport-toggle-pill"
+                style="position:absolute; top:4px; bottom:4px; left:4px; width:calc(50% - 4px); background:#ffffff; border-radius:10px; transition:transform 0.32s cubic-bezier(0.16, 1, 0.3, 1); pointer-events:none; z-index:1; transform:translateX(0%); border:none !important; outline:none !important; box-shadow:none !important;"></div>
+            <button type="button" class="btn-transport-toggle active" id="btn-trans-public" onclick="window.setTransportType('public')"
+                style="position:relative; z-index:2; flex:1; padding:10px; border-radius:10px; border:none !important; outline:none !important; background:transparent !important; font-size:13px; font-weight:800; color:#1e3a8a; transition:color 0.25s ease, font-weight 0.25s ease; cursor:pointer; box-shadow:none !important; text-align:center;">Public</button>
+            <button type="button" class="btn-transport-toggle" id="btn-trans-private" onclick="window.setTransportType('private')"
+                style="position:relative; z-index:2; flex:1; padding:10px; border-radius:10px; border:none !important; outline:none !important; background:transparent !important; font-size:13px; font-weight:700; color:rgba(255,255,255,0.85); transition:color 0.25s ease, font-weight 0.25s ease; cursor:pointer; box-shadow:none !important; text-align:center;">Private</button>
         </div>
 
         <div id="transport-slider-wrapper" style="display:block; margin-bottom:16px;">
@@ -2819,36 +2822,32 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         window.setTransportType = function (type) {
             const btnPublic = document.getElementById('btn-trans-public');
             const btnPrivate = document.getElementById('btn-trans-private');
+            const pill = document.getElementById('transport-toggle-pill');
 
-            if (btnPublic) {
-                btnPublic.classList.remove('active');
-                btnPublic.style.background = 'transparent';
-                btnPublic.style.color = 'rgba(255,255,255,0.85)';
-                btnPublic.style.fontWeight = '700';
-                btnPublic.style.border = 'none';
-                btnPublic.style.outline = 'none';
-                btnPublic.style.boxShadow = 'none';
-            }
-
-            if (btnPrivate) {
-                btnPrivate.classList.remove('active');
-                btnPrivate.style.background = 'transparent';
-                btnPrivate.style.color = 'rgba(255,255,255,0.85)';
-                btnPrivate.style.fontWeight = '700';
-                btnPrivate.style.border = 'none';
-                btnPrivate.style.outline = 'none';
-                btnPrivate.style.boxShadow = 'none';
-            }
-
-            const activeBtn = document.getElementById('btn-trans-' + type);
-            if (activeBtn) {
-                activeBtn.classList.add('active');
-                activeBtn.style.background = '#ffffff';
-                activeBtn.style.color = '#1e3a8a';
-                activeBtn.style.fontWeight = '800';
-                activeBtn.style.border = 'none';
-                activeBtn.style.outline = 'none';
-                activeBtn.style.boxShadow = 'none';
+            if (type === 'private') {
+                if (pill) pill.style.transform = 'translateX(100%)';
+                if (btnPrivate) {
+                    btnPrivate.classList.add('active');
+                    btnPrivate.style.color = '#1e3a8a';
+                    btnPrivate.style.fontWeight = '800';
+                }
+                if (btnPublic) {
+                    btnPublic.classList.remove('active');
+                    btnPublic.style.color = 'rgba(255,255,255,0.85)';
+                    btnPublic.style.fontWeight = '700';
+                }
+            } else {
+                if (pill) pill.style.transform = 'translateX(0%)';
+                if (btnPublic) {
+                    btnPublic.classList.add('active');
+                    btnPublic.style.color = '#1e3a8a';
+                    btnPublic.style.fontWeight = '800';
+                }
+                if (btnPrivate) {
+                    btnPrivate.classList.remove('active');
+                    btnPrivate.style.color = 'rgba(255,255,255,0.85)';
+                    btnPrivate.style.fontWeight = '700';
+                }
             }
 
             const wrapper = document.getElementById('transport-slider-wrapper');
@@ -2858,6 +2857,14 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             // Dynamically render vehicle options from Railway DB!
             window.renderRailwayVehicleOptions(type);
+
+            // Animate slider items smoothly
+            const slider = document.getElementById('transport-slider');
+            if (slider) {
+                slider.style.animation = 'none';
+                slider.offsetHeight;
+                slider.style.animation = 'smoothReveal 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+            }
 
             const fuelPanel = document.getElementById('own-car-fuel-panel');
             const isCarSelected = (document.getElementById('trip-transport').value || '').includes('own_car');
