@@ -297,17 +297,17 @@ if (is_dir($imgDir)) {
 
             <!-- Site Fee Summary Banner -->
             <div id="sheet-fees-card" class="dest-fees-card"
-                style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.06); border:none !important; outline:none !important; border-radius:16px; padding:10px 14px; margin-bottom:10px;">
+                style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14) !important; outline:none !important; border-radius:16px; padding:10px 14px; margin-bottom:10px; box-shadow:0 4px 16px rgba(0,0,0,0.2);">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <div
-                        style="width:34px; height:34px; border-radius:10px; background:rgba(16,185,129,0.16); color:#34d399; border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;">
+                        style="width:34px; height:34px; border-radius:10px; background:rgba(16,185,129,0.22); color:#34d399; border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;">
                         <i class="fa-solid fa-ticket"></i>
                     </div>
                     <div style="display:flex; flex-direction:column;">
                         <span
-                            style="font-size:10px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px;">Site
+                            style="font-size:10px; font-weight:700; color:#e2e8f0; text-transform:uppercase; letter-spacing:0.5px;">Site
                             Fees</span>
-                        <span id="sheet-fee-main-text" style="font-size:13px; font-weight:800; color:#f8fafc;">Free
+                        <span id="sheet-fee-main-text" style="font-size:13px; font-weight:800; color:#ffffff;">Free
                             Admission</span>
                     </div>
                 </div>
@@ -326,7 +326,7 @@ if (is_dir($imgDir)) {
                     </div>
                 </div>
 
-                <div id="sheet-desc-animator" style="overflow:hidden;">
+                <div id="sheet-desc-animator">
                     <div class="dest-section-header">
                         <div class="dest-section-icon"><i class="fa-solid fa-compass"></i></div>
                         <h5 class="dest-section-title">About this destination</h5>
@@ -334,9 +334,14 @@ if (is_dir($imgDir)) {
 
                     <p id="sheet-desc-short" class="dest-desc-text"></p>
                     <p id="sheet-desc-full" class="dest-desc-text" style="display:none;"></p>
+                    <button id="btn-view-details" class="dest-toggle-btn" onclick="window.toggleFullDetails()" style="display:none; margin:8px 0 14px;">
+                        <span id="details-btn-text">Read More</span>
+                        <i class="fa-solid fa-chevron-down" id="details-chevron"
+                            style="transition:transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);"></i>
+                    </button>
 
-                    <!-- Expanded Details -->
-                    <div id="expanded-details" class="dest-expanded-wrapper" style="display:none;">
+                    <!-- Expanded Details (Directly Visible) -->
+                    <div id="expanded-details" class="dest-expanded-wrapper" style="display:flex;">
 
                         <!-- Route Guide -->
                         <div class="dest-guide-box" id="sheet-route-guide-box">
@@ -409,12 +414,6 @@ if (is_dir($imgDir)) {
                         </div>
                     </div>
                 </div>
-
-                <button id="btn-view-details" class="dest-toggle-btn" onclick="window.toggleFullDetails()">
-                    <span id="details-btn-text">View Full Details</span>
-                    <i class="fa-solid fa-chevron-down" id="details-chevron"
-                        style="transition:transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);"></i>
-                </button>
             </div>
 
             <!-- Action Buttons -->
@@ -2516,11 +2515,13 @@ if (is_dir($imgDir)) {
                     sheet.classList.add('active');
                     applyY(0);
                 }
+                document.body.classList.add('sheet-open');
                 setTimeout(() => { if (!isDragging) sheet.style.transition = ''; }, 500);
             }
 
             function closeSheet() {
                 isOpen = false;
+                document.body.classList.remove('sheet-open');
                 sheet.style.transition = 'transform 0.38s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease';
                 sheet.style.transform = 'translateY(calc(100% + 120px))';
                 sheet.classList.remove('active');
@@ -2959,10 +2960,10 @@ if (is_dir($imgDir)) {
 
                 let tagsHtml = '';
                 if (hasEntrance && entranceFee > 0) {
-                    tagsHtml += `<span style="font-size:11px; font-weight:800; background:rgba(56,189,248,0.12); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); padding:3px 8px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-ticket" style="font-size:10px;"></i> Entrance: ₱${entranceFee.toFixed(2)}</span>`;
+                    tagsHtml += `<span style="font-size:11px; font-weight:800; background:rgba(56,189,248,0.22); color:#7dd3fc; border:1px solid rgba(125,211,252,0.4); padding:4px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-ticket" style="font-size:10px;"></i> Entrance: ₱${entranceFee.toFixed(2)}</span>`;
                 }
                 if (hasEnvironmental && environmentalFee > 0) {
-                    tagsHtml += `<span style="font-size:11px; font-weight:800; background:rgba(52,211,153,0.12); color:#34d399; border:1px solid rgba(52,211,153,0.3); padding:3px 8px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-leaf" style="font-size:10px;"></i> Envi: ₱${environmentalFee.toFixed(2)}</span>`;
+                    tagsHtml += `<span style="font-size:11px; font-weight:800; background:rgba(52,211,153,0.22); color:#6ee7b7; border:1px solid rgba(110,231,183,0.4); padding:4px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-leaf" style="font-size:10px;"></i> Envi: ₱${environmentalFee.toFixed(2)}</span>`;
                 }
 
                 if (tagsHtml !== '') {
@@ -2971,7 +2972,7 @@ if (is_dir($imgDir)) {
                     feeTags.innerHTML = tagsHtml;
                 } else {
                     feeMainText.textContent = 'Free Admission';
-                    feeTags.innerHTML = `<span style="font-size:10.5px; font-weight:800; background:rgba(52,211,153,0.15); color:#34d399; border:1px solid rgba(52,211,153,0.3); padding:3px 8px; border-radius:8px;">No Entrance Fee</span>`;
+                    feeTags.innerHTML = `<span style="font-size:11px; font-weight:800; background:rgba(16,185,129,0.22); color:#6ee7b7; border:1px solid rgba(110,231,183,0.4); padding:4px 9px; border-radius:8px;">No Entrance Fee</span>`;
                 }
             }
 
@@ -3073,29 +3074,51 @@ if (is_dir($imgDir)) {
 
             if (descContainer) {
                 descContainer.style.display = 'block';
-                if (locationData.description) {
-                    const words = locationData.description.split(' ');
-                    if (words.length > 40) {
-                        if (descShort) descShort.textContent = words.slice(0, 40).join(' ') + '...';
-                        if (descFull) descFull.textContent = locationData.description;
+                const spotName = locationData.name || 'This destination';
+                const muniName = locationData.municipality || 'La Union';
+                const brgyName = locationData.barangay ? `in Barangay ${locationData.barangay}, ` : '';
+                const catName = (locationData.category || 'tourist attraction').toLowerCase();
+
+                let rawDesc = (locationData.description && locationData.description.trim()) ? locationData.description.trim() : '';
+
+                // Provide a rich, informative fallback when database description is empty
+                if (!rawDesc) {
+                    if (catName.includes('heritage') || catName.includes('cultural') || catName.includes('watchtower') || catName.includes('monument') || catName.includes('landmark')) {
+                        rawDesc = `A historic cultural landmark located ${brgyName}${muniName}, La Union. Built during the Spanish colonial era, it stands as an enduring heritage site historically utilized for coastal defense, beacon signaling, and maritime surveillance along the coast of La Union.`;
+                    } else if (catName.includes('beach') || catName.includes('surf') || catName.includes('coastal') || catName.includes('island')) {
+                        rawDesc = `A premier coastal destination located ${brgyName}${muniName}, La Union. Renowned for its scenic seaside shores, refreshing ocean breezes, and relaxing tropical ambiance.`;
+                    } else if (catName.includes('water') || catName.includes('fall') || catName.includes('river') || catName.includes('lake')) {
+                        rawDesc = `A refreshing eco-tourism attraction nestled ${brgyName}${muniName}, La Union, featuring pristine mountain waters, natural rock formations, and lush surrounding flora.`;
+                    } else if (catName.includes('church') || catName.includes('relig') || catName.includes('shrine') || catName.includes('parish')) {
+                        rawDesc = `A revered historical and spiritual sanctuary located ${brgyName}${muniName}, La Union, welcoming devotees and travelers with its sacred heritage and enduring architectural beauty.`;
+                    } else if (catName.includes('nature') || catName.includes('park') || catName.includes('farm') || catName.includes('mountain')) {
+                        rawDesc = `A peaceful nature destination situated ${brgyName}${muniName}, La Union, offering picturesque views, verdant outdoor scenery, and a relaxing retreat.`;
                     } else {
-                        if (descShort) descShort.textContent = locationData.description;
-                        if (descFull) descFull.textContent = '';
+                        rawDesc = `A popular ${catName} situated ${brgyName}${muniName}, La Union, providing visitors with an authentic and memorable travel experience in the province of La Union.`;
+                    }
+                }
+
+                const words = rawDesc.split(' ');
+                if (words.length > 35) {
+                    if (descShort) descShort.textContent = words.slice(0, 35).join(' ') + '...';
+                    if (descFull) descFull.textContent = rawDesc;
+                    if (btnViewDetails) {
+                        btnViewDetails.style.display = 'inline-flex';
+                        const btnText = document.getElementById('details-btn-text');
+                        if (btnText) btnText.textContent = 'Read More';
                     }
                 } else {
-                    if (descShort) descShort.textContent = 'No description available.';
+                    if (descShort) descShort.textContent = rawDesc;
                     if (descFull) descFull.textContent = '';
+                    if (btnViewDetails) btnViewDetails.style.display = 'none';
                 }
-                if (btnViewDetails) btnViewDetails.style.display = 'flex';
                 if (descShort) descShort.style.display = 'block';
                 if (descFull) descFull.style.display = 'none';
             }
 
-            // Reset toggle state every time we open a sheet
-            document.getElementById('expanded-details').style.display = 'none';
-            document.getElementById('details-chevron').style.transform = 'rotate(0deg)';
-            const btnText = document.getElementById('details-btn-text');
-            if (btnText) btnText.textContent = 'View Full Details';
+            // Always display the travel details & support info directly
+            const expDetails = document.getElementById('expanded-details');
+            if (expDetails) expDetails.style.display = 'flex';
 
             if (locationData && locationData.id) {
                 window.currentSelectedSpotId = locationData.id;
@@ -3112,6 +3135,11 @@ if (is_dir($imgDir)) {
         };
 
         window.closeSheet = function () {
+            document.body.classList.remove('sheet-open');
+            const bNav = document.getElementById('bottom-navigation');
+            const mNav = document.getElementById('magic-nav');
+            if (bNav) bNav.classList.remove('keyboard-hidden');
+            if (mNav) mNav.classList.remove('keyboard-hidden');
             if (window.sheetSliderTimer) {
                 clearInterval(window.sheetSliderTimer);
                 window.sheetSliderTimer = null;
@@ -3159,84 +3187,23 @@ if (is_dir($imgDir)) {
         };
 
         window.toggleFullDetails = function () {
-            const animator = document.getElementById('sheet-desc-animator');
-            const expanded = document.getElementById('expanded-details');
             const shortDesc = document.getElementById('sheet-desc-short');
             const fullDesc = document.getElementById('sheet-desc-full');
             const btnText = document.getElementById('details-btn-text');
             const chevron = document.getElementById('details-chevron');
 
-            if (!animator || !expanded) return;
+            if (!shortDesc || !fullDesc) return;
 
-            const startHeight = animator.offsetHeight;
-            animator.style.height = startHeight + 'px';
-            animator.style.transition = 'none';
-            void animator.offsetHeight;
-
-            if (expanded.style.display === 'none') {
-                // -- EXPANDING --
-                expanded.style.display = 'flex';
-                if (fullDesc && shortDesc && fullDesc.textContent.trim() !== '') {
-                    shortDesc.style.display = 'none';
-                    fullDesc.style.display = 'block';
-                    fullDesc.style.opacity = '0';
-                }
-                if (btnText) btnText.textContent = 'Show Less';
+            if (fullDesc.style.display === 'none') {
+                shortDesc.style.display = 'none';
+                fullDesc.style.display = 'block';
+                if (btnText) btnText.textContent = 'Read Less';
                 if (chevron) chevron.style.transform = 'rotate(180deg)';
-
-                animator.style.transition = 'height 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                animator.style.height = animator.scrollHeight + 'px';
-
-                expanded.style.opacity = '0';
-                setTimeout(() => {
-                    expanded.style.transition = 'opacity 0.3s ease';
-                    expanded.style.opacity = '1';
-                    if (fullDesc && fullDesc.style.display !== 'none') {
-                        fullDesc.style.transition = 'opacity 0.3s ease';
-                        fullDesc.style.opacity = '1';
-                    }
-                }, 10);
-
-                setTimeout(() => {
-                    animator.style.height = 'auto';
-                }, 400);
-
             } else {
-                // -- COLLAPSING --
-                expanded.style.display = 'none';
-                if (fullDesc && shortDesc && fullDesc.textContent.trim() !== '') {
-                    shortDesc.style.display = 'block';
-                    fullDesc.style.display = 'none';
-                }
-
-                animator.style.height = 'auto';
-                const targetHeight = animator.scrollHeight;
-
-                animator.style.height = startHeight + 'px';
-                expanded.style.display = 'flex';
-
-                // Swap immediately to avoid the 'cut frame' void
-                if (fullDesc && shortDesc && fullDesc.textContent.trim() !== '') {
-                    shortDesc.style.display = 'block';
-                    fullDesc.style.display = 'none';
-                }
-
-                void animator.offsetHeight;
-
-                animator.style.transition = 'height 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                animator.style.height = targetHeight + 'px';
-
-                expanded.style.transition = 'opacity 0.2s ease';
-                expanded.style.opacity = '0';
-
-                if (btnText) btnText.textContent = 'View Full Details';
+                shortDesc.style.display = 'block';
+                fullDesc.style.display = 'none';
+                if (btnText) btnText.textContent = 'Read More';
                 if (chevron) chevron.style.transform = 'rotate(0deg)';
-
-                setTimeout(() => {
-                    expanded.style.display = 'none';
-                    animator.style.transition = 'none';
-                    animator.style.height = 'auto';
-                }, 320);
             }
         };
 
