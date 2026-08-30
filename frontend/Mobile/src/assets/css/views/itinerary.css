@@ -574,27 +574,25 @@ body[data-view="itinerary"] .mobile-header .header-icon {
 }
 
 .starting-point-card {
-    background: linear-gradient(135deg, rgba(30, 58, 138, 0.88) 0%, rgba(63, 125, 183, 0.88) 100%) !important;
-    border: 1.5px solid rgba(0, 242, 254, 0.6) !important;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    border: none !important;
     outline: none !important;
     border-radius: 22px !important;
     padding: 16px 18px !important;
-    box-shadow: 0 8px 26px rgba(10, 25, 60, 0.35), 0 0 20px rgba(0, 242, 254, 0.22), inset 0 1px 2px rgba(255, 255, 255, 0.35) !important;
+    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.28) !important;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     cursor: pointer;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    transition: transform 0.2s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .starting-point-card:hover {
     transform: translateY(-2px);
-    border: 1.5px solid rgba(0, 242, 254, 0.85) !important;
-    box-shadow: 0 10px 28px rgba(10, 25, 60, 0.4), 0 0 26px rgba(0, 242, 254, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.4) !important;
+    border: none !important;
     outline: none !important;
+    box-shadow: 0 10px 28px rgba(10, 25, 60, 0.35) !important;
 }
 
 .starting-point-icon-box {
@@ -602,7 +600,7 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     height: 46px;
     border-radius: 50% !important;
     background: linear-gradient(135deg, rgba(56, 189, 248, 0.25) 0%, rgba(37, 99, 235, 0.35) 100%) !important;
-    border: 1.5px solid rgba(0, 242, 254, 0.45) !important;
+    border: none !important;
     outline: none !important;
     display: flex;
     align-items: center;
@@ -611,7 +609,7 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     font-size: 20px !important;
     flex-shrink: 0;
     position: relative;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2), 0 0 12px rgba(0, 242, 254, 0.25) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2) !important;
 }
 
 .starting-point-pulse {
@@ -699,11 +697,52 @@ body[data-view="itinerary"] .mobile-header .header-icon {
 
 /* Timeline Route Connector Line */
 .timeline-route-connector {
-    width: 2px;
-    height: 18px;
-    background: repeating-linear-gradient(to bottom, #38bdf8 0, #38bdf8 4px, transparent 4px, transparent 8px);
-    margin: 0 auto;
-    opacity: 0.6;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 6px 0 !important;
+    margin: 0 auto !important;
+    position: relative !important;
+    z-index: 1 !important;
+    background: none !important;
+    width: 100% !important;
+    height: auto !important;
+    opacity: 1 !important;
+}
+
+.route-connector-track {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative !important;
+    height: 32px !important;
+    width: 24px !important;
+}
+
+.route-connector-line {
+    width: 2.5px !important;
+    flex: 1 !important;
+    background: linear-gradient(to bottom, rgba(0, 242, 254, 0.8), rgba(56, 189, 248, 0.4)) !important;
+    border-radius: 999px !important;
+    box-shadow: 0 0 8px rgba(0, 242, 254, 0.35) !important;
+}
+
+.route-connector-node {
+    width: 20px !important;
+    height: 20px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #ffffff !important;
+    font-size: 9px !important;
+    box-shadow: 0 2px 10px rgba(0, 242, 254, 0.5) !important;
+    margin: 2px 0 !important;
+    animation: connectorPulse 2s ease-in-out infinite !important;
+    border: none !important;
+    outline: none !important;
 }
 
 /* Next Stop Card Special Highlighting */
@@ -836,6 +875,7 @@ body[data-view="itinerary"] .mobile-header .header-icon {
 }
 
 /* Universal container gradient & outline removal */
+.itinerary-container .starting-point-card,
 .itinerary-container .swipe-content,
 .itinerary-container .empty-state-card,
 .itinerary-container .timeline-item .swipe-content,
