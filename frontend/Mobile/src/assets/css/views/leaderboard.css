@@ -500,8 +500,9 @@ body[data-view="leaderboard"] .mobile-header .header-icon {
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
-    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease !important;
-    animation: rankSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transition: background 0.2s ease !important;
+    animation: none !important;
+    transform: none !important;
 }
 
 .rank-item:active {
@@ -755,36 +756,7 @@ body[data-view="leaderboard"] .mobile-header .header-icon {
     text-transform: uppercase;
 }
 
-/* ── Tab Switch Slide Animations ── */
-@keyframes tabSlideLeft {
-    0% {
-        opacity: 0.25;
-        transform: translateX(28px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
 
-@keyframes tabSlideRight {
-    0% {
-        opacity: 0.25;
-        transform: translateX(-28px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-.tab-slide-left {
-    animation: tabSlideLeft 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
-}
-
-.tab-slide-right {
-    animation: tabSlideRight 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
-}
 
 /* ── Entrance Animations ── */
 .podium-place.rank-2 {
