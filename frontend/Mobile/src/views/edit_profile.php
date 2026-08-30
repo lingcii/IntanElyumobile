@@ -55,8 +55,9 @@ body[data-view="edit_profile"] {
     height: 110px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.12);
-    border: 3px solid #00f2fe;
-    box-shadow: 0 0 24px rgba(0, 242, 254, 0.35);
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
     display: flex;
     align-items: center;
     justify-content: center;
