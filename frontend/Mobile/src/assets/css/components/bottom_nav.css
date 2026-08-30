@@ -18,9 +18,11 @@
     transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, visibility 0.25s ease;
 }
 
-/* ── Hide Navigation Bar when Virtual Keyboard is open on mobile ── */
+/* ── Hide Navigation Bar when Virtual Keyboard or Bottom Sheet is open on mobile ── */
 body.keyboard-open .magic-nav,
 html.keyboard-open .magic-nav,
+body.sheet-open .magic-nav,
+html.sheet-open .magic-nav,
 .magic-nav.keyboard-hidden {
     opacity: 0 !important;
     pointer-events: none !important;
@@ -30,6 +32,8 @@ html.keyboard-open .magic-nav,
 
 body.keyboard-open #bottom-navigation,
 html.keyboard-open #bottom-navigation,
+body.sheet-open #bottom-navigation,
+html.sheet-open #bottom-navigation,
 #bottom-navigation.keyboard-hidden {
     opacity: 0 !important;
     pointer-events: none !important;
