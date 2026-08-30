@@ -19,7 +19,7 @@ $activeTab = 'leaderboard';
 
     <!-- Your Current Standing Banner -->
     <div id="my-standing-banner" class="standing-banner-card stagger-1" style="display: none;"
-        onclick="if(window.myUserData) showUserProfile(window.myUserData.name, window.myUserData.avatar, window.myUserData.xp, window.myUserData.pts, window.myUserData.rank, window.myUserData.level, window.myUserData.activities, window.myUserData.location, window.myUserData.bio)">
+        onclick="if(window.myUserData) showUserProfile(window.myUserData.name, window.myUserData.avatar, window.myUserData.xp, window.myUserData.pts, window.myUserData.rank, window.myUserData.level, window.myUserData.activities, window.myUserData.location, window.myUserData.bio, true)">
         <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
             <div class="standing-rank-avatar-wrap">
                 <img id="my-standing-avatar" class="standing-rank-avatar"
@@ -166,7 +166,7 @@ $activeTab = 'leaderboard';
             </div>
         </div>
 
-        <button onclick="if(typeof showToast==='function'){showToast('Cheered explorer! 🎉');} closeUserProfile();"
+        <button id="modal-cheer-btn" onclick="if(typeof showToast==='function'){showToast('Cheered explorer! 🎉');} closeUserProfile();"
             style="width: 100%; margin-top: 14px; padding: 12px; border-radius: 100px; background: linear-gradient(135deg, #38bdf8, #2563eb); border: none; color: #ffffff; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: transform 0.15s ease; box-shadow:0 4px 15px rgba(56,189,248,0.3);">
             <i class="fa-solid fa-hand-peace"></i> Send High Five
         </button>
@@ -426,6 +426,7 @@ $activeTab = 'leaderboard';
                 badgeLabel = '3RD';
             }
 
+            const isMe = Boolean(cachedMeData && (user.id === cachedMeData.id || user.user_id === cachedMeData.id));
             const safeName = displayName.replace(/'/g, "\\'");
             const xp = parseInt(user.xp ?? user.total_xp ?? 0);
             const pts = parseInt(user.points ?? user.pts ?? user.total_points ?? user.claimable_points ?? 0);
@@ -454,7 +455,7 @@ $activeTab = 'leaderboard';
             </div>`;
 
             return `
-        <div class="podium-place rank-${rank}" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${xp}, ${pts}, ${rank}, ${level}, ${activities}, '${safeLocation}', '${safeBio}')">
+        <div class="podium-place rank-${rank}" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${xp}, ${pts}, ${rank}, ${level}, ${activities}, '${safeLocation}', '${safeBio}', ${isMe})">
             <div class="podium-avatar-wrap">
                 ${medalIcon}
                 <img src="${avatarUrl}" alt="${displayName}" class="podium-avatar" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128';">
@@ -509,7 +510,7 @@ $activeTab = 'leaderboard';
             }
 
             return `
-        <div class="rank-item ${activeClass}" style="animation-delay: ${Math.max(0, delay)}s;" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${xp}, ${pts}, ${rank}, ${level}, ${activities}, '${safeLocation}', '${safeBio}')">
+        <div class="rank-item ${activeClass}" style="animation-delay: ${Math.max(0, delay)}s;" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${xp}, ${pts}, ${rank}, ${level}, ${activities}, '${safeLocation}', '${safeBio}', ${Boolean(isMe)})">
             <div style="display: flex; align-items: center; min-width: 0; flex: 1;">
                 <img src="${avatarUrl}" alt="${displayName}" class="rank-avatar" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128';">
                 <div class="rank-info">
@@ -526,7 +527,7 @@ $activeTab = 'leaderboard';
         </div>`;
         }
 
-        window.showUserProfile = function (name, avatar, xp, pts, rank, level, activities, location, bio) {
+        window.showUserProfile = function (name, avatar, xp, pts, rank, level, activities, location, bio, isMe = false) {
             document.getElementById('modal-avatar').src = avatar;
             document.getElementById('modal-name').innerText = name;
             document.getElementById('modal-xp').innerText = Number(xp || 0).toLocaleString();
@@ -535,9 +536,32 @@ $activeTab = 'leaderboard';
             document.getElementById('modal-level').innerText = 'Lvl ' + (level || 1);
             document.getElementById('modal-activities').innerText = activities ? Number(activities).toLocaleString() : '0';
 
+            // Determine if the viewed profile is the current logged-in user
+            const isSelf = Boolean(
+                isMe === true || 
+                (window.myUserData && window.myUserData.name && name === window.myUserData.name) ||
+                (window.myUserData && name === 'Unranked Explorer') ||
+                (cachedMeData && (
+                    (cachedMeData.name && name === cachedMeData.name) ||
+                    (cachedMeData.full_name && name === cachedMeData.full_name) ||
+                    (cachedMeData.username && name === cachedMeData.username) ||
+                    (cachedMeData.id && String(rank).includes(String(cachedMyRank)))
+                ))
+            );
+
             const rankPill = document.getElementById('modal-rank-pill');
             if (rankPill) {
-                rankPill.innerText = `#${rank} Ranked Explorer`;
+                if (isSelf) {
+                    rankPill.innerText = (rank && rank !== '—') ? `#${rank} Ranked Explorer (You)` : `Your Explorer Profile`;
+                } else {
+                    rankPill.innerText = `#${rank} Ranked Explorer`;
+                }
+            }
+
+            // Yourself should not be sending high fives to yourself
+            const cheerBtn = document.getElementById('modal-cheer-btn');
+            if (cheerBtn) {
+                cheerBtn.style.display = isSelf ? 'none' : 'flex';
             }
 
             const elLoc = document.getElementById('modal-location');
