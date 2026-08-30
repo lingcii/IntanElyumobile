@@ -351,6 +351,51 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     letter-spacing: -0.4px !important;
 }
 
+#save-trip-modal label {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+#save-trip-modal p {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+#save-trip-modal input[type="text"],
+#save-trip-modal input[type="tel"],
+#save-trip-modal input[type="number"] {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+}
+
+#save-trip-modal input::placeholder {
+    color: rgba(255, 255, 255, 0.8) !important;
+    -webkit-text-fill-color: rgba(255, 255, 255, 0.8) !important;
+    opacity: 1 !important;
+    font-weight: 500 !important;
+}
+
+#save-trip-modal input::-webkit-input-placeholder {
+    color: rgba(255, 255, 255, 0.8) !important;
+    -webkit-text-fill-color: rgba(255, 255, 255, 0.8) !important;
+    opacity: 1 !important;
+    font-weight: 500 !important;
+}
+
+#save-trip-modal input::-moz-placeholder {
+    color: rgba(255, 255, 255, 0.8) !important;
+    opacity: 1 !important;
+    font-weight: 500 !important;
+}
+
+#save-trip-modal input:-ms-input-placeholder {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: 500 !important;
+}
+
 /* ============================================================
  * Starting Point & Next Stop Card Styles
  * ============================================================ */
