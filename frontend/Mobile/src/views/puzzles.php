@@ -61,7 +61,7 @@ include __DIR__ . '/../components/header.php';
 
         <!-- Puzzle Board Container -->
         <div style="display: flex; justify-content: center; margin-bottom: 20px;">
-            <div id="puzzle-board" style="width: 300px; height: 300px; background: rgba(15,23,42,0.85); border: none !important; outline: none !important; border-radius: 14px; position: relative; overflow: hidden; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 2px; box-shadow: 0 15px 30px rgba(0,0,0,0.35);">
+            <div id="puzzle-board" style="width: 308px; height: 308px; background: #0c1a30; border: 3px solid rgba(255, 255, 255, 0.45) !important; outline: 2px solid rgba(56, 189, 248, 0.6) !important; border-radius: 18px; position: relative; overflow: hidden; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 4px; padding: 4px; box-sizing: border-box; box-shadow: 0 15px 35px rgba(10, 25, 60, 0.5), 0 0 25px rgba(56, 189, 248, 0.25);">
                 <!-- 9 Grid items dynamic -->
             </div>
         </div>
@@ -225,28 +225,28 @@ include __DIR__ . '/../components/header.php';
     background-size: 300px 300px;
     background-repeat: no-repeat;
     cursor: pointer;
-    border-radius: 6px;
-    border: none !important;
-    outline: none !important;
-    transition: transform 0.15s ease, filter 0.2s;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.7) !important;
+    outline: 1.5px solid rgba(30, 58, 138, 0.5) !important;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.4), 0 3px 8px rgba(0, 0, 0, 0.3) !important;
+    transition: transform 0.15s ease, filter 0.2s, border-color 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 900;
-    color: rgba(255,255,255,0.3);
-    text-shadow: 1px 1px 2px #000;
-    font-size: 16px;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    box-sizing: border-box;
 }
-.puzzle-tile:hover {
-    filter: brightness(1.1);
+.puzzle-tile:hover, .puzzle-tile:active {
+    filter: brightness(1.15);
+    transform: scale(0.97);
+    border-color: #00f2fe !important;
 }
 .puzzle-empty {
-    background: transparent;
+    background: rgba(12, 26, 48, 0.7) !important;
     cursor: default;
-    box-shadow: none;
-    border: none !important;
+    box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.8) !important;
+    border: 2px dashed rgba(56, 189, 248, 0.5) !important;
     outline: none !important;
+    border-radius: 10px;
 }
 .trivia-card, .scramble-card {
     background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
@@ -379,22 +379,35 @@ button:active, .trivia-option-btn:active {
     outline: none !important;
 }
 .scramble-input {
-    width: 100%;
-    background: rgba(255,255,255,0.14) !important;
-    border: none !important;
+    width: 100% !important;
+    background: rgba(255, 255, 255, 0.22) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.45) !important;
     outline: none !important;
-    border-radius: 12px;
-    padding: 12px 14px;
-    color: #ffffff;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    box-sizing: border-box;
-    text-transform: uppercase;
+    border-radius: 14px !important;
+    padding: 14px 16px !important;
+    color: #ffffff !important;
+    font-size: 15px !important;
+    font-weight: 800 !important;
+    letter-spacing: 1.5px !important;
+    box-sizing: border-box !important;
+    text-transform: uppercase !important;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.25) !important;
+    -webkit-text-fill-color: #ffffff !important;
+}
+.scramble-input::placeholder {
+    color: rgba(255, 255, 255, 0.8) !important;
+    -webkit-text-fill-color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: 700 !important;
+    letter-spacing: 1px !important;
+    opacity: 1 !important;
+}
 .scramble-input:focus {
     outline: none !important;
-    border: none !important;
-    background: rgba(255,255,255,0.2) !important;
+    border-color: #00f2fe !important;
+    background: rgba(255, 255, 255, 0.3) !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.4), inset 0 2px 6px rgba(0, 0, 0, 0.25) !important;
 }
 </style>
 
@@ -989,15 +1002,17 @@ function initScrambleGame() {
         card.className = 'scramble-card';
 
         card.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <span style="font-size:11px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px;">Word #${index + 1}</span>
-                <span id="scramble-status-${index}" style="font-size:12px; color:rgba(255,255,255,0.3);"><i class="fa-solid fa-pen"></i></span>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span style="font-size:12px; font-weight:800; color:#00f2fe; text-transform:uppercase; letter-spacing:0.8px;">Word #${index + 1}</span>
+                <span id="scramble-status-${index}" style="font-size:14px; color:rgba(255,255,255,0.4);"><i class="fa-solid fa-pen"></i></span>
             </div>
-            <div style="font-size:20px; font-weight:900; color:#fff; letter-spacing:2px; margin-bottom:6px; text-align:center; background:rgba(0,0,0,0.2) !important; padding:10px; border-radius:12px; border:none !important; outline:none !important;">
+            <div style="font-size:22px; font-weight:900; color:#ffffff !important; letter-spacing:3px; margin-bottom:10px; text-align:center; background:rgba(0,0,0,0.3) !important; padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,0.2) !important; text-shadow:0 2px 4px rgba(0,0,0,0.4);">
                 ${item.scrambled}
             </div>
-            <p style="margin:0 0 10px 0; font-size:11px; color:rgba(226,232,240,0.85); font-style:italic;">💡 Hint: ${item.hint}</p>
-            <input type="text" id="scramble-input-${index}" class="scramble-input" placeholder="Type answer..." oninput="checkScrambleWord(${index})">
+            <p style="margin:0 0 12px 0; font-size:12.5px; color:#ffffff !important; font-weight:600; text-shadow:0 1px 2px rgba(0,0,0,0.4); line-height:1.4;">
+                <span style="color:#facc15; font-size:13px; font-weight:800;">💡 Hint:</span> <span style="color:#ffffff !important; font-weight:700;">${item.hint}</span>
+            </p>
+            <input type="text" id="scramble-input-${index}" class="scramble-input" placeholder="TYPE ANSWER HERE..." oninput="checkScrambleWord(${index})" style="color:#ffffff !important; -webkit-text-fill-color:#ffffff !important;">
         `;
 
         container.appendChild(card);
@@ -1011,15 +1026,19 @@ function checkScrambleWord(index) {
 
     const val = input.value.trim().toUpperCase();
     if (val === scrambleData[index].answer) {
-        status.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#34d399; font-size:16px;"></i>';
-        input.style.border = 'none';
+        status.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#34d399; font-size:18px;"></i>';
+        input.style.border = '2px solid #34d399';
         input.style.outline = 'none';
-        input.style.background = 'rgba(52, 211, 153, 0.2)';
+        input.style.background = 'rgba(52, 211, 153, 0.25)';
+        input.style.color = '#ffffff';
+        input.style.webkitTextFillColor = '#ffffff';
     } else {
-        status.innerHTML = '<i class="fa-solid fa-pen" style="color:rgba(255,255,255,0.4);"></i>';
-        input.style.border = 'none';
+        status.innerHTML = '<i class="fa-solid fa-pen" style="color:rgba(255,255,255,0.4); font-size:14px;"></i>';
+        input.style.border = '1.5px solid rgba(255, 255, 255, 0.45)';
         input.style.outline = 'none';
-        input.style.background = 'rgba(255,255,255,0.14)';
+        input.style.background = 'rgba(255, 255, 255, 0.22)';
+        input.style.color = '#ffffff';
+        input.style.webkitTextFillColor = '#ffffff';
     }
 }
 
