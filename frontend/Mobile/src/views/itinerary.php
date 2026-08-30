@@ -97,6 +97,80 @@ $activeTab = 'itinerary';
         display: none;
     }
 
+    /* Itinerary Stops Container & Swap Controls */
+    .itinerary-stops-container {
+        background: rgba(10, 25, 60, 0.38) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border: none !important;
+        outline: none !important;
+        border-radius: 26px !important;
+        padding: 14px !important;
+        box-shadow: 0 8px 28px rgba(10, 25, 60, 0.25) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        margin-top: 6px !important;
+        margin-bottom: 20px !important;
+        position: relative !important;
+        box-sizing: border-box !important;
+    }
+
+    .stops-swap-divider {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        position: relative !important;
+        margin: 2px 0 !important;
+        z-index: 6 !important;
+        height: 32px !important;
+    }
+
+    .stops-swap-line {
+        position: absolute !important;
+        left: 20px !important;
+        right: 20px !important;
+        height: 1px !important;
+        background: rgba(255, 255, 255, 0.12) !important;
+        pointer-events: none !important;
+    }
+
+    .btn-swap-pill {
+        position: relative !important;
+        background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        outline: none !important;
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        box-shadow: 0 4px 14px rgba(0, 242, 254, 0.4) !important;
+        font-size: 12px !important;
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease !important;
+        z-index: 2 !important;
+    }
+
+    .btn-swap-pill:hover {
+        transform: scale(1.12) !important;
+        box-shadow: 0 6px 18px rgba(0, 242, 254, 0.55) !important;
+    }
+
+    .btn-swap-pill:active {
+        transform: scale(0.9) rotate(180deg) !important;
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    .itinerary-stops-container .timeline-item {
+        margin-bottom: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        will-change: transform;
+    }
+
     .hide-scrollbar {
         -ms-overflow-style: none;
         scrollbar-width: none;
@@ -733,6 +807,88 @@ $activeTab = 'itinerary';
 
         window.currentRouteType = window.currentRouteType || 'recommended';
 
+        window.animateTimelineSwap = function (renderFn) {
+            const existingCards = document.querySelectorAll('.timeline-item[data-key]');
+            if (existingCards.length < 2) {
+                if (typeof renderFn === 'function') renderFn();
+                return;
+            }
+
+            const firstRects = new Map();
+            existingCards.forEach(card => {
+                const key = card.dataset.key;
+                firstRects.set(key, card.getBoundingClientRect());
+            });
+
+            if (typeof renderFn === 'function') renderFn();
+
+            requestAnimationFrame(() => {
+                const newCards = document.querySelectorAll('.timeline-item[data-key]');
+                const toAnimate = [];
+
+                newCards.forEach(card => {
+                    const key = card.dataset.key;
+                    const firstRect = firstRects.get(key);
+                    if (firstRect) {
+                        const lastRect = card.getBoundingClientRect();
+                        const deltaY = firstRect.top - lastRect.top;
+                        if (Math.abs(deltaY) > 2) {
+                            card.style.transition = 'none';
+                            card.style.transform = `translate3d(0, ${deltaY}px, 0)`;
+                            card.style.zIndex = '10';
+                            toAnimate.push(card);
+                        }
+                    }
+                });
+
+                if (toAnimate.length === 0) return;
+
+                // Force layout reflow
+                document.body.offsetHeight;
+
+                requestAnimationFrame(() => {
+                    toAnimate.forEach(card => {
+                        card.style.transition = 'transform 0.45s cubic-bezier(0.2, 0.85, 0.25, 1)';
+                        card.style.transform = 'translate3d(0, 0, 0)';
+                    });
+
+                    setTimeout(() => {
+                        toAnimate.forEach(card => {
+                            card.style.transition = '';
+                            card.style.transform = '';
+                            card.style.zIndex = '';
+                        });
+                    }, 480);
+                });
+            });
+        };
+
+        window.swapDraftStops = function (i, j) {
+            let draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+            if (i < 0 || j < 0 || i >= draft.length || j >= draft.length || i === j) return;
+
+            window.animateTimelineSwap(() => {
+                const temp = draft[i];
+                draft[i] = draft[j];
+                draft[j] = temp;
+                localStorage.setItem('intan_elyu_draft_itinerary', JSON.stringify(draft));
+                window.currentRouteType = 'recommended';
+
+                const container = document.getElementById('route-toggle-container');
+                if (container) container.classList.remove('alt-active');
+                const recBtn = document.getElementById('btn-route-rec');
+                const altBtn = document.getElementById('btn-route-alt');
+                if (recBtn) recBtn.classList.add('active');
+                if (altBtn) altBtn.classList.remove('active');
+
+                window.renderItinerary(false);
+            });
+
+            if (typeof showToast === 'function') {
+                showToast("Stops swapped! Route updated.");
+            }
+        };
+
         window.getEffectiveDraft = function () {
             let draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
             if (draft.length > 1 && window.currentRouteType === 'alternate') {
@@ -817,66 +973,81 @@ $activeTab = 'itinerary';
             <div class="timeline-route-connector"></div>
         </div>`;
 
-            draft.forEach((place, index) => {
-                const hour = 9 + Math.floor(((index + 1) * 90) / 60);
-                const min = ((index + 1) * 90) % 60;
-                const timeStr = `${hour > 12 ? hour - 12 : hour}:${min === 0 ? '00' : min} ${hour >= 12 ? 'PM' : 'AM'}`;
+            if (draft.length > 0) {
+                html += `<div class="itinerary-stops-container" id="itinerary-stops-container">`;
+                draft.forEach((place, index) => {
+                    const hour = 9 + Math.floor(((index + 1) * 90) / 60);
+                    const min = ((index + 1) * 90) % 60;
+                    const timeStr = `${hour > 12 ? hour - 12 : hour}:${min === 0 ? '00' : min} ${hour >= 12 ? 'PM' : 'AM'}`;
 
-                const isNextStop = (index === 0);
-                let nextStopBadge = '';
-                let nextStopEtaHtml = '';
+                    const isNextStop = (index === 0);
+                    let nextStopBadge = '';
+                    let nextStopEtaHtml = '';
 
-                if (isNextStop) {
-                    nextStopBadge = `<span class="badge-next-stop" style="border:none !important; outline:none !important; box-shadow:none !important;"><i class="fa-solid fa-location-dot"></i> NEXT STOP</span>`;
-                    const lat = place.lat || place.latitude;
-                    const lng = place.lng || place.longitude;
-                    const eta = window.getDistanceAndETA(lat, lng);
-                    if (eta) {
-                        nextStopEtaHtml = `
-                    <div class="next-stop-distance-chip" id="itinerary-next-eta" style="border:none !important; outline:none !important; box-shadow:none !important;">
-                        <i class="fa-solid fa-route" style="color:#00f2fe;"></i> 
-                        <span>${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>
-                    </div>`;
-                    } else {
-                        nextStopEtaHtml = `
-                    <div class="next-stop-distance-chip" id="itinerary-next-eta" style="border:none !important; outline:none !important; box-shadow:none !important;">
-                        <i class="fa-solid fa-location-arrow" style="color:#00f2fe;"></i> 
-                        <span>First destination on your itinerary route</span>
-                    </div>`;
+                    if (isNextStop) {
+                        nextStopBadge = `<span class="badge-next-stop" style="border:none !important; outline:none !important; box-shadow:none !important;"><i class="fa-solid fa-location-dot"></i> NEXT STOP</span>`;
+                        const lat = place.lat || place.latitude;
+                        const lng = place.lng || place.longitude;
+                        const eta = window.getDistanceAndETA(lat, lng);
+                        if (eta) {
+                            nextStopEtaHtml = `
+                        <div class="next-stop-distance-chip" id="itinerary-next-eta" style="border:none !important; outline:none !important; box-shadow:none !important;">
+                            <i class="fa-solid fa-route" style="color:#00f2fe;"></i> 
+                            <span>${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>
+                        </div>`;
+                        } else {
+                            nextStopEtaHtml = `
+                        <div class="next-stop-distance-chip" id="itinerary-next-eta" style="border:none !important; outline:none !important; box-shadow:none !important;">
+                            <i class="fa-solid fa-location-arrow" style="color:#00f2fe;"></i> 
+                            <span>First destination on your itinerary route</span>
+                        </div>`;
+                        }
                     }
-                }
 
-                html += `
-            <div class="timeline-item ${isNextStop ? 'is-next-stop' : ''}" draggable="true" data-index="${index}" data-id="${place.id}" style="animation-delay: ${(index + 1) * 0.08}s">
-                <div class="timeline-dot"></div>
-                <div class="swipe-container" style="position:relative; overflow:hidden; border-radius:20px !important; transform:translate3d(0,0,0); -webkit-transform:translate3d(0,0,0); -webkit-backface-visibility:hidden; backface-visibility:hidden; -webkit-mask-image:-webkit-radial-gradient(white, black); mask-image:radial-gradient(white, black);">
-                    <div class="swipe-delete-bg" style="position:absolute; top:0; right:0; bottom:0; width:80px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 20px 20px 0 !important; display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800; gap:4px; transform:translateX(100%); z-index:1; opacity:0; pointer-events:none; transition:transform 0.2s ease, opacity 0.2s ease;"><i class="fa-solid fa-trash-can"></i> Delete</div>
-                    <div class="swipe-content" style="position:relative; z-index:2; transition:transform 0.2s ease; border-radius:20px !important; padding:18px 20px; border:none !important; outline:none !important; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; box-shadow:0 8px 24px rgba(10, 25, 60, 0.25) !important;">
-                        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px;">
-                            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                                <span class="time-label" style="border:none !important; outline:none !important; box-shadow:none !important;">Stop ${index + 1} &bull; Approx ${timeStr}</span>
-                                ${nextStopBadge}
+                    if (index > 0) {
+                        html += `
+                        <div class="stops-swap-divider">
+                            <div class="stops-swap-line"></div>
+                            <button type="button" class="btn-swap-pill" onclick="event.stopPropagation(); window.swapDraftStops(${index - 1}, ${index});" title="Swap Stop ${index} and Stop ${index + 1}" aria-label="Swap order">
+                                <i class="fa-solid fa-arrows-up-down"></i>
+                            </button>
+                        </div>`;
+                    }
+
+                    const placeKey = String(place.id || ('place_' + (place.name || index)));
+                    html += `
+                <div class="timeline-item ${isNextStop ? 'is-next-stop' : ''}" draggable="true" data-index="${index}" data-id="${place.id}" data-key="${placeKey}" style="animation-delay: ${(index + 1) * 0.08}s">
+                    <div class="timeline-dot"></div>
+                    <div class="swipe-container" style="position:relative; overflow:hidden; border-radius:20px !important; transform:translate3d(0,0,0); -webkit-transform:translate3d(0,0,0); -webkit-backface-visibility:hidden; backface-visibility:hidden; -webkit-mask-image:-webkit-radial-gradient(white, black); mask-image:radial-gradient(white, black);">
+                        <div class="swipe-delete-bg" style="position:absolute; top:0; right:0; bottom:0; width:80px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 20px 20px 0 !important; display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800; gap:4px; transform:translateX(100%); z-index:1; opacity:0; pointer-events:none; transition:transform 0.2s ease, opacity 0.2s ease;"><i class="fa-solid fa-trash-can"></i> Delete</div>
+                        <div class="swipe-content" style="position:relative; z-index:2; transition:transform 0.2s ease; border-radius:20px !important; padding:18px 20px; border:none !important; outline:none !important; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; box-shadow:0 6px 20px rgba(10, 25, 60, 0.25) !important;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px;">
+                                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                    <span class="time-label" style="border:none !important; outline:none !important; box-shadow:none !important;">Stop ${index + 1} &bull; Approx ${timeStr}</span>
+                                    ${nextStopBadge}
+                                </div>
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <i class="fa-solid fa-grip-vertical" style="color:rgba(255,255,255,0.45); font-size:16px; cursor:grab; touch-action:none; padding:4px;"></i>
+                                </div>
                             </div>
-                            <div style="display:flex; align-items:center; gap:6px;">
-                                <i class="fa-solid fa-grip-vertical" style="color:rgba(255,255,255,0.45); font-size:16px; cursor:grab; touch-action:none; padding:4px;"></i>
+                            <h3 class="place-name">${place.name}</h3>
+                            <p style="font-size:12.5px; color:#ffffff; opacity:0.95; font-weight:500; margin: 4px 0 8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.4;">
+                                ${place.description && place.description !== 'null' ? place.description : (place.category && place.category !== 'null' ? place.category : 'A beautiful destination to explore in La Union.')}
+                            </p>
+                            <div class="place-details">
+                                <i class="fa-solid fa-location-dot"></i>
+                                <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                    ${place.location && place.location !== 'null' ? place.location : (place.address && place.address !== 'null' ? place.address : (place.municipality ? place.municipality + ', La Union' : 'San Fernando, La Union'))}
+                                </span>
                             </div>
+                            ${nextStopEtaHtml}
+                            ${place.selected_vehicles && place.selected_vehicles.length > 0 ? `<div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:8px;">${place.selected_vehicles.map(v => `<span style="padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; background:rgba(56,189,248,0.15); color:#38bdf8; border:none !important; outline:none !important;"><i class="fa-solid fa-car" style="margin-right:3px;font-size:9px;"></i>${v}</span>`).join('')}</div>` : ''}
                         </div>
-                        <h3 class="place-name">${place.name}</h3>
-                        <p style="font-size:12.5px; color:#ffffff; opacity:0.95; font-weight:500; margin: 4px 0 8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.4;">
-                            ${place.description && place.description !== 'null' ? place.description : (place.category && place.category !== 'null' ? place.category : 'A beautiful destination to explore in La Union.')}
-                        </p>
-                        <div class="place-details">
-                            <i class="fa-solid fa-location-dot"></i>
-                            <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                ${place.location && place.location !== 'null' ? place.location : (place.address && place.address !== 'null' ? place.address : (place.municipality ? place.municipality + ', La Union' : 'San Fernando, La Union'))}
-                            </span>
-                        </div>
-                        ${nextStopEtaHtml}
-                        ${place.selected_vehicles && place.selected_vehicles.length > 0 ? `<div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:8px;">${place.selected_vehicles.map(v => `<span style="padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; background:rgba(56,189,248,0.15); color:#38bdf8; border:none !important; outline:none !important;"><i class="fa-solid fa-car" style="margin-right:3px;font-size:9px;"></i>${v}</span>`).join('')}</div>` : ''}
                     </div>
-                </div>
-            </div>`;
-            });
+                </div>`;
+                });
+                html += `</div>`; // Close itinerary-stops-container
+            }
 
             timeline.innerHTML = html;
             setupDragAndDrop(draft);
@@ -917,12 +1088,7 @@ $activeTab = 'itinerary';
                     if (dragIndex === null) return;
                     const targetIndex = parseInt(item.dataset.index);
                     if (dragIndex === targetIndex) return;
-                    let d = [...window.getEffectiveDraft()];
-                    const [removed] = d.splice(dragIndex, 1);
-                    d.splice(targetIndex, 0, removed);
-                    localStorage.setItem('intan_elyu_draft_itinerary', JSON.stringify(d));
-                    window.currentRouteType = 'recommended';
-                    window.renderItinerary();
+                    window.swapDraftStops(dragIndex, targetIndex);
                 });
 
                 // Touch support
@@ -964,12 +1130,7 @@ $activeTab = 'itinerary';
                     if (target) {
                         const targetIndex = parseInt(target.dataset.index);
                         if (dragIndex !== targetIndex) {
-                            let d = [...window.getEffectiveDraft()];
-                            const [removed] = d.splice(dragIndex, 1);
-                            d.splice(targetIndex, 0, removed);
-                            localStorage.setItem('intan_elyu_draft_itinerary', JSON.stringify(d));
-                            window.currentRouteType = 'recommended';
-                            window.renderItinerary();
+                            window.swapDraftStops(dragIndex, targetIndex);
                         }
                     }
                     item._touchMoved = false;
@@ -2141,25 +2302,27 @@ $activeTab = 'itinerary';
                 }
             }
 
-            const draft = window.getEffectiveDraft();
+            window.animateTimelineSwap(() => {
+                const draft = window.getEffectiveDraft();
 
-            // Save user's viewport before re-rendering so we can restore it afterwards
-            var _savedCenter = null, _savedZoom = null;
-            if (typeof draftMap !== 'undefined' && draftMap) {
-                _savedCenter = draftMap.getCenter();
-                _savedZoom = draftMap.getZoom();
-            }
+                // Save user's viewport before re-rendering so we can restore it afterwards
+                var _savedCenter = null, _savedZoom = null;
+                if (typeof draftMap !== 'undefined' && draftMap) {
+                    _savedCenter = draftMap.getCenter();
+                    _savedZoom = draftMap.getZoom();
+                }
 
-            // Re-render map with the new route sequence
-            window.initDraftMap(draft, false);
+                // Re-render map with the new route sequence
+                window.initDraftMap(draft, false);
 
-            // Restore the user's exact viewport immediately after re-rendering
-            if (_savedCenter !== null && _savedZoom !== null && typeof draftMap !== 'undefined' && draftMap) {
-                draftMap.setView(_savedCenter, _savedZoom, { animate: false });
-            }
+                // Restore user's viewport
+                if (_savedCenter !== null && _savedZoom !== null && typeof draftMap !== 'undefined' && draftMap) {
+                    draftMap.setView(_savedCenter, _savedZoom, { animate: false });
+                }
 
-            // Re-render the timeline stops to reflect the new stop sequence!
-            window.renderItinerary(true);
+                // Re-render the timeline stops to reflect the new stop sequence!
+                window.renderItinerary(true);
+            });
 
             if (typeof showToast === 'function') {
                 showToast(type === 'alternate' ? "Switched to Alternate Route — Stop sequence reversed" : "Switched to Recommended Route — Optimal stop sequence");
