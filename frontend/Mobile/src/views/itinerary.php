@@ -17,27 +17,75 @@ $activeTab = 'itinerary';
         background: var(--bg-primary) !important;
     }
 
-    .btn-route-type {
-        background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    .route-toggle-container {
+        display: inline-flex;
+        align-items: center;
+        position: relative;
+        background: rgba(10, 25, 60, 0.45);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
         border: none !important;
         outline: none !important;
-        color: #ffffff;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.2s;
-        white-space: nowrap;
+        border-radius: 9999px;
+        padding: 4px;
+        margin-bottom: 14px;
+        width: fit-content;
+        max-width: 100%;
+        box-sizing: border-box;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .route-toggle-slider {
+        position: absolute;
+        top: 4px;
+        bottom: 4px;
+        left: 4px;
+        width: calc(50% - 4px);
+        border-radius: 9999px;
+        background: linear-gradient(135deg, #00f2fe 0%, #0284c7 60%, #1e3a8a 100%);
+        box-shadow: 0 4px 14px rgba(0, 242, 254, 0.35);
+        transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), width 0.3s ease;
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .route-toggle-container.alt-active .route-toggle-slider {
+        transform: translateX(100%);
+    }
+
+    .btn-route-type {
+        position: relative;
+        z-index: 2;
+        background: transparent !important;
+        border: none !important;
+        outline: none !important;
+        color: rgba(255, 255, 255, 0.75) !important;
+        padding: 8px 18px !important;
+        border-radius: 9999px !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        cursor: pointer !important;
+        transition: color 0.25s ease, transform 0.15s ease !important;
+        white-space: nowrap !important;
+        text-align: center !important;
         box-shadow: none !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-route-type:active {
+        transform: scale(0.96);
     }
 
     .btn-route-type.active {
-        background: linear-gradient(135deg, #00f2fe 0%, #0284c7 60%, #1e3a8a 100%) !important;
+        background: transparent !important;
         border: none !important;
         outline: none !important;
         color: #ffffff !important;
-        font-weight: 800;
+        font-weight: 800 !important;
     }
 
     .hide-scrollbar::-webkit-scrollbar {
@@ -90,9 +138,9 @@ $activeTab = 'itinerary';
 
     <!-- Map Visualization Container -->
     <div id="draft-map-wrapper" style="display:none; margin-top:16px; margin-bottom:20px;" class="stagger-2">
-        <!-- Toggles -->
-        <div style="display:flex; gap:8px; margin-bottom:12px; overflow-x:auto; padding-bottom:4px;"
-            class="hide-scrollbar">
+        <!-- Route Type Container with Smooth Sliding Pill -->
+        <div class="route-toggle-container" id="route-toggle-container">
+            <div class="route-toggle-slider" id="route-toggle-slider"></div>
             <button class="btn-route-type active" id="btn-route-rec"
                 onclick="setRouteType('recommended', this)">Recommended</button>
             <button class="btn-route-type" id="btn-route-alt"
@@ -718,13 +766,26 @@ $activeTab = 'itinerary';
             // Sync active class on route toggle buttons
             const recBtn = document.getElementById('btn-route-rec');
             const altBtn = document.getElementById('btn-route-alt');
+            const toggleContainer = document.getElementById('route-toggle-container');
+            const toggleSlider = document.getElementById('route-toggle-slider');
             if (recBtn && altBtn) {
-                if (window.currentRouteType === 'alternate') {
+                const isAlt = (window.currentRouteType === 'alternate');
+                if (isAlt) {
                     recBtn.classList.remove('active');
                     altBtn.classList.add('active');
                 } else {
                     altBtn.classList.remove('active');
                     recBtn.classList.add('active');
+                }
+                if (toggleContainer) {
+                    if (isAlt) toggleContainer.classList.add('alt-active');
+                    else toggleContainer.classList.remove('alt-active');
+                }
+                if (toggleSlider && toggleContainer) {
+                    const activeBtn = isAlt ? altBtn : recBtn;
+                    const offset = activeBtn.offsetLeft - toggleContainer.offsetLeft;
+                    toggleSlider.style.width = activeBtn.offsetWidth + 'px';
+                    toggleSlider.style.transform = `translateX(${Math.max(0, offset - 4)}px)`;
                 }
             }
 
@@ -2063,10 +2124,28 @@ $activeTab = 'itinerary';
             }
             window.currentRouteType = type;
             document.querySelectorAll('.btn-route-type').forEach(el => el.classList.remove('active'));
-            if (btn) btn.classList.add('active');
-            else {
-                const targetBtn = document.getElementById(type === 'alternate' ? 'btn-route-alt' : 'btn-route-rec');
-                if (targetBtn) targetBtn.classList.add('active');
+            let activeBtn = btn;
+            if (btn) {
+                btn.classList.add('active');
+            } else {
+                activeBtn = document.getElementById(type === 'alternate' ? 'btn-route-alt' : 'btn-route-rec');
+                if (activeBtn) activeBtn.classList.add('active');
+            }
+
+            // Smooth slider animation
+            const container = document.getElementById('route-toggle-container');
+            const slider = document.getElementById('route-toggle-slider');
+            if (container) {
+                if (type === 'alternate') {
+                    container.classList.add('alt-active');
+                } else {
+                    container.classList.remove('alt-active');
+                }
+            }
+            if (slider && activeBtn && container) {
+                const offset = activeBtn.offsetLeft - container.offsetLeft;
+                slider.style.width = activeBtn.offsetWidth + 'px';
+                slider.style.transform = `translateX(${Math.max(0, offset - 4)}px)`;
             }
 
             const draft = window.getEffectiveDraft();
