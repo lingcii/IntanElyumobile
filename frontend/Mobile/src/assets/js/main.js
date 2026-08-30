@@ -187,6 +187,32 @@ window.executeScripts = executeScripts;
 
 /**
  * Navigation Router Function (SPA feel)
+// Ensure browser does not try to restore previous scroll position on view transitions
+if ('scrollRestoration' in history) {
+    try {
+        history.scrollRestoration = 'manual';
+    } catch (e) {}
+}
+
+function resetAppScrollTop() {
+    try {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    } catch (e) {
+        window.scrollTo(0, 0);
+    }
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    const mc = document.getElementById('main-content');
+    if (mc) mc.scrollTop = 0;
+    const ac = document.getElementById('app-container');
+    if (ac) ac.scrollTop = 0;
+    const epc = document.querySelector('.edit-profile-container');
+    if (epc) epc.scrollTop = 0;
+}
+window.resetAppScrollTop = resetAppScrollTop;
+
+/**
+ * Enhanced Navigation function that loads views via AJAX
  * @param {string} viewName - Name of the view to load
  * @param {boolean} addToHistory - Whether to push to browser history
  * @param {boolean} fade - Whether to apply the fade transition
@@ -203,6 +229,9 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
     // If we're already on this view and it's not a back-button event, do nothing
     if (addToHistory && state.currentView === viewName) return;
+
+    // Immediately reset scroll on navigation start
+    resetAppScrollTop();
 
     state.isNavigating = true;
     const mainContent = document.getElementById('main-content');
@@ -264,8 +293,10 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     window.mapInstance = null;
                 }
 
+                resetAppScrollTop();
                 mainContent.innerHTML = html;
                 document.body.setAttribute('data-view', viewName);
+                resetAppScrollTop();
 
                 // Execute any scripts in the new view
                 executeScripts(mainContent);
@@ -291,6 +322,12 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
                 state.currentView = viewName;
                 if (typeof initCurrentView === 'function') initCurrentView();
+
+                // Post-render scroll resets on next animation frames and timeouts to guarantee top placement
+                resetAppScrollTop();
+                requestAnimationFrame(resetAppScrollTop);
+                setTimeout(resetAppScrollTop, 50);
+                setTimeout(resetAppScrollTop, 150);
             } catch (err) {
                 console.error("Error during view initialization:", err);
             } finally {
