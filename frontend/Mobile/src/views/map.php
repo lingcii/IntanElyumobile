@@ -434,23 +434,23 @@ if (is_dir($imgDir)) {
 
 <!-- Itinerary Add Confirmation Dialog -->
 <div id="itin-add-confirm" onclick="if(event.target===this)window.closeAddConfirm()"
-    style="position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.3s ease; background:rgba(0,0,0,0.55); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);">
+    style="position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.3s ease; background:rgba(10,25,60,0.6); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);">
     <div
-        style="background:linear-gradient(135deg, #1a2a4a 0%, #0f172a 100%); border:none !important; outline:none !important; border-radius:24px; padding:32px 28px 24px; margin:0 24px; width:100%; max-width:320px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.6); transform:scale(0.85); transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);">
+        style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:24px; padding:32px 28px 24px; margin:0 24px; width:100%; max-width:320px; text-align:center; box-shadow:0 20px 60px rgba(10,25,60,0.5); transform:scale(0.85); transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);">
         <div
-            style="width:68px; height:68px; border-radius:50%; background:rgba(52,199,89,0.12); border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
-            <i class="fa-solid fa-check" style="font-size:30px; color:#34c759;"></i>
+            style="width:68px; height:68px; border-radius:50%; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+            <i class="fa-solid fa-check" style="font-size:30px; color:#ffffff;"></i>
         </div>
-        <h3 style="margin:0 0 6px; font-size:20px; font-weight:800; color:#f8fafc; letter-spacing:-0.3px;">Added to
+        <h3 style="margin:0 0 6px; font-size:20px; font-weight:800; color:#ffffff; letter-spacing:-0.3px;">Added to
             Itinerary!</h3>
-        <p style="margin:0 0 24px; font-size:14px; color:rgba(148,163,184,0.8); line-height:1.5;"
+        <p style="margin:0 0 24px; font-size:14px; color:rgba(255,255,255,0.88); line-height:1.5;"
             id="itin-add-confirm-name"></p>
         <button onclick="window.viewItinerary()"
-            style="width:100%; padding:14px; border:none; border-radius:14px; background:linear-gradient(135deg,#007AFF,#0055FF); color:#fff; font-size:15px; font-weight:800; cursor:pointer; margin-bottom:10px; box-shadow:0 4px 16px rgba(0,122,255,0.3);">
+            style="width:100%; padding:14px; border:none !important; outline:none !important; border-radius:14px; background:linear-gradient(135deg,#007AFF,#0055FF); color:#fff; font-size:15px; font-weight:800; cursor:pointer; margin-bottom:10px; box-shadow:0 4px 16px rgba(0,122,255,0.4);">
             <i class="fa-solid fa-list"></i> View Itinerary
         </button>
         <button onclick="window.closeAddConfirm()"
-            style="width:100%; padding:12px; border:none !important; outline:none !important; border-radius:12px; background:rgba(255,255,255,0.06); color:rgba(148,163,184,0.9); font-size:14px; font-weight:700; cursor:pointer;">
+            style="width:100%; padding:12px; border:none !important; outline:none !important; border-radius:12px; background:rgba(255,255,255,0.16); color:#ffffff; font-size:14px; font-weight:700; cursor:pointer;">
             Continue Exploring
         </button>
     </div>
@@ -468,9 +468,9 @@ if (is_dir($imgDir)) {
     }
 </style>
 <div id="testimony-modal"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:99999; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); opacity:0; transition:opacity 0.3s ease;">
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.65); z-index:99999; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); opacity:0; transition:opacity 0.3s ease;">
     <div class="testimony-card-anim"
-        style="background:linear-gradient(135deg, #1e293b, #0f172a); border:none !important; outline:none !important; border-radius:24px; padding:24px; width:100%; max-width:380px; max-height:85vh; overflow-y:auto; box-shadow:0 20px 40px rgba(0,0,0,0.3); text-align:left; box-sizing:border-box; transform:scale(0.88) translateY(16px); opacity:0; transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;">
+        style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:24px; padding:24px; width:100%; max-width:380px; max-height:85vh; overflow-y:auto; box-shadow:0 20px 40px rgba(10,25,60,0.45); text-align:left; box-sizing:border-box; transform:scale(0.88) translateY(16px); opacity:0; transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;">
         <h3 style="margin:0 0 4px; color:#fff; font-size:18px; font-weight:800;">Review Destination</h3>
         <p style="font-size:12px; color:rgba(255,255,255,0.6); margin-bottom:16px;">Help the tourism office and fellow
             travellers by sharing your site testimony and policy recommendations.</p>
@@ -927,7 +927,7 @@ if (is_dir($imgDir)) {
                             if (window.activePopup) window.activePopup.remove();
 
                             const popupEl = document.createElement('div');
-                            popupEl.style.cssText = 'background:rgba(15,23,42,0.95); border-radius:14px; padding:14px 16px; min-width:180px; border:none !important; outline:none !important; box-shadow:0 12px 30px rgba(0,0,0,0.5);';
+                            popupEl.style.cssText = 'background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border-radius:14px; padding:14px 16px; min-width:180px; border:none !important; outline:none !important; box-shadow:0 12px 30px rgba(10,25,60,0.5);';
                             popupEl.innerHTML = `
                             <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
                                 <div style="width:10px; height:10px; border-radius:50%; background:${color}; flex-shrink:0;"></div>
