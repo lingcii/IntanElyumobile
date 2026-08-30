@@ -286,6 +286,80 @@ body[data-view="itinerary"] .mobile-header .header-icon {
     margin-bottom: 24px !important;
 }
 
+/* Itinerary Stops Container & Swap Controls */
+.itinerary-stops-container {
+    background: rgba(10, 25, 60, 0.38) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: none !important;
+    outline: none !important;
+    border-radius: 26px !important;
+    padding: 14px !important;
+    box-shadow: 0 8px 28px rgba(10, 25, 60, 0.25) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin-top: 6px !important;
+    margin-bottom: 20px !important;
+    position: relative !important;
+    box-sizing: border-box !important;
+}
+
+.stops-swap-divider {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative !important;
+    margin: 2px 0 !important;
+    z-index: 6 !important;
+    height: 32px !important;
+}
+
+.stops-swap-line {
+    position: absolute !important;
+    left: 20px !important;
+    right: 20px !important;
+    height: 1px !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    pointer-events: none !important;
+}
+
+.btn-swap-pill {
+    position: relative !important;
+    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    outline: none !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 14px rgba(0, 242, 254, 0.4) !important;
+    font-size: 12px !important;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease !important;
+    z-index: 2 !important;
+}
+
+.btn-swap-pill:hover {
+    transform: scale(1.12) !important;
+    box-shadow: 0 6px 18px rgba(0, 242, 254, 0.55) !important;
+}
+
+.btn-swap-pill:active {
+    transform: scale(0.9) rotate(180deg) !important;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.itinerary-stops-container .timeline-item {
+    margin-bottom: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    will-change: transform;
+}
+
 .timeline-item {
     margin-bottom: 16px !important;
     position: relative !important;
