@@ -1207,24 +1207,28 @@ window.resolveUserLocation = async function (forceFresh = false) {
     return null;
 };
 
-// La Union towns catalog for instant manual location picking
+// La Union towns catalog for instant manual location picking (All 20 Municipalities & City)
 window.LA_UNION_TOWNS = [
-    { name: 'San Juan (Surfing Capital)', lat: 16.6755, lng: 120.3392, icon: '', desc: 'Urbiztondo Beach, Gearlan St., Surf Spots & Cafes' },
-    { name: 'San Fernando City (Capitol)', lat: 16.6159, lng: 120.3167, icon: '', desc: 'City Center, Poro Point & Malls' },
-    { name: 'Bauang', lat: 16.5312, lng: 120.3340, icon: '', desc: 'Grape Farms, Beaches & Resorts' },
-    { name: 'San Gabriel', lat: 16.6853, lng: 120.4042, icon: '', desc: 'Tangadan Falls & Highland Nature' },
-    { name: 'Bacnotan', lat: 16.7197, lng: 120.3541, icon: '', desc: 'Apiary, Surfing & Coastal Views' },
-    { name: 'Luna', lat: 16.8575, lng: 120.3778, icon: '', desc: 'Pebble Beach, Baluarte & Ruins' },
-    { name: 'Balaoan', lat: 16.8222, lng: 120.4000, icon: '', desc: 'Immuki Island & Eco Tourism' },
-    { name: 'Agoo', lat: 16.3214, lng: 120.3653, icon: '', desc: 'Basilica Minore & Eco-Fun Park' },
-    { name: 'Aringay', lat: 16.3939, lng: 120.3592, icon: '', desc: 'Centennial Tunnel & Eco Park' },
-    { name: 'Caba', lat: 16.4318, lng: 120.3394, icon: '', desc: 'Bamboo Crafts, Agri-Tourism' },
-    { name: 'Naguilian', lat: 16.5322, lng: 120.3956, icon: '', desc: 'Basi Wine & Scenic Foothills' },
-    { name: 'Pugo', lat: 16.3167, lng: 120.4667, icon: '', desc: 'Pugad Adventure & Tapuakan River' },
-    { name: 'Tubao', lat: 16.3458, lng: 120.4128, icon: '', desc: 'Mount Franciscan & Grotto' },
-    { name: 'Santo Tomas', lat: 16.2844, lng: 120.3872, icon: '', desc: 'Damortis & Coastal Fishing' },
-    { name: 'Rosario', lat: 16.2300, lng: 120.4850, icon: '', desc: 'Southern Gateway & Canopy' },
-    { name: 'Santol', lat: 16.7667, lng: 120.4500, icon: '', desc: 'Highland Waterfalls & Mountains' }
+    { name: 'San Juan (Surfing Capital)', lat: 16.6731, lng: 120.3320, icon: 'fa-person-surfing', desc: 'Urbiztondo Beach, Surf Breaks & Cafes' },
+    { name: 'San Fernando City (Capitol)', lat: 16.6159, lng: 120.3167, icon: 'fa-landmark-dome', desc: 'City Center, Capitol, Poro Point & Malls' },
+    { name: 'Bauang', lat: 16.5319, lng: 120.3298, icon: 'fa-wine-bottle', desc: 'Grape Farms, Beaches & Resorts' },
+    { name: 'Bacnotan', lat: 16.7202, lng: 120.3353, icon: 'fa-cubes-stacked', desc: 'Apiary, Surfing & Coastal Views' },
+    { name: 'Balaoan', lat: 16.8228, lng: 120.4005, icon: 'fa-gem', desc: 'Immuki Island & Coral Lagoons' },
+    { name: 'Luna', lat: 16.8554, lng: 120.3758, icon: 'fa-chess-rook', desc: 'Pebble Beach, Baluarte & Ruins' },
+    { name: 'Bangar', lat: 16.8942, lng: 120.4245, icon: 'fa-shirt', desc: 'Abel Loom Weaving & Cultural Heritage' },
+    { name: 'Sudipen', lat: 16.9031, lng: 120.4700, icon: 'fa-bridge-water', desc: 'Amburayan River & Northern Gateway' },
+    { name: 'Santol', lat: 16.7686, lng: 120.4578, icon: 'fa-mountain', desc: 'Highland Waterfalls & Mountain Vistas' },
+    { name: 'San Gabriel', lat: 16.6711, lng: 120.4050, icon: 'fa-water-ladder', desc: 'Tangadan Falls Jump-off & Eco Nature' },
+    { name: 'Bagulin', lat: 16.6072, lng: 120.4422, icon: 'fa-campground', desc: 'Loslosi Hills, Bamboo Craft & Nature' },
+    { name: 'Burgos', lat: 16.5183, lng: 120.4578, icon: 'fa-mountain-sun', desc: 'Highland Ridge Trails & Basi Legacy' },
+    { name: 'Naguilian', lat: 16.5366, lng: 120.3926, icon: 'fa-bottle-droplet', desc: 'Basi Wine, Woodcraft & Foothills' },
+    { name: 'Aringay', lat: 16.3958, lng: 120.3325, icon: 'fa-train-subway', desc: 'Centennial Tunnel & Eco Tourism' },
+    { name: 'Caba', lat: 16.4292, lng: 120.3344, icon: 'fa-basket-shopping', desc: 'Bamboo Crafts & Agri-Tourism' },
+    { name: 'Agoo', lat: 16.3217, lng: 120.3667, icon: 'fa-church', desc: 'Basilica Minore & Eco-Fun Park' },
+    { name: 'Tubao', lat: 16.3470, lng: 120.4126, icon: 'fa-place-of-worship', desc: 'Mount Franciscan & Heritage Grotto' },
+    { name: 'Pugo', lat: 16.3167, lng: 120.4667, icon: 'fa-person-hiking', desc: 'Pugad Adventure & Tapuakan River' },
+    { name: 'Santo Tomas', lat: 16.2842, lng: 120.3861, icon: 'fa-fish', desc: 'Daing Capital & Marine Sanctuaries' },
+    { name: 'Rosario', lat: 16.2286, lng: 120.4850, icon: 'fa-archway', desc: 'Gateway to Ilocandia & Tree Canopy' }
 ];
 
 window.setManualLocation = function (lat, lng, name) {

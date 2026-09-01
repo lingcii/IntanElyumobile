@@ -1040,27 +1040,27 @@ if (is_dir($imgDir)) {
         };
 
         const MUNI_CENTERS = {
-            'san juan': { name: 'San Juan', lng: 120.3320, lat: 16.6731 },
-            'san fernando': { name: 'San Fernando City', lng: 120.3167, lat: 16.6159 },
-            'city of san fernando': { name: 'San Fernando City', lng: 120.3167, lat: 16.6159 },
-            'bauang': { name: 'Bauang', lng: 120.3298, lat: 16.5319 },
-            'luna': { name: 'Luna', lng: 120.3832, lat: 16.8554 },
-            'agoo': { name: 'Agoo', lng: 120.3670, lat: 16.3223 },
-            'bacnotan': { name: 'Bacnotan', lng: 120.3530, lat: 16.7340 },
-            'balaoan': { name: 'Balaoan', lng: 120.4000, lat: 16.8200 },
-            'bangar': { name: 'Bangar', lng: 120.4298, lat: 16.8942 },
-            'san gabriel': { name: 'San Gabriel', lng: 120.5600, lat: 16.7150 },
-            'bagulin': { name: 'Bagulin', lng: 120.5000, lat: 16.6100 },
-            'burgos': { name: 'Burgos', lng: 120.5330, lat: 16.5990 },
-            'naguilian': { name: 'Naguilian', lng: 120.3926, lat: 16.5366 },
-            'aringay': { name: 'Aringay', lng: 120.3543, lat: 16.3946 },
-            'caba': { name: 'Caba', lng: 120.3456, lat: 16.4318 },
-            'tubao': { name: 'Tubao', lng: 120.4126, lat: 16.3470 },
-            'pugo': { name: 'Pugo', lng: 120.4850, lat: 16.3350 },
-            'santo tomas': { name: 'Santo Tomas', lng: 120.3850, lat: 16.2650 },
-            'sudipen': { name: 'Sudipen', lng: 120.5200, lat: 16.8734 },
-            'santol': { name: 'Santol', lng: 120.5400, lat: 16.7800 },
-            'rosario': { name: 'Rosario', lng: 120.4850, lat: 16.2300 }
+            'san juan': { name: 'San Juan', lng: 120.3320, lat: 16.6731, icon: 'fa-person-surfing', color: 'linear-gradient(135deg, #0284c7 0%, #06b6d4 100%)' },
+            'san fernando': { name: 'San Fernando City', lng: 120.3167, lat: 16.6159, icon: 'fa-landmark-dome', color: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)' },
+            'city of san fernando': { name: 'San Fernando City', lng: 120.3167, lat: 16.6159, icon: 'fa-landmark-dome', color: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)' },
+            'bauang': { name: 'Bauang', lng: 120.3298, lat: 16.5319, icon: 'fa-wine-bottle', color: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)' },
+            'luna': { name: 'Luna', lng: 120.3758, lat: 16.8554, icon: 'fa-chess-rook', color: 'linear-gradient(135deg, #059669 0%, #10b981 100%)' },
+            'agoo': { name: 'Agoo', lng: 120.3667, lat: 16.3217, icon: 'fa-church', color: 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)' },
+            'bacnotan': { name: 'Bacnotan', lng: 120.3353, lat: 16.7202, icon: 'fa-cubes-stacked', color: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)' },
+            'balaoan': { name: 'Balaoan', lng: 120.4005, lat: 16.8228, icon: 'fa-gem', color: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)' },
+            'bangar': { name: 'Bangar', lng: 120.4245, lat: 16.8942, icon: 'fa-shirt', color: 'linear-gradient(135deg, #e11d48 0%, #f43f5e 100%)' },
+            'san gabriel': { name: 'San Gabriel', lng: 120.4050, lat: 16.6711, icon: 'fa-water-ladder', color: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)' },
+            'bagulin': { name: 'Bagulin', lng: 120.4422, lat: 16.6072, icon: 'fa-campground', color: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)' },
+            'burgos': { name: 'Burgos', lng: 120.4578, lat: 16.5183, icon: 'fa-mountain-sun', color: 'linear-gradient(135deg, #ca8a04 0%, #eab308 100%)' },
+            'naguilian': { name: 'Naguilian', lng: 120.3926, lat: 16.5366, icon: 'fa-bottle-droplet', color: 'linear-gradient(135deg, #9333ea 0%, #c084fc 100%)' },
+            'aringay': { name: 'Aringay', lng: 120.3325, lat: 16.3958, icon: 'fa-train-subway', color: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)' },
+            'caba': { name: 'Caba', lng: 120.3344, lat: 16.4292, icon: 'fa-basket-shopping', color: 'linear-gradient(135deg, #059669 0%, #34d399 100%)' },
+            'tubao': { name: 'Tubao', lng: 120.4126, lat: 16.3470, icon: 'fa-place-of-worship', color: 'linear-gradient(135deg, #b45309 0%, #d97706 100%)' },
+            'pugo': { name: 'Pugo', lng: 120.4667, lat: 16.3167, icon: 'fa-person-hiking', color: 'linear-gradient(135deg, #16a34a 0%, #4ade80 100%)' },
+            'santo tomas': { name: 'Santo Tomas', lng: 120.3861, lat: 16.2842, icon: 'fa-fish', color: 'linear-gradient(135deg, #2563eb 0%, #60a5fa 100%)' },
+            'sudipen': { name: 'Sudipen', lng: 120.4700, lat: 16.9031, icon: 'fa-bridge-water', color: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)' },
+            'santol': { name: 'Santol', lng: 120.4578, lat: 16.7686, icon: 'fa-mountain', color: 'linear-gradient(135deg, #166534 0%, #15803d 100%)' },
+            'rosario': { name: 'Rosario', lng: 120.4850, lat: 16.2286, icon: 'fa-archway', color: 'linear-gradient(135deg, #ea580c 0%, #f97316 100%)' }
         };
 
         function getSpotMuniInfo(loc) {
@@ -1070,7 +1070,7 @@ if (is_dir($imgDir)) {
                     return { key, ...MUNI_CENTERS[key] };
                 }
             }
-            return { key: 'elyu', name: loc.municipality || 'La Union', lng: parseFloat(loc.lng || loc.longitude), lat: parseFloat(loc.lat || loc.latitude) };
+            return { key: 'elyu', name: loc.municipality || 'La Union', lng: parseFloat(loc.lng || loc.longitude), lat: parseFloat(loc.lat || loc.latitude), icon: 'fa-location-dot', color: 'linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%)' };
         }
 
         window.mountedMarkersMap = window.mountedMarkersMap || new Map();
@@ -1115,6 +1115,8 @@ if (is_dir($imgDir)) {
                                 name: info.name,
                                 lng: info.lng,
                                 lat: info.lat,
+                                icon: info.icon || 'fa-building-columns',
+                                color: info.color || 'linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%)',
                                 count: 0,
                                 spots: []
                             };
@@ -1139,8 +1141,9 @@ if (is_dir($imgDir)) {
                                 innerWrap.className = 'muni-inner-wrapper';
 
                                 const bubble = document.createElement('div');
-                                bubble.style.cssText = 'width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); border:2.5px solid #ffffff; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:16px; box-shadow:0 6px 16px rgba(0,0,0,0.32), 0 2px 5px rgba(0,0,0,0.22); transition:transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);';
-                                bubble.innerHTML = '<i class="fa-solid fa-building-columns"></i>';
+                                const bgGrad = g.color || 'linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%)';
+                                bubble.style.cssText = `width:44px; height:44px; border-radius:50%; background:${bgGrad}; border:2.5px solid #ffffff; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:16px; box-shadow:0 6px 16px rgba(0,0,0,0.32), 0 2px 5px rgba(0,0,0,0.22); transition:transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);`;
+                                bubble.innerHTML = `<i class="fa-solid ${g.icon || 'fa-building-columns'}"></i>`;
 
                                 const label = document.createElement('div');
                                 label.style.cssText = 'margin-top:4px; background:rgba(15,23,42,0.92); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); color:#ffffff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:100px; white-space:nowrap; box-shadow:0 3px 8px rgba(0,0,0,0.35); display:flex; align-items:center; gap:4px; pointer-events:none;';

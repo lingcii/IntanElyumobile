@@ -4,33 +4,12 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Tagudin",
-        "zone": "North La Union",
-        "color": "#7c3aed",
-        "spot_count": 0,
-        "center_lat": 16.9337,
-        "center_lon": 120.4425
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [120.3620, 16.8950], [120.4100, 16.8880], [120.4600, 16.8960],
-          [120.5100, 16.9100], [120.5300, 16.9300], [120.5200, 16.9700],
-          [120.4900, 16.9800], [120.4400, 16.9750], [120.3900, 16.9650],
-          [120.3500, 16.9500], [120.3200, 16.9300], [120.3300, 16.9000],
-          [120.3620, 16.8950]
-        ]]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
         "name": "Bangar",
         "zone": "North La Union",
-        "color": "#7c3aed",
+        "color": "#e11d48",
         "spot_count": 0,
         "center_lat": 16.8942,
-        "center_lon": 120.4298
+        "center_lon": 120.4245
       },
       "geometry": {
         "type": "Polygon",
@@ -48,10 +27,10 @@
       "properties": {
         "name": "Luna",
         "zone": "North La Union",
-        "color": "#7c3aed",
+        "color": "#059669",
         "spot_count": 0,
         "center_lat": 16.8554,
-        "center_lon": 120.3832
+        "center_lon": 120.3758
       },
       "geometry": {
         "type": "Polygon",
@@ -66,12 +45,32 @@
     {
       "type": "Feature",
       "properties": {
+        "name": "Balaoan",
+        "zone": "North La Union",
+        "color": "#0d9488",
+        "spot_count": 0,
+        "center_lat": 16.8228,
+        "center_lon": 120.4005
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [120.3600, 16.8200], [120.3900, 16.8100], [120.4200, 16.8050],
+          [120.4400, 16.8100], [120.4600, 16.8100], [120.4700, 16.8000],
+          [120.4350, 16.7700], [120.4200, 16.7400], [120.3900, 16.7800],
+          [120.3600, 16.8000], [120.3600, 16.8200]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
         "name": "Sudipen",
         "zone": "North La Union",
-        "color": "#7c3aed",
+        "color": "#0284c7",
         "spot_count": 0,
-        "center_lat": 16.8734,
-        "center_lon": 120.5200
+        "center_lat": 16.9031,
+        "center_lon": 120.4700
       },
       "geometry": {
         "type": "Polygon",
@@ -88,10 +87,10 @@
       "properties": {
         "name": "Santol",
         "zone": "North La Union",
-        "color": "#7c3aed",
+        "color": "#166534",
         "spot_count": 0,
-        "center_lat": 16.7800,
-        "center_lon": 120.5400
+        "center_lat": 16.7686,
+        "center_lon": 120.4578
       },
       "geometry": {
         "type": "Polygon",
@@ -108,10 +107,10 @@
       "properties": {
         "name": "San Gabriel",
         "zone": "North La Union",
-        "color": "#7c3aed",
+        "color": "#0891b2",
         "spot_count": 0,
-        "center_lat": 16.7150,
-        "center_lon": 120.5600
+        "center_lat": 16.6711,
+        "center_lon": 120.4050
       },
       "geometry": {
         "type": "Polygon",
@@ -128,10 +127,10 @@
       "properties": {
         "name": "Bacnotan",
         "zone": "North La Union",
-        "color": "#7c3aed",
+        "color": "#0284c7",
         "spot_count": 0,
-        "center_lat": 16.7340,
-        "center_lon": 120.3530
+        "center_lat": 16.7202,
+        "center_lon": 120.3353
       },
       "geometry": {
         "type": "Polygon",
@@ -169,10 +168,10 @@
       "properties": {
         "name": "Bagulin",
         "zone": "Central La Union",
-        "color": "#0ea5e9",
+        "color": "#15803d",
         "spot_count": 0,
-        "center_lat": 16.6100,
-        "center_lon": 120.5000
+        "center_lat": 16.6072,
+        "center_lon": 120.4422
       },
       "geometry": {
         "type": "Polygon",
@@ -190,7 +189,7 @@
       "properties": {
         "name": "San Fernando City",
         "zone": "Central La Union",
-        "color": "#0ea5e9",
+        "color": "#1e3a8a",
         "spot_count": 0,
         "center_lat": 16.6159,
         "center_lon": 120.3167
@@ -211,10 +210,10 @@
       "properties": {
         "name": "Burgos",
         "zone": "Central La Union",
-        "color": "#0ea5e9",
+        "color": "#ca8a04",
         "spot_count": 0,
-        "center_lat": 16.5990,
-        "center_lon": 120.5330
+        "center_lat": 16.5183,
+        "center_lon": 120.4578
       },
       "geometry": {
         "type": "Polygon",
@@ -231,7 +230,7 @@
       "properties": {
         "name": "Naguilian",
         "zone": "Central La Union",
-        "color": "#0ea5e9",
+        "color": "#9333ea",
         "spot_count": 0,
         "center_lat": 16.5366,
         "center_lon": 120.3926
@@ -251,7 +250,7 @@
       "properties": {
         "name": "Bauang",
         "zone": "South La Union",
-        "color": "#10b981",
+        "color": "#7c3aed",
         "spot_count": 0,
         "center_lat": 16.5319,
         "center_lon": 120.3298
@@ -271,10 +270,10 @@
       "properties": {
         "name": "Caba",
         "zone": "South La Union",
-        "color": "#10b981",
+        "color": "#059669",
         "spot_count": 0,
-        "center_lat": 16.4318,
-        "center_lon": 120.3456
+        "center_lat": 16.4292,
+        "center_lon": 120.3344
       },
       "geometry": {
         "type": "Polygon",
@@ -293,10 +292,10 @@
       "properties": {
         "name": "Aringay",
         "zone": "South La Union",
-        "color": "#10b981",
+        "color": "#4f46e5",
         "spot_count": 0,
-        "center_lat": 16.3946,
-        "center_lon": 120.3543
+        "center_lat": 16.3958,
+        "center_lon": 120.3325
       },
       "geometry": {
         "type": "Polygon",
@@ -317,10 +316,10 @@
       "properties": {
         "name": "Agoo",
         "zone": "South La Union",
-        "color": "#10b981",
+        "color": "#d97706",
         "spot_count": 0,
-        "center_lat": 16.3223,
-        "center_lon": 120.3670
+        "center_lat": 16.3217,
+        "center_lon": 120.3667
       },
       "geometry": {
         "type": "Polygon",
@@ -338,7 +337,7 @@
       "properties": {
         "name": "Tubao",
         "zone": "South La Union",
-        "color": "#10b981",
+        "color": "#b45309",
         "spot_count": 0,
         "center_lat": 16.3470,
         "center_lon": 120.4126
@@ -359,10 +358,10 @@
       "properties": {
         "name": "Pugo",
         "zone": "South La Union",
-        "color": "#10b981",
+        "color": "#16a34a",
         "spot_count": 0,
-        "center_lat": 16.3350,
-        "center_lon": 120.4850
+        "center_lat": 16.3167,
+        "center_lon": 120.4667
       },
       "geometry": {
         "type": "Polygon",
@@ -377,10 +376,10 @@
       "properties": {
         "name": "Santo Tomas",
         "zone": "South La Union",
-        "color": "#10b981",
+        "color": "#2563eb",
         "spot_count": 0,
-        "center_lat": 16.2650,
-        "center_lon": 120.3850
+        "center_lat": 16.2842,
+        "center_lon": 120.3861
       },
       "geometry": {
         "type": "Polygon",
@@ -398,10 +397,10 @@
       "properties": {
         "name": "Rosario",
         "zone": "South La Union",
-        "color": "#10b981",
+        "color": "#ea580c",
         "spot_count": 0,
-        "center_lat": 16.2100,
-        "center_lon": 120.4300
+        "center_lat": 16.2286,
+        "center_lon": 120.4850
       },
       "geometry": {
         "type": "Polygon",
