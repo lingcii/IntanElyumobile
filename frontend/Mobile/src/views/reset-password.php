@@ -4,6 +4,18 @@ $token = $_GET['token'] ?? '';
 $email = $_GET['email'] ?? '';
 ?>
 <link rel="stylesheet" href="assets/css/views/auth.css?v=<?= time() ?>">
+<script>
+    (function () {
+        var winH = window.innerHeight || 0;
+        var scrH = (window.screen && window.screen.height) ? window.screen.height : 0;
+        var h = Math.max(winH, scrH > 300 ? scrH : winH);
+        if (h > 0) {
+            var topH = Math.min(330, Math.max(250, Math.round(h * 0.38)));
+            document.documentElement.style.setProperty('--auth-screen-h', h + 'px');
+            document.documentElement.style.setProperty('--auth-top-h', topH + 'px');
+        }
+    })();
+</script>
 <div class="auth-container">
     <!-- Top Blue Section -->
     <div class="auth-top">
@@ -214,5 +226,48 @@ $email = $_GET['email'] ?? '';
                 btn.disabled = false;
             }
         };
+    })();
+
+    // Freeze and lock Auth viewport height to prevent keyboard squeezing
+    (function freezeResetPasswordLayout() {
+        function applyLockedDimensions() {
+            var winH = window.innerHeight || 0;
+            var scrH = (window.screen && window.screen.height) ? window.screen.height : 0;
+            var storedH = parseInt(sessionStorage.getItem('auth_locked_screen_h') || '0', 10);
+            if (!storedH || winH > storedH) {
+                storedH = Math.max(winH, scrH > 300 ? scrH : winH);
+                try { sessionStorage.setItem('auth_locked_screen_h', storedH); } catch(e) {}
+            }
+            if (storedH > 0) {
+                var topH = Math.min(330, Math.max(250, Math.round(storedH * 0.38)));
+                document.documentElement.style.setProperty('--auth-screen-h', storedH + 'px');
+                document.documentElement.style.setProperty('--auth-top-h', topH + 'px');
+                var container = document.querySelector('.auth-container');
+                if (container) {
+                    container.style.height = storedH + 'px';
+                    container.style.minHeight = storedH + 'px';
+                    container.style.maxHeight = storedH + 'px';
+                }
+                var topEl = document.querySelector('.auth-top');
+                if (topEl) {
+                    topEl.style.height = topH + 'px';
+                    topEl.style.minHeight = topH + 'px';
+                    topEl.style.maxHeight = topH + 'px';
+                }
+            }
+        }
+
+        applyLockedDimensions();
+        window.addEventListener('resize', function() {
+            var currentH = window.innerHeight || 0;
+            var storedH = parseInt(sessionStorage.getItem('auth_locked_screen_h') || '0', 10);
+            if (currentH > storedH) {
+                applyLockedDimensions();
+            }
+        });
+        window.addEventListener('orientationchange', function() {
+            try { sessionStorage.removeItem('auth_locked_screen_h'); } catch(e) {}
+            setTimeout(applyLockedDimensions, 250);
+        });
     })();
 </script>

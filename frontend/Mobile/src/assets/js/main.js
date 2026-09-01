@@ -1979,3 +1979,44 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e) {}
     }
 })();
+
+// =========================================================================
+// Global Dimension Lock for Auth & Reset Password Views
+// =========================================================================
+window.freezeAuthLayout = function() {
+    const view = document.body ? document.body.getAttribute('data-view') : '';
+    if (view !== 'auth' && view !== 'reset-password') return;
+
+    const winH = window.innerHeight || 0;
+    const scrH = (window.screen && window.screen.height) ? window.screen.height : 0;
+    let storedH = parseInt(sessionStorage.getItem('auth_locked_screen_h') || '0', 10);
+    if (!storedH || winH > storedH) {
+        storedH = Math.max(winH, scrH > 300 ? scrH : winH);
+        try { sessionStorage.setItem('auth_locked_screen_h', storedH); } catch(e) {}
+    }
+    if (storedH > 0) {
+        const topH = Math.min(330, Math.max(250, Math.round(storedH * 0.38)));
+        document.documentElement.style.setProperty('--auth-screen-h', storedH + 'px');
+        document.documentElement.style.setProperty('--auth-top-h', topH + 'px');
+        const container = document.querySelector('.auth-container');
+        if (container) {
+            container.style.height = storedH + 'px';
+            container.style.minHeight = storedH + 'px';
+            container.style.maxHeight = storedH + 'px';
+        }
+        const topEl = document.querySelector('.auth-top');
+        if (topEl) {
+            topEl.style.height = topH + 'px';
+            topEl.style.minHeight = topH + 'px';
+            topEl.style.maxHeight = topH + 'px';
+        }
+    }
+};
+
+document.addEventListener('DOMContentLoaded', window.freezeAuthLayout);
+window.addEventListener('load', window.freezeAuthLayout);
+window.addEventListener('orientationchange', function() {
+    try { sessionStorage.removeItem('auth_locked_screen_h'); } catch(e) {}
+    setTimeout(window.freezeAuthLayout, 250);
+});
+

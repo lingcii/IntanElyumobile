@@ -7,18 +7,28 @@
     box-sizing: border-box;
 }
 
-body[data-view="auth"] {
+body[data-view="auth"],
+body[data-view="reset-password"] {
     background: #74a3cf !important;
     overflow: hidden !important;
-    height: 100vh !important;
+    height: 100% !important;
+    height: var(--auth-screen-h, 100lvh) !important;
+    min-height: var(--auth-screen-h, 100lvh) !important;
+    max-height: var(--auth-screen-h, 100lvh) !important;
     position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     width: 100%;
     overscroll-behavior: none !important;
 }
 
 .auth-container {
-    height: 100vh;
-    max-height: 100vh;
+    height: 100%;
+    height: var(--auth-screen-h, 100lvh);
+    min-height: var(--auth-screen-h, 100lvh);
+    max-height: var(--auth-screen-h, 100lvh);
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -27,13 +37,14 @@ body[data-view="auth"] {
     overflow: hidden !important;
     overscroll-behavior: none !important;
     touch-action: manipulation;
+    flex-shrink: 0;
 }
 
 /* --- Top Blue Section --- */
 .auth-top {
     position: relative;
     width: 100%;
-    height: 38vh;
+    height: var(--auth-top-h, 38%);
     min-height: 250px;
     max-height: 330px;
     flex-shrink: 0;
@@ -135,6 +146,8 @@ body[data-view="auth"] {
 
 .auth-bottom {
     flex: 1;
+    height: calc(100% - var(--auth-top-h, 38%));
+    min-height: 0;
     background: #74a3cf;
     padding: 10px 26px calc(14px + env(safe-area-inset-bottom, 0px)) 26px;
     display: flex;
