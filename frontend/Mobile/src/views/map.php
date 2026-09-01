@@ -1073,6 +1073,66 @@ if (is_dir($imgDir)) {
             return { key: 'elyu', name: loc.municipality || 'La Union', lng: parseFloat(loc.lng || loc.longitude), lat: parseFloat(loc.lat || loc.latitude), icon: 'fa-location-dot', color: 'linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%)' };
         }
 
+        function fitMunicipalityArea(key, g) {
+            if (!window.mapInstance) return;
+
+            let bounds = new maplibregl.LngLatBounds();
+            let foundPolygon = false;
+
+            // 1. Try to find the exact municipality polygon in window.muniGeoJson
+            if (window.muniGeoJson && Array.isArray(window.muniGeoJson.features)) {
+                const feat = window.muniGeoJson.features.find(f => {
+                    const fName = (f.properties && f.properties.name || '').toLowerCase().trim();
+                    const gName = (g.name || key || '').toLowerCase().trim();
+                    return fName === gName || fName.includes(gName) || gName.includes(fName) || key.includes(fName);
+                });
+
+                if (feat && feat.geometry) {
+                    const geom = feat.geometry;
+                    if (geom.type === 'Polygon' && geom.coordinates && geom.coordinates[0]) {
+                        geom.coordinates[0].forEach(coord => bounds.extend(coord));
+                        foundPolygon = true;
+                    } else if (geom.type === 'MultiPolygon' && geom.coordinates) {
+                        geom.coordinates.forEach(poly => {
+                            if (poly && poly[0]) poly[0].forEach(coord => bounds.extend(coord));
+                        });
+                        foundPolygon = true;
+                    }
+                }
+            }
+
+            // 2. Also expand to all tourist spots in this municipality
+            const spots = g.spots || [];
+            if (spots.length > 0) {
+                spots.forEach(s => {
+                    const sLat = parseFloat(s.lat || s.latitude);
+                    const sLng = parseFloat(s.lng || s.longitude);
+                    if (!isNaN(sLat) && !isNaN(sLng)) {
+                        bounds.extend([sLng, sLat]);
+                    }
+                });
+            }
+
+            // 3. If bounds are valid, fit the entire municipality area onto the map
+            if (foundPolygon || (bounds.getNorth() !== bounds.getSouth() && bounds.getEast() !== bounds.getWest())) {
+                window.mapInstance.fitBounds(bounds, {
+                    padding: { top: 80, bottom: 140, left: 40, right: 40 },
+                    maxZoom: 13.5,
+                    duration: 950,
+                    essential: true
+                });
+            } else {
+                // Fallback: zoom to show surrounding municipality area
+                window.mapInstance.flyTo({
+                    center: [g.lng, g.lat],
+                    zoom: 12.6,
+                    duration: 900,
+                    essential: true,
+                    curve: 1.42
+                });
+            }
+        }
+
         window.mountedMarkersMap = window.mountedMarkersMap || new Map();
 
         window.updateVisibleMarkers = function () {
@@ -1142,8 +1202,8 @@ if (is_dir($imgDir)) {
 
                                 const bubble = document.createElement('div');
                                 const bgGrad = g.color || 'linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%)';
-                                bubble.style.cssText = `width:44px; height:44px; border-radius:50%; background:${bgGrad}; border:2.5px solid #ffffff; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:16px; box-shadow:0 6px 16px rgba(0,0,0,0.32), 0 2px 5px rgba(0,0,0,0.22); transition:transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);`;
-                                bubble.innerHTML = `<i class="fa-solid ${g.icon || 'fa-building-columns'}"></i>`;
+                                bubble.style.cssText = `width:44px; height:44px; border-radius:50%; background:${bgGrad}; border:2.5px solid #ffffff; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:18px; box-shadow:0 6px 16px rgba(0,0,0,0.32), 0 2px 5px rgba(0,0,0,0.22); transition:transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);`;
+                                bubble.innerHTML = `<i class="fa-solid ${g.icon || 'fa-building-columns'}" style="color:#ffffff !important; font-size:18px !important; display:inline-block;"></i>`;
 
                                 const label = document.createElement('div');
                                 label.style.cssText = 'margin-top:4px; background:rgba(15,23,42,0.92); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); color:#ffffff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:100px; white-space:nowrap; box-shadow:0 3px 8px rgba(0,0,0,0.35); display:flex; align-items:center; gap:4px; pointer-events:none;';
@@ -1164,13 +1224,7 @@ if (is_dir($imgDir)) {
 
                                 clusterEl.addEventListener('click', (e) => {
                                     e.stopPropagation();
-                                    window.mapInstance.flyTo({
-                                        center: [g.lng, g.lat],
-                                        zoom: 14.2,
-                                        duration: 850,
-                                        essential: true,
-                                        curve: 1.42
-                                    });
+                                    fitMunicipalityArea(key, g);
                                 });
 
                                 const marker = new maplibregl.Marker({ element: clusterEl, anchor: 'center' })
