@@ -149,8 +149,8 @@
         "zone": "Central La Union",
         "color": "#0ea5e9",
         "spot_count": 0,
-        "center_lat": 16.6731,
-        "center_lon": 120.3320
+        "center_lat": 16.671123,
+        "center_lon": 120.338487
       },
       "geometry": {
         "type": "Polygon",

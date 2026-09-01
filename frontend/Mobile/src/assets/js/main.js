@@ -1209,7 +1209,7 @@ window.resolveUserLocation = async function (forceFresh = false) {
 
 // La Union towns catalog for instant manual location picking (All 20 Municipalities & City)
 window.LA_UNION_TOWNS = [
-    { name: 'San Juan (Surfing Capital)', lat: 16.6731, lng: 120.3320, icon: 'fa-person-surfing', desc: 'Urbiztondo Beach, Surf Breaks & Cafes' },
+    { name: 'San Juan (Surfing Capital)', lat: 16.671123, lng: 120.338487, icon: 'fa-person-surfing', desc: 'Urbiztondo Beach, Surf Breaks & Cafes' },
     { name: 'San Fernando City (Capitol)', lat: 16.6159, lng: 120.3167, icon: 'fa-landmark-dome', desc: 'City Center, Capitol, Poro Point & Malls' },
     { name: 'Bauang', lat: 16.5319, lng: 120.3298, icon: 'fa-wine-bottle', desc: 'Grape Farms, Beaches & Resorts' },
     { name: 'Bacnotan', lat: 16.7202, lng: 120.3353, icon: 'fa-cubes-stacked', desc: 'Apiary, Surfing & Coastal Views' },

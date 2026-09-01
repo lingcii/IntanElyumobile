@@ -955,7 +955,7 @@ if (is_dir($imgDir)) {
             // Identify user's municipality in La Union
             const munis = [
                 { name: 'San Fernando City', lat: 16.6159, lng: 120.3167 },
-                { name: 'San Juan', lat: 16.6731, lng: 120.3320 },
+                { name: 'San Juan', lat: 16.671123, lng: 120.338487 },
                 { name: 'Bauang', lat: 16.5319, lng: 120.3298 },
                 { name: 'Bacnotan', lat: 16.7202, lng: 120.3353 },
                 { name: 'Balaoan', lat: 16.8228, lng: 120.4005 },

@@ -1040,7 +1040,7 @@ if (is_dir($imgDir)) {
         };
 
         const MUNI_CENTERS = {
-            'san juan': { name: 'San Juan', lng: 120.3320, lat: 16.6731, icon: 'fa-person-surfing', color: 'linear-gradient(135deg, #0284c7 0%, #06b6d4 100%)' },
+            'san juan': { name: 'San Juan', lng: 120.338487, lat: 16.671123, icon: 'fa-person-surfing', color: 'linear-gradient(135deg, #0284c7 0%, #06b6d4 100%)' },
             'san fernando': { name: 'San Fernando City', lng: 120.3167, lat: 16.6159, icon: 'fa-landmark-dome', color: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)' },
             'city of san fernando': { name: 'San Fernando City', lng: 120.3167, lat: 16.6159, icon: 'fa-landmark-dome', color: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)' },
             'bauang': { name: 'Bauang', lng: 120.3298, lat: 16.5319, icon: 'fa-wine-bottle', color: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)' },
@@ -3207,9 +3207,6 @@ if (is_dir($imgDir)) {
             const placeSheet = document.getElementById('place-details-sheet');
             if (placeSheet.closeSheet) placeSheet.closeSheet();
             else placeSheet.classList.remove('active');
-            if (window.mapInstance) {
-                window.mapInstance.flyTo({ center: [120.3167, 16.6159], zoom: 11, duration: 800 });
-            }
         };
 
         window.showAddConfirm = function (destName) {

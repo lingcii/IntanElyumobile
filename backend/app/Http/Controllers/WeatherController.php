@@ -155,7 +155,7 @@ class WeatherController extends Controller
     {
         $municipalities = [
             'San Fernando' => [16.6159, 120.3167],
-            'San Juan'     => [16.6731, 120.3320],
+            'San Juan'     => [16.671123, 120.338487],
             'Bauang'       => [16.5319, 120.3298],
             'Agoo'         => [16.3217, 120.3667],
             'Luna'         => [16.8554, 120.3758],
