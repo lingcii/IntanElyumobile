@@ -102,7 +102,7 @@ if ($isAjax) {
     </script>
     <meta charset="UTF-8">
     <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=overlays-content">
     <title>Intan Elyu</title>
     <link rel="icon" type="image/png" href="assets/img/logo.png">
     <link rel="apple-touch-icon" href="assets/img/logo.png">
