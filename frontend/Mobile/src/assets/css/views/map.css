@@ -1496,3 +1496,35 @@ body[data-view="map"] .btn-locate-me {
     outline: none !important;
 }
 
+/* ── Hardware Accelerated Map Markers & GPU Promotion ── */
+.elyu-custom-marker {
+    contain: layout style paint;
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.spot-inner-wrapper {
+    will-change: transform, opacity;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.elyu-pin-bubble {
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.map-container,
+#tourist-map {
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+

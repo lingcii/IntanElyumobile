@@ -678,7 +678,8 @@ if (is_dir($imgDir)) {
                         "type": "raster",
                         "tiles": [
                             "https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
-                            "https://b.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+                            "https://b.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+                            "https://c.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
                         ],
                         "tileSize": 256
                     },
@@ -719,7 +720,11 @@ if (is_dir($imgDir)) {
                 zoom: 11,
                 pitch: 0,
                 fadeDuration: 0,
-                attributionControl: false
+                attributionControl: false,
+                collectResourceTiming: false,
+                trackResize: true,
+                maxTileCacheSize: 80,
+                crossSourceCollisions: false
             });
 
             // Suppress tile load errors (harmless — tiles fall back gracefully)
@@ -1124,7 +1129,7 @@ if (is_dir($imgDir)) {
 
                                 const container = document.createElement('div');
                                 container.className = 'elyu-custom-marker';
-                                container.style.cssText = 'cursor:pointer; display:flex; flex-direction:column; align-items:center; user-select:none; will-change:transform; transform:translate3d(0,0,0); backface-visibility:hidden; z-index:10;';
+                                container.style.cssText = 'cursor:pointer; display:flex; flex-direction:column; align-items:center; user-select:none; will-change:transform; transform:translate3d(0,0,0); backface-visibility:hidden; contain:layout style paint; z-index:10;';
 
                                 const innerWrap = document.createElement('div');
                                 innerWrap.className = 'spot-inner-wrapper';
