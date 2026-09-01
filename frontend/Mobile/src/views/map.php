@@ -1180,7 +1180,6 @@ if (is_dir($imgDir)) {
                             }
                         }
                     }
-                }
 
                 // ── RECONCILE: REMOVE MARKERS NO LONGER DESIRED ──
                 for (const [key, marker] of window.mountedMarkersMap.entries()) {
