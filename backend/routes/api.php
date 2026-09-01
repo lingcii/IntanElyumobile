@@ -744,49 +744,55 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
         Route::get('/leaderboard', [LeaderboardController::class, 'index']);
 
         Route::get('/archive/stats', function () {
+            $fareCount = \App\Models\FareGuide::count();
+            $userCount = \App\Models\User::count();
+            $spotCount = \App\Models\TouristSpot::count();
             return response()->json([
                 'success' => true,
                 'stats' => [
-                    'fares' => 0,
-                    'users' => 0,
-                    'spots' => 0,
-                    'total' => 0
+                    'fares' => $fareCount,
+                    'users' => $userCount,
+                    'spots' => $spotCount,
+                    'total' => $fareCount + $userCount + $spotCount
                 ]
             ]);
         });
 
         Route::get('/archive/fares', function () {
+            $archived = \App\Models\FareGuide::where('is_archived', true)->orWhere('status', 'archived')->with('matrices')->get();
             return response()->json([
                 'success' => true,
-                'fares' => [],
-                'data' => []
+                'fares' => $archived,
+                'data' => $archived
             ]);
         });
 
         Route::get('/archive', function () {
+            $fareCount = \App\Models\FareGuide::count();
+            $userCount = \App\Models\User::count();
+            $spotCount = \App\Models\TouristSpot::count();
             return response()->json([
                 'success' => true,
                 'archive' => [],
                 'fares' => [],
-                'stats' => ['fares' => 0, 'users' => 0, 'spots' => 0, 'total' => 0]
+                'stats' => ['fares' => $fareCount, 'users' => $userCount, 'spots' => $spotCount, 'total' => $fareCount + $userCount + $spotCount]
             ]);
         });
 
         Route::any('/archive/{any}', function () {
+            $fareCount = \App\Models\FareGuide::count();
+            $userCount = \App\Models\User::count();
+            $spotCount = \App\Models\TouristSpot::count();
             return response()->json([
                 'success' => true,
                 'archive' => [],
                 'fares' => [],
-                'stats' => ['fares' => 0, 'users' => 0, 'spots' => 0, 'total' => 0]
+                'stats' => ['fares' => $fareCount, 'users' => $userCount, 'spots' => $spotCount, 'total' => $fareCount + $userCount + $spotCount]
             ]);
         })->where('any', '.*');
 
-        Route::get('/fare-data', function () {
-            return response()->json([
-                'success' => true,
-                'fare_data' => []
-            ]);
-        });
+        Route::get('/fare-data', [MapController::class, 'publicFares']);
+        Route::get('/fares', [MapController::class, 'publicFares']);
 
         Route::get('/activity-logs', function (\Illuminate\Http\Request $request) {
             $dbLogs = \App\Models\ActivityLog::with('user:id,name,email,avatar')->latest()->limit(100)->get();
@@ -1023,6 +1029,8 @@ Route::prefix('public')->group(function () {
     Route::get('/vouchers', [\App\Http\Controllers\VoucherController::class, 'index']);
     Route::get('/weather', [WeatherController::class, 'getWeather']);
 });
+Route::get('/fares', [MapController::class, 'publicFares']);
+Route::get('/fare-data', [MapController::class, 'publicFares']);
 Route::get('/vehicles', [VehicleController::class, 'index']);
 Route::get('/vouchers', [\App\Http\Controllers\VoucherController::class, 'index']);
 Route::get('/weather', [WeatherController::class, 'getWeather']);

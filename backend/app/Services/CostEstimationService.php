@@ -50,48 +50,104 @@ class CostEstimationService
     /**
      * Calculate public transit fare based on distance and the LGU-verified database fare matrices.
      */
-    public function estimateTransitFare(float $distanceKm, string $vehicleType): float
+    public function estimateTransitFare(float $distanceKm, string $vehicleType, ?string $municipality = null): float
     {
         $dbType = $this->mapVehicleToDbName($vehicleType);
+        $normType = strtolower($vehicleType);
         
-        // Find latest active fare guide for this vehicle type
-        $guide = FareGuide::where('vehicle_type', $dbType)
-            ->where('status', 'active')
-            ->latest('effective_date')
-            ->first();
+        $guide = null;
 
-        if ($guide) {
-            // Find closest fare entry where distance_km <= calculated distance
-            $matrixEntry = FareMatrix::where('fare_guide_id', $guide->id)
-                ->where('distance_km', '<=', $distanceKm)
-                ->orderByDesc('distance_km')
+        if (in_array($normType, ['tricycle', 'trike'])) {
+            $muni = $municipality ? trim(strtolower($municipality)) : 'san juan';
+            
+            // 1. Try to find active tricycle guide matching requested municipality (e.g. San Juan)
+            $guide = FareGuide::where('status', 'active')
+                ->where('vehicle_type', 'Tricycle')
+                ->where(function ($q) use ($muni) {
+                    $q->whereRaw('LOWER(region) LIKE ?', ["%{$muni}%"])
+                      ->orWhereRaw('LOWER(title) LIKE ?', ["%{$muni}%"]);
+                })
+                ->latest('effective_date')
                 ->first();
 
-            // If none is smaller, fall back to the base fare (first entry)
-            if (!$matrixEntry) {
-                $matrixEntry = FareMatrix::where('fare_guide_id', $guide->id)
-                    ->orderBy('distance_km')
+            // 2. Default to San Juan (Guide #29) as primary tourism hub if not found
+            if (!$guide) {
+                $guide = FareGuide::where('status', 'active')
+                    ->where('vehicle_type', 'Tricycle')
+                    ->where(function ($q) {
+                        $q->whereRaw('LOWER(region) LIKE ?', ['%san juan%'])
+                          ->orWhereRaw('LOWER(title) LIKE ?', ['%san juan%']);
+                    })
+                    ->first() ?? FareGuide::find(29);
+            }
+
+            // 3. Fallback to any active tricycle guide
+            if (!$guide) {
+                $guide = FareGuide::where('status', 'active')
+                    ->where('vehicle_type', 'Tricycle')
                     ->first();
             }
+        } elseif (in_array($normType, ['jeepney', 'puj_ordinary', 'puj_aircon', 'lutrampco', 'mini_bus', 'van', 'uve'])) {
+            $guide = FareGuide::where('status', 'active')
+                ->whereIn('vehicle_type', ['MPUJ', 'PUJ_Ordinary', 'PUJ_Aircon', 'Jeepney'])
+                ->latest('effective_date')
+                ->first();
+        } elseif (in_array($normType, ['bus', 'private_bus', 'pub_aircon', 'pub_ordinary'])) {
+            $guide = FareGuide::where('status', 'active')
+                ->whereIn('vehicle_type', ['PUB_Aircon', 'PUB_Ordinary', 'Bus'])
+                ->latest('effective_date')
+                ->first();
+        } else {
+            $guide = FareGuide::where('status', 'active')
+                ->where('vehicle_type', $dbType)
+                ->latest('effective_date')
+                ->first();
+        }
+
+        if ($guide) {
+            // Stage ceiling lookup: find the stage bracket where distance_km >= calculated distance
+            $matrixEntry = FareMatrix::where('fare_guide_id', $guide->id)
+                ->where('distance_km', '>=', $distanceKm)
+                ->orderBy('distance_km', 'asc')
+                ->first();
 
             if ($matrixEntry) {
                 return (float) $matrixEntry->regular_fare;
             }
+
+            // If distance exceeds all matrix steps, take the max step and calculate scaling
+            $maxEntry = FareMatrix::where('fare_guide_id', $guide->id)
+                ->orderByDesc('distance_km')
+                ->first();
+
+            if ($maxEntry) {
+                $maxDist = (float) $maxEntry->distance_km;
+                $maxFare = (float) $maxEntry->regular_fare;
+                $extraDist = max(0, $distanceKm - $maxDist);
+                $perKmRate = (strcasecmp($guide->vehicle_type, 'Tricycle') === 0) ? 2.00 : 1.80;
+                return round($maxFare + ($extraDist * $perKmRate), 2);
+            }
         }
 
-        // Dynamic fallbacks if no database guide is configured yet
-        switch (strtolower($vehicleType)) {
+        // Dynamic fallbacks if no database guide is configured
+        switch ($normType) {
             case 'taxi':
-                return 250.00;
+                return round(40.00 + ($distanceKm * 13.00), 2);
             case 'mini_bus':
             case 'van':
-                return 500.00;
+            case 'uve':
+                return round(25.00 + (max(0, $distanceKm - 4) * 2.50), 2);
             case 'lutrampco':
-                return 50.00;
+                return round(14.00 + (max(0, $distanceKm - 4) * 2.20), 2);
             case 'jeepney':
-                return 30.00;
+                return round(13.00 + (max(0, $distanceKm - 4) * 1.80), 2);
+            case 'bus':
+            case 'private_bus':
+                return round(15.00 + (max(0, $distanceKm - 5) * 2.20), 2);
             case 'tricycle':
-                return 20.00 + ($distanceKm > 1 ? ($distanceKm - 1) * 10 : 0); // Base ₱20 + ₱10 per km
+            case 'trike':
+                // San Juan base ₱16.32 + ₱2/km fallback
+                return round(16.32 + (max(0, $distanceKm - 1.7) * 2.00), 2);
             default:
                 return 0.00;
         }
@@ -151,9 +207,12 @@ class CostEstimationService
             ];
         }
 
-        // 1. Calculate entrance fees of all spots
-        $spots = TouristSpot::whereIn('id', $destinationIds)->get();
+        // 1. Calculate entrance fees of all spots and identify municipalities
+        $spots = TouristSpot::with('municipality')->whereIn('id', $destinationIds)->get();
         $entranceFees = (float) $spots->sum('entrance_fee');
+
+        // Extract primary destination municipality (default to San Juan)
+        $primaryMuni = $spots->first()?->municipality?->name ?? 'San Juan';
 
         // 2. Fetch coordinates in itinerary order
         $orderedSpots = collect($destinationIds)->map(function ($id) use ($spots) {
@@ -175,12 +234,11 @@ class CostEstimationService
             if ($mode === 'own_car') {
                 $fuelCost += $this->estimateFuelCost($distanceKm, 'Private Car', $customFuelPrice, $customFuelEfficiency);
             } elseif ($mode === 'taxi') {
-                $transitFares += 250.00; // Flat base fare for taxi hire
+                $transitFares += round(40.00 + ($distanceKm * 13.00), 2);
             } elseif ($mode === 'private_bus') {
-                // Fixed rate or mileage rate for chartered bus
-                $transitFares += $distanceKm > 0 ? max(2000.00, $distanceKm * 50.00) : 2000.00;
+                $transitFares += $this->estimateTransitFare($distanceKm, 'private_bus', $primaryMuni);
             } else {
-                $transitFares += $this->estimateTransitFare($distanceKm, $mode);
+                $transitFares += $this->estimateTransitFare($distanceKm, $mode, $primaryMuni);
             }
         }
 

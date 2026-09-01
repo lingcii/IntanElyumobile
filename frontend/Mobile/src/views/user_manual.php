@@ -557,7 +557,7 @@ body[data-view="user_manual"]::-webkit-scrollbar,
             <div class="step-num">2</div>
             <div class="step-content">
                 <div class="step-title">Select Route &amp; Transport Mode</div>
-                <div class="step-desc">Choose <strong>Recommended</strong>, <strong>Alternate</strong>, or <strong>Scenic Route</strong>, and pick your transport (Own Car, Taxi, Bus, Jeepney, Tricycle).</div>
+                <div class="step-desc">Choose <strong>Recommended</strong>, <strong>Alternative</strong>, or <strong>Scenic Route</strong>, and pick your transport (Own Car, Taxi, Bus, Jeepney, Tricycle).</div>
             </div>
         </div>
         <div class="step-card">

@@ -367,7 +367,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             <button class="btn-route-type active" id="btn-route-rec"
                 onclick="setRouteType('recommended', this)">Recommended</button>
             <button class="btn-route-type" id="btn-route-alt"
-                onclick="setRouteType('alternate', this)">Alternate</button>
+                onclick="setRouteType('alternative', this)">Alternative</button>
         </div>
 
         <!-- The Map -->
@@ -1008,48 +1008,60 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             window.fuelPrice = d.fuel_price || 65.0;
         }).catch(e => console.error("Fares fetch error:", e));
 
-        window.getFareFromMatrix = function (vehicleType, distanceKm) {
+        window.getFareFromMatrix = function (vehicleType, distanceKm, municipality = null) {
             if (!window.fareData) return null;
-            const keyMap = {
-                'Tricycle': 'tricycle', 'tricycle': 'tricycle',
-                'Jeepney': 'jeepney', 'jeepney': 'jeepney', 'PUJ_Ordinary': 'jeepney',
-                'Bus': 'private_bus', 'bus': 'private_bus', 'private_bus': 'private_bus', 'public_bus': 'private_bus', 'PUB_Aircon': 'private_bus', 'PUB_Ordinary': 'private_bus',
-                'LUTRAMPCO': 'lutrampco', 'lutrampco': 'lutrampco',
-                'Mini Bus': 'mini_bus', 'mini_bus': 'mini_bus', 'van': 'mini_bus', 'Van': 'mini_bus', 'uve': 'mini_bus', 'PUJ_Aircon': 'mini_bus',
-                'Taxi': 'taxi', 'taxi': 'taxi',
-                'Own Car': 'own_car', 'own_car': 'own_car'
-            };
-            const key = keyMap[vehicleType] || (vehicleType ? vehicleType.toLowerCase().replace(/\s+/g, '_') : '');
-            if (!key || key === 'own_car') return null;
+            
+            const dKm = parseFloat(distanceKm) || 0;
+            const normType = (vehicleType || '').toString().toLowerCase().trim();
+            
+            if (normType === 'own_car' || normType === 'taxi' || normType === 'own car') return null;
 
-            // Search in fareData with fallback keys
-            let fareEntry = window.fareData[key] || window.fareData[vehicleType];
-            if (!fareEntry && (key === 'private_bus' || key === 'bus' || key === 'public_bus')) {
-                fareEntry = window.fareData['private_bus'] || window.fareData['bus'] || window.fareData['PUB_Aircon'] || window.fareData['PUB_Ordinary'];
-            }
-            if (!fareEntry && (key === 'mini_bus' || key === 'van' || key === 'uve')) {
-                fareEntry = window.fareData['mini_bus'] || window.fareData['van'] || window.fareData['PUJ_Aircon'];
-            }
-            if (!fareEntry && key === 'lutrampco') {
-                fareEntry = window.fareData['lutrampco'] || window.fareData['PUB_Ordinary'] || window.fareData['jeepney'];
+            let fareEntry = null;
+
+            if (normType === 'tricycle' || normType === 'trike') {
+                const muniKey = municipality ? municipality.toLowerCase().trim().replace(/[^a-z0-9]/g, '_') : 'san_juan';
+                const muniRaw = municipality ? municipality.toLowerCase().trim() : 'san juan';
+                
+                if (window.fareData.by_municipality) {
+                    fareEntry = window.fareData.by_municipality[muniKey] || window.fareData.by_municipality[muniRaw];
+                }
+                if (!fareEntry) {
+                    fareEntry = window.fareData['san_juan'] || window.fareData['san juan'] || window.fareData['tricycle'];
+                }
+            } else if (['jeepney', 'puj_ordinary', 'puj_aircon', 'lutrampco', 'mini_bus', 'van', 'uve'].includes(normType)) {
+                fareEntry = window.fareData['jeepney'] || window.fareData['lutrampco'] || window.fareData['mini_bus'] || window.fareData['van'];
+            } else if (['bus', 'private_bus', 'pub_aircon', 'pub_ordinary'].includes(normType)) {
+                fareEntry = window.fareData['private_bus'] || window.fareData['bus'];
+            } else {
+                fareEntry = window.fareData[normType];
             }
 
             if (!fareEntry || !fareEntry.rates) return null;
             const rates = Array.isArray(fareEntry.rates) ? fareEntry.rates : Object.values(fareEntry.rates);
             if (!rates || rates.length === 0) return null;
 
-            const dKm = parseFloat(distanceKm) || 0;
+            // Stage ceiling lookup: find first stage bracket where rate.distance_km >= dKm
             let match = null;
-            for (let i = rates.length - 1; i >= 0; i--) {
+            for (let i = 0; i < rates.length; i++) {
                 const r = rates[i];
-                if (r && r.distance_km != null && parseFloat(r.distance_km) <= dKm) {
+                if (r && r.distance_km != null && parseFloat(r.distance_km) >= dKm) {
                     match = r;
                     break;
                 }
             }
-            if (!match) match = rates.find(r => r && r.regular_fare != null) || rates[0];
-            if (!match || match.regular_fare == null) return null;
 
+            // If distance exceeds all matrix steps, calculate from highest bracket
+            if (!match) {
+                const maxRate = rates[rates.length - 1];
+                if (maxRate && maxRate.regular_fare != null) {
+                    const maxD = parseFloat(maxRate.distance_km || 0);
+                    const extra = Math.max(0, dKm - maxD);
+                    const perKm = (normType === 'tricycle' || normType === 'trike') ? 2.0 : 1.8;
+                    return Math.round(parseFloat(maxRate.regular_fare) + (extra * perKm));
+                }
+            }
+
+            if (!match || match.regular_fare == null) return null;
             return parseFloat(match.regular_fare);
         };
 
@@ -1157,10 +1169,61 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
         window.getEffectiveDraft = function () {
             let draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
-            if (draft.length > 1 && window.currentRouteType === 'alternate') {
+            if (!draft || draft.length <= 1) return draft || [];
+
+            const isAlt = (window.currentRouteType === 'alternative' || window.currentRouteType === 'alternate');
+            if (!isAlt) return draft;
+
+            if (draft.length === 2) {
                 return [...draft].reverse();
             }
-            return draft;
+
+            // For 3+ spots: Compute distinct Alternative Exploration Sequence
+            // (Furthest-Anchor First: start with the farthest destination anchor, then explore intermediate spots on return)
+            const startLat = window.myLat || parseFloat(draft[0].lat || draft[0].latitude || 0);
+            const startLng = window.myLng || parseFloat(draft[0].lng || draft[0].longitude || 0);
+
+            const calcDist = (lat1, lon1, lat2, lon2) => {
+                const p = 0.017453292519943295;
+                const c = Math.cos;
+                const a = 0.5 - c((lat2 - lat1) * p)/2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p))/2;
+                return 12742 * Math.asin(Math.sqrt(a));
+            };
+
+            const scoredDraft = draft.map((item, idx) => {
+                const lat = parseFloat(item.lat || item.latitude || 0);
+                const lng = parseFloat(item.lng || item.longitude || 0);
+                const d = (startLat && startLng) ? calcDist(startLat, startLng, lat, lng) : idx;
+                return { item, d, originalIdx: idx };
+            });
+
+            scoredDraft.sort((a, b) => b.d - a.d);
+            const anchor = scoredDraft[0];
+            const remaining = scoredDraft.slice(1);
+
+            const altSequence = [anchor.item];
+            let currLat = parseFloat(anchor.item.lat || anchor.item.latitude || 0);
+            let currLng = parseFloat(anchor.item.lng || anchor.item.longitude || 0);
+
+            while (remaining.length > 0) {
+                let nearestIdx = 0;
+                let nearestDist = Infinity;
+                for (let i = 0; i < remaining.length; i++) {
+                    const rLat = parseFloat(remaining[i].item.lat || remaining[i].item.latitude || 0);
+                    const rLng = parseFloat(remaining[i].item.lng || remaining[i].item.longitude || 0);
+                    const dist = calcDist(currLat, currLng, rLat, rLng);
+                    if (dist < nearestDist) {
+                        nearestDist = dist;
+                        nearestIdx = i;
+                    }
+                }
+                const nextItem = remaining.splice(nearestIdx, 1)[0];
+                altSequence.push(nextItem.item);
+                currLat = parseFloat(nextItem.item.lat || nextItem.item.latitude || 0);
+                currLng = parseFloat(nextItem.item.lng || nextItem.item.longitude || 0);
+            }
+
+            return altSequence;
         };
 
         window.renderItinerary = function (skipMap = false) {
@@ -1196,7 +1259,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             const toggleContainer = document.getElementById('route-toggle-container');
             const toggleSlider = document.getElementById('route-toggle-slider');
             if (recBtn && altBtn) {
-                const isAlt = (window.currentRouteType === 'alternate');
+                const isAlt = (window.currentRouteType === 'alternative' || window.currentRouteType === 'alternate');
                 if (isAlt) {
                     recBtn.classList.remove('active');
                     altBtn.classList.add('active');
@@ -1762,8 +1825,9 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                         transCost += Math.ceil((1 * fuelPrice) / fuelEffic);
                     }
                 }
-                else if (mode === 'private_bus' || mode === 'bus') {
-                    const dbFare = window.getFareFromMatrix('bus', distKm) || window.getFareFromMatrix('private_bus', distKm);
+                const primaryMuni = (draft[0]?.municipality || 'San Juan');
+                if (mode === 'private_bus' || mode === 'bus') {
+                    const dbFare = window.getFareFromMatrix('bus', distKm, primaryMuni) || window.getFareFromMatrix('private_bus', distKm, primaryMuni);
                     if (dbFare !== null) {
                         transCost += Math.round(dbFare);
                     } else {
@@ -1772,7 +1836,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     }
                 }
                 else if (mode === 'mini_bus' || mode === 'van' || mode === 'uve') {
-                    const dbFare = window.getFareFromMatrix('mini_bus', distKm) || window.getFareFromMatrix('van', distKm);
+                    const dbFare = window.getFareFromMatrix('mini_bus', distKm, primaryMuni) || window.getFareFromMatrix('van', distKm, primaryMuni);
                     if (dbFare !== null) {
                         transCost += Math.round(dbFare);
                     } else {
@@ -1781,7 +1845,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     }
                 }
                 else if (mode === 'lutrampco') {
-                    const dbFare = window.getFareFromMatrix('lutrampco', distKm);
+                    const dbFare = window.getFareFromMatrix('lutrampco', distKm, primaryMuni);
                     if (dbFare !== null) {
                         transCost += Math.round(dbFare);
                     } else {
@@ -1790,7 +1854,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     }
                 }
                 else if (mode === 'jeepney') {
-                    const dbFare = window.getFareFromMatrix('jeepney', distKm);
+                    const dbFare = window.getFareFromMatrix('jeepney', distKm, primaryMuni);
                     if (dbFare !== null) {
                         transCost += Math.round(dbFare);
                     } else {
@@ -1799,18 +1863,18 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     }
                 }
                 else if (mode === 'tricycle') {
-                    const dbFare = window.getFareFromMatrix('tricycle', distKm);
+                    const dbFare = window.getFareFromMatrix('tricycle', distKm, primaryMuni);
                     if (dbFare !== null) {
                         transCost += Math.round(dbFare);
                     } else {
-                        transCost += Math.max(15, Math.round(15 + (Math.max(0, distKm - 2) * 5)));
+                        transCost += Math.max(16, Math.round(16.32 + (Math.max(0, distKm - 1.7) * 2.0)));
                     }
                 }
                 else if (mode === 'taxi') {
-                    transCost += Math.max(50, Math.round(45 + (distKm * 15)));
+                    transCost += Math.max(50, Math.round(40 + (distKm * 13)));
                 }
                 else {
-                    const dbFare = window.getFareFromMatrix(mode, distKm);
+                    const dbFare = window.getFareFromMatrix(mode, distKm, primaryMuni);
                     if (dbFare !== null) transCost += Math.round(dbFare);
                     else transCost += 30;
                 }
@@ -2181,6 +2245,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 }
                 distKm = Math.max(1, totalD);
             }
+            const primaryMuni = (draft[0]?.municipality || 'San Juan');
             modes.forEach(mode => {
                 if (mode === 'own_car') {
                     const fuelPrice = parseFloat(document.getElementById('fuel-price')?.value) || 65;
@@ -2191,7 +2256,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     totalTransCost += cost;
                 }
                 else if (mode === 'private_bus' || mode === 'bus') {
-                    const dbFare = window.getFareFromMatrix('bus', distKm) || window.getFareFromMatrix('private_bus', distKm);
+                    const dbFare = window.getFareFromMatrix('bus', distKm, primaryMuni) || window.getFareFromMatrix('private_bus', distKm, primaryMuni);
                     if (dbFare !== null) {
                         totalTransCost += Math.round(dbFare);
                     } else {
@@ -2200,7 +2265,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     }
                 }
                 else if (mode === 'mini_bus' || mode === 'van' || mode === 'uve') {
-                    const dbFare = window.getFareFromMatrix('mini_bus', distKm) || window.getFareFromMatrix('van', distKm);
+                    const dbFare = window.getFareFromMatrix('mini_bus', distKm, primaryMuni) || window.getFareFromMatrix('van', distKm, primaryMuni);
                     if (dbFare !== null) {
                         totalTransCost += Math.round(dbFare);
                     } else {
@@ -2209,7 +2274,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     }
                 }
                 else if (mode === 'lutrampco') {
-                    const dbFare = window.getFareFromMatrix('lutrampco', distKm);
+                    const dbFare = window.getFareFromMatrix('lutrampco', distKm, primaryMuni);
                     if (dbFare !== null) {
                         totalTransCost += Math.round(dbFare);
                     } else {
@@ -2218,7 +2283,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     }
                 }
                 else if (mode === 'jeepney') {
-                    const dbFare = window.getFareFromMatrix('jeepney', distKm);
+                    const dbFare = window.getFareFromMatrix('jeepney', distKm, primaryMuni);
                     if (dbFare !== null) {
                         totalTransCost += Math.round(dbFare);
                     } else {
@@ -2227,18 +2292,18 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     }
                 }
                 else if (mode === 'tricycle') {
-                    const dbFare = window.getFareFromMatrix('tricycle', distKm);
+                    const dbFare = window.getFareFromMatrix('tricycle', distKm, primaryMuni);
                     if (dbFare !== null) {
                         totalTransCost += Math.round(dbFare);
                     } else {
-                        totalTransCost += Math.max(15, Math.round(15 + (Math.max(0, distKm - 2) * 5)));
+                        totalTransCost += Math.max(16, Math.round(16.32 + (Math.max(0, distKm - 1.7) * 2.0)));
                     }
                 }
                 else if (mode === 'taxi') {
-                    totalTransCost += Math.max(50, Math.round(45 + (distKm * 15)));
+                    totalTransCost += Math.max(50, Math.round(40 + (distKm * 13)));
                 }
                 else {
-                    const dbFare = window.getFareFromMatrix(mode, distKm);
+                    const dbFare = window.getFareFromMatrix(mode, distKm, primaryMuni);
                     if (dbFare !== null) totalTransCost += Math.round(dbFare);
                     else totalTransCost += 30;
                 }
@@ -2249,7 +2314,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             const destinations = draft.map(place => place.id);
 
             try {
-                const activeRouteType = document.querySelector('.btn-route-type.active')?.innerText || (window.currentRouteType === 'alternate' ? 'Alternate' : 'Recommended');
+                const activeRouteType = document.querySelector('.btn-route-type.active')?.innerText || ((window.currentRouteType === 'alternative' || window.currentRouteType === 'alternate') ? 'Alternative' : 'Recommended');
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
                 if (!token) {
                     btn.innerHTML = 'Save Trip';
@@ -2454,151 +2519,170 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             if (latlngs.length > 1) {
                 const activeRouteEl = document.querySelector('.btn-route-type.active');
-                const activeRoute = (activeRouteEl ? activeRouteEl.innerText.trim() : (window.currentRouteType === 'alternate' ? 'Alternate' : 'Recommended'));
-                let routeColor = '#38bdf8'; // Recommended = Blue
-                let shadowColor = '#0f172a';
+                const isAlt = (window.currentRouteType === 'alternative' || window.currentRouteType === 'alternate' || activeRouteEl?.innerText.trim() === 'Alternative' || activeRouteEl?.innerText.trim() === 'Alternate');
+                const activeRoute = isAlt ? 'Alternative' : 'Recommended';
+                
+                let routeColor = isAlt ? '#f59e0b' : '#38bdf8'; // Alternative = Vibrant Amber/Gold, Recommended = Cyan/Blue
+                let shadowColor = isAlt ? '#78350f' : '#0f172a';
 
-                if (activeRoute === 'Alternate') { routeColor = '#ffb703'; shadowColor = '#78350f'; } // Vibrant Gold/Yellow
-                if (activeRoute === 'Scenic Route') { routeColor = '#ff3b30'; shadowColor = '#450a0a'; }
-
-                // We strictly use the original authenticated coordinates from the database.
                 let fetchLatLngs = [...latlngs];
-
                 const coordString = fetchLatLngs.map(ll => `${ll[1]},${ll[0]}`).join(';');
 
                 if (shouldFitBounds) {
                     draftMap.fitBounds(L.latLngBounds(latlngs), { padding: [30, 30] });
                 }
 
-                // Execute the real-time dynamic scan using the OSRM engine
-                let osrmService = 'route';
-                let osrmQuery = '?overview=full&geometries=geojson&alternatives=true';
+                // If Alternative and multiple stops: query leg-by-leg alternative corridors or multi-point route
+                const fetchRoutePromise = (async () => {
+                    if (isAlt && fetchLatLngs.length >= 2) {
+                        // Fetch leg by leg with alternative option for each leg
+                        try {
+                            const legGeometries = [];
+                            let totalDist = 0;
+                            let totalDur = 0;
 
-                // To provide the absolute fastest way for Recommended routes with 3+ waypoints, use TSP solver
-                if (activeRoute === 'Recommended' && fetchLatLngs.length >= 3) {
-                    osrmService = 'trip';
-                    osrmQuery = '?overview=full&geometries=geojson&source=first&destination=last&roundtrip=false';
-                }
+                            for (let k = 0; k < fetchLatLngs.length - 1; k++) {
+                                const p1 = `${fetchLatLngs[k][1]},${fetchLatLngs[k][0]}`;
+                                const p2 = `${fetchLatLngs[k+1][1]},${fetchLatLngs[k+1][0]}`;
+                                const legUrl = `https://router.project-osrm.org/route/v1/driving/${p1};${p2}?overview=full&geometries=geojson&alternatives=true&continue_straight=true`;
+                                const legRes = await fetch(legUrl);
+                                const legData = await legRes.json();
 
-                const osrmUrl = `https://router.project-osrm.org/${osrmService}/v1/driving/${coordString}${osrmQuery}`;
+                                if (legData.code === 'Ok' && legData.routes && legData.routes.length > 0) {
+                                    // Choose secondary/alternative route if available
+                                    const chosen = (legData.routes.length > 1) ? legData.routes[1] : legData.routes[0];
+                                    legGeometries.push(chosen.geometry);
+                                    totalDist += chosen.distance;
+                                    totalDur += chosen.duration;
+                                }
+                            }
 
-                fetch(osrmUrl)
-                    .then(res => res.json())
-                    .then(async data => {
-                        let routeData = null;
-
-                        if (data.code === 'Ok') {
-                            if (activeRoute === 'Alternate') {
-                                // If OSRM returned multiple driving routes, select the distinct alternate corridor!
-                                if (data.routes && data.routes.length > 1) {
-                                    routeData = data.routes[1];
-                                } else if (data.routes && data.routes.length > 0) {
-                                    // If single highway, query secondary road network (bike/secondary profile) for distinct route
-                                    try {
-                                        const altRes = await fetch(`https://router.project-osrm.org/route/v1/bike/${coordString}?overview=full&geometries=geojson`);
-                                        const altData = await altRes.json();
-                                        if (altData.code === 'Ok' && altData.routes && altData.routes[0]) {
-                                            routeData = altData.routes[0];
-                                        } else {
-                                            routeData = data.routes[0];
-                                        }
-                                    } catch (e) {
-                                        routeData = data.routes[0];
+                            if (legGeometries.length > 0) {
+                                return {
+                                    code: 'Ok',
+                                    distance: totalDist,
+                                    duration: totalDur,
+                                    geometry: {
+                                        type: 'FeatureCollection',
+                                        features: legGeometries.map(g => ({
+                                            type: 'Feature',
+                                            geometry: g
+                                        }))
                                     }
-                                }
-                            } else {
-                                routeData = data.routes ? data.routes[0] : (data.trips ? data.trips[0] : null);
+                                };
                             }
+                        } catch (e) {
+                            console.warn("Alternative leg query fallback:", e);
                         }
+                    }
 
-                        if (routeData) {
-                            if (draftRouteLineBg) draftMap.removeLayer(draftRouteLineBg);
-                            if (draftRouteLine) draftMap.removeLayer(draftRouteLine);
+                    // Standard OSRM query
+                    let osrmService = 'route';
+                    let osrmQuery = '?overview=full&geometries=geojson&alternatives=true';
+                    if (!isAlt && fetchLatLngs.length >= 3) {
+                        osrmService = 'trip';
+                        osrmQuery = '?overview=full&geometries=geojson&source=first&destination=last&roundtrip=false';
+                    }
 
-                            const geojson = routeData.geometry;
-
-                            draftRouteLineBg = L.geoJSON(geojson, {
-                                style: { color: shadowColor, weight: 6, opacity: 0.35, lineJoin: 'round', lineCap: 'round' }
-                            }).addTo(draftMap);
-
-                            draftRouteLine = L.geoJSON(geojson, {
-                                style: {
-                                    color: routeColor,
-                                    weight: 4,
-                                    opacity: 1,
-                                    lineJoin: 'round',
-                                    lineCap: 'round',
-                                    dashArray: activeRoute === 'Alternate' ? '7, 5' : null
-                                }
-                            }).addTo(draftMap);
-
-                            let distanceKm = routeData.distance / 1000;
-                            let durationMin = routeData.duration / 60;
-
-                            if (activeRoute === 'Scenic Route') {
-                                durationMin *= 1.5;
-                                distanceKm *= 1.4;
-                            } else if (activeRoute === 'Alternate') {
-                                durationMin *= 1.25;
-                                distanceKm *= 1.15;
-                            }
-
-                            // OSRM assumes perfect driving at the speed limit.
-                            // Apply a dynamic realism multiplier:
-                            let baseMultiplier = 1.6;
-                            if (distanceKm <= 3) baseMultiplier = 2.5;
-                            else if (distanceKm <= 7) baseMultiplier = 2.0;
-
-                            durationMin *= baseMultiplier;
-
-                            // Traffic Buffer Logic
-                            const currentHour = new Date().getHours();
-                            const isRushHour = (currentHour >= 7 && currentHour <= 9) || (currentHour >= 16 && currentHour <= 19);
-                            const warningDiv = document.getElementById('draft-traffic-warning');
-
-                            if (isRushHour) {
-                                durationMin *= 1.4;
-                                if (warningDiv) {
-                                    warningDiv.style.display = 'block';
-                                    warningDiv.style.color = '#FF9500';
-                                    warningDiv.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Heavy traffic expected at this hour';
-                                }
-                            } else {
-                                if (warningDiv) {
-                                    warningDiv.style.display = 'block';
-                                    warningDiv.style.color = 'rgba(255,255,255,0.4)';
-                                    warningDiv.innerHTML = activeRoute === 'Alternate' ? '<i class="fa-solid fa-route" style="color:#ffb703; margin-right:4px;"></i> Alternate Road Corridor' : 'Typical traffic conditions';
-                                }
-                            }
-
-                            // Store globally so the Save modal can use it for fuel cost
-                            window._draftDistanceKm = distanceKm;
-
-                            window.setTxt('draft-map-dist', distanceKm.toFixed(1) + ' km');
-                            window.setTxt('draft-map-time', Math.round(durationMin) + ' min');
-
-                            // Dynamically scale line width on zoom
-                            const updateRouteScale = () => {
-                                if (!draftMap) return;
-                                const z = draftMap.getZoom();
-                                const w = z >= 17 ? 12 : (z >= 15 ? 8 : (z >= 13 ? 5 : 3));
-                                const bgw = w + 4;
-                                if (draftRouteLine) draftRouteLine.setStyle({ weight: w });
-                                if (draftRouteLineBg) draftRouteLineBg.setStyle({ weight: bgw });
+                    const osrmUrl = `https://router.project-osrm.org/${osrmService}/v1/driving/${coordString}${osrmQuery}`;
+                    const res = await fetch(osrmUrl);
+                    const data = await res.json();
+                    
+                    if (data.code === 'Ok') {
+                        let chosenRoute = null;
+                        if (isAlt && data.routes && data.routes.length > 1) {
+                            chosenRoute = data.routes[1];
+                        } else {
+                            chosenRoute = data.routes ? data.routes[0] : (data.trips ? data.trips[0] : null);
+                        }
+                        if (chosenRoute) {
+                            return {
+                                code: 'Ok',
+                                distance: chosenRoute.distance,
+                                duration: chosenRoute.duration,
+                                geometry: chosenRoute.geometry
                             };
-                            draftMap.off('zoom', updateRouteScale);
-                            draftMap.on('zoom', updateRouteScale);
-                            updateRouteScale();
                         }
-                    })
-                    .catch(err => console.error("OSRM Routing failed.", err));
+                    }
+                    return null;
+                })();
+
+                fetchRoutePromise.then(routeData => {
+                    if (routeData && routeData.code === 'Ok') {
+                        if (draftRouteLineBg) draftMap.removeLayer(draftRouteLineBg);
+                        if (draftRouteLine) draftMap.removeLayer(draftRouteLine);
+
+                        const geojson = routeData.geometry;
+
+                        draftRouteLineBg = L.geoJSON(geojson, {
+                            style: { color: shadowColor, weight: 7, opacity: 0.4, lineJoin: 'round', lineCap: 'round' }
+                        }).addTo(draftMap);
+
+                        draftRouteLine = L.geoJSON(geojson, {
+                            style: {
+                                color: routeColor,
+                                weight: 4.5,
+                                opacity: 1,
+                                lineJoin: 'round',
+                                lineCap: 'round',
+                                dashArray: isAlt ? '8, 6' : null
+                            }
+                        }).addTo(draftMap);
+
+                        let distanceKm = routeData.distance / 1000;
+                        let durationMin = routeData.duration / 60;
+
+                        if (isAlt) {
+                            durationMin *= 1.25;
+                            distanceKm *= 1.12;
+                        }
+
+                        let baseMultiplier = 1.6;
+                        if (distanceKm <= 3) baseMultiplier = 2.5;
+                        else if (distanceKm <= 7) baseMultiplier = 2.0;
+                        durationMin *= baseMultiplier;
+
+                        // Traffic Buffer Logic
+                        const currentHour = new Date().getHours();
+                        const isRushHour = (currentHour >= 7 && currentHour <= 9) || (currentHour >= 16 && currentHour <= 19);
+                        const warningDiv = document.getElementById('draft-traffic-warning');
+
+                        if (isRushHour) {
+                            durationMin *= 1.35;
+                            if (warningDiv) {
+                                warningDiv.style.display = 'block';
+                                warningDiv.style.color = '#FF9500';
+                                warningDiv.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Heavy traffic expected at this hour';
+                            }
+                        } else {
+                            if (warningDiv) {
+                                warningDiv.style.display = 'block';
+                                warningDiv.style.color = 'rgba(255,255,255,0.7)';
+                                warningDiv.innerHTML = isAlt ? '<i class="fa-solid fa-route" style="color:#f59e0b; margin-right:4px;"></i> Alternative Road Corridor' : 'Typical traffic conditions';
+                            }
+                        }
+
+                        window._draftDistanceKm = distanceKm;
+                        window.setTxt('draft-map-dist', distanceKm.toFixed(1) + ' km');
+                        window.setTxt('draft-map-time', Math.round(durationMin) + ' min');
+
+                        const updateRouteScale = () => {
+                            if (!draftMap) return;
+                            const z = draftMap.getZoom();
+                            const w = z >= 17 ? 12 : (z >= 15 ? 8 : (z >= 13 ? 5 : 3));
+                            const bgw = w + 4;
+                            if (draftRouteLine) draftRouteLine.setStyle({ weight: w });
+                            if (draftRouteLineBg) draftRouteLineBg.setStyle({ weight: bgw });
+                        };
+                        draftMap.off('zoom', updateRouteScale);
+                        draftMap.on('zoom', updateRouteScale);
+                        updateRouteScale();
+                    }
+                }).catch(err => console.error("OSRM Routing failed.", err));
             } else if (latlngs.length === 1) {
-                // Only 1 spot: no route to draw, but we MUST set the map view so it renders!
                 if (shouldFitBounds) {
                     draftMap.setView(latlngs[0], 15);
                 }
-
-                // Reset stats
                 window.setTxt('draft-map-dist', '0 km');
                 window.setTxt('draft-map-time', '0 min');
                 const warnEl = document.getElementById('draft-traffic-warning');
@@ -2607,25 +2691,23 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         };
 
         window.setRouteType = function (type, btn) {
-            // Cancel any pending render timeout to prevent it from overriding user interaction
             if (window._renderTimeout) {
                 clearTimeout(window._renderTimeout);
                 window._renderTimeout = null;
             }
-            window.currentRouteType = type;
+            window.currentRouteType = (type === 'alternate' || type === 'alternative') ? 'alternative' : 'recommended';
             document.querySelectorAll('.btn-route-type').forEach(el => el.classList.remove('active'));
             let activeBtn = btn;
             if (btn) {
                 btn.classList.add('active');
             } else {
-                activeBtn = document.getElementById(type === 'alternate' ? 'btn-route-alt' : 'btn-route-rec');
+                activeBtn = document.getElementById(window.currentRouteType === 'alternative' ? 'btn-route-alt' : 'btn-route-rec');
                 if (activeBtn) activeBtn.classList.add('active');
             }
 
-            // Smooth slider animation via CSS alt-active class
             const container = document.getElementById('route-toggle-container');
             if (container) {
-                if (type === 'alternate') {
+                if (window.currentRouteType === 'alternative') {
                     container.classList.add('alt-active');
                 } else {
                     container.classList.remove('alt-active');
@@ -2634,28 +2716,23 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             window.animateTimelineSwap(() => {
                 const draft = window.getEffectiveDraft();
-
-                // Render stops with skipMap = true so map doesn't re-init mid-animation
                 window.renderItinerary(true);
 
-                // Save user's viewport before re-rendering map
                 var _savedCenter = null, _savedZoom = null;
                 if (typeof draftMap !== 'undefined' && draftMap) {
                     _savedCenter = draftMap.getCenter();
                     _savedZoom = draftMap.getZoom();
                 }
 
-                // Re-render map with the new route sequence
                 window.initDraftMap(draft, false);
 
-                // Restore user's viewport
                 if (_savedCenter !== null && _savedZoom !== null && typeof draftMap !== 'undefined' && draftMap) {
                     draftMap.setView(_savedCenter, _savedZoom, { animate: false });
                 }
             });
 
             if (typeof showToast === 'function') {
-                showToast(type === 'alternate' ? "Switched to Alternate Route — Stop sequence reversed" : "Switched to Recommended Route — Optimal stop sequence");
+                showToast(window.currentRouteType === 'alternative' ? "Switched to Alternative Route — Farthest-anchor exploration sequence" : "Switched to Recommended Route — Optimal stop sequence");
             }
         };
 

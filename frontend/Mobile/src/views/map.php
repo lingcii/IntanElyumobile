@@ -26,36 +26,61 @@ if (is_dir($imgDir)) {
 <script>
     window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
 
-    window.getFareFromMatrix = function (vehicleType, distanceKm) {
+    window.getFareFromMatrix = function (vehicleType, distanceKm, municipality = null) {
         if (!window.fareData) return null;
-        // Map frontend vehicle names to fare data keys
-        const keyMap = {
-            'Tricycle': 'tricycle', 'Jeepney': 'jeepney', 'Bus': 'private_bus',
-            'Taxi': 'taxi', 'Own Car': 'own_car',
-            'bus': 'private_bus', 'jeepney': 'jeepney', 'tricycle': 'tricycle',
-            'taxi': 'taxi', 'own_car': 'own_car',
-            'lutrampco': 'lutrampco', 'private_bus': 'private_bus',
-            'mini_bus': 'mini_bus', 'van': 'van',
-        };
-        const key = keyMap[vehicleType];
-        if (!key) return null;
-        // For own_car and taxi — not in DB, return null to use formula fallback
-        if (key === 'own_car' || key === 'taxi') return null;
-        const fareEntry = window.fareData[key];
+        
+        const dKm = parseFloat(distanceKm) || 0;
+        const normType = (vehicleType || '').toString().toLowerCase().trim();
+        
+        // For own_car and taxi — not in fare matrix table, use formula fallback
+        if (normType === 'own_car' || normType === 'taxi' || normType === 'own car') return null;
+
+        let fareEntry = null;
+
+        if (normType === 'tricycle' || normType === 'trike') {
+            const muniKey = municipality ? municipality.toLowerCase().trim().replace(/[^a-z0-9]/g, '_') : 'san_juan';
+            const muniRaw = municipality ? municipality.toLowerCase().trim() : 'san juan';
+            
+            if (window.fareData.by_municipality) {
+                fareEntry = window.fareData.by_municipality[muniKey] || window.fareData.by_municipality[muniRaw];
+            }
+            if (!fareEntry) {
+                fareEntry = window.fareData['san_juan'] || window.fareData['san juan'] || window.fareData['tricycle'];
+            }
+        } else if (['jeepney', 'puj_ordinary', 'puj_aircon', 'lutrampco', 'mini_bus', 'van', 'uve'].includes(normType)) {
+            fareEntry = window.fareData['jeepney'] || window.fareData['lutrampco'] || window.fareData['mini_bus'] || window.fareData['van'];
+        } else if (['bus', 'private_bus', 'pub_aircon', 'pub_ordinary'].includes(normType)) {
+            fareEntry = window.fareData['private_bus'] || window.fareData['bus'];
+        } else {
+            fareEntry = window.fareData[normType];
+        }
+
+        if (!fareEntry || !fareEntry.rates) return null;
         const rates = Array.isArray(fareEntry.rates) ? fareEntry.rates : Object.values(fareEntry.rates);
         if (!rates || rates.length === 0) return null;
 
+        // Stage ceiling lookup: find first stage bracket where rate.distance_km >= dKm
         let match = null;
-        for (let i = rates.length - 1; i >= 0; i--) {
-            const rate = rates[i];
-            if (rate && rate.distance_km != null && parseFloat(rate.distance_km) <= distanceKm) {
-                match = rate;
+        for (let i = 0; i < rates.length; i++) {
+            const r = rates[i];
+            if (r && r.distance_km != null && parseFloat(r.distance_km) >= dKm) {
+                match = r;
                 break;
             }
         }
-        if (!match) match = rates.find(r => r && r.regular_fare != null);
-        if (!match || match.regular_fare == null) return null;
 
+        // If distance is higher than the max stage, scale from the highest bracket
+        if (!match) {
+            const maxRate = rates[rates.length - 1];
+            if (maxRate && maxRate.regular_fare != null) {
+                const maxD = parseFloat(maxRate.distance_km || 0);
+                const extra = Math.max(0, dKm - maxD);
+                const perKm = (normType === 'tricycle' || normType === 'trike') ? 2.0 : 1.8;
+                return Math.round(parseFloat(maxRate.regular_fare) + (extra * perKm));
+            }
+        }
+
+        if (!match || match.regular_fare == null) return null;
         return parseFloat(match.regular_fare);
     };
 </script>
@@ -3197,7 +3222,8 @@ if (is_dir($imgDir)) {
             </div>`;
             };
 
-            const dbFare = (type) => window.getFareFromMatrix(type, distanceKm);
+            const targetMuni = destData.municipality || 'San Juan';
+            const dbFare = (type) => window.getFareFromMatrix(type, distanceKm, targetMuni);
 
             const getDbVehicle = (searchName) => {
                 if (window.vehicleData && Array.isArray(window.vehicleData)) {
@@ -3228,23 +3254,23 @@ if (is_dir($imgDir)) {
             const currentFuelPrice = window.fuelPrice || 65.0;
 
             if (tightRoads) {
-                const trikeFare = dbFare('Tricycle') ?? Math.round(20 + (Math.max(0, distanceKm - 1) * 10));
+                const trikeFare = dbFare('Tricycle') ?? Math.round(16.32 + (Math.max(0, distanceKm - 1.7) * 2.0));
                 faresHtml += createCard('Tricycle', trikeIcon, 'var(--secondary-color)', trikeInfo?.description || 'Only vehicle that fits narrow/tight roads', trikeFare, '24/7 (Night Rates 10PM+)');
             } else {
-                if (distanceKm <= 5) {
-                    const trikeFare = dbFare('Tricycle') ?? Math.round(20 + (Math.max(0, distanceKm - 1) * 10));
+                if (distanceKm <= 10) {
+                    const trikeFare = dbFare('Tricycle') ?? Math.round(16.32 + (Math.max(0, distanceKm - 1.7) * 2.0));
                     faresHtml += createCard('Tricycle', trikeIcon, 'var(--secondary-color)', trikeDesc, trikeFare, '24/7 (Night Rates 10PM+)');
                 }
                 if (distanceKm >= 2) {
                     const taxiFare = Math.round(40 + (distanceKm * 13));
                     faresHtml += createCard('Taxi', taxiIcon, '#f97316', taxiDesc, taxiFare, '24/7 Service');
                 }
-                if (distanceKm >= 3 && distanceKm <= 20) {
-                    const jeepFare = dbFare('Jeepney') ?? Math.round(15 + (distanceKm * 2.5));
+                if (distanceKm >= 3 && distanceKm <= 35) {
+                    const jeepFare = dbFare('Jeepney') ?? Math.round(13 + (Math.max(0, distanceKm - 4) * 1.8));
                     faresHtml += createCard('Jeepney', jeepIcon, '#f59e0b', jeepDesc, jeepFare, '6:00 AM - 8:00 PM');
                 }
-                if (distanceKm > 15) {
-                    const busFare = dbFare('Bus') ?? Math.round(20 + (distanceKm * 1.8));
+                if (distanceKm > 10) {
+                    const busFare = dbFare('Bus') ?? Math.round(15 + (Math.max(0, distanceKm - 5) * 2.2));
                     faresHtml += createCard('Bus', busIcon, '#ef4444', busDesc, busFare, '4:00 AM - 11:00 PM');
                 }
                 const ownCarFare = Math.max(10, Math.round((distanceKm / carKml) * currentFuelPrice));

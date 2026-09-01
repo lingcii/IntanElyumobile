@@ -316,10 +316,11 @@ require_once __DIR__ . '/../components/header.php';
                 return 12742 * Math.asin(Math.sqrt(a));
             };
 
-            if (routeType === 'Recommended' || routeType === 'Alternate') {
+            if (routeType === 'Recommended' || routeType === 'Alternative' || routeType === 'Alternate') {
+                const isAlternative = (routeType === 'Alternative' || routeType === 'Alternate');
                 while(remaining.length > 0) {
                     let targetIdx = 0;
-                    let targetDist = routeType === 'Recommended' ? Infinity : -1;
+                    let targetDist = (!isAlternative) ? Infinity : -1;
                     
                     for (let i = 0; i < remaining.length; i++) {
                         let dest = remaining[i].destination;
@@ -327,7 +328,7 @@ require_once __DIR__ . '/../components/header.php';
                         let lat = parseFloat(dest.lat || dest.latitude);
                         let lng = parseFloat(dest.lng || dest.longitude);
                         let d = calcDist(currentLat, currentLng, lat, lng);
-                        if ((routeType === 'Recommended' && d < targetDist) || (routeType === 'Alternate' && d > targetDist)) {
+                        if ((!isAlternative && d < targetDist) || (isAlternative && d > targetDist)) {
                             targetDist = d;
                             targetIdx = i;
                         }
@@ -558,10 +559,11 @@ require_once __DIR__ . '/../components/header.php';
             if (coords.length > 1) {
                 let osrmProfile = 'driving';
                 let routeColor = '#38bdf8';
+                const isAlternative = (routeType === 'Alternative' || routeType === 'Alternate');
                 
-                if (routeType === 'Alternate') {
+                if (isAlternative) {
                     osrmProfile = 'walking';
-                    routeColor = '#ffcc00';
+                    routeColor = '#f59e0b';
                 } else if (routeType === 'Scenic Route') {
                     routeColor = '#ff3b30';
                 }
@@ -588,7 +590,7 @@ require_once __DIR__ . '/../components/header.php';
                         
                         if (routeType === 'Scenic Route') {
                             durationMin *= 1.5; distanceKm *= 1.4;
-                        } else if (routeType === 'Alternate') {
+                        } else if (isAlternative) {
                             durationMin *= 1.2; distanceKm *= 1.15;
                         }
                         
@@ -614,7 +616,7 @@ require_once __DIR__ . '/../components/header.php';
                             
                             if (osrmProfile === 'walking') legDurMin = legDistKm * 3.5;
                             if (routeType === 'Scenic Route') { legDurMin *= 1.5; legDistKm *= 1.4; }
-                            else if (routeType === 'Alternate') { legDurMin *= 1.2; legDistKm *= 1.15; }
+                            else if (isAlternative) { legDurMin *= 1.2; legDistKm *= 1.15; }
                             
                             let iconHtml = '<i class="fa-solid fa-car"></i>';
                             if (osrmProfile === 'walking') iconHtml = '<i class="fa-solid fa-person-walking"></i>';

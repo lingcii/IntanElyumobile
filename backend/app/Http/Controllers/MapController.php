@@ -152,44 +152,161 @@ class MapController extends Controller
      * GET /api/public/fares
      * Returns latest active fare rates per vehicle type and vehicle data from Railway DB for the mobile app.
      */
-    public function publicFares(): JsonResponse
+    public function publicFares(Request $request): JsonResponse
     {
-        $cacheKey = 'map:public:fares';
+        $cacheKey = 'map:public:fares:v2';
 
         $fares = \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function () {
-            $vehicleMap = [
-                'Tricycle'    => 'tricycle',
-                'PUJ_Ordinary'=> 'jeepney',
-                'PUB_Ordinary'=> 'lutrampco',
-                'PUJ_Aircon'  => 'mini_bus',
-                'PUB_Aircon'  => 'private_bus',
-                'Van'         => 'van',
-            ];
+            $allActiveGuides = FareGuide::with(['matrices' => function ($q) {
+                $q->orderBy('distance_km', 'asc');
+            }])
+            ->where('status', 'active')
+            ->get();
 
-            $result = [];
+            // Find San Juan's guide specifically (Guide #29)
+            $sanJuanGuide = $allActiveGuides->first(function ($g) {
+                return (stripos($g->title, 'san juan') !== false || stripos($g->region, 'san juan') !== false)
+                    && strcasecmp($g->vehicle_type, 'Tricycle') === 0;
+            });
 
-            foreach ($vehicleMap as $dbType => $frontendType) {
-                $guide = FareGuide::where('vehicle_type', $dbType)
-                    ->where('status', 'active')
-                    ->latest('effective_date')
-                    ->first();
+            // If not found by title/region, fallback to ID 29 or any active tricycle guide
+            if (!$sanJuanGuide) {
+                $sanJuanGuide = $allActiveGuides->firstWhere('id', 29)
+                    ?? $allActiveGuides->first(fn($g) => strcasecmp($g->vehicle_type, 'Tricycle') === 0);
+            }
 
-                if ($guide) {
-                    $matrices = FareMatrix::where('fare_guide_id', $guide->id)
-                        ->orderBy('distance_km')
-                        ->get(['distance_km', 'regular_fare', 'discounted_fare']);
-                    $result[$frontendType] = [
-                        'title'    => $guide->title,
-                        'rates'    => $matrices,
-                    ];
+            // MPUJ / Jeepney guide
+            $jeepGuide = $allActiveGuides->first(function ($g) {
+                return in_array(strtoupper($g->vehicle_type), ['MPUJ', 'PUJ_ORDINARY', 'PUJ_AIRCON', 'JEEPNEY']);
+            });
+
+            // Bus guide
+            $busGuide = $allActiveGuides->first(function ($g) {
+                return in_array(strtoupper($g->vehicle_type), ['PUB_AIRCON', 'PUB_ORDINARY', 'BUS']);
+            });
+
+            $byMunicipality = [];
+            foreach ($allActiveGuides as $g) {
+                $muniKey = strtolower(trim(preg_replace('/[^a-zA-Z0-9]/', ' ', $g->region ?: $g->title)));
+                $muniKey = preg_replace('/\s+/', '_', trim($muniKey));
+                $rawTitle = strtolower(trim($g->title));
+
+                $guideData = [
+                    'id'           => $g->id,
+                    'title'        => $g->title,
+                    'region'       => $g->region,
+                    'vehicle_type' => $g->vehicle_type,
+                    'steps_count'  => $g->matrices->count(),
+                    'base_fare'    => (float) ($g->matrices->first()?->regular_fare ?? 16.32),
+                    'discounted_base' => (float) ($g->matrices->first()?->discounted_fare ?? 13.06),
+                    'rates'        => $g->matrices->map(function ($m) {
+                        return [
+                            'distance_km'     => (float) $m->distance_km,
+                            'regular_fare'    => (float) $m->regular_fare,
+                            'discounted_fare' => (float) $m->discounted_fare,
+                        ];
+                    })->values()->toArray(),
+                ];
+
+                $byMunicipality[$muniKey] = $guideData;
+                $byMunicipality[$rawTitle] = $guideData;
+                if (stripos($g->title, 'san juan') !== false || stripos($g->region, 'san juan') !== false) {
+                    $byMunicipality['san_juan'] = $guideData;
+                    $byMunicipality['san juan'] = $guideData;
                 }
             }
+
+            $sanJuanRates = $sanJuanGuide ? $sanJuanGuide->matrices->map(function ($m) {
+                return [
+                    'distance_km'     => (float) $m->distance_km,
+                    'regular_fare'    => (float) $m->regular_fare,
+                    'discounted_fare' => (float) $m->discounted_fare,
+                ];
+            })->values()->toArray() : [];
+
+            $jeepRates = $jeepGuide ? $jeepGuide->matrices->map(function ($m) {
+                return [
+                    'distance_km'     => (float) $m->distance_km,
+                    'regular_fare'    => (float) $m->regular_fare,
+                    'discounted_fare' => (float) $m->discounted_fare,
+                ];
+            })->values()->toArray() : [];
+
+            $busRates = $busGuide ? $busGuide->matrices->map(function ($m) {
+                return [
+                    'distance_km'     => (float) $m->distance_km,
+                    'regular_fare'    => (float) $m->regular_fare,
+                    'discounted_fare' => (float) $m->discounted_fare,
+                ];
+            })->values()->toArray() : [];
+
+            $result = [
+                'tricycle' => [
+                    'title'           => $sanJuanGuide ? $sanJuanGuide->title : 'San Juan Tricycle Fare Matrix',
+                    'municipality'    => 'San Juan',
+                    'vehicle_type'    => 'Tricycle',
+                    'steps_count'     => count($sanJuanRates),
+                    'base_fare'       => (float) ($sanJuanGuide?->matrices->first()?->regular_fare ?? 16.32),
+                    'discounted_base' => (float) ($sanJuanGuide?->matrices->first()?->discounted_fare ?? 13.06),
+                    'rates'           => $sanJuanRates,
+                ],
+                'jeepney' => [
+                    'title'        => $jeepGuide ? $jeepGuide->title : 'MPUJ Fare Matrix',
+                    'vehicle_type' => 'Jeepney',
+                    'steps_count'  => count($jeepRates),
+                    'rates'        => $jeepRates,
+                ],
+                'lutrampco' => [
+                    'title'        => $jeepGuide ? $jeepGuide->title : 'LUTRAMPCO MPUJ Fare Matrix',
+                    'vehicle_type' => 'Jeepney',
+                    'steps_count'  => count($jeepRates),
+                    'rates'        => $jeepRates,
+                ],
+                'mini_bus' => [
+                    'title'        => $jeepGuide ? $jeepGuide->title : 'Mini Bus / PUJ Aircon Fare Matrix',
+                    'vehicle_type' => 'Mini Bus',
+                    'steps_count'  => count($jeepRates),
+                    'rates'        => $jeepRates,
+                ],
+                'van' => [
+                    'title'        => $jeepGuide ? $jeepGuide->title : 'UV Express / Van Fare Matrix',
+                    'vehicle_type' => 'Van',
+                    'steps_count'  => count($jeepRates),
+                    'rates'        => $jeepRates,
+                ],
+                'private_bus' => [
+                    'title'        => $busGuide ? $busGuide->title : 'PUB Aircon Fare Matrix',
+                    'vehicle_type' => 'Bus',
+                    'steps_count'  => count($busRates),
+                    'rates'        => $busRates,
+                ],
+                'bus' => [
+                    'title'        => $busGuide ? $busGuide->title : 'PUB Aircon Fare Matrix',
+                    'vehicle_type' => 'Bus',
+                    'steps_count'  => count($busRates),
+                    'rates'        => $busRates,
+                ],
+                'san_juan' => [
+                    'title'           => $sanJuanGuide ? $sanJuanGuide->title : 'San Juan Tricycle Fare Matrix',
+                    'municipality'    => 'San Juan',
+                    'vehicle_type'    => 'Tricycle',
+                    'steps_count'     => count($sanJuanRates),
+                    'base_fare'       => (float) ($sanJuanGuide?->matrices->first()?->regular_fare ?? 16.32),
+                    'discounted_base' => (float) ($sanJuanGuide?->matrices->first()?->discounted_fare ?? 13.06),
+                    'rates'           => $sanJuanRates,
+                ],
+                'by_municipality' => $byMunicipality,
+            ];
 
             return $result;
         });
 
         $vehicles = \Illuminate\Support\Facades\Cache::remember('public:vehicles', 300, function () {
-            return \App\Models\Vehicle::where('is_active', true)->get();
+            try {
+                return \App\Models\Vehicle::where('is_active', true)->get();
+            } catch (\Throwable $e) {
+                return [];
+            }
         });
 
         $fuelPrice = \Illuminate\Support\Facades\Cache::remember('system:fuel_price', 300, function () {
@@ -199,7 +316,11 @@ class MapController extends Controller
         });
 
         $vehicleTypes = \Illuminate\Support\Facades\Cache::remember('public:vehicle_types', 300, function () {
-            return \Illuminate\Support\Facades\DB::table('vehicle_types')->get();
+            try {
+                return \Illuminate\Support\Facades\DB::table('vehicle_types')->get();
+            } catch (\Throwable $e) {
+                return [];
+            }
         });
 
         return response()->json([

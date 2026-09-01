@@ -224,4 +224,6 @@ body[data-view="discount"] {
     animation-delay: 0.22s;
 }
 
-.product-card:nth-child
+.product-card:nth-child {
+    
+}
