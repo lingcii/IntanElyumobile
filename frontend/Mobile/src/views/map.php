@@ -1039,100 +1039,6 @@ if (is_dir($imgDir)) {
             window.updateVisibleMarkers();
         };
 
-        const MUNI_CENTERS = {
-            'san juan': { name: 'San Juan', lng: 120.338487, lat: 16.671123, icon: 'fa-person-surfing', color: 'linear-gradient(135deg, #0284c7 0%, #06b6d4 100%)' },
-            'san fernando': { name: 'San Fernando City', lng: 120.3167, lat: 16.6159, icon: 'fa-landmark-dome', color: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)' },
-            'city of san fernando': { name: 'San Fernando City', lng: 120.3167, lat: 16.6159, icon: 'fa-landmark-dome', color: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)' },
-            'bauang': { name: 'Bauang', lng: 120.3298, lat: 16.5319, icon: 'fa-wine-bottle', color: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)' },
-            'luna': { name: 'Luna', lng: 120.3758, lat: 16.8554, icon: 'fa-chess-rook', color: 'linear-gradient(135deg, #059669 0%, #10b981 100%)' },
-            'agoo': { name: 'Agoo', lng: 120.3667, lat: 16.3217, icon: 'fa-church', color: 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)' },
-            'bacnotan': { name: 'Bacnotan', lng: 120.3353, lat: 16.7202, icon: 'fa-cubes-stacked', color: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)' },
-            'balaoan': { name: 'Balaoan', lng: 120.4005, lat: 16.8228, icon: 'fa-gem', color: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)' },
-            'bangar': { name: 'Bangar', lng: 120.4245, lat: 16.8942, icon: 'fa-shirt', color: 'linear-gradient(135deg, #e11d48 0%, #f43f5e 100%)' },
-            'san gabriel': { name: 'San Gabriel', lng: 120.4050, lat: 16.6711, icon: 'fa-water-ladder', color: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)' },
-            'bagulin': { name: 'Bagulin', lng: 120.4422, lat: 16.6072, icon: 'fa-campground', color: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)' },
-            'burgos': { name: 'Burgos', lng: 120.4578, lat: 16.5183, icon: 'fa-mountain-sun', color: 'linear-gradient(135deg, #ca8a04 0%, #eab308 100%)' },
-            'naguilian': { name: 'Naguilian', lng: 120.3926, lat: 16.5366, icon: 'fa-bottle-droplet', color: 'linear-gradient(135deg, #9333ea 0%, #c084fc 100%)' },
-            'aringay': { name: 'Aringay', lng: 120.3325, lat: 16.3958, icon: 'fa-train-subway', color: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)' },
-            'caba': { name: 'Caba', lng: 120.3344, lat: 16.4292, icon: 'fa-basket-shopping', color: 'linear-gradient(135deg, #059669 0%, #34d399 100%)' },
-            'tubao': { name: 'Tubao', lng: 120.4126, lat: 16.3470, icon: 'fa-place-of-worship', color: 'linear-gradient(135deg, #b45309 0%, #d97706 100%)' },
-            'pugo': { name: 'Pugo', lng: 120.4667, lat: 16.3167, icon: 'fa-person-hiking', color: 'linear-gradient(135deg, #16a34a 0%, #4ade80 100%)' },
-            'santo tomas': { name: 'Santo Tomas', lng: 120.3861, lat: 16.2842, icon: 'fa-fish', color: 'linear-gradient(135deg, #2563eb 0%, #60a5fa 100%)' },
-            'sudipen': { name: 'Sudipen', lng: 120.4700, lat: 16.9031, icon: 'fa-bridge-water', color: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)' },
-            'santol': { name: 'Santol', lng: 120.4578, lat: 16.7686, icon: 'fa-mountain', color: 'linear-gradient(135deg, #166534 0%, #15803d 100%)' },
-            'rosario': { name: 'Rosario', lng: 120.4850, lat: 16.2286, icon: 'fa-archway', color: 'linear-gradient(135deg, #ea580c 0%, #f97316 100%)' }
-        };
-
-        function getSpotMuniInfo(loc) {
-            const raw = ((loc.municipality || loc.location || '') + ' ' + (loc.name || '')).toLowerCase();
-            for (const key in MUNI_CENTERS) {
-                if (raw.includes(key)) {
-                    return { key, ...MUNI_CENTERS[key] };
-                }
-            }
-            return { key: 'elyu', name: loc.municipality || 'La Union', lng: parseFloat(loc.lng || loc.longitude), lat: parseFloat(loc.lat || loc.latitude), icon: 'fa-location-dot', color: 'linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%)' };
-        }
-
-        function fitMunicipalityArea(key, g) {
-            if (!window.mapInstance) return;
-
-            let bounds = new maplibregl.LngLatBounds();
-            let foundPolygon = false;
-
-            // 1. Try to find the exact municipality polygon in window.muniGeoJson
-            if (window.muniGeoJson && Array.isArray(window.muniGeoJson.features)) {
-                const feat = window.muniGeoJson.features.find(f => {
-                    const fName = (f.properties && f.properties.name || '').toLowerCase().trim();
-                    const gName = (g.name || key || '').toLowerCase().trim();
-                    return fName === gName || fName.includes(gName) || gName.includes(fName) || key.includes(fName);
-                });
-
-                if (feat && feat.geometry) {
-                    const geom = feat.geometry;
-                    if (geom.type === 'Polygon' && geom.coordinates && geom.coordinates[0]) {
-                        geom.coordinates[0].forEach(coord => bounds.extend(coord));
-                        foundPolygon = true;
-                    } else if (geom.type === 'MultiPolygon' && geom.coordinates) {
-                        geom.coordinates.forEach(poly => {
-                            if (poly && poly[0]) poly[0].forEach(coord => bounds.extend(coord));
-                        });
-                        foundPolygon = true;
-                    }
-                }
-            }
-
-            // 2. Also expand to all tourist spots in this municipality
-            const spots = g.spots || [];
-            if (spots.length > 0) {
-                spots.forEach(s => {
-                    const sLat = parseFloat(s.lat || s.latitude);
-                    const sLng = parseFloat(s.lng || s.longitude);
-                    if (!isNaN(sLat) && !isNaN(sLng)) {
-                        bounds.extend([sLng, sLat]);
-                    }
-                });
-            }
-
-            // 3. If bounds are valid, fit the entire municipality area onto the map
-            if (foundPolygon || (bounds.getNorth() !== bounds.getSouth() && bounds.getEast() !== bounds.getWest())) {
-                window.mapInstance.fitBounds(bounds, {
-                    padding: { top: 80, bottom: 140, left: 40, right: 40 },
-                    maxZoom: 13.5,
-                    duration: 950,
-                    essential: true
-                });
-            } else {
-                // Fallback: zoom to show surrounding municipality area
-                window.mapInstance.flyTo({
-                    center: [g.lng, g.lat],
-                    zoom: 12.6,
-                    duration: 900,
-                    essential: true,
-                    curve: 1.42
-                });
-            }
-        }
-
         window.mountedMarkersMap = window.mountedMarkersMap || new Map();
 
         window.updateVisibleMarkers = function () {
@@ -1151,7 +1057,6 @@ if (is_dir($imgDir)) {
                 }
 
                 const bounds = window.mapInstance.getBounds();
-                const zoom = window.mapInstance.getZoom();
 
                 // 1. Viewport Culling with 25% spatial padding
                 const lngBuffer = (bounds.getEast() - bounds.getWest()) * 0.25;
@@ -1163,81 +1068,7 @@ if (is_dir($imgDir)) {
 
                 const desiredKeys = new Set();
 
-                if (zoom < 11.6) {
-                    // ── REGIONAL VIEW: CONSISTENT MUNICIPALITY LANDMARK ICONS ──
-                    const muniGroups = {};
-                    for (let i = 0; i < locations.length; i++) {
-                        const loc = locations[i];
-                        const info = getSpotMuniInfo(loc);
-                        if (!muniGroups[info.key]) {
-                            muniGroups[info.key] = {
-                                key: info.key,
-                                name: info.name,
-                                lng: info.lng,
-                                lat: info.lat,
-                                icon: info.icon || 'fa-building-columns',
-                                color: info.color || 'linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%)',
-                                count: 0,
-                                spots: []
-                            };
-                        }
-                        muniGroups[info.key].count++;
-                        muniGroups[info.key].spots.push(loc);
-                    }
-
-                    for (const key in muniGroups) {
-                        const g = muniGroups[key];
-                        // Only render if municipality center is within expanded viewport
-                        if (g.lng >= minLng && g.lng <= maxLng && g.lat >= minLat && g.lat <= maxLat) {
-                            const markerKey = 'muni_' + key;
-                            desiredKeys.add(markerKey);
-
-                            if (!window.mountedMarkersMap.has(markerKey)) {
-                                const clusterEl = document.createElement('div');
-                                clusterEl.className = 'elyu-muni-marker';
-                                clusterEl.style.cssText = 'cursor:pointer; display:flex; flex-direction:column; align-items:center; user-select:none; will-change:transform; transform:translate3d(0,0,0); backface-visibility:hidden; z-index:25;';
-
-                                const innerWrap = document.createElement('div');
-                                innerWrap.className = 'muni-inner-wrapper';
-
-                                const bubble = document.createElement('div');
-                                const bgGrad = g.color || 'linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%)';
-                                bubble.style.cssText = `width:44px; height:44px; border-radius:50%; background:${bgGrad}; border:2.5px solid #ffffff; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:18px; box-shadow:0 6px 16px rgba(0,0,0,0.32), 0 2px 5px rgba(0,0,0,0.22); transition:transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);`;
-                                bubble.innerHTML = `<i class="fa-solid ${g.icon || 'fa-building-columns'}" style="color:#ffffff !important; font-size:18px !important; display:inline-block;"></i>`;
-
-                                const label = document.createElement('div');
-                                label.style.cssText = 'margin-top:4px; background:rgba(15,23,42,0.92); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); color:#ffffff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:100px; white-space:nowrap; box-shadow:0 3px 8px rgba(0,0,0,0.35); display:flex; align-items:center; gap:4px; pointer-events:none;';
-                                label.innerHTML = `<span>${g.name}</span><span style="background:rgba(255,255,255,0.25); color:#38bdf8; font-size:9px; font-weight:900; padding:1px 5px; border-radius:8px;">${g.count}</span>`;
-
-                                innerWrap.appendChild(bubble);
-                                innerWrap.appendChild(label);
-                                clusterEl.appendChild(innerWrap);
-
-                                clusterEl.addEventListener('mouseenter', () => {
-                                    bubble.style.transform = 'scale(1.15)';
-                                    clusterEl.style.zIndex = '100';
-                                });
-                                clusterEl.addEventListener('mouseleave', () => {
-                                    bubble.style.transform = 'scale(1)';
-                                    clusterEl.style.zIndex = '25';
-                                });
-
-                                clusterEl.addEventListener('click', (e) => {
-                                    e.stopPropagation();
-                                    fitMunicipalityArea(key, g);
-                                });
-
-                                const marker = new maplibregl.Marker({ element: clusterEl, anchor: 'center' })
-                                    .setLngLat([g.lng, g.lat])
-                                    .addTo(window.mapInstance);
-
-                                window.mountedMarkersMap.set(markerKey, marker);
-                            }
-                        }
-                    }
-
-                } else {
-                    // ── STREET / TOWN VIEW: INDIVIDUAL TOURIST SITES ──
+                // ── DIRECT INDIVIDUAL TOURIST SITES MARKERS (ALL ZOOM LEVELS) ──
                     for (let i = 0; i < locations.length; i++) {
                         const loc = locations[i];
                         const locLat = parseFloat(loc.lat || loc.latitude);
