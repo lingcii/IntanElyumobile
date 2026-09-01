@@ -1163,7 +1163,7 @@ if (is_dir($imgDir)) {
 
                 const desiredKeys = new Set();
 
-                if (zoom < 13.5) {
+                if (zoom < 11.6) {
                     // ── REGIONAL VIEW: CONSISTENT MUNICIPALITY LANDMARK ICONS ──
                     const muniGroups = {};
                     for (let i = 0; i < locations.length; i++) {
