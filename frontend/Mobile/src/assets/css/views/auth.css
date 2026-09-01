@@ -1188,3 +1188,73 @@ body[data-view="auth"] {
         overflow: hidden;
     }
 }
+
+/* ============================================================
+ * Keyboard-Open Auth Layout Fix
+ * When the virtual keyboard is open on the auth page, collapse
+ * the top header section so the form inputs stay visible.
+ * Works with android:windowSoftInputMode="adjustNothing"
+ * ============================================================ */
+body[data-view="auth"].keyboard-open .auth-top,
+html.keyboard-open body[data-view="auth"] .auth-top {
+    height: 80px !important;
+    min-height: 80px !important;
+    max-height: 80px !important;
+    transition: height 0.25s ease, min-height 0.25s ease, max-height 0.25s ease;
+}
+
+body[data-view="auth"].keyboard-open .auth-top .logo-container,
+html.keyboard-open body[data-view="auth"] .auth-top .logo-container {
+    width: 48px !important;
+    height: 48px !important;
+    margin-bottom: 4px !important;
+    transition: width 0.25s ease, height 0.25s ease;
+}
+
+body[data-view="auth"].keyboard-open .auth-top h1,
+html.keyboard-open body[data-view="auth"] .auth-top h1 {
+    display: none !important;
+}
+
+body[data-view="auth"].keyboard-open .wave-bottom,
+html.keyboard-open body[data-view="auth"] .wave-bottom {
+    display: none !important;
+}
+
+body[data-view="auth"].keyboard-open .auth-bottom,
+html.keyboard-open body[data-view="auth"] .auth-bottom {
+    overflow-y: auto !important;
+    flex: 1;
+}
+
+/* Also apply to reset-password view */
+body[data-view="reset-password"].keyboard-open .auth-top,
+html.keyboard-open body[data-view="reset-password"] .auth-top {
+    height: 80px !important;
+    min-height: 80px !important;
+    max-height: 80px !important;
+    transition: height 0.25s ease, min-height 0.25s ease, max-height 0.25s ease;
+}
+
+body[data-view="reset-password"].keyboard-open .auth-top .logo-container,
+html.keyboard-open body[data-view="reset-password"] .auth-top .logo-container {
+    width: 48px !important;
+    height: 48px !important;
+    margin-bottom: 4px !important;
+}
+
+body[data-view="reset-password"].keyboard-open .auth-top h1,
+html.keyboard-open body[data-view="reset-password"] .auth-top h1 {
+    display: none !important;
+}
+
+body[data-view="reset-password"].keyboard-open .wave-bottom,
+html.keyboard-open body[data-view="reset-password"] .wave-bottom {
+    display: none !important;
+}
+
+body[data-view="reset-password"].keyboard-open .auth-bottom,
+html.keyboard-open body[data-view="reset-password"] .auth-bottom {
+    overflow-y: auto !important;
+    flex: 1;
+}

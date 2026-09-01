@@ -272,7 +272,7 @@ $hideBottomNav = true;
     <h1>Download <span>Intan Elyu</span></h1>
     <p>Your ultimate travel companion for La Union, Philippines.<br>Available for Android devices.</p>
     <div class="version-row">
-      <span class="badge blue"><i class="fa-solid fa-code-branch"></i> v1.0.0</span>
+      <span class="badge blue"><i class="fa-solid fa-code-branch"></i> v1.1.0</span>
       <span class="badge green"><i class="fa-solid fa-shield-check"></i> Signed APK</span>
       <span class="badge purple"><i class="fab fa-android"></i> Android 7.0+</span>
     </div>
