@@ -1266,8 +1266,8 @@ if (is_dir($imgDir)) {
             const _backendBase = window.backendUrl || '';
 
             try {
-                // Proximity cutoff: query radius 800m & limit 7 closest diverse tourist amenities
-                const res = await fetch(`${_backendBase}/api/public/amenities?lat=${lat}&lng=${lng}&radius=800&limit=7`, {
+                // Proximity query: radius 800m & up to 25 closest amenities in this site
+                const res = await fetch(`${_backendBase}/api/public/amenities?lat=${lat}&lng=${lng}&radius=800&limit=25`, {
                     headers: { 'Accept': 'application/json' }
                 });
                 if (!res.ok) return;
@@ -1280,7 +1280,8 @@ if (is_dir($imgDir)) {
                     'facility', 'atm', 'bank', 'convenience store', 'convenience', 'supermarket',
                     'supermarket / store', 'store', 'pharmacy', 'gas station', 'fuel',
                     'hospital', 'clinic', 'health clinic', 'police station', 'police',
-                    'public toilet', 'toilets', 'parking', 'restaurant', 'cafe', 'fast food'
+                    'public toilet', 'toilets', 'parking', 'restaurant', 'cafe', 'fast food',
+                    'hotel', 'motel', 'resort', 'church', 'chapel', 'park'
                 ]);
                 const informalRegex = /('s store|sari-sari|tindahan|variety store|^app store$)/i;
 
@@ -1295,7 +1296,7 @@ if (is_dir($imgDir)) {
                         return false;
                     }
                     return true;
-                }).slice(0, 7);
+                }).slice(0, 25);
 
                 // Check if user moved away or closed the sheet while fetching
                 if (window.currentAmenitySpotId !== spotIdentifier) return;
@@ -1314,7 +1315,7 @@ if (is_dir($imgDir)) {
                     // Root container is strictly controlled by MapLibre projection engine with no CSS transitions
                     const container = document.createElement('div');
                     container.className = 'elyu-amenity-marker';
-                    container.style.cssText = 'position:absolute !important; top:0 !important; left:0 !important; pointer-events:none !important; user-select:none; cursor:default; z-index:12; transition:none !important; will-change:transform;';
+                    container.style.cssText = `position:absolute !important; top:0 !important; left:0 !important; pointer-events:none !important; user-select:none; cursor:default; z-index:${20 + idx}; transition:none !important; will-change:transform;`;
                     container.setAttribute('aria-hidden', 'true');
 
                     // Inner wrapper handles pop-in animation and fade without touching root coordinate transform

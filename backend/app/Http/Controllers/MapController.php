@@ -350,17 +350,17 @@ class MapController extends Controller
             ], 400);
         }
 
-        $radius = (int) ($request->query('radius', 600));
+        $radius = (int) ($request->query('radius', 800));
         if ($radius < 150) $radius = 150;
-        if ($radius > 800) $radius = 800;
+        if ($radius > 1200) $radius = 1200;
 
-        $limit = (int) ($request->query('limit', 6));
+        $limit = (int) ($request->query('limit', 20));
         if ($limit < 1) $limit = 1;
-        if ($limit > 10) $limit = 10;
+        if ($limit > 30) $limit = 30;
 
         $roundedLat = round($lat, 3);
         $roundedLng = round($lng, 3);
-        $cacheKey = "map:public:amenities:v12:{$roundedLat}:{$roundedLng}:{$radius}:{$limit}";
+        $cacheKey = "map:public:amenities:v13:{$roundedLat}:{$roundedLng}:{$radius}:{$limit}";
 
         $amenities = \Illuminate\Support\Facades\Cache::remember($cacheKey, 43200, function () use ($lat, $lng, $radius, $limit) {
             $results = [];
@@ -587,35 +587,26 @@ class MapController extends Controller
 
             usort($unique, fn($a, $b) => $a['distance_meters'] <=> $b['distance_meters']);
 
-            // Pick diverse, non-overlapping amenities (at most 1 per primary category, min 80m distance to avoid collisions)
+            // Show all distinct verified establishments in this site within radius
             $selected = [];
-            $seenCategories = [];
             foreach ($unique as $item) {
-                $t = $item['type'];
-                if (in_array($t, ['atm', 'bank'])) $broadCat = 'financial';
-                elseif (in_array($t, ['restaurant', 'fast_food'])) $broadCat = 'dining';
-                elseif (in_array($t, ['cafe', 'bakery'])) $broadCat = 'cafe';
-                else $broadCat = $t;
-
-                if (isset($seenCategories[$broadCat])) {
-                    continue; // Keep only the closest one per category to prevent marker stacking
-                }
-
-                // Ensure marker isn't immediately on top of an already chosen marker (< 80m)
-                $tooClose = false;
+                $normName = strtolower(trim($item['name']));
+                $tooCloseDuplicate = false;
                 foreach ($selected as $s) {
-                    $dLat = deg2rad($item['lat'] - $s['lat']);
-                    $dLon = deg2rad($item['lng'] - $s['lng']);
-                    $v = sin($dLat / 2) * sin($dLat / 2) + cos(deg2rad($item['lat'])) * cos(deg2rad($s['lat'])) * sin($dLon / 2) * sin($dLon / 2);
-                    $distBetween = round($earthRadius * 2 * atan2(sqrt($v), sqrt(1 - $v)));
-                    if ($distBetween < 80) {
-                        $tooClose = true;
-                        break;
+                    // Only skip if the exact same establishment name is already selected within 12 meters
+                    if (strtolower(trim($s['name'])) === $normName) {
+                        $dLat = deg2rad($item['lat'] - $s['lat']);
+                        $dLon = deg2rad($item['lng'] - $s['lng']);
+                        $v = sin($dLat / 2) * sin($dLat / 2) + cos(deg2rad($item['lat'])) * cos(deg2rad($s['lat'])) * sin($dLon / 2) * sin($dLon / 2);
+                        $distBetween = round($earthRadius * 2 * atan2(sqrt($v), sqrt(1 - $v)));
+                        if ($distBetween < 12) {
+                            $tooCloseDuplicate = true;
+                            break;
+                        }
                     }
                 }
-                if ($tooClose) continue;
+                if ($tooCloseDuplicate) continue;
 
-                $seenCategories[$broadCat] = true;
                 $selected[] = $item;
                 if (count($selected) >= $limit) break;
             }
