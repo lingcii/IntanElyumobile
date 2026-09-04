@@ -1266,8 +1266,8 @@ if (is_dir($imgDir)) {
             const _backendBase = window.backendUrl || '';
 
             try {
-                // Proximity query: radius 800m & up to 25 closest amenities in this site
-                const res = await fetch(`${_backendBase}/api/public/amenities?lat=${lat}&lng=${lng}&radius=800&limit=25`, {
+                // Proximity query: radius 800m & up to 35 closest amenities in this site
+                const res = await fetch(`${_backendBase}/api/public/amenities?lat=${lat}&lng=${lng}&radius=800&limit=35`, {
                     headers: { 'Accept': 'application/json' }
                 });
                 if (!res.ok) return;
@@ -1275,15 +1275,14 @@ if (is_dir($imgDir)) {
                 let rawAmenities = (data && data.amenities) ? data.amenities : [];
 
                 // Filter for high accuracy & strict proximity:
-                // Hide informal sari-sari stalls, unverified fuel, or entries lacking a proper establishment name
                 const genericNames = new Set([
                     'facility', 'atm', 'bank', 'convenience store', 'convenience', 'supermarket',
                     'supermarket / store', 'store', 'pharmacy', 'gas station', 'fuel',
                     'hospital', 'clinic', 'health clinic', 'police station', 'police',
                     'public toilet', 'toilets', 'parking', 'restaurant', 'cafe', 'fast food',
-                    'hotel', 'motel', 'resort', 'church', 'chapel', 'park'
+                    'hotel', 'motel', 'resort', 'church', 'chapel', 'park', 'vulcanizing', 'car repair'
                 ]);
-                const informalRegex = /('s store|sari-sari|tindahan|variety store|^app store$)/i;
+                const informalRegex = /(^app store$)/i;
 
                 let amenities = rawAmenities.filter(am => {
                     const dist = Number(am.distance_meters);
@@ -1292,11 +1291,11 @@ if (is_dir($imgDir)) {
                     if (isNaN(dist) || dist > 800 || name.length < 3 || genericNames.has(lower) || lower.startsWith('unnamed')) {
                         return false;
                     }
-                    if (am.type === 'convenience' && informalRegex.test(name) && !/(7-eleven|alfamart|puregold|dali|uncle john)/i.test(name)) {
+                    if (informalRegex.test(name)) {
                         return false;
                     }
                     return true;
-                }).slice(0, 25);
+                }).slice(0, 35);
 
                 // Check if user moved away or closed the sheet while fetching
                 if (window.currentAmenitySpotId !== spotIdentifier) return;

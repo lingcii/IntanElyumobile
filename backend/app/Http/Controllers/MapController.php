@@ -360,7 +360,7 @@ class MapController extends Controller
 
         $roundedLat = round($lat, 3);
         $roundedLng = round($lng, 3);
-        $cacheKey = "map:public:amenities:v13:{$roundedLat}:{$roundedLng}:{$radius}:{$limit}";
+        $cacheKey = "map:public:amenities:v15:{$roundedLat}:{$roundedLng}:{$radius}:{$limit}";
 
         $amenities = \Illuminate\Support\Facades\Cache::remember($cacheKey, 43200, function () use ($lat, $lng, $radius, $limit) {
             $results = [];
@@ -370,10 +370,11 @@ class MapController extends Controller
                 'facility', 'atm', 'bank', 'convenience store', 'convenience', 'supermarket',
                 'supermarket / store', 'store', 'pharmacy', 'gas station', 'fuel',
                 'hospital', 'clinic', 'health clinic', 'police station', 'police',
-                'public toilet', 'toilets', 'parking', 'restaurant', 'cafe', 'fast food'
+                'public toilet', 'toilets', 'parking', 'restaurant', 'cafe', 'fast food',
+                'hotel', 'motel', 'resort', 'church', 'chapel', 'park', 'vulcanizing', 'car repair'
             ];
 
-            // 1. Primary: High-speed local verified dataset (2,700+ real, verified establishments across La Union)
+            // 1. Primary: High-speed local verified dataset (5,600+ real, verified establishments across La Union)
             $localFile = storage_path('app/la_union_amenities.json');
             if (!file_exists($localFile)) {
                 $localFile = base_path('../frontend/Mobile/src/assets/la_union_amenities.json');
@@ -415,9 +416,13 @@ class MapController extends Controller
             if (count($results) < 2) {
                 try {
                     $query = '[out:json][timeout:8];(' .
-                        'nwr["amenity"~"^(atm|bank|pharmacy|fuel|hospital|clinic|police|cafe|restaurant|fast_food|parking|toilets|information)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
-                        'nwr["shop"~"^(convenience|supermarket|chemist|bakery|gift|souvenir)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
-                        ');out center 35;';
+                        'nwr["amenity"~"^(atm|bank|pharmacy|fuel|hospital|clinic|police|cafe|restaurant|fast_food|parking|toilets|information|place_of_worship|bus_station|school|college|university|kindergarten|studio|veterinary)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
+                        'nwr["shop"~"^(convenience|supermarket|chemist|bakery|gift|souvenir|car_repair|tyres|motorcycle_repair|variety_store|clothes|fashion|boutique|bicycle|motorcycle|hardware|doityourself|computer|electronics)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
+                        'nwr["tourism"~"^(hotel|motel|resort|guest_house|hostel|attraction|viewpoint|museum)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
+                        'nwr["office"~"^(government|ngo|radio_station|company)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
+                        'nwr["historic"~"^(memorial|monument)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
+                        'nwr["leisure"~"^(park|pitch|recreation_ground)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
+                        ');out center 40;';
 
                     $mirrors = [
                         'https://overpass.kumi.systems/api/interpreter',
@@ -447,7 +452,7 @@ class MapController extends Controller
                                 if (!$eLat || !$eLng) continue;
 
                                 $tags = $el['tags'] ?? [];
-                                $rawType = strtolower($tags['amenity'] ?? ($tags['shop'] ?? ($tags['tourism'] ?? 'amenity')));
+                                $rawType = strtolower($tags['amenity'] ?? ($tags['shop'] ?? ($tags['tourism'] ?? ($tags['office'] ?? ($tags['leisure'] ?? ($tags['historic'] ?? 'amenity'))))));
 
                                 $type = 'other';
                                 $label = 'Facility';
@@ -480,10 +485,10 @@ class MapController extends Controller
                                     $icon = 'fa-solid fa-gas-pump';
                                     $color = '#f97316';
                                 } elseif (in_array($rawType, ['hospital', 'clinic'])) {
-                                    $type = 'medical';
+                                    $type = 'health';
                                     $label = $rawType === 'hospital' ? 'Hospital' : 'Clinic';
                                     $icon = 'fa-solid fa-hospital';
-                                    $color = '#06b6d4';
+                                    $color = '#dc2626';
                                 } elseif ($rawType === 'police') {
                                     $type = 'police';
                                     $label = 'Police Station';
@@ -529,6 +534,91 @@ class MapController extends Controller
                                     $label = 'Bakery';
                                     $icon = 'fa-solid fa-bread-slice';
                                     $color = '#d97706';
+                                } elseif (in_array($rawType, ['car_repair', 'tyres', 'motorcycle_repair'])) {
+                                    $type = 'repair';
+                                    $label = (stripos($name ?? '', 'vulcanizing') !== false || $rawType === 'tyres') ? 'Vulcanizing / Tire Repair' : 'Auto / Motorcycle Repair';
+                                    $icon = 'fa-solid fa-wrench';
+                                    $color = '#475569';
+                                } elseif ($rawType === 'variety_store') {
+                                    $type = 'store';
+                                    $label = 'Local Store';
+                                    $icon = 'fa-solid fa-basket-shopping';
+                                    $color = '#f59e0b';
+                                } elseif (in_array($rawType, ['hotel', 'motel', 'resort', 'guest_house', 'hostel'])) {
+                                    $type = 'hotel';
+                                    $label = $rawType === 'resort' ? 'Resort' : 'Hotel / Lodging';
+                                    $icon = 'fa-solid fa-bed';
+                                    $color = '#6366f1';
+                                } elseif ($rawType === 'place_of_worship') {
+                                    $type = 'worship';
+                                    $label = 'Church / Chapel';
+                                    $icon = 'fa-solid fa-cross';
+                                    $color = '#a855f7';
+                                } elseif (in_array($rawType, ['clothes', 'fashion', 'boutique'])) {
+                                    $type = 'clothing';
+                                    $label = 'Clothing / Apparel';
+                                    $icon = 'fa-solid fa-shirt';
+                                    $color = '#ec4899';
+                                } elseif (in_array($rawType, ['park', 'pitch', 'recreation_ground'])) {
+                                    $type = 'park';
+                                    $label = 'Park / Recreation';
+                                    $icon = 'fa-solid fa-person-walking';
+                                    $color = '#10b981';
+                                } elseif ($rawType === 'bus_station') {
+                                    $type = 'transit';
+                                    $label = 'Bus / Transit Stop';
+                                    $icon = 'fa-solid fa-bus';
+                                    $color = '#0284c7';
+                                } elseif ($rawType === 'government' || $rawType === 'townhall' || $rawType === 'public_building') {
+                                    $type = 'government';
+                                    $label = 'Government Office';
+                                    $icon = 'fa-solid fa-building-columns';
+                                    $color = '#0284c7';
+                                } elseif ($rawType === 'ngo') {
+                                    $type = 'ngo';
+                                    $label = 'NGO / Humanitarian';
+                                    $icon = 'fa-solid fa-hand-holding-heart';
+                                    $color = '#dc2626';
+                                } elseif ($rawType === 'studio' || $rawType === 'radio_station') {
+                                    $type = 'media';
+                                    $label = 'Media / Radio Station';
+                                    $icon = 'fa-solid fa-microphone';
+                                    $color = '#e11d48';
+                                } elseif (in_array($rawType, ['school', 'college', 'university', 'kindergarten'])) {
+                                    $type = 'education';
+                                    $label = 'School / Education';
+                                    $icon = 'fa-solid fa-graduation-cap';
+                                    $color = '#2563eb';
+                                } elseif (in_array($rawType, ['attraction', 'viewpoint', 'museum', 'memorial', 'monument'])) {
+                                    $type = 'attraction';
+                                    $label = 'Attraction / Landmark';
+                                    $icon = 'fa-solid fa-camera';
+                                    $color = '#0d9488';
+                                } elseif ($rawType === 'bicycle') {
+                                    $type = 'bicycle';
+                                    $label = 'Bicycle Shop';
+                                    $icon = 'fa-solid fa-bicycle';
+                                    $color = '#059669';
+                                } elseif ($rawType === 'motorcycle') {
+                                    $type = 'motorcycle';
+                                    $label = 'Motorcycle Shop';
+                                    $icon = 'fa-solid fa-motorcycle';
+                                    $color = '#ea580c';
+                                } elseif (in_array($rawType, ['hardware', 'doityourself'])) {
+                                    $type = 'hardware';
+                                    $label = 'Hardware Store';
+                                    $icon = 'fa-solid fa-screwdriver-wrench';
+                                    $color = '#78716c';
+                                } elseif (in_array($rawType, ['computer', 'electronics'])) {
+                                    $type = 'electronics';
+                                    $label = 'Electronics / Computer';
+                                    $icon = 'fa-solid fa-laptop';
+                                    $color = '#6366f1';
+                                } elseif ($rawType === 'veterinary') {
+                                    $type = 'veterinary';
+                                    $label = 'Veterinary Clinic';
+                                    $icon = 'fa-solid fa-paw';
+                                    $color = '#059669';
                                 } else {
                                     continue;
                                 }
