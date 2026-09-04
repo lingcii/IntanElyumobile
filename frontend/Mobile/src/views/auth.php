@@ -1300,10 +1300,12 @@
         }
 
         const regChk = document.getElementById('reg-privacy-checkbox');
-        if (regChk) regChk.checked = true;
+        if (regChk) {
+            regChk.checked = true;
+            regChk.dispatchEvent(new Event('change'));
+        }
 
         closePrivacyPolicyModal();
-        await window.submitRegistrationAndTrigger2FA();
     };
 
     window.submitRegistrationAndTrigger2FA = async function() {
