@@ -1535,40 +1535,53 @@ body[data-view="map"] .btn-locate-me {
 .amenity-marker-bubble {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 3px 8px 3px 4px;
-    background: rgba(20, 28, 46, 0.92);
+    gap: 0;
+    padding: 3px;
+    background: rgba(15, 23, 42, 0.92);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-radius: 999px;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.2);
-    border: none !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.2);
+    border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
     outline: none !important;
-    pointer-events: none !important;
+    cursor: pointer;
+    pointer-events: auto !important;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.18s ease;
+}
+
+.amenity-marker-bubble:hover {
+    transform: scale(1.12);
+    border-color: rgba(255, 255, 255, 0.45) !important;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
 }
 
 .amenity-marker-icon-circle {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 10.5px;
     color: #ffffff;
     flex-shrink: 0;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s ease;
 }
 
 .amenity-marker-label {
-    font-size: 10.5px;
+    font-size: 11px;
     font-weight: 700;
     color: #ffffff;
     letter-spacing: 0.15px;
     white-space: nowrap;
-    max-width: 120px;
+    max-width: 0;
+    opacity: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+    padding-left: 0;
+    padding-right: 0;
+    transition: max-width 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, padding 0.25s ease;
     line-height: 1.2;
 }
 
@@ -1577,8 +1590,35 @@ body[data-view="map"] .btn-locate-me {
     height: 0;
     border-left: 4px solid transparent;
     border-right: 4px solid transparent;
-    border-top: 5px solid rgba(20, 28, 46, 0.92);
+    border-top: 5px solid rgba(15, 23, 42, 0.92);
     margin-top: -1px;
+    margin-left: auto;
+    margin-right: auto;
+    transition: border-top-color 0.2s ease;
+}
+
+/* Expanded state when an amenity is clicked */
+.elyu-amenity-marker.is-expanded {
+    z-index: 999 !important;
+}
+
+.elyu-amenity-marker.is-expanded .amenity-marker-bubble {
+    gap: 6px;
+    padding: 3px 10px 3px 3px;
+    background: rgba(15, 23, 42, 0.98);
+    border-color: rgba(255, 255, 255, 0.45) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), 0 0 14px rgba(56, 189, 248, 0.35);
+    transform: scale(1.04);
+}
+
+.elyu-amenity-marker.is-expanded .amenity-marker-label {
+    max-width: 240px;
+    opacity: 1;
+    padding-right: 3px;
+}
+
+.elyu-amenity-marker.is-expanded .amenity-marker-tip {
+    border-top-color: rgba(15, 23, 42, 0.98);
 }
 
 /* Hide amenity markers cleanly via opacity when zoomed out without any transform movement */

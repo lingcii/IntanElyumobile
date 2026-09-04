@@ -782,10 +782,17 @@ if (is_dir($imgDir)) {
                         mapEl.classList.remove('map-zoomed-out');
                     }
                 }
-            };
             window.mapInstance.on('zoom', updateAmenityZoomState);
 
-            // window.mapInstance.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+            // Collapse any expanded amenity markers when user clicks background map
+            window.mapInstance.on('click', (e) => {
+                if (e && e.originalEvent && e.originalEvent.target && e.originalEvent.target.closest('.elyu-amenity-marker')) {
+                    return;
+                }
+                document.querySelectorAll('.elyu-amenity-marker.is-expanded').forEach(el => {
+                    el.classList.remove('is-expanded');
+                });
+            });
 
             // Map Load Initialization
             window.mapInstance.on('load', async () => {
@@ -1244,6 +1251,9 @@ if (is_dir($imgDir)) {
                 window.activeAmenityMarkers = [];
             }
             window.currentAmenitySpotId = null;
+            document.querySelectorAll('.elyu-amenity-marker.is-expanded').forEach(el => {
+                el.classList.remove('is-expanded');
+            });
             const noticeEl = document.getElementById('sheet-amenities-notice');
             if (noticeEl) noticeEl.style.display = 'none';
         };
@@ -1314,17 +1324,17 @@ if (is_dir($imgDir)) {
                     // Root container is strictly controlled by MapLibre projection engine with no CSS transitions
                     const container = document.createElement('div');
                     container.className = 'elyu-amenity-marker';
-                    container.style.cssText = `position:absolute !important; top:0 !important; left:0 !important; pointer-events:none !important; user-select:none; cursor:default; z-index:${20 + idx}; transition:none !important; will-change:transform;`;
+                    container.style.cssText = `position:absolute !important; top:0 !important; left:0 !important; pointer-events:none; user-select:none; z-index:${20 + idx}; transition:none !important; will-change:transform;`;
                     container.setAttribute('aria-hidden', 'true');
 
                     // Inner wrapper handles pop-in animation and fade without touching root coordinate transform
                     const inner = document.createElement('div');
                     inner.className = 'amenity-marker-inner';
-                    inner.style.cssText = `pointer-events:none !important; animation-delay:${Math.min(idx * 0.03, 0.25)}s;`;
+                    inner.style.cssText = `display:flex; flex-direction:column; align-items:center; pointer-events:none; animation-delay:${Math.min(idx * 0.03, 0.25)}s;`;
 
                     const bubble = document.createElement('div');
                     bubble.className = 'amenity-marker-bubble';
-                    bubble.style.cssText = 'pointer-events:none !important;';
+                    bubble.title = am.name || am.label || 'Amenity';
 
                     const iconCircle = document.createElement('div');
                     iconCircle.className = 'amenity-marker-icon-circle';
@@ -1344,6 +1354,20 @@ if (is_dir($imgDir)) {
                     inner.appendChild(tip);
 
                     container.appendChild(inner);
+
+                    // Click / tap interaction: icon first, click expands to show name, click again collapses
+                    bubble.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const isCurrentlyExpanded = container.classList.contains('is-expanded');
+                        document.querySelectorAll('.elyu-amenity-marker.is-expanded').forEach(el => {
+                            if (el !== container) el.classList.remove('is-expanded');
+                        });
+                        if (isCurrentlyExpanded) {
+                            container.classList.remove('is-expanded');
+                        } else {
+                            container.classList.add('is-expanded');
+                        }
+                    });
 
                     const marker = new maplibregl.Marker({
                         element: container,
