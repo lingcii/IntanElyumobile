@@ -780,19 +780,24 @@ if (is_dir($imgDir)) {
 
             // Smoothly hide amenity markers when zoomed out away from tourist site (threshold 13.0)
             let isAmenityZoomedOut = false;
+            let _amenityZoomRaf = null;
             const updateAmenityZoomState = () => {
-                if (!window.mapInstance) return;
-                const mapEl = document.getElementById('tourist-map');
-                if (!mapEl) return;
-                const shouldHide = window.mapInstance.getZoom() < 13.0;
-                if (shouldHide !== isAmenityZoomedOut) {
-                    isAmenityZoomedOut = shouldHide;
-                    if (shouldHide) {
-                        mapEl.classList.add('map-zoomed-out');
-                    } else {
-                        mapEl.classList.remove('map-zoomed-out');
+                if (_amenityZoomRaf) return;
+                _amenityZoomRaf = requestAnimationFrame(() => {
+                    _amenityZoomRaf = null;
+                    if (!window.mapInstance) return;
+                    const mapEl = document.getElementById('tourist-map');
+                    if (!mapEl) return;
+                    const shouldHide = window.mapInstance.getZoom() < 13.0;
+                    if (shouldHide !== isAmenityZoomedOut) {
+                        isAmenityZoomedOut = shouldHide;
+                        if (shouldHide) {
+                            mapEl.classList.add('map-zoomed-out');
+                        } else {
+                            mapEl.classList.remove('map-zoomed-out');
+                        }
                     }
-                }
+                });
             };
             window.mapInstance.on('zoom', updateAmenityZoomState);
 
@@ -1368,21 +1373,22 @@ if (is_dir($imgDir)) {
                     return;
                 }
 
-                amenities.forEach((am, idx) => {
+                // Map markers: Mount up to 15 closest amenities for ultra-smooth 60fps performance
+                const mapAmenities = amenities.slice(0, 15);
+
+                mapAmenities.forEach((am, idx) => {
                     const amLat = parseFloat(am.lat);
                     const amLng = parseFloat(am.lng);
                     if (isNaN(amLat) || isNaN(amLng)) return;
 
-                    // Root container is strictly controlled by MapLibre projection engine with no CSS transitions
                     const container = document.createElement('div');
                     container.className = 'elyu-amenity-marker';
-                    container.style.cssText = `position:absolute !important; top:0 !important; left:0 !important; pointer-events:none; user-select:none; z-index:${20 + idx}; transition:none !important; will-change:transform;`;
+                    container.style.cssText = `position:absolute !important; top:0 !important; left:0 !important; pointer-events:none; user-select:none; z-index:${20 + idx}; transition:none !important;`;
                     container.setAttribute('aria-hidden', 'true');
 
-                    // Inner wrapper handles pop-in animation and fade without touching root coordinate transform
                     const inner = document.createElement('div');
                     inner.className = 'amenity-marker-inner';
-                    inner.style.cssText = `display:flex; flex-direction:column; align-items:center; pointer-events:none; animation-delay:${Math.min(idx * 0.03, 0.25)}s;`;
+                    inner.style.cssText = 'display:flex; flex-direction:column; align-items:center; pointer-events:none;';
 
                     const bubble = document.createElement('div');
                     bubble.className = 'amenity-marker-bubble';
@@ -1408,7 +1414,7 @@ if (is_dir($imgDir)) {
 
                     container.appendChild(inner);
 
-                    // Click / tap interaction: icon first, click expands to show name and distance, click again collapses
+                    // Click / tap interaction: click expands to show name and distance, click again collapses
                     bubble.addEventListener('click', (e) => {
                         e.stopPropagation();
                         const isCurrentlyExpanded = container.classList.contains('is-expanded');
@@ -1433,7 +1439,7 @@ if (is_dir($imgDir)) {
                     am._markerContainer = container;
                 });
 
-                // Update tourist site details sheet with amenities list and distances
+                // Update tourist site details sheet with all amenities and individual distances
                 const noticeEl = document.getElementById('sheet-amenities-notice');
                 const countBadge = document.getElementById('sheet-amenities-count-badge');
                 const listEl = document.getElementById('sheet-amenities-list');
@@ -1447,6 +1453,8 @@ if (is_dir($imgDir)) {
 
                     if (listEl) {
                         listEl.innerHTML = '';
+                        const fragment = document.createDocumentFragment();
+
                         amenities.forEach((am, idx) => {
                             const row = document.createElement('div');
                             row.className = 'sheet-amenity-row';
@@ -1485,18 +1493,44 @@ if (is_dir($imgDir)) {
                                     window.mapInstance.flyTo({
                                         center: [amLng, amLat],
                                         zoom: 16.5,
-                                        duration: 800,
+                                        duration: 700,
                                         essential: true
                                     });
                                 }
+
+                                // If marker is not yet mounted on map (beyond top 15), mount it on-demand!
+                                if (!am._markerContainer && window.mapInstance && !isNaN(amLat) && !isNaN(amLng)) {
+                                    const c = document.createElement('div');
+                                    c.className = 'elyu-amenity-marker is-expanded';
+                                    c.style.cssText = 'position:absolute !important; top:0 !important; left:0 !important; pointer-events:none; user-select:none; z-index:999; transition:none !important;';
+                                    c.innerHTML = `
+                                        <div class="amenity-marker-inner" style="display:flex; flex-direction:column; align-items:center; pointer-events:none;">
+                                            <div class="amenity-marker-bubble" style="pointer-events:auto;">
+                                                <div class="amenity-marker-icon-circle" style="background-color:#ffffff !important; border:1.5px solid ${safeColor}; color:${safeColor};">
+                                                    <i class="${safeIcon}"></i>
+                                                </div>
+                                                <span class="amenity-marker-label">${safeName} • ${distFormatted}</span>
+                                            </div>
+                                            <div class="amenity-marker-tip"></div>
+                                        </div>
+                                    `;
+                                    const m = new maplibregl.Marker({ element: c, anchor: 'bottom' })
+                                        .setLngLat([amLng, amLat])
+                                        .addTo(window.mapInstance);
+                                    window.activeAmenityMarkers.push(m);
+                                    am._markerContainer = c;
+                                }
+
+                                document.querySelectorAll('.elyu-amenity-marker.is-expanded').forEach(el => el.classList.remove('is-expanded'));
                                 if (am._markerContainer) {
-                                    document.querySelectorAll('.elyu-amenity-marker.is-expanded').forEach(el => el.classList.remove('is-expanded'));
                                     am._markerContainer.classList.add('is-expanded');
                                 }
                             });
 
-                            listEl.appendChild(row);
+                            fragment.appendChild(row);
                         });
+
+                        listEl.appendChild(fragment);
 
                         if (toggleBtn) {
                             if (amenities.length > 4) {

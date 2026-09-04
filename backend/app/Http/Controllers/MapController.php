@@ -374,295 +374,48 @@ class MapController extends Controller
                 'hotel', 'motel', 'resort', 'church', 'chapel', 'park', 'vulcanizing', 'car repair'
             ];
 
-            // 1. Primary: High-speed local verified dataset (5,600+ real, verified establishments across La Union)
+            // 1. High-speed cached verified dataset (5,600+ real, verified establishments across La Union)
             $localFile = storage_path('app/la_union_amenities.json');
             if (!file_exists($localFile)) {
                 $localFile = base_path('../frontend/Mobile/src/assets/la_union_amenities.json');
             }
 
+            $allLocal = [];
             if (file_exists($localFile)) {
                 try {
+                    $allLocal = \Illuminate\Support\Facades\Cache::rememberForever('map:local_amenities_dataset_v1', function () use ($localFile) {
+                        return json_decode(file_get_contents($localFile), true) ?: [];
+                    });
+                } catch (\Throwable $e) {
                     $allLocal = json_decode(file_get_contents($localFile), true) ?: [];
-                    foreach ($allLocal as $item) {
-                        $itemLat = (float) ($item['lat'] ?? 0);
-                        $itemLng = (float) ($item['lng'] ?? 0);
-                        if (!$itemLat || !$itemLng) continue;
-
-                        $name = trim($item['name'] ?? '');
-                        $lowerName = strtolower($name);
-
-                        // Strict accuracy filter: exclude vague, generic or unnamed entries
-                        if (empty($name) || strlen($name) < 3 || in_array($lowerName, $genericTerms) || str_starts_with($lowerName, 'unnamed')) {
-                            continue;
-                        }
-
-                        $dLat = deg2rad($itemLat - $lat);
-                        $dLon = deg2rad($itemLng - $lng);
-                        $val = sin($dLat / 2) * sin($dLat / 2) +
-                               cos(deg2rad($lat)) * cos(deg2rad($itemLat)) *
-                               sin($dLon / 2) * sin($dLon / 2);
-                        $dist = round($earthRadius * 2 * atan2(sqrt($val), sqrt(1 - $val)));
-
-                        // Strictly hide if not close to the tourist site (<= radius)
-                        if ($dist <= $radius) {
-                            $item['distance_meters'] = (int) $dist;
-                            $results[] = $item;
-                        }
-                    }
-                } catch (\Throwable $e) {}
+                }
             }
 
-            // 2. Secondary fallback: Overpass API query if fewer than 2 amenities found locally
-            if (count($results) < 2) {
-                try {
-                    $query = '[out:json][timeout:8];(' .
-                        'nwr["amenity"~"^(atm|bank|pharmacy|fuel|hospital|clinic|police|cafe|restaurant|fast_food|parking|toilets|information|place_of_worship|bus_station|school|college|university|kindergarten|studio|veterinary)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
-                        'nwr["shop"~"^(convenience|supermarket|chemist|bakery|gift|souvenir|car_repair|tyres|motorcycle_repair|variety_store|clothes|fashion|boutique|bicycle|motorcycle|hardware|doityourself|computer|electronics)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
-                        'nwr["tourism"~"^(hotel|motel|resort|guest_house|hostel|attraction|viewpoint|museum)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
-                        'nwr["office"~"^(government|ngo|radio_station|company)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
-                        'nwr["historic"~"^(memorial|monument)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
-                        'nwr["leisure"~"^(park|pitch|recreation_ground)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
-                        ');out center 40;';
+            foreach ($allLocal as $item) {
+                $itemLat = (float) ($item['lat'] ?? 0);
+                $itemLng = (float) ($item['lng'] ?? 0);
+                if (!$itemLat || !$itemLng) continue;
 
-                    $mirrors = [
-                        'https://overpass.kumi.systems/api/interpreter',
-                        'https://overpass-api.de/api/interpreter'
-                    ];
+                $name = trim($item['name'] ?? '');
+                $lowerName = strtolower($name);
 
-                    foreach ($mirrors as $mirrorUrl) {
-                        $ch = curl_init($mirrorUrl);
-                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                        curl_setopt($ch, CURLOPT_POST, true);
-                        curl_setopt($ch, CURLOPT_POSTFIELDS, 'data=' . urlencode($query));
-                        curl_setopt($ch, CURLOPT_USERAGENT, 'IntanElyuTourism/1.0');
-                        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-                        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
-                        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                        $res = curl_exec($ch);
-                        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                        curl_close($ch);
+                // Strict accuracy filter: exclude vague, generic or unnamed entries
+                if (empty($name) || strlen($name) < 3 || in_array($lowerName, $genericTerms) || str_starts_with($lowerName, 'unnamed')) {
+                    continue;
+                }
 
-                        if ($httpCode === 200 && $res) {
-                            $data = json_decode($res, true);
-                            $elements = $data['elements'] ?? [];
+                $dLat = deg2rad($itemLat - $lat);
+                $dLon = deg2rad($itemLng - $lng);
+                $val = sin($dLat / 2) * sin($dLat / 2) +
+                       cos(deg2rad($lat)) * cos(deg2rad($itemLat)) *
+                       sin($dLon / 2) * sin($dLon / 2);
+                $dist = round($earthRadius * 2 * atan2(sqrt($val), sqrt(1 - $val)));
 
-                            foreach ($elements as $el) {
-                                $eLat = $el['lat'] ?? ($el['center']['lat'] ?? null);
-                                $eLng = $el['lon'] ?? ($el['center']['lon'] ?? null);
-                                if (!$eLat || !$eLng) continue;
-
-                                $tags = $el['tags'] ?? [];
-                                $rawType = strtolower($tags['amenity'] ?? ($tags['shop'] ?? ($tags['tourism'] ?? ($tags['office'] ?? ($tags['leisure'] ?? ($tags['historic'] ?? 'amenity'))))));
-
-                                $type = 'other';
-                                $label = 'Facility';
-                                $icon = 'fa-solid fa-location-dot';
-                                $color = '#64748b';
-
-                                if ($rawType === 'atm') {
-                                    $type = 'atm';
-                                    $label = 'ATM';
-                                    $icon = 'fa-solid fa-money-bill-wave';
-                                    $color = '#10b981';
-                                } elseif ($rawType === 'bank') {
-                                    $type = 'bank';
-                                    $label = 'Bank';
-                                    $icon = 'fa-solid fa-building-columns';
-                                    $color = '#059669';
-                                } elseif (in_array($rawType, ['convenience', 'supermarket'])) {
-                                    $type = 'convenience';
-                                    $label = $rawType === 'supermarket' ? 'Supermarket' : 'Convenience Store';
-                                    $icon = 'fa-solid fa-store';
-                                    $color = '#f59e0b';
-                                } elseif (in_array($rawType, ['pharmacy', 'chemist'])) {
-                                    $type = 'pharmacy';
-                                    $label = 'Pharmacy';
-                                    $icon = 'fa-solid fa-prescription-bottle-medical';
-                                    $color = '#ec4899';
-                                } elseif ($rawType === 'fuel') {
-                                    $type = 'fuel';
-                                    $label = 'Gas Station';
-                                    $icon = 'fa-solid fa-gas-pump';
-                                    $color = '#f97316';
-                                } elseif (in_array($rawType, ['hospital', 'clinic'])) {
-                                    $type = 'health';
-                                    $label = $rawType === 'hospital' ? 'Hospital' : 'Clinic';
-                                    $icon = 'fa-solid fa-hospital';
-                                    $color = '#dc2626';
-                                } elseif ($rawType === 'police') {
-                                    $type = 'police';
-                                    $label = 'Police Station';
-                                    $icon = 'fa-solid fa-shield-halved';
-                                    $color = '#3b82f6';
-                                } elseif ($rawType === 'cafe') {
-                                    $type = 'cafe';
-                                    $label = 'Cafe';
-                                    $icon = 'fa-solid fa-mug-hot';
-                                    $color = '#8b5cf6';
-                                } elseif ($rawType === 'restaurant') {
-                                    $type = 'restaurant';
-                                    $label = 'Restaurant';
-                                    $icon = 'fa-solid fa-utensils';
-                                    $color = '#ea580c';
-                                } elseif ($rawType === 'fast_food') {
-                                    $type = 'fast_food';
-                                    $label = 'Fast Food';
-                                    $icon = 'fa-solid fa-burger';
-                                    $color = '#e11d48';
-                                } elseif ($rawType === 'parking') {
-                                    $type = 'parking';
-                                    $label = 'Parking';
-                                    $icon = 'fa-solid fa-square-parking';
-                                    $color = '#0284c7';
-                                } elseif ($rawType === 'toilets') {
-                                    $type = 'toilets';
-                                    $label = 'Restroom';
-                                    $icon = 'fa-solid fa-restroom';
-                                    $color = '#06b6d4';
-                                } elseif (in_array($rawType, ['gift', 'souvenir'])) {
-                                    $type = 'souvenir';
-                                    $label = 'Pasalubong / Souvenir';
-                                    $icon = 'fa-solid fa-gift';
-                                    $color = '#a855f7';
-                                } elseif ($rawType === 'information') {
-                                    $type = 'information';
-                                    $label = 'Tourism Info';
-                                    $icon = 'fa-solid fa-circle-info';
-                                    $color = '#10b981';
-                                } elseif ($rawType === 'bakery') {
-                                    $type = 'bakery';
-                                    $label = 'Bakery';
-                                    $icon = 'fa-solid fa-bread-slice';
-                                    $color = '#d97706';
-                                } elseif (in_array($rawType, ['car_repair', 'tyres', 'motorcycle_repair'])) {
-                                    $type = 'repair';
-                                    $label = (stripos($name ?? '', 'vulcanizing') !== false || $rawType === 'tyres') ? 'Vulcanizing / Tire Repair' : 'Auto / Motorcycle Repair';
-                                    $icon = 'fa-solid fa-wrench';
-                                    $color = '#475569';
-                                } elseif ($rawType === 'variety_store') {
-                                    $type = 'store';
-                                    $label = 'Local Store';
-                                    $icon = 'fa-solid fa-basket-shopping';
-                                    $color = '#f59e0b';
-                                } elseif (in_array($rawType, ['hotel', 'motel', 'resort', 'guest_house', 'hostel'])) {
-                                    $type = 'hotel';
-                                    $label = $rawType === 'resort' ? 'Resort' : 'Hotel / Lodging';
-                                    $icon = 'fa-solid fa-bed';
-                                    $color = '#6366f1';
-                                } elseif ($rawType === 'place_of_worship') {
-                                    $type = 'worship';
-                                    $label = 'Church / Chapel';
-                                    $icon = 'fa-solid fa-cross';
-                                    $color = '#a855f7';
-                                } elseif (in_array($rawType, ['clothes', 'fashion', 'boutique'])) {
-                                    $type = 'clothing';
-                                    $label = 'Clothing / Apparel';
-                                    $icon = 'fa-solid fa-shirt';
-                                    $color = '#ec4899';
-                                } elseif (in_array($rawType, ['park', 'pitch', 'recreation_ground'])) {
-                                    $type = 'park';
-                                    $label = 'Park / Recreation';
-                                    $icon = 'fa-solid fa-person-walking';
-                                    $color = '#10b981';
-                                } elseif ($rawType === 'bus_station') {
-                                    $type = 'transit';
-                                    $label = 'Bus / Transit Stop';
-                                    $icon = 'fa-solid fa-bus';
-                                    $color = '#0284c7';
-                                } elseif ($rawType === 'government' || $rawType === 'townhall' || $rawType === 'public_building') {
-                                    $type = 'government';
-                                    $label = 'Government Office';
-                                    $icon = 'fa-solid fa-building-columns';
-                                    $color = '#0284c7';
-                                } elseif ($rawType === 'ngo') {
-                                    $type = 'ngo';
-                                    $label = 'NGO / Humanitarian';
-                                    $icon = 'fa-solid fa-hand-holding-heart';
-                                    $color = '#dc2626';
-                                } elseif ($rawType === 'studio' || $rawType === 'radio_station') {
-                                    $type = 'media';
-                                    $label = 'Media / Radio Station';
-                                    $icon = 'fa-solid fa-microphone';
-                                    $color = '#e11d48';
-                                } elseif (in_array($rawType, ['school', 'college', 'university', 'kindergarten'])) {
-                                    $type = 'education';
-                                    $label = 'School / Education';
-                                    $icon = 'fa-solid fa-graduation-cap';
-                                    $color = '#2563eb';
-                                } elseif (in_array($rawType, ['attraction', 'viewpoint', 'museum', 'memorial', 'monument'])) {
-                                    $type = 'attraction';
-                                    $label = 'Attraction / Landmark';
-                                    $icon = 'fa-solid fa-camera';
-                                    $color = '#0d9488';
-                                } elseif ($rawType === 'bicycle') {
-                                    $type = 'bicycle';
-                                    $label = 'Bicycle Shop';
-                                    $icon = 'fa-solid fa-bicycle';
-                                    $color = '#059669';
-                                } elseif ($rawType === 'motorcycle') {
-                                    $type = 'motorcycle';
-                                    $label = 'Motorcycle Shop';
-                                    $icon = 'fa-solid fa-motorcycle';
-                                    $color = '#ea580c';
-                                } elseif (in_array($rawType, ['hardware', 'doityourself'])) {
-                                    $type = 'hardware';
-                                    $label = 'Hardware Store';
-                                    $icon = 'fa-solid fa-screwdriver-wrench';
-                                    $color = '#78716c';
-                                } elseif (in_array($rawType, ['computer', 'electronics'])) {
-                                    $type = 'electronics';
-                                    $label = 'Electronics / Computer';
-                                    $icon = 'fa-solid fa-laptop';
-                                    $color = '#6366f1';
-                                } elseif ($rawType === 'veterinary') {
-                                    $type = 'veterinary';
-                                    $label = 'Veterinary Clinic';
-                                    $icon = 'fa-solid fa-paw';
-                                    $color = '#059669';
-                                } else {
-                                    continue;
-                                }
-
-                                $name = trim($tags['name'] ?? '');
-                                if (empty($name) || in_array(strtolower($name), $genericTerms)) {
-                                    $brand = trim($tags['brand'] ?? '');
-                                    $operator = trim($tags['operator'] ?? '');
-                                    if (!empty($brand)) $name = ($type === 'atm' ? "{$brand} ATM" : $brand);
-                                    elseif (!empty($operator)) $name = ($type === 'atm' ? "{$operator} ATM" : $operator);
-                                }
-
-                                // Strict accuracy: skip if still generic or unnamed
-                                if (empty($name) || strlen($name) < 3 || in_array(strtolower($name), $genericTerms) || str_starts_with(strtolower($name), 'unnamed')) {
-                                    continue;
-                                }
-
-                                $dLat = deg2rad($eLat - $lat);
-                                $dLon = deg2rad($eLng - $lng);
-                                $val = sin($dLat / 2) * sin($dLat / 2) +
-                                       cos(deg2rad($lat)) * cos(deg2rad($eLat)) *
-                                       sin($dLon / 2) * sin($dLon / 2);
-                                $dist = round($earthRadius * 2 * atan2(sqrt($val), sqrt(1 - $val)));
-
-                                // Strictly hide if not close to the tourist site (<= radius)
-                                if ($dist <= $radius) {
-                                    $results[] = [
-                                        'id'              => ($el['type'] ?? 'node') . '_' . ($el['id'] ?? uniqid()),
-                                        'name'            => $name,
-                                        'type'            => $type,
-                                        'raw_type'        => $rawType,
-                                        'label'           => $label,
-                                        'icon'            => $icon,
-                                        'color'           => $color,
-                                        'lat'             => (float) $eLat,
-                                        'lng'             => (float) $eLng,
-                                        'distance_meters' => (int) $dist,
-                                    ];
-                                }
-                            }
-                            break;
-                        }
-                    }
-                } catch (\Throwable $e) {}
+                // Strictly hide if not close to the tourist site (<= radius)
+                if ($dist <= $radius) {
+                    $item['distance_meters'] = (int) $dist;
+                    $results[] = $item;
+                }
             }
 
             // Deduplicate by name + type + rounded coords
