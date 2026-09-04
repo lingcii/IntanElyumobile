@@ -360,7 +360,7 @@ class MapController extends Controller
 
         $roundedLat = round($lat, 3);
         $roundedLng = round($lng, 3);
-        $cacheKey = "map:public:amenities:v10:{$roundedLat}:{$roundedLng}:{$radius}:{$limit}";
+        $cacheKey = "map:public:amenities:v12:{$roundedLat}:{$roundedLng}:{$radius}:{$limit}";
 
         $amenities = \Illuminate\Support\Facades\Cache::remember($cacheKey, 43200, function () use ($lat, $lng, $radius, $limit) {
             $results = [];
@@ -370,10 +370,10 @@ class MapController extends Controller
                 'facility', 'atm', 'bank', 'convenience store', 'convenience', 'supermarket',
                 'supermarket / store', 'store', 'pharmacy', 'gas station', 'fuel',
                 'hospital', 'clinic', 'health clinic', 'police station', 'police',
-                'public toilet', 'toilets', 'parking'
+                'public toilet', 'toilets', 'parking', 'restaurant', 'cafe', 'fast food'
             ];
 
-            // 1. Primary: High-speed local verified dataset (1,290+ real, verified establishments across La Union)
+            // 1. Primary: High-speed local verified dataset (2,700+ real, verified establishments across La Union)
             $localFile = storage_path('app/la_union_amenities.json');
             if (!file_exists($localFile)) {
                 $localFile = base_path('../frontend/Mobile/src/assets/la_union_amenities.json');
@@ -415,9 +415,9 @@ class MapController extends Controller
             if (count($results) < 2) {
                 try {
                     $query = '[out:json][timeout:8];(' .
-                        'nwr["amenity"~"^(atm|bank|pharmacy|fuel|hospital|clinic|police)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
-                        'nwr["shop"~"^(convenience|supermarket|chemist)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
-                        ');out center 25;';
+                        'nwr["amenity"~"^(atm|bank|pharmacy|fuel|hospital|clinic|police|cafe|restaurant|fast_food|parking|toilets|information)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
+                        'nwr["shop"~"^(convenience|supermarket|chemist|bakery|gift|souvenir)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
+                        ');out center 35;';
 
                     $mirrors = [
                         'https://overpass.kumi.systems/api/interpreter',
@@ -447,7 +447,7 @@ class MapController extends Controller
                                 if (!$eLat || !$eLng) continue;
 
                                 $tags = $el['tags'] ?? [];
-                                $rawType = strtolower($tags['amenity'] ?? ($tags['shop'] ?? 'amenity'));
+                                $rawType = strtolower($tags['amenity'] ?? ($tags['shop'] ?? ($tags['tourism'] ?? 'amenity')));
 
                                 $type = 'other';
                                 $label = 'Facility';
@@ -489,6 +489,46 @@ class MapController extends Controller
                                     $label = 'Police Station';
                                     $icon = 'fa-solid fa-shield-halved';
                                     $color = '#3b82f6';
+                                } elseif ($rawType === 'cafe') {
+                                    $type = 'cafe';
+                                    $label = 'Cafe';
+                                    $icon = 'fa-solid fa-mug-hot';
+                                    $color = '#8b5cf6';
+                                } elseif ($rawType === 'restaurant') {
+                                    $type = 'restaurant';
+                                    $label = 'Restaurant';
+                                    $icon = 'fa-solid fa-utensils';
+                                    $color = '#ea580c';
+                                } elseif ($rawType === 'fast_food') {
+                                    $type = 'fast_food';
+                                    $label = 'Fast Food';
+                                    $icon = 'fa-solid fa-burger';
+                                    $color = '#e11d48';
+                                } elseif ($rawType === 'parking') {
+                                    $type = 'parking';
+                                    $label = 'Parking';
+                                    $icon = 'fa-solid fa-square-parking';
+                                    $color = '#0284c7';
+                                } elseif ($rawType === 'toilets') {
+                                    $type = 'toilets';
+                                    $label = 'Restroom';
+                                    $icon = 'fa-solid fa-restroom';
+                                    $color = '#06b6d4';
+                                } elseif (in_array($rawType, ['gift', 'souvenir'])) {
+                                    $type = 'souvenir';
+                                    $label = 'Pasalubong / Souvenir';
+                                    $icon = 'fa-solid fa-gift';
+                                    $color = '#a855f7';
+                                } elseif ($rawType === 'information') {
+                                    $type = 'information';
+                                    $label = 'Tourism Info';
+                                    $icon = 'fa-solid fa-circle-info';
+                                    $color = '#10b981';
+                                } elseif ($rawType === 'bakery') {
+                                    $type = 'bakery';
+                                    $label = 'Bakery';
+                                    $icon = 'fa-solid fa-bread-slice';
+                                    $color = '#d97706';
                                 } else {
                                     continue;
                                 }
@@ -547,23 +587,28 @@ class MapController extends Controller
 
             usort($unique, fn($a, $b) => $a['distance_meters'] <=> $b['distance_meters']);
 
-            // Pick diverse, non-overlapping amenities (at most 1 per primary category, min 90m distance to avoid collisions)
+            // Pick diverse, non-overlapping amenities (at most 1 per primary category, min 80m distance to avoid collisions)
             $selected = [];
             $seenCategories = [];
             foreach ($unique as $item) {
-                $broadCat = in_array($item['type'], ['atm', 'bank']) ? 'financial' : $item['type'];
+                $t = $item['type'];
+                if (in_array($t, ['atm', 'bank'])) $broadCat = 'financial';
+                elseif (in_array($t, ['restaurant', 'fast_food'])) $broadCat = 'dining';
+                elseif (in_array($t, ['cafe', 'bakery'])) $broadCat = 'cafe';
+                else $broadCat = $t;
+
                 if (isset($seenCategories[$broadCat])) {
                     continue; // Keep only the closest one per category to prevent marker stacking
                 }
 
-                // Ensure marker isn't immediately on top of an already chosen marker (< 90m)
+                // Ensure marker isn't immediately on top of an already chosen marker (< 80m)
                 $tooClose = false;
                 foreach ($selected as $s) {
                     $dLat = deg2rad($item['lat'] - $s['lat']);
                     $dLon = deg2rad($item['lng'] - $s['lng']);
                     $v = sin($dLat / 2) * sin($dLat / 2) + cos(deg2rad($item['lat'])) * cos(deg2rad($s['lat'])) * sin($dLon / 2) * sin($dLon / 2);
                     $distBetween = round($earthRadius * 2 * atan2(sqrt($v), sqrt(1 - $v)));
-                    if ($distBetween < 90) {
+                    if ($distBetween < 80) {
                         $tooClose = true;
                         break;
                     }

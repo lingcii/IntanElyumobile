@@ -1266,8 +1266,8 @@ if (is_dir($imgDir)) {
             const _backendBase = window.backendUrl || '';
 
             try {
-                // Strict proximity cutoff: query radius 600m & limit 5 closest diverse amenities
-                const res = await fetch(`${_backendBase}/api/public/amenities?lat=${lat}&lng=${lng}&radius=600&limit=5`, {
+                // Proximity cutoff: query radius 800m & limit 7 closest diverse tourist amenities
+                const res = await fetch(`${_backendBase}/api/public/amenities?lat=${lat}&lng=${lng}&radius=800&limit=7`, {
                     headers: { 'Accept': 'application/json' }
                 });
                 if (!res.ok) return;
@@ -1275,27 +1275,27 @@ if (is_dir($imgDir)) {
                 let rawAmenities = (data && data.amenities) ? data.amenities : [];
 
                 // Filter for high accuracy & strict proximity:
-                // Hide any informal sari-sari stalls, unverified fuel, or entries lacking a proper establishment name
+                // Hide informal sari-sari stalls, unverified fuel, or entries lacking a proper establishment name
                 const genericNames = new Set([
                     'facility', 'atm', 'bank', 'convenience store', 'convenience', 'supermarket',
                     'supermarket / store', 'store', 'pharmacy', 'gas station', 'fuel',
                     'hospital', 'clinic', 'health clinic', 'police station', 'police',
-                    'public toilet', 'toilets', 'parking'
+                    'public toilet', 'toilets', 'parking', 'restaurant', 'cafe', 'fast food'
                 ]);
-                const informalRegex = /('s store|sari-sari|tindahan|variety store|refreshment|eatery|canteen|^app store$)/i;
+                const informalRegex = /('s store|sari-sari|tindahan|variety store|^app store$)/i;
 
                 let amenities = rawAmenities.filter(am => {
                     const dist = Number(am.distance_meters);
                     const name = String(am.name || '').trim();
                     const lower = name.toLowerCase();
-                    if (isNaN(dist) || dist > 600 || name.length < 3 || genericNames.has(lower) || lower.startsWith('unnamed')) {
+                    if (isNaN(dist) || dist > 800 || name.length < 3 || genericNames.has(lower) || lower.startsWith('unnamed')) {
                         return false;
                     }
                     if (am.type === 'convenience' && informalRegex.test(name) && !/(7-eleven|alfamart|puregold|dali|uncle john)/i.test(name)) {
                         return false;
                     }
                     return true;
-                }).slice(0, 5);
+                }).slice(0, 7);
 
                 // Check if user moved away or closed the sheet while fetching
                 if (window.currentAmenitySpotId !== spotIdentifier) return;
