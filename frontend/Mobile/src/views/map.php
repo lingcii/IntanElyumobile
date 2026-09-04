@@ -782,6 +782,7 @@ if (is_dir($imgDir)) {
                         mapEl.classList.remove('map-zoomed-out');
                     }
                 }
+            };
             window.mapInstance.on('zoom', updateAmenityZoomState);
 
             // Collapse any expanded amenity markers when user clicks background map
