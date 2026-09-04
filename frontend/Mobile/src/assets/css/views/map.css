@@ -1537,12 +1537,12 @@ body[data-view="map"] .btn-locate-me {
     align-items: center;
     gap: 0;
     padding: 3px;
-    background: rgba(15, 23, 42, 0.92);
+    background: #ffffff;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-radius: 999px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.2);
-    border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.16), 0 1px 3px rgba(0, 0, 0, 0.08);
+    border: 1.5px solid rgba(0, 0, 0, 0.1) !important;
     outline: none !important;
     cursor: pointer;
     pointer-events: auto !important;
@@ -1551,28 +1551,28 @@ body[data-view="map"] .btn-locate-me {
 
 .amenity-marker-bubble:hover {
     transform: scale(1.12);
-    border-color: rgba(255, 255, 255, 0.45) !important;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+    border-color: rgba(0, 0, 0, 0.22) !important;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
 }
 
 .amenity-marker-icon-circle {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
+    background-color: #ffffff !important;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10.5px;
-    color: #ffffff;
+    font-size: 11px;
     flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease;
 }
 
 .amenity-marker-label {
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 700;
-    color: #ffffff;
+    color: #0f172a;
     letter-spacing: 0.15px;
     white-space: nowrap;
     max-width: 0;
@@ -1590,10 +1590,11 @@ body[data-view="map"] .btn-locate-me {
     height: 0;
     border-left: 4px solid transparent;
     border-right: 4px solid transparent;
-    border-top: 5px solid rgba(15, 23, 42, 0.92);
+    border-top: 5px solid #ffffff;
     margin-top: -1px;
     margin-left: auto;
     margin-right: auto;
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.12));
     transition: border-top-color 0.2s ease;
 }
 
@@ -1603,11 +1604,11 @@ body[data-view="map"] .btn-locate-me {
 }
 
 .elyu-amenity-marker.is-expanded .amenity-marker-bubble {
-    gap: 6px;
-    padding: 3px 10px 3px 3px;
-    background: rgba(15, 23, 42, 0.98);
-    border-color: rgba(255, 255, 255, 0.45) !important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), 0 0 14px rgba(56, 189, 248, 0.35);
+    gap: 7px;
+    padding: 3px 12px 3px 3px;
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22), 0 2px 6px rgba(0, 0, 0, 0.08);
     transform: scale(1.04);
 }
 
@@ -1618,7 +1619,7 @@ body[data-view="map"] .btn-locate-me {
 }
 
 .elyu-amenity-marker.is-expanded .amenity-marker-tip {
-    border-top-color: rgba(15, 23, 42, 0.98);
+    border-top-color: #ffffff;
 }
 
 /* Hide amenity markers cleanly via opacity when zoomed out without any transform movement */

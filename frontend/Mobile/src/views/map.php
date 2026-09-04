@@ -1339,8 +1339,8 @@ if (is_dir($imgDir)) {
 
                     const iconCircle = document.createElement('div');
                     iconCircle.className = 'amenity-marker-icon-circle';
-                    iconCircle.style.backgroundColor = am.color || '#38bdf8';
-                    iconCircle.innerHTML = `<i class="${am.icon || 'fa-solid fa-location-dot'}"></i>`;
+                    iconCircle.style.cssText = `background-color:#ffffff !important; border:1.5px solid ${am.color || '#38bdf8'}; color:${am.color || '#38bdf8'};`;
+                    iconCircle.innerHTML = `<i class="${am.icon || 'fa-solid fa-location-dot'}" style="color:${am.color || '#38bdf8'};"></i>`;
 
                     const label = document.createElement('span');
                     label.className = 'amenity-marker-label';
