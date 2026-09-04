@@ -1307,11 +1307,16 @@ if (is_dir($imgDir)) {
                     const amLng = parseFloat(am.lng);
                     if (isNaN(amLat) || isNaN(amLng)) return;
 
-                    // Container is strictly non-clickable per user requirement
+                    // Root container is strictly controlled by MapLibre projection engine with no CSS transitions
                     const container = document.createElement('div');
                     container.className = 'elyu-amenity-marker';
-                    container.style.cssText = `pointer-events:none !important; user-select:none; cursor:default; display:flex; flex-direction:column; align-items:center; z-index:12; animation-delay:${Math.min(idx * 0.03, 0.3)}s;`;
+                    container.style.cssText = 'pointer-events:none !important; user-select:none; cursor:default; z-index:12; transition:none !important;';
                     container.setAttribute('aria-hidden', 'true');
+
+                    // Inner wrapper handles pop-in animation and fade without touching root coordinate transform
+                    const inner = document.createElement('div');
+                    inner.className = 'amenity-marker-inner';
+                    inner.style.cssText = `pointer-events:none !important; animation-delay:${Math.min(idx * 0.03, 0.25)}s;`;
 
                     const bubble = document.createElement('div');
                     bubble.className = 'amenity-marker-bubble';
@@ -1328,11 +1333,13 @@ if (is_dir($imgDir)) {
 
                     bubble.appendChild(iconCircle);
                     bubble.appendChild(label);
-                    container.appendChild(bubble);
+                    inner.appendChild(bubble);
 
                     const tip = document.createElement('div');
                     tip.className = 'amenity-marker-tip';
-                    container.appendChild(tip);
+                    inner.appendChild(tip);
+
+                    container.appendChild(inner);
 
                     const marker = new maplibregl.Marker({
                         element: container,
@@ -1345,7 +1352,8 @@ if (is_dir($imgDir)) {
                 });
 
                 // Frame the tourist site and its closest verified amenities together on screen above sheet
-                if (amenities.length > 0 && window.mapInstance) {
+                // only if user is not currently actively zooming or panning
+                if (amenities.length > 0 && window.mapInstance && !window.mapInstance.isZooming()) {
                     const bounds = new maplibregl.LngLatBounds();
                     bounds.extend([lng, lat]);
                     amenities.forEach(am => {
@@ -1357,7 +1365,7 @@ if (is_dir($imgDir)) {
                     window.mapInstance.fitBounds(bounds, {
                         padding: { top: 120, bottom: 220, left: 60, right: 60 },
                         maxZoom: 15.5,
-                        duration: 750
+                        duration: 650
                     });
                 }
 
