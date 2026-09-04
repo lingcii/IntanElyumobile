@@ -767,12 +767,16 @@ if (is_dir($imgDir)) {
                 if (e && e.source && e.source.type === 'raster') return;
             });
 
-            // Smoothly hide amenity markers when zoomed out away from tourist site
+            // Smoothly hide amenity markers when zoomed out away from tourist site (threshold 13.0)
+            let isAmenityZoomedOut = false;
             const updateAmenityZoomState = () => {
                 if (!window.mapInstance) return;
                 const mapEl = document.getElementById('tourist-map');
-                if (mapEl) {
-                    if (window.mapInstance.getZoom() < 14.0) {
+                if (!mapEl) return;
+                const shouldHide = window.mapInstance.getZoom() < 13.0;
+                if (shouldHide !== isAmenityZoomedOut) {
+                    isAmenityZoomedOut = shouldHide;
+                    if (shouldHide) {
                         mapEl.classList.add('map-zoomed-out');
                     } else {
                         mapEl.classList.remove('map-zoomed-out');
@@ -1310,7 +1314,7 @@ if (is_dir($imgDir)) {
                     // Root container is strictly controlled by MapLibre projection engine with no CSS transitions
                     const container = document.createElement('div');
                     container.className = 'elyu-amenity-marker';
-                    container.style.cssText = 'pointer-events:none !important; user-select:none; cursor:default; z-index:12; transition:none !important;';
+                    container.style.cssText = 'position:absolute !important; top:0 !important; left:0 !important; pointer-events:none !important; user-select:none; cursor:default; z-index:12; transition:none !important; will-change:transform;';
                     container.setAttribute('aria-hidden', 'true');
 
                     // Inner wrapper handles pop-in animation and fade without touching root coordinate transform
@@ -1350,24 +1354,6 @@ if (is_dir($imgDir)) {
 
                     window.activeAmenityMarkers.push(marker);
                 });
-
-                // Frame the tourist site and its closest verified amenities together on screen above sheet
-                // only if user is not currently actively zooming or panning
-                if (amenities.length > 0 && window.mapInstance && !window.mapInstance.isZooming()) {
-                    const bounds = new maplibregl.LngLatBounds();
-                    bounds.extend([lng, lat]);
-                    amenities.forEach(am => {
-                        const amLat = parseFloat(am.lat);
-                        const amLng = parseFloat(am.lng);
-                        if (!isNaN(amLat) && !isNaN(amLng)) bounds.extend([amLng, amLat]);
-                    });
-
-                    window.mapInstance.fitBounds(bounds, {
-                        padding: { top: 120, bottom: 220, left: 60, right: 60 },
-                        maxZoom: 15.5,
-                        duration: 650
-                    });
-                }
 
                 // Update sheet notice badge if open
                 const noticeEl = document.getElementById('sheet-amenities-notice');
