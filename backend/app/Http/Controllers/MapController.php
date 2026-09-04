@@ -350,23 +350,30 @@ class MapController extends Controller
             ], 400);
         }
 
-        $radius = (int) ($request->query('radius', 1500));
-        if ($radius < 300) $radius = 300;
-        if ($radius > 8000) $radius = 8000;
+        $radius = (int) ($request->query('radius', 600));
+        if ($radius < 150) $radius = 150;
+        if ($radius > 800) $radius = 800;
 
-        $limit = (int) ($request->query('limit', 8));
+        $limit = (int) ($request->query('limit', 6));
         if ($limit < 1) $limit = 1;
-        if ($limit > 30) $limit = 30;
+        if ($limit > 10) $limit = 10;
 
         $roundedLat = round($lat, 3);
         $roundedLng = round($lng, 3);
-        $cacheKey = "map:public:amenities:v3:{$roundedLat}:{$roundedLng}:{$radius}:{$limit}";
+        $cacheKey = "map:public:amenities:v8:{$roundedLat}:{$roundedLng}:{$radius}:{$limit}";
 
         $amenities = \Illuminate\Support\Facades\Cache::remember($cacheKey, 43200, function () use ($lat, $lng, $radius, $limit) {
             $results = [];
             $earthRadius = 6371000;
 
-            // 1. Primary: High-speed local verified dataset (1,450+ real amenities across La Union)
+            $genericTerms = [
+                'facility', 'atm', 'bank', 'convenience store', 'convenience', 'supermarket',
+                'supermarket / store', 'store', 'pharmacy', 'gas station', 'fuel',
+                'hospital', 'clinic', 'health clinic', 'police station', 'police',
+                'public toilet', 'toilets', 'parking'
+            ];
+
+            // 1. Primary: High-speed local verified dataset (1,290+ real, verified establishments across La Union)
             $localFile = storage_path('app/la_union_amenities.json');
             if (!file_exists($localFile)) {
                 $localFile = base_path('../frontend/Mobile/src/assets/la_union_amenities.json');
@@ -380,6 +387,14 @@ class MapController extends Controller
                         $itemLng = (float) ($item['lng'] ?? 0);
                         if (!$itemLat || !$itemLng) continue;
 
+                        $name = trim($item['name'] ?? '');
+                        $lowerName = strtolower($name);
+
+                        // Strict accuracy filter: exclude vague, generic or unnamed entries
+                        if (empty($name) || strlen($name) < 3 || in_array($lowerName, $genericTerms) || str_starts_with($lowerName, 'unnamed')) {
+                            continue;
+                        }
+
                         $dLat = deg2rad($itemLat - $lat);
                         $dLon = deg2rad($itemLng - $lng);
                         $val = sin($dLat / 2) * sin($dLat / 2) +
@@ -387,6 +402,7 @@ class MapController extends Controller
                                sin($dLon / 2) * sin($dLon / 2);
                         $dist = round($earthRadius * 2 * atan2(sqrt($val), sqrt(1 - $val)));
 
+                        // Strictly hide if not close to the tourist site (<= radius)
                         if ($dist <= $radius) {
                             $item['distance_meters'] = (int) $dist;
                             $results[] = $item;
@@ -395,13 +411,13 @@ class MapController extends Controller
                 } catch (\Throwable $e) {}
             }
 
-            // 2. Secondary fallback: Overpass API query if fewer than 3 amenities found locally
-            if (count($results) < 3) {
+            // 2. Secondary fallback: Overpass API query if fewer than 2 amenities found locally
+            if (count($results) < 2) {
                 try {
                     $query = '[out:json][timeout:8];(' .
-                        'nwr["amenity"~"^(atm|bank|pharmacy|fuel|hospital|clinic|police|post_office)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
+                        'nwr["amenity"~"^(atm|bank|pharmacy|fuel|hospital|clinic|police)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
                         'nwr["shop"~"^(convenience|supermarket|chemist)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
-                        ');out center 35;';
+                        ');out center 25;';
 
                     $mirrors = [
                         'https://overpass.kumi.systems/api/interpreter',
@@ -414,7 +430,7 @@ class MapController extends Controller
                         curl_setopt($ch, CURLOPT_POST, true);
                         curl_setopt($ch, CURLOPT_POSTFIELDS, 'data=' . urlencode($query));
                         curl_setopt($ch, CURLOPT_USERAGENT, 'IntanElyuTourism/1.0');
-                        curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+                        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
                         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
                         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
                         $res = curl_exec($ch);
@@ -473,9 +489,22 @@ class MapController extends Controller
                                     $label = 'Police Station';
                                     $icon = 'fa-solid fa-shield-halved';
                                     $color = '#3b82f6';
+                                } else {
+                                    continue;
                                 }
 
-                                $name = $tags['name'] ?? ($tags['operator'] ?? ($tags['brand'] ?? $label));
+                                $name = trim($tags['name'] ?? '');
+                                if (empty($name) || in_array(strtolower($name), $genericTerms)) {
+                                    $brand = trim($tags['brand'] ?? '');
+                                    $operator = trim($tags['operator'] ?? '');
+                                    if (!empty($brand)) $name = ($type === 'atm' ? "{$brand} ATM" : $brand);
+                                    elseif (!empty($operator)) $name = ($type === 'atm' ? "{$operator} ATM" : $operator);
+                                }
+
+                                // Strict accuracy: skip if still generic or unnamed
+                                if (empty($name) || strlen($name) < 3 || in_array(strtolower($name), $genericTerms) || str_starts_with(strtolower($name), 'unnamed')) {
+                                    continue;
+                                }
 
                                 $dLat = deg2rad($eLat - $lat);
                                 $dLon = deg2rad($eLng - $lng);
@@ -484,18 +513,21 @@ class MapController extends Controller
                                        sin($dLon / 2) * sin($dLon / 2);
                                 $dist = round($earthRadius * 2 * atan2(sqrt($val), sqrt(1 - $val)));
 
-                                $results[] = [
-                                    'id'              => ($el['type'] ?? 'node') . '_' . ($el['id'] ?? uniqid()),
-                                    'name'            => $name,
-                                    'type'            => $type,
-                                    'raw_type'        => $rawType,
-                                    'label'           => $label,
-                                    'icon'            => $icon,
-                                    'color'           => $color,
-                                    'lat'             => (float) $eLat,
-                                    'lng'             => (float) $eLng,
-                                    'distance_meters' => (int) $dist,
-                                ];
+                                // Strictly hide if not close to the tourist site (<= radius)
+                                if ($dist <= $radius) {
+                                    $results[] = [
+                                        'id'              => ($el['type'] ?? 'node') . '_' . ($el['id'] ?? uniqid()),
+                                        'name'            => $name,
+                                        'type'            => $type,
+                                        'raw_type'        => $rawType,
+                                        'label'           => $label,
+                                        'icon'            => $icon,
+                                        'color'           => $color,
+                                        'lat'             => (float) $eLat,
+                                        'lng'             => (float) $eLng,
+                                        'distance_meters' => (int) $dist,
+                                    ];
+                                }
                             }
                             break;
                         }
@@ -514,7 +546,36 @@ class MapController extends Controller
             }
 
             usort($unique, fn($a, $b) => $a['distance_meters'] <=> $b['distance_meters']);
-            return array_slice($unique, 0, $limit);
+
+            // Pick diverse, non-overlapping amenities (at most 1 per primary category, min 40m distance)
+            $selected = [];
+            $seenCategories = [];
+            foreach ($unique as $item) {
+                $broadCat = in_array($item['type'], ['atm', 'bank']) ? 'financial' : $item['type'];
+                if (isset($seenCategories[$broadCat])) {
+                    continue; // Keep only the closest one per category to prevent marker stacking
+                }
+
+                // Ensure marker isn't immediately on top of an already chosen marker (< 35m)
+                $tooClose = false;
+                foreach ($selected as $s) {
+                    $dLat = deg2rad($item['lat'] - $s['lat']);
+                    $dLon = deg2rad($item['lng'] - $s['lng']);
+                    $v = sin($dLat / 2) * sin($dLat / 2) + cos(deg2rad($item['lat'])) * cos(deg2rad($s['lat'])) * sin($dLon / 2) * sin($dLon / 2);
+                    $distBetween = round($earthRadius * 2 * atan2(sqrt($v), sqrt(1 - $v)));
+                    if ($distBetween < 35) {
+                        $tooClose = true;
+                        break;
+                    }
+                }
+                if ($tooClose) continue;
+
+                $seenCategories[$broadCat] = true;
+                $selected[] = $item;
+                if (count($selected) >= $limit) break;
+            }
+
+            return $selected;
         });
 
         return response()->json([

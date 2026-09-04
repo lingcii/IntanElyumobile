@@ -767,6 +767,20 @@ if (is_dir($imgDir)) {
                 if (e && e.source && e.source.type === 'raster') return;
             });
 
+            // Smoothly hide amenity markers when zoomed out away from tourist site
+            const updateAmenityZoomState = () => {
+                if (!window.mapInstance) return;
+                const mapEl = document.getElementById('tourist-map');
+                if (mapEl) {
+                    if (window.mapInstance.getZoom() < 14.0) {
+                        mapEl.classList.add('map-zoomed-out');
+                    } else {
+                        mapEl.classList.remove('map-zoomed-out');
+                    }
+                }
+            };
+            window.mapInstance.on('zoom', updateAmenityZoomState);
+
             // window.mapInstance.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
 
             // Map Load Initialization
@@ -1248,17 +1262,45 @@ if (is_dir($imgDir)) {
             const _backendBase = window.backendUrl || '';
 
             try {
-                const res = await fetch(`${_backendBase}/api/public/amenities?lat=${lat}&lng=${lng}&radius=1500&limit=8`, {
+                // Strict proximity cutoff: query radius 600m & limit 5 closest diverse amenities
+                const res = await fetch(`${_backendBase}/api/public/amenities?lat=${lat}&lng=${lng}&radius=600&limit=5`, {
                     headers: { 'Accept': 'application/json' }
                 });
                 if (!res.ok) return;
                 const data = await res.json();
-                let amenities = (data && data.amenities) ? data.amenities : [];
-                // Limit to the top 8 closest amenities so the map isn't cluttered
-                amenities = amenities.slice(0, 8);
+                let rawAmenities = (data && data.amenities) ? data.amenities : [];
 
-                // Check if user moved away while fetching
+                // Filter for high accuracy & strict proximity:
+                // Hide any informal sari-sari stalls, unverified fuel, or entries lacking a proper establishment name
+                const genericNames = new Set([
+                    'facility', 'atm', 'bank', 'convenience store', 'convenience', 'supermarket',
+                    'supermarket / store', 'store', 'pharmacy', 'gas station', 'fuel',
+                    'hospital', 'clinic', 'health clinic', 'police station', 'police',
+                    'public toilet', 'toilets', 'parking'
+                ]);
+                const informalRegex = /('s store|sari-sari|tindahan|variety store|refreshment|eatery|canteen|^app store$)/i;
+
+                let amenities = rawAmenities.filter(am => {
+                    const dist = Number(am.distance_meters);
+                    const name = String(am.name || '').trim();
+                    const lower = name.toLowerCase();
+                    if (isNaN(dist) || dist > 600 || name.length < 3 || genericNames.has(lower) || lower.startsWith('unnamed')) {
+                        return false;
+                    }
+                    if (am.type === 'convenience' && informalRegex.test(name) && !/(7-eleven|alfamart|puregold|dali|uncle john)/i.test(name)) {
+                        return false;
+                    }
+                    return true;
+                }).slice(0, 5);
+
+                // Check if user moved away or closed the sheet while fetching
                 if (window.currentAmenitySpotId !== spotIdentifier) return;
+
+                // If no amenities are close, keep all amenities hidden!
+                if (amenities.length === 0) {
+                    window.clearAmenityMarkers();
+                    return;
+                }
 
                 amenities.forEach((am, idx) => {
                     const amLat = parseFloat(am.lat);
@@ -1268,7 +1310,7 @@ if (is_dir($imgDir)) {
                     // Container is strictly non-clickable per user requirement
                     const container = document.createElement('div');
                     container.className = 'elyu-amenity-marker';
-                    container.style.cssText = `pointer-events:none !important; user-select:none; cursor:default; display:flex; flex-direction:column; align-items:center; z-index:12; animation-delay:${Math.min(idx * 0.025, 0.4)}s;`;
+                    container.style.cssText = `pointer-events:none !important; user-select:none; cursor:default; display:flex; flex-direction:column; align-items:center; z-index:12; animation-delay:${Math.min(idx * 0.03, 0.3)}s;`;
                     container.setAttribute('aria-hidden', 'true');
 
                     const bubble = document.createElement('div');
@@ -1302,20 +1344,20 @@ if (is_dir($imgDir)) {
                     window.activeAmenityMarkers.push(marker);
                 });
 
-                // Adjust camera (around zoom 15 - 15.5) so spot and nearest amenities are visible together on screen
+                // Frame the tourist site and its closest verified amenities together on screen above sheet
                 if (amenities.length > 0 && window.mapInstance) {
                     const bounds = new maplibregl.LngLatBounds();
                     bounds.extend([lng, lat]);
-                    amenities.slice(0, 5).forEach(am => {
+                    amenities.forEach(am => {
                         const amLat = parseFloat(am.lat);
                         const amLng = parseFloat(am.lng);
                         if (!isNaN(amLat) && !isNaN(amLng)) bounds.extend([amLng, amLat]);
                     });
 
                     window.mapInstance.fitBounds(bounds, {
-                        padding: { top: 120, bottom: 220, left: 50, right: 50 },
+                        padding: { top: 120, bottom: 220, left: 60, right: 60 },
                         maxZoom: 15.5,
-                        duration: 800
+                        duration: 750
                     });
                 }
 
@@ -2632,7 +2674,11 @@ if (is_dir($imgDir)) {
             sheet.closeSheet = closeSheet;
         }
 
-        initDraggableSheet('place-details-sheet', 'place-drag-handle');
+        initDraggableSheet('place-details-sheet', 'place-drag-handle', function () {
+            if (window.clearAmenityMarkers) {
+                window.clearAmenityMarkers();
+            }
+        });
         initDraggableSheet('nearby-sites-sheet', 'nearby-drag-handle');
 
 

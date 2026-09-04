@@ -1570,4 +1570,10 @@ body[data-view="map"] .btn-locate-me {
     margin-top: -1px;
 }
 
-
+/* Hide amenity markers smoothly if zoomed out away from tourist site */
+.map-zoomed-out .elyu-amenity-marker {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: scale(0.65) !important;
+    transition: opacity 0.22s ease, transform 0.22s ease !important;
+}
