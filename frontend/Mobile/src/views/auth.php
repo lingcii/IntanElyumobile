@@ -356,8 +356,8 @@
         <div id="privacy-modal-scroll-body" class="privacy-modal-scroll-body">
             <div class="policy-welcome-banner">
                 <i class="fa-solid fa-circle-info policy-welcome-icon"></i>
-                <p style="margin: 0; font-size: 12px; color: #334155; line-height: 1.55;">
-                    Welcome to <strong>Intan Elyu Tourism Management System</strong>. Please read through our terms of service and privacy practices before activating your account:
+                <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.95); line-height: 1.55;">
+                    Welcome to <strong style="color: #ffffff;">Intan Elyu Tourism Management System</strong>. Please read through our terms of service and privacy practices before activating your account:
                 </p>
             </div>
             
@@ -412,7 +412,7 @@
 
         <div class="privacy-acceptance-box">
             <input type="checkbox" id="chk-accept-privacy" class="custom-terms-checkbox" style="cursor: pointer;">
-            <label for="chk-accept-privacy" id="lbl-chk-accept-privacy" style="cursor: pointer; margin: 0; line-height: 1.35; font-size: 11.5px; font-weight: 600; color: #1e293b;">
+            <label for="chk-accept-privacy" id="lbl-chk-accept-privacy" style="cursor: pointer; margin: 0; line-height: 1.35; font-size: 11.5px; font-weight: 600; color: #ffffff;">
                 I have read, understood, and accept the Terms &amp; Privacy Policy.
             </label>
         </div>
@@ -531,14 +531,14 @@
     pointer-events: auto;
 }
 .auth-2fa-card {
-    background: rgba(15, 23, 42, 0.96);
-    border: 1.5px solid rgba(56, 189, 248, 0.4);
-    border-radius: 24px;
-    padding: 28px 24px;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 50%, #74a3cf 100%) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+    border-radius: 26px;
+    padding: 30px 24px;
     max-width: 380px;
-    width: 100%;
+    width: 90%;
     text-align: center;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(56, 189, 248, 0.15);
+    box-shadow: 0 20px 50px rgba(10, 25, 60, 0.45), 0 0 35px rgba(116, 163, 207, 0.25);
     position: relative;
     transform: scale(0.88) translateY(16px);
     transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -550,9 +550,9 @@
     position: absolute;
     top: 14px;
     right: 14px;
-    background: rgba(255, 255, 255, 0.08);
-    border: none;
-    color: rgba(248, 250, 252, 0.7);
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #ffffff;
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -561,25 +561,25 @@
     justify-content: center;
     cursor: pointer;
     font-size: 16px;
-    transition: background 0.2s;
+    transition: all 0.2s;
 }
 .auth-2fa-close:hover {
-    background: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.35);
     color: #fff;
 }
 .auth-2fa-icon-ring {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: rgba(56, 189, 248, 0.15);
-    border: 2px solid #38bdf8;
+    background: rgba(255, 255, 255, 0.22);
+    border: 2px solid rgba(255, 255, 255, 0.6);
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 14px auto;
-    box-shadow: 0 0 22px rgba(56, 189, 248, 0.35);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
     font-size: 28px;
-    color: #38bdf8;
+    color: #ffffff;
 }
 .auth-2fa-title {
     font-size: 20px;
@@ -587,10 +587,11 @@
     color: #ffffff;
     margin: 0 0 8px 0;
     letter-spacing: -0.3px;
+    text-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
 }
 .auth-2fa-desc {
-    font-size: 12px;
-    color: rgba(148, 163, 184, 0.9);
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.95);
     line-height: 1.55;
     margin: 0 0 16px 0;
 }

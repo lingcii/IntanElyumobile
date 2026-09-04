@@ -947,20 +947,23 @@ body[data-view="reset-password"] {
 }
 
 /* Privacy Modal Overlay Card */
+/* Privacy Modal Overlay Card */
 .privacy-modal-card {
-    background: #ffffff;
-    border-radius: 28px;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 50%, #74a3cf 100%) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+    border-radius: 26px;
     padding: 24px 20px;
     max-width: 440px;
     width: 92%;
     max-height: 86vh;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 25px 70px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.8);
+    box-shadow: 0 20px 50px rgba(10, 25, 60, 0.45), 0 0 30px rgba(116, 163, 207, 0.25) !important;
     position: relative;
     text-align: left;
     transform: scale(0.92) translateY(16px);
     transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    color: #ffffff;
 }
 
 .auth-2fa-overlay.active .privacy-modal-card {
@@ -974,9 +977,9 @@ body[data-view="reset-password"] {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: #f1f5f9;
-    border: none;
-    color: #64748b;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    color: #ffffff !important;
     font-size: 14px;
     display: flex;
     align-items: center;
@@ -987,8 +990,8 @@ body[data-view="reset-password"] {
 }
 
 .privacy-modal-close:hover {
-    background: #e2e8f0;
-    color: #0f172a;
+    background: rgba(255, 255, 255, 0.35) !important;
+    color: #ffffff !important;
     transform: scale(1.05);
 }
 
@@ -1003,33 +1006,36 @@ body[data-view="reset-password"] {
     width: 44px;
     height: 44px;
     border-radius: 14px;
-    background: rgba(29, 78, 216, 0.1);
-    border: 1.5px solid rgba(29, 78, 216, 0.2);
+    background: rgba(255, 255, 255, 0.22) !important;
+    border: 2px solid rgba(255, 255, 255, 0.6) !important;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #1d4ed8;
+    color: #ffffff !important;
     font-size: 20px;
     flex-shrink: 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .privacy-modal-title {
     margin: 0;
-    font-size: 17.5px;
+    font-size: 18px;
     font-weight: 800;
-    color: #0f172a;
+    color: #ffffff !important;
     letter-spacing: -0.2px;
+    text-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
 }
 
 .privacy-modal-badge {
     font-size: 10.5px;
-    color: #1d4ed8;
+    color: rgba(255, 255, 255, 0.95) !important;
     font-weight: 700;
-    background: rgba(29, 78, 216, 0.08);
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
     padding: 2px 8px;
     border-radius: 6px;
     display: inline-block;
-    margin-top: 2px;
+    margin-top: 3px;
 }
 
 /* Privacy Modal Scroll Body */
@@ -1039,12 +1045,14 @@ body[data-view="reset-password"] {
     overflow-x: hidden;
     padding: 12px 14px;
     margin-bottom: 14px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: rgba(15, 23, 42, 0.28) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
     border-radius: 18px;
     display: flex;
     flex-direction: column;
     gap: 10px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE / Edge */
@@ -1060,24 +1068,40 @@ body[data-view="reset-password"] {
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: rgba(255, 255, 255, 0.14) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
     border-radius: 12px;
     padding: 10px 12px;
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.policy-welcome-banner p {
+    color: rgba(255, 255, 255, 0.95) !important;
+}
+
+.policy-welcome-banner strong {
+    color: #ffffff !important;
+}
+
+.policy-welcome-icon {
+    color: #ffffff !important;
+    font-size: 15px;
+    margin-top: 2px;
+    flex-shrink: 0;
 }
 
 .policy-item-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
     border-radius: 14px;
     padding: 12px 14px;
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
-    transition: border-color 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .policy-item-card:hover {
-    border-color: #cbd5e1;
+    background: rgba(255, 255, 255, 0.22) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
 }
 
 .policy-item-header {
@@ -1088,11 +1112,12 @@ body[data-view="reset-password"] {
 }
 
 .policy-icon-badge {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     border-radius: 8px;
-    background: rgba(29, 78, 216, 0.08);
-    color: #1d4ed8;
+    background: rgba(255, 255, 255, 0.25) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    color: #ffffff !important;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1101,28 +1126,58 @@ body[data-view="reset-password"] {
 }
 
 .policy-item-title {
-    font-size: 12.5px;
+    font-size: 13px;
     font-weight: 700;
-    color: #0f172a;
+    color: #ffffff !important;
 }
 
 .policy-item-desc {
     margin: 0;
     font-size: 11.5px;
-    color: #475569;
+    color: rgba(255, 255, 255, 0.9) !important;
     line-height: 1.55;
 }
 
 /* Privacy Acceptance Confirmation Box */
 .privacy-acceptance-box {
-    background: rgba(29, 78, 216, 0.05);
-    border: 1.5px solid rgba(29, 78, 216, 0.18);
+    background: rgba(255, 255, 255, 0.16) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.32) !important;
     border-radius: 14px;
     padding: 10px 12px;
     margin-bottom: 14px;
     display: flex;
     align-items: center;
     gap: 10px;
+}
+
+.privacy-acceptance-box label {
+    color: #ffffff !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+}
+
+.privacy-acceptance-box .custom-terms-checkbox {
+    border: 2px solid rgba(255, 255, 255, 0.9) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+}
+
+.privacy-acceptance-box .custom-terms-checkbox:hover {
+    border-color: #ffffff !important;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25) !important;
+}
+
+.privacy-acceptance-box .custom-terms-checkbox:checked,
+.privacy-acceptance-box .custom-terms-checkbox:checked:user-valid,
+.privacy-acceptance-box .custom-terms-checkbox:checked:valid {
+    background: #ffffff !important;
+    border-color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+}
+
+.privacy-acceptance-box .custom-terms-checkbox:checked::after {
+    border: solid #1e3a8a !important;
+    border-width: 0 2px 2px 0 !important;
 }
 
 /* Privacy Action Buttons */
@@ -1133,10 +1188,10 @@ body[data-view="reset-password"] {
 
 .btn-privacy-decline {
     flex: 1;
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    color: #64748b;
-    font-size: 13px;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+    color: #ffffff !important;
+    font-size: 13.5px;
     font-weight: 700;
     border-radius: 14px;
     padding: 12px;
@@ -1145,21 +1200,22 @@ body[data-view="reset-password"] {
 }
 
 .btn-privacy-decline:hover {
-    background: #e2e8f0;
-    color: #0f172a;
+    background: rgba(255, 255, 255, 0.32) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
 }
 
 .btn-privacy-accept {
     flex: 1.8;
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    border: none;
-    color: #ffffff;
-    font-size: 13px;
-    font-weight: 700;
+    background: #ffffff !important;
+    border: none !important;
+    color: #1e3a8a !important;
+    font-size: 13.5px;
+    font-weight: 800;
     border-radius: 14px;
     padding: 12px;
     cursor: pointer;
-    box-shadow: 0 4px 14px rgba(29, 78, 216, 0.35);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
@@ -1169,12 +1225,13 @@ body[data-view="reset-password"] {
 .btn-privacy-accept:disabled {
     opacity: 0.45;
     cursor: not-allowed;
-    box-shadow: none;
+    box-shadow: none !important;
 }
 
 .btn-privacy-accept:not(:disabled):hover {
+    background: #f8fafc !important;
     transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(29, 78, 216, 0.45);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35) !important;
 }
 
 /* Mobile Frame on Desktop / Web Browsers */
@@ -1199,4 +1256,4 @@ body[data-view="reset-password"] {
         overflow: hidden;
     }
 }
-
+
