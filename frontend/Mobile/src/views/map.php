@@ -1181,30 +1181,7 @@ if (is_dir($imgDir)) {
                                 container.addEventListener('click', (e) => {
                                     e.stopPropagation();
                                     if (window.activePopup) window.activePopup.remove();
-
-                                    // Display nearby non-clickable amenities on map around this spot
-                                    if (window.loadNearbyAmenities) {
-                                        window.loadNearbyAmenities(loc);
-                                    }
-
-                                    const popupContent = document.createElement('div');
-                                    popupContent.style.cssText = "font-weight:700; font-size:12.5px; color:#ffffff; padding: 4px 8px; cursor: pointer; display: flex; align-items: center; gap: 6px;";
-                                    // Classification removed per user request: clean name and chevron only
-                                    popupContent.innerHTML = `<span style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${loc.name}</span> <i class="fa-solid fa-chevron-right" style="font-size:10px; color:#38bdf8;"></i>`;
-
-                                    popupContent.addEventListener('click', () => {
-                                        window.openSheet(loc);
-                                    });
-
-                                    window.activePopup = new maplibregl.Popup({
-                                        closeButton: false, closeOnClick: false, offset: 20, className: 'smooth-map-popup'
-                                    })
-                                        .setLngLat([locLng, locLat])
-                                        .setDOMContent(popupContent)
-                                        .addTo(window.mapInstance);
-
-                                    const popupEl = window.activePopup.getElement();
-                                    if (popupEl) popupEl.style.zIndex = 9999;
+                                    window.openSheet(loc);
                                 });
 
                                 container.addEventListener('mouseenter', () => {
@@ -2753,14 +2730,14 @@ if (is_dir($imgDir)) {
                 window.loadNearbyAmenities(locationData);
             }
 
-            // Smoothly zoom out when viewing tourist site details to show broader context above bottom sheet
+            // Smoothly zoom in to street level when viewing tourist site details (as requested)
             const destLat = parseFloat(locationData.lat || locationData.latitude);
             const destLng = parseFloat(locationData.lng || locationData.longitude);
             if (!isNaN(destLat) && !isNaN(destLng) && window.mapInstance) {
                 window.mapInstance.flyTo({
                     center: [destLng, destLat],
-                    zoom: 12.2,
-                    offset: [0, -130],
+                    zoom: 16.5,
+                    offset: [0, -100],
                     duration: 850,
                     essential: true,
                     curve: 1.42
