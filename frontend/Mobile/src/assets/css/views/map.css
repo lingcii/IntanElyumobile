@@ -1613,7 +1613,7 @@ body[data-view="map"] .btn-locate-me {
 }
 
 .elyu-amenity-marker.is-expanded .amenity-marker-label {
-    max-width: 240px;
+    max-width: 280px;
     opacity: 1;
     padding-right: 3px;
 }
@@ -1627,4 +1627,183 @@ body[data-view="map"] .btn-locate-me {
     opacity: 0 !important;
     pointer-events: none !important;
     transition: opacity 0.2s ease !important;
+}
+
+/* ── Nearby Amenities Box in Tourist Site Details Sheet ── */
+.dest-amenities-box {
+    background: rgba(30, 58, 138, 0.42) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 12px;
+    margin-bottom: 12px;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dest-amenities-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.dest-amenities-icon-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(56, 189, 248, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #38bdf8;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.dest-amenities-count-badge {
+    font-size: 10px;
+    font-weight: 800;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.18);
+    padding: 3px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.dest-amenities-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.dest-amenities-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.dest-amenities-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 4px;
+}
+
+.sheet-amenity-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 7px 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    transition: background 0.18s ease, transform 0.15s ease, border-color 0.18s ease;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.sheet-amenity-row:hover,
+.sheet-amenity-row:active {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(56, 189, 248, 0.35) !important;
+    transform: translateY(-1px);
+}
+
+.sheet-amenity-left {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+    flex: 1;
+}
+
+.sheet-amenity-icon-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: #ffffff !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.sheet-amenity-info {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.sheet-amenity-name {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.25;
+}
+
+.sheet-amenity-type {
+    font-size: 9.5px;
+    color: rgba(255, 255, 255, 0.72);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.15;
+}
+
+.sheet-amenity-distance-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3.5px 8px;
+    border-radius: 999px;
+    background: rgba(56, 189, 248, 0.2);
+    color: #38bdf8;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.sheet-amenity-distance-badge i {
+    font-size: 9px;
+    opacity: 0.9;
+}
+
+.dest-amenities-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 7px 12px;
+    margin-top: 4px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.09);
+    border: none !important;
+    outline: none !important;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.dest-amenities-toggle-btn:hover,
+.dest-amenities-toggle-btn:active {
+    background: rgba(255, 255, 255, 0.18);
 }

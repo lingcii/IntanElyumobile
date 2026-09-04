@@ -356,11 +356,11 @@ class MapController extends Controller
 
         $limit = (int) ($request->query('limit', 20));
         if ($limit < 1) $limit = 1;
-        if ($limit > 30) $limit = 30;
+        if ($limit > 40) $limit = 40;
 
         $roundedLat = round($lat, 3);
         $roundedLng = round($lng, 3);
-        $cacheKey = "map:public:amenities:v15:{$roundedLat}:{$roundedLng}:{$radius}:{$limit}";
+        $cacheKey = "map:public:amenities:v16:{$roundedLat}:{$roundedLng}:{$radius}:{$limit}";
 
         $amenities = \Illuminate\Support\Facades\Cache::remember($cacheKey, 43200, function () use ($lat, $lng, $radius, $limit) {
             $results = [];

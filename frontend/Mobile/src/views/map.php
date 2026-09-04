@@ -387,18 +387,29 @@ if (is_dir($imgDir)) {
                                 this requirement; it does not offer, book, or arrange tour guide services directly.</p>
                         </div>
 
-                        <!-- Nearby Amenities Box -->
-                        <div id="sheet-amenities-notice" style="display:none; background:rgba(30,58,138,0.38); border-radius:16px; padding:10px 12px; margin-bottom:10px; align-items:center; justify-content:space-between; border:none !important; outline:none !important;">
-                            <div style="display:flex; align-items:center; gap:9px;">
-                                <span style="width:28px; height:28px; border-radius:50%; background:rgba(56,189,248,0.18); display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:12px; flex-shrink:0;">
-                                    <i class="fa-solid fa-store"></i>
-                                </span>
-                                <div>
-                                    <div style="font-size:12px; font-weight:800; color:#ffffff;">Nearby Amenities on Map</div>
-                                    <div style="font-size:10px; color:rgba(255,255,255,0.7);">ATMs, stores, gas & pharmacies shown around site</div>
+                        <!-- Nearby Amenities Box with Individual Distances -->
+                        <div id="sheet-amenities-notice" class="dest-amenities-box" style="display:none;">
+                            <div class="dest-amenities-header">
+                                <div style="display:flex; align-items:center; gap:9px;">
+                                    <span class="dest-amenities-icon-circle">
+                                        <i class="fa-solid fa-map-pin"></i>
+                                    </span>
+                                    <div>
+                                        <div style="font-size:12px; font-weight:800; color:#ffffff; line-height:1.2;">Nearby Amenities</div>
+                                        <div style="font-size:10px; color:rgba(255,255,255,0.75);">Distance from this tourist site</div>
+                                    </div>
                                 </div>
+                                <span id="sheet-amenities-count-badge" class="dest-amenities-count-badge">--</span>
                             </div>
-                            <span id="sheet-amenities-count-badge" style="font-size:10px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.18); padding:3px 8px; border-radius:20px; white-space:nowrap;">--</span>
+
+                            <!-- List showing each amenity and its distance -->
+                            <div id="sheet-amenities-list" class="dest-amenities-list"></div>
+
+                            <!-- Expand / Collapse Button when > 4 amenities -->
+                            <button type="button" id="sheet-amenities-toggle-btn" class="dest-amenities-toggle-btn" style="display:none;" onclick="window.toggleSheetAmenities()">
+                                <span id="sheet-amenities-toggle-text">Show All</span>
+                                <i class="fa-solid fa-chevron-down" id="sheet-amenities-chevron" style="transition:transform 0.25s ease;"></i>
+                            </button>
                         </div>
 
                         <!-- Service Center & Assistance -->
@@ -1243,6 +1254,38 @@ if (is_dir($imgDir)) {
         // Per user requirements: Amenities are strictly non-clickable (pointer-events: none)
         window.activeAmenityMarkers = [];
         window.currentAmenitySpotId = null;
+        window._sheetAmenitiesExpanded = false;
+
+        window.formatAmenityDistance = function (meters) {
+            if (meters == null || isNaN(meters)) return '--';
+            const m = Math.round(Number(meters));
+            if (m < 1000) {
+                return `${m}m`;
+            }
+            return `${(m / 1000).toFixed(1)}km`;
+        };
+
+        window.toggleSheetAmenities = function () {
+            const listEl = document.getElementById('sheet-amenities-list');
+            const toggleText = document.getElementById('sheet-amenities-toggle-text');
+            const toggleChevron = document.getElementById('sheet-amenities-chevron');
+            if (!listEl) return;
+
+            window._sheetAmenitiesExpanded = !window._sheetAmenitiesExpanded;
+            const hiddenRows = listEl.querySelectorAll('[data-amenity-hidden="true"]');
+            hiddenRows.forEach(r => {
+                r.style.display = window._sheetAmenitiesExpanded ? 'flex' : 'none';
+            });
+
+            const total = listEl.children.length;
+            if (window._sheetAmenitiesExpanded) {
+                if (toggleText) toggleText.textContent = 'Show Less';
+                if (toggleChevron) toggleChevron.style.transform = 'rotate(180deg)';
+            } else {
+                if (toggleText) toggleText.textContent = `Show All (${total} Nearby)`;
+                if (toggleChevron) toggleChevron.style.transform = 'rotate(0deg)';
+            }
+        };
 
         window.clearAmenityMarkers = function () {
             if (window.activeAmenityMarkers && window.activeAmenityMarkers.length > 0) {
@@ -1252,11 +1295,16 @@ if (is_dir($imgDir)) {
                 window.activeAmenityMarkers = [];
             }
             window.currentAmenitySpotId = null;
+            window._sheetAmenitiesExpanded = false;
             document.querySelectorAll('.elyu-amenity-marker.is-expanded').forEach(el => {
                 el.classList.remove('is-expanded');
             });
             const noticeEl = document.getElementById('sheet-amenities-notice');
             if (noticeEl) noticeEl.style.display = 'none';
+            const listEl = document.getElementById('sheet-amenities-list');
+            if (listEl) listEl.innerHTML = '';
+            const toggleBtn = document.getElementById('sheet-amenities-toggle-btn');
+            if (toggleBtn) toggleBtn.style.display = 'none';
         };
 
         window.loadNearbyAmenities = async function (spot) {
@@ -1308,6 +1356,9 @@ if (is_dir($imgDir)) {
                     return true;
                 }).slice(0, 35);
 
+                // Sort by distance ascending (closest first)
+                amenities.sort((a, b) => (Number(a.distance_meters) || 0) - (Number(b.distance_meters) || 0));
+
                 // Check if user moved away or closed the sheet while fetching
                 if (window.currentAmenitySpotId !== spotIdentifier) return;
 
@@ -1335,7 +1386,8 @@ if (is_dir($imgDir)) {
 
                     const bubble = document.createElement('div');
                     bubble.className = 'amenity-marker-bubble';
-                    bubble.title = am.name || am.label || 'Amenity';
+                    const distStr = window.formatAmenityDistance(am.distance_meters);
+                    bubble.title = `${am.name || am.label || 'Amenity'} (${distStr})`;
 
                     const iconCircle = document.createElement('div');
                     iconCircle.className = 'amenity-marker-icon-circle';
@@ -1344,7 +1396,7 @@ if (is_dir($imgDir)) {
 
                     const label = document.createElement('span');
                     label.className = 'amenity-marker-label';
-                    label.textContent = am.name || am.label || 'Amenity';
+                    label.textContent = `${am.name || am.label || 'Amenity'} • ${distStr}`;
 
                     bubble.appendChild(iconCircle);
                     bubble.appendChild(label);
@@ -1356,7 +1408,7 @@ if (is_dir($imgDir)) {
 
                     container.appendChild(inner);
 
-                    // Click / tap interaction: icon first, click expands to show name, click again collapses
+                    // Click / tap interaction: icon first, click expands to show name and distance, click again collapses
                     bubble.addEventListener('click', (e) => {
                         e.stopPropagation();
                         const isCurrentlyExpanded = container.classList.contains('is-expanded');
@@ -1378,14 +1430,85 @@ if (is_dir($imgDir)) {
                         .addTo(window.mapInstance);
 
                     window.activeAmenityMarkers.push(marker);
+                    am._markerContainer = container;
                 });
 
-                // Update sheet notice badge if open
+                // Update tourist site details sheet with amenities list and distances
                 const noticeEl = document.getElementById('sheet-amenities-notice');
                 const countBadge = document.getElementById('sheet-amenities-count-badge');
+                const listEl = document.getElementById('sheet-amenities-list');
+                const toggleBtn = document.getElementById('sheet-amenities-toggle-btn');
+                const toggleText = document.getElementById('sheet-amenities-toggle-text');
+                const toggleChevron = document.getElementById('sheet-amenities-chevron');
+
                 if (noticeEl && amenities.length > 0) {
                     noticeEl.style.display = 'flex';
                     if (countBadge) countBadge.textContent = `${amenities.length} Nearby`;
+
+                    if (listEl) {
+                        listEl.innerHTML = '';
+                        amenities.forEach((am, idx) => {
+                            const row = document.createElement('div');
+                            row.className = 'sheet-amenity-row';
+                            if (idx >= 4) {
+                                row.style.display = 'none';
+                                row.setAttribute('data-amenity-hidden', 'true');
+                            }
+
+                            const distFormatted = window.formatAmenityDistance(am.distance_meters);
+                            const safeName = (am.name || am.label || 'Amenity').replace(/"/g, '&quot;');
+                            const safeLabel = (am.label || am.type || 'Amenity').replace(/"/g, '&quot;');
+                            const safeColor = am.color || '#38bdf8';
+                            const safeIcon = am.icon || 'fa-solid fa-location-dot';
+
+                            row.innerHTML = `
+                                <div class="sheet-amenity-left">
+                                    <div class="sheet-amenity-icon-circle" style="border:1.5px solid ${safeColor}; color:${safeColor};">
+                                        <i class="${safeIcon}"></i>
+                                    </div>
+                                    <div class="sheet-amenity-info">
+                                        <span class="sheet-amenity-name" title="${safeName}">${safeName}</span>
+                                        <span class="sheet-amenity-type">${safeLabel}</span>
+                                    </div>
+                                </div>
+                                <div class="sheet-amenity-distance-badge">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    <span>${distFormatted}</span>
+                                </div>
+                            `;
+
+                            // Tapping an amenity in the sheet focuses and expands it on the map
+                            row.addEventListener('click', () => {
+                                const amLat = parseFloat(am.lat);
+                                const amLng = parseFloat(am.lng);
+                                if (window.mapInstance && !isNaN(amLat) && !isNaN(amLng)) {
+                                    window.mapInstance.flyTo({
+                                        center: [amLng, amLat],
+                                        zoom: 16.5,
+                                        duration: 800,
+                                        essential: true
+                                    });
+                                }
+                                if (am._markerContainer) {
+                                    document.querySelectorAll('.elyu-amenity-marker.is-expanded').forEach(el => el.classList.remove('is-expanded'));
+                                    am._markerContainer.classList.add('is-expanded');
+                                }
+                            });
+
+                            listEl.appendChild(row);
+                        });
+
+                        if (toggleBtn) {
+                            if (amenities.length > 4) {
+                                toggleBtn.style.display = 'flex';
+                                if (toggleText) toggleText.textContent = `Show All (${amenities.length} Nearby)`;
+                                if (toggleChevron) toggleChevron.style.transform = 'rotate(0deg)';
+                                window._sheetAmenitiesExpanded = false;
+                            } else {
+                                toggleBtn.style.display = 'none';
+                            }
+                        }
+                    }
                 }
             } catch (err) {
                 console.warn('Error loading nearby amenities:', err);
