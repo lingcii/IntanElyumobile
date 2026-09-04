@@ -1248,12 +1248,14 @@ if (is_dir($imgDir)) {
             const _backendBase = window.backendUrl || '';
 
             try {
-                const res = await fetch(`${_backendBase}/api/public/amenities?lat=${lat}&lng=${lng}&radius=3500`, {
+                const res = await fetch(`${_backendBase}/api/public/amenities?lat=${lat}&lng=${lng}&radius=1500&limit=8`, {
                     headers: { 'Accept': 'application/json' }
                 });
                 if (!res.ok) return;
                 const data = await res.json();
-                const amenities = (data && data.amenities) ? data.amenities : [];
+                let amenities = (data && data.amenities) ? data.amenities : [];
+                // Limit to the top 8 closest amenities so the map isn't cluttered
+                amenities = amenities.slice(0, 8);
 
                 // Check if user moved away while fetching
                 if (window.currentAmenitySpotId !== spotIdentifier) return;
@@ -1299,6 +1301,23 @@ if (is_dir($imgDir)) {
 
                     window.activeAmenityMarkers.push(marker);
                 });
+
+                // Adjust camera (around zoom 15 - 15.5) so spot and nearest amenities are visible together on screen
+                if (amenities.length > 0 && window.mapInstance) {
+                    const bounds = new maplibregl.LngLatBounds();
+                    bounds.extend([lng, lat]);
+                    amenities.slice(0, 5).forEach(am => {
+                        const amLat = parseFloat(am.lat);
+                        const amLng = parseFloat(am.lng);
+                        if (!isNaN(amLat) && !isNaN(amLng)) bounds.extend([amLng, amLat]);
+                    });
+
+                    window.mapInstance.fitBounds(bounds, {
+                        padding: { top: 120, bottom: 220, left: 50, right: 50 },
+                        maxZoom: 15.5,
+                        duration: 800
+                    });
+                }
 
                 // Update sheet notice badge if open
                 const noticeEl = document.getElementById('sheet-amenities-notice');
@@ -2736,8 +2755,8 @@ if (is_dir($imgDir)) {
             if (!isNaN(destLat) && !isNaN(destLng) && window.mapInstance) {
                 window.mapInstance.flyTo({
                     center: [destLng, destLat],
-                    zoom: 16.5,
-                    offset: [0, -100],
+                    zoom: 15.3,
+                    offset: [0, -90],
                     duration: 850,
                     essential: true,
                     curve: 1.42

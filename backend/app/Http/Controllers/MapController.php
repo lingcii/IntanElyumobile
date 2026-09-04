@@ -350,15 +350,19 @@ class MapController extends Controller
             ], 400);
         }
 
-        $radius = (int) ($request->query('radius', 3500));
-        if ($radius < 500) $radius = 500;
+        $radius = (int) ($request->query('radius', 1500));
+        if ($radius < 300) $radius = 300;
         if ($radius > 8000) $radius = 8000;
+
+        $limit = (int) ($request->query('limit', 8));
+        if ($limit < 1) $limit = 1;
+        if ($limit > 30) $limit = 30;
 
         $roundedLat = round($lat, 3);
         $roundedLng = round($lng, 3);
-        $cacheKey = "map:public:amenities:v2:{$roundedLat}:{$roundedLng}:{$radius}";
+        $cacheKey = "map:public:amenities:v3:{$roundedLat}:{$roundedLng}:{$radius}:{$limit}";
 
-        $amenities = \Illuminate\Support\Facades\Cache::remember($cacheKey, 43200, function () use ($lat, $lng, $radius) {
+        $amenities = \Illuminate\Support\Facades\Cache::remember($cacheKey, 43200, function () use ($lat, $lng, $radius, $limit) {
             $results = [];
             $earthRadius = 6371000;
 
@@ -510,7 +514,7 @@ class MapController extends Controller
             }
 
             usort($unique, fn($a, $b) => $a['distance_meters'] <=> $b['distance_meters']);
-            return array_slice($unique, 0, 30);
+            return array_slice($unique, 0, $limit);
         });
 
         return response()->json([
