@@ -1157,6 +1157,20 @@ body[data-view="reset-password"] {
     display: flex;
     align-items: center;
     gap: 10px;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.privacy-acceptance-box.shake-attention {
+    animation: privacyShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    background: rgba(255, 255, 255, 0.28) !important;
+    box-shadow: 0 0 16px rgba(255, 255, 255, 0.45) !important;
+}
+
+@keyframes privacyShake {
+    10%, 90% { transform: translate3d(-2px, 0, 0); }
+    20%, 80% { transform: translate3d(4px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-5px, 0, 0); }
+    40%, 60% { transform: translate3d(5px, 0, 0); }
 }
 
 .privacy-acceptance-box label {

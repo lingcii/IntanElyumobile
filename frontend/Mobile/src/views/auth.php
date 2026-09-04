@@ -410,7 +410,7 @@
             </div>
         </div>
 
-        <div class="privacy-acceptance-box">
+        <div class="privacy-acceptance-box" onclick="togglePrivacyCheckboxFromBox(event)" style="cursor: pointer;">
             <input type="checkbox" id="chk-accept-privacy" class="custom-terms-checkbox" style="cursor: pointer;">
             <label for="chk-accept-privacy" id="lbl-chk-accept-privacy" style="cursor: pointer; margin: 0; line-height: 1.35; font-size: 11.5px; font-weight: 600; color: #ffffff;">
                 I have read, understood, and accept the Terms &amp; Privacy Policy.
@@ -1270,9 +1270,34 @@
         }, 300);
     };
 
+    window.togglePrivacyCheckboxFromBox = function(e) {
+        if (e.target.id === 'chk-accept-privacy' || e.target.id === 'lbl-chk-accept-privacy' || e.target.closest('#lbl-chk-accept-privacy')) {
+            return;
+        }
+        const chk = document.getElementById('chk-accept-privacy');
+        if (chk) {
+            chk.checked = !chk.checked;
+            const box = document.querySelector('.privacy-acceptance-box');
+            if (box && chk.checked) {
+                box.classList.remove('shake-attention');
+            }
+        }
+    };
+
     window.acceptPolicyAndProceed = async function() {
         const chk = document.getElementById('chk-accept-privacy');
-        if (chk) chk.checked = true;
+        if (!chk || !chk.checked) {
+            if (typeof showToast === 'function') {
+                showToast('Please check the policy first before proceeding.');
+            }
+            const box = document.querySelector('.privacy-acceptance-box');
+            if (box) {
+                box.classList.remove('shake-attention');
+                void box.offsetWidth;
+                box.classList.add('shake-attention');
+            }
+            return;
+        }
 
         const regChk = document.getElementById('reg-privacy-checkbox');
         if (regChk) regChk.checked = true;
