@@ -47,21 +47,20 @@ $backRoute = 'itinerary';
 </div>
 
 <!-- Check-in Verification Modal (GPS and Photo Proof) -->
-<!-- Check-in Verification Modal (GPS and Photo Proof) -->
 <div id="checkin-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:99999; justify-content:center; align-items:center;">
-    <div style="background:linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1.5px solid rgba(255, 255, 255, 0.35); border-radius:24px; padding:28px 24px; width:90%; max-width:380px; box-shadow:none; text-align:center;">
-        <i class="fa-solid fa-camera" style="font-size:32px; color:#00f2fe; margin-bottom:10px; display:block;"></i>
+    <div style="background:linear-gradient(135deg, #1e3a8a 0%, #74a3cf 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none; border-radius:24px; padding:28px 24px; width:90%; max-width:380px; box-shadow:none; text-align:center;">
+        <i class="fa-solid fa-camera" style="font-size:32px; color:#ffffff; margin-bottom:10px; display:block;"></i>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Claim Your Reward</h3>
-        <p style="font-size:13px; color:#ffffff; opacity:0.95; margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination to verify your visit and earn <strong style="color:#00f2fe; font-weight:800;">+50 XP</strong> & <strong style="color:#00f2fe; font-weight:800;">+50 Points</strong>.</p>
+        <p style="font-size:13px; color:#ffffff; opacity:0.95; margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination to verify your visit and earn <strong style="color:#ffffff; font-weight:800;">+50 XP</strong> & <strong style="color:#ffffff; font-weight:800;">+50 Points</strong>.</p>
 
         <input type="hidden" id="checkin-item-id">
         
         <!-- Step 1: Photo Proof -->
         <div style="margin-bottom: 16px; text-align: left;">
-            <label style="font-size:11px; font-weight:800; color:#00f2fe; margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Step 1: Photo Proof (Required)</label>
+            <label style="font-size:11px; font-weight:800; color:#ffffff; margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Step 1: Photo Proof (Required)</label>
             <input type="file" id="checkin-proof-image" accept="image/*" style="display:none;" onchange="window.handlePhotoSelected(this)">
-            <button type="button" onclick="window.openCheckinImagePickerModal()" id="btn-select-photo" style="width:100%; padding:14px; background:rgba(255,255,255,0.12); border:1.5px dashed rgba(255,255,255,0.4); border-radius:14px; color:#ffffff; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:all 0.2s ease;">
-                <i class="fa-solid fa-camera" style="font-size:16px; color:#00f2fe;"></i> <span id="photo-status-text">Take or Choose Photo</span>
+            <button type="button" onclick="window.openCheckinImagePickerModal()" id="btn-select-photo" style="width:100%; padding:14px; background:rgba(255,255,255,0.15); border:none; border-radius:14px; color:#ffffff; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:all 0.2s ease;">
+                <i class="fa-solid fa-camera" style="font-size:16px; color:#ffffff;"></i> <span id="photo-status-text">Take or Choose Photo</span>
             </button>
             
             <!-- Picture Preview Container (Displays actual picture preview instead of filename string) -->
@@ -83,13 +82,13 @@ $backRoute = 'itinerary';
 
         <!-- Step 2: Location Verification -->
         <div style="margin-bottom: 12px; text-align: left;">
-            <label style="font-size:11px; font-weight:800; color:#00f2fe; margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Step 2: Location Check-in</label>
-            <button class="btn-primary" id="btn-verify-gps" style="width:100%; padding:14px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:1px solid #ffffff; color:#ffffff; border-radius:14px; box-shadow:none; cursor:pointer;" onclick="verifyGpsCheckIn()">
+            <label style="font-size:11px; font-weight:800; color:#ffffff; margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Step 2: Location Check-in</label>
+            <button class="btn-primary" id="btn-verify-gps" style="width:100%; padding:14px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #1e3a8a 0%, #74a3cf 100%); border:none; color:#ffffff; border-radius:14px; box-shadow:none; cursor:pointer;" onclick="verifyGpsCheckIn()">
                 <i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Submit
             </button>
         </div>
 
-        <button style="width:100%; padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,0.25); background:rgba(255,255,255,0.12); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;" onclick="closeCheckinModal()">Cancel</button>
+        <button style="width:100%; padding:12px; border-radius:14px; border:none; background:rgba(255,255,255,0.15); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;" onclick="closeCheckinModal()">Cancel</button>
     </div>
 </div>
 
@@ -138,7 +137,7 @@ $backRoute = 'itinerary';
 
 <!-- Delete Trip Confirmation Modal -->
 <div id="delete-trip-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:999999; justify-content:center; align-items:center;">
-    <div style="background:#6196c8; border:none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:none; text-align:center;">
+    <div style="background:#74a3cf; border:none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:none; text-align:center;">
         <i class="fa-solid fa-trash-can" style="font-size:32px; color:#ffffff; margin-bottom:10px; display:block;"></i>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Delete Saved Trip?</h3>
         <p id="delete-trip-title-text" style="font-size:13px; color:rgba(255,255,255,0.95); margin-bottom:22px; line-height:1.5;">Are you sure you want to delete this trip? All saved itinerary items will be removed.</p>
@@ -220,15 +219,15 @@ $backRoute = 'itinerary';
         if (!list) return;
 
         const emptyStateHtml = `
-            <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px; background: rgba(30, 75, 135, 0.58); border: 1.5px solid rgba(255, 255, 255, 0.28); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 24px; padding: 32px 24px; text-align: center; box-shadow: none;">
-                <div style="width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; border: 2px solid #ffffff; box-shadow: none;">
-                    <i class="fa-solid fa-compass-drafting" style="font-size: 32px; color: #ffffff;"></i>
+            <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px;">
+                <div class="empty-state-icon">
+                    <i class="fa-solid fa-route"></i>
                 </div>
                 <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff; text-wrap: balance;">No Saved Trips Yet</h3>
-                <p style="margin: 0; font-size: 13px; color: #ffffff; opacity: 0.95; line-height: 1.45; max-width: 260px; text-wrap: pretty;">
+                <p style="margin: 0; font-size: 13px; color: rgba(148, 163, 184, 0.9); line-height: 1.45; max-width: 260px; text-wrap: pretty;">
                     Your adventure starts here! Explore La Union tourist spots and plan your personalized itinerary.
                 </p>
-                <button type="button" class="btn-cta-accent-10" onclick="if(typeof window.navigateTo==='function') window.navigateTo('itinerary');" style="margin-top: 10px; padding: 12px 24px; border-radius: 100px; font-size: 14px; font-weight: 800; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border: 1.5px solid #ffffff; color: #ffffff; display: flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: none;">
+                <button type="button" class="btn-open-map" onclick="if(typeof window.navigateTo==='function') window.navigateTo('itinerary');">
                     <i class="fa-solid fa-plus"></i> Create New Trip
                 </button>
             </div>
@@ -271,7 +270,7 @@ $backRoute = 'itinerary';
                 </div>
                 
                 <!-- Rich Glassmorphic Front Card Content (Overlays z-index 2) -->
-                <div class="trip-swipe-content" style="position:relative; z-index:2; background: #6196c8; border: none; outline: none; border-radius: 24px; padding: 22px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease; box-shadow: none;">
+                <div class="trip-swipe-content" style="position:relative; z-index:2; background: #74a3cf; border: none; outline: none; border-radius: 24px; padding: 22px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease; box-shadow: none;">
                     <h3 style="margin: 0 0 6px 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">${trip.title}</h3>
                     <p style="font-size: 13px; color: #ffffff; opacity: 0.95; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                         <span><i class="fa-regular fa-calendar" style="color: #ffffff; margin-right: 4px;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}</span> 

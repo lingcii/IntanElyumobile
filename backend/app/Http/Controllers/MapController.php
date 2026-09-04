@@ -331,4 +331,192 @@ class MapController extends Controller
             'fuel_price'    => (float) $fuelPrice
         ]);
     }
+
+    /**
+     * GET /api/public/amenities
+     * Returns nearby real-world amenities (ATMs, convenience stores, pharmacies, gas stations, clinics, etc.)
+     * around a given coordinate with Haversine distance calculation and caching.
+     */
+    public function publicAmenities(Request $request): JsonResponse
+    {
+        $lat = filter_var($request->query('lat'), FILTER_VALIDATE_FLOAT);
+        $lng = filter_var($request->query('lng'), FILTER_VALIDATE_FLOAT);
+
+        if ($lat === false || $lng === false) {
+            return response()->json([
+                'success'   => false,
+                'message'   => 'Valid lat and lng query parameters are required.',
+                'amenities' => []
+            ], 400);
+        }
+
+        $radius = (int) ($request->query('radius', 3500));
+        if ($radius < 500) $radius = 500;
+        if ($radius > 8000) $radius = 8000;
+
+        $roundedLat = round($lat, 3);
+        $roundedLng = round($lng, 3);
+        $cacheKey = "map:public:amenities:v2:{$roundedLat}:{$roundedLng}:{$radius}";
+
+        $amenities = \Illuminate\Support\Facades\Cache::remember($cacheKey, 43200, function () use ($lat, $lng, $radius) {
+            $results = [];
+            $earthRadius = 6371000;
+
+            // 1. Primary: High-speed local verified dataset (1,450+ real amenities across La Union)
+            $localFile = storage_path('app/la_union_amenities.json');
+            if (!file_exists($localFile)) {
+                $localFile = base_path('../frontend/Mobile/src/assets/la_union_amenities.json');
+            }
+
+            if (file_exists($localFile)) {
+                try {
+                    $allLocal = json_decode(file_get_contents($localFile), true) ?: [];
+                    foreach ($allLocal as $item) {
+                        $itemLat = (float) ($item['lat'] ?? 0);
+                        $itemLng = (float) ($item['lng'] ?? 0);
+                        if (!$itemLat || !$itemLng) continue;
+
+                        $dLat = deg2rad($itemLat - $lat);
+                        $dLon = deg2rad($itemLng - $lng);
+                        $val = sin($dLat / 2) * sin($dLat / 2) +
+                               cos(deg2rad($lat)) * cos(deg2rad($itemLat)) *
+                               sin($dLon / 2) * sin($dLon / 2);
+                        $dist = round($earthRadius * 2 * atan2(sqrt($val), sqrt(1 - $val)));
+
+                        if ($dist <= $radius) {
+                            $item['distance_meters'] = (int) $dist;
+                            $results[] = $item;
+                        }
+                    }
+                } catch (\Throwable $e) {}
+            }
+
+            // 2. Secondary fallback: Overpass API query if fewer than 3 amenities found locally
+            if (count($results) < 3) {
+                try {
+                    $query = '[out:json][timeout:8];(' .
+                        'nwr["amenity"~"^(atm|bank|pharmacy|fuel|hospital|clinic|police|post_office)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
+                        'nwr["shop"~"^(convenience|supermarket|chemist)$"](around:' . $radius . ',' . $lat . ',' . $lng . ');' .
+                        ');out center 35;';
+
+                    $mirrors = [
+                        'https://overpass.kumi.systems/api/interpreter',
+                        'https://overpass-api.de/api/interpreter'
+                    ];
+
+                    foreach ($mirrors as $mirrorUrl) {
+                        $ch = curl_init($mirrorUrl);
+                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                        curl_setopt($ch, CURLOPT_POST, true);
+                        curl_setopt($ch, CURLOPT_POSTFIELDS, 'data=' . urlencode($query));
+                        curl_setopt($ch, CURLOPT_USERAGENT, 'IntanElyuTourism/1.0');
+                        curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+                        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+                        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                        $res = curl_exec($ch);
+                        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                        curl_close($ch);
+
+                        if ($httpCode === 200 && $res) {
+                            $data = json_decode($res, true);
+                            $elements = $data['elements'] ?? [];
+
+                            foreach ($elements as $el) {
+                                $eLat = $el['lat'] ?? ($el['center']['lat'] ?? null);
+                                $eLng = $el['lon'] ?? ($el['center']['lon'] ?? null);
+                                if (!$eLat || !$eLng) continue;
+
+                                $tags = $el['tags'] ?? [];
+                                $rawType = strtolower($tags['amenity'] ?? ($tags['shop'] ?? 'amenity'));
+
+                                $type = 'other';
+                                $label = 'Facility';
+                                $icon = 'fa-solid fa-location-dot';
+                                $color = '#64748b';
+
+                                if ($rawType === 'atm') {
+                                    $type = 'atm';
+                                    $label = 'ATM';
+                                    $icon = 'fa-solid fa-money-bill-wave';
+                                    $color = '#10b981';
+                                } elseif ($rawType === 'bank') {
+                                    $type = 'bank';
+                                    $label = 'Bank';
+                                    $icon = 'fa-solid fa-building-columns';
+                                    $color = '#059669';
+                                } elseif (in_array($rawType, ['convenience', 'supermarket'])) {
+                                    $type = 'convenience';
+                                    $label = $rawType === 'supermarket' ? 'Supermarket' : 'Convenience Store';
+                                    $icon = 'fa-solid fa-store';
+                                    $color = '#f59e0b';
+                                } elseif (in_array($rawType, ['pharmacy', 'chemist'])) {
+                                    $type = 'pharmacy';
+                                    $label = 'Pharmacy';
+                                    $icon = 'fa-solid fa-prescription-bottle-medical';
+                                    $color = '#ec4899';
+                                } elseif ($rawType === 'fuel') {
+                                    $type = 'fuel';
+                                    $label = 'Gas Station';
+                                    $icon = 'fa-solid fa-gas-pump';
+                                    $color = '#f97316';
+                                } elseif (in_array($rawType, ['hospital', 'clinic'])) {
+                                    $type = 'medical';
+                                    $label = $rawType === 'hospital' ? 'Hospital' : 'Clinic';
+                                    $icon = 'fa-solid fa-hospital';
+                                    $color = '#06b6d4';
+                                } elseif ($rawType === 'police') {
+                                    $type = 'police';
+                                    $label = 'Police Station';
+                                    $icon = 'fa-solid fa-shield-halved';
+                                    $color = '#3b82f6';
+                                }
+
+                                $name = $tags['name'] ?? ($tags['operator'] ?? ($tags['brand'] ?? $label));
+
+                                $dLat = deg2rad($eLat - $lat);
+                                $dLon = deg2rad($eLng - $lng);
+                                $val = sin($dLat / 2) * sin($dLat / 2) +
+                                       cos(deg2rad($lat)) * cos(deg2rad($eLat)) *
+                                       sin($dLon / 2) * sin($dLon / 2);
+                                $dist = round($earthRadius * 2 * atan2(sqrt($val), sqrt(1 - $val)));
+
+                                $results[] = [
+                                    'id'              => ($el['type'] ?? 'node') . '_' . ($el['id'] ?? uniqid()),
+                                    'name'            => $name,
+                                    'type'            => $type,
+                                    'raw_type'        => $rawType,
+                                    'label'           => $label,
+                                    'icon'            => $icon,
+                                    'color'           => $color,
+                                    'lat'             => (float) $eLat,
+                                    'lng'             => (float) $eLng,
+                                    'distance_meters' => (int) $dist,
+                                ];
+                            }
+                            break;
+                        }
+                    }
+                } catch (\Throwable $e) {}
+            }
+
+            // Deduplicate by name + type + rounded coords
+            $unique = [];
+            $seenKeys = [];
+            foreach ($results as $item) {
+                $dedupKey = strtolower($item['name']) . '_' . round($item['lat'], 4) . '_' . round($item['lng'], 4);
+                if (isset($seenKeys[$dedupKey])) continue;
+                $seenKeys[$dedupKey] = true;
+                $unique[] = $item;
+            }
+
+            usort($unique, fn($a, $b) => $a['distance_meters'] <=> $b['distance_meters']);
+            return array_slice($unique, 0, 30);
+        });
+
+        return response()->json([
+            'success'   => true,
+            'count'     => count($amenities),
+            'amenities' => $amenities
+        ]);
+    }
 }

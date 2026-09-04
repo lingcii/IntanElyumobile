@@ -387,6 +387,20 @@ if (is_dir($imgDir)) {
                                 this requirement; it does not offer, book, or arrange tour guide services directly.</p>
                         </div>
 
+                        <!-- Nearby Amenities Box -->
+                        <div id="sheet-amenities-notice" style="display:none; background:rgba(30,58,138,0.38); border-radius:16px; padding:10px 12px; margin-bottom:10px; align-items:center; justify-content:space-between; border:none !important; outline:none !important;">
+                            <div style="display:flex; align-items:center; gap:9px;">
+                                <span style="width:28px; height:28px; border-radius:50%; background:rgba(56,189,248,0.18); display:flex; align-items:center; justify-content:center; color:#38bdf8; font-size:12px; flex-shrink:0;">
+                                    <i class="fa-solid fa-store"></i>
+                                </span>
+                                <div>
+                                    <div style="font-size:12px; font-weight:800; color:#ffffff;">Nearby Amenities on Map</div>
+                                    <div style="font-size:10px; color:rgba(255,255,255,0.7);">ATMs, stores, gas & pharmacies shown around site</div>
+                                </div>
+                            </div>
+                            <span id="sheet-amenities-count-badge" style="font-size:10px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.18); padding:3px 8px; border-radius:20px; white-space:nowrap;">--</span>
+                        </div>
+
                         <!-- Service Center & Assistance -->
                         <div class="dest-support-box">
                             <div class="dest-support-header">
@@ -1168,6 +1182,11 @@ if (is_dir($imgDir)) {
                                     e.stopPropagation();
                                     if (window.activePopup) window.activePopup.remove();
 
+                                    // Display nearby non-clickable amenities on map around this spot
+                                    if (window.loadNearbyAmenities) {
+                                        window.loadNearbyAmenities(loc);
+                                    }
+
                                     const popupContent = document.createElement('div');
                                     popupContent.style.cssText = "font-weight:700; font-size:12.5px; color:#ffffff; padding: 4px 8px; cursor: pointer; display: flex; align-items: center; gap: 6px;";
                                     // Classification removed per user request: clean name and chevron only
@@ -1215,6 +1234,105 @@ if (is_dir($imgDir)) {
                 }
                 window.mapMarkers = Array.from(window.mountedMarkersMap.values());
             });
+        };
+
+        // ── NEARBY AMENITIES LOGIC (ATMs, convenience stores, pharmacies, gas stations, etc.) ──
+        // Per user requirements: Amenities are strictly non-clickable (pointer-events: none)
+        window.activeAmenityMarkers = [];
+        window.currentAmenitySpotId = null;
+
+        window.clearAmenityMarkers = function () {
+            if (window.activeAmenityMarkers && window.activeAmenityMarkers.length > 0) {
+                window.activeAmenityMarkers.forEach(m => {
+                    try { m.remove(); } catch (e) {}
+                });
+                window.activeAmenityMarkers = [];
+            }
+            window.currentAmenitySpotId = null;
+            const noticeEl = document.getElementById('sheet-amenities-notice');
+            if (noticeEl) noticeEl.style.display = 'none';
+        };
+
+        window.loadNearbyAmenities = async function (spot) {
+            if (!spot || !window.mapInstance) return;
+
+            const lat = parseFloat(spot.lat || spot.latitude);
+            const lng = parseFloat(spot.lng || spot.longitude);
+            if (isNaN(lat) || isNaN(lng)) return;
+
+            const spotIdentifier = String(spot.id || `${lat}_${lng}`);
+            if (window.currentAmenitySpotId === spotIdentifier && window.activeAmenityMarkers.length > 0) {
+                return; // Already active for this spot
+            }
+
+            window.clearAmenityMarkers();
+            window.currentAmenitySpotId = spotIdentifier;
+
+            const _backendBase = window.backendUrl || '';
+
+            try {
+                const res = await fetch(`${_backendBase}/api/public/amenities?lat=${lat}&lng=${lng}&radius=3500`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                const amenities = (data && data.amenities) ? data.amenities : [];
+
+                // Check if user moved away while fetching
+                if (window.currentAmenitySpotId !== spotIdentifier) return;
+
+                amenities.forEach((am, idx) => {
+                    const amLat = parseFloat(am.lat);
+                    const amLng = parseFloat(am.lng);
+                    if (isNaN(amLat) || isNaN(amLng)) return;
+
+                    // Container is strictly non-clickable per user requirement
+                    const container = document.createElement('div');
+                    container.className = 'elyu-amenity-marker';
+                    container.style.cssText = `pointer-events:none !important; user-select:none; cursor:default; display:flex; flex-direction:column; align-items:center; z-index:12; animation-delay:${Math.min(idx * 0.025, 0.4)}s;`;
+                    container.setAttribute('aria-hidden', 'true');
+
+                    const bubble = document.createElement('div');
+                    bubble.className = 'amenity-marker-bubble';
+                    bubble.style.cssText = 'pointer-events:none !important;';
+
+                    const iconCircle = document.createElement('div');
+                    iconCircle.className = 'amenity-marker-icon-circle';
+                    iconCircle.style.backgroundColor = am.color || '#38bdf8';
+                    iconCircle.innerHTML = `<i class="${am.icon || 'fa-solid fa-location-dot'}"></i>`;
+
+                    const label = document.createElement('span');
+                    label.className = 'amenity-marker-label';
+                    label.textContent = am.name || am.label || 'Amenity';
+
+                    bubble.appendChild(iconCircle);
+                    bubble.appendChild(label);
+                    container.appendChild(bubble);
+
+                    const tip = document.createElement('div');
+                    tip.className = 'amenity-marker-tip';
+                    container.appendChild(tip);
+
+                    const marker = new maplibregl.Marker({
+                        element: container,
+                        anchor: 'bottom'
+                    })
+                        .setLngLat([amLng, amLat])
+                        .addTo(window.mapInstance);
+
+                    window.activeAmenityMarkers.push(marker);
+                });
+
+                // Update sheet notice badge if open
+                const noticeEl = document.getElementById('sheet-amenities-notice');
+                const countBadge = document.getElementById('sheet-amenities-count-badge');
+                if (noticeEl && amenities.length > 0) {
+                    noticeEl.style.display = 'flex';
+                    if (countBadge) countBadge.textContent = `${amenities.length} Nearby`;
+                }
+            } catch (err) {
+                console.warn('Error loading nearby amenities:', err);
+            }
         };
 
         function matchesCategoryFilter(loc, targetCat) {
@@ -2630,6 +2748,11 @@ if (is_dir($imgDir)) {
                 window.activePopup.remove();
             }
 
+            // Display nearby non-clickable amenities on map for this destination
+            if (window.loadNearbyAmenities) {
+                window.loadNearbyAmenities(locationData);
+            }
+
             // Smoothly zoom out when viewing tourist site details to show broader context above bottom sheet
             const destLat = parseFloat(locationData.lat || locationData.latitude);
             const destLng = parseFloat(locationData.lng || locationData.longitude);
@@ -3058,6 +3181,9 @@ if (is_dir($imgDir)) {
             if (window.sheetSliderTimer) {
                 clearInterval(window.sheetSliderTimer);
                 window.sheetSliderTimer = null;
+            }
+            if (window.clearAmenityMarkers) {
+                window.clearAmenityMarkers();
             }
             const placeSheet = document.getElementById('place-details-sheet');
             if (placeSheet.closeSheet) placeSheet.closeSheet();

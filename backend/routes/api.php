@@ -1028,7 +1028,9 @@ Route::prefix('public')->group(function () {
     Route::get('/feedback', [FeedbackController::class, 'index']);
     Route::get('/vouchers', [\App\Http\Controllers\VoucherController::class, 'index']);
     Route::get('/weather', [WeatherController::class, 'getWeather']);
+    Route::get('/amenities', [MapController::class, 'publicAmenities']);
 });
+Route::get('/amenities', [MapController::class, 'publicAmenities']);
 Route::get('/fares', [MapController::class, 'publicFares']);
 Route::get('/fare-data', [MapController::class, 'publicFares']);
 Route::get('/vehicles', [VehicleController::class, 'index']);

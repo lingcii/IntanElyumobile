@@ -13,10 +13,10 @@
     padding-bottom: 110px !important;
     box-sizing: border-box;
     background:
-        radial-gradient(ellipse at 85% 5%, rgba(0, 242, 254, 0.35) 0%, transparent 55%),
-        radial-gradient(ellipse at 15% 45%, rgba(56, 189, 248, 0.3) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 80%, rgba(63, 125, 183, 0.4) 0%, transparent 60%),
-        linear-gradient(180deg, #1e3a8a 0%, #3f7db7 30%, #0284c7 65%, #06b6d4 90%, #00f2fe 100%) !important;
+        radial-gradient(ellipse at 85% 5%, rgba(116, 163, 207, 0.35) 0%, transparent 55%),
+        radial-gradient(ellipse at 15% 45%, rgba(116, 163, 207, 0.3) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(30, 58, 138, 0.4) 0%, transparent 60%),
+        linear-gradient(180deg, #1e3a8a 0%, #3a6a9e 40%, #74a3cf 100%) !important;
     background-attachment: fixed !important;
     color: #ffffff !important;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
@@ -104,7 +104,7 @@ body[data-view="saved_trips"] .mobile-header .header-icon {
 .trip-swipe-content {
     position: relative;
     z-index: 2;
-    background: #6196c8 !important;
+    background: #74a3cf !important;
     border: none !important;
     outline: none !important;
     border-radius: 24px;
@@ -167,12 +167,10 @@ body[data-view="saved_trips"] .mobile-header .header-icon {
     background: rgba(255, 255, 255, 0.14) !important;
 }
 
-/* Empty State Card */
+/* Empty State Card (Matches Itinerary Empty State) */
 .saved-trips-page-container .empty-state-card {
-    background: rgba(30, 75, 135, 0.58) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+    background: var(--ratio-30-secondary, #141C2E) !important;
+    border: 1px dashed rgba(255, 255, 255, 0.12) !important;
     border-radius: 24px !important;
     padding: 32px 24px !important;
     text-align: center !important;
@@ -180,7 +178,49 @@ body[data-view="saved_trips"] .mobile-header .header-icon {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+}
+
+.saved-trips-page-container .empty-state-icon {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: rgba(56, 189, 248, 0.14) !important;
+    border: 1px solid rgba(56, 189, 248, 0.35) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #38bdf8 !important;
+    -webkit-text-fill-color: #38bdf8 !important;
+    font-size: 30px;
+    margin: 0 auto 12px auto;
+    box-shadow: 0 0 24px rgba(56, 189, 248, 0.3);
+}
+
+.saved-trips-page-container .empty-state-icon i {
+    color: #38bdf8 !important;
+    -webkit-text-fill-color: #38bdf8 !important;
+    font-size: 28px !important;
+}
+
+.saved-trips-page-container .btn-open-map {
+    background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 13px 30px !important;
+    border-radius: 100px !important;
+    font-weight: 800 !important;
+    font-size: 14px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    box-shadow: none !important;
+    cursor: pointer !important;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.saved-trips-page-container .btn-open-map:active {
+    transform: scale(0.95) !important;
 }
 
 /* Buttons Micro-Interactions */
