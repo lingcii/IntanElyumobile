@@ -532,7 +532,8 @@
 }
 .auth-2fa-card {
     background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 50%, #74a3cf 100%) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 26px;
     padding: 30px 24px;
     max-width: 380px;
@@ -551,7 +552,8 @@
     top: 14px;
     right: 14px;
     background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    border: none !important;
+    outline: none !important;
     color: #ffffff;
     width: 32px;
     height: 32px;
@@ -572,7 +574,8 @@
     height: 60px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.22);
-    border: 2px solid rgba(255, 255, 255, 0.6);
+    border: none !important;
+    outline: none !important;
     display: flex;
     align-items: center;
     justify-content: center;

@@ -947,10 +947,10 @@ body[data-view="reset-password"] {
 }
 
 /* Privacy Modal Overlay Card */
-/* Privacy Modal Overlay Card */
 .privacy-modal-card {
     background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 50%, #74a3cf 100%) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 26px;
     padding: 24px 20px;
     max-width: 440px;
@@ -978,7 +978,8 @@ body[data-view="reset-password"] {
     height: 32px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.2) !important;
-    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    border: none !important;
+    outline: none !important;
     color: #ffffff !important;
     font-size: 14px;
     display: flex;
@@ -1007,7 +1008,8 @@ body[data-view="reset-password"] {
     height: 44px;
     border-radius: 14px;
     background: rgba(255, 255, 255, 0.22) !important;
-    border: 2px solid rgba(255, 255, 255, 0.6) !important;
+    border: none !important;
+    outline: none !important;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1031,8 +1033,9 @@ body[data-view="reset-password"] {
     color: rgba(255, 255, 255, 0.95) !important;
     font-weight: 700;
     background: rgba(255, 255, 255, 0.2) !important;
-    border: 1px solid rgba(255, 255, 255, 0.35) !important;
-    padding: 2px 8px;
+    border: none !important;
+    outline: none !important;
+    padding: 3px 10px;
     border-radius: 6px;
     display: inline-block;
     margin-top: 3px;
@@ -1046,7 +1049,8 @@ body[data-view="reset-password"] {
     padding: 12px 14px;
     margin-bottom: 14px;
     background: rgba(15, 23, 42, 0.28) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 18px;
     display: flex;
     flex-direction: column;
@@ -1069,9 +1073,10 @@ body[data-view="reset-password"] {
     align-items: flex-start;
     gap: 10px;
     background: rgba(255, 255, 255, 0.14) !important;
-    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 12px;
-    padding: 10px 12px;
+    padding: 12px 14px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
@@ -1092,16 +1097,18 @@ body[data-view="reset-password"] {
 
 .policy-item-card {
     background: rgba(255, 255, 255, 0.15) !important;
-    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 14px;
-    padding: 12px 14px;
+    padding: 14px 16px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    transition: background 0.2s ease, border-color 0.2s ease;
+    transition: background 0.2s ease;
 }
 
 .policy-item-card:hover {
     background: rgba(255, 255, 255, 0.22) !important;
-    border-color: rgba(255, 255, 255, 0.4) !important;
+    border: none !important;
+    outline: none !important;
 }
 
 .policy-item-header {
@@ -1116,7 +1123,8 @@ body[data-view="reset-password"] {
     height: 26px;
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.25) !important;
-    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    border: none !important;
+    outline: none !important;
     color: #ffffff !important;
     display: flex;
     align-items: center;
@@ -1141,9 +1149,10 @@ body[data-view="reset-password"] {
 /* Privacy Acceptance Confirmation Box */
 .privacy-acceptance-box {
     background: rgba(255, 255, 255, 0.16) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.32) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 14px;
-    padding: 10px 12px;
+    padding: 12px 14px;
     margin-bottom: 14px;
     display: flex;
     align-items: center;
@@ -1160,6 +1169,7 @@ body[data-view="reset-password"] {
 .privacy-acceptance-box .custom-terms-checkbox {
     border: 2px solid rgba(255, 255, 255, 0.9) !important;
     background: rgba(255, 255, 255, 0.15) !important;
+    outline: none !important;
 }
 
 .privacy-acceptance-box .custom-terms-checkbox:hover {
@@ -1189,7 +1199,8 @@ body[data-view="reset-password"] {
 .btn-privacy-decline {
     flex: 1;
     background: rgba(255, 255, 255, 0.2) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+    border: none !important;
+    outline: none !important;
     color: #ffffff !important;
     font-size: 13.5px;
     font-weight: 700;
@@ -1209,6 +1220,7 @@ body[data-view="reset-password"] {
     flex: 1.8;
     background: #ffffff !important;
     border: none !important;
+    outline: none !important;
     color: #1e3a8a !important;
     font-size: 13.5px;
     font-weight: 800;
