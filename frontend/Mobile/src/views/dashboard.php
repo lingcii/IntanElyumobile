@@ -244,7 +244,7 @@ if (is_dir($imgDir)) {
     <div class="dash-section stagger-2">
         <div class="section-title">
             <h3>Trending Sites</h3>
-            <a href="javascript:void(0);" onclick="navigateTo('trending')">See All</a>
+            <a href="javascript:void(0);" onclick="localStorage.setItem('intan_elyu_explore_mode', 'trending'); navigateTo('trending');">See All</a>
         </div>
         <div class="favorites-row is-empty" id="trending-container">
             <div class="dash-loading-state">
@@ -252,6 +252,31 @@ if (is_dir($imgDir)) {
                 <span>Loading trending sites...</span>
             </div>
         </div>
+    </div>
+
+    <!-- All Tourist Sites -->
+    <div class="dash-section stagger-2" id="all-spots-section" style="margin-top: 24px;">
+        <div class="section-title" style="margin-bottom: 8px;">
+            <div>
+                <h3 style="display: flex; align-items: center; gap: 8px;">
+                    <span>All Tourist Sites</span>
+                    <span id="all-spots-count-badge" class="dash-count-pill">0 Spots</span>
+                </h3>
+                <p class="section-subtitle" id="all-spots-subtitle">Browse verified attractions, heritage sites & hidden gems in La Union</p>
+            </div>
+            <a href="javascript:void(0);" onclick="localStorage.setItem('intan_elyu_explore_mode', 'all'); navigateTo('trending');">Directory</a>
+        </div>
+        <div id="all-spots-container">
+            <div class="dash-loading-state">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>Loading all tourist destinations...</span>
+            </div>
+        </div>
+        <button type="button" id="btn-view-more-all-spots" onclick="window.toggleAllSpotsMore()"
+            style="display:none; width:100%; margin-top:14px; padding:12px; border-radius:14px; border:none; outline:none; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; align-items:center; justify-content:center; gap:8px; box-shadow:0 6px 16px rgba(10, 25, 60, 0.2); transition:all 0.2s;">
+            <i class="fa-solid fa-chevron-down" id="all-spots-chevron" style="font-size:11px; transition:transform 0.3s;"></i>
+            <span id="all-spots-more-text">View More Destinations</span>
+        </button>
     </div>
 
 
@@ -426,6 +451,7 @@ if (is_dir($imgDir)) {
             return false;
         };
 
+        window.matchesCategory = matchesCategory;
         window.currentDashCategory = cat;
 
         const renderEmpty = (container, emptyMsg) => {
@@ -449,11 +475,15 @@ if (is_dir($imgDir)) {
             const img = window.getDestImage(dest, 600);
             const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
             const encodedDest = encodeURIComponent(JSON.stringify(dest));
+            const muni = dest.municipality || dest.location || '';
             return `
                 <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                     ${badgeHtml}
                     <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
-                    <div class="fav-card-overlay"><span class="fav-card-name">${dest.name}</span></div>
+                    <div class="fav-card-overlay">
+                        <span class="fav-card-name">${dest.name}</span>
+                        ${muni ? `<span style="display:block; font-size:10px; color:#38bdf8; margin-top:2px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-location-dot" style="margin-right:3px;"></i>${muni}</span>` : ''}
+                    </div>
                     <i class="fa-solid fa-fire fav-heart" style="color: #ff9500; font-size: 14px;"></i>
                 </div>
             `;
@@ -562,6 +592,169 @@ if (is_dir($imgDir)) {
                 }
             }
         }
+
+        // 4. Filter All Tourist Sites Section
+        if (window.allTouristSpots && typeof window.renderAllTouristSpots === 'function') {
+            let allList = [];
+            if (cat === 'All') {
+                allList = window.allTouristSpots;
+            } else {
+                allList = window.allTouristSpots.filter(d => matchesCategory(d.category, d.name, d.municipality || d.location, cat));
+            }
+            window.renderAllTouristSpots(allList, cat);
+        }
+    };
+
+    window.buildAllSpotCard = function (dest) {
+        const img = window.getDestImage(dest, 400);
+        const badgeHtml = dest.classification_status ? `<div class="all-spot-badge" style="background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')};">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
+        const muni = dest.municipality || dest.location || 'La Union';
+        const rating = dest.rating ? parseFloat(dest.rating).toFixed(1) : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating).toFixed(1) : 'New');
+        const fee = (dest.entrance_fee && parseFloat(dest.entrance_fee) > 0) ? `₱${parseFloat(dest.entrance_fee).toFixed(0)}` : 'Free';
+        const cat = dest.category || 'Spot';
+        const encodedDest = encodeURIComponent(JSON.stringify(dest));
+
+        return `
+            <div class="all-spot-card" onclick="window.viewDestinationOnMap('${encodedDest}')">
+                <div class="all-spot-img-wrap">
+                    ${badgeHtml}
+                    <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400';">
+                </div>
+                <div class="all-spot-content">
+                    <div>
+                        <h4 class="all-spot-title" title="${(dest.name || '').replace(/"/g, '&quot;')}">${dest.name}</h4>
+                        <div class="all-spot-muni"><i class="fa-solid fa-location-dot" style="font-size:9px;"></i> ${muni}</div>
+                    </div>
+                    <div class="all-spot-tags">
+                        <span class="all-spot-pill">${cat}</span>
+                        <span class="all-spot-rating"><i class="fa-solid fa-star" style="font-size:9px;"></i> ${rating}</span>
+                        <span class="all-spot-fee">${fee}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    };
+
+    window.allSpotsExpanded = false;
+    window.renderAllTouristSpots = function (spots, activeCat = 'All') {
+        const container = document.getElementById('all-spots-container');
+        const countBadge = document.getElementById('all-spots-count-badge');
+        const subtitle = document.getElementById('all-spots-subtitle');
+        const moreBtn = document.getElementById('btn-view-more-all-spots');
+        if (!container) return;
+
+        if (!spots || spots.length === 0) {
+            if (countBadge) countBadge.textContent = '0 Spots';
+            if (moreBtn) moreBtn.style.display = 'none';
+            container.innerHTML = `
+                <div class="dash-empty-state" style="margin-top: 6px !important;">
+                    <div class="dash-empty-icon-wrap">
+                        <i class="fa-solid fa-compass"></i>
+                    </div>
+                    <div class="dash-empty-title">No Spots in ${activeCat}</div>
+                    <div class="dash-empty-desc">No tourist sites found in this category right now. Tap All to view all destinations.</div>
+                </div>
+            `;
+            return;
+        }
+
+        if (countBadge) {
+            countBadge.textContent = `${spots.length} Spot${spots.length === 1 ? '' : 's'}`;
+        }
+
+        if (subtitle) {
+            if (activeCat === 'All') {
+                subtitle.textContent = `Browse all ${spots.length} verified attractions & hidden gems across La Union`;
+            } else {
+                subtitle.textContent = `Showing ${spots.length} destination${spots.length === 1 ? '' : 's'} in ${activeCat}`;
+            }
+        }
+
+        const INITIAL_LIMIT = 6;
+        const initialSpots = spots.slice(0, INITIAL_LIMIT);
+        const extraSpots = spots.slice(INITIAL_LIMIT);
+
+        let html = '<div class="all-spots-grid">';
+        initialSpots.forEach(s => {
+            html += window.buildAllSpotCard(s);
+        });
+
+        if (extraSpots.length > 0) {
+            html += `<div id="all-spots-extras" style="grid-column: 1 / -1; display: none; grid-template-columns: repeat(2, 1fr); gap: 12px;">`;
+            extraSpots.forEach(s => {
+                html += window.buildAllSpotCard(s);
+            });
+            html += `</div>`;
+        }
+        html += '</div>';
+
+        container.innerHTML = html;
+
+        if (moreBtn) {
+            if (extraSpots.length > 0) {
+                moreBtn.style.display = 'flex';
+                const moreTxt = document.getElementById('all-spots-more-text');
+                if (moreTxt) moreTxt.textContent = `View ${extraSpots.length} More Destinations`;
+                const chev = document.getElementById('all-spots-chevron');
+                if (chev) chev.className = 'fa-solid fa-chevron-down';
+                window.allSpotsExpanded = false;
+            } else {
+                moreBtn.style.display = 'none';
+            }
+        }
+    };
+
+    window.toggleAllSpotsMore = function () {
+        const extras = document.getElementById('all-spots-extras');
+        const chev = document.getElementById('all-spots-chevron');
+        const txt = document.getElementById('all-spots-more-text');
+        if (!extras) return;
+
+        if (!window.allSpotsExpanded) {
+            extras.style.display = 'grid';
+            if (chev) chev.className = 'fa-solid fa-chevron-up';
+            if (txt) txt.textContent = 'Show Less';
+            window.allSpotsExpanded = true;
+        } else {
+            extras.style.display = 'none';
+            if (chev) chev.className = 'fa-solid fa-chevron-down';
+            const count = extras.querySelectorAll('.all-spot-card').length;
+            if (txt) txt.textContent = `View ${count} More Destinations`;
+            window.allSpotsExpanded = false;
+            const section = document.getElementById('all-spots-section');
+            if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
+    window.fetchAllTouristSpots = async function () {
+        const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+        const cacheKey = 'public_map_data';
+        try {
+            await window.useCache(
+                cacheKey,
+                async () => {
+                    const res = await fetch(backendUrl + '/api/public/map');
+                    if (!res.ok) throw new Error("Failed to fetch all spots");
+                    return await res.json();
+                },
+                (data) => {
+                    if (data && data.destinations) {
+                        window.allTouristSpots = data.destinations;
+                        const activeCat = window.currentDashCategory || 'All';
+                        let filtered = data.destinations;
+                        if (activeCat !== 'All' && typeof window.matchesCategory === 'function') {
+                            filtered = data.destinations.filter(d => window.matchesCategory(d.category, d.name, d.municipality || d.location, activeCat));
+                        }
+                        window.renderAllTouristSpots(filtered, activeCat);
+                    }
+                },
+                false,
+                60000
+            );
+        } catch (e) {
+            console.warn('fetchAllTouristSpots handled:', e);
+        }
+    };
     };
 
     window.initLoopingFocusCarousel = function (containerId) {
@@ -666,7 +859,10 @@ if (is_dir($imgDir)) {
 
         if (!token) return;
 
-        let lat = window.currentGPSLat || null, lng = window.currentGPSLng || null;
+        // Fetch all tourist spots early so "All Tourist Sites" container loads without delay
+        if (typeof window.fetchAllTouristSpots === 'function') {
+            window.fetchAllTouristSpots();
+        }
         try {
             if (typeof window.requestPreciseLocation === 'function') {
                 const loc = await window.requestPreciseLocation(true);
@@ -790,11 +986,15 @@ if (is_dir($imgDir)) {
                         const img = window.getDestImage(dest, 600);
                         const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
                         const encodedDest = encodeURIComponent(JSON.stringify(dest));
+                        const muni = dest.municipality || dest.location || '';
                         trendingContainer.innerHTML += `
                         <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                             ${badgeHtml}
                             <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
-                            <div class="fav-card-overlay"><span class="fav-card-name">${dest.name}</span></div>
+                            <div class="fav-card-overlay">
+                                <span class="fav-card-name">${dest.name}</span>
+                                ${muni ? `<span style="display:block; font-size:10px; color:#38bdf8; margin-top:2px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-location-dot"></i> ${muni}</span>` : ''}
+                            </div>
                             <i class="fa-solid fa-fire fav-heart" style="color: #ff9500; font-size: 14px;"></i>
                         </div>
                     `;
@@ -1492,7 +1692,11 @@ if (is_dir($imgDir)) {
         try {
             const dest = JSON.parse(decodeURIComponent(encodedDest));
             localStorage.setItem('intan_elyu_view_destination', JSON.stringify(dest));
-            window.location.href = '?view=map';
+            if (typeof window.navigateTo === 'function') {
+                window.navigateTo('map');
+            } else {
+                window.location.href = '?view=map';
+            }
         } catch (e) { console.error('Failed to view destination:', e); }
     };
 

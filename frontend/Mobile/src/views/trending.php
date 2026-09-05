@@ -1,5 +1,5 @@
 <?php
-$pageTitle = 'Trending Sites';
+$pageTitle = 'Explore Attractions';
 $backRoute = 'dashboard';
 
 $municipalityImages = [];
@@ -26,6 +26,16 @@ if (is_dir($imgDir)) {
 <link rel="stylesheet" href="assets/css/views/trending.css">
 <div class="saved-trips-page-container has-header animate-slide-up" style="padding-left: 16px; padding-right: 16px;">
 
+    <!-- Segmented Tab Switcher: Trending Spots vs All Tourist Sites -->
+    <div class="trending-segmented-wrap">
+        <button type="button" class="trending-seg-tab active" id="tab-trending" onclick="window.switchTrendingMode('trending')">
+            <i class="fa-solid fa-fire"></i> Trending Spots
+        </button>
+        <button type="button" class="trending-seg-tab" id="tab-all-spots" onclick="window.switchTrendingMode('all')">
+            <i class="fa-solid fa-compass"></i> All Tourist Sites
+        </button>
+    </div>
+
     <!-- Search Bar -->
     <div class="trending-search-wrap">
         <i class="fa-solid fa-magnifying-glass trending-search-icon"></i>
@@ -40,7 +50,7 @@ if (is_dir($imgDir)) {
     <!-- Category Filter Bar -->
     <div class="trending-categories-bar" id="trending-cat-bar">
         <button type="button" class="trending-cat-pill active" onclick="window.filterTrendingCat('All', this)">
-            <i class="fa-solid fa-fire"></i> All
+            <i class="fa-solid fa-layer-group"></i> All
         </button>
         <button type="button" class="trending-cat-pill" onclick="window.filterTrendingCat('Beach', this)">
             <i class="fa-solid fa-umbrella-beach"></i> Beach
@@ -71,10 +81,18 @@ if (is_dir($imgDir)) {
         </button>
     </div>
 
+    <!-- Sort Bar -->
+    <div class="trending-sort-bar" id="trending-sort-bar">
+        <span class="sort-label"><i class="fa-solid fa-arrow-down-wide-short"></i> Sort:</span>
+        <button type="button" class="sort-chip active" data-sort="popular" onclick="window.setSortTrending('popular', this)">Most Visited</button>
+        <button type="button" class="sort-chip" data-sort="rating" onclick="window.setSortTrending('rating', this)">Top Rated</button>
+        <button type="button" class="sort-chip" data-sort="alpha" onclick="window.setSortTrending('alpha', this)">Name A-Z</button>
+    </div>
+
     <!-- Meta Info Bar -->
     <div id="trending-meta-bar"
         style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; font-size:11.5px; color:rgba(226,232,240,0.65); font-weight:600;">
-        <span id="trending-count-label">Loading trending sites...</span>
+        <span id="trending-count-label">Loading destinations...</span>
         <span id="trending-filter-active" style="display:none; color:#38bdf8; cursor:pointer;"
             onclick="window.resetTrendingFilters()">
             <i class="fa-solid fa-rotate-left" style="margin-right:3px;"></i> Reset
@@ -84,7 +102,7 @@ if (is_dir($imgDir)) {
     <!-- Trending Grid / List -->
     <div id="trending-list">
         <p style="text-align:center; color:rgba(255,255,255,0.5); margin-top:40px;">
-            <i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i> Loading trending sites...
+            <i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i> Loading destinations...
         </p>
     </div>
 </div>
@@ -94,9 +112,12 @@ if (is_dir($imgDir)) {
         var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
         window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
 
-        let allSpots = [];
+        let trendingSpots = [];
+        let allDestinations = [];
+        let currentMode = localStorage.getItem('intan_elyu_explore_mode') || 'trending';
         let currentCategory = 'All';
         let currentSearch = '';
+        let currentSort = 'popular';
 
         const matchesCategory = (cardCategory, cardName, cardMuni, targetCat) => {
             if (!targetCat || targetCat === 'All') return true;
@@ -106,7 +127,6 @@ if (is_dir($imgDir)) {
             const combined = `${c} ${n} ${m}`;
             const t = targetCat.toLowerCase().trim();
 
-            // Direct or token match
             if (c === t || c.includes(t) || t.includes(c)) return true;
             if (` ${c} `.includes(` ${t} `)) return true;
 
@@ -174,48 +194,98 @@ if (is_dir($imgDir)) {
             return false;
         };
 
-        async function fetchTrending() {
+        window.switchTrendingMode = function (mode) {
+            currentMode = mode;
+            localStorage.setItem('intan_elyu_explore_mode', mode);
+
+            const tabTrending = document.getElementById('tab-trending');
+            const tabAll = document.getElementById('tab-all-spots');
+            const input = document.getElementById('trending-search-input');
+
+            if (mode === 'trending') {
+                if (tabTrending) tabTrending.classList.add('active');
+                if (tabAll) tabAll.classList.remove('active');
+                if (input) input.placeholder = "Search trending spots, municipality...";
+            } else {
+                if (tabAll) tabAll.classList.add('active');
+                if (tabTrending) tabTrending.classList.remove('active');
+                if (input) input.placeholder = "Search all tourist attractions, municipality...";
+            }
+
+            applyFilters();
+        };
+
+        window.setSortTrending = function (sortKey, btn) {
+            currentSort = sortKey;
+            document.querySelectorAll('#trending-sort-bar .sort-chip').forEach(c => c.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            applyFilters();
+        };
+
+        async function fetchAllData() {
             const token = localStorage.getItem('intan_elyu_token');
-            if (!token) return;
 
-            const cacheKey = 'trending_spots_' + (token ? token.substring(0, 10) : '');
-
-            await window.useCache(
-                cacheKey,
+            // 1. Fetch Trending Spots
+            const trendCacheKey = 'trending_spots_' + (token ? token.substring(0, 10) : 'guest');
+            const p1 = window.useCache(
+                trendCacheKey,
                 async () => {
-                    const res = await fetch(backendUrl + '/api/tourist/dashboard?limit=50', {
-                        headers: {
-                            'Accept': 'application/json',
-                            'Authorization': 'Bearer ' + token
-                        }
-                    });
-                    if (!res.ok) throw new Error("Failed to fetch trending sites");
+                    const headers = { 'Accept': 'application/json' };
+                    if (token) headers['Authorization'] = 'Bearer ' + token;
+                    const res = await fetch(backendUrl + '/api/tourist/dashboard?limit=50', { headers });
+                    if (!res.ok) throw new Error("Failed to fetch trending spots");
                     const data = await res.json();
                     return data.trending || [];
                 },
                 (spots) => {
-                    if (spots) {
-                        allSpots = spots;
-                        applyFilters();
-                    } else {
-                        const list = document.getElementById('trending-list');
-                        if (list) list.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">Failed to load trending sites.</p>';
-                        updateMetaLabel(0);
+                    if (spots) trendingSpots = spots;
+                },
+                false,
+                60000
+            );
+
+            // 2. Fetch All Destinations from Map Data
+            const mapCacheKey = 'public_map_data';
+            const p2 = window.useCache(
+                mapCacheKey,
+                async () => {
+                    const res = await fetch(backendUrl + '/api/public/map');
+                    if (!res.ok) throw new Error("Failed to fetch map destinations");
+                    return await res.json();
+                },
+                (data) => {
+                    if (data && data.destinations) {
+                        allDestinations = data.destinations;
                     }
                 },
                 false,
-                60000 // 1 minute TTL
+                60000
             );
+
+            try {
+                await Promise.allSettled([p1, p2]);
+            } catch (e) {
+                console.warn("Data loading partial failure:", e);
+            }
+
+            // Sync active tab UI on initial load
+            window.switchTrendingMode(currentMode);
         }
 
         function applyFilters() {
-            if (!allSpots || !allSpots.length) {
-                renderEmptyState('No Trending Sites', 'Check back soon for newly popular attractions and trending destinations in La Union.');
+            const sourceList = (currentMode === 'trending') ? (trendingSpots || []) : (allDestinations || []);
+
+            if (!sourceList || !sourceList.length) {
+                if (currentMode === 'trending') {
+                    renderEmptyState('No Trending Sites', 'Check back soon for newly popular attractions and trending destinations in La Union.');
+                } else {
+                    renderEmptyState('No Destinations Available', 'Unable to load destinations right now. Please check your internet connection.');
+                }
                 updateMetaLabel(0);
                 return;
             }
 
-            const filtered = allSpots.filter(dest => {
+            let filtered = sourceList.filter(dest => {
                 // Category filter
                 if (!matchesCategory(dest.category, dest.name, dest.municipality || dest.location, currentCategory)) {
                     return false;
@@ -236,6 +306,18 @@ if (is_dir($imgDir)) {
                 return true;
             });
 
+            // Sorting
+            filtered.sort((a, b) => {
+                if (currentSort === 'popular') {
+                    return (parseInt(b.visits) || 0) - (parseInt(a.visits) || 0);
+                } else if (currentSort === 'rating') {
+                    return (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0);
+                } else if (currentSort === 'alpha') {
+                    return (a.name || '').localeCompare(b.name || '');
+                }
+                return 0;
+            });
+
             updateMetaLabel(filtered.length);
 
             if (!filtered.length) {
@@ -248,15 +330,15 @@ if (is_dir($imgDir)) {
         function updateMetaLabel(count) {
             const countLabel = document.getElementById('trending-count-label');
             const resetBtn = document.getElementById('trending-filter-active');
-            const hasActiveFilter = (currentCategory !== 'All' || currentSearch.trim().length > 0);
+            const hasActiveFilter = (currentCategory !== 'All' || currentSearch.trim().length > 0 || currentSort !== 'popular');
 
             if (countLabel) {
                 if (count === 0) {
                     countLabel.textContent = 'No matching destinations';
-                } else if (count === 1) {
-                    countLabel.textContent = 'Showing 1 trending destination';
+                } else if (currentMode === 'trending') {
+                    countLabel.textContent = count === 1 ? 'Showing 1 trending destination' : `Showing ${count} trending destinations`;
                 } else {
-                    countLabel.textContent = `Showing ${count} trending destinations`;
+                    countLabel.textContent = count === 1 ? 'Showing 1 destination in La Union' : `Showing ${count} destinations in La Union`;
                 }
             }
 
@@ -271,25 +353,40 @@ if (is_dir($imgDir)) {
 
             let html = '<div class="trending-grid">';
             spots.forEach((dest, i) => {
-                const img = window.getDestImage(dest);
+                const img = window.getDestImage(dest, 400);
                 const badgeColor = dest.classification_status === 'EXIST' ? '#34c759' :
                     (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b');
                 const badgeLabel = dest.classification_status === 'EXIST' ? 'EXISTING' :
                     (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL');
 
                 const visits = parseInt(dest.visits) || 0;
-                const visitorText = window.formatVisitorCount ? window.formatVisitorCount(visits) : (visits < 100 ? 'Less than 100 this month' : `${visits.toLocaleString()} visits`);
-                const muni = dest.municipality || dest.location || '';
+                const visitorText = window.formatVisitorCount ? window.formatVisitorCount(visits) : (visits < 100 ? 'Popular spot' : `${visits.toLocaleString()} visits`);
+                const muni = dest.municipality || dest.location || 'La Union';
+                const rating = dest.rating ? parseFloat(dest.rating).toFixed(1) : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating).toFixed(1) : 'New');
+                const fee = (dest.entrance_fee && parseFloat(dest.entrance_fee) > 0) ? `₱${parseFloat(dest.entrance_fee).toFixed(0)}` : 'Free';
+                const cat = dest.category || 'Spot';
+
+                const iconHtml = currentMode === 'trending'
+                    ? `<div class="fire-icon"><i class="fa-solid fa-fire"></i></div>`
+                    : `<div class="fire-icon" style="color:#38bdf8; box-shadow:0 2px 8px rgba(56,189,248,0.25);"><i class="fa-solid fa-compass"></i></div>`;
+
+                const metaBottomHtml = currentMode === 'trending'
+                    ? `<div class="meta"><i class="fa-solid fa-users" style="font-size:9px;"></i>${visitorText}</div>`
+                    : `<div class="card-bottom-tags">
+                            <span class="card-cat-pill">${cat}</span>
+                            <span class="card-rating"><i class="fa-solid fa-star" style="font-size:8px;"></i> ${rating}</span>
+                            <span class="card-fee">${fee}</span>
+                       </div>`;
 
                 html += `
-                <div class="trending-card" style="animation-delay:${Math.min(i * 0.05, 0.4)}s" onclick="window.viewTrendingDest(${dest.id}, '${dest.name.replace(/'/g, "\\'")}', '${encodeURIComponent(JSON.stringify(dest))}')">
+                <div class="trending-card" style="animation-delay:${Math.min(i * 0.04, 0.35)}s" onclick="window.viewTrendingDest(${dest.id}, '${dest.name.replace(/'/g, "\\'")}', '${encodeURIComponent(JSON.stringify(dest))}')">
                     ${dest.classification_status ? `<div class="badge" style="background:${badgeColor};">${badgeLabel}</div>` : ''}
-                    <div class="fire-icon"><i class="fa-solid fa-fire"></i></div>
-                    <img src="${img}" alt="${dest.name}" onerror="this.onerror=null; this.src=window.noImageFallback;">
+                    ${iconHtml}
+                    <img src="${img}" alt="${dest.name}" onerror="this.onerror=null; this.src=window.noImageFallback || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400';">
                     <div class="overlay">
                         <div class="name">${dest.name}</div>
-                        ${muni ? `<div class="meta-muni"><i class="fa-solid fa-location-dot" style="font-size:8px; margin-right:3px;"></i>${muni}</div>` : ''}
-                        <div class="meta"><i class="fa-solid fa-users" style="font-size:9px;"></i>${visitorText}</div>
+                        <div class="meta-muni"><i class="fa-solid fa-location-dot" style="font-size:8px; margin-right:3px;"></i>${muni}</div>
+                        ${metaBottomHtml}
                     </div>
                 </div>
             `;
@@ -304,11 +401,11 @@ if (is_dir($imgDir)) {
             list.innerHTML = `
             <div class="dash-empty-state" style="margin-top: 24px !important;">
                 <div class="dash-empty-icon-wrap">
-                    <i class="fa-solid fa-fire-flame-curved"></i>
+                    <i class="fa-solid fa-compass"></i>
                 </div>
                 <div class="dash-empty-title">${title}</div>
                 <div class="dash-empty-desc">${desc}</div>
-                <button type="button" onclick="navigateTo('map')" class="dash-empty-btn">
+                <button type="button" onclick="if(typeof navigateTo==='function') navigateTo('map'); else window.location.href='?view=map';" class="dash-empty-btn">
                     <i class="fa-solid fa-location-arrow"></i> Explore Map
                 </button>
             </div>
@@ -324,7 +421,7 @@ if (is_dir($imgDir)) {
                     <i class="fa-solid fa-compass"></i>
                 </div>
                 <div class="dash-empty-title">No Spots Match Filter</div>
-                <div class="dash-empty-desc">No trending destinations match your search or category selection. Try searching another keyword or reset your filter.</div>
+                <div class="dash-empty-desc">No destinations match your search or category selection. Try searching another keyword or reset your filter.</div>
                 <button type="button" onclick="window.resetTrendingFilters()" class="dash-empty-btn">
                     <i class="fa-solid fa-rotate-left"></i> Reset Filters
                 </button>
@@ -351,6 +448,8 @@ if (is_dir($imgDir)) {
         window.resetTrendingFilters = function () {
             currentCategory = 'All';
             currentSearch = '';
+            currentSort = 'popular';
+
             const input = document.getElementById('trending-search-input');
             const clearBtn = document.getElementById('trending-search-clear');
             if (input) input.value = '';
@@ -360,6 +459,12 @@ if (is_dir($imgDir)) {
             pills.forEach((p, idx) => {
                 if (idx === 0) p.classList.add('active');
                 else p.classList.remove('active');
+            });
+
+            const sortChips = document.querySelectorAll('#trending-sort-bar .sort-chip');
+            sortChips.forEach((c, idx) => {
+                if (idx === 0) c.classList.add('active');
+                else c.classList.remove('active');
             });
 
             applyFilters();
@@ -382,12 +487,16 @@ if (is_dir($imgDir)) {
             try {
                 const dest = JSON.parse(decodeURIComponent(encodedDest));
                 localStorage.setItem('intan_elyu_view_destination', JSON.stringify(dest));
-                window.location.href = '?view=map';
+                if (typeof window.navigateTo === 'function') {
+                    window.navigateTo('map');
+                } else {
+                    window.location.href = '?view=map';
+                }
             } catch (e) {
                 console.error('Failed to view destination:', e);
             }
         };
 
-        fetchTrending();
+        fetchAllData();
     })();
 </script>

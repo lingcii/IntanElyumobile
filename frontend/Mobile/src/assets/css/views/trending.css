@@ -229,3 +229,124 @@
         transform: translateY(0) scale(1);
     }
 }
+
+/* Segmented Tab Bar */
+.trending-segmented-wrap {
+    display: flex;
+    background: rgba(15, 23, 42, 0.5);
+    padding: 4px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    margin-top: 14px;
+    margin-bottom: 12px;
+    gap: 4px;
+}
+
+.trending-seg-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: none;
+    background: transparent;
+    color: rgba(226, 232, 240, 0.7);
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.trending-seg-tab.active {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+}
+
+.trending-seg-tab i {
+    font-size: 13px;
+}
+
+/* Sort Chips Bar */
+.trending-sort-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+    scrollbar-width: none;
+}
+
+.trending-sort-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.sort-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: rgba(226, 232, 240, 0.6);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    margin-right: 2px;
+}
+
+.sort-chip {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 10.5px;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(226, 232, 240, 0.75);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.sort-chip.active {
+    background: rgba(56, 189, 248, 0.2);
+    border-color: rgba(56, 189, 248, 0.5);
+    color: #38bdf8;
+}
+
+.trending-card .card-bottom-tags {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    margin-top: 3px;
+}
+
+.trending-card .card-cat-pill {
+    font-size: 9px;
+    font-weight: 700;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 1.5px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 60px;
+}
+
+.trending-card .card-rating {
+    font-size: 9.5px;
+    font-weight: 800;
+    color: #fbbf24;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.trending-card .card-fee {
+    font-size: 9.5px;
+    font-weight: 800;
+    color: #4ade80;
+}
