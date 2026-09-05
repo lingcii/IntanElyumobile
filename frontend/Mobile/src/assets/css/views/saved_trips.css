@@ -104,12 +104,12 @@ body[data-view="saved_trips"] .mobile-header .header-icon {
 .trip-swipe-content {
     position: relative;
     z-index: 2;
-    background: #74a3cf !important;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
     border: none !important;
     outline: none !important;
-    border-radius: 24px;
+    border-radius: 24px !important;
     padding: 22px 20px;
-    box-shadow: none !important;
+    box-shadow: 0 10px 28px rgba(10, 25, 60, 0.28) !important;
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease !important;
 }
 
@@ -154,17 +154,36 @@ body[data-view="saved_trips"] .mobile-header .header-icon {
 /* Timeline Destination Card Items */
 .timeline-content {
     padding: 16px !important;
-    background: rgba(255, 255, 255, 0.08) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 18px !important;
     display: flex !important;
     flex-direction: column !important;
     gap: 10px !important;
+    box-shadow: none !important;
     transition: background 0.2s ease !important;
 }
 
 .timeline-content:hover {
-    background: rgba(255, 255, 255, 0.14) !important;
+    background: rgba(255, 255, 255, 0.16) !important;
+    border: none !important;
+    outline: none !important;
+}
+
+/* Ensure no child elements inside trip cards have outlines or borders */
+.saved-trips-page-container .trip-swipe-content,
+.saved-trips-page-container .trip-swipe-content *,
+.saved-trips-page-container .timeline-content,
+.saved-trips-page-container .timeline-content * {
+    outline: none !important;
+}
+
+.saved-trips-page-container .timeline-content button,
+.saved-trips-page-container .timeline-content span,
+.saved-trips-page-container .timeline-content img {
+    border-color: transparent !important;
+    outline: none !important;
 }
 
 /* Empty State Card (Matches Coastal Ocean Theme) */
@@ -249,8 +268,9 @@ body[data-view="saved_trips"] .mobile-header .header-icon {
 #complete-trip-modal > div,
 #delete-trip-modal > div {
     background: linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
-    box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45) !important;
     color: #ffffff !important;
     border-radius: 26px !important;
 }

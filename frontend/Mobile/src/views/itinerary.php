@@ -658,6 +658,14 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     <i class="fa-solid fa-car"></i>
                     <span>Own Car</span>
                 </div>
+                <div class="transport-option" data-val="jeepney" onclick="window.selectTransportMode(this)">
+                    <i class="fa-solid fa-truck-pickup"></i>
+                    <span>Jeepney</span>
+                </div>
+                <div class="transport-option" data-val="tricycle" onclick="window.selectTransportMode(this)">
+                    <i class="fa-solid fa-motorcycle"></i>
+                    <span>Tricycle</span>
+                </div>
                 <div class="transport-option" data-val="taxi" onclick="window.selectTransportMode(this)">
                     <i class="fa-solid fa-taxi"></i>
                     <span>Taxi</span>
@@ -674,9 +682,9 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     <i class="fa-solid fa-bus-simple"></i>
                     <span>LUTRAMPCO</span>
                 </div>
-                <div class="transport-option" data-val="jeepney" onclick="window.selectTransportMode(this)">
-                    <i class="fa-solid fa-truck-pickup"></i>
-                    <span>Jeepney</span>
+                <div class="transport-option" data-val="motorcycle" onclick="window.selectTransportMode(this)">
+                    <i class="fa-solid fa-motorcycle"></i>
+                    <span>Motorcycle</span>
                 </div>
             </div>
         </div>
@@ -2152,6 +2160,12 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                         opt.classList.add('active');
                     }
                 });
+                document.getElementById('trip-transport').value = vehicles.join(',');
+            } else {
+                const defaultVehicle = initialTransport === 'private' ? 'own_car' : 'jeepney';
+                const defaultOpt = document.querySelector(`.transport-option[data-val="${defaultVehicle}"]`);
+                if (defaultOpt) defaultOpt.classList.add('active');
+                document.getElementById('trip-transport').value = defaultVehicle;
             }
 
             // Initialize calendar to current month

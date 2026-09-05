@@ -33,32 +33,33 @@ body[data-view="trip_map"] .map-floating-header {
 }
 
 body[data-view="trip_map"] .map-search {
-    background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%);
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.94) 0%, rgba(63, 125, 183, 0.92) 100%);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1.5px solid rgba(255, 255, 255, 0.45);
-    box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.35) !important;
     border-radius: 100px;
     display: flex;
     align-items: center;
     padding: 13px 20px;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: box-shadow 0.2s;
 }
 
 body[data-view="trip_map"] .map-search:focus-within {
-    border-color: #00f2fe;
-    background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(2, 132, 199, 0.92) 100%);
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(2, 132, 199, 0.95) 100%);
+    box-shadow: 0 10px 30px rgba(10, 25, 60, 0.45) !important;
 }
 
 body[data-view="trip_map"] .map-search input {
-    border: none;
+    border: none !important;
     background: transparent;
     flex: 1;
     font-size: 15px;
     font-weight: 700;
     color: #ffffff;
     margin-left: 12px;
-    outline: none;
+    outline: none !important;
     font-family: inherit;
 }
 
@@ -78,12 +79,13 @@ body[data-view="trip_map"] .map-categories {
 body[data-view="trip_map"] .map-categories::-webkit-scrollbar { display: none; }
 
 body[data-view="trip_map"] .category-pill {
-    background: rgba(30, 58, 138, 0.78);
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.88) 0%, rgba(63, 125, 183, 0.85) 100%);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    border: none !important;
+    outline: none !important;
     border-radius: 20px;
-    padding: 7px 16px;
+    padding: 8px 16px;
     font-size: 12px;
     font-weight: 700;
     color: #ffffff;
@@ -91,18 +93,20 @@ body[data-view="trip_map"] .category-pill {
     transition: all 0.2s;
     cursor: pointer;
     letter-spacing: 0.3px;
+    box-shadow: 0 4px 14px rgba(10, 25, 60, 0.25);
 }
 
 body[data-view="trip_map"] .category-pill.active {
     background: linear-gradient(135deg, #00f2fe 0%, #0284c7 60%, #1e3a8a 100%);
     color: #ffffff;
-    border: 1.5px solid #ffffff;
-    box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 6px 18px rgba(2, 132, 199, 0.4) !important;
 }
 
 body[data-view="trip_map"] .category-pill:not(.active):active {
     transform: scale(0.94);
-    background: rgba(63, 125, 183, 0.85);
+    background: rgba(63, 125, 183, 0.9);
 }
 
 /* ── Trip Map View Specific Controls ── */
@@ -111,13 +115,14 @@ body[data-view="trip_map"] .category-pill:not(.active):active {
 body[data-view="trip_map"] .btn-locate-me,
 body[data-view="trip_map"] .btn-layer-toggle,
 body[data-view="trip_map"] .btn-3d-view {
-    background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%) !important;
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.94) 0%, rgba(63, 125, 183, 0.92) 100%) !important;
     backdrop-filter: blur(16px) !important;
     -webkit-backdrop-filter: blur(16px) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.45) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 14px !important;
     color: #ffffff !important;
-    box-shadow: none !important;
+    box-shadow: 0 6px 20px rgba(10, 25, 60, 0.35) !important;
     transition: all 0.2s !important;
 }
 
@@ -143,18 +148,19 @@ html.keyboard-open .btn-3d-view {
     display: none !important;
 }
 
-.maplibregl-ctrl-group button { width: 44px !important; height: 44px !important; }
+.maplibregl-ctrl-group button { width: 44px !important; height: 44px !important; border: none !important; }
 .maplibregl-ctrl-group button+button { border-top: 1px solid rgba(255,255,255,0.06) !important; }
 .maplibregl-ctrl-icon { filter: invert(1) opacity(0.85) !important; }
 
 /* ── Map Popup ── */
 .smooth-map-popup .maplibregl-popup-content {
-    background: rgba(30, 58, 138, 0.95) !important;
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%) !important;
     backdrop-filter: blur(20px) !important;
-    border: 1px solid rgba(56, 189, 248, 0.25) !important;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
-    border-radius: 16px !important;
-    padding: 10px 14px !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 12px 36px rgba(10, 25, 60, 0.45) !important;
+    border-radius: 18px !important;
+    padding: 12px 16px !important;
     animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     transform-origin: bottom center;
     color: #f8fafc;
@@ -162,12 +168,38 @@ html.keyboard-open .btn-3d-view {
 
 .smooth-map-popup .maplibregl-popup-tip { border-top-color: rgba(30,58,138,0.95) !important; }
 
+/* ── Summary Pill and Conveyor Cards Styling ── */
+#trip-summary-pill {
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 10px 28px rgba(10, 25, 60, 0.35) !important;
+}
+
+#trip-info-vehicle-btn:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.26) !important;
+}
+
+.conveyor-card {
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 12px 32px rgba(10, 25, 60, 0.35) !important;
+}
+
+.conveyor-card.active {
+    box-shadow: 0 14px 40px rgba(10, 25, 60, 0.45) !important;
+}
+
+.conveyor-card:active {
+    transform: scale(0.98);
+}
+
 /* ── Route Details Sheet ── */
 #route-details-sheet h4 {
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 1.2px;
-    color: #38bdf8;
+    color: #67e8f9;
     text-transform: uppercase;
     margin: 0 0 12px 0;
 }
@@ -178,9 +210,10 @@ html.keyboard-open .btn-3d-view {
     align-items: center;
     justify-content: space-between;
     padding: 14px 16px;
-    border: 1px solid rgba(255,255,255,0.07);
+    border: none !important;
+    outline: none !important;
     border-radius: 18px;
-    background: rgba(255,255,255,0.04);
+    background: rgba(255,255,255,0.12);
     cursor: pointer;
     transition: transform 0.15s, background 0.15s;
     margin-bottom: 10px;
@@ -188,7 +221,7 @@ html.keyboard-open .btn-3d-view {
 
 .vehicle-option-card:active {
     transform: scale(0.97);
-    background: rgba(56,189,248,0.08);
+    background: rgba(255, 255, 255, 0.22);
 }
 
 @keyframes popIn {
