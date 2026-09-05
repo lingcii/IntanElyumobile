@@ -722,6 +722,7 @@ $activeTab = 'profile';
                 const destName = dest ? dest.name : (item.destination_name || 'Destination ' + (idx + 1));
                 const fee = dest ? (dest.entrance_fee && parseFloat(dest.entrance_fee) > 0 ? '₱' + parseFloat(dest.entrance_fee).toFixed(2) : 'Free Entrance') : 'Visited';
                 const spotId = item.tourist_spot_id || (dest ? dest.id : item.id);
+                const isReviewed = spotId && window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(spotId));
 
                 destHtml += `
                 <div style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:14px; margin-bottom:8px;">
@@ -730,11 +731,14 @@ $activeTab = 'profile';
                         <div style="font-size:13px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
                         <div style="font-size:11px; color:rgba(148,163,184,0.8); font-weight:600;">${fee}</div>
                     </div>
-                    ${spotId ? `<button type="button" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${spotId}', this)" style="background: linear-gradient(135deg, #38bdf8, #2563eb); border: none; color: #ffffff; padding: 6px 14px; border-radius: 100px; font-weight: 800; font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 8px rgba(56,189,248,0.3); flex-shrink: 0;"><i class="fa-solid fa-pen" style="font-size: 10px;"></i> Review</button>` : ''}
+                    ${spotId ? `<button type="button" data-spot-id="${spotId}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${spotId}', this)" style="background: ${isReviewed ? 'rgba(255,255,255,0.18)' : 'linear-gradient(135deg, #00f2fe 0%, #0284c7 100%)'}; border: none !important; outline: none !important; color: #ffffff; padding: 6px 14px; border-radius: 100px; font-weight: 800; font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow: none !important; flex-shrink: 0;">${isReviewed ? '<i class="fa-solid fa-check" style="font-size: 10px; margin-right: 4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size: 10px;"></i> Review (+25 XP)'}</button>` : ''}
                 </div>`;
             });
         }
         document.getElementById('trip-detail-destinations-list').innerHTML = destHtml;
+        if (typeof window.syncReviewedButtons === 'function') {
+            window.syncReviewedButtons();
+        }
 
         const modal = document.getElementById('trip-details-modal');
         if (modal) modal.style.display = 'flex';

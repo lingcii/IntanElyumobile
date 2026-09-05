@@ -20,6 +20,7 @@
 $pageTitle = "Trip Route";
 $backRoute = "saved_trips";
 require_once __DIR__ . '/../components/header.php';
+include_once __DIR__ . '/../components/testimony_modal.php';
 ?>
 
 <div id="trip-map" style="width: 100%; height: 100vh; background: #0a0f1c;"></div>
@@ -268,9 +269,32 @@ require_once __DIR__ . '/../components/header.php';
     ];
 
     function resolveTripVehicle(trip, tripId) {
-        const sessionVal = sessionStorage.getItem('active_trip_transport_' + tripId);
-        const localVal = localStorage.getItem('selected_trip_vehicle_' + tripId);
-        let raw = localVal || sessionVal || (trip ? trip.transport_mode : null);
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlTransport = urlParams.get('transport');
+        const sessionVal = tripId ? sessionStorage.getItem('active_trip_transport_' + tripId) : null;
+        const localVal = tripId ? localStorage.getItem('selected_trip_vehicle_' + tripId) : null;
+        
+        let cachedTransport = null;
+        if (!trip && tripId) {
+            try {
+                const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                if (token) {
+                    const cacheKey = 'saved_trips_' + token.substring(0, 10);
+                    const rawCached = localStorage.getItem(cacheKey);
+                    if (rawCached) {
+                        const parsed = typeof window.safeJsonParse === 'function' ? window.safeJsonParse(rawCached, null) : JSON.parse(rawCached);
+                        if (parsed && Array.isArray(parsed.data)) {
+                            const cachedTrip = parsed.data.find(t => t.id == tripId);
+                            if (cachedTrip && cachedTrip.transport_mode) {
+                                cachedTransport = cachedTrip.transport_mode;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+
+        let raw = localVal || sessionVal || urlTransport || cachedTransport || (trip ? trip.transport_mode : null);
 
         if (!raw && trip && trip.items && trip.items.length > 0) {
             for (let item of trip.items) {
@@ -313,6 +337,7 @@ require_once __DIR__ . '/../components/header.php';
     }
 
     function applyVehicleToUI(vehicle) {
+        if (!vehicle) return;
         window.currentActiveVehicle = vehicle;
         const vehicleNameEl = document.getElementById('trip-info-vehicle-name');
         const vehicleIconEl = document.getElementById('trip-info-vehicle-icon');
@@ -322,6 +347,16 @@ require_once __DIR__ . '/../components/header.php';
             vehicleIconEl.style.color = vehicle.color || '#f59e0b';
         }
     }
+
+    // Immediate frame-0 vehicle initialization so there is zero flicker of "Own Car"
+    (function initImmediateVehicle() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tripId = urlParams.get('trip_id');
+        if (tripId) {
+            const v = resolveTripVehicle(null, tripId);
+            applyVehicleToUI(v);
+        }
+    })();
 
     window.openVehicleSelectorModal = function() {
         const modal = document.getElementById('vehicle-selector-modal');
@@ -464,12 +499,14 @@ require_once __DIR__ . '/../components/header.php';
 
             let actionBtnHtml = '';
             if (isVisited || item.proof_status === 'approved') {
+                const sId = item.tourist_spot_id || (item.destination ? item.destination.id : '');
+                const isReviewed = sId && window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(sId));
                 actionBtnHtml = `<div style="display:flex; align-items:center; gap:10px;">
                     ${proofThumbnail}
                     <div style="display:flex; flex-direction:column; gap:2px;">
                         <span style="background:rgba(52,199,89,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:11px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Visited & Verified</span>
-                        <button type="button" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (item.destination ? item.destination.id : '')}')" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px; cursor:pointer; width:fit-content; margin-top:2px;">
-                            <i class="fa-solid fa-pen" style="margin-right:4px;"></i> Review Site
+                        <button type="button" data-spot-id="${sId}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${sId}', this)" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px; cursor:pointer; width:fit-content; margin-top:2px;">
+                            ${isReviewed ? '<i class="fa-solid fa-check" style="margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="margin-right:4px;"></i> Review Site (+25 XP)'}
                         </button>
                     </div>
                 </div>`;
@@ -510,6 +547,9 @@ require_once __DIR__ . '/../components/header.php';
         });
 
         conveyorScroll.innerHTML = conveyorHtml;
+        if (typeof window.syncReviewedButtons === 'function') {
+            window.syncReviewedButtons();
+        }
         setTimeout(() => {
             const targetCard = document.querySelector('.conveyor-card.active') || document.getElementById('conveyor-card-0');
             if (targetCard) {

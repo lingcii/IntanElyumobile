@@ -1026,6 +1026,7 @@ Route::prefix('public')->group(function () {
     Route::get('/municipalities', [MapController::class, 'publicMunicipalities']);
     Route::get('/leaderboard', [LeaderboardController::class, 'index']);
     Route::get('/feedback', [FeedbackController::class, 'index']);
+    Route::get('/feedback/user-reviewed-spots', [FeedbackController::class, 'userReviewedSpots']);
     Route::get('/vouchers', [\App\Http\Controllers\VoucherController::class, 'index']);
     Route::get('/weather', [WeatherController::class, 'getWeather']);
     Route::get('/amenities', [MapController::class, 'publicAmenities']);
@@ -1054,9 +1055,16 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
         $spot = TouristSpot::findOrFail($id);
         $user = $request->user();
 
+        $alreadyReviewed = false;
+        if ($user) {
+            $alreadyReviewed = \App\Models\SiteFeedback::where('user_id', $user->id)
+                ->where('tourist_spot_id', $id)
+                ->exists();
+        }
+
         // Create or update feedback rating for this user & spot
         \App\Models\SiteFeedback::updateOrCreate(
-            ['user_id' => $user->id, 'tourist_spot_id' => $id],
+            ['user_id' => $user ? $user->id : null, 'tourist_spot_id' => $id],
             ['rating' => $request->rating]
         );
 
@@ -1074,20 +1082,26 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
         \Illuminate\Support\Facades\Cache::forget('trending:top:10');
         \Illuminate\Support\Facades\Cache::forget('trending:top:50');
 
-        // Award gamification points (+25 XP, +25 points)
-        try {
-            $user->increment('xp', 25);
-            \App\Models\UserPoint::awardPointsSafely(
-                $user->id,
-                25,
-                'rating',
-                "Rated {$spot->name} {$request->rating} stars"
-            );
-        } catch (\Throwable $e) {
+        // Award gamification points (+25 XP, +25 points) ONLY IF FIRST TIME
+        $rewardAwarded = false;
+        if ($user && !$alreadyReviewed) {
+            try {
+                $user->increment('xp', 25);
+                \App\Models\UserPoint::awardPointsSafely(
+                    $user->id,
+                    25,
+                    'rating',
+                    "Rated {$spot->name} {$request->rating} stars",
+                    $spot->id
+                );
+                $rewardAwarded = true;
+            } catch (\Throwable $e) {
+            }
         }
 
         return response()->json([
-            'message' => 'Rating submitted successfully!',
+            'message' => $rewardAwarded ? 'Rating submitted successfully! (+25 XP earned)' : 'Rating updated successfully!',
+            'reward_awarded' => $rewardAwarded,
             'spot_rating' => $spot->rating
         ]);
     });
@@ -1108,6 +1122,7 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
 
     // Site Testimonies & Policy Recommendations
+    Route::get('/feedback/user-reviewed-spots', [FeedbackController::class, 'userReviewedSpots']);
     Route::get('/feedback', [FeedbackController::class, 'index']);
     Route::post('/feedback', [FeedbackController::class, 'store']);
 

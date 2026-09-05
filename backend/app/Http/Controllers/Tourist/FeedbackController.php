@@ -77,9 +77,53 @@ class FeedbackController extends Controller
     }
 
     /**
+     * GET /api/tourist/feedback/user-reviewed-spots
+     * GET /api/public/feedback/user-reviewed-spots
+     * Return list of destination spot IDs reviewed by the current user and their review content.
+     */
+    public function userReviewedSpots(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user) {
+            $token = $request->bearerToken();
+            if ($token) {
+                $user = \App\Models\User::where('api_token', $token)->first();
+            }
+        }
+        if (!$user) {
+            $defaultUser = \App\Models\User::where('role', 'tourist')->first();
+            $user = $defaultUser;
+        }
+
+        if (!$user) {
+            return response()->json([
+                'status'  => 'success',
+                'success' => true,
+                'data'    => [],
+                'reviews' => (object)[]
+            ]);
+        }
+
+        $feedbacks = SiteFeedback::where('user_id', $user->id)
+            ->whereNotNull('tourist_spot_id')
+            ->get(['tourist_spot_id', 'rating', 'testimony', 'policy_recommendation', 'cleanliness_level', 'safety_level', 'created_at']);
+
+        $reviewedIds = $feedbacks->pluck('tourist_spot_id')->map(fn($id) => (int) $id)->unique()->values()->toArray();
+        $reviewsMap = $feedbacks->keyBy('tourist_spot_id');
+
+        return response()->json([
+            'status'  => 'success',
+            'success' => true,
+            'data'    => $reviewedIds,
+            'reviews' => $reviewsMap
+        ]);
+    }
+
+    /**
      * POST /api/tourist/feedback
      * POST /api/public/feedback
      * Submit a testimony and/or policy recommendation, updating spot rating in real time.
+     * Rewards (+25 XP, +25 Points) are awarded ONCE per destination per user.
      */
     public function store(Request $request): JsonResponse
     {
@@ -95,12 +139,38 @@ class FeedbackController extends Controller
         $user = $request->user();
         $userId = $user ? $user->id : null;
 
+        if (!$userId) {
+            $token = $request->bearerToken();
+            if ($token) {
+                $foundUser = \App\Models\User::where('api_token', $token)->first();
+                if ($foundUser) {
+                    $user = $foundUser;
+                    $userId = $foundUser->id;
+                }
+            }
+        }
+
         // If user is not authenticated, fallback to default user if available
         if (!$userId) {
             $defaultUser = \App\Models\User::where('role', 'tourist')->first();
             $userId = $defaultUser ? $defaultUser->id : null;
+            if ($userId) {
+                $user = $defaultUser;
+            }
         }
 
+        // Anti-abuse check: verify if the user has ALREADY reviewed this specific destination
+        $isFirstReview = true;
+        if ($userId && $spotId) {
+            $alreadyReviewed = SiteFeedback::where('user_id', $userId)
+                ->where('tourist_spot_id', $spotId)
+                ->exists();
+            if ($alreadyReviewed) {
+                $isFirstReview = false;
+            }
+        }
+
+        $spot = null;
         if ($spotId) {
             $feedbackData = array_filter([
                 'rating'                => $rating,
@@ -154,8 +224,9 @@ class FeedbackController extends Controller
         \Illuminate\Support\Facades\Cache::forget('trending:top:10');
         \Illuminate\Support\Facades\Cache::forget('trending:top:50');
 
-        // Award gamification points (+25 XP, +25 points)
-        if ($user) {
+        // Award gamification points (+25 XP, +25 points) ONLY IF THIS IS THE FIRST REVIEW FOR THIS DESTINATION
+        $rewardAwarded = false;
+        if ($user && $isFirstReview) {
             try {
                 $user->increment('xp', 25);
                 $user->increment('completed_activities');
@@ -163,17 +234,24 @@ class FeedbackController extends Controller
                     $user->id,
                     25,
                     'feedback',
-                    'Shared site testimony and policy feedback'
+                    'Shared site testimony and policy feedback' . ($spot ? ' for ' . $spot->name : ''),
+                    $spotId ? (int) $spotId : null
                 );
+                $rewardAwarded = true;
             } catch (\Throwable $e) {}
         }
 
         return response()->json([
-            'status'      => 'success',
-            'success'     => true,
-            'message'     => 'Thank you for your testimony and feedback! (+25 XP & +25 Points earned)',
-            'data'        => $feedback,
-            'spot_rating' => isset($spot) && $spot ? (float) $spot->rating : ($rating ? (float) $rating : 5.0)
+            'status'         => 'success',
+            'success'        => true,
+            'reward_awarded' => $rewardAwarded,
+            'earned_xp'      => $rewardAwarded ? 25 : 0,
+            'earned_points'  => $rewardAwarded ? 25 : 0,
+            'message'        => $rewardAwarded
+                ? 'Thank you for your testimony and feedback! (+25 XP & +25 Points earned 🎉)'
+                : 'Review updated successfully! (Rewards have already been claimed for this destination)',
+            'data'           => $feedback,
+            'spot_rating'    => isset($spot) && $spot ? (float) $spot->rating : ($rating ? (float) $rating : 5.0)
         ]);
     }
 }

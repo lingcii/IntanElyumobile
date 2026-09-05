@@ -2386,8 +2386,13 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                         localStorage.removeItem(cacheKey);
                     }
 
-                    if (data.itinerary_id || (data.itinerary && data.itinerary.id)) {
-                        sessionStorage.setItem('just_saved_trip_id', String(data.itinerary_id || data.itinerary.id));
+                    const savedId = String(data.itinerary_id || (data.itinerary && data.itinerary.id) || '');
+                    if (savedId) {
+                        sessionStorage.setItem('just_saved_trip_id', savedId);
+                        if (transport) {
+                            sessionStorage.setItem('active_trip_transport_' + savedId, transport);
+                            localStorage.setItem('selected_trip_vehicle_' + savedId, transport);
+                        }
                     }
 
                     showToast("Trip saved successfully!");

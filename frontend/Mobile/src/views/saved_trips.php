@@ -213,6 +213,39 @@ $backRoute = 'itinerary';
         );
     };
 
+    function getSavedTripTransportBadge(rawMode) {
+        if (!rawMode) return '';
+        const catalog = {
+            'own_car': { name: 'Own Car', icon: 'fa-car', color: '#f59e0b' },
+            'jeepney': { name: 'Jeepney', icon: 'fa-van-shuttle', color: '#38bdf8' },
+            'tricycle': { name: 'Tricycle', icon: 'fa-motorcycle', color: '#10b981' },
+            'bus': { name: 'Bus', icon: 'fa-bus', color: '#a855f7' },
+            'private_bus': { name: 'Private Bus', icon: 'fa-bus', color: '#a855f7' },
+            'mini_bus': { name: 'Mini Bus', icon: 'fa-bus-simple', color: '#06b6d4' },
+            'lutrampco': { name: 'LUTRAMPCO', icon: 'fa-van-shuttle', color: '#38bdf8' },
+            'taxi': { name: 'Taxi', icon: 'fa-taxi', color: '#eab308' },
+            'motorcycle': { name: 'Motorcycle', icon: 'fa-motorcycle', color: '#f97316' },
+            'walking': { name: 'Walking', icon: 'fa-person-walking', color: '#22c55e' }
+        };
+
+        const parts = String(rawMode).split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+        if (parts.length === 0) return '';
+
+        const first = parts[0];
+        const info = catalog[first] || {
+            name: first.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+            icon: 'fa-car',
+            color: '#38bdf8'
+        };
+
+        let label = info.name;
+        if (parts.length > 1) {
+            label += ` +${parts.length - 1}`;
+        }
+
+        return `&bull; <span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid ${info.icon}" style="font-size:11px; color:${info.color};"></i>${label}</span>`;
+    }
+
     function renderSavedTrips(itineraries) {
         window._cachedSavedTrips = itineraries;
         const list = document.getElementById('saved-trips-list');
@@ -262,6 +295,7 @@ $backRoute = 'itinerary';
                 budgetIndicator = `<span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${color}; margin-left:6px; border:none; outline:none;" title="Estimated Cost: ₱${cost.toFixed(2)}"></span>`;
             }
 
+            const transportBadge = getSavedTripTransportBadge(trip.transport_mode);
             const safeTitle = trip.title ? trip.title.replace(/"/g, '&quot;').replace(/'/g, "\\'") : 'Saved Trip';
             html += `
             <div class="trip-swipe-container" data-trip-id="${trip.id}" data-trip-title="${safeTitle}" style="position:relative; overflow:hidden; border-radius:24px; -webkit-mask-image:-webkit-radial-gradient(white, black); mask-image:radial-gradient(white, black); isolation:isolate; contain:paint; margin-bottom:20px;">
@@ -275,6 +309,7 @@ $backRoute = 'itinerary';
                     <h3 style="margin: 0 0 6px 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">${trip.title}</h3>
                     <p style="font-size: 13px; color: #ffffff; opacity: 0.95; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                         <span><i class="fa-regular fa-calendar" style="color: #ffffff; margin-right: 4px;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}</span> 
+                        ${transportBadge}
                         ${trip.budget ? '&bull; <span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-coins" style="font-size:10px; color:#fbbf24;"></i>Budget: ₱' + parseFloat(trip.budget).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + budgetIndicator + '</span>' : ''}
                     </p>
                     <div class="timeline-collapsible" id="timeline-${trip.id}">
@@ -323,8 +358,8 @@ $backRoute = 'itinerary';
                                                 <span style="font-size:10px; color:#ffffff; opacity:0.8;">Your Trip has been Confirmed!</span>
                                             </div>
                                         </div>
-                                        <button type="button" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (dest ? dest.id : '')}')" style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:none; flex-shrink:0;">
-                                            <i class="fa-solid fa-pen" style="font-size:10px;"></i> Review
+                                        <button type="button" data-spot-id="${item.tourist_spot_id || (dest ? dest.id : '')}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (dest ? dest.id : '')}', this)" style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:none; flex-shrink:0;">
+                                            ${(window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(item.tourist_spot_id || (dest ? dest.id : '')))) ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review (+25 XP)'}
                                         </button>
                                     </div>` : 
                                     (item.proof_status === 'rejected' ? 
@@ -399,6 +434,9 @@ $backRoute = 'itinerary';
 
             list.innerHTML = html;
             initSavedTripsSwipe();
+            if (typeof window.syncReviewedButtons === 'function') {
+                window.syncReviewedButtons();
+            }
 
             // If a trip was just saved, auto-expand it smoothly so user sees it instantly
             const justSavedId = sessionStorage.getItem('just_saved_trip_id');
@@ -433,16 +471,19 @@ $backRoute = 'itinerary';
     };
 
     window.startTrip = function(tripId) {
+        let transportParam = '';
         if (window._cachedSavedTrips) {
             const found = window._cachedSavedTrips.find(t => t.id == tripId);
             if (found && found.transport_mode) {
                 sessionStorage.setItem('active_trip_transport_' + tripId, found.transport_mode);
+                localStorage.setItem('selected_trip_vehicle_' + tripId, found.transport_mode);
+                transportParam = '&transport=' + encodeURIComponent(found.transport_mode);
             }
         }
-        if (typeof showToast === 'function') showToast("Starting trip preview...");
+        if (typeof showToast === 'function') showToast("Starting trip navigation...");
         setTimeout(() => {
-            window.location.href = '?view=trip_map&trip_id=' + tripId;
-        }, 600);
+            window.location.href = '?view=trip_map&trip_id=' + tripId + transportParam;
+        }, 300);
     };
 
     window.markTripCompleted = async function(tripId) {
@@ -812,15 +853,16 @@ $backRoute = 'itinerary';
         let destListHtml = '';
         visitedItems.forEach((item, idx) => {
             const spotId = item.tourist_spot_id || item.id;
+            const isReviewed = window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(spotId));
             destListHtml += `
                 <div style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.08); border:none; outline:none; border-radius:14px; margin-bottom:8px;">
                     <div style="width:32px; height:32px; border-radius:10px; background:linear-gradient(135deg, #38bdf8, #2563eb); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:900; font-size:13px; color:#fff; border:none; outline:none;">${idx + 1}</div>
                     <div style="flex:1; min-width:0;">
                         <div style="font-size:14px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.destination_name || 'Destination'}</div>
-                        <div style="font-size:11px; color:rgba(255,255,255,0.8); font-weight:600;">Tap below to leave a review</div>
+                        <div style="font-size:11px; color:rgba(255,255,255,0.8); font-weight:600;">${isReviewed ? 'Already reviewed' : 'Tap below to leave a review'}</div>
                     </div>
-                    <button type="button" onclick="window.startReviewFromCompletion('${spotId}', this)" style="padding:6px 14px; border-radius:100px; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; outline:none; color:#fff; font-size:12px; font-weight:800; cursor:pointer; white-space:nowrap; box-shadow:none; display:inline-flex; align-items:center; gap:4px;">
-                        <i class="fa-solid fa-pen" style="font-size:10px;"></i> Review
+                    <button type="button" data-spot-id="${spotId}" onclick="window.startReviewFromCompletion('${spotId}', this)" style="padding:6px 14px; border-radius:100px; background:${isReviewed ? 'rgba(255,255,255,0.18)' : 'linear-gradient(135deg, #38bdf8, #2563eb)'}; border:none; outline:none; color:#fff; font-size:12px; font-weight:800; cursor:pointer; white-space:nowrap; box-shadow:none; display:inline-flex; align-items:center; gap:4px;">
+                        ${isReviewed ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review (+25 XP)'}
                     </button>
                 </div>`;
         });
@@ -872,7 +914,7 @@ $backRoute = 'itinerary';
             window._lastReviewedBtn = btnEl;
         }
         if (typeof window.openWriteTestimonyModal === 'function') {
-            window.openWriteTestimonyModal(spotId);
+            window.openWriteTestimonyModal(spotId, btnEl);
         }
     };
 
