@@ -254,28 +254,29 @@ if (is_dir($imgDir)) {
         </div>
     </div>
 
-    <!-- All Tourist Sites -->
+    <!-- Tourist Sites -->
     <div class="dash-section stagger-2" id="all-spots-section" style="margin-top: 24px;">
         <div class="section-title" style="margin-bottom: 8px;">
             <div>
                 <h3 style="display: flex; align-items: center; gap: 8px;">
-                    <span>All Tourist Sites</span>
+                    <span>Tourist Sites</span>
                     <span id="all-spots-count-badge" class="dash-count-pill">0 Spots</span>
                 </h3>
-                <p class="section-subtitle" id="all-spots-subtitle">Browse verified attractions, heritage sites & hidden gems in La Union</p>
+                <p class="section-subtitle" id="all-spots-subtitle">Browse verified attractions & hidden gems across La Union</p>
             </div>
-            <a href="javascript:void(0);" onclick="localStorage.setItem('intan_elyu_explore_mode', 'all'); navigateTo('trending');">Directory</a>
+            <a href="javascript:void(0);" onclick="window.navigateToTouristSitesPage()">See All</a>
         </div>
         <div id="all-spots-container">
             <div class="dash-loading-state">
                 <i class="fa-solid fa-spinner fa-spin"></i>
-                <span>Loading all tourist destinations...</span>
+                <span>Loading tourist destinations...</span>
             </div>
         </div>
-        <button type="button" id="btn-view-more-all-spots" onclick="window.toggleAllSpotsMore()"
-            style="display:none; width:100%; margin-top:14px; padding:12px; border-radius:14px; border:none; outline:none; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; align-items:center; justify-content:center; gap:8px; box-shadow:0 6px 16px rgba(10, 25, 60, 0.2); transition:all 0.2s;">
-            <i class="fa-solid fa-chevron-down" id="all-spots-chevron" style="font-size:11px; transition:transform 0.3s;"></i>
-            <span id="all-spots-more-text">View More Destinations</span>
+        <button type="button" id="btn-view-more-all-spots" onclick="window.navigateToTouristSitesPage()"
+            style="display:none; width:100%; margin-top:14px; padding:12px 18px; border-radius:14px; border:none; outline:none; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; align-items:center; justify-content:center; gap:8px; box-shadow:0 6px 16px rgba(10, 25, 60, 0.2); transition:all 0.2s;">
+            <i class="fa-solid fa-compass" style="font-size:13px;"></i>
+            <span id="all-spots-more-text">View All Tourist Sites</span>
+            <i class="fa-solid fa-arrow-right" style="font-size:11px; margin-left:2px;"></i>
         </button>
     </div>
 
@@ -635,7 +636,24 @@ if (is_dir($imgDir)) {
         `;
     };
 
-    window.allSpotsExpanded = false;
+    // Limit the number of tourist sites on the dashboard to maximize a compact minimum (4 cards)
+    // Full catalog with search, filters & sort displays on the dedicated Tourist Sites page
+    window.navigateToTouristSitesPage = function () {
+        localStorage.setItem('intan_elyu_explore_mode', 'all');
+        if (window.currentDashCategory && window.currentDashCategory !== 'All') {
+            localStorage.setItem('intan_elyu_filter_category', window.currentDashCategory);
+        } else {
+            localStorage.removeItem('intan_elyu_filter_category');
+        }
+        if (typeof window.navigateTo === 'function') {
+            window.navigateTo('trending');
+        } else {
+            window.location.href = '?view=trending';
+        }
+    };
+
+    window.toggleAllSpotsMore = window.navigateToTouristSitesPage;
+
     window.renderAllTouristSpots = function (spots, activeCat = 'All') {
         const container = document.getElementById('all-spots-container');
         const countBadge = document.getElementById('all-spots-count-badge');
@@ -664,65 +682,31 @@ if (is_dir($imgDir)) {
 
         if (subtitle) {
             if (activeCat === 'All') {
-                subtitle.textContent = `Browse all ${spots.length} verified attractions & hidden gems across La Union`;
+                subtitle.textContent = `Browse verified attractions & hidden gems across La Union`;
             } else {
                 subtitle.textContent = `Showing ${spots.length} destination${spots.length === 1 ? '' : 's'} in ${activeCat}`;
             }
         }
 
-        const INITIAL_LIMIT = 6;
-        const initialSpots = spots.slice(0, INITIAL_LIMIT);
-        const extraSpots = spots.slice(INITIAL_LIMIT);
+        const DASHBOARD_SPOT_LIMIT = 4;
+        const initialSpots = spots.slice(0, DASHBOARD_SPOT_LIMIT);
 
         let html = '<div class="all-spots-grid">';
         initialSpots.forEach(s => {
             html += window.buildAllSpotCard(s);
         });
-
-        if (extraSpots.length > 0) {
-            html += `<div id="all-spots-extras" style="grid-column: 1 / -1; display: none; grid-template-columns: repeat(2, 1fr); gap: 12px;">`;
-            extraSpots.forEach(s => {
-                html += window.buildAllSpotCard(s);
-            });
-            html += `</div>`;
-        }
         html += '</div>';
 
         container.innerHTML = html;
 
         if (moreBtn) {
-            if (extraSpots.length > 0) {
+            if (spots.length > DASHBOARD_SPOT_LIMIT) {
                 moreBtn.style.display = 'flex';
                 const moreTxt = document.getElementById('all-spots-more-text');
-                if (moreTxt) moreTxt.textContent = `View ${extraSpots.length} More Destinations`;
-                const chev = document.getElementById('all-spots-chevron');
-                if (chev) chev.className = 'fa-solid fa-chevron-down';
-                window.allSpotsExpanded = false;
+                if (moreTxt) moreTxt.textContent = `View All ${spots.length} Tourist Sites`;
             } else {
                 moreBtn.style.display = 'none';
             }
-        }
-    };
-
-    window.toggleAllSpotsMore = function () {
-        const extras = document.getElementById('all-spots-extras');
-        const chev = document.getElementById('all-spots-chevron');
-        const txt = document.getElementById('all-spots-more-text');
-        if (!extras) return;
-
-        if (!window.allSpotsExpanded) {
-            extras.style.display = 'grid';
-            if (chev) chev.className = 'fa-solid fa-chevron-up';
-            if (txt) txt.textContent = 'Show Less';
-            window.allSpotsExpanded = true;
-        } else {
-            extras.style.display = 'none';
-            if (chev) chev.className = 'fa-solid fa-chevron-down';
-            const count = extras.querySelectorAll('.all-spot-card').length;
-            if (txt) txt.textContent = `View ${count} More Destinations`;
-            window.allSpotsExpanded = false;
-            const section = document.getElementById('all-spots-section');
-            if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     };
 

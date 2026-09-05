@@ -268,7 +268,23 @@ if (is_dir($imgDir)) {
                 console.warn("Data loading partial failure:", e);
             }
 
-            // Sync active tab UI on initial load
+            // Sync active mode and category on initial load
+            const savedMode = localStorage.getItem('intan_elyu_explore_mode');
+            if (savedMode) {
+                currentMode = savedMode;
+            }
+            const savedCat = localStorage.getItem('intan_elyu_filter_category');
+            if (savedCat) {
+                currentCategory = savedCat;
+                document.querySelectorAll('#trending-cat-bar .trending-cat-pill').forEach(pill => {
+                    const text = (pill.textContent || '').trim();
+                    if (text.toLowerCase().includes(savedCat.toLowerCase())) {
+                        pill.classList.add('active');
+                    } else {
+                        pill.classList.remove('active');
+                    }
+                });
+            }
             window.switchTrendingMode(currentMode);
         }
 
