@@ -90,7 +90,7 @@ $backRoute = 'dashboard';
         </div>
 
         <div id="modal-action-row" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
-            <button id="modal-redeem-btn" onclick="handleModalRedeem()" style="width:100%; padding:12px; border:none !important; outline:none !important; border-radius:12px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#fff; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 14px rgba(0,242,254,0.35);">
+            <button id="modal-redeem-btn" onclick="handleModalRedeem()" style="width:100%; padding:12px; border:none !important; outline:none !important; border-radius:12px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#fff; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:none !important;">
                 <i class="fa-solid fa-gift"></i> <span id="modal-redeem-btn-label">Redeem for 100 PTS</span>
             </button>
             <div style="display:flex; gap:8px;">
@@ -129,7 +129,7 @@ $backRoute = 'dashboard';
     color: #ffffff;
     border: none !important;
     outline: none !important;
-    box-shadow: 0 4px 14px rgba(0, 242, 254, 0.35);
+    box-shadow: none !important;
 }
 
 .voucher-card {
@@ -350,7 +350,7 @@ function renderDiscounts() {
                     <i class="fa-solid fa-coins" style="color: #fbbf24; font-size: 13px;"></i>
                     <span style="font-size: 14px; font-weight: 800; color: #ffffff;">${v.pointsCost} <span style="font-size: 10px; color: rgba(255,255,255,0.7);">PTS</span></span>
                 </div>
-                <button onclick="${getExpiryInfo(v.expires).isExpired ? '' : 'openVoucherModal(\'' + v.id + '\')'}" ${getExpiryInfo(v.expires).isExpired ? 'disabled' : ''} style="background: ${getExpiryInfo(v.expires).isExpired ? 'rgba(255,255,255,0.08)' : (isClaimed ? 'rgba(52,199,89,0.25)' : 'linear-gradient(135deg, #00f2fe, #0284c7)')}; border: none !important; outline: none !important; color: #ffffff; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: ${getExpiryInfo(v.expires).isExpired ? 'not-allowed' : 'pointer'}; box-shadow: ${isClaimed || getExpiryInfo(v.expires).isExpired ? 'none' : '0 4px 12px rgba(0,242,254,0.3)'}; opacity: ${getExpiryInfo(v.expires).isExpired ? '0.6' : '1'};">
+                <button onclick="${getExpiryInfo(v.expires).isExpired ? '' : 'openVoucherModal(\'' + v.id + '\')'}" ${getExpiryInfo(v.expires).isExpired ? 'disabled' : ''} style="background: ${getExpiryInfo(v.expires).isExpired ? 'rgba(255,255,255,0.08)' : (isClaimed ? 'rgba(52,199,89,0.25)' : 'linear-gradient(135deg, #00f2fe, #0284c7)')}; border: none !important; outline: none !important; color: #ffffff; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: ${getExpiryInfo(v.expires).isExpired ? 'not-allowed' : 'pointer'}; box-shadow: none !important; opacity: ${getExpiryInfo(v.expires).isExpired ? '0.6' : '1'};">
                     ${getExpiryInfo(v.expires).isExpired ? '<i class="fa-solid fa-lock" style="margin-right:4px;"></i> Expired' : (isClaimed ? '<i class="fa-solid fa-check" style="margin-right:4px;"></i> Claimed' : 'Redeem Voucher')}
                 </button>
             </div>

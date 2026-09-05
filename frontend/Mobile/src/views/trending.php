@@ -24,15 +24,16 @@ if (is_dir($imgDir)) {
 <?php include __DIR__ . '/../components/header.php'; ?>
 
 <link rel="stylesheet" href="assets/css/views/trending.css">
-<div class="saved-trips-page-container has-header animate-slide-up" style="padding-left: 16px; padding-right: 16px;">
+<div class="saved-trips-page-container trending-page-container has-header animate-slide-up" style="padding-top: calc(65px + env(safe-area-inset-top, 0px) + 8px) !important; padding-left: 16px; padding-right: 16px;">
 
-    <!-- Segmented Tab Switcher: Trending Spots vs All Tourist Sites -->
-    <div class="trending-segmented-wrap">
-        <button type="button" class="trending-seg-tab active" id="tab-trending" onclick="window.switchTrendingMode('trending')">
-            <i class="fa-solid fa-fire"></i> Trending Spots
-        </button>
-        <button type="button" class="trending-seg-tab" id="tab-all-spots" onclick="window.switchTrendingMode('all')">
+    <!-- Segmented Tab Switcher: All Tourist Sites on Left, Trending Sites on Right -->
+    <div class="trending-segmented-wrap" id="trending-segmented-wrap">
+        <div class="trending-seg-slider" id="trending-seg-slider"></div>
+        <button type="button" class="trending-seg-tab active" id="tab-all-spots" onclick="window.switchTrendingMode('all')">
             <i class="fa-solid fa-compass"></i> All Tourist Sites
+        </button>
+        <button type="button" class="trending-seg-tab" id="tab-trending" onclick="window.switchTrendingMode('trending')">
+            <i class="fa-solid fa-fire"></i> Trending Sites
         </button>
     </div>
 
@@ -114,7 +115,7 @@ if (is_dir($imgDir)) {
 
         let trendingSpots = [];
         let allDestinations = [];
-        let currentMode = localStorage.getItem('intan_elyu_explore_mode') || 'trending';
+        let currentMode = localStorage.getItem('intan_elyu_explore_mode') || 'all';
         let currentCategory = 'All';
         let currentSearch = '';
         let currentSort = 'popular';
@@ -198,18 +199,21 @@ if (is_dir($imgDir)) {
             currentMode = mode;
             localStorage.setItem('intan_elyu_explore_mode', mode);
 
+            const wrap = document.getElementById('trending-segmented-wrap');
             const tabTrending = document.getElementById('tab-trending');
             const tabAll = document.getElementById('tab-all-spots');
             const input = document.getElementById('trending-search-input');
 
             if (mode === 'trending') {
+                if (wrap) wrap.classList.add('mode-trending');
                 if (tabTrending) tabTrending.classList.add('active');
                 if (tabAll) tabAll.classList.remove('active');
-                if (input) input.placeholder = "Search trending spots, municipality...";
+                if (input) input.placeholder = "Search trending sites, municipality...";
             } else {
+                if (wrap) wrap.classList.remove('mode-trending');
                 if (tabAll) tabAll.classList.add('active');
                 if (tabTrending) tabTrending.classList.remove('active');
-                if (input) input.placeholder = "Search all tourist attractions, municipality...";
+                if (input) input.placeholder = "Search tourist sites, municipality...";
             }
 
             applyFilters();
@@ -350,11 +354,11 @@ if (is_dir($imgDir)) {
 
             if (countLabel) {
                 if (count === 0) {
-                    countLabel.textContent = 'No matching destinations';
+                    countLabel.textContent = 'No matching tourist sites';
                 } else if (currentMode === 'trending') {
-                    countLabel.textContent = count === 1 ? 'Showing 1 trending destination' : `Showing ${count} trending destinations`;
+                    countLabel.textContent = count === 1 ? 'Showing 1 trending site' : `Showing ${count} trending sites`;
                 } else {
-                    countLabel.textContent = count === 1 ? 'Showing 1 destination in La Union' : `Showing ${count} destinations in La Union`;
+                    countLabel.textContent = count === 1 ? 'Showing 1 tourist site in La Union' : `Showing ${count} tourist sites in La Union`;
                 }
             }
 
@@ -436,7 +440,7 @@ if (is_dir($imgDir)) {
                 <div class="dash-empty-icon-wrap">
                     <i class="fa-solid fa-compass"></i>
                 </div>
-                <div class="dash-empty-title">No Spots Match Filter</div>
+                <div class="dash-empty-title">No Sites Match Filter</div>
                 <div class="dash-empty-desc">No destinations match your search or category selection. Try searching another keyword or reset your filter.</div>
                 <button type="button" onclick="window.resetTrendingFilters()" class="dash-empty-btn">
                     <i class="fa-solid fa-rotate-left"></i> Reset Filters

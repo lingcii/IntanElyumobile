@@ -1,7 +1,89 @@
-/* Trending View Styles */
+/* ============================================================
+ * Trending / Tourist Sites View Styles - trending.css
+ * Intan Elyu Mobile — Ultra-Premium Coastal Glass Theme
+ * ============================================================ */
+
+/* Top Container Gap Adjustment */
+.trending-page-container,
+.saved-trips-page-container.trending-page-container {
+    padding-top: calc(65px + env(safe-area-inset-top, 0px) + 8px) !important;
+}
+
+/* Segmented Tab Switcher (All Tourist Sites vs Trending Sites) */
+.trending-segmented-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    position: relative;
+    background: rgba(255, 255, 255, 0.12) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 4px;
+    border-radius: 100px;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    margin-top: 0 !important;
+    margin-bottom: 12px;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
+}
+
+.trending-seg-slider {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc(50% - 4px);
+    border-radius: 100px;
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45);
+    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 1;
+    pointer-events: none;
+    transform: translateX(0);
+}
+
+.trending-segmented-wrap.mode-trending .trending-seg-slider {
+    transform: translateX(100%);
+}
+
+.trending-seg-tab {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border-radius: 100px;
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.75) !important;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: color 0.25s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.trending-seg-tab:active {
+    transform: scale(0.96);
+}
+
+.trending-seg-tab.active {
+    color: #ffffff !important;
+}
+
+.trending-seg-tab i {
+    font-size: 13px;
+}
+
+/* Search Bar */
 .trending-search-wrap {
     position: relative;
-    margin-top: 14px;
+    margin-top: 0;
     margin-bottom: 12px;
     display: flex;
     align-items: center;
@@ -10,33 +92,35 @@
 .trending-search-input {
     width: 100%;
     height: 46px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    border-radius: 100px;
     padding: 0 40px 0 42px;
     color: #ffffff;
     font-size: 13.5px;
     font-family: inherit;
-    outline: none;
     transition: all 0.25s ease;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
 }
 
 .trending-search-input:focus {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(56, 189, 248, 0.6);
-    box-shadow: 0 0 16px rgba(56, 189, 248, 0.2);
+    background: rgba(255, 255, 255, 0.18) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35);
 }
 
 .trending-search-input::placeholder {
-    color: rgba(226, 232, 240, 0.45);
+    color: rgba(226, 232, 240, 0.55);
 }
 
 .trending-search-icon {
     position: absolute;
     left: 15px;
-    color: rgba(226, 232, 240, 0.5);
+    color: rgba(226, 232, 240, 0.6);
     font-size: 14px;
     pointer-events: none;
 }
@@ -46,7 +130,7 @@
     right: 12px;
     background: none;
     border: none;
-    color: rgba(226, 232, 240, 0.5);
+    color: rgba(226, 232, 240, 0.6);
     font-size: 15px;
     cursor: pointer;
     padding: 4px;
@@ -76,13 +160,15 @@
 }
 
 .trending-cat-pill {
-    padding: 7px 14px;
+    padding: 7.5px 15px;
     border-radius: 100px;
-    font-size: 11.5px;
+    font-size: 12px;
     font-weight: 700;
-    color: rgba(226, 232, 240, 0.7);
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.82) !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
     white-space: nowrap;
     cursor: pointer;
     display: inline-flex;
@@ -93,19 +179,70 @@
 }
 
 .trending-cat-pill i {
-    font-size: 11px;
+    font-size: 11.5px;
 }
 
 .trending-cat-pill:not(.active):active {
     transform: scale(0.96);
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.18) !important;
 }
 
 .trending-cat-pill.active {
-    color: #ffffff;
-    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-    border-color: rgba(56, 189, 248, 0.5);
-    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+}
+
+/* Sort Chips Bar */
+.trending-sort-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+    scrollbar-width: none;
+}
+
+.trending-sort-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.sort-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(226, 232, 240, 0.7);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    margin-right: 2px;
+}
+
+.sort-chip {
+    padding: 5px 12px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.sort-chip.active {
+    background: #0284c7 !important;
+    color: #ffffff !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
 }
 
 /* Grid & Cards */
@@ -120,17 +257,19 @@
     position: relative;
     border-radius: 18px;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.08);
+    border: none !important;
+    outline: none !important;
     cursor: pointer;
     aspect-ratio: 1 / 1;
     animation: trendFadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .trending-card:active {
     transform: scale(0.97);
-    border-color: rgba(56, 189, 248, 0.4);
+    border: none !important;
+    outline: none !important;
 }
 
 .trending-card img {
@@ -208,7 +347,8 @@
     height: 26px;
     border-radius: 50%;
     background: rgba(15, 23, 42, 0.65);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: none !important;
+    outline: none !important;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     display: flex;
@@ -228,91 +368,6 @@
         opacity: 1;
         transform: translateY(0) scale(1);
     }
-}
-
-/* Segmented Tab Bar */
-.trending-segmented-wrap {
-    display: flex;
-    background: rgba(15, 23, 42, 0.5);
-    padding: 4px;
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    margin-top: 14px;
-    margin-bottom: 12px;
-    gap: 4px;
-}
-
-.trending-seg-tab {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 10px 12px;
-    border-radius: 12px;
-    border: none;
-    background: transparent;
-    color: rgba(226, 232, 240, 0.7);
-    font-size: 12.5px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.trending-seg-tab.active {
-    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-    color: #ffffff;
-    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
-}
-
-.trending-seg-tab i {
-    font-size: 13px;
-}
-
-/* Sort Chips Bar */
-.trending-sort-bar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    overflow-x: auto;
-    padding-bottom: 8px;
-    margin-bottom: 10px;
-    scrollbar-width: none;
-}
-
-.trending-sort-bar::-webkit-scrollbar {
-    display: none;
-}
-
-.sort-label {
-    font-size: 10.5px;
-    font-weight: 700;
-    color: rgba(226, 232, 240, 0.6);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-shrink: 0;
-    margin-right: 2px;
-}
-
-.sort-chip {
-    padding: 4px 10px;
-    border-radius: 8px;
-    font-size: 10.5px;
-    font-weight: 700;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(226, 232, 240, 0.75);
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-}
-
-.sort-chip.active {
-    background: rgba(56, 189, 248, 0.2);
-    border-color: rgba(56, 189, 248, 0.5);
-    color: #38bdf8;
 }
 
 .trending-card .card-bottom-tags {

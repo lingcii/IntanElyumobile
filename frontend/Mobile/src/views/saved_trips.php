@@ -224,7 +224,7 @@ $backRoute = 'itinerary';
                     <i class="fa-solid fa-route"></i>
                 </div>
                 <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff; text-wrap: balance;">No Saved Trips Yet</h3>
-                <p style="margin: 0; font-size: 13px; color: rgba(148, 163, 184, 0.9); line-height: 1.45; max-width: 260px; text-wrap: pretty;">
+                <p style="margin: 0; font-size: 13.5px; color: rgba(255, 255, 255, 0.88); line-height: 1.5; max-width: 260px; text-wrap: pretty;">
                     Your adventure starts here! Explore La Union tourist spots and plan your personalized itinerary.
                 </p>
                 <button type="button" class="btn-open-map" onclick="if(typeof window.navigateTo==='function') window.navigateTo('itinerary');">

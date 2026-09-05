@@ -1553,8 +1553,8 @@ body[data-view="map"] .btn-locate-me {
     height: 24px;
     border-radius: 50%;
     background-color: #ffffff !important;
-    border: 1.5px solid #0284c7 !important;
-    color: #0284c7 !important;
+    border: 1.5px solid #64748b !important;
+    color: #64748b !important;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1563,7 +1563,7 @@ body[data-view="map"] .btn-locate-me {
 }
 
 .amenity-marker-icon-circle i {
-    color: #0284c7 !important;
+    color: #64748b !important;
 }
 
 .amenity-marker-label {
@@ -1723,8 +1723,8 @@ body[data-view="map"] .btn-locate-me {
     height: 28px;
     border-radius: 50%;
     background-color: #ffffff !important;
-    border: 1.5px solid #0284c7 !important;
-    color: #0284c7 !important;
+    border: 1.5px solid #64748b !important;
+    color: #64748b !important;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1734,7 +1734,7 @@ body[data-view="map"] .btn-locate-me {
 }
 
 .sheet-amenity-icon-circle i {
-    color: #0284c7 !important;
+    color: #64748b !important;
 }
 
 .sheet-amenity-info {

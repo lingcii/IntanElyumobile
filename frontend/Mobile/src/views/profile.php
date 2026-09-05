@@ -93,7 +93,7 @@ $activeTab = 'profile';
                     <span style="font-size:14px; font-weight:700; color:#ffffff; opacity:0.8;">PTS</span>
                 </div>
             </div>
-            <button onclick="navigateTo('puzzles')" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; padding:8px 16px; border-radius:12px; font-weight:800; font-size:12px; cursor:pointer; box-shadow: 0 4px 12px rgba(0, 242, 254, 0.3);">
+            <button onclick="navigateTo('puzzles')" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; padding:8px 16px; border-radius:12px; font-weight:800; font-size:12px; cursor:pointer; box-shadow: none !important;">
                 <i class="fa-solid fa-gamepad"></i> Play & Earn
             </button>
         </div>
@@ -448,12 +448,12 @@ $activeTab = 'profile';
                     const vouchersPayload = await resVouchers.json();
                     if (vouchersPayload.status === 'success' && Array.isArray(vouchersPayload.data) && vouchersPayload.data.length > 0) {
                         const topVouchers = vouchersPayload.data.slice(0, 3);
-                        catalogEl.innerHTML = topVouchers.map(v => {
-                            const iconClass = v.category === 'Activities' ? 'fa-person-hiking' : (v.category === 'Accommodations' ? 'fa-hotel' : (v.category === 'Souvenirs' ? 'fa-gift' : 'fa-utensils'));
+                        window._profileVouchersList = topVouchers;
+                        catalogEl.innerHTML = topVouchers.map((v, idx) => {
                             return `
-                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.08); border:none !important; outline:none !important; padding:12px 14px; border-radius:16px; gap:12px; transition:transform 0.15s ease;">
+                            <div onclick="window.showRewardDetailsModal(${idx})" style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.08); border:none !important; outline:none !important; padding:12px 14px; border-radius:16px; gap:12px; transition:transform 0.15s ease, background 0.15s ease; cursor:pointer;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
                                 <div style="display:flex; align-items:center; gap:10px; min-width:0; text-align:left; flex:1;">
-                                    <div style="width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,0.14); border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.25);">
+                                    <div style="width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,0.14); border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; box-shadow:none !important;">
                                         <img src="${v.image || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png'}" alt="${v.title}" style="width:100%; height:100%; object-fit:contain; padding:3px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
                                     </div>
                                     <div style="min-width:0; flex:1;">
@@ -464,32 +464,45 @@ $activeTab = 'profile';
                                         <span style="font-size:11px; color:rgba(226,232,240,0.7); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.partner}</span>
                                     </div>
                                 </div>
-                                <button type="button" onclick="window.redeemAdminVoucher(${v.id}, ${v.pointsCost}, '${(v.title || '').replace(/'/g, "\\'")}')" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; border:none !important; outline:none !important; padding:8px 14px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer; flex-shrink:0; box-shadow:0 3px 10px rgba(0,242,254,0.3); white-space:nowrap;">
+                                <button type="button" onclick="event.stopPropagation(); window.showRewardDetailsModal(${idx})" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; border:none !important; outline:none !important; padding:8px 14px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer; flex-shrink:0; box-shadow:none !important; white-space:nowrap;">
                                     ${v.pointsCost} PTS
                                 </button>
                             </div>`;
                         }).join('');
                     } else {
                         // Default built-in rewards fallback
-                        catalogEl.innerHTML = `
-                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.08); border:none !important; outline:none !important; padding:12px 14px; border-radius:16px;">
+                        const fallbackVouchers = [
+                            {
+                                id: 'pasalubong_discount',
+                                title: '₱50 Pasalubong Discount',
+                                partner: 'Pasalubong Center, La Union',
+                                badge: '₱50 OFF',
+                                description: 'Enjoy a ₱50 discount on authentic local pasalubong and souvenirs made by Elyu artisans.',
+                                pointsCost: 100,
+                                image: 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png'
+                            },
+                            {
+                                id: 'environmental_fee',
+                                title: 'Waived Environmental Fee',
+                                partner: 'Municipality of La Union',
+                                badge: 'FREE ENTRY',
+                                description: 'Waive standard municipality environmental entrance fee on your next eco-tourism visit.',
+                                pointsCost: 150,
+                                image: 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png'
+                            }
+                        ];
+                        window._profileVouchersList = fallbackVouchers;
+                        catalogEl.innerHTML = fallbackVouchers.map((v, idx) => `
+                            <div onclick="window.showRewardDetailsModal(${idx})" style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.08); border:none !important; outline:none !important; padding:12px 14px; border-radius:16px; margin-bottom:8px; cursor:pointer; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                                 <div style="text-align: left;">
-                                    <strong style="display:block; font-size:13px; color:#fff;">₱50 Pasalubong Discount</strong>
-                                    <span style="font-size:11px; color:rgba(255,255,255,0.6);">Claimable at local Pasalubong Center</span>
+                                    <strong style="display:block; font-size:13px; color:#fff;">${v.title}</strong>
+                                    <span style="font-size:11px; color:rgba(255,255,255,0.7);">${v.partner}</span>
                                 </div>
-                                <button onclick="redeemReward('pasalubong_discount', 100)" style="background:linear-gradient(135deg, #00f2fe, #0284c7); color:#fff; border:none !important; outline:none !important; padding:8px 12px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer;">
-                                    100 PTS
+                                <button type="button" onclick="event.stopPropagation(); window.showRewardDetailsModal(${idx})" style="background:linear-gradient(135deg, #00f2fe, #0284c7); color:#fff; border:none !important; outline:none !important; padding:8px 12px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer; box-shadow:none !important;">
+                                    ${v.pointsCost} PTS
                                 </button>
                             </div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.08); border:none !important; outline:none !important; padding:12px 14px; border-radius:16px; margin-top:8px;">
-                                <div style="text-align: left;">
-                                    <strong style="display:block; font-size:13px; color:#fff;">Waived Environmental Fee</strong>
-                                    <span style="font-size:11px; color:rgba(255,255,255,0.6);">Waive standard municipality entry fee</span>
-                                </div>
-                                <button onclick="redeemReward('environmental_fee', 150)" style="background:linear-gradient(135deg, #00f2fe, #0284c7); color:#fff; border:none !important; outline:none !important; padding:8px 12px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer;">
-                                    150 PTS
-                                </button>
-                            </div>`;
+                        `).join('');
                     }
                 }
             }
@@ -582,6 +595,62 @@ $activeTab = 'profile';
     window.updateProfilePointsDisplay = function(points) {
         const ptsVal = document.getElementById('profile-points-val');
         if (ptsVal) ptsVal.textContent = points;
+    };
+
+    window.showRewardDetailsModal = function(idxOrVoucher) {
+        let voucher = null;
+        if (typeof idxOrVoucher === 'number' && window._profileVouchersList) {
+            voucher = window._profileVouchersList[idxOrVoucher];
+        } else if (typeof idxOrVoucher === 'object') {
+            voucher = idxOrVoucher;
+        }
+        if (!voucher) return;
+
+        const modal = document.getElementById('reward-details-modal');
+        if (!modal) return;
+
+        const badge = document.getElementById('reward-modal-badge');
+        const img = document.getElementById('reward-modal-img');
+        const title = document.getElementById('reward-modal-title');
+        const partner = document.getElementById('reward-modal-partner-name');
+        const desc = document.getElementById('reward-modal-desc');
+        const costText = document.getElementById('reward-modal-cost-text');
+        const redeemBtn = document.getElementById('reward-modal-redeem-btn');
+
+        if (badge) badge.textContent = voucher.badge || 'PROMO';
+        if (img) img.src = voucher.image || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png';
+        if (title) title.textContent = voucher.title || 'Exclusive Reward';
+        if (partner) partner.textContent = voucher.partner || voucher.merchant || 'La Union Partner';
+        if (desc) desc.textContent = voucher.description || 'Redeem this voucher with your claimable points to enjoy discounts at this partner establishment.';
+        if (costText) costText.textContent = `${voucher.pointsCost} PTS`;
+
+        if (redeemBtn) {
+            redeemBtn.onclick = function() {
+                window.closeRewardDetailsModal();
+                if (typeof voucher.id === 'string' && voucher.id.includes('_')) {
+                    redeemReward(voucher.id, voucher.pointsCost);
+                } else {
+                    window.redeemAdminVoucher(voucher.id, voucher.pointsCost, voucher.title);
+                }
+            };
+        }
+
+        modal.style.display = 'flex';
+        void modal.offsetHeight;
+        modal.style.opacity = '1';
+        const card = modal.querySelector('div');
+        if (card) card.style.transform = 'scale(1)';
+    };
+
+    window.closeRewardDetailsModal = function() {
+        const modal = document.getElementById('reward-details-modal');
+        if (!modal) return;
+        modal.style.opacity = '0';
+        const card = modal.querySelector('div');
+        if (card) card.style.transform = 'scale(0.88)';
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 220);
     };
 
     window.openFullHistoryModal = function() {
@@ -726,5 +795,32 @@ $activeTab = 'profile';
         <div id="trip-detail-destinations-list" style="flex:1; overflow-y:auto; padding-right:4px;">
             <div style="text-align:center; padding:16px; color:rgba(148,163,184,0.8); font-size:12px;">Loading destinations...</div>
         </div>
+    </div>
+</div>
+
+<!-- Reward Details Modal -->
+<div id="reward-details-modal" onclick="if(event.target===this)window.closeRewardDetailsModal()"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.65); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:2000000; justify-content:center; align-items:center; padding:20px; opacity:0; transition:opacity 0.25s ease;">
+    <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:24px; padding:24px; width:100%; max-width:340px; box-shadow:0 20px 50px rgba(10,25,60,0.5); text-align:center; transform:scale(0.88); transition:transform 0.25s cubic-bezier(0.16,1,0.3,1); position:relative;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <span id="reward-modal-badge" style="font-size:10px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.22); padding:3px 9px; border-radius:8px; border:none !important;">PROMO</span>
+            <button type="button" onclick="window.closeRewardDetailsModal()" style="background:rgba(255,255,255,0.14); border:none !important; outline:none !important; color:#ffffff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div style="width:70px; height:70px; border-radius:18px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; overflow:hidden; box-shadow:none !important;">
+            <img id="reward-modal-img" src="" alt="Reward Logo" style="width:100%; height:100%; object-fit:contain; padding:8px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
+        </div>
+        <h4 id="reward-modal-title" style="margin:0 0 4px; font-size:17px; font-weight:800; color:#ffffff; line-height:1.3;">Reward Details</h4>
+        <p style="margin:0 0 14px; font-size:12px; color:rgba(226,232,240,0.85); display:flex; align-items:center; justify-content:center; gap:4px;">
+            <i class="fa-solid fa-store" style="font-size:11px; color:#38bdf8;"></i> <span id="reward-modal-partner-name">Partner</span>
+        </p>
+        <div style="background:rgba(255,255,255,0.1); border-radius:14px; padding:12px; margin-bottom:16px; text-align:left;">
+            <div style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:rgba(255,255,255,0.65); margin-bottom:4px;">Description & Terms</div>
+            <p id="reward-modal-desc" style="margin:0; font-size:12px; color:rgba(255,255,255,0.92); line-height:1.45;"></p>
+        </div>
+        <button type="button" id="reward-modal-redeem-btn" style="width:100%; padding:13px; border:none !important; outline:none !important; border-radius:14px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; box-shadow:none !important; display:flex; align-items:center; justify-content:center; gap:8px;">
+            <i class="fa-solid fa-gift"></i> <span>Redeem for <strong id="reward-modal-cost-text">-- PTS</strong></span>
+        </button>
     </div>
 </div>

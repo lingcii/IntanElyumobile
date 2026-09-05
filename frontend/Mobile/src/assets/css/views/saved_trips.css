@@ -167,14 +167,15 @@ body[data-view="saved_trips"] .mobile-header .header-icon {
     background: rgba(255, 255, 255, 0.14) !important;
 }
 
-/* Empty State Card (Matches Itinerary Empty State) */
+/* Empty State Card (Matches Coastal Ocean Theme) */
 .saved-trips-page-container .empty-state-card {
-    background: var(--ratio-30-secondary, #141C2E) !important;
-    border: 1px dashed rgba(255, 255, 255, 0.12) !important;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 24px !important;
-    padding: 32px 24px !important;
+    padding: 36px 24px !important;
     text-align: center !important;
-    box-shadow: none !important;
+    box-shadow: 0 10px 28px rgba(10, 25, 60, 0.28) !important;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -185,21 +186,22 @@ body[data-view="saved_trips"] .mobile-header .header-icon {
     width: 68px;
     height: 68px;
     border-radius: 50%;
-    background: rgba(56, 189, 248, 0.14) !important;
-    border: 1px solid rgba(56, 189, 248, 0.35) !important;
+    background: rgba(255, 255, 255, 0.16) !important;
+    border: none !important;
+    outline: none !important;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #38bdf8 !important;
-    -webkit-text-fill-color: #38bdf8 !important;
-    font-size: 30px;
-    margin: 0 auto 12px auto;
-    box-shadow: 0 0 24px rgba(56, 189, 248, 0.3);
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    font-size: 28px;
+    margin: 0 auto 8px auto;
+    box-shadow: none !important;
 }
 
 .saved-trips-page-container .empty-state-icon i {
-    color: #38bdf8 !important;
-    -webkit-text-fill-color: #38bdf8 !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
     font-size: 28px !important;
 }
 

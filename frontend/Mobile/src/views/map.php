@@ -117,7 +117,7 @@ if (is_dir($imgDir)) {
             <div style="display: flex; flex-direction: column; gap: 6px;">
                 <!-- 1. Existing -->
                 <div class="classification-item-chip" onclick="window.filterByClassification('EXIST')" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; transition: background 0.15s ease;">
-                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #34c759; box-shadow: 0 0 8px #34c759; flex-shrink: 0;"></span>
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #34c759; box-shadow: none !important; flex-shrink: 0;"></span>
                     <div style="flex: 1;">
                         <div style="font-size: 12px; font-weight: 800; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
                             <span>Existing</span>
@@ -126,26 +126,26 @@ if (is_dir($imgDir)) {
                         <div style="font-size: 10px; color: rgba(255,255,255,0.85); font-weight: 500;">Fully developed spots & facilities</div>
                     </div>
                 </div>
-                <!-- 2. Emerging -->
-                <div class="classification-item-chip" onclick="window.filterByClassification('EMERGE')" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; transition: background 0.15s ease;">
-                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 8px #38bdf8; flex-shrink: 0;"></span>
-                    <div style="flex: 1;">
-                        <div style="font-size: 12px; font-weight: 800; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
-                            <span>Emerging</span>
-                            <span id="count-emerge" style="font-size: 10px; font-weight: 800; color: #38bdf8; background: rgba(56,189,248,0.22); padding: 1px 6px; border-radius: 6px;">Site</span>
-                        </div>
-                        <div style="font-size: 10px; color: rgba(255,255,255,0.85); font-weight: 500;">Rising attractions gaining visitors</div>
-                    </div>
-                </div>
-                <!-- 3. Potential -->
+                <!-- 2. Potential (Middle) -->
                 <div class="classification-item-chip" onclick="window.filterByClassification('POTENTIAL')" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; transition: background 0.15s ease;">
-                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 8px #f59e0b; flex-shrink: 0;"></span>
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; box-shadow: none !important; flex-shrink: 0;"></span>
                     <div style="flex: 1;">
                         <div style="font-size: 12px; font-weight: 800; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
                             <span>Potential</span>
                             <span id="count-potential" style="font-size: 10px; font-weight: 800; color: #f59e0b; background: rgba(245,158,11,0.22); padding: 1px 6px; border-radius: 6px;">Site</span>
                         </div>
                         <div style="font-size: 10px; color: rgba(255,255,255,0.85); font-weight: 500;">Unspoiled spots with high promise</div>
+                    </div>
+                </div>
+                <!-- 3. Emerging (Bottom) -->
+                <div class="classification-item-chip" onclick="window.filterByClassification('EMERGE')" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; transition: background 0.15s ease;">
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #38bdf8; box-shadow: none !important; flex-shrink: 0;"></span>
+                    <div style="flex: 1;">
+                        <div style="font-size: 12px; font-weight: 800; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
+                            <span>Emerging</span>
+                            <span id="count-emerge" style="font-size: 10px; font-weight: 800; color: #38bdf8; background: rgba(56,189,248,0.22); padding: 1px 6px; border-radius: 6px;">Site</span>
+                        </div>
+                        <div style="font-size: 10px; color: rgba(255,255,255,0.85); font-weight: 500;">Rising attractions gaining visitors</div>
                     </div>
                 </div>
             </div>
@@ -159,11 +159,11 @@ if (is_dir($imgDir)) {
             style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%) !important; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 12px; border: none !important; outline: none !important; color: #ffffff; box-shadow: 0 8px 20px rgba(10, 25, 60, 0.3); cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);"
             onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'"
             title="Classifications">
-            <!-- 3 Vertical Classification Dots -->
+            <!-- 3 Vertical Classification Dots: Existing (top), Potential (middle), Emerging (bottom) -->
             <span style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
-                <span id="dot-exist" style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #34c759; box-shadow: 0 0 5px rgba(52,199,89,0.9); transition: transform 0.2s ease, opacity 0.2s ease;"></span>
-                <span id="dot-emerge" style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 5px rgba(56,189,248,0.9); transition: transform 0.2s ease, opacity 0.2s ease;"></span>
-                <span id="dot-potential" style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 5px rgba(245,158,11,0.9); transition: transform 0.2s ease, opacity 0.2s ease;"></span>
+                <span id="dot-exist" style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #34c759; box-shadow: none !important; transition: transform 0.2s ease, opacity 0.2s ease;"></span>
+                <span id="dot-potential" style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #f59e0b; box-shadow: none !important; transition: transform 0.2s ease, opacity 0.2s ease;"></span>
+                <span id="dot-emerge" style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #38bdf8; box-shadow: none !important; transition: transform 0.2s ease, opacity 0.2s ease;"></span>
             </span>
         </button>
     </div>
@@ -489,7 +489,7 @@ if (is_dir($imgDir)) {
     <div
         style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:24px; padding:32px 28px 24px; margin:0 24px; width:100%; max-width:320px; text-align:center; box-shadow:0 20px 60px rgba(10,25,60,0.5); transform:scale(0.85); transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);">
         <div id="itin-add-confirm-icon-wrap"
-            style="width:68px; height:68px; border-radius:50%; background:linear-gradient(135deg, #34d399 0%, #10b981 100%); border:3px solid rgba(255,255,255,0.4) !important; box-shadow:0 8px 24px rgba(16,185,129,0.5), 0 0 20px rgba(52,211,153,0.45); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+            style="width:68px; height:68px; border-radius:50%; background:linear-gradient(135deg, #34d399 0%, #10b981 100%); border:3px solid rgba(255,255,255,0.4) !important; box-shadow:none !important; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
             <i class="fa-solid fa-check" style="font-size:32px; color:#ffffff;"></i>
         </div>
         <h3 style="margin:0 0 6px; font-size:20px; font-weight:800; color:#ffffff; letter-spacing:-0.3px;">Added to
@@ -497,7 +497,7 @@ if (is_dir($imgDir)) {
         <p style="margin:0 0 24px; font-size:14px; color:rgba(255,255,255,0.88); line-height:1.5;"
             id="itin-add-confirm-name"></p>
         <button onclick="window.viewItinerary()"
-            style="width:100%; padding:14px; border:none !important; outline:none !important; border-radius:14px; background:linear-gradient(135deg,#007AFF,#0055FF); color:#fff; font-size:15px; font-weight:800; cursor:pointer; margin-bottom:10px; box-shadow:0 4px 16px rgba(0,122,255,0.4);">
+            style="width:100%; padding:14px; border:none !important; outline:none !important; border-radius:14px; background:linear-gradient(135deg,#007AFF,#0055FF); color:#fff; font-size:15px; font-weight:800; cursor:pointer; margin-bottom:10px; box-shadow:none !important;">
             <i class="fa-solid fa-list"></i> View Itinerary
         </button>
         <button onclick="window.closeAddConfirm()"
@@ -1377,7 +1377,7 @@ if (is_dir($imgDir)) {
                 const mapAmenities = amenities.slice(0, 15);
 
                 // Unified color for all amenities (ring border & icon)
-                const AMENITY_COLOR = '#0284c7';
+                const AMENITY_COLOR = '#64748b';
 
                 mapAmenities.forEach((am, idx) => {
                     const amLat = parseFloat(am.lat);
@@ -3677,7 +3677,7 @@ if (is_dir($imgDir)) {
                 if (titleEl) titleEl.textContent = 'Added to Itinerary!';
                 if (iconWrap) {
                     iconWrap.innerHTML = '<i class="fa-solid fa-check" style="font-size:32px; color:#ffffff;"></i>';
-                    iconWrap.style.cssText = 'width:68px; height:68px; border-radius:50%; background:linear-gradient(135deg, #34d399 0%, #10b981 100%); border:3px solid rgba(255,255,255,0.4) !important; box-shadow:0 8px 24px rgba(16,185,129,0.5), 0 0 20px rgba(52,211,153,0.45); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;';
+                    iconWrap.style.cssText = 'width:68px; height:68px; border-radius:50%; background:linear-gradient(135deg, #34d399 0%, #10b981 100%); border:3px solid rgba(255,255,255,0.4) !important; box-shadow:none !important; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;';
                 }
                 if (btnView) btnView.style.display = '';
             } else {
@@ -3690,7 +3690,7 @@ if (is_dir($imgDir)) {
                 if (titleEl) titleEl.textContent = 'Already in Itinerary';
                 if (iconWrap) {
                     iconWrap.innerHTML = '<i class="fa-solid fa-bookmark" style="font-size:30px; color:#ffffff;"></i>';
-                    iconWrap.style.cssText = 'width:68px; height:68px; border-radius:50%; background:linear-gradient(135deg, #fbbf24 0%, #d97706 100%); border:3px solid rgba(255,255,255,0.4) !important; box-shadow:0 8px 24px rgba(245,158,11,0.5), 0 0 20px rgba(251,191,36,0.45); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;';
+                    iconWrap.style.cssText = 'width:68px; height:68px; border-radius:50%; background:linear-gradient(135deg, #fbbf24 0%, #d97706 100%); border:3px solid rgba(255,255,255,0.4) !important; box-shadow:none !important; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;';
                 }
                 if (btnView) btnView.style.display = 'none';
             }
