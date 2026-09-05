@@ -51,7 +51,7 @@ $backRoute = 'itinerary';
     <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:380px; box-shadow:0 16px 40px rgba(10, 25, 60, 0.45); text-align:center;">
         <i class="fa-solid fa-camera" style="font-size:32px; color:#ffffff; margin-bottom:10px; display:block;"></i>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Claim Your Reward</h3>
-        <p style="font-size:13px; color:#ffffff; opacity:0.95; margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination to verify your visit and earn <strong style="color:#ffffff; font-weight:800;">+50 XP</strong> & <strong style="color:#ffffff; font-weight:800;">+50 Points</strong>.</p>
+        <p style="font-size:13px; color:#ffffff; opacity:0.95; margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination to verify your visit and earn <strong style="color:#ffffff; font-weight:800;">+50 XP</strong>.</p>
 
         <input type="hidden" id="checkin-item-id">
         

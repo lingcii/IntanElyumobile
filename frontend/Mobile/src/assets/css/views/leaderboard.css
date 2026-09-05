@@ -97,7 +97,7 @@ body[data-view="leaderboard"] .mobile-header .header-icon {
     top: 4px;
     bottom: 4px;
     left: 4px;
-    width: calc((100% - 8px) / 3);
+    width: calc((100% - 8px) / 2);
     border-radius: 100px;
     background: linear-gradient(135deg, #00f2fe 0%, #0284c7 60%, #1e3a8a 100%);
     box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
@@ -111,13 +111,8 @@ body[data-view="leaderboard"] .mobile-header .header-icon {
     background: linear-gradient(135deg, #00f2fe 0%, #0284c7 60%, #1e3a8a 100%);
 }
 
-.leaderboard-tabs-wrapper.mode-points .leaderboard-tab-glider {
-    transform: translateX(100%);
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-}
-
 .leaderboard-tabs-wrapper.mode-visited .leaderboard-tab-glider {
-    transform: translateX(200%);
+    transform: translateX(100%);
     background: linear-gradient(135deg, #00f2fe 0%, #06b6d4 50%, #0284c7 100%);
 }
 

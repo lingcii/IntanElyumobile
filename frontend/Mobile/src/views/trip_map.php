@@ -74,7 +74,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             <i class="fa-solid fa-camera" style="font-size:26px; color:#ffffff;"></i>
         </div>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Claim Your Reward</h3>
-        <p style="font-size:13px; color:rgba(255, 255, 255, 0.85); margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination to verify your visit and earn <strong style="color:#67e8f9; font-weight:800;">+50 XP</strong> & <strong style="color:#67e8f9; font-weight:800;">+50 Points</strong>.</p>
+        <p style="font-size:13px; color:rgba(255, 255, 255, 0.85); margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination to verify your visit and earn <strong style="color:#67e8f9; font-weight:800;">+50 XP</strong>.</p>
 
         <input type="hidden" id="checkin-item-id">
         

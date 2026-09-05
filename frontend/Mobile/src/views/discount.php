@@ -14,12 +14,12 @@ $backRoute = 'dashboard';
         </div>
         <h2 style="margin: 0 0 6px; font-size: 22px; font-weight: 800; color: #ffffff;">Discounts & Vouchers</h2>
         <p style="margin: 0 0 14px; font-size: 13px; color: rgba(255, 255, 255, 0.9); line-height: 1.5; max-width: 340px; margin-left: auto; margin-right: auto;">
-            Redeem your hard-earned <strong style="color: #00f2fe;">PTS & XP</strong> for exclusive dining discounts, surf rentals, resort vouchers, and eco-passes!
+            Redeem your hard-earned <strong style="color: #00f2fe;">XP</strong> for exclusive dining discounts, surf rentals, resort vouchers, and eco-passes!
         </p>
         <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; padding:6px 16px; border-radius:100px;">
-            <i class="fa-solid fa-coins" style="color:#fbbf24; font-size:13px;"></i>
+            <i class="fa-solid fa-bolt" style="color:#fbbf24; font-size:13px;"></i>
             <span style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600;">Your Balance:</span>
-            <strong id="discount-user-pts" style="color:#ffffff; font-size:14px; font-weight:900;">-- PTS</strong>
+            <strong id="discount-user-pts" style="color:#ffffff; font-size:14px; font-weight:900;">-- XP</strong>
         </div>
     </div>
 
@@ -91,7 +91,7 @@ $backRoute = 'dashboard';
 
         <div id="modal-action-row" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
             <button id="modal-redeem-btn" onclick="handleModalRedeem()" style="width:100%; padding:12px; border:none !important; outline:none !important; border-radius:12px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#fff; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:none !important;">
-                <i class="fa-solid fa-gift"></i> <span id="modal-redeem-btn-label">Redeem for 100 PTS</span>
+                <i class="fa-solid fa-gift"></i> <span id="modal-redeem-btn-label">Redeem for 100 XP</span>
             </button>
             <div style="display:flex; gap:8px;">
                 <button onclick="navigateTo('map'); closeVoucherModal();" style="flex:1; padding:10px; border:none !important; outline:none !important; border-radius:10px; background:rgba(255,255,255,0.15); color:#ffffff; font-size:11px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
@@ -272,9 +272,9 @@ async function fetchUserPointsAndRedemptions() {
         if (res.ok) {
             const data = await res.json();
             if (data.status === 'success') {
-                userPointsBalance = data.points || 0;
+                userPointsBalance = data.xp ?? data.points ?? 0;
                 const ptsBadge = document.getElementById('discount-user-pts');
-                if (ptsBadge) ptsBadge.textContent = `${userPointsBalance.toLocaleString()} PTS`;
+                if (ptsBadge) ptsBadge.textContent = `${userPointsBalance.toLocaleString()} XP`;
 
                 // Sync database claimed vouchers
                 if (Array.isArray(data.vouchers)) {
@@ -347,8 +347,8 @@ function renderDiscounts() {
             
             <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.12);">
                 <div style="display: flex; align-items: center; gap: 4px;">
-                    <i class="fa-solid fa-coins" style="color: #fbbf24; font-size: 13px;"></i>
-                    <span style="font-size: 14px; font-weight: 800; color: #ffffff;">${v.pointsCost} <span style="font-size: 10px; color: rgba(255,255,255,0.7);">PTS</span></span>
+                    <i class="fa-solid fa-bolt" style="color: #fbbf24; font-size: 13px;"></i>
+                    <span style="font-size: 14px; font-weight: 800; color: #ffffff;">${v.xpCost || v.pointsCost} <span style="font-size: 10px; color: rgba(255,255,255,0.7);">XP</span></span>
                 </div>
                 <button onclick="${getExpiryInfo(v.expires).isExpired ? '' : 'openVoucherModal(\'' + v.id + '\')'}" ${getExpiryInfo(v.expires).isExpired ? 'disabled' : ''} style="background: ${getExpiryInfo(v.expires).isExpired ? 'rgba(255,255,255,0.08)' : (isClaimed ? 'rgba(52,199,89,0.25)' : 'linear-gradient(135deg, #00f2fe, #0284c7)')}; border: none !important; outline: none !important; color: #ffffff; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: ${getExpiryInfo(v.expires).isExpired ? 'not-allowed' : 'pointer'}; box-shadow: none !important; opacity: ${getExpiryInfo(v.expires).isExpired ? '0.6' : '1'};">
                     ${getExpiryInfo(v.expires).isExpired ? '<i class="fa-solid fa-lock" style="margin-right:4px;"></i> Expired' : (isClaimed ? '<i class="fa-solid fa-check" style="margin-right:4px;"></i> Claimed' : 'Redeem Voucher')}
@@ -405,7 +405,7 @@ function openVoucherModal(id) {
             redeemBtn.style.display = 'none';
         } else {
             redeemBtn.style.display = 'flex';
-            if (redeemLabel) redeemLabel.textContent = `Redeem for ${item.pointsCost} PTS`;
+            if (redeemLabel) redeemLabel.textContent = `Redeem for ${item.xpCost || item.pointsCost} XP`;
         }
     }
 
@@ -483,9 +483,10 @@ async function handleModalRedeem() {
         return;
     }
 
-    if (userPointsBalance < item.pointsCost) {
+    const cost = item.xpCost || item.pointsCost || 100;
+    if (userPointsBalance < cost) {
         if (typeof showToast === 'function') {
-            showToast(`Insufficient points. You need ${item.pointsCost} PTS (Balance: ${userPointsBalance} PTS).`);
+            showToast(`Insufficient XP. You need ${cost} XP (Balance: ${userPointsBalance} XP).`);
         }
         return;
     }
@@ -544,7 +545,8 @@ async function handleModalRedeem() {
         } else {
             if (typeof showToast === 'function') showToast(data.message || "Failed to redeem voucher.");
             if (btn) {
-                btn.innerHTML = `<i class="fa-solid fa-gift"></i> Redeem for ${item.pointsCost} PTS`;
+                const cost = item.xpCost || item.pointsCost || 100;
+                btn.innerHTML = `<i class="fa-solid fa-gift"></i> Redeem for ${cost} XP`;
                 btn.disabled = false;
             }
         }

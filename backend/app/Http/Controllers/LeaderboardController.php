@@ -51,7 +51,6 @@ class LeaderboardController extends Controller
                     ROW_NUMBER() OVER (
                         ORDER BY
                             us.total_xp             DESC,
-                            us.points               DESC,
                             us.completed_activities DESC,
                             us.points_since         ASC,
                             us.user_id              ASC
@@ -69,21 +68,20 @@ class LeaderboardController extends Controller
     public function index(Request $request): JsonResponse
     {
         $search = trim($request->get('search', ''));
-        $rawSort = strtolower(trim($request->get('sort', 'points_desc')));
+        $rawSort = strtolower(trim($request->get('sort', 'xp')));
         $limit = min(max((int) $request->get('limit', 10), 1), 500);
         $offset = max((int) $request->get('offset', 0), 0);
 
-        // Normalize various sorting parameter names
+        // Normalize sorting parameter names (Prioritize XP & Activities)
         $orderSql = match ($rawSort) {
-            'lowest_points', 'lowest points', 'points_asc' => 'points ASC, total_xp ASC, user_id ASC',
-            'xp_asc' => 'total_xp ASC, points ASC, user_id ASC',
-            'points', 'points_desc', 'highest_points' => 'points DESC, total_xp DESC, user_id ASC',
+            'xp_asc' => 'total_xp ASC, completed_activities ASC, user_id ASC',
+            'xp', 'top_xp', 'xp_desc' => 'total_xp DESC, completed_activities DESC, user_id ASC',
             'most_activities', 'activities', 'activities_desc', 'completed_activities', 'visited', 'most_visited', 'places_visited', 'visited_desc' => 'completed_activities DESC, places_visited DESC, total_xp DESC, user_id ASC',
             'least_activities', 'activities_asc' => 'completed_activities ASC, total_xp ASC, user_id ASC',
             'name_asc', 'name' => 'full_name ASC, user_id ASC',
             'name_desc' => 'full_name DESC, user_id ASC',
             'recent', 'newest', 'latest' => 'points_since DESC, user_id ASC',
-            default => '`rank` ASC, total_xp DESC, points DESC',
+            default => '`rank` ASC, total_xp DESC, completed_activities DESC',
         };
 
         $myRank = null;
@@ -109,7 +107,7 @@ class LeaderboardController extends Controller
         $rows = $this->castRows($cachedData['rows']);
 
         $totalTourists = (int) ($cachedData['total'] ?? count($rows));
-        $highestPoints = count($rows) > 0 ? (int) max(array_column($rows, 'total_points')) : 0;
+        $highestXp = count($rows) > 0 ? (int) max(array_column($rows, 'total_xp')) : 0;
         $totalActivities = (int) array_sum(array_column($rows, 'completed_activities'));
 
         return response()->json([
@@ -125,15 +123,19 @@ class LeaderboardController extends Controller
             'total' => $totalTourists,
             'total_tourists' => $totalTourists,
             'totalTourists' => $totalTourists,
-            'highest_points' => $highestPoints,
-            'highestPoints' => $highestPoints,
+            'highest_xp' => $highestXp,
+            'highestXp' => $highestXp,
+            'highest_points' => $highestXp,
+            'highestPoints' => $highestXp,
             'total_activities' => $totalActivities,
             'totalActivities' => $totalActivities,
             'stats' => [
                 'total_tourists' => $totalTourists,
                 'totalTourists' => $totalTourists,
-                'highest_points' => $highestPoints,
-                'highestPoints' => $highestPoints,
+                'highest_xp' => $highestXp,
+                'highestXp' => $highestXp,
+                'highest_points' => $highestXp,
+                'highestPoints' => $highestXp,
                 'total_activities' => $totalActivities,
                 'totalActivities' => $totalActivities,
             ],

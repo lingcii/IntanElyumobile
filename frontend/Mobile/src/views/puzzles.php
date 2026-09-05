@@ -13,10 +13,10 @@ include __DIR__ . '/../components/header.php';
                 <i class="fa-solid fa-gamepad"></i>
             </div>
             <div>
-                <h4 style="margin: 0 0 2px 0; font-size: 13px; color: rgba(226, 232, 240, 0.85); font-weight: 600;">Your Points Balance</h4>
+                <h4 style="margin: 0 0 2px 0; font-size: 13px; color: rgba(226, 232, 240, 0.85); font-weight: 600;">Your Total XP</h4>
                 <div style="display: flex; align-items: baseline; gap: 6px;">
                     <span id="game-points-val" style="font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">--</span>
-                    <span style="font-size: 12px; color: rgba(226, 232, 240, 0.7); font-weight: 700;">PTS</span>
+                    <span style="font-size: 12px; color: rgba(226, 232, 240, 0.7); font-weight: 700;">XP</span>
                 </div>
             </div>
         </div>
@@ -44,7 +44,7 @@ include __DIR__ . '/../components/header.php';
         <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 18px 20px; margin-bottom: 16px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;">
             <h3 id="puzzle-title" style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800; color: #ffffff;">Slide Puzzle</h3>
             <p id="puzzle-desc" style="margin: 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.4;">
-                Rearrange the tiles to reveal the crystal clear lagoons of Immuki Island in Balaoan! Solve to earn <strong style="color: #00f2fe;">+100 Points</strong>.
+                Rearrange the tiles to reveal the crystal clear lagoons of Immuki Island in Balaoan! Solve to earn <strong style="color: #00f2fe;">+100 XP</strong>.
             </p>
 
             <!-- Target Reference Image Preview -->
@@ -92,7 +92,7 @@ include __DIR__ . '/../components/header.php';
         <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 18px 20px; margin-bottom: 16px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;">
             <h3 id="memory-title" style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800; color: #ffffff;">Elyu Spot Memory Match</h3>
             <p id="memory-desc" style="margin: 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.4;">
-                Flip cards and match all 6 pairs of famous La Union landmarks & activities to earn <strong style="color: #00f2fe;">+75 Points</strong>!
+                Flip cards and match all 6 pairs of famous La Union landmarks & activities to earn <strong style="color: #00f2fe;">+75 XP</strong>!
             </p>
             <div id="memory-stats-container" style="display: flex; justify-content: center; gap: 20px; margin-top: 14px;">
                 <div style="font-size: 13px; color: rgba(255,255,255,0.75);">Flips: <span id="memory-flips" style="font-weight: 800; color: #fff;">0</span></div>
@@ -126,7 +126,7 @@ include __DIR__ . '/../components/header.php';
         <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 18px 20px; margin-bottom: 16px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;">
             <h3 id="scramble-title" style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800; color: #ffffff;">La Union Eco Explorer Scramble</h3>
             <p id="scramble-desc" style="margin: 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.4;">
-                Unscramble all 4 La Union municipal & landmark names to earn <strong style="color: #00f2fe;">+75 Points</strong>!
+                Unscramble all 4 La Union municipal & landmark names to earn <strong style="color: #00f2fe;">+75 XP</strong>!
             </p>
 
             <!-- Finished Banner -->
@@ -175,7 +175,7 @@ include __DIR__ . '/../components/header.php';
                 <i class="fa-solid fa-circle-check"></i>
             </div>
             <h2 style="margin: 0 0 10px; font-size: 22px; font-weight: 800; color: #fff;">Awesome Job!</h2>
-            <p id="success-points-msg" style="margin: 0 0 24px; font-size: 14px; color: rgba(226,232,240,0.9); line-height: 1.5;">You solved the game and claimed your points!</p>
+            <p id="success-points-msg" style="margin: 0 0 24px; font-size: 14px; color: rgba(226,232,240,0.9); line-height: 1.5;">You solved the game and earned XP!</p>
             <button onclick="closeGameSuccess()" style="width: 100%; border: none !important; outline: none !important; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color: #ffffff; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 242, 254, 0.3);">
                 Awesome!
             </button>
@@ -471,9 +471,10 @@ async function loadGamePoints() {
         const d = await r.json();
         if (d.status === 'success') {
             const ptsEl = document.getElementById('game-points-val');
-            if (ptsEl) ptsEl.textContent = d.points;
+            const userXp = d.xp ?? d.points ?? 0;
+            if (ptsEl) ptsEl.textContent = Number(userXp).toLocaleString();
             if (window.updateProfilePointsDisplay) {
-                window.updateProfilePointsDisplay(d.points);
+                window.updateProfilePointsDisplay(userXp);
             }
             // Check history for today's completed games
             if (d.history && Array.isArray(d.history)) {
@@ -556,13 +557,13 @@ const PUZZLE_IMAGES = [
         name: "Immuki Island",
         location: "Balaoan",
         image: R2_PUBLIC_BASE + "spot_6a686f4d0f48b.jpg",
-        desc: 'Rearrange the tiles to reveal the crystal clear lagoons of Immuki Island in Balaoan! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.'
+        desc: 'Rearrange the tiles to reveal the crystal clear lagoons of Immuki Island in Balaoan! Solve to earn <strong style="color: #38bdf8;">+100 XP</strong>.'
     },
     {
         name: "Agoo Eco Fun World",
         location: "Agoo",
         image: R2_PUBLIC_BASE + "spot_6a689fe582fe5.jpg",
-        desc: 'Rearrange the tiles to reveal the lush pine trees of Agoo Eco Fun World! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.'
+        desc: 'Rearrange the tiles to reveal the lush pine trees of Agoo Eco Fun World! Solve to earn <strong style="color: #38bdf8;">+100 XP</strong>.'
     }
 ];
 
@@ -720,7 +721,7 @@ function updateMemoryInfoUI() {
         if (titleEl) titleEl.style.display = 'block';
         if (descEl) {
             descEl.style.display = 'block';
-            descEl.innerHTML = `Flip cards and match all 6 pairs of famous La Union landmarks & activities to earn <strong style="color: #00f2fe;">+75 Points</strong>!`;
+            descEl.innerHTML = `Flip cards and match all 6 pairs of famous La Union landmarks & activities to earn <strong style="color: #00f2fe;">+75 XP</strong>!`;
         }
         if (statsContainer) statsContainer.style.display = 'flex';
         if (boardEl) boardEl.style.display = 'grid';
@@ -748,7 +749,7 @@ function updateScrambleInfoUI() {
         if (titleEl) titleEl.style.display = 'block';
         if (descEl) {
             descEl.style.display = 'block';
-            descEl.innerHTML = `Unscramble all 4 La Union municipal & landmark names to earn <strong style="color: #00f2fe;">+75 Points</strong>!`;
+            descEl.innerHTML = `Unscramble all 4 La Union municipal & landmark names to earn <strong style="color: #00f2fe;">+75 XP</strong>!`;
         }
         if (containerEl) containerEl.style.display = 'flex';
         if (submitBtn) submitBtn.style.display = 'block';

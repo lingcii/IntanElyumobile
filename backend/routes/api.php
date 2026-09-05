@@ -1161,7 +1161,7 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
         return response()->json([
             'status' => 'success',
             'success' => true,
-            'message' => "🎉 Check-in Verified at {$spot->name}! Earned +50 XP & +50 Points!",
+            'message' => "🎉 Check-in Verified at {$spot->name}! Earned +50 XP!",
             'visits' => (int) $spot->fresh()->visits,
             'xp_earned' => 50,
             'points_earned' => 50,
@@ -1196,7 +1196,7 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
         return response()->json([
             'status' => 'success',
             'success' => true,
-            'message' => "🎉 Check-in completed at {$spot->name}! Earned +50 XP & +50 Points!",
+            'message' => "🎉 Check-in completed at {$spot->name}! Earned +50 XP!",
             'visits' => (int) $spot->fresh()->visits,
             'xp_earned' => 50,
             'points_earned' => 50,

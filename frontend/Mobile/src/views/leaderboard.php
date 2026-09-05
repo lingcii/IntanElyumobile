@@ -48,9 +48,6 @@ $activeTab = 'leaderboard';
         <button class="leaderboard-tab-btn active" id="tab-sort-xp" onclick="setLeaderboardSort('xp')">
             <i class="fa-solid fa-bolt" style="color:#fbbf24;"></i> Top XP
         </button>
-        <button class="leaderboard-tab-btn" id="tab-sort-points" onclick="setLeaderboardSort('points')">
-            <i class="fa-solid fa-coins" style="color:#f59e0b;"></i> Highest Points
-        </button>
         <button class="leaderboard-tab-btn" id="tab-sort-visited" onclick="setLeaderboardSort('visited')">
             <i class="fa-solid fa-map-location-dot" style="color:#00f2fe;"></i> Most Visited
         </button>
@@ -110,21 +107,14 @@ $activeTab = 'leaderboard';
             style="font-size: 12px; color: rgba(226, 232, 240, 0.85); font-style: italic; margin: 0 0 12px 0; display: none; line-height: 1.4; background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: 12px; border: none !important; outline: none !important;">
         </p>
 
-        <!-- 4 Stats Boxes Grid -->
-        <div class="modal-stats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+        <!-- 3 Stats Boxes Grid -->
+        <div class="modal-stats" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px;">
             <div class="modal-stat-box">
                 <i class="fa-solid fa-bolt" style="color:#fbbf24; font-size:16px;"></i>
                 <span id="modal-xp" style="font-size:15px; font-weight:900; color:#fff;">0</span>
                 <small
                     style="font-size:10px; color:rgba(226,232,240,0.6); text-transform:uppercase; font-weight:700;">Total
                     XP</small>
-            </div>
-            <div class="modal-stat-box">
-                <i class="fa-solid fa-coins" style="color:#f59e0b; font-size:16px;"></i>
-                <span id="modal-pts" style="font-size:15px; font-weight:900; color:#f59e0b;">0</span>
-                <small
-                    style="font-size:10px; color:rgba(226,232,240,0.6); text-transform:uppercase; font-weight:700;">Points
-                    (PTS)</small>
             </div>
             <div class="modal-stat-box">
                 <i class="fa-solid fa-map-location-dot" style="color:#34c759; font-size:16px;"></i>
@@ -140,6 +130,7 @@ $activeTab = 'leaderboard';
                     style="font-size:10px; color:rgba(226,232,240,0.6); text-transform:uppercase; font-weight:700;">Explorer
                     Tier</small>
             </div>
+            <span id="modal-pts" style="display:none;">0</span>
         </div>
 
         <!-- Explorer Badges / Milestones Section -->
@@ -185,16 +176,14 @@ $activeTab = 'leaderboard';
 
         const tabsWrapper = document.querySelector('.leaderboard-tabs-wrapper');
         if (tabsWrapper) {
-            tabsWrapper.classList.remove('mode-xp', 'mode-points', 'mode-visited');
+            tabsWrapper.classList.remove('mode-xp', 'mode-visited');
             tabsWrapper.classList.add(`mode-${mode}`);
         }
 
         const tabXp = document.getElementById('tab-sort-xp');
-        const tabPoints = document.getElementById('tab-sort-points');
         const tabVisited = document.getElementById('tab-sort-visited');
 
         if (tabXp) tabXp.classList.toggle('active', mode === 'xp');
-        if (tabPoints) tabPoints.classList.toggle('active', mode === 'points');
         if (tabVisited) tabVisited.classList.toggle('active', mode === 'visited');
 
         renderLeaderboardUI();
@@ -207,39 +196,28 @@ $activeTab = 'leaderboard';
         if (!podiumContainer && !rankListContainer) return;
         if (!rawLeadersList) return;
 
-            // Filter out users with no points, no visited, or no XP based on active sort mode
+            // Filter out users with no visited or no XP based on active sort mode
             let leaders = (rawLeadersList || []).filter(u => {
-                const xp = parseInt(u.total_points || u.total_xp || u.xp || 0);
-                const pts = parseInt(u.claimable_points || u.points || 0);
+                const xp = parseInt(u.total_xp || u.xp || 0);
                 const act = parseInt(u.completed_activities || u.places_visited || 0);
-                if (currentSortMode === 'points') return pts > 0;
                 if (currentSortMode === 'visited') return act > 0;
                 return xp > 0;
             });
 
             // Sort items based on current sort mode
-            if (currentSortMode === 'points') {
-                leaders.sort((a, b) => {
-                    const ptsA = parseInt(a.claimable_points || a.points || 0);
-                    const ptsB = parseInt(b.claimable_points || b.points || 0);
-                    if (ptsB !== ptsA) return ptsB - ptsA;
-                    const xpA = parseInt(a.total_points || a.total_xp || a.xp || 0);
-                    const xpB = parseInt(b.total_points || b.total_xp || b.xp || 0);
-                    return xpB - xpA;
-                });
-            } else if (currentSortMode === 'visited') {
+            if (currentSortMode === 'visited') {
                 leaders.sort((a, b) => {
                     const actA = parseInt(a.completed_activities || a.places_visited || 0);
                     const actB = parseInt(b.completed_activities || b.places_visited || 0);
                     if (actB !== actA) return actB - actA;
-                    const xpA = parseInt(a.total_points || a.total_xp || a.xp || 0);
-                    const xpB = parseInt(b.total_points || b.total_xp || b.xp || 0);
+                    const xpA = parseInt(a.total_xp || a.xp || 0);
+                    const xpB = parseInt(b.total_xp || b.xp || 0);
                     return xpB - xpA;
                 });
             } else {
                 leaders.sort((a, b) => {
-                    const xpA = parseInt(a.total_points || a.total_xp || a.xp || 0);
-                    const xpB = parseInt(b.total_points || b.total_xp || b.xp || 0);
+                    const xpA = parseInt(a.total_xp || a.xp || 0);
+                    const xpB = parseInt(b.total_xp || b.xp || 0);
                     if (xpB !== xpA) return xpB - xpA;
                     const actA = parseInt(a.completed_activities || a.places_visited || 0);
                     const actB = parseInt(b.completed_activities || b.places_visited || 0);
@@ -296,7 +274,7 @@ $activeTab = 'leaderboard';
                     }
                 }
                 if (subtext) {
-                    subtext.textContent = `${myXp.toLocaleString()} XP • ${myPts.toLocaleString()} PTS • ${myActivities} Visited`;
+                    subtext.textContent = `${myXp.toLocaleString()} XP • Level ${myLevel} • ${myActivities} Spots Visited`;
                 }
             }
 
@@ -394,10 +372,7 @@ $activeTab = 'leaderboard';
             let iconHtml = '';
             let textMetric = '';
 
-            if (currentSortMode === 'points') {
-                iconHtml = '<i class="fa-solid fa-coins" style="font-size:10px;"></i>';
-                textMetric = `${pts.toLocaleString()} PTS`;
-            } else if (currentSortMode === 'visited') {
+            if (currentSortMode === 'visited') {
                 iconHtml = '<i class="fa-solid fa-map-location-dot" style="font-size:10px;"></i>';
                 textMetric = `${activities} Visited`;
             } else {
@@ -448,12 +423,7 @@ $activeTab = 'leaderboard';
             let rightBadgeHtml = '';
             let subMetaText = `<span>Lvl ${level} Explorer</span>`;
 
-            if (currentSortMode === 'points') {
-                rightBadgeHtml = `
-            <div class="rank-xp-badge" style="color:#f59e0b;">
-                ${pts.toLocaleString()} <small style="font-size:10px; font-weight:700; color:rgba(245,158,11,0.85); margin-left:3px;">PTS</small>
-            </div>`;
-            } else if (currentSortMode === 'visited') {
+            if (currentSortMode === 'visited') {
                 rightBadgeHtml = `
             <div class="rank-xp-badge" style="color:#38bdf8;">
                 ${activities} <small style="font-size:10px; font-weight:700; color:rgba(56,189,248,0.85); margin-left:3px;">VISITED</small>
@@ -533,7 +503,7 @@ $activeTab = 'leaderboard';
                             if (window.myUserData) window.myUserData.pts = livePts;
                             const subtext = document.getElementById('my-standing-subtext');
                             if (subtext && window.myUserData) {
-                                subtext.textContent = `${(window.myUserData.xp || 0).toLocaleString()} XP • ${livePts.toLocaleString()} PTS • ${window.myUserData.activities || 0} Visited`;
+                                subtext.textContent = `${(window.myUserData.xp || 0).toLocaleString()} XP • Level ${window.myUserData.level || 1} • ${window.myUserData.activities || 0} Spots Visited`;
                             }
                             try {
                                 const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
@@ -618,7 +588,7 @@ $activeTab = 'leaderboard';
                                 window.myUserData.pts = ptsVal;
                                 const subtext = document.getElementById('my-standing-subtext');
                                 if (subtext) {
-                                    subtext.textContent = `${(window.myUserData.xp || 0).toLocaleString()} XP • ${ptsVal.toLocaleString()} PTS • ${window.myUserData.activities || 0} Visited`;
+                                    subtext.textContent = `${(window.myUserData.xp || 0).toLocaleString()} XP • Level ${window.myUserData.level || 1} • ${window.myUserData.activities || 0} Spots Visited`;
                                 }
                             }
                         }

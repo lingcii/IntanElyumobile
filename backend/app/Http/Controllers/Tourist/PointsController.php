@@ -20,8 +20,8 @@ class PointsController extends Controller
     {
         $user = $request->user();
 
-        // Balance directly from users table
-        $balance = (int) ($user->points ?? 0);
+        // Single unified XP balance (with points synced for backwards compatibility)
+        $userXp = (int) ($user->xp ?? $user->points ?? 0);
 
         $history = collect();
         try {
@@ -34,7 +34,8 @@ class PointsController extends Controller
                     ->map(function ($log) {
                         return [
                             'id'          => $log->id,
-                            'points'      => (int) (preg_match('/([+-]?\d+)\s*Points?/i', $log->details, $m) ? $m[1] : 0),
+                            'points'      => (int) (preg_match('/([+-]?\d+)\s*(?:Points?|XP)/i', $log->details, $m) ? $m[1] : 0),
+                            'xp'          => (int) (preg_match('/([+-]?\d+)\s*(?:Points?|XP)/i', $log->details, $m) ? $m[1] : 0),
                             'source'      => $log->action,
                             'description' => $log->details,
                             'created_at'  => $log->created_at ? $log->created_at->toIso8601String() : now()->toIso8601String(),
@@ -57,8 +58,9 @@ class PointsController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'points' => $balance,
-            'earned_total' => $balance,
+            'xp' => $userXp,
+            'points' => $userXp,
+            'earned_total' => $userXp,
             'redeemed_total' => $vouchers->sum('points_cost'),
             'history' => $history,
             'vouchers' => $vouchers
@@ -67,7 +69,7 @@ class PointsController extends Controller
 
     /**
      * POST /api/tourist/points/puzzle
-     * Award points for solving the sliding puzzle.
+     * Award XP for solving the sliding puzzle.
      */
     public function awardPuzzlePoints(Request $request): JsonResponse
     {
@@ -96,30 +98,31 @@ class PointsController extends Controller
             ], 429);
         }
 
-        $points = 100;
+        $xp = 100;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
+                $user->increment('xp', $xp);
+            }
+        } catch (\Throwable $e) {}
+
         UserPoint::awardPointsSafely(
             $user->id,
-            $points,
+            $xp,
             'puzzle',
             'Successfully solved a sliding block puzzle'
         );
 
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
-                $user->increment('xp', 25);
-            }
-        } catch (\Throwable $e) {}
-
         return response()->json([
             'status' => 'success',
-            'message' => "Congratulations! You earned {$points} Points!",
-            'points_awarded' => $points
+            'message' => "Congratulations! You earned {$xp} XP!",
+            'xp_awarded' => $xp,
+            'points_awarded' => $xp
         ]);
     }
 
     /**
      * POST /api/tourist/points/trivia
-     * Award points for answering trivia questions correctly.
+     * Award XP for answering trivia questions correctly.
      */
     public function awardTriviaPoints(Request $request): JsonResponse
     {
@@ -148,30 +151,31 @@ class PointsController extends Controller
             ], 429);
         }
 
-        $points = 50;
+        $xp = 50;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
+                $user->increment('xp', $xp);
+            }
+        } catch (\Throwable $e) {}
+
         UserPoint::awardPointsSafely(
             $user->id,
-            $points,
+            $xp,
             'trivia',
             'Answered La Union trivia questions correctly'
         );
 
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
-                $user->increment('xp', 25);
-            }
-        } catch (\Throwable $e) {}
-
         return response()->json([
             'status' => 'success',
-            'message' => "Congratulations! You earned {$points} Points!",
-            'points_awarded' => $points
+            'message' => "Congratulations! You earned {$xp} XP!",
+            'xp_awarded' => $xp,
+            'points_awarded' => $xp
         ]);
     }
 
     /**
      * POST /api/tourist/points/minigame
-     * Award points for mini games (memory_match, word_scramble, etc.)
+     * Award XP for mini games (memory_match, word_scramble, etc.)
      */
     public function awardMiniGamePoints(Request $request): JsonResponse
     {
@@ -207,32 +211,33 @@ class PointsController extends Controller
         }
 
         $gameConfig = [
-            'memory_match' => ['points' => 75, 'desc' => 'Completed La Union Memory Card Match'],
-            'word_scramble' => ['points' => 75, 'desc' => 'Unscrambled La Union Eco Explorer Words'],
-            'puzzle'        => ['points' => 100, 'desc' => 'Successfully solved a sliding block puzzle'],
-            'trivia'        => ['points' => 50, 'desc' => 'Answered La Union trivia questions correctly'],
+            'memory_match'  => ['xp' => 75, 'points' => 75, 'desc' => 'Completed La Union Memory Card Match'],
+            'word_scramble' => ['xp' => 75, 'points' => 75, 'desc' => 'Unscrambled La Union Eco Explorer Words'],
+            'puzzle'        => ['xp' => 100, 'points' => 100, 'desc' => 'Successfully solved a sliding block puzzle'],
+            'trivia'        => ['xp' => 50, 'points' => 50, 'desc' => 'Answered La Union trivia questions correctly'],
         ];
 
-        $config = $gameConfig[$gameType] ?? ['points' => 50, 'desc' => 'Completed Mini Game'];
-        $points = $config['points'];
+        $config = $gameConfig[$gameType] ?? ['xp' => 50, 'points' => 50, 'desc' => 'Completed Mini Game'];
+        $xp = $config['xp'];
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
+                $user->increment('xp', $xp);
+            }
+        } catch (\Throwable $e) {}
 
         UserPoint::awardPointsSafely(
             $user->id,
-            $points,
+            $xp,
             $gameType,
             $config['desc']
         );
 
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
-                $user->increment('xp', 25);
-            }
-        } catch (\Throwable $e) {}
-
         return response()->json([
             'status' => 'success',
-            'message' => "Congratulations! You earned {$points} Points!",
-            'points_awarded' => $points
+            'message' => "Congratulations! You earned {$xp} XP!",
+            'xp_awarded' => $xp,
+            'points_awarded' => $xp
         ]);
     }
 
