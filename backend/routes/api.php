@@ -469,7 +469,7 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
 
         return response()->json([
             'success' => true,
-            'message' => 'Proof check-in approved successfully! XP & Points awarded to tourist.',
+            'message' => 'Proof check-in approved successfully! +50 XP awarded to tourist.',
             'item' => $item,
         ]);
     });
@@ -976,7 +976,7 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
 
             return response()->json([
                 'success' => true,
-                'message' => 'Proof check-in approved successfully! XP & Points awarded to tourist.',
+                'message' => 'Proof check-in approved successfully! +50 XP awarded to tourist.',
                 'item' => $item,
             ]);
         });

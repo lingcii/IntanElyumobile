@@ -80,17 +80,17 @@ $activeTab = 'profile';
     
     <!-- Points & Rewards -->
     <h3 class="stagger-3" style="font-size: 16px; font-weight: 800; color: #ffffff; margin-bottom: 12px; margin-left: 4px; display: flex; align-items: center; gap: 8px;">
-        <i class="fa-solid fa-gift" style="color: #00f2fe;"></i> Points & Rewards
+        <i class="fa-solid fa-bolt" style="color: #00f2fe;"></i> XP & Rewards
     </h3>
     
     <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:20px; padding:20px; margin-bottom:24px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);" class="stagger-3">
         <!-- Display balance -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:16px;">
             <div style="text-align: left;">
-                <h4 style="margin:0 0 4px 0; font-size:12px; color:#ffffff; opacity:0.9; text-transform:uppercase; letter-spacing:0.5px;">Claimable Points</h4>
+                <h4 style="margin:0 0 4px 0; font-size:12px; color:#ffffff; opacity:0.9; text-transform:uppercase; letter-spacing:0.5px;">Available XP Balance</h4>
                 <div style="display:flex; align-items:baseline; gap:6px;">
                     <span id="profile-points-val" style="font-size:32px; font-weight:800; color:#ffffff; letter-spacing:-1px;">--</span>
-                    <span style="font-size:14px; font-weight:700; color:#ffffff; opacity:0.8;">PTS</span>
+                    <span style="font-size:14px; font-weight:700; color:#ffffff; opacity:0.8;">XP</span>
                 </div>
             </div>
             <button onclick="navigateTo('puzzles')" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; padding:8px 16px; border-radius:12px; font-weight:800; font-size:12px; cursor:pointer; box-shadow: none !important;">
@@ -465,7 +465,7 @@ $activeTab = 'profile';
                                     </div>
                                 </div>
                                 <button type="button" onclick="event.stopPropagation(); window.showRewardDetailsModal(${idx})" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; border:none !important; outline:none !important; padding:8px 14px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer; flex-shrink:0; box-shadow:none !important; white-space:nowrap;">
-                                    ${v.pointsCost} PTS
+                                    ${v.pointsCost} XP
                                 </button>
                             </div>`;
                         }).join('');
@@ -499,7 +499,7 @@ $activeTab = 'profile';
                                     <span style="font-size:11px; color:rgba(255,255,255,0.7);">${v.partner}</span>
                                 </div>
                                 <button type="button" onclick="event.stopPropagation(); window.showRewardDetailsModal(${idx})" style="background:linear-gradient(135deg, #00f2fe, #0284c7); color:#fff; border:none !important; outline:none !important; padding:8px 12px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer; box-shadow:none !important;">
-                                    ${v.pointsCost} PTS
+                                    ${v.pointsCost} XP
                                 </button>
                             </div>
                         `).join('');
@@ -517,11 +517,11 @@ $activeTab = 'profile';
 
         const currentPts = window._userPointsBalance || 0;
         if (currentPts < cost) {
-            if (typeof showToast === 'function') showToast(`Insufficient points. You need ${cost} PTS (Balance: ${currentPts} PTS).`);
+            if (typeof showToast === 'function') showToast(`Insufficient XP. You need ${cost} XP (Balance: ${currentPts} XP).`);
             return;
         }
 
-        if (!confirm(`Redeem '${title}' for ${cost} PTS?`)) return;
+        if (!confirm(`Redeem '${title}' for ${cost} XP?`)) return;
 
         try {
             const response = await fetch(backendUrl + '/api/tourist/points/redeem-voucher', {
@@ -557,11 +557,11 @@ $activeTab = 'profile';
 
         const currentPts = window._userPointsBalance || 0;
         if (currentPts < cost) {
-            if (typeof showToast === 'function') showToast(`Insufficient points. You need ${cost} PTS (Balance: ${currentPts} PTS).`);
+            if (typeof showToast === 'function') showToast(`Insufficient XP. You need ${cost} XP (Balance: ${currentPts} XP).`);
             return;
         }
 
-        if (!confirm(`Are you sure you want to redeem this reward for ${cost} Points?`)) return;
+        if (!confirm(`Are you sure you want to redeem this reward for ${cost} XP?`)) return;
 
         try {
             const response = await fetch(backendUrl + '/api/tourist/points/redeem', {
@@ -621,8 +621,8 @@ $activeTab = 'profile';
         if (img) img.src = voucher.image || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png';
         if (title) title.textContent = voucher.title || 'Exclusive Reward';
         if (partner) partner.textContent = voucher.partner || voucher.merchant || 'La Union Partner';
-        if (desc) desc.textContent = voucher.description || 'Redeem this voucher with your claimable points to enjoy discounts at this partner establishment.';
-        if (costText) costText.textContent = `${voucher.pointsCost} PTS`;
+        if (desc) desc.textContent = voucher.description || 'Redeem this voucher with your available XP to enjoy discounts at this partner establishment.';
+        if (costText) costText.textContent = `${voucher.pointsCost} XP`;
 
         if (redeemBtn) {
             redeemBtn.onclick = function() {
@@ -824,7 +824,7 @@ $activeTab = 'profile';
             <p id="reward-modal-desc" style="margin:0; font-size:12px; color:rgba(255,255,255,0.92); line-height:1.45;"></p>
         </div>
         <button type="button" id="reward-modal-redeem-btn" style="width:100%; padding:13px; border:none !important; outline:none !important; border-radius:14px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; box-shadow:none !important; display:flex; align-items:center; justify-content:center; gap:8px;">
-            <i class="fa-solid fa-gift"></i> <span>Redeem for <strong id="reward-modal-cost-text">-- PTS</strong></span>
+            <i class="fa-solid fa-gift"></i> <span>Redeem for <strong id="reward-modal-cost-text">-- XP</strong></span>
         </button>
     </div>
 </div>

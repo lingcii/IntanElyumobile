@@ -607,27 +607,27 @@ body[data-view="user_manual"]::-webkit-scrollbar,
             <div class="manual-section-icon blue"><i class="fa-solid fa-gamepad"></i></div>
             <div>
                 <h2 class="manual-section-title">Step 7 &mdash; GameZone Mini-Games</h2>
-                <p class="manual-section-sub">Interactive puzzles for extra reward points</p>
+                <p class="manual-section-sub">Interactive puzzles for extra XP rewards</p>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">1</div>
             <div class="step-content">
-                <div class="step-title">Slide Puzzle (+100 PTS)</div>
+                <div class="step-title">Slide Puzzle (+100 XP)</div>
                 <div class="step-desc">Rearrange image tiles of iconic La Union landmarks into their complete picture.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">2</div>
             <div class="step-content">
-                <div class="step-title">Memory Match (+80 PTS)</div>
+                <div class="step-title">Memory Match (+75 XP)</div>
                 <div class="step-desc">Flip cards and match matching pairs of famous Elyu tourist spots.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">3</div>
             <div class="step-content">
-                <div class="step-title">Word Scramble (+60 PTS)</div>
+                <div class="step-title">Word Scramble (+75 XP)</div>
                 <div class="step-desc">Unscramble letters to spell La Union municipalities, attractions, and beaches.</div>
             </div>
         </div>
@@ -664,7 +664,7 @@ body[data-view="user_manual"]::-webkit-scrollbar,
             <div class="manual-section-icon green"><i class="fa-solid fa-tags"></i></div>
             <div>
                 <h2 class="manual-section-title">Step 9 &mdash; Discounts &amp; Vouchers</h2>
-                <p class="manual-section-sub">Redeem points for dining, surf lessons, and hotel savings</p>
+                <p class="manual-section-sub">Redeem XP for dining, surf lessons, and hotel savings</p>
             </div>
         </div>
         <div class="step-card">
@@ -728,21 +728,21 @@ body[data-view="user_manual"]::-webkit-scrollbar,
             <div class="manual-section-icon red"><i class="fa-solid fa-sliders"></i></div>
             <div>
                 <h2 class="manual-section-title">Step 11 &mdash; Settings &amp; Security</h2>
-                <p class="manual-section-sub">Preferences, account security, two-factor auth, and data management</p>
+                <p class="manual-section-sub">Account security, two-factor authentication, user guide, and cache maintenance</p>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">1</div>
             <div class="step-content">
-                <div class="step-title">App Preferences</div>
-                <div class="step-desc">Manage real-time <strong>Push Notifications</strong>, high-precision GPS <strong>Location Services</strong>, and <strong>Automatic Trip Cloud Sync</strong>.</div>
+                <div class="step-title">Profile Details &amp; Password Security</div>
+                <div class="step-desc">Jump straight to <strong>Edit Profile Details</strong> to adjust your name, bio, and preferences, or tap <strong>Change Password</strong> to update your login password.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">2</div>
             <div class="step-content">
-                <div class="step-title">Account Security &amp; 2FA</div>
-                <div class="step-desc">Update your login security password or activate <strong>Two-Factor Authentication (2FA)</strong> with instant OTP email codes.</div>
+                <div class="step-title">Two-Factor Authentication (2FA)</div>
+                <div class="step-desc">Protect your account by enabling <strong>Two-Factor Authentication (2FA)</strong> with instant OTP email verification codes upon signing in.</div>
             </div>
         </div>
         <div class="step-card">

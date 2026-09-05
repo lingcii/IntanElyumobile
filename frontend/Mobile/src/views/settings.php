@@ -9,57 +9,9 @@ $backRoute = 'dashboard';
 
 <div class="settings-container has-header animate-slide-up">
     
-    <!-- Preferences Group -->
-    <div class="settings-group-title stagger-1" style="margin-top: 0;">Preferences & App Behavior</div>
-    <div class="settings-card stagger-1">
-        
-        <div class="settings-row">
-            <div class="settings-label-group">
-                <div class="settings-icon-box rose"><i class="fa-solid fa-bell"></i></div> 
-                <div>
-                    <div class="settings-title">Push Notifications</div>
-                    <div class="settings-subtitle">Alerts for nearby spots & updates</div>
-                </div>
-            </div>
-            <label class="switch">
-                <input type="checkbox" id="push-notif-toggle" onchange="window.togglePushNotifications(this.checked)">
-                <span class="slider"></span>
-            </label>
-        </div>
-
-        <div class="settings-row">
-            <div class="settings-label-group">
-                <div class="settings-icon-box green"><i class="fa-solid fa-location-dot"></i></div> 
-                <div>
-                    <div class="settings-title">Location Services</div>
-                    <div class="settings-subtitle">High accuracy GPS for itineraries</div>
-                </div>
-            </div>
-            <label class="switch">
-                <input type="checkbox" id="location-service-toggle" onchange="window.toggleLocationServices(this.checked)">
-                <span class="slider"></span>
-            </label>
-        </div>
-
-        <div class="settings-row">
-            <div class="settings-label-group">
-                <div class="settings-icon-box blue"><i class="fa-solid fa-cloud-arrow-up"></i></div> 
-                <div>
-                    <div class="settings-title">Automatic Trip Cloud Sync</div>
-                    <div class="settings-subtitle">Sync itinerary changes to account live</div>
-                </div>
-            </div>
-            <label class="switch">
-                <input type="checkbox" id="auto-sync-toggle" onchange="window.toggleAutoSync(this.checked)">
-                <span class="slider"></span>
-            </label>
-        </div>
-
-    </div>
-    
     <!-- Account Security Group -->
-    <div class="settings-group-title stagger-2">Account Security</div>
-    <div class="settings-card stagger-2">
+    <div class="settings-group-title stagger-1" style="margin-top: 0;">Account Security</div>
+    <div class="settings-card stagger-1">
 
         <div class="settings-row clickable" onclick="window.scrollTo(0, 0); navigateTo('edit_profile')">
             <div class="settings-label-group">
@@ -98,8 +50,8 @@ $backRoute = 'dashboard';
     </div>
 
     <!-- App Documentation & Support -->
-    <div class="settings-group-title stagger-3">App Documentation & Support</div>
-    <div class="settings-card stagger-3">
+    <div class="settings-group-title stagger-2">App Documentation & Support</div>
+    <div class="settings-card stagger-2">
         
         <div class="settings-row clickable" onclick="navigateTo('user_manual')">
             <div class="settings-label-group">
@@ -115,8 +67,8 @@ $backRoute = 'dashboard';
     </div>
 
     <!-- Storage & App Group -->
-    <div class="settings-group-title stagger-4">Data & Maintenance</div>
-    <div class="settings-card stagger-4">
+    <div class="settings-group-title stagger-3">Data & Maintenance</div>
+    <div class="settings-card stagger-3">
         
         <div class="settings-row clickable" onclick="clearAppCache()">
             <div class="settings-label-group">
@@ -243,98 +195,6 @@ $backRoute = 'dashboard';
         };
     }
 
-    // Synchronize keys across all storage conventions
-    const pushEnabled = localStorage.getItem('intan_elyu_push_enabled') !== 'false' && localStorage.getItem('Intan_Elyu_push_enabled') !== 'false';
-    const autoSyncEnabled = localStorage.getItem('intan_elyu_auto_sync') !== 'false';
-
-    const pushToggle = document.getElementById('push-notif-toggle');
-    const locToggle = document.getElementById('location-service-toggle');
-    const syncToggle = document.getElementById('auto-sync-toggle');
-
-    if (pushToggle) pushToggle.checked = pushEnabled;
-    if (syncToggle) syncToggle.checked = autoSyncEnabled;
-
-    // Helper to persist location state and update UI toggle
-    function saveLocState(enabled) {
-        localStorage.setItem('intan_elyu_loc_enabled', enabled ? 'true' : 'false');
-        localStorage.setItem('Intan_Elyu_loc_enabled', enabled ? 'true' : 'false');
-        const toggle = document.getElementById('location-service-toggle');
-        if (toggle) toggle.checked = Boolean(enabled);
-    }
-
-    // Dynamic verification of device GPS and permission state
-    function syncRealtimeLocationStatus() {
-        if (!navigator.geolocation) {
-            saveLocState(false);
-            return;
-        }
-
-        // Check if user previously explicitly turned it off
-        const storedLoc = localStorage.getItem('intan_elyu_loc_enabled');
-        if (storedLoc === 'false') {
-            saveLocState(false);
-            return;
-        }
-
-        // Check permission state via Permissions API if available
-        if (navigator.permissions && navigator.permissions.query) {
-            navigator.permissions.query({ name: 'geolocation' }).then(function(permissionStatus) {
-                function onPermChange(state) {
-                    if (state === 'denied') {
-                        // Location is blocked/off
-                        saveLocState(false);
-                        if (typeof window.stopLocationWatch === 'function') window.stopLocationWatch();
-                    } else if (state === 'granted') {
-                        // Permission granted, test if device GPS is physically open & working
-                        verifyPhysicalGps();
-                    } else {
-                        // Prompt state: do not force open unless verified
-                        if (storedLoc === 'false') saveLocState(false);
-                    }
-                }
-
-                onPermChange(permissionStatus.state);
-                permissionStatus.onchange = function() { onPermChange(permissionStatus.state); };
-            }).catch(function() {
-                verifyPhysicalGps();
-            });
-        } else {
-            verifyPhysicalGps();
-        }
-    }
-
-    function verifyPhysicalGps() {
-        navigator.geolocation.getCurrentPosition(
-            function(pos) {
-                // Device GPS is open and working!
-                saveLocState(true);
-                localStorage.setItem('user_lat', pos.coords.latitude);
-                localStorage.setItem('user_lng', pos.coords.longitude);
-                if (typeof window.startLocationWatch === 'function') {
-                    window.startLocationWatch();
-                }
-            },
-            function(err) {
-                // If device location is turned off or denied, turn OFF the toggle!
-                console.warn('GPS check failed / Location off:', err);
-                if (err.code === 1 || err.code === 2) {
-                    saveLocState(false);
-                    if (typeof window.stopLocationWatch === 'function') window.stopLocationWatch();
-                }
-            },
-            { enableHighAccuracy: false, timeout: 6000, maximumAge: 30000 }
-        );
-    }
-
-    syncRealtimeLocationStatus();
-
-    // Listen to global locationStatusChanged events from main.js
-    document.addEventListener('locationStatusChanged', function(e) {
-        if (e && e.detail) {
-            saveLocState(Boolean(e.detail.enabled));
-        }
-    });
-
     // Check 2FA initial state from API / localStorage
     let is2FAActive = localStorage.getItem('intan_elyu_2fa_active') === 'true';
     update2FAState(is2FAActive);
@@ -359,104 +219,6 @@ $backRoute = 'dashboard';
             }
         } catch(e) {}
     })();
-
-    // ── 1. Push Notifications Functionality ───────────────────────────────────
-    window.togglePushNotifications = async function(checked) {
-        localStorage.setItem('intan_elyu_push_enabled', checked);
-        localStorage.setItem('Intan_Elyu_push_enabled', checked);
-        
-        if (checked) {
-            const notifData = {
-                title: '🌴 Intan Elyu Tourism',
-                message: 'Push Notifications are active! You will receive live alerts for nearby tourist spots, itinerary updates, and exclusive gamification rewards.',
-                type: 'welcome',
-                action_url: '/dashboard'
-            };
-
-            if (typeof window.showNotificationModal === 'function') {
-                window.showNotificationModal(notifData);
-            }
-
-            if ('Notification' in window) {
-                try {
-                    const permission = await Notification.requestPermission();
-                    if (permission === 'granted') {
-                        if (typeof showToast === 'function') showToast('🔔 Push notifications enabled!');
-                        new Notification(notifData.title, {
-                            body: notifData.message,
-                            icon: 'assets/img/logo.png'
-                        });
-                    } else {
-                        if (typeof showToast === 'function') showToast('Notification permission was denied by browser.');
-                    }
-                } catch(err) {
-                    if (typeof showToast === 'function') showToast('Push notifications enabled for app session.');
-                }
-            } else {
-                if (typeof showToast === 'function') showToast('Push notifications enabled for app session.');
-            }
-        } else {
-            if (typeof showToast === 'function') showToast('Push notifications disabled');
-        }
-    };
-
-    // ── 2. Location Services Functionality ────────────────────────────────────
-    window.toggleLocationServices = function(checked) {
-        const toggle = document.getElementById('location-service-toggle');
-        
-        if (!checked) {
-            // User manually turns off location
-            saveLocState(false);
-            if (typeof window.stopLocationWatch === 'function') window.stopLocationWatch();
-            if (typeof showToast === 'function') showToast('Location services disabled');
-            return;
-        }
-
-        // User toggles ON: verify if GPS is physically open & accessible
-        if (!navigator.geolocation) {
-            saveLocState(false);
-            if (typeof showToast === 'function') showToast('⚠️ Geolocation is not supported on this device.');
-            return;
-        }
-
-        if (typeof showToast === 'function') showToast('Connecting to GPS location...');
-
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                // Location is OPEN: turn on toggle and activate watch
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                localStorage.setItem('user_lat', lat);
-                localStorage.setItem('user_lng', lng);
-                saveLocState(true);
-                if (typeof window.startLocationWatch === 'function') {
-                    window.startLocationWatch();
-                }
-                if (typeof showToast === 'function') showToast(`📍 Location active! GPS location verified.`);
-            },
-            function(error) {
-                // Location is OFF or permission denied: immediately turn toggle OFF!
-                console.warn('Geolocation Error / Location Off:', error);
-                saveLocState(false);
-                if (typeof window.stopLocationWatch === 'function') window.stopLocationWatch();
-
-                if (error.code === 1) { // PERMISSION_DENIED
-                    if (typeof showToast === 'function') showToast('⚠️ Location permission denied. Please enable Location in device settings.');
-                } else if (error.code === 2) { // POSITION_UNAVAILABLE (GPS turned off)
-                    if (typeof showToast === 'function') showToast('⚠️ Device location (GPS) is OFF. Please turn on Location on your device.');
-                } else {
-                    if (typeof showToast === 'function') showToast('⚠️ GPS location timed out. Please ensure location is enabled.');
-                }
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-    };
-
-    // ── 3. Automatic Cloud Sync ────────────────────────────────────────────────
-    window.toggleAutoSync = function(checked) {
-        localStorage.setItem('intan_elyu_auto_sync', checked);
-        if (typeof showToast === 'function') showToast(checked ? '☁️ Live cloud sync enabled for trip changes' : 'Auto sync disabled');
-    };
 
     window.openChangePasswordModal = function() {
         document.getElementById('change-password-modal').classList.add('active');

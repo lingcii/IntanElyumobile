@@ -3667,11 +3667,11 @@ if (is_dir($imgDir)) {
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
                                 <div style="background:rgba(255,255,255,0.06); border-radius:10px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
                                     <span style="font-size:10px; color:rgba(226,232,240,0.8); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Cleanliness</span>
-                                    <span style="font-size:11px; font-weight:800; color:${cleanColor}; background:${cleanBg}; padding:2px 8px; border-radius:6px;">✨ ${cleanVal}</span>
+                                    <span style="font-size:11px; font-weight:800; color:${cleanColor}; background:${cleanBg}; padding:2px 8px; border-radius:6px;">${cleanVal}</span>
                                 </div>
                                 <div style="background:rgba(255,255,255,0.06); border-radius:10px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
                                     <span style="font-size:10px; color:rgba(226,232,240,0.8); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Safety</span>
-                                    <span style="font-size:11px; font-weight:800; color:${safeColor}; background:${safeBg}; padding:2px 8px; border-radius:6px;">🛡️ ${safeVal}</span>
+                                    <span style="font-size:11px; font-weight:800; color:${safeColor}; background:${safeBg}; padding:2px 8px; border-radius:6px;">${safeVal}</span>
                                 </div>
                             </div>
                         </div>`;
@@ -3727,6 +3727,29 @@ if (is_dir($imgDir)) {
                                 }
                             }
 
+                            // Cleanliness & Safety Parameters for this review (no emojis)
+                            const rawClean = (fb.cleanliness_level || 'clean').toLowerCase();
+                            const cleanVal = rawClean === 'dirty' ? 'Dirty' : (rawClean === 'moderate' ? 'Moderate' : 'Clean');
+                            const cleanColor = cleanVal === 'Clean' ? '#34d399' : (cleanVal === 'Moderate' ? '#f59e0b' : '#ef4444');
+                            const cleanBg = cleanVal === 'Clean' ? 'rgba(52,211,153,0.18)' : (cleanVal === 'Moderate' ? 'rgba(245,158,11,0.18)' : 'rgba(239,68,68,0.18)');
+
+                            const rawSafe = (fb.safety_level || 'safe').toLowerCase();
+                            const safeVal = rawSafe === 'unsafe' ? 'Unsafe' : (rawSafe === 'moderate' ? 'Moderate' : 'Safe');
+                            const safeColor = safeVal === 'Safe' ? '#34d399' : (safeVal === 'Moderate' ? '#f59e0b' : '#ef4444');
+                            const safeBg = safeVal === 'Safe' ? 'rgba(52,211,153,0.18)' : (safeVal === 'Moderate' ? 'rgba(245,158,11,0.18)' : 'rgba(239,68,68,0.18)');
+
+                            const metricsHtml = `
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:9px 0 10px 0;">
+                                <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="font-size:10px; color:rgba(226,232,240,0.85); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Cleanliness</span>
+                                    <span style="font-size:11px; font-weight:800; color:${cleanColor}; background:${cleanBg}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center;">${cleanVal}</span>
+                                </div>
+                                <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="font-size:10px; color:rgba(226,232,240,0.85); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Safety</span>
+                                    <span style="font-size:11px; font-weight:800; color:${safeColor}; background:${safeBg}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center;">${safeVal}</span>
+                                </div>
+                            </div>`;
+
                             const policyHtml = fb.policy_recommendation ? `
                             <div style="background:rgba(56,189,248,0.12); border-radius:12px; padding:10px 12px; margin-top:10px;">
                                 <div style="display:flex; align-items:center; gap:5px; margin-bottom:4px;">
@@ -3755,6 +3778,7 @@ if (is_dir($imgDir)) {
                                 </div>
                                 <span style="font-size:10px; color:rgba(255,255,255,0.65); font-weight:600;"><i class="fa-regular fa-clock" style="margin-right:3px; font-size:9px;"></i>${date}</span>
                             </div>
+                            ${metricsHtml}
                             <p style="margin:0; color:#ffffff; font-size:12.5px; line-height:1.5;">${fb.testimony || 'Visited and checked in.'}</p>
                             ${policyHtml}
                         </div>`;
@@ -3788,7 +3812,7 @@ if (is_dir($imgDir)) {
                             </div>
                             <div style="font-size:13px; font-weight:800; color:#ffffff; margin-bottom:4px;">No Testimonies Yet</div>
                             <p style="margin:0 0 10px; font-size:11.5px; color:rgba(226,232,240,0.85); line-height:1.4;">
-                                Be the first verified visitor to review this spot and share policy feedback during your trip navigation to earn <strong>+25 XP & +25 Points</strong>!
+                                Be the first verified visitor to review this spot and share policy feedback during your trip navigation to earn <strong>+25 XP</strong>!
                             </p>
                             <div style="display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.8); background:rgba(255,255,255,0.08); padding:4px 10px; border-radius:20px;">
                                 <i class="fa-solid fa-route" style="color:#38bdf8;"></i> Review available in Trip Map & Visited Stops
@@ -3872,7 +3896,7 @@ if (is_dir($imgDir)) {
 
                 const data = await res.json();
                 if (res.ok && (data.status === 'success' || data.success)) {
-                    if (typeof showToast === 'function') showToast(data.message || `🎉 Check-in verified! Earned +50 XP & +50 Points at ${dest.name}!`);
+                    if (typeof showToast === 'function') showToast(data.message || `Check-in verified! Earned +50 XP at ${dest.name}!`);
 
                     // Update local spot visitors count
                     const newVisits = data.visits || ((parseInt(dest.visits) || 0) + 1);

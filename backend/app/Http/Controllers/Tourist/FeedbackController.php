@@ -248,7 +248,7 @@ class FeedbackController extends Controller
             'earned_xp'      => $rewardAwarded ? 25 : 0,
             'earned_points'  => $rewardAwarded ? 25 : 0,
             'message'        => $rewardAwarded
-                ? 'Thank you for your testimony and feedback! (+25 XP & +25 Points earned 🎉)'
+                ? 'Thank you for your testimony and feedback! (+25 XP earned)'
                 : 'Review updated successfully! (Rewards have already been claimed for this destination)',
             'data'           => $feedback,
             'spot_rating'    => isset($spot) && $spot ? (float) $spot->rating : ($rating ? (float) $rating : 5.0)

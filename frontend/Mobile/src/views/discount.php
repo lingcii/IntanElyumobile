@@ -315,7 +315,7 @@ function renderDiscounts() {
 
     if (filtered.length === 0) {
         const msg = activeCategory === 'Claimed' 
-            ? 'You have not claimed any vouchers yet. Redeem vouchers using PTS to save them here!' 
+            ? 'You have not claimed any vouchers yet. Redeem vouchers using XP to save them here!' 
             : 'No vouchers available in this category.';
         grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #ffffff; padding: 36px 20px; font-size: 13px; font-weight:600; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 20px; box-shadow: 0 8px 24px rgba(10,25,60,0.25);">${msg}</div>`;
         return;
@@ -554,7 +554,8 @@ async function handleModalRedeem() {
         console.error("Redemption error:", e);
         if (typeof showToast === 'function') showToast("Network error. Please try again.");
         if (btn) {
-            btn.innerHTML = `<i class="fa-solid fa-gift"></i> Redeem for ${item.pointsCost} PTS`;
+            const cost = item.xpCost || item.pointsCost || 100;
+            btn.innerHTML = `<i class="fa-solid fa-gift"></i> Redeem for ${cost} XP`;
             btn.disabled = false;
         }
     }
