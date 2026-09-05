@@ -147,11 +147,11 @@
             <div style="font-size: 11px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding-left: 6px;">Your Stuff</div>
             <div style="display: flex; flex-direction: column; gap: 6px;">
                 <a href="#" onclick="toggleSidebar(); navigateTo('saved_places'); return false;" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 16px; background: rgba(30, 75, 135, 0.58); border: none !important; outline: none !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.2s;">
-                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(255,59,48,0.25); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-heart" style="color: #ff453a; font-size: 14px;"></i></span>
+                    <span style="width: 32px; height: 32px; border-radius: 10px; background: #ff3b30 !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"><i class="fa-solid fa-heart" style="color: #ffffff !important; font-size: 14px;"></i></span>
                     Saved Places
                 </a>
                 <a href="#" onclick="toggleSidebar(); navigateTo('saved_trips'); return false;" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 16px; background: rgba(30, 75, 135, 0.58); border: none !important; outline: none !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.2s;">
-                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(52,199,89,0.25); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-route" style="color: #30d158; font-size: 14px;"></i></span>
+                    <span style="width: 32px; height: 32px; border-radius: 10px; background: #34c759 !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"><i class="fa-solid fa-route" style="color: #ffffff !important; font-size: 14px;"></i></span>
                     Saved Trips
                 </a>
             </div>
@@ -162,15 +162,15 @@
             <div style="font-size: 11px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding-left: 6px;">Discover & Explore</div>
             <div style="display: flex; flex-direction: column; gap: 6px;">
                 <a href="#" onclick="toggleSidebar(); navigateTo('trending'); return false;" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 16px; background: rgba(30, 75, 135, 0.58); border: none !important; outline: none !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.2s;">
-                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(239,68,68,0.25); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-fire" style="color: #ff453a; font-size: 14px;"></i></span>
-                    Trending Sites
+                    <span style="width: 32px; height: 32px; border-radius: 10px; background: #ff9500 !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"><i class="fa-solid fa-compass" style="color: #ffffff !important; font-size: 14px;"></i></span>
+                    Tourist Sites
                 </a>
                 <a href="#" onclick="toggleSidebar(); navigateTo('puzzles'); return false;" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 16px; background: rgba(30, 75, 135, 0.58); border: none !important; outline: none !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.2s;">
-                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(0,242,254,0.25); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-gamepad" style="color: #00f2fe; font-size: 14px;"></i></span>
+                    <span style="width: 32px; height: 32px; border-radius: 10px; background: #0284c7 !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"><i class="fa-solid fa-gamepad" style="color: #ffffff !important; font-size: 14px;"></i></span>
                     GameZone
                 </a>
                 <a href="#" onclick="toggleSidebar(); navigateTo('discount'); return false;" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 16px; background: rgba(30, 75, 135, 0.58); border: none !important; outline: none !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.2s;">
-                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(236,72,153,0.25); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-tags" style="color: #ff375f; font-size: 14px;"></i></span>
+                    <span style="width: 32px; height: 32px; border-radius: 10px; background: #ec4899 !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"><i class="fa-solid fa-tags" style="color: #ffffff !important; font-size: 14px;"></i></span>
                     Discounts & Vouchers
                 </a>
             </div>

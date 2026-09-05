@@ -755,7 +755,6 @@ if (is_dir($imgDir)) {
             console.warn('fetchAllTouristSpots handled:', e);
         }
     };
-    };
 
     window.initLoopingFocusCarousel = function (containerId) {
         const container = document.getElementById(containerId);

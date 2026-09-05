@@ -1,5 +1,5 @@
 <?php
-$pageTitle = 'Explore Attractions';
+$pageTitle = 'Tourist Sites';
 $backRoute = 'dashboard';
 
 $municipalityImages = [];
@@ -40,7 +40,7 @@ if (is_dir($imgDir)) {
     <div class="trending-search-wrap">
         <i class="fa-solid fa-magnifying-glass trending-search-icon"></i>
         <input type="text" id="trending-search-input" class="trending-search-input"
-            placeholder="Search trending spots, municipality..." autocomplete="off">
+            placeholder="Search tourist sites, municipality..." autocomplete="off">
         <button type="button" id="trending-search-clear" class="trending-search-clear" style="display:none;"
             onclick="window.clearTrendingSearch()">
             <i class="fa-solid fa-circle-xmark"></i>

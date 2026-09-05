@@ -1376,6 +1376,9 @@ if (is_dir($imgDir)) {
                 // Map markers: Mount up to 15 closest amenities for ultra-smooth 60fps performance
                 const mapAmenities = amenities.slice(0, 15);
 
+                // Unified color for all amenities (ring border & icon)
+                const AMENITY_COLOR = '#0284c7';
+
                 mapAmenities.forEach((am, idx) => {
                     const amLat = parseFloat(am.lat);
                     const amLng = parseFloat(am.lng);
@@ -1397,8 +1400,8 @@ if (is_dir($imgDir)) {
 
                     const iconCircle = document.createElement('div');
                     iconCircle.className = 'amenity-marker-icon-circle';
-                    iconCircle.style.cssText = `background-color:#ffffff !important; border:1.5px solid ${am.color || '#38bdf8'}; color:${am.color || '#38bdf8'};`;
-                    iconCircle.innerHTML = `<i class="${am.icon || 'fa-solid fa-location-dot'}" style="color:${am.color || '#38bdf8'};"></i>`;
+                    iconCircle.style.cssText = `background-color:#ffffff !important; border:1.5px solid ${AMENITY_COLOR} !important; color:${AMENITY_COLOR} !important;`;
+                    iconCircle.innerHTML = `<i class="${am.icon || 'fa-solid fa-location-dot'}" style="color:${AMENITY_COLOR} !important;"></i>`;
 
                     const label = document.createElement('span');
                     label.className = 'amenity-marker-label';
@@ -1466,13 +1469,12 @@ if (is_dir($imgDir)) {
                             const distFormatted = window.formatAmenityDistance(am.distance_meters);
                             const safeName = (am.name || am.label || 'Amenity').replace(/"/g, '&quot;');
                             const safeLabel = (am.label || am.type || 'Amenity').replace(/"/g, '&quot;');
-                            const safeColor = am.color || '#38bdf8';
                             const safeIcon = am.icon || 'fa-solid fa-location-dot';
 
                             row.innerHTML = `
                                 <div class="sheet-amenity-left">
-                                    <div class="sheet-amenity-icon-circle" style="border:1.5px solid ${safeColor}; color:${safeColor};">
-                                        <i class="${safeIcon}"></i>
+                                    <div class="sheet-amenity-icon-circle" style="background-color:#ffffff !important; border:1.5px solid ${AMENITY_COLOR} !important; color:${AMENITY_COLOR} !important;">
+                                        <i class="${safeIcon}" style="color:${AMENITY_COLOR} !important;"></i>
                                     </div>
                                     <div class="sheet-amenity-info">
                                         <span class="sheet-amenity-name" title="${safeName}">${safeName}</span>
@@ -1506,8 +1508,8 @@ if (is_dir($imgDir)) {
                                     c.innerHTML = `
                                         <div class="amenity-marker-inner" style="display:flex; flex-direction:column; align-items:center; pointer-events:none;">
                                             <div class="amenity-marker-bubble" style="pointer-events:auto;">
-                                                <div class="amenity-marker-icon-circle" style="background-color:#ffffff !important; border:1.5px solid ${safeColor}; color:${safeColor};">
-                                                    <i class="${safeIcon}"></i>
+                                                <div class="amenity-marker-icon-circle" style="background-color:#ffffff !important; border:1.5px solid ${AMENITY_COLOR} !important; color:${AMENITY_COLOR} !important;">
+                                                    <i class="${safeIcon}" style="color:${AMENITY_COLOR} !important;"></i>
                                                 </div>
                                                 <span class="amenity-marker-label">${safeName} • ${distFormatted}</span>
                                             </div>
