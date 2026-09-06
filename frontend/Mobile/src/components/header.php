@@ -318,11 +318,8 @@
         </div>
 
         <div class="push-notif-actions">
-            <button id="push-notif-action-btn" type="button" class="push-notif-btn-primary" onclick="handlePushNotificationAction()">
-                <span id="push-notif-action-text">View Details</span>
-            </button>
-            <button id="push-notif-delete-btn" type="button" class="push-notif-btn-delete" onclick="handlePushNotificationDelete()">Delete</button>
             <button type="button" class="push-notif-btn-secondary" onclick="closePushNotificationModal()">Dismiss</button>
+            <button id="push-notif-delete-btn" type="button" class="push-notif-btn-delete" onclick="handlePushNotificationDelete()">Delete</button>
         </div>
     </div>
 </div>
@@ -392,10 +389,10 @@
     font-weight: 600;
 }
 .push-notif-close-btn {
-    background: rgba(255, 255, 255, 0.16) !important;
+    background: #ffffff !important;
     border: none !important;
     outline: none !important;
-    color: #ffffff !important;
+    color: #1e3a8a !important;
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -403,12 +400,15 @@
     align-items: center;
     justify-content: center;
     font-size: 18px;
+    font-weight: 800;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 .push-notif-close-btn:hover {
-    background: rgba(255, 255, 255, 0.28) !important;
-    color: #fff !important;
+    background: #f1f5f9 !important;
+}
+.push-notif-close-btn:active {
+    transform: scale(0.95);
 }
 .push-notif-title {
     margin: 0 0 8px;
@@ -431,57 +431,49 @@
 }
 .push-notif-actions {
     display: flex;
-    gap: 10px;
+    gap: 12px;
 }
-.push-notif-btn-primary {
+.push-notif-btn-secondary {
     flex: 1;
     border: none !important;
     outline: none !important;
-    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
-    color: #ffffff !important;
-    padding: 13px;
+    background: #ffffff !important;
+    color: #1e3a8a !important;
+    padding: 13px 18px;
     border-radius: 14px;
     font-weight: 800;
     font-size: 14px;
     cursor: pointer;
-    box-shadow: 0 4px 14px rgba(0, 242, 254, 0.35);
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.push-notif-btn-primary:active {
-    transform: scale(0.97);
-}
-.push-notif-btn-secondary {
-    border: none !important;
-    outline: none !important;
-    background: rgba(255, 255, 255, 0.18) !important;
-    color: #ffffff !important;
-    padding: 13px 22px;
-    border-radius: 14px;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
     transition: all 0.2s ease;
 }
 .push-notif-btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.26) !important;
+    background: #f1f5f9 !important;
+}
+.push-notif-btn-secondary:active {
+    transform: scale(0.97);
 }
 .push-notif-btn-delete {
+    flex: 1;
     border: none !important;
     outline: none !important;
-    background: rgba(239, 68, 68, 0.22) !important;
-    color: #f87171 !important;
-    padding: 13px 20px;
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    padding: 13px 18px;
     border-radius: 14px;
-    font-weight: 700;
+    font-weight: 800;
     font-size: 14px;
     cursor: pointer;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
     transition: all 0.2s ease;
 }
 .push-notif-btn-delete:hover {
-    background: rgba(239, 68, 68, 0.32) !important;
+    background: #dc2626 !important;
+}
+.push-notif-btn-delete:active {
+    transform: scale(0.97);
 }
 </style>
 
@@ -654,7 +646,6 @@
         const badgeEl = document.getElementById('push-notif-badge');
         const spotContainer = document.getElementById('push-notif-footer-extra');
         const spotNameEl = document.getElementById('push-notif-spot-name');
-        const actionBtn = document.getElementById('push-notif-action-btn');
 
         if (titleEl) titleEl.textContent = title;
         if (bodyEl) bodyEl.textContent = body;
@@ -679,13 +670,6 @@
         }
 
         _currentPushNotifTargetUrl = actionUrl;
-        if (actionBtn) {
-            if (actionUrl) {
-                actionBtn.style.display = 'flex';
-            } else {
-                actionBtn.style.display = 'none';
-            }
-        }
 
         modal.style.display = 'flex';
         requestAnimationFrame(() => {
@@ -704,15 +688,7 @@
     };
 
     window.handlePushNotificationAction = function() {
-        if (_currentPushNotifTargetUrl) {
-            const target = _currentPushNotifTargetUrl;
-            closePushNotificationModal();
-            setTimeout(() => {
-                window.location.href = target;
-            }, 150);
-        } else {
-            closePushNotificationModal();
-        }
+        closePushNotificationModal();
     };
 
     window.handlePushNotificationDelete = async function() {
