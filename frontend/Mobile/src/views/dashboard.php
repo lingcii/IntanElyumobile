@@ -1356,19 +1356,36 @@ if (is_dir($imgDir)) {
         }
         window.loadNearMe = loadNearMe;
 
+        window.resolveMunicipalityName = function (dest) {
+            if (!dest) return 'La Union';
+            const muniMap = {
+                1: 'San Fernando City', 2: 'San Juan', 3: 'Bauang', 4: 'Bacnotan',
+                5: 'Balaoan', 6: 'Luna', 7: 'Bangar', 8: 'Sudipen', 9: 'Santol',
+                10: 'San Gabriel', 11: 'Bagulin', 12: 'Burgos', 13: 'Naguilian',
+                14: 'Caba', 15: 'Aringay', 16: 'Agoo', 17: 'Tubao', 18: 'Pugo',
+                19: 'Santo Tomas', 20: 'Rosario'
+            };
+            let val = dest.municipality || dest.location;
+            if (!val || !isNaN(Number(val))) {
+                val = muniMap[dest.municipality_id] || muniMap[Number(val)] || 'San Juan, La Union';
+            }
+            return val;
+        };
+
         window.buildRecommendedItem = function (dest) {
             const img = window.getDestImage(dest, 300);
             const rating = (dest.rating !== undefined && dest.rating !== null && !isNaN(parseFloat(dest.rating))) ? parseFloat(dest.rating).toFixed(1) : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating).toFixed(1) : '0.0');
             const desc = dest.description ? dest.description.substring(0, 150) + (dest.description.length > 150 ? '...' : '') : 'A beautiful destination waiting to be explored.';
+            const locName = window.resolveMunicipalityName(dest);
 
             const encodedDest = encodeURIComponent(JSON.stringify(dest));
             return `
-            <div class="rec-item-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}">
+            <div class="rec-item-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(locName || '').replace(/"/g, '&quot;')}">
                 <div onclick="window.toggleRecommendedCard(this)" style="cursor:pointer; display:flex; align-items:center; gap: 12px; padding: 12px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(56, 189, 248, 0.18)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
                     <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" style="width:60px; height:60px; border-radius:12px; object-fit:cover;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
                     <div style="flex:1; min-width:0;">
                         <h4 class="rec-title">${dest.name}</h4>
-                        <p class="rec-loc"><i class="fa-solid fa-location-dot" style="margin-right:4px; color:#00f2fe;"></i>${dest.location || dest.municipality_id || 'La Union'}</p>
+                        <p class="rec-loc"><i class="fa-solid fa-location-dot" style="margin-right:4px; color:#00f2fe;"></i>${locName}</p>
                         <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
                             <i class="fa-solid fa-star" style="color:#f59e0b; font-size:11px;"></i>
                             <span class="rec-rating">${rating}</span>

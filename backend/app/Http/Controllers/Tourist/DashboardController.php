@@ -203,6 +203,18 @@ class DashboardController extends Controller
             } catch (\Throwable $e) {}
         }
 
+        // Fallback municipality map in case municipalities table is not yet seeded or lookup fails
+        if (!$muniName && $spot->municipality_id) {
+            $muniFallback = [
+                1 => 'San Fernando City', 2 => 'San Juan', 3 => 'Bauang', 4 => 'Bacnotan',
+                5 => 'Balaoan', 6 => 'Luna', 7 => 'Bangar', 8 => 'Sudipen', 9 => 'Santol',
+                10 => 'San Gabriel', 11 => 'Bagulin', 12 => 'Burgos', 13 => 'Naguilian',
+                14 => 'Caba', 15 => 'Aringay', 16 => 'Agoo', 17 => 'Tubao', 18 => 'Pugo',
+                19 => 'Santo Tomas', 20 => 'Rosario'
+            ];
+            $muniName = $muniFallback[$spot->municipality_id] ?? 'La Union';
+        }
+
         return [
             'id'           => $spot->id,
             'name'         => $spot->name,
@@ -219,6 +231,7 @@ class DashboardController extends Controller
             'classification_status' => $spot->classification_status,
             'municipality_id' => $spot->municipality_id,
             'municipality' => $muniName,
+            'location'     => $muniName,
         ];
     }
 }
