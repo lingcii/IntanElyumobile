@@ -448,14 +448,13 @@ if (is_dir($imgDir)) {
                         </div>
 
                         <!-- Testimonies Section -->
-                        <div id="sheet-testimonies-section" class="dest-support-box"
-                            style="display:none; margin-top:14px; padding:14px; border-radius:16px; background:#172554 !important; border:none !important; outline:none !important;">
-                            <div class="dest-support-header" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                        <div id="sheet-testimonies-section" class="dest-support-box" style="display:none; margin-top:14px;">
+                            <div class="dest-support-header">
                                 <span
                                     style="font-size:12.5px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:6px;">
                                     <i class="fa-solid fa-comments" style="color:#ffffff;"></i> Tourist Testimonies
                                 </span>
-                                <span class="dest-support-badge" id="sheet-testimonies-badge" style="background:#0284c7 !important; color:#ffffff !important; font-weight:800; border:none !important; outline:none !important;">Verified Reviews</span>
+                                <span class="dest-support-badge" id="sheet-testimonies-badge">Verified Reviews</span>
                             </div>
                             <div id="testimonies-summary-metrics" style="display:none; margin-bottom:10px;"></div>
                             <div id="testimonies-list-container" style="display:flex; flex-direction:column; gap:8px;">
