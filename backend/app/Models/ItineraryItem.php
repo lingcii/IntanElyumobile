@@ -80,7 +80,7 @@ class ItineraryItem extends Model
                         $user->id,
                         'checkin_approved',
                         'Check-in Verified!',
-                        "Your photo proof check-in at {$spot->name} was confirmed by admin! Earned +{$xpEarned} XP & +50 Points."
+                        "Your photo proof check-in at {$spot->name} was confirmed! Earned +{$xpEarned} XP."
                     );
                 }
             }

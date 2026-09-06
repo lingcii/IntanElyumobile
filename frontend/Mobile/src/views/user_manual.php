@@ -596,7 +596,7 @@ body[data-view="user_manual"]::-webkit-scrollbar,
             <div class="step-num">3</div>
             <div class="step-content">
                 <div class="step-title">MTO / LUPTO Review &amp; Reward</div>
-                <div class="step-desc">Your check-in is set to <strong>Pending</strong>. Once reviewed and approved by Municipal Tourism (MTO) or Provincial Tourism (LUPTO) officers, you will be awarded <strong>+50 XP</strong> and <strong>+50 Points</strong>!</div>
+                <div class="step-desc">Your check-in is set to <strong>Pending</strong>. Once reviewed and approved by Municipal Tourism (MTO) or Provincial Tourism (LUPTO) officers, you will be awarded <strong>+50 XP</strong>!</div>
             </div>
         </div>
     </div>

@@ -313,7 +313,7 @@
         <h3 id="push-notif-title" class="push-notif-title">Push Notification Alert</h3>
         <p id="push-notif-body" class="push-notif-body">Notification details will appear here.</p>
 
-        <div id="push-notif-footer-extra" style="display: none; margin-bottom: 16px; padding: 10px 14px; background: rgba(56,189,248,0.08); border-radius: 12px; border: none !important; outline: none !important; font-size: 12px; color: #38bdf8;">
+        <div id="push-notif-footer-extra" style="display: none; margin-bottom: 16px; padding: 10px 14px; background: rgba(255, 255, 255, 0.12); border-radius: 12px; border: none !important; outline: none !important; font-size: 12px; color: #00f2fe;">
             <span id="push-notif-spot-name"></span>
         </div>
 
@@ -331,7 +331,7 @@
     position: fixed;
     inset: 0;
     z-index: 1000005;
-    background: rgba(15, 23, 42, 0.82);
+    background: rgba(15, 23, 42, 0.75);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     display: flex;
@@ -347,14 +347,16 @@
     pointer-events: auto;
 }
 .push-notif-card {
-    background: linear-gradient(145deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.99));
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%) !important;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border: none !important;
     outline: none !important;
-    border-radius: 28px;
+    border-radius: 26px;
     width: 100%;
     max-width: 380px;
-    padding: 24px;
-    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.8);
+    padding: 24px 22px;
+    box-shadow: 0 25px 60px rgba(10, 25, 60, 0.55);
     transform: scale(0.85) translateY(20px);
     transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
     text-align: left;
@@ -373,10 +375,10 @@
     align-items: center;
     padding: 4px 10px;
     border-radius: 20px;
-    background: rgba(56, 189, 248, 0.15);
+    background: rgba(0, 242, 254, 0.22) !important;
     border: none !important;
     outline: none !important;
-    color: #38bdf8;
+    color: #00f2fe !important;
     font-size: 10px;
     font-weight: 800;
     letter-spacing: 0.5px;
@@ -385,42 +387,46 @@
 }
 .push-notif-time {
     font-size: 11px;
-    color: rgba(148, 163, 184, 0.6);
-    font-weight: 500;
+    color: rgba(255, 255, 255, 0.75) !important;
+    font-weight: 600;
 }
 .push-notif-close-btn {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.16) !important;
     border: none !important;
     outline: none !important;
-    color: rgba(248, 250, 252, 0.7);
+    color: #ffffff !important;
     width: 32px;
     height: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    font-size: 18px;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 .push-notif-close-btn:hover {
-    background: rgba(255, 255, 255, 0.18);
-    color: #fff;
+    background: rgba(255, 255, 255, 0.28) !important;
+    color: #fff !important;
 }
 .push-notif-title {
     margin: 0 0 8px;
-    font-size: 19px;
+    font-size: 18px;
     font-weight: 800;
-    color: #ffffff;
+    color: #ffffff !important;
     line-height: 1.35;
     letter-spacing: -0.3px;
+    border: none !important;
+    outline: none !important;
 }
 .push-notif-body {
     margin: 0 0 20px;
-    font-size: 14px;
-    color: rgba(203, 213, 225, 0.9);
+    font-size: 13.5px;
+    color: rgba(255, 255, 255, 0.92) !important;
     line-height: 1.55;
     font-weight: 400;
+    border: none !important;
+    outline: none !important;
 }
 .push-notif-actions {
     display: flex;
@@ -430,14 +436,14 @@
     flex: 1;
     border: none !important;
     outline: none !important;
-    background: linear-gradient(135deg, #38bdf8, #2563eb);
-    color: #ffffff;
+    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
+    color: #ffffff !important;
     padding: 13px;
     border-radius: 14px;
     font-weight: 800;
     font-size: 14px;
     cursor: pointer;
-    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
+    box-shadow: 0 4px 14px rgba(0, 242, 254, 0.35);
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
@@ -449,9 +455,9 @@
 .push-notif-btn-secondary {
     border: none !important;
     outline: none !important;
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(248, 250, 252, 0.85);
-    padding: 13px 18px;
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: #ffffff !important;
+    padding: 13px 22px;
     border-radius: 14px;
     font-weight: 700;
     font-size: 14px;
@@ -459,13 +465,31 @@
     transition: all 0.2s ease;
 }
 .push-notif-btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.26) !important;
 }
 </style>
 
 <script>
     var _currentPushNotifTargetUrl = window._currentPushNotifTargetUrl || null;
     window._notifTimerInterval = window._notifTimerInterval || null;
+
+    window.cleanNotifTitle = function(title, isWelcome) {
+        if (!title) return isWelcome ? 'Welcome to Intan Elyu' : 'Notification';
+        return title
+            .replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]/gu, '')
+            .trim();
+    };
+
+    window.cleanNotifMessage = function(msg) {
+        if (!msg) return '';
+        return msg
+            .replace(/\s*was confirmed by admin/gi, ' was confirmed')
+            .replace(/\s*(?:&|and|,)\s*\+?\d+\s*Points\.?/gi, '.')
+            .replace(/\s*\+?\d+\s*Points\.?/gi, '')
+            .replace(/\.\.+/g, '.')
+            .replace(/\s+/g, ' ')
+            .trim();
+    };
 
     window.formatReverseTimer = function(timestamp) {
         if (!timestamp) return 'Just now';
@@ -522,15 +546,17 @@
                 const itemTime = item.created_at ? new Date(item.created_at).getTime() : Date.now();
                 const timerStr = window.formatReverseTimer(itemTime);
                 const formattedDate = new Date(itemTime).toLocaleDateString(undefined, {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'});
+                const displayTitle = window.cleanNotifTitle(item.title, isWelcome);
+                const displayMsg = window.cleanNotifMessage(item.message);
 
                 html += `
                     <div style="display: flex; gap: 12px; margin-bottom: 10px; padding: 12px 14px; background: ${isWelcome ? 'linear-gradient(135deg, rgba(0, 242, 254, 0.14) 0%, rgba(2, 132, 199, 0.08) 100%)' : (isUnread ? 'rgba(56,189,248,0.08)' : 'rgba(255,255,255,0.03)')}; border: none !important; outline: none !important; border-radius: 14px; align-items: flex-start; cursor: pointer; transition: transform 0.15s ease, background 0.2s;" onclick="handleNotifClick('${encodedItem}', this)">
                         <div style="flex: 1; min-width: 0;">
                             <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">
                                 ${isWelcome ? '<span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0, 242, 254, 0.25); color: #00f2fe; padding: 2px 6px; border-radius: 4px; border: none !important; outline: none !important;">Welcome</span>' : ''}
-                                <span style="font-size: 13px; color: #ffffff; font-weight: 800;">${item.title || (isWelcome ? 'Welcome to Intan Elyu' : 'Notification')}</span>
+                                <span style="font-size: 13px; color: #ffffff; font-weight: 800;">${displayTitle}</span>
                             </div>
-                            <p style="margin: 0 0 6px 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.45; font-weight: ${isUnread ? '500' : '400'};">${item.message || ''}</p>
+                            <p style="margin: 0 0 6px 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.45; font-weight: ${isUnread ? '500' : '400'};">${displayMsg}</p>
                             <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
                                 <span class="notif-reverse-timer" data-time="${itemTime}" style="font-size: 10px; font-weight: 700; color: #00f2fe; display: inline-flex; align-items: center; background: rgba(0, 242, 254, 0.12); padding: 2px 8px; border-radius: 100px; border: none !important; outline: none !important;">
                                     <span class="timer-text">${timerStr}</span>
@@ -574,34 +600,29 @@
         const modal = document.getElementById('push-notification-modal');
         if (!modal) return;
 
-        const title = opts.title || (opts.type ? opts.type.replace(/_/g, ' ').toUpperCase() : 'Notification');
-        const body = opts.message || opts.body || 'You have a new update.';
+        const rawTitle = opts.title || (opts.type ? opts.type.replace(/_/g, ' ').toUpperCase() : 'Notification');
+        const title = window.cleanNotifTitle(rawTitle, opts.type === 'welcome');
+        const rawBody = opts.message || opts.body || 'You have a new update.';
+        const body = window.cleanNotifMessage(rawBody);
         const type = opts.type || 'general';
         const actionUrl = opts.action_url || opts.url || null;
         const spotName = opts.spot_name || opts.spot || null;
         const notifTimestamp = opts.created_at ? new Date(opts.created_at).getTime() : Date.now();
         const timeStr = window.formatReverseTimer ? window.formatReverseTimer(notifTimestamp) : 'Just now';
 
-        let color = '#38bdf8';
         let category = 'PUSH ALERT';
 
         if (type === 'new_spot' || type === 'spot_added') {
-            color = '#34c759';
             category = 'NEW SPOT';
         } else if (type === 'favorite_update' || type === 'spot_updated') {
-            color = '#f59e0b';
             category = 'FAVORITE UPDATE';
         } else if (type === 'itinerary_reminder' || type === 'trip') {
-            color = '#8b5cf6';
             category = 'TRIP REMINDER';
         } else if (type === 'spot_maintenance' || type === 'alert') {
-            color = '#ef4444';
             category = 'SPOT ALERT';
         } else if (type === 'reward' || type === 'quest' || type === 'points') {
-            color = '#facc15';
             category = 'REWARD UNLOCKED';
         } else if (type === 'welcome') {
-            color = '#00f2fe';
             category = 'WELCOME TO ELYU';
         }
 
@@ -626,8 +647,8 @@
         if (badgeEl) {
             badgeEl.style.border = 'none';
             badgeEl.style.outline = 'none';
-            badgeEl.style.background = color + '20';
-            badgeEl.style.color = color;
+            badgeEl.style.background = 'rgba(0, 242, 254, 0.22)';
+            badgeEl.style.color = '#00f2fe';
         }
 
         if (spotName && spotContainer && spotNameEl) {
@@ -650,7 +671,6 @@
         requestAnimationFrame(() => {
             modal.classList.add('active');
         });
-        document.body.style.overflow = 'hidden';
     };
 
     window.closePushNotificationModal = function() {
