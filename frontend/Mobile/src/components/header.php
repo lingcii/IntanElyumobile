@@ -120,8 +120,8 @@
 <div id="sidebar-menu" style="position: fixed; top: 0; left: -310px; width: 300px; bottom: 0; background: radial-gradient(ellipse at 90% 10%, rgba(0, 242, 254, 0.3) 0%, transparent 60%), radial-gradient(ellipse at 10% 50%, rgba(56, 189, 248, 0.25) 0%, transparent 60%), linear-gradient(180deg, #1e3a8a 0%, #2b5c9e 30%, #0284c7 70%, #06b6d4 100%); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); z-index: 99991; transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; box-shadow: 15px 0 50px rgba(0,0,0,0.5); border: none !important; outline: none !important; overflow: hidden;">
     
     <!-- User Profile Header Banner -->
-    <div style="padding: 24px 20px 18px 20px; border-bottom: none; background: rgba(30, 75, 135, 0.58); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); margin-top: max(env(safe-area-inset-top), 20px); position: relative;">
-        <button onclick="toggleSidebar()" style="position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.16); border: none !important; outline: none !important; color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s;">
+    <div style="padding: max(calc(env(safe-area-inset-top, 0px) + 20px), 24px) 20px 18px 20px; border-bottom: none; background: rgba(30, 75, 135, 0.58); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); margin-top: 0; position: relative;">
+        <button onclick="toggleSidebar()" style="position: absolute; top: max(calc(env(safe-area-inset-top, 0px) + 16px), 20px); right: 16px; background: rgba(255,255,255,0.16); border: none !important; outline: none !important; color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s;">
             <i class="fa-solid fa-xmark"></i>
         </button>
         
@@ -194,13 +194,13 @@
             </div>
         </div>
 
-    </div>
+        <!-- Log Out Button -->
+        <div style="margin-top: 10px; padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 12px), 16px);">
+            <a href="#" onclick="logoutUser(); return false;" id="sidebar-logout-btn" style="color: #ffffff !important; text-decoration: none; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; border: none !important; outline: none !important; border-radius: 14px; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4); transition: transform 0.15s ease, opacity 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-right-from-bracket" style="color: #ffffff !important; font-size: 16px;"></i> Log Out
+            </a>
+        </div>
 
-    <!-- Sidebar Bottom Footer -->
-    <div style="padding: 16px 20px; border-top: none; background: rgba(15, 23, 42, 0.45);">
-        <a href="#" onclick="logoutUser(); return false;" id="sidebar-logout-btn" style="color: #ffffff !important; text-decoration: none; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; border: none !important; outline: none !important; border-radius: 14px; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4); transition: transform 0.15s ease, opacity 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
-            <i class="fa-solid fa-right-from-bracket" style="color: #ffffff !important; font-size: 16px;"></i> Log Out
-        </a>
     </div>
 </div>
 
