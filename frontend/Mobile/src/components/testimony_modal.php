@@ -64,20 +64,16 @@
             </button>
         </div>
 
-        <!-- Rewards Incentive Callout Banner (Prominent & Visible Container) -->
-        <div id="testimony-reward-banner" style="background:rgba(10, 25, 60, 0.48) !important; border:1px solid rgba(255, 255, 255, 0.22) !important; outline:none !important; border-radius:14px; padding:8px 12px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; box-shadow:0 4px 14px rgba(0,0,0,0.2); transition:all 0.3s ease;">
-            <div style="display:flex; align-items:center; gap:8px;">
-                <div id="testimony-reward-icon" style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; color:#fbbf24; font-size:13px; flex-shrink:0;">
-                    <i class="fa-solid fa-gift"></i>
-                </div>
-                <div>
-                    <span id="testimony-reward-title" style="display:block; font-size:11.5px; font-weight:800; color:#ffffff; line-height:1.2;">Review & Earn Rewards</span>
-                    <span id="testimony-reward-desc" style="font-size:10px; color:rgba(255,255,255,0.9); line-height:1.2;">Submit review to claim rewards</span>
-                </div>
+        <!-- Rewards Incentive Callout Banner -->
+        <div id="testimony-reward-banner" style="background:rgba(255, 255, 255, 0.14) !important; border:1px solid rgba(255, 255, 255, 0.22) !important; outline:none !important; border-radius:14px; padding:10px 14px; margin-bottom:12px; display:flex; align-items:center; gap:12px; box-shadow:0 4px 14px rgba(0,0,0,0.12); transition:all 0.3s ease;">
+            <div id="testimony-reward-icon" style="width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; color:#fbbf24; font-size:15px; flex-shrink:0;">
+                <i class="fa-solid fa-gift"></i>
             </div>
-            <div id="testimony-reward-badges" style="display:flex; gap:5px; flex-shrink:0;">
-                <span style="background:#f59e0b; color:#ffffff; font-size:11px; font-weight:800; padding:5px 10px; border-radius:8px; white-space:nowrap; border:none !important; box-shadow:0 2px 6px rgba(0,0,0,0.25);">Rewards</span>
+            <div style="flex:1; min-width:0;">
+                <span id="testimony-reward-title" style="display:block; font-size:12.5px; font-weight:800; color:#ffffff; line-height:1.25;">Review & Earn Rewards</span>
+                <span id="testimony-reward-desc" style="font-size:11px; color:rgba(255,255,255,0.92); line-height:1.35; display:block; margin-top:2px;">Submit review to claim rewards</span>
             </div>
+            <div id="testimony-reward-badges" style="display:none !important;"></div>
         </div>
 
         <form id="testimony-form" onsubmit="window.submitTestimony(event)">
@@ -274,17 +270,18 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
         if (titleEl) titleEl.textContent = 'Update Destination Review';
         if (subEl) subEl.textContent = 'Modify your site testimony and policy recommendations for this destination.';
         if (bannerEl) {
-            bannerEl.style.background = 'rgba(10, 25, 60, 0.48)';
+            bannerEl.style.background = 'rgba(255, 255, 255, 0.14)';
             bannerEl.style.border = '1px solid rgba(255, 255, 255, 0.22)';
             bannerEl.style.outline = 'none';
         }
         if (iconEl) {
             iconEl.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#10b981;"></i>';
         }
-        if (bannerTitleEl) bannerTitleEl.textContent = 'Review Already Claimed';
+        if (bannerTitleEl) bannerTitleEl.innerHTML = '<span style="color:#10b981; font-weight:800;">Review Already Claimed</span>';
         if (bannerDescEl) bannerDescEl.textContent = 'Rewards are one-time per spot. Updating will not grant additional XP.';
         if (bannerBadgesEl) {
-            bannerBadgesEl.innerHTML = '<span style="background:#10b981; color:#ffffff; font-size:11px; font-weight:800; padding:5px 10px; border-radius:8px; white-space:nowrap; border:none !important; box-shadow:0 2px 6px rgba(0,0,0,0.25);">Claimed ✓</span>';
+            bannerBadgesEl.innerHTML = '';
+            bannerBadgesEl.style.display = 'none';
         }
         if (submitTextEl) submitTextEl.textContent = 'Update Review';
 
@@ -302,7 +299,7 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
         if (titleEl) titleEl.textContent = 'Review Destination';
         if (subEl) subEl.textContent = `Share your site testimony for this ${classMeta.label.toLowerCase()} destination to help local tourism.`;
         if (bannerEl) {
-            bannerEl.style.background = 'rgba(10, 25, 60, 0.48)';
+            bannerEl.style.background = 'rgba(255, 255, 255, 0.14)';
             bannerEl.style.border = '1px solid rgba(255, 255, 255, 0.22)';
             bannerEl.style.outline = 'none';
         }
@@ -311,10 +308,9 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
         }
         if (bannerTitleEl) bannerTitleEl.innerHTML = `<span style="color:${classMeta.color}; font-weight:800;">${classMeta.label} Site</span> • Earn Rewards`;
         if (bannerDescEl) bannerDescEl.textContent = `Submit review to claim +${classMeta.points} Points & +${classMeta.points} XP`;
-        
-        const solidBadgeBg = (classMeta.label === 'Potential') ? '#f59e0b' : (classMeta.label === 'Emerging' ? '#0284c7' : '#10b981');
         if (bannerBadgesEl) {
-            bannerBadgesEl.innerHTML = `<span style="background:${solidBadgeBg}; color:#ffffff; font-size:11px; font-weight:800; padding:5px 10px; border-radius:8px; white-space:nowrap; border:none !important; box-shadow:0 2px 6px rgba(0,0,0,0.25);">+${classMeta.points} Points & +${classMeta.points} XP</span>`;
+            bannerBadgesEl.innerHTML = '';
+            bannerBadgesEl.style.display = 'none';
         }
         if (submitTextEl) submitTextEl.textContent = 'Submit Review';
 
