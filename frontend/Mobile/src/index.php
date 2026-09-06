@@ -9,9 +9,9 @@ if (
     (isset($_GET['download']) && $_GET['download'] === 'apk') ||
     (strpos($_SERVER['REQUEST_URI'] ?? '', 'intan-elyu.apk') !== false && !isset($_GET['view']))
 ) {
-    $apkPath = __DIR__ . '/downloads/intan-elyu.apk';
+    $apkPath = dirname(__DIR__) . '/public/downloads/intan-elyu.apk';
     if (!file_exists($apkPath)) {
-        $apkPath = dirname(__DIR__) . '/public/downloads/intan-elyu.apk';
+        $apkPath = __DIR__ . '/downloads/intan-elyu.apk';
     }
     if (file_exists($apkPath)) {
         while (ob_get_level()) {

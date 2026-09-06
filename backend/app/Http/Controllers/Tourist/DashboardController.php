@@ -21,10 +21,18 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        // XP calculations
-        $xp        = (int) ($user->xp ?? 0);
-        $level     = (int) ($user->level ?? 1);
+        // XP & Level calculations
+        $xp         = (int) ($user->xp ?? $user->points ?? 0);
+        $level      = (int) floor(max(0, $xp) / 1000) + 1;
         $xpPerLevel = 1000;
+
+        // Keep database level column in sync
+        if ((int)($user->level ?? 1) !== $level) {
+            try {
+                $user->level = $level;
+                $user->save();
+            } catch (\Throwable $e) {}
+        }
 
         // Trending: top spots by visits (default 5, configurable via ?limit=)
         // Technique 2: Server-Side Caching — 2 minute TTL for trending spots

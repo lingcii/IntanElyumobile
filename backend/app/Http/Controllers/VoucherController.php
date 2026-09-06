@@ -157,13 +157,28 @@ class VoucherController extends Controller
             }
 
             try {
-                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
+                if (method_exists($user, 'deductXp')) {
+                    $user->deductXp($cost);
+                } else {
+                    $currentXp = (int) ($user->xp ?? $user->points ?? 0);
+                    $newXp = max(0, $currentXp - $cost);
+                    $newLevel = (int) floor($newXp / 1000) + 1;
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
+                        $user->xp = $newXp;
+                    }
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
+                        $user->points = $newXp;
+                    }
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'level')) {
+                        $user->level = $newLevel;
+                    }
+                    $user->save();
+                }
+            } catch (\Throwable $e) {
+                try {
                     $user->decrement('xp', $cost);
-                }
-                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
-                    $user->decrement('points', $cost);
-                }
-            } catch (\Throwable $e) {}
+                } catch (\Throwable $ignored) {}
+            }
 
             return PointRedemption::create([
                 'user_id' => $user->id,
@@ -195,11 +210,22 @@ class VoucherController extends Controller
         } catch (\Throwable $e) {}
 
         $newBalance = max(0, $balance - $cost);
+        $newLevel = (int) floor($newBalance / 1000) + 1;
 
         return response()->json([
             'status' => 'success',
             'message' => 'Voucher claimed successfully!',
             'new_balance' => $newBalance,
+            'xp' => $newBalance,
+            'points' => $newBalance,
+            'level' => $newLevel,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'xp' => $newBalance,
+                'points' => $newBalance,
+                'level' => $newLevel,
+            ],
             'data' => $redemption
         ]);
     }

@@ -51,30 +51,14 @@ include_once __DIR__ . '/../components/testimony_modal.php';
     </div>
 </div>
 
-<!-- Prompt Card when within 300m -->
-<div id="checkin-prompt-card" style="position: absolute; top: calc(max(env(safe-area-inset-top), 40px) + 54px); left: 16px; right: 16px; z-index: 1001; background: linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 100%); border: none !important; outline: none !important; border-radius: 20px; padding: 14px 18px; box-shadow: 0 14px 36px rgba(10, 25, 60, 0.45); display: none; align-items: center; justify-content: space-between; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
-    <div style="display:flex; align-items:center; gap:12px;">
-        <div style="width:40px; height:40px; border-radius:12px; background:rgba(255,255,255,0.2); border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-            <i class="fa-solid fa-location-dot" style="color:#ffffff; font-size:18px;"></i>
-        </div>
-        <div style="text-align: left;">
-            <h5 style="margin:0 0 2px; font-size:14px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">You've arrived!</h5>
-            <p id="checkin-prompt-dest-name" style="margin:0; font-size:12px; color:rgba(255,255,255,0.85); font-weight:600;"></p>
-        </div>
-    </div>
-    <button onclick="window.triggerMapCheckinModal()" style="background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; border:none !important; outline:none !important; padding:9px 18px; border-radius:12px; font-weight:800; font-size:12px; cursor:pointer; box-shadow:0 4px 14px rgba(2,132,199,0.4); display:flex; align-items:center; gap:6px; flex-shrink:0; transition:transform 0.15s ease;">
-        <i class="fa-solid fa-camera" style="font-size:11px;"></i> Check In
-    </button>
-</div>
-
 <!-- Check-in Verification Modal (GPS and Photo Proof) -->
 <div id="checkin-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:99999; justify-content:center; align-items:center;">
     <div style="background:linear-gradient(145deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none !important; outline:none !important; border-radius:24px; padding:28px 24px; width:90%; max-width:380px; box-shadow:0 24px 60px rgba(10,25,60,0.55); text-align:center;">
         <div style="width:58px; height:58px; border-radius:50%; background:rgba(255,255,255,0.2); border:none !important; display:flex; align-items:center; justify-content:center; margin:0 auto 14px;">
             <i class="fa-solid fa-camera" style="font-size:26px; color:#ffffff;"></i>
         </div>
-        <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Claim Your Reward</h3>
-        <p style="font-size:13px; color:rgba(255, 255, 255, 0.85); margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination to verify your visit and earn <strong style="color:#67e8f9; font-weight:800;">+50 XP</strong>.</p>
+        <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Submit Visit Proof</h3>
+        <p style="font-size:13px; color:rgba(255, 255, 255, 0.85); margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination. Your submission will be submitted for MTO / LUPTO review and approval before earning <strong style="color:#67e8f9; font-weight:800;">+50 XP</strong>.</p>
 
         <input type="hidden" id="checkin-item-id">
         
@@ -443,7 +427,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             items.forEach((item, idx) => {
                 const card = document.getElementById(`conveyor-card-${idx}`);
                 if (!card) return;
-                const isVisited = Boolean(item.is_visited || item.proof_status === 'approved' || item.proof_image);
+                const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
+                const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
+                const isRejected = (item.proof_status === 'rejected');
                 const isActive = idx === activeIndex;
                 if (isActive) {
                     card.classList.add('active');
@@ -455,6 +441,12 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     if (isVisited) {
                         badgeEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Visited';
                         badgeEl.style.background = 'rgba(52, 199, 89, 0.25)';
+                    } else if (isPending) {
+                        badgeEl.innerHTML = '<i class="fa-solid fa-clock"></i> Pending Review';
+                        badgeEl.style.background = 'rgba(245, 158, 11, 0.25)';
+                    } else if (isRejected) {
+                        badgeEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Rejected';
+                        badgeEl.style.background = 'rgba(239, 68, 68, 0.25)';
                     } else if (isActive) {
                         badgeEl.innerHTML = `Stop ${idx + 1} of ${items.length} • NEXT`;
                         badgeEl.style.background = 'rgba(255, 255, 255, 0.25)';
@@ -474,12 +466,18 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             if (!dest) return;
             const lat = parseFloat(dest.lat || dest.latitude);
             const lng = parseFloat(dest.lng || dest.longitude);
-            const isVisited = Boolean(item.is_visited || item.proof_status === 'approved' || item.proof_image);
+            const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
+            const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
+            const isRejected = (item.proof_status === 'rejected');
             const isActive = idx === activeIndex;
 
             let badgeHtml = '';
             if (isVisited) {
                 badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(52,199,89,0.25); border:none !important; outline:none !important; color:#ffffff; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-circle-check"></i> Visited</span>`;
+            } else if (isPending) {
+                badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#ffffff; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-clock"></i> Pending Review</span>`;
+            } else if (isRejected) {
+                badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(239,68,68,0.25); border:none !important; outline:none !important; color:#ffffff; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
             } else if (isActive) {
                 badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(255,255,255,0.25); border:none !important; outline:none !important; color:#ffffff; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;">Stop ${idx + 1} of ${items.length} • NEXT</span>`;
             } else {
@@ -498,7 +496,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
 
             let actionBtnHtml = '';
-            if (isVisited || item.proof_status === 'approved') {
+            if (isVisited) {
                 const sId = item.tourist_spot_id || (item.destination ? item.destination.id : '');
                 const isReviewed = sId && window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(sId));
                 actionBtnHtml = `<div style="display:flex; align-items:center; gap:10px;">
@@ -510,7 +508,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         </button>
                     </div>
                 </div>`;
-            } else if (item.proof_status === 'rejected') {
+            } else if (isRejected) {
                 actionBtnHtml = `<div style="display:flex; align-items:center; gap:8px;">
                     ${proofThumbnail}
                     <div style="display:flex; flex-direction:column; gap:4px;">
@@ -518,10 +516,10 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         <button onclick="event.stopPropagation(); window.currentCheckinItemId='${item.id}'; window.triggerMapCheckinModal()" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:#ffffff; border:none !important; outline:none !important; padding:6px 10px; border-radius:100px; font-weight:800; font-size:10px; cursor:pointer;"><i class="fa-solid fa-camera" style="margin-right:4px;"></i> Re-upload</button>
                     </div>
                 </div>`;
-            } else if (item.proof_image && (item.proof_status === 'pending' || !item.proof_status)) {
+            } else if (isPending) {
                 actionBtnHtml = `<div style="display:flex; align-items:center; gap:8px;">
                     ${proofThumbnail}
-                    <span style="background:rgba(255,149,0,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:11px; padding:4px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-clock"></i> Pending Validation</span>
+                    <span style="background:rgba(255,149,0,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:11px; padding:4px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-clock"></i> Pending MTO / LUPTO Review</span>
                 </div>`;
             } else if (isActive) {
                 actionBtnHtml = `<button onclick="event.stopPropagation(); window.currentCheckinItemId='${item.id}'; window.triggerMapCheckinModal()" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; border:none !important; outline:none !important; padding:10px 16px; border-radius:100px; font-weight:800; font-size:12px; box-shadow:0 4px 14px rgba(2,132,199,0.4); cursor:pointer;"><i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In (+50 XP)</button>`;
@@ -626,7 +624,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         if (window.tripMarkers) window.tripMarkers.forEach(m => m.remove());
         window.tripMarkers = [];
 
-        const activeIndex = items.findIndex(i => !(i.is_visited || i.proof_status === 'approved' || i.proof_image));
+        const activeIndex = items.findIndex(i => !(i.is_visited || i.proof_status === 'approved'));
 
         items.forEach((item, idx) => {
             const dest = item.destination;
@@ -642,7 +640,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     bounds.extend([lng, lat]);
 
                     let iconHtml = '';
-                    const isVisited = Boolean(item.is_visited || item.proof_status === 'approved' || item.proof_image);
+                    const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
+                    const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
+                    const isRejected = (item.proof_status === 'rejected');
 
                     if (isVisited) {
                         // VISITED - Green Checkmark + Royal Blue Tag without outline
@@ -653,6 +653,30 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                 </div>
                                 <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(10,25,60,0.3); z-index: 1;">
                                     <span style="color: rgba(255, 255, 255, 0.75); font-size: 11px; font-weight: 600; text-decoration: line-through;">${dest.name}</span>
+                                </div>
+                            </div>
+                        `;
+                    } else if (isPending) {
+                        // PENDING MTO/LUPTO REVIEW - Orange Clock
+                        iconHtml = `
+                            <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+                                <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(245,158,11,0.4); z-index: 2;">
+                                    <i class="fa-solid fa-clock"></i>
+                                </div>
+                                <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(10,25,60,0.3); z-index: 1;">
+                                    <span style="color: #fde68a; font-size: 10px; font-weight: 700;">Pending Review</span>
+                                </div>
+                            </div>
+                        `;
+                    } else if (isRejected) {
+                        // REJECTED - Red X
+                        iconHtml = `
+                            <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+                                <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(239,68,68,0.4); z-index: 2;">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </div>
+                                <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(10,25,60,0.3); z-index: 1;">
+                                    <span style="color: #fca5a5; font-size: 10px; font-weight: 700;">Re-upload</span>
                                 </div>
                             </div>
                         `;
@@ -1045,36 +1069,6 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             window.tripGpsMarker.setLngLat([window.myLng, window.myLat]);
         }
 
-        // VISITED CHECK-IN PROMPT LOGIC
-        if (window.currentTripItems) {
-            const activeItem = window.currentTripItems.find(i => !(i.is_visited || i.proof_status === 'approved' || i.proof_image));
-            if (activeItem && activeItem.destination) {
-                const destLat = parseFloat(activeItem.destination.lat || activeItem.destination.latitude);
-                const destLng = parseFloat(activeItem.destination.lng || activeItem.destination.longitude);
-                
-                if (!isNaN(destLat) && !isNaN(destLng)) {
-                    const distMeters = calcCoordDistMeters(destLat, destLng, window.myLat, window.myLng);
-                    
-                    // If within 300 meters
-                    if (distMeters <= 300) {
-                        window.currentCheckinItemId = activeItem.id;
-                        const promptCard = document.getElementById('checkin-prompt-card');
-                        const destNameEl = document.getElementById('checkin-prompt-dest-name');
-                        if (promptCard && destNameEl) {
-                            destNameEl.textContent = activeItem.destination.name;
-                            promptCard.style.display = 'flex';
-                        }
-                    } else {
-                        const promptCard = document.getElementById('checkin-prompt-card');
-                        if (promptCard) promptCard.style.display = 'none';
-                    }
-                }
-            } else {
-                const promptCard = document.getElementById('checkin-prompt-card');
-                if (promptCard) promptCard.style.display = 'none';
-            }
-        }
-        
         // Stabilize: Only recalculate route if user moved at least 30 meters
         const distMoved = calcCoordDistMeters(window._lastRouteLat, window._lastRouteLng, window.myLat, window.myLng);
         if (distMoved >= 30) {

@@ -234,6 +234,8 @@ class ProfileController extends Controller
                 'is_leaderboard_private' => $hasPrivacy ? (bool) $user->is_leaderboard_private : false,
                 'two_factor_enabled' => (bool) $is2FAEnabled,
                 'xp' => (int) ($user->xp ?? 0),
+                'points' => (int) ($user->points ?? $user->xp ?? 0),
+                'level' => (int) floor(max(0, (int) ($user->xp ?? 0)) / 1000) + 1,
                 'avatar' => $user->avatar
             ],
             'places_visited' => $placesVisited,

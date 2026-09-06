@@ -978,36 +978,7 @@ window.startLocationWatch = function () {
             document.dispatchEvent(new CustomEvent('gpsUpdated', { detail: { lat: currentLat, lng: currentLng, accuracy, altitude, speed, source: 'gps' } }));
         });
 
-        // Throttle background notification/itinerary checks to once every 3 seconds
-        const now = Date.now();
-        if (now - lastGpsProcessTime >= 3000) {
-            lastGpsProcessTime = now;
-
-            const savedTrips = window.savedTripsData || [];
-            savedTrips.forEach(trip => {
-                if (trip.status === 'active' && trip.items) {
-                    trip.items.forEach(item => {
-                        if (item.is_visited) return;
-
-                        const dest = item.destination;
-                        if (!dest || !dest.lat || !dest.lng) return;
-
-                        const dist = calculateDistance(currentLat, currentLng, parseFloat(dest.lat), parseFloat(dest.lng));
-
-                        if (dist <= 500 && !lastAlertedItems[item.id]) {
-                            if (localStorage.getItem('intan_elyu_push_enabled') !== 'false') {
-                                window.showInAppNotification(
-                                    "Destination Nearby!",
-                                    `You are near ${dest.name}! Open the app to check in and earn XP.`
-                                );
-                            }
-                            lastAlertedItems[item.id] = true;
-                            localStorage.setItem('intan_elyu_alerted_items', JSON.stringify(lastAlertedItems));
-                        }
-                    });
-                }
-            });
-        }
+        // Proximity auto check-in is intentionally disabled as check-in requires explicit photo proof submission and pending review by MTO / LUPTO.
     };
 
     const onErr = (error) => {

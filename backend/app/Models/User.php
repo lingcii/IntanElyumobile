@@ -96,4 +96,52 @@ class User extends Authenticatable
     {
         return $this->hasMany(Itinerary::class);
     }
+
+    /**
+     * Recalculate and persist user level based on current XP.
+     */
+    public function recalculateLevel(): int
+    {
+        $xp = (int) ($this->xp ?? $this->points ?? 0);
+        $level = (int) floor(max(0, $xp) / 1000) + 1;
+        if ((int)($this->level ?? 1) !== $level) {
+            $this->level = $level;
+            $this->save();
+        }
+        return $level;
+    }
+
+    /**
+     * Deduct XP, keep points synced, and re-derive the level.
+     */
+    public function deductXp(int $amount): int
+    {
+        $currentXp = (int) ($this->xp ?? $this->points ?? 0);
+        $newXp = max(0, $currentXp - $amount);
+        $newLevel = (int) floor($newXp / 1000) + 1;
+
+        $this->xp = $newXp;
+        $this->points = $newXp;
+        $this->level = $newLevel;
+        $this->save();
+
+        return $newXp;
+    }
+
+    /**
+     * Add XP, keep points synced, and re-derive the level.
+     */
+    public function addXp(int $amount): int
+    {
+        $currentXp = (int) ($this->xp ?? $this->points ?? 0);
+        $newXp = $currentXp + $amount;
+        $newLevel = (int) floor($newXp / 1000) + 1;
+
+        $this->xp = $newXp;
+        $this->points = $newXp;
+        $this->level = $newLevel;
+        $this->save();
+
+        return $newXp;
+    }
 }

@@ -10,9 +10,9 @@ if (strpos($path, 'user_manual_mobile.html') !== false) {
 
 // Serve APK binary files directly
 if (strpos($path, 'intan-elyu.apk') !== false || strpos($path, '.apk') !== false) {
-    $apkPath = __DIR__ . '/downloads/intan-elyu.apk';
+    $apkPath = dirname(__DIR__) . '/public/downloads/intan-elyu.apk';
     if (!file_exists($apkPath)) {
-        $apkPath = dirname(__DIR__) . '/public/downloads/intan-elyu.apk';
+        $apkPath = __DIR__ . '/downloads/intan-elyu.apk';
     }
     if (file_exists($apkPath)) {
         while (ob_get_level()) { ob_end_clean(); }

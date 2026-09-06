@@ -179,12 +179,16 @@ body[data-view="help"] {
 }
 
 .support-status .dot {
-    width: 7px;
-    height: 7px;
-    background-color: #22c55e;
-    border-radius: 50%;
-    box-shadow: 0 0 8px #22c55e;
-    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #22c55e !important;
+    border-radius: 50% !important;
+    box-shadow: none !important;
+    animation: none !important;
+    transform: none !important;
+    filter: none !important;
+    display: inline-block !important;
+    flex-shrink: 0;
 }
 
 .support-desc {

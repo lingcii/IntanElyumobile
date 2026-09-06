@@ -569,34 +569,34 @@ body[data-view="user_manual"]::-webkit-scrollbar,
         </div>
     </div>
 
-    <!-- STEP 6: AR CHECK-IN -->
+    <!-- STEP 6: PHOTO PROOF CHECK-IN -->
     <div class="manual-section" id="section-checkin">
         <div class="manual-section-header">
             <div class="manual-section-icon red"><i class="fa-solid fa-camera"></i></div>
             <div>
-                <h2 class="manual-section-title">Step 6 &mdash; AR Check-In</h2>
-                <p class="manual-section-sub">Location verification and visit rewards</p>
+                <h2 class="manual-section-title">Step 6 &mdash; Photo Proof Check-In</h2>
+                <p class="manual-section-sub">Location verification and MTO / LUPTO approval</p>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">1</div>
             <div class="step-content">
                 <div class="step-title">Arrive at Destination</div>
-                <div class="step-desc">Open AR Check-In when you are within proximity of the tourist spot.</div>
+                <div class="step-desc">Visit the tourist spot in your planned trip and open your trip route or saved trip stops.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">2</div>
             <div class="step-content">
                 <div class="step-title">Attach Photo Proof &amp; Verify GPS</div>
-                <div class="step-desc">Snap or select a selfie photo at the destination, then tap <strong>Verify Location &amp; Submit</strong>.</div>
+                <div class="step-desc">Capture a photo or selfie at the spot, then tap <strong>Verify Location &amp; Submit</strong>. Check-in is an explicit verification process rather than automatic detection.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">3</div>
             <div class="step-content">
-                <div class="step-title">Claim Reward</div>
-                <div class="step-desc">Earn <strong>+50 XP</strong> and <strong>+50 Points</strong> automatically upon successful verification!</div>
+                <div class="step-title">MTO / LUPTO Review &amp; Reward</div>
+                <div class="step-desc">Your check-in is set to <strong>Pending</strong>. Once reviewed and approved by Municipal Tourism (MTO) or Provincial Tourism (LUPTO) officers, you will be awarded <strong>+50 XP</strong> and <strong>+50 Points</strong>!</div>
             </div>
         </div>
     </div>

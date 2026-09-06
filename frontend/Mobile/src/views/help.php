@@ -86,7 +86,7 @@ $backRoute = 'dashboard';
             <div>
                 <h3 class="support-title">Customer Service</h3>
                 <span class="support-status">
-                    <span class="dot"></span>
+                    <span class="dot" style="box-shadow: none !important; animation: none !important; transform: none !important;"></span>
                     Available 24/7 • Fast Response
                 </span>
             </div>
@@ -166,19 +166,11 @@ window.handleEmailSupport = function(e) {
         }
     }
 
-    // 3. In Android WebView, window.location.href = mailto triggers net::ERR_UNKNOWN_URL_SCHEME crash.
-    // Using a hidden iframe safely delegates the intent without crashing the WebView page!
+    // 3. Trigger mailto navigation safely
     try {
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = mailtoUrl;
-        document.body.appendChild(iframe);
-        setTimeout(function() {
-            try { document.body.removeChild(iframe); } catch(err) {}
-        }, 1500);
+        window.location.href = mailtoUrl;
     } catch(err) {
-        // Safe fallback
-        console.warn('Could not launch mailto scheme iframe:', err);
+        console.warn('Could not launch mail client:', err);
     }
 };
 

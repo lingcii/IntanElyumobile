@@ -838,6 +838,22 @@ if (is_dir($imgDir)) {
         if (user && user.name) {
             setHtml('dash-name', 'Hi, ' + user.name.split(' ')[0] + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
             setSrc('dash-avatar', user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+            if (user.xp !== undefined) {
+                const initXp = parseInt(user.xp) || 0;
+                const initLevel = Math.floor(Math.max(0, initXp) / 1000) + 1;
+                setTxt('dash-title', 'Level ' + initLevel + ' Explorer');
+                const initLvlLabel = document.getElementById('dash-level-label');
+                if (initLvlLabel) initLvlLabel.innerHTML = `<i class="fa-solid fa-award" style="color:#00f2fe; margin-right:4px;"></i> Level ${initLevel} Progress`;
+                const initXpInLevel = initXp % 1000;
+                const initXpPct = Math.min((initXpInLevel / 1000) * 100, 100);
+                const initXpVal = document.getElementById('dash-xp-value');
+                if (initXpVal) initXpVal.innerHTML = `<i class="fa-solid fa-bolt" style="color:#fbbf24; margin-right:4px;"></i>${initXpInLevel.toLocaleString()} / 1,000 XP`;
+                const initXpNeedEl = document.getElementById('dash-xp-needed');
+                if (initXpNeedEl) initXpNeedEl.textContent = `${(1000 - initXpInLevel).toLocaleString()} XP to Level ${initLevel + 1}`;
+                const initXpPctEl = document.getElementById('dash-xp-pct');
+                if (initXpPctEl) initXpPctEl.textContent = `${Math.round(initXpPct)}%`;
+                if (document.getElementById('dash-xp-bar')) document.getElementById('dash-xp-bar').style.width = initXpPct + '%';
+            }
         }
 
         if (!token) return;
@@ -893,10 +909,15 @@ if (is_dir($imgDir)) {
 
             const u = data.user || {};
 
+            // XP Bar & Dynamic Level Calculation
+            const xp = parseInt(u.xp) || 0;
+            const level = Math.floor(Math.max(0, xp) / 1000) + 1;
+            u.level = level;
+
             // Profile header
             const firstName = (u.name || 'Explorer').split(' ')[0];
             setHtml('dash-name', 'Hi, ' + firstName + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
-            setTxt('dash-title', 'Level ' + (u.level || 1) + ' Explorer');
+            setTxt('dash-title', 'Level ' + level + ' Explorer');
 
             const userId = u.id || u.user_id || '';
             if (userId) setTxt('dash-explorer-id', 'ID: #' + userId);
@@ -928,9 +949,6 @@ if (is_dir($imgDir)) {
                 setSrc('dash-avatar', `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Tourist')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
             }
 
-            // XP Bar
-            const xp = parseInt(u.xp) || 0;
-            const level = parseInt(u.level) || 1;
             const xpPerLevel = 1000;
             const xpInLevel = xp % xpPerLevel;
             const xpPct = Math.min((xpInLevel / xpPerLevel) * 100, 100);

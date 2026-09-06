@@ -50,8 +50,8 @@ $backRoute = 'itinerary';
 <div id="checkin-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:99999; justify-content:center; align-items:center;">
     <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:380px; box-shadow:0 16px 40px rgba(10, 25, 60, 0.45); text-align:center;">
         <i class="fa-solid fa-camera" style="font-size:32px; color:#ffffff; margin-bottom:10px; display:block;"></i>
-        <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Claim Your Reward</h3>
-        <p style="font-size:13px; color:#ffffff; opacity:0.95; margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination to verify your visit and earn <strong style="color:#ffffff; font-weight:800;">+50 XP</strong>.</p>
+        <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Submit Visit Proof</h3>
+        <p style="font-size:13px; color:#ffffff; opacity:0.95; margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination. Your submission will be submitted for MTO / LUPTO review and approval before earning <strong style="color:#ffffff; font-weight:800;">+50 XP</strong>.</p>
 
         <input type="hidden" id="checkin-item-id">
         
@@ -318,11 +318,13 @@ $backRoute = 'itinerary';
                                   let unvisitedCount = 0;
                 const isTripCompleted = (trip.status === 'completed');
                 if (trip.items && trip.items.length) {
-                    const firstUnvisitedIdx = trip.items.findIndex(i => !(i.is_visited || i.proof_status === 'approved' || i.proof_image));
+                    const firstUnvisitedIdx = trip.items.findIndex(i => !(i.is_visited || i.proof_status === 'approved'));
                     trip.items.forEach((item, index) => {
                         const dest = item.destination;
-                        const isVisited = Boolean(item.is_visited || item.proof_status === 'approved' || item.proof_image);
-                        const isNextStop = (!isVisited && index === firstUnvisitedIdx);
+                        const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
+                        const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
+                        const isRejected = (item.proof_status === 'rejected');
+                        const isNextStop = (!isVisited && !isPending && index === firstUnvisitedIdx);
                         if (!isVisited) unvisitedCount++;
 
                         let proofImgHtml = '';
@@ -337,7 +339,7 @@ $backRoute = 'itinerary';
                         }
 
                         html += `
-                        <div class="timeline-item ${isVisited ? 'completed' : (isNextStop ? 'is-next-stop' : '')}" style="margin-bottom: 12px;">
+                        <div class="timeline-item ${isVisited ? 'completed' : (isPending ? 'pending' : (isNextStop ? 'is-next-stop' : ''))}" style="margin-bottom: 12px;">
                             <div class="timeline-dot"></div>
                             <div class="timeline-content" style="padding:14px; background: rgba(255,255,255,0.12); border: none !important; outline: none !important; border-radius: 16px; display:flex; flex-direction:column; gap:8px;">
                                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -347,7 +349,7 @@ $backRoute = 'itinerary';
                                 </div>
                                 ${(dest && (dest.accessible_by_private_vehicle === 0 || dest.accessible_by_private_vehicle === false)) ? `<div style="background:rgba(239, 68, 68, 0.15); border:none !important; outline:none !important; border-radius:10px; padding:8px 12px; display:flex; gap:8px; align-items:flex-start; margin-top:4px;"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; font-size:13px; margin-top:2px;"></i><div><h5 style="margin:0 0 2px 0; font-size:11px; font-weight:800; color:#ef4444; text-transform:uppercase;">Inaccessible by Private Car</h5><p style="margin:0; font-size:10px; color:#ffffff; opacity:0.9; line-height:1.3;">Prepare to hike or use specialized local transport.</p></div></div>` : ''}
 
-                                ${isVisited || item.proof_status === 'approved' ? 
+                                ${isVisited ? 
                                     `<div style="display:flex; align-items:center; justify-space-between; gap:10px; margin-top:4px;">
                                         <div style="display:flex; align-items:center; gap:10px;">
                                             ${proofImgHtml}
@@ -355,14 +357,14 @@ $backRoute = 'itinerary';
                                                 <span style="color:#34c759; font-size:12px; font-weight:800; display:block;">
                                                     <i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Visited & Verified
                                                 </span>
-                                                <span style="font-size:10px; color:#ffffff; opacity:0.8;">Your Trip has been Confirmed!</span>
+                                                <span style="font-size:10px; color:#ffffff; opacity:0.8;">Approved by Tourism Office</span>
                                             </div>
                                         </div>
                                         <button type="button" data-spot-id="${item.tourist_spot_id || (dest ? dest.id : '')}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (dest ? dest.id : '')}', this)" style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:none; flex-shrink:0;">
                                             ${(window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(item.tourist_spot_id || (dest ? dest.id : '')))) ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review (+25 XP)'}
                                         </button>
                                     </div>` : 
-                                    (item.proof_status === 'rejected' ? 
+                                    (isRejected ? 
                                         `<div style="display:flex; flex-direction:column; gap:6px; margin-top:4px;">
                                             <div style="display:flex; align-items:center; gap:10px;">
                                                 ${proofImgHtml}
@@ -377,14 +379,14 @@ $backRoute = 'itinerary';
                                                 <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Re-upload Photo Proof
                                             </button>
                                         </div>` : 
-                                        (item.proof_image ? 
+                                        (isPending ? 
                                             `<div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
                                                 ${proofImgHtml}
                                                 <div>
                                                     <span style="background:rgba(255,149,0,0.2); border:none !important; outline:none !important; color:#FF9500; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
-                                                        <i class="fa-solid fa-clock"></i> Pending Confirmation
+                                                        <i class="fa-solid fa-clock"></i> Pending MTO / LUPTO Review
                                                     </span>
-                                                    <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Awaiting Validation</span>
+                                                    <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Awaiting Approval from Tourism Office</span>
                                                 </div>
                                             </div>` : 
                                             `<button class="btn-primary" style="padding: 8px 14px; font-size:12px; font-weight:800; width:max-content; border-radius:100px; background: linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; box-shadow: none; color:#fff; cursor:pointer;" onclick="window.openCheckinModal('${item.id}')">

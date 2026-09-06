@@ -56,10 +56,13 @@ class PointsController extends Controller
             $vouchers = collect();
         }
 
+        $level = (int) floor(max(0, $userXp) / 1000) + 1;
+
         return response()->json([
             'status' => 'success',
             'xp' => $userXp,
             'points' => $userXp,
+            'level' => $level,
             'earned_total' => $userXp,
             'redeemed_total' => $vouchers->sum('points_cost'),
             'history' => $history,
@@ -262,13 +265,13 @@ class PointsController extends Controller
 
         $cost = $costs[$type];
 
-        // Get points balance directly from users table
-        $balance = (int) ($user->points ?? 0);
+        // Get points/XP balance directly from users table
+        $balance = (int) ($user->xp ?? $user->points ?? 0);
 
         if ($balance < $cost) {
             return response()->json([
                 'status' => 'error',
-                'message' => "Insufficient points. You need {$cost} points to redeem this reward, but you only have {$balance} points."
+                'message' => "Insufficient XP. You need {$cost} XP to redeem this reward, but you only have {$balance} XP."
             ], 400);
         }
 
@@ -279,8 +282,22 @@ class PointsController extends Controller
         // Start transaction
         $redemption = DB::transaction(function() use ($user, $type, $cost, $code) {
             try {
-                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
-                    $user->decrement('points', $cost);
+                if (method_exists($user, 'deductXp')) {
+                    $user->deductXp($cost);
+                } else {
+                    $currentXp = (int) ($user->xp ?? $user->points ?? 0);
+                    $newXp = max(0, $currentXp - $cost);
+                    $newLevel = (int) floor($newXp / 1000) + 1;
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
+                        $user->points = $newXp;
+                    }
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
+                        $user->xp = $newXp;
+                    }
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'level')) {
+                        $user->level = $newLevel;
+                    }
+                    $user->save();
                 }
             } catch (\Throwable $e) {}
 
@@ -307,15 +324,22 @@ class PointsController extends Controller
                 \App\Models\ActivityLog::create([
                     'user_id'    => $user->id,
                     'action'     => 'Points Redeemed',
-                    'details'    => "Redeemed {$cost} points for {$typeLabel} (Code: {$code})",
+                    'details'    => "Redeemed {$cost} XP for {$typeLabel} (Code: {$code})",
                     'ip_address' => $request->ip() ?? '127.0.0.1',
                 ]);
             }
         } catch (\Throwable $e) {}
 
+        $newBalance = max(0, $balance - $cost);
+        $newLevel = (int) floor($newBalance / 1000) + 1;
+
         return response()->json([
             'status' => 'success',
             'message' => 'Reward redeemed successfully!',
+            'new_balance' => $newBalance,
+            'xp' => $newBalance,
+            'points' => $newBalance,
+            'level' => $newLevel,
             'data' => $redemption
         ]);
     }

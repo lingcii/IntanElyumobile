@@ -395,9 +395,36 @@ $activeTab = 'profile';
             });
             const d = await r.json();
             if (d.status === 'success') {
-                window._userPointsBalance = d.points || 0;
+                const xp = d.xp ?? d.points ?? 0;
+                const level = d.level || (Math.floor(Math.max(0, xp) / 1000) + 1);
+                const xpInLevel = xp % 1000;
+                const xpPct = Math.min(Math.round((xpInLevel / 1000) * 100), 100);
+
+                window._userPointsBalance = xp;
                 const ptsVal = document.getElementById('profile-points-val');
-                if (ptsVal) ptsVal.textContent = (d.points || 0).toLocaleString();
+                if (ptsVal) ptsVal.textContent = xp.toLocaleString();
+
+                // Re-render Explorer Level Progress Card immediately
+                const elLevelTitle = document.getElementById('explorer-level-title');
+                const elXpText = document.getElementById('explorer-xp-text');
+                const elXpBar = document.getElementById('explorer-xp-bar');
+                const elXpPct = document.getElementById('explorer-xp-pct');
+                const elXp = document.getElementById('stat-xp');
+
+                if (elLevelTitle) elLevelTitle.textContent = `Level ${level} Explorer`;
+                if (elXpText) elXpText.textContent = `${xpInLevel} / 1000 XP`;
+                if (elXpBar) elXpBar.style.width = `${xpPct}%`;
+                if (elXpPct) elXpPct.textContent = `${xpPct}%`;
+                if (elXp) elXp.textContent = xp.toLocaleString();
+
+                // Sync auth_user in localStorage
+                try {
+                    let stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    stored.xp = xp;
+                    stored.points = xp;
+                    stored.level = level;
+                    localStorage.setItem('auth_user', JSON.stringify(stored));
+                } catch(e) {}
                 
                 // Render Active Vouchers
                 const list = document.getElementById('vouchers-list');
@@ -541,6 +568,15 @@ $activeTab = 'profile';
                 if (window.confetti) {
                     window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
                 }
+                window.dashboardNeedsRefresh = true;
+                try {
+                    for (let i = localStorage.length - 1; i >= 0; i--) {
+                        const k = localStorage.key(i);
+                        if (k && (k.startsWith('dashboard_data_') || k.startsWith('profile_data_'))) {
+                            localStorage.removeItem(k);
+                        }
+                    }
+                } catch(e) {}
                 fetchPointsAndVouchers();
             } else {
                 if (typeof showToast === 'function') showToast(data.message || "Failed to redeem voucher.");
@@ -581,6 +617,15 @@ $activeTab = 'profile';
                 if (window.confetti) {
                     window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
                 }
+                window.dashboardNeedsRefresh = true;
+                try {
+                    for (let i = localStorage.length - 1; i >= 0; i--) {
+                        const k = localStorage.key(i);
+                        if (k && (k.startsWith('dashboard_data_') || k.startsWith('profile_data_'))) {
+                            localStorage.removeItem(k);
+                        }
+                    }
+                } catch(e) {}
                 fetchPointsAndVouchers();
             } else {
                 if (typeof showToast === 'function') showToast(data.message || "Failed to redeem reward.");

@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 .env
+
+# Binary application packages (>100MB, hosted on Cloudflare R2 mirror)
+*.apk

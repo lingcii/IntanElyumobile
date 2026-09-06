@@ -524,6 +524,30 @@ async function handleModalRedeem() {
                 localStorage.setItem('intan_elyu_claimed_vouchers', JSON.stringify(claimed));
             }
 
+            // Deduct XP and Level in localStorage immediately
+            const cost = item.xpCost || item.pointsCost || 100;
+            let storedUser = null;
+            try { storedUser = JSON.parse(localStorage.getItem('auth_user') || '{}'); } catch(e) {}
+            if (storedUser) {
+                const newXp = data.new_balance !== undefined ? data.new_balance : (data.xp !== undefined ? data.xp : Math.max(0, (storedUser.xp || 0) - cost));
+                const newLevel = Math.floor(Math.max(0, newXp) / 1000) + 1;
+                storedUser.xp = newXp;
+                storedUser.points = newXp;
+                storedUser.level = newLevel;
+                localStorage.setItem('auth_user', JSON.stringify(storedUser));
+            }
+
+            // Signal dashboard and other views to bypass cache and re-render deducted level
+            window.dashboardNeedsRefresh = true;
+            try {
+                for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const k = localStorage.key(i);
+                    if (k && (k.startsWith('dashboard_data_') || k.startsWith('profile_data_'))) {
+                        localStorage.removeItem(k);
+                    }
+                }
+            } catch(e) {}
+
             // Refresh points and redemptions
             fetchUserPointsAndRedemptions();
             renderDiscounts();
