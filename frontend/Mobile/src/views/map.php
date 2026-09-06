@@ -3629,12 +3629,13 @@ if (is_dir($imgDir)) {
                 }
                 const c = String(status || '').toUpperCase().trim();
                 if (c === 'EMERGE' || c === 'EMERGING') {
-                    return { label: 'Emerging', points: 100, color: '#c084fc', bg: 'rgba(192, 132, 252, 0.22)', border: 'rgba(192, 132, 252, 0.35)', icon: 'fa-sparkles' };
+                    return { label: 'Emerging', points: 100, color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.22)', border: 'rgba(56, 189, 248, 0.35)', icon: 'fa-sparkles' };
                 }
                 if (c === 'POTENTIAL') {
                     return { label: 'Potential', points: 75, color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.22)', border: 'rgba(251, 191, 36, 0.35)', icon: 'fa-compass' };
                 }
-                return { label: 'Existing', points: 50, color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.22)', border: 'rgba(56, 189, 248, 0.35)', icon: 'fa-circle-check' };
+                // Default: EXISTING (Green)
+                return { label: 'Existing', points: 50, color: '#10b981', bg: 'rgba(16, 185, 129, 0.22)', border: 'rgba(16, 185, 129, 0.35)', icon: 'fa-circle-check' };
             };
 
             let classMeta = resolveClassification(spotClassStatus);
@@ -3669,7 +3670,7 @@ if (is_dir($imgDir)) {
                         }
                     }
 
-                    // Render summary metrics (solid color, rating & review count only)
+                    // Render summary metrics (rating & review count only)
                     if (d.summary && d.summary.total_reviews > 0) {
                         const sm = d.summary;
                         const reviewCount = parseInt(sm.total_reviews) || 0;
@@ -3678,10 +3679,10 @@ if (is_dir($imgDir)) {
 
                         summary.style.display = 'block';
                         summary.innerHTML = `
-                        <div style="background:#0f172a; border-radius:12px; padding:11px 14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; border:none !important; outline:none !important;">
+                        <div style="background:rgba(255,255,255,0.08); border-radius:12px; padding:11px 14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; border:none !important; outline:none !important;">
                             <div style="display:flex; align-items:center; gap:6px;">
                                 <span style="color:#fbbf24; font-size:16px; font-weight:800;">★ ${avgRating}</span>
-                                <span style="font-size:11.5px; color:#94a3b8; font-weight:700;">/ 5.0</span>
+                                <span style="font-size:11.5px; color:rgba(255,255,255,0.75); font-weight:700;">/ 5.0</span>
                             </div>
                             <div style="display:flex; align-items:center; gap:6px;">
                                 <span style="font-size:11.5px; color:#ffffff; font-weight:800; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-chart-simple" style="color:#38bdf8;"></i> Visitor Insights (${reviewText})</span>
@@ -3735,7 +3736,7 @@ if (is_dir($imgDir)) {
                                 if (s <= ratingNum) {
                                     starsHtml += '<i class="fa-solid fa-star" style="color:#fbbf24; font-size:10.5px;"></i>';
                                 } else {
-                                    starsHtml += '<i class="fa-regular fa-star" style="color:#475569; font-size:10.5px;"></i>';
+                                    starsHtml += '<i class="fa-regular fa-star" style="color:rgba(255,255,255,0.3); font-size:10.5px;"></i>';
                                 }
                             }
 
@@ -3750,18 +3751,18 @@ if (is_dir($imgDir)) {
 
                             const metricsHtml = `
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:9px 0 10px 0;">
-                                <div style="background:#1e293b; border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center; border:none !important;">
-                                    <span style="font-size:10px; color:#94a3b8; text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Cleanliness</span>
+                                <div style="background:rgba(255,255,255,0.08); border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center; border:none !important;">
+                                    <span style="font-size:10px; color:rgba(255,255,255,0.85); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Cleanliness</span>
                                     <span style="font-size:11px; font-weight:800; color:#ffffff; background:${cleanBg}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center;">${cleanVal}</span>
                                 </div>
-                                <div style="background:#1e293b; border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center; border:none !important;">
-                                    <span style="font-size:10px; color:#94a3b8; text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Safety</span>
+                                <div style="background:rgba(255,255,255,0.08); border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center; border:none !important;">
+                                    <span style="font-size:10px; color:rgba(255,255,255,0.85); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Safety</span>
                                     <span style="font-size:11px; font-weight:800; color:#ffffff; background:${safeBg}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center;">${safeVal}</span>
                                 </div>
                             </div>`;
 
                             const policyHtml = fb.policy_recommendation ? `
-                            <div style="background:#0c4a6e; border-left:3px solid #38bdf8; border-radius:10px; padding:10px 12px; margin-top:10px;">
+                            <div style="background:rgba(12,74,110,0.6); border-left:3px solid #38bdf8; border-radius:10px; padding:10px 12px; margin-top:10px;">
                                 <div style="display:flex; align-items:center; gap:5px; margin-bottom:4px;">
                                     <i class="fa-solid fa-lightbulb" style="color:#38bdf8; font-size:11px;"></i>
                                     <strong style="font-size:10px; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; font-weight:800;">Policy Recommendation for LGU</strong>
@@ -3770,7 +3771,7 @@ if (is_dir($imgDir)) {
                             </div>` : '';
 
                             return `
-                        <div style="background:#0f172a; border-radius:14px; padding:14px; font-size:12px; border:none !important;">
+                        <div style="background:rgba(255,255,255,0.08); border-radius:14px; padding:14px; font-size:12px; border:none !important;">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
                                 <div style="display:flex; align-items:center; gap:8px;">
                                     <div style="width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg, #0284c7 0%, #2563eb 100%); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:11.5px; flex-shrink:0;">
@@ -3786,7 +3787,7 @@ if (is_dir($imgDir)) {
                                         </div>
                                     </div>
                                 </div>
-                                <span style="font-size:10px; color:#94a3b8; font-weight:600;"><i class="fa-regular fa-clock" style="margin-right:3px; font-size:9px;"></i>${date}</span>
+                                <span style="font-size:10px; color:rgba(255,255,255,0.7); font-weight:600;"><i class="fa-regular fa-clock" style="margin-right:3px; font-size:9px;"></i>${date}</span>
                             </div>
                             ${metricsHtml}
                             <p style="margin:0; color:#ffffff; font-size:12.5px; line-height:1.5;">${fb.testimony || 'Visited and checked in.'}</p>
@@ -3806,7 +3807,7 @@ if (is_dir($imgDir)) {
                             ${extraCardsHtml}
                         </div>
                         <div style="display:flex; justify-content:center; margin-top:6px;">
-                            <button id="btn-toggle-testimonies" onclick="window.toggleAllTestimonies()" style="background:#1e293b; border:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:8px 18px; border-radius:20px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+                            <button id="btn-toggle-testimonies" onclick="window.toggleAllTestimonies()" style="background:rgba(255,255,255,0.14); border:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:8px 18px; border-radius:20px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
                                 <span id="toggle-testimonies-text">View All Testimonies (${d.data.length})</span>
                                 <i class="fa-solid fa-chevron-down" id="toggle-testimonies-chevron" style="transition:transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);"></i>
                             </button>
@@ -3816,16 +3817,16 @@ if (is_dir($imgDir)) {
                         list.innerHTML = html;
                     } else {
                         list.innerHTML = `
-                        <div style="background:#0f172a; border-radius:14px; padding:20px 16px; text-align:center; border:none !important;">
-                            <div style="width:38px; height:38px; border-radius:50%; background:#1e293b; display:inline-flex; align-items:center; justify-content:center; color:#38bdf8; font-size:16px; margin-bottom:8px;">
+                        <div style="background:rgba(255,255,255,0.06); border-radius:14px; padding:20px 16px; text-align:center; border:none !important;">
+                            <div style="width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.12); display:inline-flex; align-items:center; justify-content:center; color:#ffffff; font-size:16px; margin-bottom:8px;">
                                 <i class="fa-regular fa-comment-dots"></i>
                             </div>
-                            <div style="font-size:13px; font-weight:800; color:#ffffff; margin-bottom:4px;">No Testimonies Yet</div>
-                            <p style="margin:0 0 10px; font-size:11.5px; color:#cbd5e1; line-height:1.45;">
+                            <div style="font-size:13.5px; font-weight:800; color:#ffffff; margin-bottom:4px;">No Testimonies Yet</div>
+                            <p style="margin:0 0 12px; font-size:12px; color:rgba(255,255,255,0.9); line-height:1.5;">
                                 Be the first verified visitor to review this <strong style="color:${classMeta.color}; font-weight:800;">${classMeta.label}</strong> spot and share policy feedback during your trip navigation to earn <strong>+${classMeta.points} Points & +${classMeta.points} XP</strong>!
                             </p>
-                            <div style="display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:700; color:#94a3b8; background:#1e293b; padding:4px 10px; border-radius:20px;">
-                                <i class="fa-solid fa-route" style="color:#38bdf8;"></i> Review available in Trip Map & Visited Stops
+                            <div style="display:inline-flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700; color:#ffffff; background:rgba(255,255,255,0.12); padding:5px 12px; border-radius:20px;">
+                                <i class="fa-solid fa-route" style="color:#ffffff;"></i> Review available in Trip Map & Visited Stops
                             </div>
                         </div>`;
                     }

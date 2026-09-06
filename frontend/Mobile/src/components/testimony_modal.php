@@ -160,13 +160,13 @@ window.userReviewedSpotData = window.userReviewedSpotData || {};
 window.getRewardPointsForClassification = function(status) {
     const c = String(status || '').toUpperCase().trim();
     if (c === 'EMERGE' || c === 'EMERGING') {
-        return { label: 'Emerging', points: 100, color: '#c084fc', bg: 'rgba(192, 132, 252, 0.22)', border: 'rgba(192, 132, 252, 0.35)', icon: 'fa-sparkles' };
+        return { label: 'Emerging', points: 100, color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.22)', border: 'rgba(56, 189, 248, 0.35)', icon: 'fa-sparkles' };
     }
     if (c === 'POTENTIAL') {
         return { label: 'Potential', points: 75, color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.22)', border: 'rgba(251, 191, 36, 0.35)', icon: 'fa-compass' };
     }
-    // Default: EXISTING
-    return { label: 'Existing', points: 50, color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.22)', border: 'rgba(56, 189, 248, 0.35)', icon: 'fa-circle-check' };
+    // Default: EXISTING (Green)
+    return { label: 'Existing', points: 50, color: '#10b981', bg: 'rgba(16, 185, 129, 0.22)', border: 'rgba(16, 185, 129, 0.35)', icon: 'fa-circle-check' };
 };
 
 // Fetch spot IDs reviewed by user to keep UI synchronized across Trip Map, Saved Trips, and Trip History
@@ -255,7 +255,7 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
 
     const classMeta = (window.getRewardPointsForClassification)
         ? window.getRewardPointsForClassification(spotClassification)
-        : { label: 'Existing', points: 50, color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.22)', border: 'rgba(56, 189, 248, 0.35)', icon: 'fa-circle-check' };
+        : { label: 'Existing', points: 50, color: '#10b981', bg: 'rgba(16, 185, 129, 0.22)', border: 'rgba(16, 185, 129, 0.35)', icon: 'fa-circle-check' };
 
     if (isAlreadyReviewed) {
         // Repeated Review state: NO ADDITIONAL REWARDS
