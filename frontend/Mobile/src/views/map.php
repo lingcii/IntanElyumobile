@@ -449,13 +449,13 @@ if (is_dir($imgDir)) {
 
                         <!-- Testimonies Section -->
                         <div id="sheet-testimonies-section" class="dest-support-box"
-                            style="display:none; margin-top:14px; padding:14px; border-radius:16px; background:rgba(255,255,255,0.12) !important;">
+                            style="display:none; margin-top:14px; padding:14px; border-radius:16px; background:#172554 !important; border:none !important; outline:none !important;">
                             <div class="dest-support-header" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
                                 <span
                                     style="font-size:12.5px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:6px;">
                                     <i class="fa-solid fa-comments" style="color:#ffffff;"></i> Tourist Testimonies
                                 </span>
-                                <span class="dest-support-badge" id="sheet-testimonies-badge">Verified Reviews</span>
+                                <span class="dest-support-badge" id="sheet-testimonies-badge" style="background:#0284c7 !important; color:#ffffff !important; font-weight:800; border:none !important; outline:none !important;">Verified Reviews</span>
                             </div>
                             <div id="testimonies-summary-metrics" style="display:none; margin-bottom:10px;"></div>
                             <div id="testimonies-list-container" style="display:flex; flex-direction:column; gap:8px;">
@@ -3615,7 +3615,7 @@ if (is_dir($imgDir)) {
             const badge = document.getElementById('sheet-testimonies-badge');
             if (!list) return;
 
-            list.innerHTML = '<div style="font-size:12px; color:rgba(255,255,255,0.7); text-align:center; padding:16px 10px;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:6px; color:#38bdf8;"></i> Loading reviews...</div>';
+            list.innerHTML = '<div style="font-size:12px; color:#94a3b8; text-align:center; padding:16px 10px;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:6px; color:#38bdf8;"></i> Loading reviews...</div>';
 
             const token = localStorage.getItem('intan_elyu_token');
             const _backendBase = window.backendUrl || '';
@@ -3670,43 +3670,22 @@ if (is_dir($imgDir)) {
                         }
                     }
 
-                    // Render summary metrics
+                    // Render summary metrics (solid color, rating & review count only)
                     if (d.summary && d.summary.total_reviews > 0) {
                         const sm = d.summary;
                         const reviewCount = parseInt(sm.total_reviews) || 0;
                         const reviewText = reviewCount === 1 ? '1 Review' : `${reviewCount} Reviews`;
                         const avgRating = (sm.average_rating !== undefined && sm.average_rating !== null && !isNaN(parseFloat(sm.average_rating))) ? parseFloat(sm.average_rating).toFixed(1) : '0.0';
 
-                        const cleanVal = sm.cleanliness.clean >= sm.cleanliness.moderate && sm.cleanliness.clean >= sm.cleanliness.dirty ? 'Clean' : (sm.cleanliness.moderate >= sm.cleanliness.dirty ? 'Moderate' : 'Dirty');
-                        const cleanColor = cleanVal === 'Clean' ? '#34d399' : (cleanVal === 'Moderate' ? '#f59e0b' : '#ef4444');
-                        const cleanBg = cleanVal === 'Clean' ? 'rgba(52,211,153,0.16)' : (cleanVal === 'Moderate' ? 'rgba(245,158,11,0.16)' : 'rgba(239,68,68,0.16)');
-
-                        const safeVal = sm.safety.safe >= sm.safety.moderate && sm.safety.safe >= sm.safety.unsafe ? 'Safe' : (sm.safety.moderate >= sm.safety.unsafe ? 'Moderate' : 'Unsafe');
-                        const safeColor = safeVal === 'Safe' ? '#34d399' : (safeVal === 'Moderate' ? '#f59e0b' : '#ef4444');
-                        const safeBg = safeVal === 'Safe' ? 'rgba(52,211,153,0.16)' : (safeVal === 'Moderate' ? 'rgba(245,158,11,0.16)' : 'rgba(239,68,68,0.16)');
-
                         summary.style.display = 'block';
                         summary.innerHTML = `
-                        <div style="background:rgba(255,255,255,0.06); border-radius:14px; padding:12px; margin-bottom:8px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                                <div style="display:flex; align-items:center; gap:6px;">
-                                    <span style="color:#fbbf24; font-size:16px; font-weight:800;">★ ${avgRating}</span>
-                                    <span style="font-size:11px; color:rgba(255,255,255,0.7); font-weight:600;">/ 5.0</span>
-                                </div>
-                                <div style="display:flex; align-items:center; gap:6px;">
-                                    <span style="font-size:10px; font-weight:800; color:${classMeta.color}; background:${classMeta.bg}; border:1px solid ${classMeta.border}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid ${classMeta.icon}" style="font-size:8.5px;"></i>${classMeta.label} • +${classMeta.points} PTS</span>
-                                    <span style="font-size:11px; color:rgba(255,255,255,0.85); font-weight:700;"><i class="fa-solid fa-chart-simple" style="color:#38bdf8; margin-right:4px;"></i>Visitor Insights (${reviewText})</span>
-                                </div>
+                        <div style="background:#0f172a; border-radius:12px; padding:11px 14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; border:none !important; outline:none !important;">
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <span style="color:#fbbf24; font-size:16px; font-weight:800;">★ ${avgRating}</span>
+                                <span style="font-size:11.5px; color:#94a3b8; font-weight:700;">/ 5.0</span>
                             </div>
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                                <div style="background:rgba(255,255,255,0.06); border-radius:10px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
-                                    <span style="font-size:10px; color:rgba(226,232,240,0.8); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Cleanliness</span>
-                                    <span style="font-size:11px; font-weight:800; color:${cleanColor}; background:${cleanBg}; padding:2px 8px; border-radius:6px;">${cleanVal}</span>
-                                </div>
-                                <div style="background:rgba(255,255,255,0.06); border-radius:10px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
-                                    <span style="font-size:10px; color:rgba(226,232,240,0.8); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Safety</span>
-                                    <span style="font-size:11px; font-weight:800; color:${safeColor}; background:${safeBg}; padding:2px 8px; border-radius:6px;">${safeVal}</span>
-                                </div>
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <span style="font-size:11.5px; color:#ffffff; font-weight:800; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-chart-simple" style="color:#38bdf8;"></i> Visitor Insights (${reviewText})</span>
                             </div>
                         </div>`;
                     } else {
@@ -3757,35 +3736,33 @@ if (is_dir($imgDir)) {
                                 if (s <= ratingNum) {
                                     starsHtml += '<i class="fa-solid fa-star" style="color:#fbbf24; font-size:10.5px;"></i>';
                                 } else {
-                                    starsHtml += '<i class="fa-regular fa-star" style="color:rgba(255,255,255,0.25); font-size:10.5px;"></i>';
+                                    starsHtml += '<i class="fa-regular fa-star" style="color:#475569; font-size:10.5px;"></i>';
                                 }
                             }
 
-                            // Cleanliness & Safety Parameters for this review (no emojis)
+                            // Cleanliness & Safety Parameters for this review (solid colors)
                             const rawClean = (fb.cleanliness_level || 'clean').toLowerCase();
                             const cleanVal = rawClean === 'dirty' ? 'Dirty' : (rawClean === 'moderate' ? 'Moderate' : 'Clean');
-                            const cleanColor = cleanVal === 'Clean' ? '#34d399' : (cleanVal === 'Moderate' ? '#f59e0b' : '#ef4444');
-                            const cleanBg = cleanVal === 'Clean' ? 'rgba(52,211,153,0.18)' : (cleanVal === 'Moderate' ? 'rgba(245,158,11,0.18)' : 'rgba(239,68,68,0.18)');
+                            const cleanBg = cleanVal === 'Clean' ? '#10b981' : (cleanVal === 'Moderate' ? '#f59e0b' : '#ef4444');
 
                             const rawSafe = (fb.safety_level || 'safe').toLowerCase();
                             const safeVal = rawSafe === 'unsafe' ? 'Unsafe' : (rawSafe === 'moderate' ? 'Moderate' : 'Safe');
-                            const safeColor = safeVal === 'Safe' ? '#34d399' : (safeVal === 'Moderate' ? '#f59e0b' : '#ef4444');
-                            const safeBg = safeVal === 'Safe' ? 'rgba(52,211,153,0.18)' : (safeVal === 'Moderate' ? 'rgba(245,158,11,0.18)' : 'rgba(239,68,68,0.18)');
+                            const safeBg = safeVal === 'Safe' ? '#10b981' : (safeVal === 'Moderate' ? '#f59e0b' : '#ef4444');
 
                             const metricsHtml = `
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:9px 0 10px 0;">
-                                <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center;">
-                                    <span style="font-size:10px; color:rgba(226,232,240,0.85); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Cleanliness</span>
-                                    <span style="font-size:11px; font-weight:800; color:${cleanColor}; background:${cleanBg}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center;">${cleanVal}</span>
+                                <div style="background:#1e293b; border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center; border:none !important;">
+                                    <span style="font-size:10px; color:#94a3b8; text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Cleanliness</span>
+                                    <span style="font-size:11px; font-weight:800; color:#ffffff; background:${cleanBg}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center;">${cleanVal}</span>
                                 </div>
-                                <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center;">
-                                    <span style="font-size:10px; color:rgba(226,232,240,0.85); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Safety</span>
-                                    <span style="font-size:11px; font-weight:800; color:${safeColor}; background:${safeBg}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center;">${safeVal}</span>
+                                <div style="background:#1e293b; border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center; border:none !important;">
+                                    <span style="font-size:10px; color:#94a3b8; text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Safety</span>
+                                    <span style="font-size:11px; font-weight:800; color:#ffffff; background:${safeBg}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center;">${safeVal}</span>
                                 </div>
                             </div>`;
 
                             const policyHtml = fb.policy_recommendation ? `
-                            <div style="background:rgba(56,189,248,0.12); border-radius:12px; padding:10px 12px; margin-top:10px;">
+                            <div style="background:#0c4a6e; border-left:3px solid #38bdf8; border-radius:10px; padding:10px 12px; margin-top:10px;">
                                 <div style="display:flex; align-items:center; gap:5px; margin-bottom:4px;">
                                     <i class="fa-solid fa-lightbulb" style="color:#38bdf8; font-size:11px;"></i>
                                     <strong style="font-size:10px; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; font-weight:800;">Policy Recommendation for LGU</strong>
@@ -3794,7 +3771,7 @@ if (is_dir($imgDir)) {
                             </div>` : '';
 
                             return `
-                        <div style="background:rgba(255,255,255,0.06); border-radius:14px; padding:14px; font-size:12px;">
+                        <div style="background:#0f172a; border-radius:14px; padding:14px; font-size:12px; border:none !important;">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
                                 <div style="display:flex; align-items:center; gap:8px;">
                                     <div style="width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg, #0284c7 0%, #2563eb 100%); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:11.5px; flex-shrink:0;">
@@ -3803,14 +3780,14 @@ if (is_dir($imgDir)) {
                                     <div>
                                         <div style="display:flex; align-items:center; gap:6px;">
                                             <strong style="color:#ffffff; font-size:13px; font-weight:700;">${maskedName}</strong>
-                                            <span style="font-size:9.5px; font-weight:700; background:rgba(52,211,153,0.18); color:#34d399; padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:3px;"><i class="fa-solid fa-circle-check" style="font-size:8.5px;"></i> Verified</span>
+                                            <span style="font-size:9.5px; font-weight:800; background:#10b981; color:#ffffff; padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:3px;"><i class="fa-solid fa-circle-check" style="font-size:8.5px;"></i> Verified</span>
                                         </div>
                                         <div style="display:flex; align-items:center; gap:4px; margin-top:2px;">
                                             ${starsHtml}
                                         </div>
                                     </div>
                                 </div>
-                                <span style="font-size:10px; color:rgba(255,255,255,0.65); font-weight:600;"><i class="fa-regular fa-clock" style="margin-right:3px; font-size:9px;"></i>${date}</span>
+                                <span style="font-size:10px; color:#94a3b8; font-weight:600;"><i class="fa-regular fa-clock" style="margin-right:3px; font-size:9px;"></i>${date}</span>
                             </div>
                             ${metricsHtml}
                             <p style="margin:0; color:#ffffff; font-size:12.5px; line-height:1.5;">${fb.testimony || 'Visited and checked in.'}</p>
@@ -3830,7 +3807,7 @@ if (is_dir($imgDir)) {
                             ${extraCardsHtml}
                         </div>
                         <div style="display:flex; justify-content:center; margin-top:6px;">
-                            <button id="btn-toggle-testimonies" onclick="window.toggleAllTestimonies()" style="background:rgba(255,255,255,0.12); border:none; color:#ffffff; font-size:11px; font-weight:800; padding:7px 16px; border-radius:20px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+                            <button id="btn-toggle-testimonies" onclick="window.toggleAllTestimonies()" style="background:#1e293b; border:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:8px 18px; border-radius:20px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
                                 <span id="toggle-testimonies-text">View All Testimonies (${d.data.length})</span>
                                 <i class="fa-solid fa-chevron-down" id="toggle-testimonies-chevron" style="transition:transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);"></i>
                             </button>
@@ -3840,15 +3817,15 @@ if (is_dir($imgDir)) {
                         list.innerHTML = html;
                     } else {
                         list.innerHTML = `
-                        <div style="background:rgba(255,255,255,0.06); border-radius:14px; padding:18px 14px; text-align:center;">
-                            <div style="width:38px; height:38px; border-radius:50%; background:rgba(56,189,248,0.15); display:inline-flex; align-items:center; justify-content:center; color:#38bdf8; font-size:16px; margin-bottom:8px;">
+                        <div style="background:#0f172a; border-radius:14px; padding:20px 16px; text-align:center; border:none !important;">
+                            <div style="width:38px; height:38px; border-radius:50%; background:#1e293b; display:inline-flex; align-items:center; justify-content:center; color:#38bdf8; font-size:16px; margin-bottom:8px;">
                                 <i class="fa-regular fa-comment-dots"></i>
                             </div>
                             <div style="font-size:13px; font-weight:800; color:#ffffff; margin-bottom:4px;">No Testimonies Yet</div>
-                            <p style="margin:0 0 10px; font-size:11.5px; color:rgba(226,232,240,0.85); line-height:1.45;">
+                            <p style="margin:0 0 10px; font-size:11.5px; color:#cbd5e1; line-height:1.45;">
                                 Be the first verified visitor to review this <strong style="color:${classMeta.color}; font-weight:800;">${classMeta.label}</strong> spot and share policy feedback during your trip navigation to earn <strong>+${classMeta.points} Points & +${classMeta.points} XP</strong>!
                             </p>
-                            <div style="display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.8); background:rgba(255,255,255,0.08); padding:4px 10px; border-radius:20px;">
+                            <div style="display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:700; color:#94a3b8; background:#1e293b; padding:4px 10px; border-radius:20px;">
                                 <i class="fa-solid fa-route" style="color:#38bdf8;"></i> Review available in Trip Map & Visited Stops
                             </div>
                         </div>`;
@@ -3856,7 +3833,7 @@ if (is_dir($imgDir)) {
                 }
             } catch (e) {
                 console.error("Testimonies load error:", e);
-                list.innerHTML = '<div style="font-size:12px; color:rgba(255,255,255,0.7); text-align:center; padding:12px 10px;">Failed to load reviews.</div>';
+                list.innerHTML = '<div style="font-size:12px; color:#ef4444; text-align:center; padding:12px 10px;">Failed to load reviews.</div>';
             }
         }
 
