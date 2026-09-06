@@ -60,11 +60,11 @@
                 </div>
                 <div>
                     <span id="testimony-reward-title" style="display:block; font-size:11.5px; font-weight:800; color:#ffffff; line-height:1.2;">Review & Earn Rewards</span>
-                    <span id="testimony-reward-desc" style="font-size:10px; color:rgba(255,255,255,0.9); line-height:1.2;">Submit review to claim +25 XP</span>
+                    <span id="testimony-reward-desc" style="font-size:10px; color:rgba(255,255,255,0.9); line-height:1.2;">Submit review to claim +25 Points & +25 XP</span>
                 </div>
             </div>
             <div id="testimony-reward-badges" style="display:flex; gap:5px; flex-shrink:0;">
-                <span style="background:rgba(56,189,248,0.3); color:#67e8f9; font-size:10.5px; font-weight:800; padding:3px 7px; border-radius:6px; white-space:nowrap;">+25 XP</span>
+                <span style="background:rgba(56,189,248,0.3); color:#67e8f9; font-size:10.5px; font-weight:800; padding:3px 7px; border-radius:6px; white-space:nowrap;">+25 Points & +25 XP</span>
             </div>
         </div>
 
@@ -143,7 +143,7 @@
             <!-- Action Buttons Inline Row -->
             <div style="display:flex; gap:8px;">
                 <button type="submit" id="testimony-submit-btn" class="btn-primary" style="flex:1; padding:11px 12px; font-size:13px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#fff; border-radius:12px; font-weight:800; cursor:pointer; box-shadow:none; display:flex; align-items:center; justify-content:center; gap:6px;">
-                    <i class="fa-solid fa-paper-plane" style="font-size:11px;"></i> <span id="testimony-submit-text">Submit Review (+25 XP)</span>
+                    <i class="fa-solid fa-paper-plane" style="font-size:11px;"></i> <span id="testimony-submit-text">Submit Review (+25 Points & XP)</span>
                 </button>
                 <button type="button" style="padding:11px 16px; border-radius:12px; border:none !important; outline:none !important; background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.85); font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeWriteTestimonyModal()">Cancel</button>
             </div>
@@ -263,11 +263,11 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
             iconEl.innerHTML = '<i class="fa-solid fa-gift" style="color:#fbbf24;"></i>';
         }
         if (bannerTitleEl) bannerTitleEl.textContent = 'Review & Earn Rewards';
-        if (bannerDescEl) bannerDescEl.textContent = 'Submit review to claim +25 XP';
+        if (bannerDescEl) bannerDescEl.textContent = 'Submit review to claim +25 Points & +25 XP';
         if (bannerBadgesEl) {
-            bannerBadgesEl.innerHTML = '<span style="background:rgba(56,189,248,0.3); color:#67e8f9; font-size:11px; font-weight:800; padding:4px 8px; border-radius:8px; white-space:nowrap;">+25 XP</span>';
+            bannerBadgesEl.innerHTML = '<span style="background:rgba(56,189,248,0.3); color:#67e8f9; font-size:11px; font-weight:800; padding:4px 8px; border-radius:8px; white-space:nowrap;">+25 Points & +25 XP</span>';
         }
-        if (submitTextEl) submitTextEl.textContent = 'Submit Review (+25 XP)';
+        if (submitTextEl) submitTextEl.textContent = 'Submit Review (+25 Points & XP)';
 
         if (typeof window.setStarRating === 'function') window.setStarRating(5);
         if (typeof window.selectCleanliness === 'function') window.selectCleanliness('clean');
@@ -448,7 +448,7 @@ window.submitTestimony = async function(event) {
                     window.confetti({ particleCount: 85, spread: 70, origin: { y: 0.6 } });
                 }
                 if (typeof showToast === 'function') {
-                    showToast(data.message || "Review submitted! You earned +25 XP!");
+                    showToast(data.message || "Review submitted! You earned +25 Points & +25 XP!");
                 }
                 // Invalidate cached user profile & dashboard so rewards counters immediately update
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');

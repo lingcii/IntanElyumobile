@@ -1109,7 +1109,7 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
         }
 
         return response()->json([
-            'message' => $rewardAwarded ? 'Rating submitted successfully! (+25 XP earned)' : 'Rating updated successfully!',
+            'message' => $rewardAwarded ? 'Rating submitted successfully! (+25 Points & +25 XP earned)' : 'Rating updated successfully!',
             'reward_awarded' => $rewardAwarded,
             'spot_rating' => $spot->rating
         ]);

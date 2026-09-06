@@ -3813,7 +3813,7 @@ if (is_dir($imgDir)) {
                             </div>
                             <div style="font-size:13px; font-weight:800; color:#ffffff; margin-bottom:4px;">No Testimonies Yet</div>
                             <p style="margin:0 0 10px; font-size:11.5px; color:rgba(226,232,240,0.85); line-height:1.4;">
-                                Be the first verified visitor to review this spot and share policy feedback during your trip navigation to earn <strong>+25 XP</strong>!
+                                Be the first verified visitor to review this spot and share policy feedback during your trip navigation to earn <strong>+25 Points & +25 XP</strong>!
                             </p>
                             <div style="display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.8); background:rgba(255,255,255,0.08); padding:4px 10px; border-radius:20px;">
                                 <i class="fa-solid fa-route" style="color:#38bdf8;"></i> Review available in Trip Map & Visited Stops

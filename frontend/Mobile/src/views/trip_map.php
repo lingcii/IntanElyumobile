@@ -504,7 +504,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     <div style="display:flex; flex-direction:column; gap:2px;">
                         <span style="background:rgba(52,199,89,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:11px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Visited & Verified</span>
                         <button type="button" data-spot-id="${sId}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${sId}', this)" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px; cursor:pointer; width:fit-content; margin-top:2px;">
-                            ${isReviewed ? '<i class="fa-solid fa-check" style="margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="margin-right:4px;"></i> Review Site (+25 XP)'}
+                            ${isReviewed ? '<i class="fa-solid fa-check" style="margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="margin-right:4px;"></i> Review Site (+25 PTS & XP)'}
                         </button>
                     </div>
                 </div>`;

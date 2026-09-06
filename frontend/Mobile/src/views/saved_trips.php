@@ -361,7 +361,7 @@ $backRoute = 'itinerary';
                                             </div>
                                         </div>
                                         <button type="button" data-spot-id="${item.tourist_spot_id || (dest ? dest.id : '')}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (dest ? dest.id : '')}', this)" style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:none; flex-shrink:0;">
-                                            ${(window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(item.tourist_spot_id || (dest ? dest.id : '')))) ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review (+25 XP)'}
+                                            ${(window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(item.tourist_spot_id || (dest ? dest.id : '')))) ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review (+25 PTS & XP)'}
                                         </button>
                                     </div>` : 
                                     (isRejected ? 
@@ -864,7 +864,7 @@ $backRoute = 'itinerary';
                         <div style="font-size:11px; color:rgba(255,255,255,0.8); font-weight:600;">${isReviewed ? 'Already reviewed' : 'Tap below to leave a review'}</div>
                     </div>
                     <button type="button" data-spot-id="${spotId}" onclick="window.startReviewFromCompletion('${spotId}', this)" style="padding:6px 14px; border-radius:100px; background:${isReviewed ? 'rgba(255,255,255,0.18)' : 'linear-gradient(135deg, #38bdf8, #2563eb)'}; border:none; outline:none; color:#fff; font-size:12px; font-weight:800; cursor:pointer; white-space:nowrap; box-shadow:none; display:inline-flex; align-items:center; gap:4px;">
-                        ${isReviewed ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review (+25 XP)'}
+                        ${isReviewed ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review (+25 PTS & XP)'}
                     </button>
                 </div>`;
         });
