@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class NotificationController extends Controller
 {
@@ -21,23 +22,34 @@ class NotificationController extends Controller
                 ]);
             }
 
+            // Ensure a Welcome notification exists in the notifications table for this tourist
+            $hasWelcome = Notification::where('user_id', $user->id)
+                ->where('type', 'welcome')
+                ->exists();
+
+            if (!$hasWelcome) {
+                $firstName = trim(explode(' ', $user->name ?? 'Explorer')[0]);
+                Notification::createSafely(
+                    $user->id,
+                    'welcome',
+                    '👋 Welcome to Intan Elyu!',
+                    "Welcome to Intan Elyu, {$firstName}! Explore top tourist spots in La Union, plan your personalized itineraries, and earn XP with AR check-ins!",
+                    [
+                        'module'     => 'welcome',
+                        'action_url' => 'dashboard'
+                    ]
+                );
+            }
+
             $notifications = Notification::where('user_id', $user->id)
                 ->orderByDesc('created_at')
                 ->limit(50)
-                ->get();
-
-            // If user has no notifications, create welcome notification
-            if ($notifications->isEmpty()) {
-                $welcomeNotif = Notification::createSafely(
-                    $user->id,
-                    'welcome',
-                    '🌴 Welcome to Intan-Elyu!',
-                    "Welcome {$user->name}! Explore La Union tourist spots, plan itineraries, and earn XP with AR check-ins!"
-                );
-                if ($welcomeNotif) {
-                    $notifications = collect([$welcomeNotif]);
-                }
-            }
+                ->get()
+                ->map(function ($item) {
+                    $item->elapsed_seconds = max(0, now()->diffInSeconds($item->created_at));
+                    $item->server_time = now()->timestamp;
+                    return $item;
+                });
 
             $unreadCount = Notification::where('user_id', $user->id)
                 ->where('is_read', false)
@@ -51,6 +63,7 @@ class NotificationController extends Controller
             return response()->json([
                 'notifications' => [],
                 'unread_count'  => 0,
+                'error'         => $e->getMessage()
             ]);
         }
     }

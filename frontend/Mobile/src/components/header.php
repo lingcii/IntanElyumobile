@@ -485,6 +485,47 @@
 
 <script>
     var _currentPushNotifTargetUrl = window._currentPushNotifTargetUrl || null;
+    window._notifTimerInterval = window._notifTimerInterval || null;
+
+    window.formatReverseTimer = function(timestamp) {
+        if (!timestamp) return 'Just now';
+        const now = Date.now();
+        const diffSec = Math.max(0, Math.floor((now - timestamp) / 1000));
+        if (diffSec < 1) return '1s ago';
+        if (diffSec < 60) return `${diffSec}s ago`;
+        const mins = Math.floor(diffSec / 60);
+        const secs = diffSec % 60;
+        if (mins < 60) return `${mins}m ${secs}s ago`;
+        const hours = Math.floor(diffSec / 3600);
+        const remMins = Math.floor((diffSec % 3600) / 60);
+        if (hours < 24) return `${hours}h ${remMins}m ago`;
+        const days = Math.floor(diffSec / 86400);
+        return `${days}d ago`;
+    };
+
+    function startNotifTimerTicker() {
+        if (window._notifTimerInterval) {
+            clearInterval(window._notifTimerInterval);
+        }
+        window._notifTimerInterval = setInterval(() => {
+            const timerEls = document.querySelectorAll('.notif-reverse-timer');
+            timerEls.forEach(el => {
+                const time = parseInt(el.getAttribute('data-time'), 10);
+                if (time) {
+                    const txt = el.querySelector('.timer-text');
+                    if (txt) txt.textContent = window.formatReverseTimer(time);
+                }
+            });
+
+            const modalTime = document.getElementById('push-notif-time');
+            if (modalTime && modalTime.getAttribute('data-time')) {
+                const t = parseInt(modalTime.getAttribute('data-time'), 10);
+                if (t) {
+                    modalTime.innerHTML = `<i class="fa-solid fa-clock-rotate-left" style="font-size: 10px; margin-right: 4px;"></i>${window.formatReverseTimer(t)}`;
+                }
+            }
+        }, 1000);
+    }
 
     function renderNotifications(notifications) {
         const list = document.getElementById('notifications-list');
@@ -498,6 +539,7 @@
                 let icon = 'fa-bell';
                 let color = '#38bdf8';
 
+                const isWelcome = item.type === 'welcome';
                 if (item.type === 'new_spot' || item.type === 'spot_added') {
                     icon = 'fa-map-pin';
                     color = '#34c759';
@@ -510,23 +552,37 @@
                 } else if (item.type === 'spot_maintenance') {
                     icon = 'fa-triangle-exclamation';
                     color = '#ef4444';
-                } else if (item.type === 'welcome') {
-                    icon = 'fa-compass';
-                    color = '#38bdf8';
+                } else if (isWelcome) {
+                    icon = 'fa-hand-wave';
+                    color = '#00f2fe';
                 }
 
                 const isUnread = !item.is_read;
                 const encodedItem = encodeURIComponent(JSON.stringify(item));
+                const itemTime = item.created_at ? new Date(item.created_at).getTime() : Date.now();
+                const timerStr = window.formatReverseTimer(itemTime);
+                const formattedDate = new Date(itemTime).toLocaleDateString(undefined, {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'});
+
                 html += `
-                    <div style="display: flex; gap: 12px; margin-bottom: 10px; padding: 12px; background: ${isUnread ? 'rgba(56,189,248,0.06)' : 'rgba(255,255,255,0.02)'}; border: 1px solid ${isUnread ? 'rgba(56,189,248,0.12)' : 'rgba(255,255,255,0.04)'}; border-radius: 12px; align-items: flex-start; cursor: pointer; transition: background 0.2s;" onclick="handleNotifClick('${encodedItem}', this)">
-                        <div style="width: 34px; height: 34px; border-radius: 50%; background: ${color}15; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid ${color}30;">
-                            <i class="fa-solid ${icon}" style="color: ${color}; font-size: 14px;"></i>
+                    <div style="display: flex; gap: 12px; margin-bottom: 10px; padding: 12px 14px; background: ${isWelcome ? 'linear-gradient(135deg, rgba(0, 242, 254, 0.14) 0%, rgba(2, 132, 199, 0.08) 100%)' : (isUnread ? 'rgba(56,189,248,0.08)' : 'rgba(255,255,255,0.03)')}; border: 1px solid ${isWelcome ? 'rgba(0, 242, 254, 0.35)' : (isUnread ? 'rgba(56,189,248,0.2)' : 'rgba(255,255,255,0.06)')}; border-radius: 14px; align-items: flex-start; cursor: pointer; transition: transform 0.15s ease, background 0.2s;" onclick="handleNotifClick('${encodedItem}', this)">
+                        <div style="width: 36px; height: 36px; border-radius: 50%; background: ${color}20; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid ${color}40; box-shadow: 0 0 12px ${color}25;">
+                            <i class="fa-solid ${icon}" style="color: ${color}; font-size: 15px;"></i>
                         </div>
                         <div style="flex: 1; min-width: 0;">
-                            <p style="margin: 0 0 4px 0; font-size: 13px; color: #e2e8f0; line-height: 1.4; font-weight: ${isUnread ? '600' : '400'};">${item.message || item.title}</p>
-                            <span style="font-size: 11px; color: rgba(148,163,184,0.5); font-weight: 500;">${new Date(item.created_at || Date.now()).toLocaleDateString(undefined, {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'})}</span>
+                            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">
+                                ${isWelcome ? '<span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0, 242, 254, 0.25); color: #00f2fe; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(0, 242, 254, 0.4);">Welcome</span>' : ''}
+                                <span style="font-size: 13px; color: #ffffff; font-weight: 800;">${item.title || (isWelcome ? '👋 Welcome to Intan Elyu!' : 'Notification')}</span>
+                            </div>
+                            <p style="margin: 0 0 6px 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.45; font-weight: ${isUnread ? '500' : '400'};">${item.message || ''}</p>
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                <span class="notif-reverse-timer" data-time="${itemTime}" style="font-size: 10px; font-weight: 700; color: #00f2fe; display: inline-flex; align-items: center; gap: 4px; background: rgba(0, 242, 254, 0.12); padding: 2px 8px; border-radius: 100px; border: 1px solid rgba(0, 242, 254, 0.25);">
+                                    <i class="fa-solid fa-clock-rotate-left" style="font-size: 9px;"></i>
+                                    <span class="timer-text">${timerStr}</span>
+                                </span>
+                                <span style="font-size: 10.5px; color: rgba(148,163,184,0.6); font-weight: 500;">${formattedDate}</span>
+                            </div>
                         </div>
-                        ${isUnread ? '<i class="fa-solid fa-circle" style="font-size: 8px; color: #38bdf8; margin-top: 6px; flex-shrink: 0;"></i>' : ''}
+                        ${isUnread ? '<i class="fa-solid fa-circle" style="font-size: 8px; color: #00f2fe; margin-top: 6px; flex-shrink: 0; box-shadow: 0 0 8px #00f2fe;"></i>' : ''}
                     </div>
                 `;
             });
@@ -537,6 +593,7 @@
             }
             list.innerHTML = html;
             if (unread.length > 0 && dot) dot.classList.add('show');
+            startNotifTimerTicker();
         } else {
             list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;"><i class="fa-regular fa-bell-slash" style="margin-right: 6px;"></i>No new notifications.</div>';
             if (dot) dot.classList.remove('show');
@@ -566,7 +623,8 @@
         const type = opts.type || 'general';
         const actionUrl = opts.action_url || opts.url || null;
         const spotName = opts.spot_name || opts.spot || null;
-        const timeStr = opts.created_at ? new Date(opts.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now';
+        const notifTimestamp = opts.created_at ? new Date(opts.created_at).getTime() : Date.now();
+        const timeStr = window.formatReverseTimer ? window.formatReverseTimer(notifTimestamp) : 'Just now';
 
         let icon = 'fa-bell';
         let color = '#38bdf8';
@@ -599,10 +657,10 @@
             category = 'REWARD UNLOCKED';
             badgeIcon = 'fa-gift';
         } else if (type === 'welcome') {
-            icon = 'fa-compass';
-            color = '#38bdf8';
-            category = 'SYSTEM NOTICE';
-            badgeIcon = 'fa-compass';
+            icon = 'fa-hand-wave';
+            color = '#00f2fe';
+            category = 'WELCOME TO ELYU';
+            badgeIcon = 'fa-sparkles';
         }
 
         // Apply dynamic DOM values
@@ -621,7 +679,10 @@
         if (titleEl) titleEl.textContent = title;
         if (bodyEl) bodyEl.textContent = body;
         if (catEl) catEl.textContent = category;
-        if (timeEl) timeEl.textContent = timeStr;
+        if (timeEl) {
+            timeEl.setAttribute('data-time', notifTimestamp);
+            timeEl.innerHTML = `<i class="fa-solid fa-clock-rotate-left" style="font-size: 10px; margin-right: 4px;"></i>${timeStr}`;
+        }
 
         if (ringEl) {
             ringEl.style.borderColor = color;

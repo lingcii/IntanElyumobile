@@ -161,6 +161,21 @@ class LoginController extends Controller
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::warning('TouristWelcomeMail failed for Google user #' . $user->id . ': ' . $e->getMessage());
             }
+
+            // Create Welcome in-app notification in notifications table
+            try {
+                $firstName = trim(explode(' ', $user->name ?? 'Explorer')[0]);
+                \App\Models\Notification::createSafely(
+                    $user->id,
+                    'welcome',
+                    '👋 Welcome to Intan Elyu!',
+                    "Welcome to Intan Elyu, {$firstName}! Explore top tourist spots in La Union, plan your personalized itineraries, and earn XP with AR check-ins!",
+                    [
+                        'module'     => 'welcome',
+                        'action_url' => 'dashboard'
+                    ]
+                );
+            } catch (\Throwable $e) {}
         }
 
         if ($user->status !== 'active') {

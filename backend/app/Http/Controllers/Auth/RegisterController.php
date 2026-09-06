@@ -161,6 +161,21 @@ class RegisterController extends Controller
             Mail::to($user->email)->send(new TouristWelcomeMail($user));
         } catch (\Throwable $e) {}
 
+        // Create Welcome in-app notification in notifications table
+        try {
+            $firstName = trim(explode(' ', $user->name ?? 'Explorer')[0]);
+            \App\Models\Notification::createSafely(
+                $user->id,
+                'welcome',
+                '👋 Welcome to Intan Elyu!',
+                "Welcome to Intan Elyu, {$firstName}! Explore top tourist spots in La Union, plan your personalized itineraries, and earn XP with AR check-ins!",
+                [
+                    'module'     => 'welcome',
+                    'action_url' => 'dashboard'
+                ]
+            );
+        } catch (\Throwable $e) {}
+
         return response()->json([
             'success' => true,
             'message' => 'Email verified and account activated successfully!',
