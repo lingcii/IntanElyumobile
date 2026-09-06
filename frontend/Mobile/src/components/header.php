@@ -105,14 +105,13 @@
     </div>
 </div>
 
-<!-- Notifications Dropdown (In Front of All Elements) -->
 <div id="notifications-dropdown" style="position: fixed; top: max(env(safe-area-inset-top, 0px), 65px); right: 12px; left: 12px; max-width: 360px; margin: 0 auto; background: linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 20px; z-index: 999999; box-shadow: none; padding: 18px; max-height: 75vh; overflow-y: auto; opacity: 0; pointer-events: none; transform: translateY(-10px) scale(0.96); transition: opacity 0.25s ease, transform 0.25s ease;">
-    <h3 style="margin: 0 0 12px 0; font-size: 15px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-        <span><i class="fa-regular fa-bell" style="margin-right: 8px; color: #00f2fe;"></i>Notifications</span>
+    <h3 style="margin: 0 0 12px 0; font-size: 15px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; border: none !important; outline: none !important; padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+        <span>Notifications</span>
         <i class="fa-solid fa-xmark" style="font-size: 16px; color: #ffffff; opacity: 0.85; cursor: pointer; padding: 4px; transition: color 0.2s;" onclick="toggleNotifications()"></i>
     </h3>
     <div id="notifications-list">
-        <div style="color: #ffffff; opacity: 0.85; font-size: 13px; text-align: center; padding: 24px 0;"><i class="fa-regular fa-bell-slash" style="margin-right: 6px;"></i>No new notifications.</div>
+        <div style="color: #ffffff; opacity: 0.85; font-size: 13px; text-align: center; padding: 24px 0;">No new notifications.</div>
     </div>
 </div>
 
@@ -272,11 +271,11 @@
     async function fetchNotifications() {
         const list = document.getElementById('notifications-list');
         if (!list) return;
-        list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;"><i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px;"></i>Loading...</div>';
+        list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;">Loading...</div>';
 
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
         if (!token) {
-            list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;"><i class="fa-regular fa-bell-slash" style="margin-right: 6px;"></i>Please sign in to view notifications.</div>';
+            list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;">Please sign in to view notifications.</div>';
             return;
         }
 
@@ -302,12 +301,8 @@
 <div id="push-notification-modal" class="push-notif-backdrop" style="display: none;" onclick="if(event.target===this) closePushNotificationModal()">
     <div class="push-notif-card">
         <div class="push-notif-header">
-            <div id="push-notif-icon-ring" class="push-notif-icon-ring">
-                <i id="push-notif-icon" class="fa-solid fa-bell"></i>
-            </div>
             <div style="flex: 1; min-width: 0;">
                 <div id="push-notif-badge" class="push-notif-badge">
-                    <i id="push-notif-badge-icon" class="fa-solid fa-bolt"></i>
                     <span id="push-notif-category">PUSH NOTIFICATION</span>
                 </div>
                 <div id="push-notif-time" class="push-notif-time">Just now</div>
@@ -318,13 +313,13 @@
         <h3 id="push-notif-title" class="push-notif-title">Push Notification Alert</h3>
         <p id="push-notif-body" class="push-notif-body">Notification details will appear here.</p>
 
-        <div id="push-notif-footer-extra" style="display: none; margin-bottom: 16px; padding: 10px 14px; background: rgba(56,189,248,0.08); border-radius: 12px; border: 1px dashed rgba(56,189,248,0.3); font-size: 12px; color: #38bdf8;">
-            <i class="fa-solid fa-location-dot" style="margin-right: 6px;"></i><span id="push-notif-spot-name"></span>
+        <div id="push-notif-footer-extra" style="display: none; margin-bottom: 16px; padding: 10px 14px; background: rgba(56,189,248,0.08); border-radius: 12px; border: none !important; outline: none !important; font-size: 12px; color: #38bdf8;">
+            <span id="push-notif-spot-name"></span>
         </div>
 
         <div class="push-notif-actions">
             <button id="push-notif-action-btn" type="button" class="push-notif-btn-primary" onclick="handlePushNotificationAction()">
-                <i class="fa-solid fa-compass" style="margin-right: 6px;"></i><span id="push-notif-action-text">View Details</span>
+                <span id="push-notif-action-text">View Details</span>
             </button>
             <button type="button" class="push-notif-btn-secondary" onclick="closePushNotificationModal()">Dismiss</button>
         </div>
@@ -353,12 +348,13 @@
 }
 .push-notif-card {
     background: linear-gradient(145deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.99));
-    border: 1px solid rgba(56, 189, 248, 0.35);
+    border: none !important;
+    outline: none !important;
     border-radius: 28px;
     width: 100%;
     max-width: 380px;
     padding: 24px;
-    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.8), 0 0 50px rgba(56, 189, 248, 0.18);
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.8);
     transform: scale(0.85) translateY(20px);
     transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
     text-align: left;
@@ -372,33 +368,14 @@
     gap: 14px;
     margin-bottom: 16px;
 }
-.push-notif-icon-ring {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: rgba(56, 189, 248, 0.15);
-    border: 2px solid #38bdf8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    color: #38bdf8;
-    flex-shrink: 0;
-    box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
-    animation: pushPulse 2s infinite;
-}
-@keyframes pushPulse {
-    0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); }
-    70% { box-shadow: 0 0 0 14px rgba(56, 189, 248, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
-}
 .push-notif-badge {
     display: inline-flex;
     align-items: center;
     padding: 4px 10px;
     border-radius: 20px;
     background: rgba(56, 189, 248, 0.15);
-    border: 1px solid rgba(56, 189, 248, 0.3);
+    border: none !important;
+    outline: none !important;
     color: #38bdf8;
     font-size: 10px;
     font-weight: 800;
@@ -413,7 +390,8 @@
 }
 .push-notif-close-btn {
     background: rgba(255, 255, 255, 0.08);
-    border: none;
+    border: none !important;
+    outline: none !important;
     color: rgba(248, 250, 252, 0.7);
     width: 32px;
     height: 32px;
@@ -450,7 +428,8 @@
 }
 .push-notif-btn-primary {
     flex: 1;
-    border: none;
+    border: none !important;
+    outline: none !important;
     background: linear-gradient(135deg, #38bdf8, #2563eb);
     color: #ffffff;
     padding: 13px;
@@ -468,9 +447,10 @@
     transform: scale(0.97);
 }
 .push-notif-btn-secondary {
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    background: rgba(255, 255, 255, 0.06);
-    color: rgba(248, 250, 252, 0.8);
+    border: none !important;
+    outline: none !important;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(248, 250, 252, 0.85);
     padding: 13px 18px;
     border-radius: 14px;
     font-weight: 700;
@@ -479,7 +459,7 @@
     transition: all 0.2s ease;
 }
 .push-notif-btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.14);
 }
 </style>
 
@@ -521,7 +501,7 @@
             if (modalTime && modalTime.getAttribute('data-time')) {
                 const t = parseInt(modalTime.getAttribute('data-time'), 10);
                 if (t) {
-                    modalTime.innerHTML = `<i class="fa-solid fa-clock-rotate-left" style="font-size: 10px; margin-right: 4px;"></i>${window.formatReverseTimer(t)}`;
+                    modalTime.textContent = window.formatReverseTimer(t);
                 }
             }
         }, 1000);
@@ -536,27 +516,7 @@
             let html = '';
             const unread = notifications.filter(n => !n.is_read);
             notifications.forEach(item => {
-                let icon = 'fa-bell';
-                let color = '#38bdf8';
-
                 const isWelcome = item.type === 'welcome';
-                if (item.type === 'new_spot' || item.type === 'spot_added') {
-                    icon = 'fa-map-pin';
-                    color = '#34c759';
-                } else if (item.type === 'favorite_update' || item.type === 'spot_updated') {
-                    icon = 'fa-pen-to-square';
-                    color = '#f59e0b';
-                } else if (item.type === 'itinerary_reminder') {
-                    icon = 'fa-calendar-day';
-                    color = '#8b5cf6';
-                } else if (item.type === 'spot_maintenance') {
-                    icon = 'fa-triangle-exclamation';
-                    color = '#ef4444';
-                } else if (isWelcome) {
-                    icon = 'fa-hand-wave';
-                    color = '#00f2fe';
-                }
-
                 const isUnread = !item.is_read;
                 const encodedItem = encodeURIComponent(JSON.stringify(item));
                 const itemTime = item.created_at ? new Date(item.created_at).getTime() : Date.now();
@@ -564,38 +524,34 @@
                 const formattedDate = new Date(itemTime).toLocaleDateString(undefined, {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'});
 
                 html += `
-                    <div style="display: flex; gap: 12px; margin-bottom: 10px; padding: 12px 14px; background: ${isWelcome ? 'linear-gradient(135deg, rgba(0, 242, 254, 0.14) 0%, rgba(2, 132, 199, 0.08) 100%)' : (isUnread ? 'rgba(56,189,248,0.08)' : 'rgba(255,255,255,0.03)')}; border: 1px solid ${isWelcome ? 'rgba(0, 242, 254, 0.35)' : (isUnread ? 'rgba(56,189,248,0.2)' : 'rgba(255,255,255,0.06)')}; border-radius: 14px; align-items: flex-start; cursor: pointer; transition: transform 0.15s ease, background 0.2s;" onclick="handleNotifClick('${encodedItem}', this)">
-                        <div style="width: 36px; height: 36px; border-radius: 50%; background: ${color}20; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid ${color}40; box-shadow: 0 0 12px ${color}25;">
-                            <i class="fa-solid ${icon}" style="color: ${color}; font-size: 15px;"></i>
-                        </div>
+                    <div style="display: flex; gap: 12px; margin-bottom: 10px; padding: 12px 14px; background: ${isWelcome ? 'linear-gradient(135deg, rgba(0, 242, 254, 0.14) 0%, rgba(2, 132, 199, 0.08) 100%)' : (isUnread ? 'rgba(56,189,248,0.08)' : 'rgba(255,255,255,0.03)')}; border: none !important; outline: none !important; border-radius: 14px; align-items: flex-start; cursor: pointer; transition: transform 0.15s ease, background 0.2s;" onclick="handleNotifClick('${encodedItem}', this)">
                         <div style="flex: 1; min-width: 0;">
                             <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">
-                                ${isWelcome ? '<span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0, 242, 254, 0.25); color: #00f2fe; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(0, 242, 254, 0.4);">Welcome</span>' : ''}
-                                <span style="font-size: 13px; color: #ffffff; font-weight: 800;">${item.title || (isWelcome ? '👋 Welcome to Intan Elyu!' : 'Notification')}</span>
+                                ${isWelcome ? '<span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0, 242, 254, 0.25); color: #00f2fe; padding: 2px 6px; border-radius: 4px; border: none !important; outline: none !important;">Welcome</span>' : ''}
+                                <span style="font-size: 13px; color: #ffffff; font-weight: 800;">${item.title || (isWelcome ? 'Welcome to Intan Elyu' : 'Notification')}</span>
                             </div>
                             <p style="margin: 0 0 6px 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.45; font-weight: ${isUnread ? '500' : '400'};">${item.message || ''}</p>
                             <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                                <span class="notif-reverse-timer" data-time="${itemTime}" style="font-size: 10px; font-weight: 700; color: #00f2fe; display: inline-flex; align-items: center; gap: 4px; background: rgba(0, 242, 254, 0.12); padding: 2px 8px; border-radius: 100px; border: 1px solid rgba(0, 242, 254, 0.25);">
-                                    <i class="fa-solid fa-clock-rotate-left" style="font-size: 9px;"></i>
+                                <span class="notif-reverse-timer" data-time="${itemTime}" style="font-size: 10px; font-weight: 700; color: #00f2fe; display: inline-flex; align-items: center; background: rgba(0, 242, 254, 0.12); padding: 2px 8px; border-radius: 100px; border: none !important; outline: none !important;">
                                     <span class="timer-text">${timerStr}</span>
                                 </span>
                                 <span style="font-size: 10.5px; color: rgba(148,163,184,0.6); font-weight: 500;">${formattedDate}</span>
                             </div>
                         </div>
-                        ${isUnread ? '<i class="fa-solid fa-circle" style="font-size: 8px; color: #00f2fe; margin-top: 6px; flex-shrink: 0; box-shadow: 0 0 8px #00f2fe;"></i>' : ''}
+                        ${isUnread ? '<span style="width: 7px; height: 7px; border-radius: 50%; background: #00f2fe; margin-top: 6px; flex-shrink: 0; box-shadow: 0 0 8px #00f2fe; border: none !important; outline: none !important;"></span>' : ''}
                     </div>
                 `;
             });
             if (unread.length > 0) {
-                html += `<div style="text-align: center; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
-                    <button onclick="markAllNotifRead()" style="background: none; border: none; color: #38bdf8; font-size: 12px; font-weight: 600; cursor: pointer; padding: 6px 12px;">Mark all as read</button>
+                html += `<div style="text-align: center; padding-top: 8px; border-top: none !important; outline: none !important;">
+                    <button onclick="markAllNotifRead()" style="background: none; border: none !important; outline: none !important; color: #38bdf8; font-size: 12px; font-weight: 600; cursor: pointer; padding: 6px 12px;">Mark all as read</button>
                 </div>`;
             }
             list.innerHTML = html;
             if (unread.length > 0 && dot) dot.classList.add('show');
             startNotifTimerTicker();
         } else {
-            list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;"><i class="fa-regular fa-bell-slash" style="margin-right: 6px;"></i>No new notifications.</div>';
+            list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;">No new notifications.</div>';
             if (dot) dot.classList.remove('show');
         }
     }
@@ -626,41 +582,27 @@
         const notifTimestamp = opts.created_at ? new Date(opts.created_at).getTime() : Date.now();
         const timeStr = window.formatReverseTimer ? window.formatReverseTimer(notifTimestamp) : 'Just now';
 
-        let icon = 'fa-bell';
         let color = '#38bdf8';
         let category = 'PUSH ALERT';
-        let badgeIcon = 'fa-bolt';
 
         if (type === 'new_spot' || type === 'spot_added') {
-            icon = 'fa-map-pin';
             color = '#34c759';
             category = 'NEW SPOT';
-            badgeIcon = 'fa-location-dot';
         } else if (type === 'favorite_update' || type === 'spot_updated') {
-            icon = 'fa-star';
             color = '#f59e0b';
             category = 'FAVORITE UPDATE';
-            badgeIcon = 'fa-star';
         } else if (type === 'itinerary_reminder' || type === 'trip') {
-            icon = 'fa-calendar-day';
             color = '#8b5cf6';
             category = 'TRIP REMINDER';
-            badgeIcon = 'fa-clock';
         } else if (type === 'spot_maintenance' || type === 'alert') {
-            icon = 'fa-triangle-exclamation';
             color = '#ef4444';
             category = 'SPOT ALERT';
-            badgeIcon = 'fa-triangle-exclamation';
         } else if (type === 'reward' || type === 'quest' || type === 'points') {
-            icon = 'fa-trophy';
             color = '#facc15';
             category = 'REWARD UNLOCKED';
-            badgeIcon = 'fa-gift';
         } else if (type === 'welcome') {
-            icon = 'fa-hand-wave';
             color = '#00f2fe';
             category = 'WELCOME TO ELYU';
-            badgeIcon = 'fa-sparkles';
         }
 
         // Apply dynamic DOM values
@@ -668,10 +610,7 @@
         const bodyEl = document.getElementById('push-notif-body');
         const catEl = document.getElementById('push-notif-category');
         const timeEl = document.getElementById('push-notif-time');
-        const iconEl = document.getElementById('push-notif-icon');
-        const ringEl = document.getElementById('push-notif-icon-ring');
         const badgeEl = document.getElementById('push-notif-badge');
-        const badgeIconEl = document.getElementById('push-notif-badge-icon');
         const spotContainer = document.getElementById('push-notif-footer-extra');
         const spotNameEl = document.getElementById('push-notif-spot-name');
         const actionBtn = document.getElementById('push-notif-action-btn');
@@ -681,25 +620,14 @@
         if (catEl) catEl.textContent = category;
         if (timeEl) {
             timeEl.setAttribute('data-time', notifTimestamp);
-            timeEl.innerHTML = `<i class="fa-solid fa-clock-rotate-left" style="font-size: 10px; margin-right: 4px;"></i>${timeStr}`;
+            timeEl.textContent = timeStr;
         }
 
-        if (ringEl) {
-            ringEl.style.borderColor = color;
-            ringEl.style.background = color + '20';
-            ringEl.style.boxShadow = `0 0 24px ${color}40`;
-        }
-        if (iconEl) {
-            iconEl.className = `fa-solid ${icon}`;
-            iconEl.style.color = color;
-        }
         if (badgeEl) {
-            badgeEl.style.borderColor = color + '50';
+            badgeEl.style.border = 'none';
+            badgeEl.style.outline = 'none';
             badgeEl.style.background = color + '20';
             badgeEl.style.color = color;
-        }
-        if (badgeIconEl) {
-            badgeIconEl.className = `fa-solid ${badgeIcon}`;
         }
 
         if (spotName && spotContainer && spotNameEl) {

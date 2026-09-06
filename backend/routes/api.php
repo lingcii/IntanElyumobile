@@ -496,7 +496,7 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
             \App\Models\Notification::createSafely(
                 $tourist->id,
                 'checkin_rejected',
-                'Photo Check-in Not Approved ❌',
+                'Photo Check-in Not Approved',
                 "Your photo proof check-in at " . ($spot->name ?? 'destination') . " was not approved. Reason: {$reason}"
             );
         }
@@ -999,7 +999,7 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
                 \App\Models\Notification::createSafely(
                     $tourist->id,
                     'checkin_rejected',
-                    'Photo Check-in Not Approved ❌',
+                    'Photo Check-in Not Approved',
                     "Your photo proof check-in at " . ($spot->name ?? 'destination') . " was not approved. Reason: {$reason}"
                 );
             }

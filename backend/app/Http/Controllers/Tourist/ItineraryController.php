@@ -282,7 +282,7 @@ class ItineraryController extends Controller
         \App\Models\Notification::createSafely(
             $user->id,
             'itinerary_reminder',
-            '🎉 Trip Completed!',
+            'Trip Completed!',
             "Congratulations! You completed '{$itinerary->title}' and earned +100 XP!",
             ['action_url' => '/saved_trips']
         );

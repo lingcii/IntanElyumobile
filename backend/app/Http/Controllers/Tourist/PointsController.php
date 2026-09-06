@@ -313,7 +313,7 @@ class PointsController extends Controller
         \App\Models\Notification::createSafely(
             $user->id,
             'favorite_update',
-            '🎟️ Voucher Redeemed!',
+            'Voucher Redeemed!',
             "Redeemed voucher {$code} ({$type}). Present code at merchant checkout!",
             ['action_url' => '/discount']
         );

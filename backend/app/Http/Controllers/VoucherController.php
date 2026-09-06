@@ -193,7 +193,7 @@ class VoucherController extends Controller
         \App\Models\Notification::createSafely(
             $user->id,
             'favorite_update',
-            '🎟️ Voucher Redeemed!',
+            'Voucher Redeemed!',
             "Claimed '{$voucher->voucher_name}' ({$redemption->voucher_code}). Present code at merchant checkout!",
             ['action_url' => '/discount']
         );

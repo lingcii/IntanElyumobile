@@ -32,7 +32,7 @@ class NotificationController extends Controller
                 Notification::createSafely(
                     $user->id,
                     'welcome',
-                    '👋 Welcome to Intan Elyu!',
+                    'Welcome to Intan Elyu',
                     "Welcome to Intan Elyu, {$firstName}! Explore top tourist spots in La Union, plan your personalized itineraries, and earn XP with AR check-ins!",
                     [
                         'module'     => 'welcome',

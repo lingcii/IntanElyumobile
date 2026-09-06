@@ -79,7 +79,7 @@ class ItineraryItem extends Model
                     \App\Models\Notification::createSafely(
                         $user->id,
                         'checkin_approved',
-                        'Check-in Verified! 🎉',
+                        'Check-in Verified!',
                         "Your photo proof check-in at {$spot->name} was confirmed by admin! Earned +{$xpEarned} XP & +50 Points."
                     );
                 }
