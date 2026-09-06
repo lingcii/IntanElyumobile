@@ -1121,6 +1121,9 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
+    Route::delete('/notifications', [NotificationController::class, 'clearAll']);
+    Route::post('/notifications/clear-all', [NotificationController::class, 'clearAll']);
 
     // Site Testimonies & Policy Recommendations
     Route::get('/feedback/user-reviewed-spots', [FeedbackController::class, 'userReviewedSpots']);

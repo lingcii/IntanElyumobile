@@ -321,6 +321,7 @@
             <button id="push-notif-action-btn" type="button" class="push-notif-btn-primary" onclick="handlePushNotificationAction()">
                 <span id="push-notif-action-text">View Details</span>
             </button>
+            <button id="push-notif-delete-btn" type="button" class="push-notif-btn-delete" onclick="handlePushNotificationDelete()">Delete</button>
             <button type="button" class="push-notif-btn-secondary" onclick="closePushNotificationModal()">Dismiss</button>
         </div>
     </div>
@@ -467,10 +468,26 @@
 .push-notif-btn-secondary:hover {
     background: rgba(255, 255, 255, 0.26) !important;
 }
+.push-notif-btn-delete {
+    border: none !important;
+    outline: none !important;
+    background: rgba(239, 68, 68, 0.22) !important;
+    color: #f87171 !important;
+    padding: 13px 20px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.push-notif-btn-delete:hover {
+    background: rgba(239, 68, 68, 0.32) !important;
+}
 </style>
 
 <script>
     var _currentPushNotifTargetUrl = window._currentPushNotifTargetUrl || null;
+    var _currentPushNotifId = window._currentPushNotifId || null;
     window._notifTimerInterval = window._notifTimerInterval || null;
 
     window.cleanNotifTitle = function(title, isWelcome) {
@@ -550,11 +567,14 @@
                 const displayMsg = window.cleanNotifMessage(item.message);
 
                 html += `
-                    <div style="display: flex; gap: 12px; margin-bottom: 10px; padding: 12px 14px; background: ${isWelcome ? 'linear-gradient(135deg, rgba(0, 242, 254, 0.14) 0%, rgba(2, 132, 199, 0.08) 100%)' : (isUnread ? 'rgba(56,189,248,0.08)' : 'rgba(255,255,255,0.03)')}; border: none !important; outline: none !important; border-radius: 14px; align-items: flex-start; cursor: pointer; transition: transform 0.15s ease, background 0.2s;" onclick="handleNotifClick('${encodedItem}', this)">
+                    <div class="notif-card-item" id="notif-item-${item.id}" style="display: flex; gap: 12px; margin-bottom: 10px; padding: 12px 14px; background: ${isWelcome ? 'linear-gradient(135deg, rgba(0, 242, 254, 0.14) 0%, rgba(2, 132, 199, 0.08) 100%)' : (isUnread ? 'rgba(56,189,248,0.08)' : 'rgba(255,255,255,0.03)')}; border: none !important; outline: none !important; border-radius: 14px; align-items: flex-start; cursor: pointer; transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s;" onclick="handleNotifClick('${encodedItem}', this)">
                         <div style="flex: 1; min-width: 0;">
-                            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">
-                                ${isWelcome ? '<span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0, 242, 254, 0.25); color: #00f2fe; padding: 2px 6px; border-radius: 4px; border: none !important; outline: none !important;">Welcome</span>' : ''}
-                                <span style="font-size: 13px; color: #ffffff; font-weight: 800;">${displayTitle}</span>
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 3px;">
+                                <div style="display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1;">
+                                    ${isWelcome ? '<span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0, 242, 254, 0.25); color: #00f2fe; padding: 2px 6px; border-radius: 4px; border: none !important; outline: none !important; flex-shrink: 0;">Welcome</span>' : ''}
+                                    <span style="font-size: 13px; color: #ffffff; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${displayTitle}</span>
+                                </div>
+                                <button type="button" onclick="event.stopPropagation(); window.deleteNotification('${item.id}', this.closest('.notif-card-item'))" style="background: none; border: none !important; outline: none !important; color: rgba(255, 255, 255, 0.45); font-size: 11px; font-weight: 700; cursor: pointer; padding: 2px 4px; border-radius: 4px; flex-shrink: 0; transition: color 0.15s;" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='rgba(255,255,255,0.45)'">Delete</button>
                             </div>
                             <p style="margin: 0 0 6px 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.45; font-weight: ${isUnread ? '500' : '400'};">${displayMsg}</p>
                             <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
@@ -564,15 +584,14 @@
                                 <span style="font-size: 10.5px; color: rgba(148,163,184,0.6); font-weight: 500;">${formattedDate}</span>
                             </div>
                         </div>
-                        ${isUnread ? '<span style="width: 7px; height: 7px; border-radius: 50%; background: #00f2fe; margin-top: 6px; flex-shrink: 0; box-shadow: 0 0 8px #00f2fe; border: none !important; outline: none !important;"></span>' : ''}
+                        ${isUnread ? '<span class="unread-dot" style="width: 7px; height: 7px; border-radius: 50%; background: #00f2fe; margin-top: 6px; flex-shrink: 0; box-shadow: 0 0 8px #00f2fe; border: none !important; outline: none !important;"></span>' : ''}
                     </div>
                 `;
             });
-            if (unread.length > 0) {
-                html += `<div style="text-align: center; padding-top: 8px; border-top: none !important; outline: none !important;">
-                    <button onclick="markAllNotifRead()" style="background: none; border: none !important; outline: none !important; color: #38bdf8; font-size: 12px; font-weight: 600; cursor: pointer; padding: 6px 12px;">Mark all as read</button>
-                </div>`;
-            }
+            html += `<div style="display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: none !important; outline: none !important;">
+                ${unread.length > 0 ? '<button onclick="markAllNotifRead()" style="background: none; border: none !important; outline: none !important; color: #38bdf8; font-size: 12px; font-weight: 700; cursor: pointer; padding: 4px 6px;">Mark all read</button>' : '<span></span>'}
+                <button onclick="window.clearAllNotifications()" style="background: none; border: none !important; outline: none !important; color: #f87171; font-size: 12px; font-weight: 700; cursor: pointer; padding: 4px 6px;">Clear all</button>
+            </div>`;
             list.innerHTML = html;
             if (unread.length > 0 && dot) dot.classList.add('show');
             startNotifTimerTicker();
@@ -600,6 +619,7 @@
         const modal = document.getElementById('push-notification-modal');
         if (!modal) return;
 
+        _currentPushNotifId = opts.id || null;
         const rawTitle = opts.title || (opts.type ? opts.type.replace(/_/g, ' ').toUpperCase() : 'Notification');
         const title = window.cleanNotifTitle(rawTitle, opts.type === 'welcome');
         const rawBody = opts.message || opts.body || 'You have a new update.';
@@ -695,6 +715,83 @@
         }
     };
 
+    window.handlePushNotificationDelete = async function() {
+        if (_currentPushNotifId) {
+            const id = _currentPushNotifId;
+            closePushNotificationModal();
+            const cardEl = document.getElementById('notif-item-' + id);
+            await window.deleteNotification(id, cardEl);
+        } else {
+            closePushNotificationModal();
+        }
+    };
+
+    window.deleteNotification = async function(id, el) {
+        if (!id) return;
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
+        if (!token) return;
+
+        if (el) {
+            el.style.opacity = '0';
+            el.style.transform = 'translateX(20px)';
+            setTimeout(() => {
+                el.remove();
+                const list = document.getElementById('notifications-list');
+                const remaining = list ? list.querySelectorAll('.notif-card-item') : [];
+                if (remaining.length === 0 && list) {
+                    list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;">No new notifications.</div>';
+                    const dot = document.getElementById('bell-dot');
+                    if (dot) dot.classList.remove('show');
+                }
+            }, 200);
+        }
+
+        try {
+            const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+            const res = await fetch(backendUrl + '/api/tourist/notifications/' + id, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (typeof data.unread_count !== 'undefined') {
+                    window.updateUnreadBadge(data.unread_count);
+                }
+            }
+        } catch (e) {
+            console.error("Error deleting notification:", e);
+        }
+    };
+
+    window.clearAllNotifications = async function() {
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
+        if (!token) return;
+
+        const list = document.getElementById('notifications-list');
+        if (list) {
+            list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;">No new notifications.</div>';
+        }
+        const dot = document.getElementById('bell-dot');
+        if (dot) dot.classList.remove('show');
+
+        try {
+            const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+            await fetch(backendUrl + '/api/tourist/notifications/clear-all', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+            window.updateUnreadBadge(0);
+        } catch (e) {
+            console.error("Error clearing notifications:", e);
+        }
+    };
+
     async function markNotifRead(id, el) {
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
         if (!token) return;
@@ -710,11 +807,11 @@
             if (el) {
                 el.style.opacity = '0.5';
                 el.onclick = null;
-                const dot = el.querySelector('.fa-circle');
+                const dot = el.querySelector('.unread-dot');
                 if (dot) dot.remove();
             }
             const dot = document.getElementById('bell-dot');
-            const remaining = document.querySelectorAll('#notifications-list .fa-circle');
+            const remaining = document.querySelectorAll('#notifications-list .unread-dot');
             if (remaining.length === 0 && dot) dot.classList.remove('show');
         } catch (e) {}
     }
@@ -731,11 +828,11 @@
                     'Authorization': 'Bearer ' + token
                 }
             });
-            const items = document.querySelectorAll('#notifications-list > div[style*="cursor: pointer"]');
+            const items = document.querySelectorAll('#notifications-list .notif-card-item');
             items.forEach(el => {
                 el.style.opacity = '0.5';
                 el.onclick = null;
-                const dot = el.querySelector('.fa-circle');
+                const dot = el.querySelector('.unread-dot');
                 if (dot) dot.remove();
             });
             const dot = document.getElementById('bell-dot');
