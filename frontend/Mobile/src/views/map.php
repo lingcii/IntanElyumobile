@@ -315,7 +315,7 @@ if (is_dir($imgDir)) {
                     </div>
                     <div class="quick-stat-info">
                         <span class="quick-stat-label">Rating</span>
-                        <span class="quick-stat-value" id="sheet-rating">5.0 ★</span>
+                        <span class="quick-stat-value" id="sheet-rating">0.0 ★</span>
                     </div>
                 </div>
             </div>
@@ -2217,7 +2217,7 @@ if (is_dir($imgDir)) {
                 let html = '';
                 filtered.forEach((spot, idx) => {
                     const img = window.getDestImage ? window.getDestImage(spot, 300) : (spot.image || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300');
-                    const rating = spot.rating ? parseFloat(spot.rating).toFixed(1) : (spot.reviews_avg_rating ? parseFloat(spot.reviews_avg_rating).toFixed(1) : 'New');
+                    const rating = (spot.rating !== undefined && spot.rating !== null && !isNaN(parseFloat(spot.rating))) ? parseFloat(spot.rating).toFixed(1) : '0.0';
 
                     let distBadge = '';
                     if (spot.distanceKm < 0.05) {
@@ -2946,7 +2946,7 @@ if (is_dir($imgDir)) {
 
             const ratingEl = document.getElementById('sheet-rating');
             if (ratingEl) {
-                const rVal = (locationData.rating && parseFloat(locationData.rating) > 0) ? parseFloat(locationData.rating).toFixed(1) : '5.0';
+                const rVal = (locationData.rating !== undefined && locationData.rating !== null && !isNaN(parseFloat(locationData.rating))) ? parseFloat(locationData.rating).toFixed(1) : '0.0';
                 ratingEl.textContent = `${rVal} ★`;
             }
 
@@ -3644,7 +3644,7 @@ if (is_dir($imgDir)) {
                         const sm = d.summary;
                         const reviewCount = parseInt(sm.total_reviews) || 0;
                         const reviewText = reviewCount === 1 ? '1 Review' : `${reviewCount} Reviews`;
-                        const avgRating = parseFloat(sm.average_rating || 5).toFixed(1);
+                        const avgRating = (sm.average_rating !== undefined && sm.average_rating !== null && !isNaN(parseFloat(sm.average_rating))) ? parseFloat(sm.average_rating).toFixed(1) : '0.0';
 
                         const cleanVal = sm.cleanliness.clean >= sm.cleanliness.moderate && sm.cleanliness.clean >= sm.cleanliness.dirty ? 'Clean' : (sm.cleanliness.moderate >= sm.cleanliness.dirty ? 'Moderate' : 'Dirty');
                         const cleanColor = cleanVal === 'Clean' ? '#34d399' : (cleanVal === 'Moderate' ? '#f59e0b' : '#ef4444');

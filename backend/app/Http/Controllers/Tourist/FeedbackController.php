@@ -53,7 +53,7 @@ class FeedbackController extends Controller
             $avgRating = SiteFeedback::where('tourist_spot_id', $spotId)->whereNotNull('rating')->avg('rating');
 
             $summary = [
-                'average_rating' => $avgRating ? round((float) $avgRating, 1) : ($spot ? round((float) $spot->rating, 1) : 5.0),
+                'average_rating' => $avgRating ? round((float) $avgRating, 1) : ($spot ? round((float) $spot->rating, 1) : 0.0),
                 'total_reviews'  => $totalReviews,
                 'cleanliness' => [
                     'clean'    => (int) ($cleanlinessDistribution['clean'] ?? 0),

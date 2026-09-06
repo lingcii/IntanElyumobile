@@ -530,7 +530,7 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
             $totalUsers = \App\Models\User::count();
             $totalVisits = (int) $spots->sum('visits');
             $ratedSpots = $spots->where('rating', '>', 0);
-            $avgRating = $ratedSpots->count() > 0 ? round((float) $ratedSpots->avg('rating'), 1) : 5.0;
+            $avgRating = $ratedSpots->count() > 0 ? round((float) $ratedSpots->avg('rating'), 1) : 0.0;
 
             $pendingApprovals = 0;
             try {
