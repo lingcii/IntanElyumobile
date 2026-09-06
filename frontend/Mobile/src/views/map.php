@@ -3844,16 +3844,7 @@ if (is_dir($imgDir)) {
                             <div style="width:38px; height:38px; border-radius:50%; background:rgba(56,189,248,0.15); display:inline-flex; align-items:center; justify-content:center; color:#38bdf8; font-size:16px; margin-bottom:8px;">
                                 <i class="fa-regular fa-comment-dots"></i>
                             </div>
-                            <div style="font-size:13px; font-weight:800; color:#ffffff; margin-bottom:6px;">No Testimonies Yet</div>
-                            <div style="display:inline-flex; align-items:center; gap:6px; background:${classMeta.bg}; border:1px solid ${classMeta.border}; padding:4px 12px; border-radius:20px; margin-bottom:10px;">
-                                <span style="font-size:10.5px; font-weight:800; color:${classMeta.color}; text-transform:uppercase; letter-spacing:0.4px; display:inline-flex; align-items:center; gap:4px;">
-                                    <i class="fa-solid ${classMeta.icon}"></i> ${classMeta.label} Spot
-                                </span>
-                                <span style="width:3px; height:3px; border-radius:50%; background:rgba(255,255,255,0.4);"></span>
-                                <span style="font-size:10.5px; font-weight:800; color:#ffffff;">
-                                    +${classMeta.points} Points & +${classMeta.points} XP
-                                </span>
-                            </div>
+                            <div style="font-size:13px; font-weight:800; color:#ffffff; margin-bottom:4px;">No Testimonies Yet</div>
                             <p style="margin:0 0 10px; font-size:11.5px; color:rgba(226,232,240,0.85); line-height:1.45;">
                                 Be the first verified visitor to review this <strong style="color:${classMeta.color}; font-weight:800;">${classMeta.label}</strong> spot and share policy feedback during your trip navigation to earn <strong>+${classMeta.points} Points & +${classMeta.points} XP</strong>!
                             </p>
