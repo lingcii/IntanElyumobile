@@ -55,6 +55,8 @@ class LoginController extends Controller
             'token'   => $token,
             'user'    => [
                 'id'              => $user->id,
+                'tourist_number'  => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
+                'tourist_id'      => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
                 'name'            => $user->name,
                 'email'           => $user->email,
                 'role'            => $user->role,
@@ -199,6 +201,8 @@ class LoginController extends Controller
             'token'   => $token,
             'user'    => [
                 'id'              => $user->id,
+                'tourist_number'  => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
+                'tourist_id'      => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
                 'name'            => $user->name,
                 'email'           => $user->email,
                 'role'            => $user->role,

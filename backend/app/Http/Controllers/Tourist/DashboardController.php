@@ -153,15 +153,19 @@ class DashboardController extends Controller
             $unreadNotifications = 0;
         }
 
+        $touristNumber = method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1;
+
         return response()->json([
             'user' => [
-                'id'     => $user->id,
-                'name'   => $user->name,
-                'email'  => $user->email,
-                'xp'     => $xp,
-                'level'  => $level,
-                'points' => $points,
-                'avatar' => $user->avatar,
+                'id'             => $user->id,
+                'tourist_number' => $touristNumber,
+                'tourist_id'     => $touristNumber,
+                'name'           => $user->name,
+                'email'          => $user->email,
+                'xp'             => $xp,
+                'level'          => $level,
+                'points'         => $points,
+                'avatar'         => $user->avatar,
             ],
             'stats' => [
                 'placesVisited'        => $placesVisited,

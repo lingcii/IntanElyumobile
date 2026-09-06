@@ -51,9 +51,9 @@ if (is_dir($imgDir)) {
                     </div>
                     <div style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
                         <span class="profile-title" id="dash-title"><i class="fa-solid fa-compass"
-                                style="color:#00f2fe; font-size:11px;"></i> Explorer of Elyu</span>
+                                style="color:#ffffff; font-size:11px;"></i> Explorer of Elyu</span>
                         <span id="dash-status-badge"><i class="fa-solid fa-circle"
-                                style="font-size:6px; margin-right:4px;"></i> Active Tourist</span>
+                                style="font-size:6px; margin-right:4px; color:#ffffff;"></i> Active Tourist</span>
                     </div>
                 </div>
             </div>
@@ -838,6 +838,10 @@ if (is_dir($imgDir)) {
         if (user && user.name) {
             setHtml('dash-name', 'Hi, ' + user.name.split(' ')[0] + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
             setSrc('dash-avatar', user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+            const initTouristNum = user.tourist_number || user.tourist_id || (user.role === 'tourist' ? 1 : '');
+            if (initTouristNum) {
+                setTxt('dash-explorer-id', 'ID: #' + initTouristNum);
+            }
             if (user.xp !== undefined) {
                 const initXp = parseInt(user.xp) || 0;
                 const initLevel = Math.floor(Math.max(0, initXp) / 1000) + 1;
@@ -919,8 +923,16 @@ if (is_dir($imgDir)) {
             setHtml('dash-name', 'Hi, ' + firstName + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
             setTxt('dash-title', 'Level ' + level + ' Explorer');
 
-            const userId = u.id || u.user_id || '';
-            if (userId) setTxt('dash-explorer-id', 'ID: #' + userId);
+            const touristNum = u.tourist_number || u.tourist_id || (u.role === 'tourist' ? 1 : (u.id || u.user_id || ''));
+            if (touristNum) {
+                setTxt('dash-explorer-id', 'ID: #' + touristNum);
+                try {
+                    const storedUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    storedUser.tourist_number = touristNum;
+                    storedUser.tourist_id = touristNum;
+                    localStorage.setItem('auth_user', JSON.stringify(storedUser));
+                } catch (e) { }
+            }
 
             if (u.avatar) {
                 let avatarUrl = u.avatar;

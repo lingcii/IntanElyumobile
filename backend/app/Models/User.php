@@ -155,4 +155,21 @@ class User extends Authenticatable
 
         return $newXp;
     }
+
+    /**
+     * Get sequential tourist number strictly starting from 1 for tourists.
+     */
+    public function getTouristNumber(): int
+    {
+        $count = static::where('role', 'tourist')
+            ->where('id', '<=', $this->id)
+            ->count();
+
+        return $count > 0 ? $count : 1;
+    }
+
+    public function getTouristNumberAttribute(): int
+    {
+        return $this->getTouristNumber();
+    }
 }
