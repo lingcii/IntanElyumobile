@@ -14,7 +14,7 @@ $activeTab = 'leaderboard';
         <h2>
             <i class="fa-solid fa-trophy" style="color: #fbbf24;"></i> La Union Top Explorers
         </h2>
-        <p>Earn XP and unlock achievements across Elyu</p>
+        <p>Earn XP and Points across Elyu</p>
     </div>
 
     <!-- Your Current Standing Banner -->
@@ -47,6 +47,9 @@ $activeTab = 'leaderboard';
         <div class="leaderboard-tab-glider" id="tab-glider"></div>
         <button class="leaderboard-tab-btn active" id="tab-sort-xp" onclick="setLeaderboardSort('xp')">
             <i class="fa-solid fa-bolt" style="color:#fbbf24;"></i> Top XP
+        </button>
+        <button class="leaderboard-tab-btn" id="tab-sort-points" onclick="setLeaderboardSort('points')">
+            <i class="fa-solid fa-coins" style="color:#f59e0b;"></i> Highest Points
         </button>
         <button class="leaderboard-tab-btn" id="tab-sort-visited" onclick="setLeaderboardSort('visited')">
             <i class="fa-solid fa-map-location-dot" style="color:#00f2fe;"></i> Most Visited
@@ -107,30 +110,32 @@ $activeTab = 'leaderboard';
             style="font-size: 12px; color: rgba(226, 232, 240, 0.85); font-style: italic; margin: 0 0 12px 0; display: none; line-height: 1.4; background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: 12px; border: none !important; outline: none !important;">
         </p>
 
-        <!-- 3 Stats Boxes Grid -->
-        <div class="modal-stats" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px;">
+        <!-- 4 Stats Boxes Grid -->
+        <div class="modal-stats" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 10px;">
             <div class="modal-stat-box">
-                <i class="fa-solid fa-bolt" style="color:#fbbf24; font-size:16px;"></i>
-                <span id="modal-xp" style="font-size:15px; font-weight:900; color:#fff;">0</span>
+                <i class="fa-solid fa-bolt" style="color:#fbbf24; font-size:15px;"></i>
+                <span id="modal-xp" style="font-size:13px; font-weight:900; color:#fff;">0</span>
                 <small
-                    style="font-size:10px; color:rgba(226,232,240,0.6); text-transform:uppercase; font-weight:700;">Total
-                    XP</small>
+                    style="font-size:9px; color:rgba(226,232,240,0.8); text-transform:uppercase; font-weight:700;">XP</small>
             </div>
             <div class="modal-stat-box">
-                <i class="fa-solid fa-map-location-dot" style="color:#34c759; font-size:16px;"></i>
-                <span id="modal-activities" style="font-size:15px; font-weight:900; color:#fff;">0</span>
+                <i class="fa-solid fa-coins" style="color:#f59e0b; font-size:15px;"></i>
+                <span id="modal-pts" style="font-size:13px; font-weight:900; color:#fbbf24;">0</span>
                 <small
-                    style="font-size:10px; color:rgba(226,232,240,0.6); text-transform:uppercase; font-weight:700;">Visited
-                    Spots</small>
+                    style="font-size:9px; color:rgba(226,232,240,0.8); text-transform:uppercase; font-weight:700;">Points</small>
             </div>
             <div class="modal-stat-box">
-                <i class="fa-solid fa-shield-halved" style="color:#38bdf8; font-size:16px;"></i>
-                <span id="modal-level" style="font-size:15px; font-weight:900; color:#38bdf8;">Lvl 1</span>
+                <i class="fa-solid fa-map-location-dot" style="color:#34c759; font-size:15px;"></i>
+                <span id="modal-activities" style="font-size:13px; font-weight:900; color:#fff;">0</span>
                 <small
-                    style="font-size:10px; color:rgba(226,232,240,0.6); text-transform:uppercase; font-weight:700;">Explorer
-                    Tier</small>
+                    style="font-size:9px; color:rgba(226,232,240,0.8); text-transform:uppercase; font-weight:700;">Spots</small>
             </div>
-            <span id="modal-pts" style="display:none;">0</span>
+            <div class="modal-stat-box">
+                <i class="fa-solid fa-shield-halved" style="color:#38bdf8; font-size:15px;"></i>
+                <span id="modal-level" style="font-size:13px; font-weight:900; color:#38bdf8;">Lvl 1</span>
+                <small
+                    style="font-size:9px; color:rgba(226,232,240,0.8); text-transform:uppercase; font-weight:700;">Tier</small>
+            </div>
         </div>
 
         <!-- Explorer Badges / Milestones Section -->
@@ -176,14 +181,16 @@ $activeTab = 'leaderboard';
 
         const tabsWrapper = document.querySelector('.leaderboard-tabs-wrapper');
         if (tabsWrapper) {
-            tabsWrapper.classList.remove('mode-xp', 'mode-visited');
+            tabsWrapper.classList.remove('mode-xp', 'mode-points', 'mode-visited');
             tabsWrapper.classList.add(`mode-${mode}`);
         }
 
         const tabXp = document.getElementById('tab-sort-xp');
+        const tabPoints = document.getElementById('tab-sort-points');
         const tabVisited = document.getElementById('tab-sort-visited');
 
         if (tabXp) tabXp.classList.toggle('active', mode === 'xp');
+        if (tabPoints) tabPoints.classList.toggle('active', mode === 'points');
         if (tabVisited) tabVisited.classList.toggle('active', mode === 'visited');
 
         renderLeaderboardUI();
@@ -196,11 +203,13 @@ $activeTab = 'leaderboard';
         if (!podiumContainer && !rankListContainer) return;
         if (!rawLeadersList) return;
 
-            // Filter out users with no visited or no XP based on active sort mode
+            // Filter out users based on active sort mode
             let leaders = (rawLeadersList || []).filter(u => {
                 const xp = parseInt(u.total_xp || u.xp || 0);
+                const pts = parseInt(u.points || u.pts || u.total_points || u.claimable_points || 0);
                 const act = parseInt(u.completed_activities || u.places_visited || 0);
                 if (currentSortMode === 'visited') return act > 0;
+                if (currentSortMode === 'points') return pts > 0;
                 return xp > 0;
             });
 
@@ -210,6 +219,15 @@ $activeTab = 'leaderboard';
                     const actA = parseInt(a.completed_activities || a.places_visited || 0);
                     const actB = parseInt(b.completed_activities || b.places_visited || 0);
                     if (actB !== actA) return actB - actA;
+                    const xpA = parseInt(a.total_xp || a.xp || 0);
+                    const xpB = parseInt(b.total_xp || b.xp || 0);
+                    return xpB - xpA;
+                });
+            } else if (currentSortMode === 'points') {
+                leaders.sort((a, b) => {
+                    const ptsA = parseInt(a.points || a.pts || a.total_points || a.claimable_points || 0);
+                    const ptsB = parseInt(b.points || b.pts || b.total_points || b.claimable_points || 0);
+                    if (ptsB !== ptsA) return ptsB - ptsA;
                     const xpA = parseInt(a.total_xp || a.xp || 0);
                     const xpB = parseInt(b.total_xp || b.xp || 0);
                     return xpB - xpA;
@@ -274,13 +292,25 @@ $activeTab = 'leaderboard';
                     }
                 }
                 if (subtext) {
-                    subtext.textContent = `${myXp.toLocaleString()} XP • Level ${myLevel} • ${myActivities} Spots Visited`;
+                    if (currentSortMode === 'points') {
+                        subtext.textContent = `${myPts.toLocaleString()} Points • Level ${myLevel} • ${myActivities} Spots Visited`;
+                    } else if (currentSortMode === 'visited') {
+                        subtext.textContent = `${myActivities} Spots Visited • Level ${myLevel} • ${myXp.toLocaleString()} XP`;
+                    } else {
+                        subtext.textContent = `${myXp.toLocaleString()} XP • Level ${myLevel} • ${myActivities} Spots Visited`;
+                    }
                 }
             }
 
             // Render Podium (1st, 2nd, 3rd)
             let podiumHTML = '';
             if (leaders.length === 0) {
+                let emptySubtext = 'Visit attractions across La Union, check in, and earn XP to claim the #1 spot on the leaderboard!';
+                if (currentSortMode === 'points') {
+                    emptySubtext = 'Play puzzles and participate in activities to earn points and claim the #1 spot on the leaderboard!';
+                } else if (currentSortMode === 'visited') {
+                    emptySubtext = 'Visit attractions across La Union and check in to claim the #1 spot on the leaderboard!';
+                }
                 if (podiumContainer) {
                     podiumContainer.innerHTML = `
                         <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 32px 16px; background: rgba(30, 58, 138, 0.4); border-radius: 24px; backdrop-filter: blur(16px); margin-bottom: 20px; border:none !important; outline:none !important;">
@@ -289,7 +319,7 @@ $activeTab = 'leaderboard';
                             </div>
                             <div style="font-size: 15px; font-weight: 800; color: #ffffff; margin-bottom: 5px;">No Ranked Explorers Yet</div>
                             <div style="font-size: 12px; color: rgba(255,255,255,0.75); max-width: 270px; margin: 0 auto; line-height: 1.4;">
-                                Visit attractions across La Union, check in, and earn XP to claim the #1 spot on the leaderboard!
+                                ${emptySubtext}
                             </div>
                         </div>
                     `;
@@ -375,6 +405,9 @@ $activeTab = 'leaderboard';
             if (currentSortMode === 'visited') {
                 iconHtml = '<i class="fa-solid fa-map-location-dot" style="font-size:10px;"></i>';
                 textMetric = `${activities} Visited`;
+            } else if (currentSortMode === 'points') {
+                iconHtml = '<i class="fa-solid fa-coins" style="font-size:10px; color:#fbbf24;"></i>';
+                textMetric = `${pts.toLocaleString()} PTS`;
             } else {
                 iconHtml = '<i class="fa-solid fa-bolt" style="font-size:10px;"></i>';
                 textMetric = `${xp.toLocaleString()} XP`;
@@ -427,6 +460,11 @@ $activeTab = 'leaderboard';
                 rightBadgeHtml = `
             <div class="rank-xp-badge" style="color:#38bdf8;">
                 ${activities} <small style="font-size:10px; font-weight:700; color:rgba(56,189,248,0.85); margin-left:3px;">VISITED</small>
+            </div>`;
+            } else if (currentSortMode === 'points') {
+                rightBadgeHtml = `
+            <div class="rank-xp-badge" style="color:#fbbf24;">
+                <i class="fa-solid fa-coins" style="font-size:11px; margin-right:3px;"></i>${pts.toLocaleString()} <small style="font-size:10px; font-weight:700; color:rgba(251,191,36,0.85); margin-left:3px;">PTS</small>
             </div>`;
             } else {
                 rightBadgeHtml = `
@@ -571,10 +609,10 @@ $activeTab = 'leaderboard';
                 const headers = { 'Accept': 'application/json' };
 
                 var backendUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
-                let url = backendUrl + '/api/public/leaderboard';
+                let url = backendUrl + '/api/public/leaderboard?limit=50';
                 if (token) {
                     headers['Authorization'] = 'Bearer ' + token;
-                    url = backendUrl + '/api/tourist/leaderboard';
+                    url = backendUrl + '/api/tourist/leaderboard?limit=50';
                 }
 
                 // In parallel, fetch live points balance if user is authenticated
@@ -588,14 +626,20 @@ $activeTab = 'leaderboard';
                                 window.myUserData.pts = ptsVal;
                                 const subtext = document.getElementById('my-standing-subtext');
                                 if (subtext) {
-                                    subtext.textContent = `${(window.myUserData.xp || 0).toLocaleString()} XP • Level ${window.myUserData.level || 1} • ${window.myUserData.activities || 0} Spots Visited`;
+                                    if (currentSortMode === 'points') {
+                                        subtext.textContent = `${ptsVal.toLocaleString()} Points • Level ${window.myUserData.level || 1} • ${window.myUserData.activities || 0} Spots Visited`;
+                                    } else if (currentSortMode === 'visited') {
+                                        subtext.textContent = `${window.myUserData.activities || 0} Spots Visited • Level ${window.myUserData.level || 1} • ${(window.myUserData.xp || 0).toLocaleString()} XP`;
+                                    } else {
+                                        subtext.textContent = `${(window.myUserData.xp || 0).toLocaleString()} XP • Level ${window.myUserData.level || 1} • ${window.myUserData.activities || 0} Spots Visited`;
+                                    }
                                 }
                             }
                         }
                     }).catch(() => {});
                 }
 
-                const cacheKey = 'leaderboard_data_v13_' + (token ? token.substring(0, 10) : 'public');
+                const cacheKey = 'leaderboard_data_v15_' + (token ? token.substring(0, 10) : 'public');
                 const fetchCache = window.useCache || (async (key, fetcher, renderer) => { const d = await fetcher(); if (renderer) renderer(d); return d; });
 
                 await fetchCache(
@@ -606,7 +650,7 @@ $activeTab = 'leaderboard';
                             localStorage.removeItem('intan_elyu_token');
                             localStorage.removeItem('Intan_Elyu_Token');
                             localStorage.removeItem('api_token');
-                            res = await fetch(backendUrl + '/api/public/leaderboard', { headers: { 'Accept': 'application/json' } });
+                            res = await fetch(backendUrl + '/api/public/leaderboard?limit=50', { headers: { 'Accept': 'application/json' } });
                         }
                         if (!res.ok) throw new Error("Failed to fetch leaderboard");
                         return await res.json();
