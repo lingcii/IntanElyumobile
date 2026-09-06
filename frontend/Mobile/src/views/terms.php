@@ -38,7 +38,7 @@ $backRoute = 'dashboard';
         <ul>
             <li><strong>Right to be Informed:</strong> Transparent disclosure of how and why your information is processed.</li>
             <li><strong>Right to Access & Rectify:</strong> View and update your profile details anytime via App Settings.</li>
-            <li><strong>Right to Privacy:</strong> Toggle your profile to private mode in Settings to hide your rank from public leaderboards.</li>
+            <li><strong>Right to Privacy:</strong> Your email and contact credentials remain strictly protected and are never exposed publicly.</li>
             <li><strong>Right to Erasure & Blocking:</strong> Request deletion or anonymization of your account and trip logs.</li>
         </ul>
     </div>

@@ -530,7 +530,6 @@ input:checked + .slider:before {
     const phoneInput = document.getElementById('profile-phone');
     const locationInput = document.getElementById('profile-location');
     const bioInput = document.getElementById('profile-bio');
-    const privacyToggle = document.getElementById('profile-privacy');
     const img = document.getElementById('avatar-img');
     const icon = document.getElementById('avatar-icon');
 
@@ -540,9 +539,6 @@ input:checked + .slider:before {
     if (phoneInput && user.phone) phoneInput.value = user.phone;
     if (locationInput && user.home_location) locationInput.value = user.home_location;
     if (bioInput && user.bio) bioInput.value = user.bio;
-    if (privacyToggle && typeof user.is_leaderboard_private !== 'undefined') {
-        privacyToggle.checked = Boolean(user.is_leaderboard_private);
-    }
 
     // Populate travel preferences chips
     if (user.travel_preferences) {

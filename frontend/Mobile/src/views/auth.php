@@ -406,7 +406,7 @@
                     <div class="policy-icon-badge"><i class="fa-solid fa-user-shield"></i></div>
                     <span class="policy-item-title">6. Data Subject Rights (RA 10173)</span>
                 </div>
-                <p class="policy-item-desc">Under Republic Act No. 10173, you retain the Right to be Informed, Right to Access, Right to Object, and Right to Erasure. Your email remains confidential. You can toggle your profile to Private mode anytime in Settings to hide your rank on public leaderboards or request account erasure.</p>
+                <p class="policy-item-desc">Under Republic Act No. 10173, you retain the Right to be Informed, Right to Access, Right to Object, and Right to Erasure. Your email and account credentials remain strictly confidential, and you may request account erasure at any time.</p>
             </div>
         </div>
 

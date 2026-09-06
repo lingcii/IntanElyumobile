@@ -181,15 +181,14 @@ class LeaderboardController extends Controller
     {
         return array_map(function ($r, $index) {
             $r = (object) $r;
-            $isPrivate = (bool) ($r->is_leaderboard_private ?? false);
-            $realName = !empty($r->name) ? $r->name : "Explorer #{$r->user_id}";
-            $displayName = $isPrivate ? "Private Explorer" : $realName;
+            $displayName = !empty($r->name) ? $r->name : "Explorer #{$r->user_id}";
+            $realName = $displayName;
 
             $rankVal = isset($r->rank) && (int) $r->rank > 0 ? (int) $r->rank : ($index + 1);
             $xpVal = (int) ($r->total_xp ?? $r->xp ?? 0);
             $pointsVal = (int) ($r->points ?? $r->total_points ?? 0);
             $activitiesVal = (int) ($r->completed_activities ?? 0);
-            $muniVal = $isPrivate ? 'La Union' : ($r->municipality ?: ($r->home_location ?: 'La Union'));
+            $muniVal = $r->municipality ?: ($r->home_location ?: 'La Union');
 
             return [
                 'id' => (int) $r->user_id,
@@ -204,13 +203,13 @@ class LeaderboardController extends Controller
                 'full_name' => $displayName,
                 'real_name' => $realName,
                 'email' => $r->email ?? null,
-                'avatar' => $isPrivate ? null : ($r->avatar ?? null),
+                'avatar' => $r->avatar ?? null,
                 'home_location' => $muniVal,
                 'municipality' => $muniVal,
                 'municipality_name' => $muniVal,
                 'location' => $muniVal,
-                'bio' => $isPrivate ? null : ($r->bio ?? null),
-                'is_leaderboard_private' => $isPrivate,
+                'bio' => $r->bio ?? null,
+                'is_leaderboard_private' => false,
                 'last_activity_date' => $r->last_activity_date ?? null,
                 'total_xp' => $xpVal,
                 'xp' => $xpVal,

@@ -262,7 +262,6 @@ class ProfileController extends Controller
             'bio' => 'nullable|string|max:500',
             'travel_preferences' => 'nullable|string|max:255',
             'avatar' => 'sometimes|file|mimes:jpeg,png,jpg,gif,webp,heic,heif|max:10240',
-            'is_leaderboard_private' => 'sometimes|boolean',
         ]);
 
         if ($request->has('name')) {
@@ -317,11 +316,6 @@ class ProfileController extends Controller
             } catch (\Throwable $err) {
                 \Illuminate\Support\Facades\Log::error("Avatar upload failed: " . $err->getMessage());
             }
-        }
-
-        if ($request->has('is_leaderboard_private') && Schema::hasColumn('users', 'is_leaderboard_private')) {
-            $user->is_leaderboard_private = $request->boolean('is_leaderboard_private');
-            Cache::flush();
         }
 
         try {
