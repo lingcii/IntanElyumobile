@@ -14,12 +14,12 @@ $backRoute = 'dashboard';
         </div>
         <h2 style="margin: 0 0 6px; font-size: 22px; font-weight: 800; color: #ffffff;">Discounts & Vouchers</h2>
         <p style="margin: 0 0 14px; font-size: 13px; color: rgba(255, 255, 255, 0.9); line-height: 1.5; max-width: 340px; margin-left: auto; margin-right: auto;">
-            Redeem your hard-earned <strong style="color: #00f2fe;">XP</strong> for exclusive dining discounts, surf rentals, resort vouchers, and eco-passes!
+            Redeem your hard-earned <strong style="color: #00f2fe;">Points</strong> for exclusive dining discounts, surf rentals, resort vouchers, and eco-passes!
         </p>
         <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; padding:6px 16px; border-radius:100px;">
-            <i class="fa-solid fa-bolt" style="color:#fbbf24; font-size:13px;"></i>
+            <i class="fa-solid fa-coins" style="color:#fbbf24; font-size:13px;"></i>
             <span style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600;">Your Balance:</span>
-            <strong id="discount-user-pts" style="color:#ffffff; font-size:14px; font-weight:900;">-- XP</strong>
+            <strong id="discount-user-pts" style="color:#ffffff; font-size:14px; font-weight:900;">-- Points</strong>
         </div>
     </div>
 
@@ -91,7 +91,7 @@ $backRoute = 'dashboard';
 
         <div id="modal-action-row" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
             <button id="modal-redeem-btn" onclick="handleModalRedeem()" style="width:100%; padding:12px; border:none !important; outline:none !important; border-radius:12px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#fff; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:none !important;">
-                <i class="fa-solid fa-gift"></i> <span id="modal-redeem-btn-label">Redeem for 100 XP</span>
+                <i class="fa-solid fa-gift"></i> <span id="modal-redeem-btn-label">Redeem for 100 Points</span>
             </button>
             <div style="display:flex; gap:8px;">
                 <button onclick="navigateTo('map'); closeVoucherModal();" style="flex:1; padding:10px; border:none !important; outline:none !important; border-radius:10px; background:rgba(255,255,255,0.15); color:#ffffff; font-size:11px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
@@ -272,9 +272,9 @@ async function fetchUserPointsAndRedemptions() {
         if (res.ok) {
             const data = await res.json();
             if (data.status === 'success') {
-                userPointsBalance = data.xp ?? data.points ?? 0;
+                userPointsBalance = (data.points !== undefined) ? data.points : (data.xp ?? 0);
                 const ptsBadge = document.getElementById('discount-user-pts');
-                if (ptsBadge) ptsBadge.textContent = `${userPointsBalance.toLocaleString()} XP`;
+                if (ptsBadge) ptsBadge.textContent = `${userPointsBalance.toLocaleString()} Points`;
 
                 // Sync database claimed vouchers
                 if (Array.isArray(data.vouchers)) {
@@ -315,7 +315,7 @@ function renderDiscounts() {
 
     if (filtered.length === 0) {
         const msg = activeCategory === 'Claimed' 
-            ? 'You have not claimed any vouchers yet. Redeem vouchers using XP to save them here!' 
+            ? 'You have not claimed any vouchers yet. Redeem vouchers using Points to save them here!' 
             : 'No vouchers available in this category.';
         grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #ffffff; padding: 36px 20px; font-size: 13px; font-weight:600; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 20px; box-shadow: 0 8px 24px rgba(10,25,60,0.25);">${msg}</div>`;
         return;
@@ -347,8 +347,8 @@ function renderDiscounts() {
             
             <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.12);">
                 <div style="display: flex; align-items: center; gap: 4px;">
-                    <i class="fa-solid fa-bolt" style="color: #fbbf24; font-size: 13px;"></i>
-                    <span style="font-size: 14px; font-weight: 800; color: #ffffff;">${v.xpCost || v.pointsCost} <span style="font-size: 10px; color: rgba(255,255,255,0.7);">XP</span></span>
+                    <i class="fa-solid fa-coins" style="color: #fbbf24; font-size: 13px;"></i>
+                    <span style="font-size: 14px; font-weight: 800; color: #ffffff;">${v.pointsCost || v.required_points || 100} <span style="font-size: 10px; color: rgba(255,255,255,0.7);">Points</span></span>
                 </div>
                 <button onclick="${getExpiryInfo(v.expires).isExpired ? '' : 'openVoucherModal(\'' + v.id + '\')'}" ${getExpiryInfo(v.expires).isExpired ? 'disabled' : ''} style="background: ${getExpiryInfo(v.expires).isExpired ? 'rgba(255,255,255,0.08)' : (isClaimed ? 'rgba(52,199,89,0.25)' : 'linear-gradient(135deg, #00f2fe, #0284c7)')}; border: none !important; outline: none !important; color: #ffffff; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: ${getExpiryInfo(v.expires).isExpired ? 'not-allowed' : 'pointer'}; box-shadow: none !important; opacity: ${getExpiryInfo(v.expires).isExpired ? '0.6' : '1'};">
                     ${getExpiryInfo(v.expires).isExpired ? '<i class="fa-solid fa-lock" style="margin-right:4px;"></i> Expired' : (isClaimed ? '<i class="fa-solid fa-check" style="margin-right:4px;"></i> Claimed' : 'Redeem Voucher')}
@@ -405,7 +405,7 @@ function openVoucherModal(id) {
             redeemBtn.style.display = 'none';
         } else {
             redeemBtn.style.display = 'flex';
-            if (redeemLabel) redeemLabel.textContent = `Redeem for ${item.xpCost || item.pointsCost} XP`;
+            if (redeemLabel) redeemLabel.textContent = `Redeem for ${item.pointsCost || item.required_points || 100} Points`;
         }
     }
 
@@ -483,10 +483,10 @@ async function handleModalRedeem() {
         return;
     }
 
-    const cost = item.xpCost || item.pointsCost || 100;
+    const cost = item.pointsCost || item.required_points || 100;
     if (userPointsBalance < cost) {
         if (typeof showToast === 'function') {
-            showToast(`Insufficient XP. You need ${cost} XP (Balance: ${userPointsBalance} XP).`);
+            showToast(`Insufficient Points. You need ${cost} Points (Balance: ${userPointsBalance} Points).`);
         }
         return;
     }
@@ -524,16 +524,13 @@ async function handleModalRedeem() {
                 localStorage.setItem('intan_elyu_claimed_vouchers', JSON.stringify(claimed));
             }
 
-            // Deduct XP and Level in localStorage immediately
-            const cost = item.xpCost || item.pointsCost || 100;
+            // Deduct Points in localStorage immediately
+            const cost = item.pointsCost || item.required_points || 100;
             let storedUser = null;
             try { storedUser = JSON.parse(localStorage.getItem('auth_user') || '{}'); } catch(e) {}
             if (storedUser) {
-                const newXp = data.new_balance !== undefined ? data.new_balance : (data.xp !== undefined ? data.xp : Math.max(0, (storedUser.xp || 0) - cost));
-                const newLevel = Math.floor(Math.max(0, newXp) / 1000) + 1;
-                storedUser.xp = newXp;
-                storedUser.points = newXp;
-                storedUser.level = newLevel;
+                const newPoints = data.new_balance !== undefined ? data.new_balance : (data.points !== undefined ? data.points : Math.max(0, (storedUser.points || 0) - cost));
+                storedUser.points = newPoints;
                 localStorage.setItem('auth_user', JSON.stringify(storedUser));
             }
 
@@ -569,8 +566,8 @@ async function handleModalRedeem() {
         } else {
             if (typeof showToast === 'function') showToast(data.message || "Failed to redeem voucher.");
             if (btn) {
-                const cost = item.xpCost || item.pointsCost || 100;
-                btn.innerHTML = `<i class="fa-solid fa-gift"></i> Redeem for ${cost} XP`;
+                const cost = item.pointsCost || item.required_points || 100;
+                btn.innerHTML = `<i class="fa-solid fa-gift"></i> Redeem for ${cost} Points`;
                 btn.disabled = false;
             }
         }
@@ -578,8 +575,8 @@ async function handleModalRedeem() {
         console.error("Redemption error:", e);
         if (typeof showToast === 'function') showToast("Network error. Please try again.");
         if (btn) {
-            const cost = item.xpCost || item.pointsCost || 100;
-            btn.innerHTML = `<i class="fa-solid fa-gift"></i> Redeem for ${cost} XP`;
+            const cost = item.pointsCost || item.required_points || 100;
+            btn.innerHTML = `<i class="fa-solid fa-gift"></i> Redeem for ${cost} Points`;
             btn.disabled = false;
         }
     }
@@ -604,7 +601,9 @@ async function fetchLiveDatabaseVouchers() {
                         partner: v.partner || 'LUPTO Tourism',
                         location: v.location || 'La Union',
                         badge: v.badge || 'PROMO OFFER',
-                        pointsCost: v.pointsCost || 100,
+                        pointsCost: v.pointsCost || v.required_points || 100,
+                        required_points: v.required_points || v.pointsCost || 100,
+                        points: v.points || v.pointsCost || v.required_points || 100,
                         icon: icon,
                         color: '#38bdf8',
                         code: v.code || 'ELYU-PROMO',

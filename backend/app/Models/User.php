@@ -112,16 +112,28 @@ class User extends Authenticatable
     }
 
     /**
-     * Deduct XP, keep points synced, and re-derive the level.
+     * Deduct Points for vouchers/rewards without reducing XP or Level.
+     */
+    public function deductPoints(int $amount): int
+    {
+        $currentPoints = (int) ($this->points ?? 0);
+        $newPoints = max(0, $currentPoints - $amount);
+        $this->points = $newPoints;
+        $this->save();
+
+        return $newPoints;
+    }
+
+    /**
+     * Deduct XP and re-derive the level.
      */
     public function deductXp(int $amount): int
     {
-        $currentXp = (int) ($this->xp ?? $this->points ?? 0);
+        $currentXp = (int) ($this->xp ?? 0);
         $newXp = max(0, $currentXp - $amount);
         $newLevel = (int) floor($newXp / 1000) + 1;
 
         $this->xp = $newXp;
-        $this->points = $newXp;
         $this->level = $newLevel;
         $this->save();
 
@@ -129,16 +141,15 @@ class User extends Authenticatable
     }
 
     /**
-     * Add XP, keep points synced, and re-derive the level.
+     * Add XP and re-derive the level.
      */
     public function addXp(int $amount): int
     {
-        $currentXp = (int) ($this->xp ?? $this->points ?? 0);
+        $currentXp = (int) ($this->xp ?? 0);
         $newXp = $currentXp + $amount;
         $newLevel = (int) floor($newXp / 1000) + 1;
 
         $this->xp = $newXp;
-        $this->points = $newXp;
         $this->level = $newLevel;
         $this->save();
 

@@ -407,7 +407,7 @@ body[data-view="user_manual"]::-webkit-scrollbar,
             <div class="grid-card-item"><h4>AR Check-In</h4><p>Scan your location & photo proof to earn +50 XP per spot.</p></div>
             <div class="grid-card-item"><h4>GameZone</h4><p>Play Slide Puzzle, Memory Match, and Word Scramble for XP.</p></div>
             <div class="grid-card-item"><h4>Leaderboard</h4><p>Compete across La Union and claim top explorer title.</p></div>
-            <div class="grid-card-item"><h4>Vouchers</h4><p>Redeem XP for local dining, surf, and hotel discounts.</p></div>
+            <div class="grid-card-item"><h4>Vouchers</h4><p>Redeem Points for local dining, surf, and hotel discounts.</p></div>
         </div>
     </div>
 
@@ -664,7 +664,7 @@ body[data-view="user_manual"]::-webkit-scrollbar,
             <div class="manual-section-icon green"><i class="fa-solid fa-tags"></i></div>
             <div>
                 <h2 class="manual-section-title">Step 9 &mdash; Discounts &amp; Vouchers</h2>
-                <p class="manual-section-sub">Redeem XP for dining, surf lessons, and hotel savings</p>
+                <p class="manual-section-sub">Redeem Points for dining, surf lessons, and hotel savings</p>
             </div>
         </div>
         <div class="step-card">
@@ -677,8 +677,8 @@ body[data-view="user_manual"]::-webkit-scrollbar,
         <div class="step-card">
             <div class="step-num">2</div>
             <div class="step-content">
-                <div class="step-title">Redeem XP for Vouchers</div>
-                <div class="step-desc">Use accumulated XP from AR check-ins and GameZone mini-games to unlock active promo discounts.</div>
+                <div class="step-title">Redeem Points for Vouchers</div>
+                <div class="step-desc">Use accumulated reward points from AR check-ins and GameZone mini-games to unlock active promo discounts.</div>
             </div>
         </div>
         <div class="step-card">

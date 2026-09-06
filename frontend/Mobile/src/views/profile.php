@@ -400,9 +400,10 @@ $activeTab = 'profile';
                 const xpInLevel = xp % 1000;
                 const xpPct = Math.min(Math.round((xpInLevel / 1000) * 100), 100);
 
-                window._userPointsBalance = xp;
+                const pointsBalance = (d.points !== undefined) ? d.points : (d.xp ?? 0);
+                window._userPointsBalance = pointsBalance;
                 const ptsVal = document.getElementById('profile-points-val');
-                if (ptsVal) ptsVal.textContent = xp.toLocaleString();
+                if (ptsVal) ptsVal.textContent = pointsBalance.toLocaleString();
 
                 // Re-render Explorer Level Progress Card immediately
                 const elLevelTitle = document.getElementById('explorer-level-title');
@@ -421,7 +422,7 @@ $activeTab = 'profile';
                 try {
                     let stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
                     stored.xp = xp;
-                    stored.points = xp;
+                    stored.points = pointsBalance;
                     stored.level = level;
                     localStorage.setItem('auth_user', JSON.stringify(stored));
                 } catch(e) {}
@@ -492,7 +493,7 @@ $activeTab = 'profile';
                                     </div>
                                 </div>
                                 <button type="button" onclick="event.stopPropagation(); window.showRewardDetailsModal(${idx})" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; border:none !important; outline:none !important; padding:8px 14px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer; flex-shrink:0; box-shadow:none !important; white-space:nowrap;">
-                                    ${v.pointsCost} XP
+                                    ${v.pointsCost || v.required_points || 100} Points
                                 </button>
                             </div>`;
                         }).join('');
@@ -526,7 +527,7 @@ $activeTab = 'profile';
                                     <span style="font-size:11px; color:rgba(255,255,255,0.7);">${v.partner}</span>
                                 </div>
                                 <button type="button" onclick="event.stopPropagation(); window.showRewardDetailsModal(${idx})" style="background:linear-gradient(135deg, #00f2fe, #0284c7); color:#fff; border:none !important; outline:none !important; padding:8px 12px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer; box-shadow:none !important;">
-                                    ${v.pointsCost} XP
+                                    ${v.pointsCost || v.required_points || 100} Points
                                 </button>
                             </div>
                         `).join('');
@@ -544,11 +545,11 @@ $activeTab = 'profile';
 
         const currentPts = window._userPointsBalance || 0;
         if (currentPts < cost) {
-            if (typeof showToast === 'function') showToast(`Insufficient XP. You need ${cost} XP (Balance: ${currentPts} XP).`);
+            if (typeof showToast === 'function') showToast(`Insufficient Points. You need ${cost} Points (Balance: ${currentPts} Points).`);
             return;
         }
 
-        if (!confirm(`Redeem '${title}' for ${cost} XP?`)) return;
+        if (!confirm(`Redeem '${title}' for ${cost} Points?`)) return;
 
         try {
             const response = await fetch(backendUrl + '/api/tourist/points/redeem-voucher', {
@@ -666,8 +667,8 @@ $activeTab = 'profile';
         if (img) img.src = voucher.image || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png';
         if (title) title.textContent = voucher.title || 'Exclusive Reward';
         if (partner) partner.textContent = voucher.partner || voucher.merchant || 'La Union Partner';
-        if (desc) desc.textContent = voucher.description || 'Redeem this voucher with your available XP to enjoy discounts at this partner establishment.';
-        if (costText) costText.textContent = `${voucher.pointsCost} XP`;
+        if (desc) desc.textContent = voucher.description || 'Redeem this voucher with your available Points to enjoy discounts at this partner establishment.';
+        if (costText) costText.textContent = `${voucher.pointsCost || voucher.required_points || 100} Points`;
 
         if (redeemBtn) {
             redeemBtn.onclick = function() {
@@ -869,7 +870,7 @@ $activeTab = 'profile';
             <p id="reward-modal-desc" style="margin:0; font-size:12px; color:rgba(255,255,255,0.92); line-height:1.45;"></p>
         </div>
         <button type="button" id="reward-modal-redeem-btn" style="width:100%; padding:13px; border:none !important; outline:none !important; border-radius:14px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; box-shadow:none !important; display:flex; align-items:center; justify-content:center; gap:8px;">
-            <i class="fa-solid fa-gift"></i> <span>Redeem for <strong id="reward-modal-cost-text">-- XP</strong></span>
+            <i class="fa-solid fa-gift"></i> <span>Redeem for <strong id="reward-modal-cost-text">-- Points</strong></span>
         </button>
     </div>
 </div>

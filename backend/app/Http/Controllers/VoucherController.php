@@ -86,6 +86,8 @@ class VoucherController extends Controller
                     'badge' => $badge,
                     'xpCost' => (int) ($v->required_points ?: 100),
                     'pointsCost' => (int) ($v->required_points ?: 100),
+                    'points' => (int) ($v->required_points ?: 100),
+                    'required_points' => (int) ($v->required_points ?: 100),
                     'code' => $v->voucher_code,
                     'expires' => $v->expires_at ? $v->expires_at->format('Y-m-d') : '2026-12-31',
                     'description' => $v->description ?: $v->terms_and_conditions ?: 'Present voucher code at merchant checkout.',
@@ -111,7 +113,7 @@ class VoucherController extends Controller
 
     /**
      * POST /api/tourist/points/redeem-voucher
-     * Redeem a specific admin voucher by ID using user XP.
+     * Redeem a specific admin voucher by ID using user Points.
      */
     public function redeemVoucher(Request $request): JsonResponse
     {
@@ -139,13 +141,13 @@ class VoucherController extends Controller
 
         $cost = (int) ($voucher->required_points ?: 100);
 
-        // Unified balance from user's XP
-        $balance = (int) ($user->xp ?? $user->points ?? 0);
+        // Get user's Points balance directly from users table
+        $balance = (int) ($user->points ?? 0);
 
         if ($balance < $cost) {
             return response()->json([
                 'status' => 'error',
-                'message' => "Insufficient XP. You need {$cost} XP but currently have {$balance} XP."
+                'message' => "Insufficient points. You need {$cost} Points but currently have {$balance} Points."
             ], 400);
         }
 
@@ -157,26 +159,19 @@ class VoucherController extends Controller
             }
 
             try {
-                if (method_exists($user, 'deductXp')) {
-                    $user->deductXp($cost);
+                if (method_exists($user, 'deductPoints')) {
+                    $user->deductPoints($cost);
                 } else {
-                    $currentXp = (int) ($user->xp ?? $user->points ?? 0);
-                    $newXp = max(0, $currentXp - $cost);
-                    $newLevel = (int) floor($newXp / 1000) + 1;
-                    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
-                        $user->xp = $newXp;
-                    }
+                    $currentPts = (int) ($user->points ?? 0);
+                    $newPts = max(0, $currentPts - $cost);
                     if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
-                        $user->points = $newXp;
+                        $user->points = $newPts;
+                        $user->save();
                     }
-                    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'level')) {
-                        $user->level = $newLevel;
-                    }
-                    $user->save();
                 }
             } catch (\Throwable $e) {
                 try {
-                    $user->decrement('xp', $cost);
+                    $user->decrement('points', $cost);
                 } catch (\Throwable $ignored) {}
             }
 
@@ -203,28 +198,27 @@ class VoucherController extends Controller
                 \App\Models\ActivityLog::create([
                     'user_id'    => $user->id,
                     'action'     => 'Voucher Redeemed',
-                    'details'    => "Redeemed {$cost} XP for '{$voucher->voucher_name}' (Code: {$redemption->voucher_code})",
+                    'details'    => "Redeemed {$cost} Points for '{$voucher->voucher_name}' (Code: {$redemption->voucher_code})",
                     'ip_address' => $request->ip() ?? '127.0.0.1',
                 ]);
             }
         } catch (\Throwable $e) {}
 
-        $newBalance = max(0, $balance - $cost);
-        $newLevel = (int) floor($newBalance / 1000) + 1;
+        $newPoints = max(0, $balance - $cost);
 
         return response()->json([
             'status' => 'success',
             'message' => 'Voucher claimed successfully!',
-            'new_balance' => $newBalance,
-            'xp' => $newBalance,
-            'points' => $newBalance,
-            'level' => $newLevel,
+            'new_balance' => $newPoints,
+            'points' => $newPoints,
+            'xp' => (int) ($user->xp ?? 0),
+            'level' => (int) ($user->level ?? 1),
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
-                'xp' => $newBalance,
-                'points' => $newBalance,
-                'level' => $newLevel,
+                'points' => $newPoints,
+                'xp' => (int) ($user->xp ?? 0),
+                'level' => (int) ($user->level ?? 1),
             ],
             'data' => $redemption
         ]);

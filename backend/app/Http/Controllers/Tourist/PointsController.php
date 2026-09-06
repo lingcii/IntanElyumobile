@@ -20,8 +20,9 @@ class PointsController extends Controller
     {
         $user = $request->user();
 
-        // Single unified XP balance (with points synced for backwards compatibility)
-        $userXp = (int) ($user->xp ?? $user->points ?? 0);
+        // XP and Points balances
+        $userXp = (int) ($user->xp ?? 0);
+        $userPoints = (int) ($user->points ?? 0);
 
         $history = collect();
         try {
@@ -61,7 +62,7 @@ class PointsController extends Controller
         return response()->json([
             'status' => 'success',
             'xp' => $userXp,
-            'points' => $userXp,
+            'points' => $userPoints,
             'level' => $level,
             'earned_total' => $userXp,
             'redeemed_total' => $vouchers->sum('points_cost'),
@@ -265,13 +266,13 @@ class PointsController extends Controller
 
         $cost = $costs[$type];
 
-        // Get points/XP balance directly from users table
-        $balance = (int) ($user->xp ?? $user->points ?? 0);
+        // Get points balance directly from users table
+        $balance = (int) ($user->points ?? 0);
 
         if ($balance < $cost) {
             return response()->json([
                 'status' => 'error',
-                'message' => "Insufficient XP. You need {$cost} XP to redeem this reward, but you only have {$balance} XP."
+                'message' => "Insufficient points. You need {$cost} Points to redeem this reward, but you only have {$balance} Points."
             ], 400);
         }
 
@@ -282,24 +283,21 @@ class PointsController extends Controller
         // Start transaction
         $redemption = DB::transaction(function() use ($user, $type, $cost, $code) {
             try {
-                if (method_exists($user, 'deductXp')) {
-                    $user->deductXp($cost);
+                if (method_exists($user, 'deductPoints')) {
+                    $user->deductPoints($cost);
                 } else {
-                    $currentXp = (int) ($user->xp ?? $user->points ?? 0);
-                    $newXp = max(0, $currentXp - $cost);
-                    $newLevel = (int) floor($newXp / 1000) + 1;
+                    $currentPts = (int) ($user->points ?? 0);
+                    $newPts = max(0, $currentPts - $cost);
                     if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
-                        $user->points = $newXp;
+                        $user->points = $newPts;
+                        $user->save();
                     }
-                    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
-                        $user->xp = $newXp;
-                    }
-                    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'level')) {
-                        $user->level = $newLevel;
-                    }
-                    $user->save();
                 }
-            } catch (\Throwable $e) {}
+            } catch (\Throwable $e) {
+                try {
+                    $user->decrement('points', $cost);
+                } catch (\Throwable $ignored) {}
+            }
 
             return PointRedemption::create([
                 'user_id' => $user->id,
@@ -324,22 +322,21 @@ class PointsController extends Controller
                 \App\Models\ActivityLog::create([
                     'user_id'    => $user->id,
                     'action'     => 'Points Redeemed',
-                    'details'    => "Redeemed {$cost} XP for {$typeLabel} (Code: {$code})",
+                    'details'    => "Redeemed {$cost} Points for {$typeLabel} (Code: {$code})",
                     'ip_address' => $request->ip() ?? '127.0.0.1',
                 ]);
             }
         } catch (\Throwable $e) {}
 
-        $newBalance = max(0, $balance - $cost);
-        $newLevel = (int) floor($newBalance / 1000) + 1;
+        $newPoints = max(0, $balance - $cost);
 
         return response()->json([
             'status' => 'success',
             'message' => 'Reward redeemed successfully!',
-            'new_balance' => $newBalance,
-            'xp' => $newBalance,
-            'points' => $newBalance,
-            'level' => $newLevel,
+            'new_balance' => $newPoints,
+            'points' => $newPoints,
+            'xp' => (int) ($user->xp ?? 0),
+            'level' => (int) ($user->level ?? 1),
             'data' => $redemption
         ]);
     }
