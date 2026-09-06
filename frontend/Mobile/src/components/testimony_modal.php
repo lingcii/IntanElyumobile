@@ -156,6 +156,19 @@
 window.userReviewedSpotIds = window.userReviewedSpotIds || new Set();
 window.userReviewedSpotData = window.userReviewedSpotData || {};
 
+// Classification to Reward Points & Theme configuration
+window.getRewardPointsForClassification = function(status) {
+    const c = String(status || '').toUpperCase().trim();
+    if (c === 'EMERGE' || c === 'EMERGING') {
+        return { label: 'Emerging', points: 100, color: '#c084fc', bg: 'rgba(192, 132, 252, 0.22)', border: 'rgba(192, 132, 252, 0.35)', icon: 'fa-sparkles' };
+    }
+    if (c === 'POTENTIAL') {
+        return { label: 'Potential', points: 75, color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.22)', border: 'rgba(251, 191, 36, 0.35)', icon: 'fa-compass' };
+    }
+    // Default: EXISTING
+    return { label: 'Existing', points: 50, color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.22)', border: 'rgba(56, 189, 248, 0.35)', icon: 'fa-circle-check' };
+};
+
 // Fetch spot IDs reviewed by user to keep UI synchronized across Trip Map, Saved Trips, and Trip History
 window.fetchUserReviewedSpots = async function() {
     const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
@@ -195,6 +208,10 @@ window.syncReviewedButtons = function() {
             btn.innerHTML = '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed';
             btn.style.background = 'rgba(255, 255, 255, 0.18)';
             btn.style.boxShadow = 'none';
+        } else if (btn.getAttribute('data-spot-classification') && !btn.innerHTML.includes('fa-check')) {
+            const cls = btn.getAttribute('data-spot-classification');
+            const meta = (window.getRewardPointsForClassification) ? window.getRewardPointsForClassification(cls) : { points: 50 };
+            btn.innerHTML = `<i class="fa-solid fa-pen" style="font-size:10px; margin-right:4px;"></i> Review (+${meta.points} PTS & XP)`;
         }
     });
 };
@@ -221,6 +238,24 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
     const submitTextEl = document.getElementById('testimony-submit-text');
     const commentInput = document.getElementById('testimony-comment');
     const policyInput = document.getElementById('testimony-policy');
+
+    // Detect classification status
+    let spotClassification = '';
+    if (btnEl && btnEl.getAttribute('data-spot-classification')) {
+        spotClassification = btnEl.getAttribute('data-spot-classification');
+    } else if (window.currentSelectedLocationData && window.currentSelectedLocationData.classification_status) {
+        spotClassification = window.currentSelectedLocationData.classification_status;
+    } else if (window.allDestinations && Array.isArray(window.allDestinations)) {
+        const found = window.allDestinations.find(s => s.id == targetSpotId);
+        if (found && found.classification_status) spotClassification = found.classification_status;
+    } else if (window.allMapLocations && Array.isArray(window.allMapLocations)) {
+        const found = window.allMapLocations.find(s => s.id == targetSpotId);
+        if (found && found.classification_status) spotClassification = found.classification_status;
+    }
+
+    const classMeta = (window.getRewardPointsForClassification)
+        ? window.getRewardPointsForClassification(spotClassification)
+        : { label: 'Existing', points: 50, color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.22)', border: 'rgba(56, 189, 248, 0.35)', icon: 'fa-circle-check' };
 
     if (isAlreadyReviewed) {
         // Repeated Review state: NO ADDITIONAL REWARDS
@@ -251,23 +286,23 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
             if (policyInput) policyInput.value = prevData.policy_recommendation || '';
         }
     } else {
-        // First Review state: EARN REWARDS (+25 XP)
+        // First Review state: EARN REWARDS based on classification (Existing 50, Emerging 100, Potential 75)
         if (titleEl) titleEl.textContent = 'Review Destination';
-        if (subEl) subEl.textContent = 'Share your site testimony and policy recommendations to help local tourism.';
+        if (subEl) subEl.textContent = `Share your site testimony for this ${classMeta.label.toLowerCase()} destination to help local tourism.`;
         if (bannerEl) {
-            bannerEl.style.background = 'linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(37, 99, 235, 0.25) 100%)';
+            bannerEl.style.background = `linear-gradient(135deg, ${classMeta.bg} 0%, rgba(37, 99, 235, 0.25) 100%)`;
             bannerEl.style.border = 'none';
             bannerEl.style.outline = 'none';
         }
         if (iconEl) {
-            iconEl.innerHTML = '<i class="fa-solid fa-gift" style="color:#fbbf24;"></i>';
+            iconEl.innerHTML = `<i class="fa-solid ${classMeta.icon}" style="color:${classMeta.color};"></i>`;
         }
-        if (bannerTitleEl) bannerTitleEl.textContent = 'Review & Earn Rewards';
-        if (bannerDescEl) bannerDescEl.textContent = 'Submit review to claim +25 Points & +25 XP';
+        if (bannerTitleEl) bannerTitleEl.innerHTML = `<span style="color:${classMeta.color};">${classMeta.label} Site</span> • Earn Rewards`;
+        if (bannerDescEl) bannerDescEl.textContent = `Submit review to claim +${classMeta.points} Points & +${classMeta.points} XP`;
         if (bannerBadgesEl) {
-            bannerBadgesEl.innerHTML = '<span style="background:rgba(56,189,248,0.3); color:#67e8f9; font-size:11px; font-weight:800; padding:4px 8px; border-radius:8px; white-space:nowrap;">+25 Points & +25 XP</span>';
+            bannerBadgesEl.innerHTML = `<span style="background:${classMeta.bg}; border:1px solid ${classMeta.border}; color:#ffffff; font-size:11px; font-weight:800; padding:4px 8px; border-radius:8px; white-space:nowrap;">+${classMeta.points} Points & +${classMeta.points} XP</span>`;
         }
-        if (submitTextEl) submitTextEl.textContent = 'Submit Review (+25 Points & XP)';
+        if (submitTextEl) submitTextEl.textContent = `Submit Review (+${classMeta.points} Points & XP)`;
 
         if (typeof window.setStarRating === 'function') window.setStarRating(5);
         if (typeof window.selectCleanliness === 'function') window.selectCleanliness('clean');
@@ -444,11 +479,13 @@ window.submitTestimony = async function(event) {
             }
 
             if (isRewardAwarded) {
+                const earnedPts = (data && data.earned_points !== undefined) ? parseInt(data.earned_points) : 50;
+                const earnedXp = (data && data.earned_xp !== undefined) ? parseInt(data.earned_xp) : 50;
                 if (window.confetti) {
                     window.confetti({ particleCount: 85, spread: 70, origin: { y: 0.6 } });
                 }
                 if (typeof showToast === 'function') {
-                    showToast(data.message || "Review submitted! You earned +25 Points & +25 XP!");
+                    showToast(data.message || `Review submitted! You earned +${earnedPts} Points & +${earnedXp} XP!`);
                 }
                 // Invalidate cached user profile & dashboard so rewards counters immediately update
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
@@ -456,7 +493,7 @@ window.submitTestimony = async function(event) {
                     localStorage.removeItem('user_profile_' + token.substring(0, 10));
                     localStorage.removeItem('dashboard_data_' + token.substring(0, 10));
                 }
-                window.dispatchEvent(new CustomEvent('user-points-updated', { detail: { xp: 25, points: 25 } }));
+                window.dispatchEvent(new CustomEvent('user-points-updated', { detail: { xp: earnedXp, points: earnedPts } }));
                 if (typeof window.fetchUserProfile === 'function') {
                     window.fetchUserProfile(true);
                 }

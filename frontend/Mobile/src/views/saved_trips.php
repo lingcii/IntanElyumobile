@@ -338,6 +338,9 @@ $backRoute = 'itinerary';
                             proofImgHtml = `<img src="${pUrl}" onerror="if(this.src!=='${fallbackUrl}'){this.src='${fallbackUrl}';}" alt="Proof" style="width:52px; height:52px; border-radius:10px; object-fit:cover; border:none !important; outline:none !important; box-shadow:0 4px 12px rgba(0,0,0,0.3); flex-shrink:0;">`;
                         }
 
+                        const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
+                        const sMeta = (typeof window.getRewardPointsForClassification === 'function') ? window.getRewardPointsForClassification(sClass) : { points: 50 };
+
                         html += `
                         <div class="timeline-item ${isVisited ? 'completed' : (isPending ? 'pending' : (isNextStop ? 'is-next-stop' : ''))}" style="margin-bottom: 12px;">
                             <div class="timeline-dot"></div>
@@ -360,8 +363,8 @@ $backRoute = 'itinerary';
                                                 <span style="font-size:10px; color:#ffffff; opacity:0.8;">Approved by Tourism Office</span>
                                             </div>
                                         </div>
-                                        <button type="button" data-spot-id="${item.tourist_spot_id || (dest ? dest.id : '')}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (dest ? dest.id : '')}', this)" style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:none; flex-shrink:0;">
-                                            ${(window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(item.tourist_spot_id || (dest ? dest.id : '')))) ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review (+25 PTS & XP)'}
+                                        <button type="button" data-spot-id="${item.tourist_spot_id || (dest ? dest.id : '')}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (dest ? dest.id : '')}', this)" style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:none; flex-shrink:0;">
+                                            ${(window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(item.tourist_spot_id || (dest ? dest.id : '')))) ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review (+${sMeta.points} PTS & XP)`}
                                         </button>
                                     </div>` : 
                                     (isRejected ? 

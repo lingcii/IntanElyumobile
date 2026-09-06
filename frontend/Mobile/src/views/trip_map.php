@@ -499,12 +499,14 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             if (isVisited) {
                 const sId = item.tourist_spot_id || (item.destination ? item.destination.id : '');
                 const isReviewed = sId && window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(sId));
+                const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
+                const sMeta = (window.getRewardPointsForClassification) ? window.getRewardPointsForClassification(sClass) : { points: 50 };
                 actionBtnHtml = `<div style="display:flex; align-items:center; gap:10px;">
                     ${proofThumbnail}
                     <div style="display:flex; flex-direction:column; gap:2px;">
                         <span style="background:rgba(52,199,89,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:11px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Visited & Verified</span>
-                        <button type="button" data-spot-id="${sId}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${sId}', this)" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px; cursor:pointer; width:fit-content; margin-top:2px;">
-                            ${isReviewed ? '<i class="fa-solid fa-check" style="margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="margin-right:4px;"></i> Review Site (+25 PTS & XP)'}
+                        <button type="button" data-spot-id="${sId}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${sId}', this)" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px; cursor:pointer; width:fit-content; margin-top:2px;">
+                            ${isReviewed ? '<i class="fa-solid fa-check" style="margin-right:4px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="margin-right:4px;"></i> Review Site (+${sMeta.points} PTS & XP)`}
                         </button>
                     </div>
                 </div>`;

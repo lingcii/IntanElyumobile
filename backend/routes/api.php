@@ -1091,26 +1091,38 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
         \Illuminate\Support\Facades\Cache::forget('trending:top:10');
         \Illuminate\Support\Facades\Cache::forget('trending:top:50');
 
-        // Award gamification points (+25 XP, +25 points) ONLY IF FIRST TIME
+        // Award gamification points based on spot classification ONLY IF FIRST TIME
+        $rewardPoints = \App\Models\Classification::getPointsForStatus($spot->classification_status);
+        $canonical = \App\Models\Classification::normalizeStatus($spot->classification_status);
+
         $rewardAwarded = false;
         if ($user && !$alreadyReviewed) {
             try {
-                $user->increment('xp', 25);
+                $user->increment('xp', $rewardPoints);
+                $user->increment('completed_activities');
                 \App\Models\UserPoint::awardPointsSafely(
                     $user->id,
-                    25,
+                    $rewardPoints,
                     'rating',
-                    "Rated {$spot->name} {$request->rating} stars",
+                    "Rated {$spot->name} {$request->rating} stars ({$canonical})",
                     $spot->id
                 );
+                $newXp = (int) ($user->fresh()->xp ?? 0);
+                $newLevel = (int) floor($newXp / 1000) + 1;
+                if ($user->level !== $newLevel) {
+                    $user->update(['level' => $newLevel]);
+                }
                 $rewardAwarded = true;
             } catch (\Throwable $e) {
             }
         }
 
         return response()->json([
-            'message' => $rewardAwarded ? 'Rating submitted successfully! (+25 Points & +25 XP earned)' : 'Rating updated successfully!',
+            'message' => $rewardAwarded ? "Rating submitted successfully! (+{$rewardPoints} Points & +{$rewardPoints} XP earned — {$canonical})" : 'Rating updated successfully!',
             'reward_awarded' => $rewardAwarded,
+            'earned_xp' => $rewardAwarded ? $rewardPoints : 0,
+            'earned_points' => $rewardAwarded ? $rewardPoints : 0,
+            'classification' => $canonical,
             'spot_rating' => $spot->rating
         ]);
     });

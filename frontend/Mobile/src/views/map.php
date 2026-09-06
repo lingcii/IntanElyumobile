@@ -3249,10 +3249,11 @@ if (is_dir($imgDir)) {
 
             if (locationData && locationData.id) {
                 window.currentSelectedSpotId = locationData.id;
+                window.currentSelectedLocationData = locationData;
                 const testimoniesSec = document.getElementById('sheet-testimonies-section');
                 if (testimoniesSec) {
                     testimoniesSec.style.display = 'block';
-                    fetchTestimonies(locationData.id);
+                    fetchTestimonies(locationData.id, locationData);
                 }
             }
 
@@ -3608,7 +3609,7 @@ if (is_dir($imgDir)) {
 
 
         // --- Site Testimonies & Policy Recommendations ---
-        async function fetchTestimonies(spotId) {
+        async function fetchTestimonies(spotId, locData) {
             const list = document.getElementById('testimonies-list-container');
             const summary = document.getElementById('testimonies-summary-metrics');
             const badge = document.getElementById('sheet-testimonies-badge');
@@ -3618,6 +3619,26 @@ if (is_dir($imgDir)) {
 
             const token = localStorage.getItem('intan_elyu_token');
             const _backendBase = window.backendUrl || '';
+
+            // Initial classification resolution from passed or cached location data
+            const curLocation = locData || window.currentSelectedLocationData || {};
+            let spotClassStatus = curLocation.classification_status || '';
+
+            const resolveClassification = (status) => {
+                if (typeof window.getRewardPointsForClassification === 'function') {
+                    return window.getRewardPointsForClassification(status);
+                }
+                const c = String(status || '').toUpperCase().trim();
+                if (c === 'EMERGE' || c === 'EMERGING') {
+                    return { label: 'Emerging', points: 100, color: '#c084fc', bg: 'rgba(192, 132, 252, 0.22)', border: 'rgba(192, 132, 252, 0.35)', icon: 'fa-sparkles' };
+                }
+                if (c === 'POTENTIAL') {
+                    return { label: 'Potential', points: 75, color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.22)', border: 'rgba(251, 191, 36, 0.35)', icon: 'fa-compass' };
+                }
+                return { label: 'Existing', points: 50, color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.22)', border: 'rgba(56, 189, 248, 0.35)', icon: 'fa-circle-check' };
+            };
+
+            let classMeta = resolveClassification(spotClassStatus);
 
             try {
                 const headers = { 'Accept': 'application/json' };
@@ -3631,6 +3652,15 @@ if (is_dir($imgDir)) {
                 const d = window.safeJsonParse(text, null);
                 if (d && d.status === 'success') {
                     const totalReviews = (d.summary && d.summary.total_reviews) ? parseInt(d.summary.total_reviews) : (d.data ? d.data.length : 0);
+
+                    // Update classification metadata from backend summary if present
+                    if (d.summary && (d.summary.classification_name || d.summary.classification_status)) {
+                        spotClassStatus = d.summary.classification_name || d.summary.classification_status;
+                        classMeta = resolveClassification(spotClassStatus);
+                    }
+                    if (d.summary && d.summary.reward_points) {
+                        classMeta.points = parseInt(d.summary.reward_points) || classMeta.points;
+                    }
 
                     if (badge) {
                         if (totalReviews > 0) {
@@ -3663,7 +3693,10 @@ if (is_dir($imgDir)) {
                                     <span style="color:#fbbf24; font-size:16px; font-weight:800;">★ ${avgRating}</span>
                                     <span style="font-size:11px; color:rgba(255,255,255,0.7); font-weight:600;">/ 5.0</span>
                                 </div>
-                                <span style="font-size:11px; color:rgba(255,255,255,0.85); font-weight:700;"><i class="fa-solid fa-chart-simple" style="color:#38bdf8; margin-right:4px;"></i>Visitor Insights (${reviewText})</span>
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <span style="font-size:10px; font-weight:800; color:${classMeta.color}; background:${classMeta.bg}; border:1px solid ${classMeta.border}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid ${classMeta.icon}" style="font-size:8.5px;"></i>${classMeta.label} • +${classMeta.points} PTS</span>
+                                    <span style="font-size:11px; color:rgba(255,255,255,0.85); font-weight:700;"><i class="fa-solid fa-chart-simple" style="color:#38bdf8; margin-right:4px;"></i>Visitor Insights (${reviewText})</span>
+                                </div>
                             </div>
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
                                 <div style="background:rgba(255,255,255,0.06); border-radius:10px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
@@ -3811,9 +3844,18 @@ if (is_dir($imgDir)) {
                             <div style="width:38px; height:38px; border-radius:50%; background:rgba(56,189,248,0.15); display:inline-flex; align-items:center; justify-content:center; color:#38bdf8; font-size:16px; margin-bottom:8px;">
                                 <i class="fa-regular fa-comment-dots"></i>
                             </div>
-                            <div style="font-size:13px; font-weight:800; color:#ffffff; margin-bottom:4px;">No Testimonies Yet</div>
-                            <p style="margin:0 0 10px; font-size:11.5px; color:rgba(226,232,240,0.85); line-height:1.4;">
-                                Be the first verified visitor to review this spot and share policy feedback during your trip navigation to earn <strong>+25 Points & +25 XP</strong>!
+                            <div style="font-size:13px; font-weight:800; color:#ffffff; margin-bottom:6px;">No Testimonies Yet</div>
+                            <div style="display:inline-flex; align-items:center; gap:6px; background:${classMeta.bg}; border:1px solid ${classMeta.border}; padding:4px 12px; border-radius:20px; margin-bottom:10px;">
+                                <span style="font-size:10.5px; font-weight:800; color:${classMeta.color}; text-transform:uppercase; letter-spacing:0.4px; display:inline-flex; align-items:center; gap:4px;">
+                                    <i class="fa-solid ${classMeta.icon}"></i> ${classMeta.label} Spot
+                                </span>
+                                <span style="width:3px; height:3px; border-radius:50%; background:rgba(255,255,255,0.4);"></span>
+                                <span style="font-size:10.5px; font-weight:800; color:#ffffff;">
+                                    +${classMeta.points} Points & +${classMeta.points} XP
+                                </span>
+                            </div>
+                            <p style="margin:0 0 10px; font-size:11.5px; color:rgba(226,232,240,0.85); line-height:1.45;">
+                                Be the first verified visitor to review this <strong style="color:${classMeta.color}; font-weight:800;">${classMeta.label}</strong> spot and share policy feedback during your trip navigation to earn <strong>+${classMeta.points} Points & +${classMeta.points} XP</strong>!
                             </p>
                             <div style="display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.8); background:rgba(255,255,255,0.08); padding:4px 10px; border-radius:20px;">
                                 <i class="fa-solid fa-route" style="color:#38bdf8;"></i> Review available in Trip Map & Visited Stops

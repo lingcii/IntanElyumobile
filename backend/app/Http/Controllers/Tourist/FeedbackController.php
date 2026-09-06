@@ -52,9 +52,16 @@ class FeedbackController extends Controller
             $totalReviews = SiteFeedback::where('tourist_spot_id', $spotId)->count();
             $avgRating = SiteFeedback::where('tourist_spot_id', $spotId)->whereNotNull('rating')->avg('rating');
 
+            $classStatus = $spot ? $spot->classification_status : 'EXIST';
+            $canonClass = \App\Models\Classification::normalizeStatus($classStatus);
+            $rewardPts = \App\Models\Classification::getPointsForStatus($classStatus);
+
             $summary = [
-                'average_rating' => $avgRating ? round((float) $avgRating, 1) : ($spot ? round((float) $spot->rating, 1) : 0.0),
-                'total_reviews'  => $totalReviews,
+                'average_rating'        => $avgRating ? round((float) $avgRating, 1) : ($spot ? round((float) $spot->rating, 1) : 0.0),
+                'total_reviews'         => $totalReviews,
+                'classification_status' => $classStatus,
+                'classification_name'   => $canonClass,
+                'reward_points'         => $rewardPts,
                 'cleanliness' => [
                     'clean'    => (int) ($cleanlinessDistribution['clean'] ?? 0),
                     'moderate' => (int) ($cleanlinessDistribution['moderate'] ?? 0),
@@ -224,19 +231,28 @@ class FeedbackController extends Controller
         \Illuminate\Support\Facades\Cache::forget('trending:top:10');
         \Illuminate\Support\Facades\Cache::forget('trending:top:50');
 
-        // Award gamification points (+25 XP, +25 points) ONLY IF THIS IS THE FIRST REVIEW FOR THIS DESTINATION
+        // Award gamification points based on spot classification ONLY IF THIS IS THE FIRST REVIEW FOR THIS DESTINATION
+        $classificationStatus = $spot ? $spot->classification_status : null;
+        $rewardPoints = \App\Models\Classification::getPointsForStatus($classificationStatus);
+        $canonicalClassification = \App\Models\Classification::normalizeStatus($classificationStatus);
+
         $rewardAwarded = false;
         if ($user && $isFirstReview) {
             try {
-                $user->increment('xp', 25);
+                $user->increment('xp', $rewardPoints);
                 $user->increment('completed_activities');
                 \App\Models\UserPoint::awardPointsSafely(
                     $user->id,
-                    25,
+                    $rewardPoints,
                     'feedback',
-                    'Shared site testimony and policy feedback' . ($spot ? ' for ' . $spot->name : ''),
+                    "Shared site testimony and policy feedback for " . ($spot ? $spot->name : 'Destination') . " ({$canonicalClassification})",
                     $spotId ? (int) $spotId : null
                 );
+                $newXp = (int) ($user->fresh()->xp ?? 0);
+                $newLevel = (int) floor($newXp / 1000) + 1;
+                if ($user->level !== $newLevel) {
+                    $user->update(['level' => $newLevel]);
+                }
                 $rewardAwarded = true;
             } catch (\Throwable $e) {}
         }
@@ -245,13 +261,14 @@ class FeedbackController extends Controller
             'status'         => 'success',
             'success'        => true,
             'reward_awarded' => $rewardAwarded,
-            'earned_xp'      => $rewardAwarded ? 25 : 0,
-            'earned_points'  => $rewardAwarded ? 25 : 0,
+            'earned_xp'      => $rewardAwarded ? $rewardPoints : 0,
+            'earned_points'  => $rewardAwarded ? $rewardPoints : 0,
+            'classification' => $canonicalClassification,
             'message'        => $rewardAwarded
-                ? 'Thank you for your testimony and feedback! (+25 Points & +25 XP earned)'
+                ? "Thank you for your testimony and feedback! (+{$rewardPoints} Points & +{$rewardPoints} XP earned — {$canonicalClassification})"
                 : 'Review updated successfully! (Rewards have already been claimed for this destination)',
             'data'           => $feedback,
-            'spot_rating'    => isset($spot) && $spot ? (float) $spot->rating : ($rating ? (float) $rating : 5.0)
+            'spot_rating'    => isset($spot) && $spot ? (float) $spot->rating : ($rating ? (float) $rating : 0.0)
         ]);
     }
 }
