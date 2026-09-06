@@ -21,19 +21,31 @@
     color: rgba(255, 255, 255, 0.65) !important;
 }
 #testimony-comment,
-#testimony-policy,
+#testimony-policy {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    overflow-y: hidden !important;
+    overflow-x: hidden !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    resize: none !important;
+}
+#testimony-comment::-webkit-scrollbar,
+#testimony-policy::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
 .option-pill {
     border: none !important;
     outline: none !important;
     box-shadow: none !important;
 }
-#testimony-comment:focus,
-#testimony-policy:focus,
 .option-pill:focus,
 .option-pill:active,
 .option-pill:focus-visible {
-    background: rgba(255, 255, 255, 0.22) !important;
-    border: none !important;
     outline: none !important;
     box-shadow: none !important;
 }
@@ -52,19 +64,19 @@
             </button>
         </div>
 
-        <!-- Rewards Incentive Callout Banner -->
-        <div id="testimony-reward-banner" style="background:linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(37, 99, 235, 0.25) 100%); border:none !important; outline:none !important; border-radius:12px; padding:6px 12px; margin-bottom:9px; display:flex; align-items:center; justify-content:space-between; gap:8px; transition:all 0.3s ease;">
+        <!-- Rewards Incentive Callout Banner (Prominent & Visible Container) -->
+        <div id="testimony-reward-banner" style="background:rgba(10, 25, 60, 0.48) !important; border:1px solid rgba(255, 255, 255, 0.22) !important; outline:none !important; border-radius:14px; padding:8px 12px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; box-shadow:0 4px 14px rgba(0,0,0,0.2); transition:all 0.3s ease;">
             <div style="display:flex; align-items:center; gap:8px;">
-                <div id="testimony-reward-icon" style="width:26px; height:26px; border-radius:8px; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; color:#fbbf24; font-size:13px; flex-shrink:0;">
+                <div id="testimony-reward-icon" style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; color:#fbbf24; font-size:13px; flex-shrink:0;">
                     <i class="fa-solid fa-gift"></i>
                 </div>
                 <div>
                     <span id="testimony-reward-title" style="display:block; font-size:11.5px; font-weight:800; color:#ffffff; line-height:1.2;">Review & Earn Rewards</span>
-                    <span id="testimony-reward-desc" style="font-size:10px; color:rgba(255,255,255,0.9); line-height:1.2;">Submit review to claim +25 Points & +25 XP</span>
+                    <span id="testimony-reward-desc" style="font-size:10px; color:rgba(255,255,255,0.9); line-height:1.2;">Submit review to claim rewards</span>
                 </div>
             </div>
             <div id="testimony-reward-badges" style="display:flex; gap:5px; flex-shrink:0;">
-                <span style="background:rgba(56,189,248,0.3); color:#67e8f9; font-size:10.5px; font-weight:800; padding:3px 7px; border-radius:6px; white-space:nowrap;">+25 Points & +25 XP</span>
+                <span style="background:#f59e0b; color:#ffffff; font-size:11px; font-weight:800; padding:5px 10px; border-radius:8px; white-space:nowrap; border:none !important; box-shadow:0 2px 6px rgba(0,0,0,0.25);">Rewards</span>
             </div>
         </div>
 
@@ -84,7 +96,7 @@
                 <input type="hidden" id="testimony-rating" value="5">
             </div>
 
-            <!-- Cleanliness, Safety parameters -->
+            <!-- Cleanliness, Safety parameters (Solid Buttons) -->
             <div style="display:flex; flex-direction:column; gap:7px; margin-bottom:8px;">
 
                 <!-- Cleanliness -->
@@ -94,13 +106,13 @@
                         <span id="cleanliness-selected-label" style="font-size:10.5px; font-weight:800; color:#10b981;">Clean</span>
                     </div>
                     <div style="display:flex; gap:6px;">
-                        <button type="button" class="option-pill clean-pill active" data-val="clean" onclick="window.selectCleanliness('clean')" style="flex:1; padding:6px 4px; border-radius:8px; border:none !important; outline:none !important; background:rgba(16,185,129,0.22); color:#10b981; font-size:10.5px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                        <button type="button" class="option-pill clean-pill active" data-val="clean" onclick="window.selectCleanliness('clean')" style="flex:1; padding:7px 4px; border-radius:8px; border:none !important; outline:none !important; background:#10b981; color:#ffffff; font-size:11px; font-weight:800; cursor:pointer; transition:all 0.2s ease;">
                             Clean
                         </button>
-                        <button type="button" class="option-pill clean-pill" data-val="moderate" onclick="window.selectCleanliness('moderate')" style="flex:1; padding:6px 4px; border-radius:8px; border:none !important; outline:none !important; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); font-size:10.5px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                        <button type="button" class="option-pill clean-pill" data-val="moderate" onclick="window.selectCleanliness('moderate')" style="flex:1; padding:7px 4px; border-radius:8px; border:none !important; outline:none !important; background:rgba(255,255,255,0.15); color:#ffffff; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
                             Moderate
                         </button>
-                        <button type="button" class="option-pill clean-pill" data-val="dirty" onclick="window.selectCleanliness('dirty')" style="flex:1; padding:6px 4px; border-radius:8px; border:none !important; outline:none !important; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); font-size:10.5px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                        <button type="button" class="option-pill clean-pill" data-val="dirty" onclick="window.selectCleanliness('dirty')" style="flex:1; padding:7px 4px; border-radius:8px; border:none !important; outline:none !important; background:rgba(255,255,255,0.15); color:#ffffff; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
                             Dirty
                         </button>
                     </div>
@@ -114,13 +126,13 @@
                         <span id="safety-selected-label" style="font-size:10.5px; font-weight:800; color:#10b981;">Safe</span>
                     </div>
                     <div style="display:flex; gap:6px;">
-                        <button type="button" class="option-pill safety-pill active" data-val="safe" onclick="window.selectSafety('safe')" style="flex:1; padding:6px 4px; border-radius:8px; border:none !important; outline:none !important; background:rgba(16,185,129,0.22); color:#10b981; font-size:10.5px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                        <button type="button" class="option-pill safety-pill active" data-val="safe" onclick="window.selectSafety('safe')" style="flex:1; padding:7px 4px; border-radius:8px; border:none !important; outline:none !important; background:#10b981; color:#ffffff; font-size:11px; font-weight:800; cursor:pointer; transition:all 0.2s ease;">
                             Safe
                         </button>
-                        <button type="button" class="option-pill safety-pill" data-val="moderate" onclick="window.selectSafety('moderate')" style="flex:1; padding:6px 4px; border-radius:8px; border:none !important; outline:none !important; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); font-size:10.5px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                        <button type="button" class="option-pill safety-pill" data-val="moderate" onclick="window.selectSafety('moderate')" style="flex:1; padding:7px 4px; border-radius:8px; border:none !important; outline:none !important; background:rgba(255,255,255,0.15); color:#ffffff; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
                             Moderate
                         </button>
-                        <button type="button" class="option-pill safety-pill" data-val="unsafe" onclick="window.selectSafety('unsafe')" style="flex:1; padding:6px 4px; border-radius:8px; border:none !important; outline:none !important; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); font-size:10.5px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                        <button type="button" class="option-pill safety-pill" data-val="unsafe" onclick="window.selectSafety('unsafe')" style="flex:1; padding:7px 4px; border-radius:8px; border:none !important; outline:none !important; background:rgba(255,255,255,0.15); color:#ffffff; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
                             Unsafe
                         </button>
                     </div>
@@ -131,21 +143,21 @@
             <!-- Testimony description -->
             <div style="margin-bottom:7px;">
                 <label style="font-size:10.5px; font-weight:800; color:#ffffff; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:3px;">Your Testimony:</label>
-                <textarea id="testimony-comment" placeholder="Describe your experience during this site visit..." style="width:100%; height:50px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; border-radius:10px; padding:8px 10px; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; font-size:12px; font-weight:500; font-family:inherit; resize:none; box-sizing:border-box; line-height:1.4;" required></textarea>
+                <textarea id="testimony-comment" placeholder="Describe your experience during this site visit..." style="width:100%; height:52px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; border-radius:10px; padding:8px 10px; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; font-size:12px; font-weight:500; font-family:inherit; resize:none; box-sizing:border-box; line-height:1.4; overflow:hidden !important; scrollbar-width:none; -ms-overflow-style:none;" required></textarea>
             </div>
 
-            <!-- Policy Recommendation -->
+            <!-- Policy Recommendation (No Scrollbar) -->
             <div style="margin-bottom:10px;">
                 <label style="font-size:10.5px; font-weight:800; color:#ffffff; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:3px;">Policy Recommendations (Optional):</label>
-                <textarea id="testimony-policy" placeholder="Any suggestions or recommendations for safety, cleanliness, or crowd control policies?..." style="width:100%; height:48px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; border-radius:10px; padding:8px 10px; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; font-size:12px; font-weight:500; font-family:inherit; resize:none; box-sizing:border-box; line-height:1.4;"></textarea>
+                <textarea id="testimony-policy" placeholder="Any suggestions or recommendations for safety, cleanliness, or crowd control policies?..." style="width:100%; height:52px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; border-radius:10px; padding:8px 10px; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; font-size:12px; font-weight:500; font-family:inherit; resize:none; box-sizing:border-box; line-height:1.4; overflow:hidden !important; scrollbar-width:none; -ms-overflow-style:none;"></textarea>
             </div>
 
             <!-- Action Buttons Inline Row -->
             <div style="display:flex; gap:8px;">
-                <button type="submit" id="testimony-submit-btn" class="btn-primary" style="flex:1; padding:11px 12px; font-size:13px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#fff; border-radius:12px; font-weight:800; cursor:pointer; box-shadow:none; display:flex; align-items:center; justify-content:center; gap:6px;">
-                    <i class="fa-solid fa-paper-plane" style="font-size:11px;"></i> <span id="testimony-submit-text">Submit Review (+25 Points & XP)</span>
+                <button type="submit" id="testimony-submit-btn" class="btn-primary" style="flex:1; padding:12px 14px; font-size:13.5px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#fff; border-radius:12px; font-weight:800; cursor:pointer; box-shadow:none; display:flex; align-items:center; justify-content:center; gap:6px;">
+                    <i class="fa-solid fa-paper-plane" style="font-size:11px;"></i> <span id="testimony-submit-text">Submit Review</span>
                 </button>
-                <button type="button" style="padding:11px 16px; border-radius:12px; border:none !important; outline:none !important; background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.85); font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeWriteTestimonyModal()">Cancel</button>
+                <button type="button" style="padding:12px 16px; border-radius:12px; border:none !important; outline:none !important; background:rgba(255,255,255,0.18); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeWriteTestimonyModal()">Cancel</button>
             </div>
         </form>
     </div>
@@ -262,8 +274,8 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
         if (titleEl) titleEl.textContent = 'Update Destination Review';
         if (subEl) subEl.textContent = 'Modify your site testimony and policy recommendations for this destination.';
         if (bannerEl) {
-            bannerEl.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.2) 100%)';
-            bannerEl.style.border = 'none';
+            bannerEl.style.background = 'rgba(10, 25, 60, 0.48)';
+            bannerEl.style.border = '1px solid rgba(255, 255, 255, 0.22)';
             bannerEl.style.outline = 'none';
         }
         if (iconEl) {
@@ -272,7 +284,7 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
         if (bannerTitleEl) bannerTitleEl.textContent = 'Review Already Claimed';
         if (bannerDescEl) bannerDescEl.textContent = 'Rewards are one-time per spot. Updating will not grant additional XP.';
         if (bannerBadgesEl) {
-            bannerBadgesEl.innerHTML = '<span style="background:rgba(16,185,129,0.25); color:#34d399; font-size:11px; font-weight:800; padding:4px 8px; border-radius:8px; white-space:nowrap;">Claimed ✓</span>';
+            bannerBadgesEl.innerHTML = '<span style="background:#10b981; color:#ffffff; font-size:11px; font-weight:800; padding:5px 10px; border-radius:8px; white-space:nowrap; border:none !important; box-shadow:0 2px 6px rgba(0,0,0,0.25);">Claimed ✓</span>';
         }
         if (submitTextEl) submitTextEl.textContent = 'Update Review';
 
@@ -290,19 +302,21 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
         if (titleEl) titleEl.textContent = 'Review Destination';
         if (subEl) subEl.textContent = `Share your site testimony for this ${classMeta.label.toLowerCase()} destination to help local tourism.`;
         if (bannerEl) {
-            bannerEl.style.background = `linear-gradient(135deg, ${classMeta.bg} 0%, rgba(37, 99, 235, 0.25) 100%)`;
-            bannerEl.style.border = 'none';
+            bannerEl.style.background = 'rgba(10, 25, 60, 0.48)';
+            bannerEl.style.border = '1px solid rgba(255, 255, 255, 0.22)';
             bannerEl.style.outline = 'none';
         }
         if (iconEl) {
             iconEl.innerHTML = `<i class="fa-solid ${classMeta.icon}" style="color:${classMeta.color};"></i>`;
         }
-        if (bannerTitleEl) bannerTitleEl.innerHTML = `<span style="color:${classMeta.color};">${classMeta.label} Site</span> • Earn Rewards`;
+        if (bannerTitleEl) bannerTitleEl.innerHTML = `<span style="color:${classMeta.color}; font-weight:800;">${classMeta.label} Site</span> • Earn Rewards`;
         if (bannerDescEl) bannerDescEl.textContent = `Submit review to claim +${classMeta.points} Points & +${classMeta.points} XP`;
+        
+        const solidBadgeBg = (classMeta.label === 'Potential') ? '#f59e0b' : (classMeta.label === 'Emerging' ? '#0284c7' : '#10b981');
         if (bannerBadgesEl) {
-            bannerBadgesEl.innerHTML = `<span style="background:${classMeta.bg}; border:1px solid ${classMeta.border}; color:#ffffff; font-size:11px; font-weight:800; padding:4px 8px; border-radius:8px; white-space:nowrap;">+${classMeta.points} Points & +${classMeta.points} XP</span>`;
+            bannerBadgesEl.innerHTML = `<span style="background:${solidBadgeBg}; color:#ffffff; font-size:11px; font-weight:800; padding:5px 10px; border-radius:8px; white-space:nowrap; border:none !important; box-shadow:0 2px 6px rgba(0,0,0,0.25);">+${classMeta.points} Points & +${classMeta.points} XP</span>`;
         }
-        if (submitTextEl) submitTextEl.textContent = `Submit Review (+${classMeta.points} Points & XP)`;
+        if (submitTextEl) submitTextEl.textContent = 'Submit Review';
 
         if (typeof window.setStarRating === 'function') window.setStarRating(5);
         if (typeof window.selectCleanliness === 'function') window.selectCleanliness('clean');
@@ -358,7 +372,7 @@ window.selectCleanliness = function(val) {
     if (input) input.value = val;
 
     const labelMap = { clean: 'Clean', moderate: 'Moderate', dirty: 'Dirty' };
-    const colorMap = { clean: '#10b981', moderate: '#f59e0b', dirty: '#f43f5e' };
+    const colorMap = { clean: '#10b981', moderate: '#f59e0b', dirty: '#ef4444' };
     const label = document.getElementById('cleanliness-selected-label');
     if (label) {
         label.textContent = labelMap[val] || val;
@@ -370,15 +384,17 @@ window.selectCleanliness = function(val) {
             btn.classList.add('active');
             btn.style.border = 'none';
             btn.style.outline = 'none';
-            btn.style.background = (colorMap[val] || '#10b981') + '3a';
-            btn.style.color = colorMap[val] || '#10b981';
+            btn.style.background = colorMap[val] || '#10b981';
+            btn.style.color = '#ffffff';
+            btn.style.fontWeight = '800';
             btn.style.boxShadow = 'none';
         } else {
             btn.classList.remove('active');
             btn.style.border = 'none';
             btn.style.outline = 'none';
-            btn.style.background = 'rgba(255,255,255,0.08)';
-            btn.style.color = 'rgba(255,255,255,0.7)';
+            btn.style.background = 'rgba(255,255,255,0.15)';
+            btn.style.color = '#ffffff';
+            btn.style.fontWeight = '700';
             btn.style.boxShadow = 'none';
         }
     });
@@ -389,7 +405,7 @@ window.selectSafety = function(val) {
     if (input) input.value = val;
 
     const labelMap = { safe: 'Safe', moderate: 'Moderate', unsafe: 'Unsafe' };
-    const colorMap = { safe: '#10b981', moderate: '#f59e0b', unsafe: '#f43f5e' };
+    const colorMap = { safe: '#10b981', moderate: '#f59e0b', unsafe: '#ef4444' };
     const label = document.getElementById('safety-selected-label');
     if (label) {
         label.textContent = labelMap[val] || val;
@@ -401,15 +417,17 @@ window.selectSafety = function(val) {
             btn.classList.add('active');
             btn.style.border = 'none';
             btn.style.outline = 'none';
-            btn.style.background = (colorMap[val] || '#10b981') + '3a';
-            btn.style.color = colorMap[val] || '#10b981';
+            btn.style.background = colorMap[val] || '#10b981';
+            btn.style.color = '#ffffff';
+            btn.style.fontWeight = '800';
             btn.style.boxShadow = 'none';
         } else {
             btn.classList.remove('active');
             btn.style.border = 'none';
             btn.style.outline = 'none';
-            btn.style.background = 'rgba(255,255,255,0.08)';
-            btn.style.color = 'rgba(255,255,255,0.7)';
+            btn.style.background = 'rgba(255,255,255,0.15)';
+            btn.style.color = '#ffffff';
+            btn.style.fontWeight = '700';
             btn.style.boxShadow = 'none';
         }
     });
