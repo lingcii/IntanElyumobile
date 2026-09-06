@@ -270,7 +270,7 @@ $activeTab = 'profile';
                 if (elMeta) {
                     let metaParts = [];
                     const tNum = u.tourist_number || u.tourist_id || (u.role === 'tourist' ? 1 : '');
-                    if (tNum) metaParts.push(`<span style="background:#1e293b; color:#ffffff; padding:3px 10px; border-radius:100px; font-size:11px; font-weight:800; border:none !important; outline:none !important; box-shadow:0 2px 6px rgba(0,0,0,0.2);">ID: #${tNum}</span>`);
+                    if (tNum) metaParts.push(`<span style="background:#2563eb; color:#ffffff; padding:3px 10px; border-radius:100px; font-size:11px; font-weight:800; border:none !important; outline:none !important; box-shadow:0 2px 6px rgba(0,0,0,0.2);">ID: #${tNum}</span>`);
                     if (u.home_location) metaParts.push(`<i class="fa-solid fa-location-dot"></i> ${u.home_location}`);
                     if (u.phone) metaParts.push(`<i class="fa-solid fa-phone"></i> ${u.phone}`);
                     if (metaParts.length > 0) {
