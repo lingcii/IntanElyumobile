@@ -757,7 +757,7 @@ $activeTab = 'profile';
         
         const items = trip.items || [];
         const visitedCount = items.filter(i => i.is_visited).length || items.length;
-        document.getElementById('trip-detail-count').innerHTML = `<i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>${visitedCount} Visited`;
+        document.getElementById('trip-detail-count').innerHTML = `<i class="fa-solid fa-location-dot" style="margin-right:4px; color:#ffffff;"></i>${visitedCount} Visited`;
 
         let destHtml = '';
         if (items.length === 0) {
@@ -773,13 +773,13 @@ $activeTab = 'profile';
                 const sMeta = (typeof window.getRewardPointsForClassification === 'function') ? window.getRewardPointsForClassification(sClass) : { points: 50 };
 
                 destHtml += `
-                <div style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:14px; margin-bottom:8px;">
-                    <div style="width:32px; height:32px; border-radius:10px; background:linear-gradient(135deg, #38bdf8, #2563eb); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:900; font-size:13px; color:#fff;">${idx + 1}</div>
+                <div style="display:flex; align-items:center; gap:10px; padding:12px 14px; background:rgba(255,255,255,0.14); border:none !important; outline:none !important; border-radius:14px; margin-bottom:8px;">
+                    <div style="width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:900; font-size:14px; color:#ffffff;">${idx + 1}</div>
                     <div style="flex:1; min-width:0;">
-                        <div style="font-size:13px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
-                        <div style="font-size:11px; color:rgba(148,163,184,0.8); font-weight:600;">${fee}</div>
+                        <div style="font-size:13.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
+                        <div style="font-size:11.5px; color:rgba(255,255,255,0.8); font-weight:600; margin-top:2px;">${fee}</div>
                     </div>
-                    ${spotId ? `<button type="button" data-spot-id="${spotId}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${spotId}', this)" style="background: ${isReviewed ? 'rgba(255,255,255,0.18)' : 'linear-gradient(135deg, #00f2fe 0%, #0284c7 100%)'}; border: none !important; outline: none !important; color: #ffffff; padding: 6px 14px; border-radius: 100px; font-weight: 800; font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow: none !important; flex-shrink: 0;">${isReviewed ? '<i class="fa-solid fa-check" style="font-size: 10px; margin-right: 4px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="font-size: 10px;"></i> Review (+${sMeta.points} PTS & XP)`}</button>` : ''}
+                    ${spotId ? `<button type="button" data-spot-id="${spotId}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${spotId}', this)" style="background: ${isReviewed ? 'rgba(255,255,255,0.22)' : 'linear-gradient(135deg, #00f2fe 0%, #0284c7 100%)'}; border: none !important; outline: none !important; color: #ffffff; padding: 7px 14px; border-radius: 100px; font-weight: 800; font-size: 11.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: none !important; flex-shrink: 0;">${isReviewed ? '<i class="fa-solid fa-check" style="font-size: 10px; margin-right: 4px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="font-size: 10px;"></i> Review (+${sMeta.points} PTS & XP)`}</button>` : ''}
                 </div>`;
             });
         }
@@ -803,12 +803,12 @@ $activeTab = 'profile';
 
 <!-- Full Trip History Modal -->
 <div id="full-history-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center; padding:20px;">
-    <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:1.5px solid rgba(255, 255, 255, 0.25); border-radius:24px; padding:24px 20px; width:100%; max-width:400px; max-height:82vh; display:flex; flex-direction:column; box-shadow:0 24px 60px rgba(10,25,60,0.6); text-align:left;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.12);">
+    <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:24px; padding:24px 20px; width:100%; max-width:400px; max-height:82vh; display:flex; flex-direction:column; box-shadow:0 24px 60px rgba(10,25,60,0.6); text-align:left;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; padding-bottom:12px; border-bottom:none !important;">
             <h3 style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
                 <i class="fa-solid fa-clock-rotate-left" style="color:#38bdf8;"></i> Trip History
             </h3>
-            <button onclick="window.closeFullHistoryModal()" style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); color:#e2e8f0; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px;">
+            <button onclick="window.closeFullHistoryModal()" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px;">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
@@ -821,26 +821,26 @@ $activeTab = 'profile';
 
 <!-- Completed Trip Details Modal -->
 <div id="trip-details-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:2000000; justify-content:center; align-items:center; padding:20px;">
-    <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:1.5px solid rgba(255, 255, 255, 0.25); border-radius:24px; padding:24px 20px; width:100%; max-width:400px; max-height:82vh; display:flex; flex-direction:column; box-shadow:0 24px 60px rgba(10,25,60,0.6); text-align:left;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.08);">
+    <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:24px; padding:24px 20px; width:100%; max-width:400px; max-height:82vh; display:flex; flex-direction:column; box-shadow:0 24px 60px rgba(10,25,60,0.6); text-align:left;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:none !important;">
             <div style="display:flex; align-items:center; gap:10px;">
-                <div style="width:36px; height:36px; border-radius:12px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); display:flex; align-items:center; justify-content:center; color:#10b981; font-size:16px;">
+                <div style="width:36px; height:36px; border-radius:12px; background:#10b981; border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:16px;">
                     <i class="fa-solid fa-flag-checkered"></i>
                 </div>
                 <div>
-                    <div style="font-size:10px; font-weight:800; color:#34c759; text-transform:uppercase; letter-spacing:0.5px;">Finished Trip Details</div>
+                    <div style="font-size:10.5px; font-weight:800; color:#10b981; text-transform:uppercase; letter-spacing:0.5px;">Finished Trip Details</div>
                     <h3 id="trip-detail-title" style="margin:0; color:#ffffff; font-size:17px; font-weight:800;">Trip Details</h3>
                 </div>
             </div>
-            <button onclick="window.closeTripDetailsModal()" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); color:#e2e8f0; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px;">
+            <button onclick="window.closeTripDetailsModal()" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px;">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
 
         <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
-            <span id="trip-detail-date" style="font-size:11px; color:rgba(226,232,240,0.85); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); padding:5px 10px; border-radius:100px; font-weight:600;"><i class="fa-regular fa-calendar" style="color:#38bdf8; margin-right:4px;"></i>--</span>
-            <span id="trip-detail-cost" style="font-size:11px; color:rgba(226,232,240,0.85); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); padding:5px 10px; border-radius:100px; font-weight:600;"><i class="fa-solid fa-coins" style="color:#f59e0b; margin-right:4px;"></i>₱0.00</span>
-            <span id="trip-detail-count" style="font-size:11px; color:#34c759; background:rgba(52,199,89,0.12); border:1px solid rgba(52,199,89,0.25); padding:5px 10px; border-radius:100px; font-weight:700;"><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>0 Visited</span>
+            <span id="trip-detail-date" style="font-size:11.5px; color:#ffffff; background:rgba(255,255,255,0.16); border:none !important; outline:none !important; padding:6px 12px; border-radius:100px; font-weight:700;"><i class="fa-regular fa-calendar" style="color:#38bdf8; margin-right:5px;"></i>--</span>
+            <span id="trip-detail-cost" style="font-size:11.5px; color:#ffffff; background:rgba(255,255,255,0.16); border:none !important; outline:none !important; padding:6px 12px; border-radius:100px; font-weight:700;"><i class="fa-solid fa-coins" style="color:#f59e0b; margin-right:5px;"></i>₱0.00</span>
+            <span id="trip-detail-count" style="font-size:11.5px; color:#ffffff; background:#10b981; border:none !important; outline:none !important; padding:6px 12px; border-radius:100px; font-weight:800;"><i class="fa-solid fa-location-dot" style="margin-right:5px; color:#ffffff;"></i>0 Visited</span>
         </div>
 
         <div style="font-size:11px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Destinations Visited</div>
