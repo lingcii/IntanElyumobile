@@ -1579,9 +1579,9 @@ if (is_dir($imgDir)) {
                 const countExist = document.getElementById('count-exist');
                 const countEmerge = document.getElementById('count-emerge');
                 const countPot = document.getElementById('count-potential');
-                if (countExist) countExist.textContent = `${cExist} Sites`;
-                if (countEmerge) countEmerge.textContent = `${cEmerge} Sites`;
-                if (countPot) countPot.textContent = `${cPot} Sites`;
+                if (countExist) countExist.textContent = `${cExist} Sites • +50 PTS`;
+                if (countEmerge) countEmerge.textContent = `${cEmerge} Sites • +100 PTS`;
+                if (countPot) countPot.textContent = `${cPot} Sites • +75 PTS`;
 
                 popover.style.display = 'block';
                 requestAnimationFrame(() => {
@@ -2891,15 +2891,16 @@ if (is_dir($imgDir)) {
             if (statusBadge) {
                 if (locationData.classification_status) {
                     statusBadge.style.display = 'inline-flex';
-                    if (locationData.classification_status === 'EXIST') {
+                    const cStatus = String(locationData.classification_status).toUpperCase().trim();
+                    if (cStatus === 'EXIST' || cStatus === 'EXISTING') {
                         statusBadge.className = 'sheet-status-pill status-exist';
-                        statusBadge.innerHTML = '<i class="fa-solid fa-circle-check" style="font-size:9px; margin-right:4px; color:#ffffff;"></i>Existing';
-                    } else if (locationData.classification_status === 'EMERGE') {
+                        statusBadge.innerHTML = '<i class="fa-solid fa-circle-check" style="font-size:9px; margin-right:4px; color:#ffffff;"></i>Existing • +50 PTS';
+                    } else if (cStatus === 'EMERGE' || cStatus === 'EMERGING') {
                         statusBadge.className = 'sheet-status-pill status-emerge';
-                        statusBadge.innerHTML = '<i class="fa-solid fa-sparkles" style="font-size:9px; margin-right:4px; color:#ffffff;"></i>Emerging';
-                    } else if (locationData.classification_status === 'POTENTIAL') {
+                        statusBadge.innerHTML = '<i class="fa-solid fa-sparkles" style="font-size:9px; margin-right:4px; color:#ffffff;"></i>Emerging • +100 PTS';
+                    } else if (cStatus === 'POTENTIAL') {
                         statusBadge.className = 'sheet-status-pill status-potential';
-                        statusBadge.innerHTML = '<i class="fa-solid fa-compass" style="font-size:9px; margin-right:4px; color:#ffffff;"></i>Potential';
+                        statusBadge.innerHTML = '<i class="fa-solid fa-compass" style="font-size:9px; margin-right:4px; color:#ffffff;"></i>Potential • +75 PTS';
                     } else {
                         statusBadge.style.display = 'none';
                     }

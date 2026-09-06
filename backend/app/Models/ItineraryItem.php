@@ -45,28 +45,25 @@ class ItineraryItem extends Model
                     // Increment spot visit count
                     $spot->increment('visits');
 
-                    // Determine XP based on classification status
-                    $baseXp = 50;
-                    $xpEarned = match($spot->classification_status) {
-                        'EMERGE'    => 100,
-                        'POTENTIAL' => 75,
-                        default     => $baseXp,
-                    };
+                    // Determine Points & XP based on classification status
+                    $rewardPoints = \App\Models\Classification::getPointsForStatus($spot->classification_status);
+                    $canonical = \App\Models\Classification::normalizeStatus($spot->classification_status);
 
                     // Award XP & Level
-                    $newXp    = ($user->xp ?? 0) + $xpEarned;
+                    $newXp    = ($user->xp ?? 0) + $rewardPoints;
                     $newLevel = (int) floor($newXp / 1000) + 1;
                     $user->update([
                         'xp' => $newXp,
                         'level' => $newLevel,
                     ]);
 
-                    // Award Points in points ledger
+                    // Award Points in users table & ledger
                     \App\Models\UserPoint::awardPointsSafely(
                         $user->id,
-                        50,
+                        $rewardPoints,
                         'check_in',
-                        "GPS Check-in with confirmed photo proof at " . $spot->name
+                        "GPS Check-in with confirmed photo proof at " . $spot->name,
+                        $spot->id
                     );
 
                     $user->increment('completed_activities');
@@ -80,7 +77,7 @@ class ItineraryItem extends Model
                         $user->id,
                         'checkin_approved',
                         'Check-in Verified!',
-                        "Your photo proof check-in at {$spot->name} was confirmed! Earned +{$xpEarned} XP."
+                        "Your photo proof check-in at {$spot->name} was confirmed! Earned +{$rewardPoints} Points & XP ({$canonical})."
                     );
                 }
             }

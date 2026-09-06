@@ -467,9 +467,13 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
             'reviewed_at' => now(),
         ]);
 
+        $item->loadMissing('destination');
+        $rewardPoints = \App\Models\Classification::getPointsForStatus($item->destination?->classification_status);
+        $canonical = \App\Models\Classification::normalizeStatus($item->destination?->classification_status);
+
         return response()->json([
             'success' => true,
-            'message' => 'Proof check-in approved successfully! +50 XP awarded to tourist.',
+            'message' => "Proof check-in approved successfully! +{$rewardPoints} Points & XP ({$canonical}) awarded to tourist.",
             'item' => $item,
         ]);
     });
@@ -974,9 +978,13 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
                 'reviewed_at' => now(),
             ]);
 
+            $item->loadMissing('destination');
+            $rewardPoints = \App\Models\Classification::getPointsForStatus($item->destination?->classification_status);
+            $canonical = \App\Models\Classification::normalizeStatus($item->destination?->classification_status);
+
             return response()->json([
                 'success' => true,
-                'message' => 'Proof check-in approved successfully! +50 XP awarded to tourist.',
+                'message' => "Proof check-in approved successfully! +{$rewardPoints} Points & XP ({$canonical}) awarded to tourist.",
                 'item' => $item,
             ]);
         });
@@ -1141,18 +1149,27 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
         // Increment spot visits count in database
         $spot->increment('visits');
 
+        $rewardPoints = \App\Models\Classification::getPointsForStatus($spot->classification_status);
+        $canonical = \App\Models\Classification::normalizeStatus($spot->classification_status);
+
         $user = $request->user();
         if ($user) {
             try {
-                $user->increment('xp', 50);
+                $user->increment('xp', $rewardPoints);
                 $user->increment('completed_activities');
                 \App\Models\UserPoint::awardPointsSafely(
                     $user->id,
-                    50,
+                    $rewardPoints,
                     'ar_checkin',
-                    "AR/GPS Check-in at {$spot->name}",
+                    "AR/GPS Check-in at {$spot->name} ({$canonical})",
                     $spot->id
                 );
+
+                $newXp = (int) ($user->fresh()->xp ?? 0);
+                $newLevel = (int) floor($newXp / 1000) + 1;
+                if ($user->level !== $newLevel) {
+                    $user->update(['level' => $newLevel]);
+                }
             } catch (\Throwable $e) {
             }
         }
@@ -1165,10 +1182,11 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
         return response()->json([
             'status' => 'success',
             'success' => true,
-            'message' => "🎉 Check-in Verified at {$spot->name}! Earned +50 XP!",
+            'message' => "🎉 Check-in Verified at {$spot->name}! Earned +{$rewardPoints} Points & XP ({$canonical})!",
             'visits' => (int) $spot->fresh()->visits,
-            'xp_earned' => 50,
-            'points_earned' => 50,
+            'xp_earned' => $rewardPoints,
+            'points_earned' => $rewardPoints,
+            'classification' => $canonical,
         ]);
     });
 
@@ -1177,18 +1195,27 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
         $spot = TouristSpot::findOrFail($id);
         $spot->increment('visits');
 
+        $rewardPoints = \App\Models\Classification::getPointsForStatus($spot->classification_status);
+        $canonical = \App\Models\Classification::normalizeStatus($spot->classification_status);
+
         $user = $request->user();
         if ($user) {
             try {
-                $user->increment('xp', 50);
+                $user->increment('xp', $rewardPoints);
                 $user->increment('completed_activities');
                 \App\Models\UserPoint::awardPointsSafely(
                     $user->id,
-                    50,
+                    $rewardPoints,
                     'check_in',
-                    "Direct Check-in at {$spot->name}",
+                    "Direct Check-in at {$spot->name} ({$canonical})",
                     $spot->id
                 );
+
+                $newXp = (int) ($user->fresh()->xp ?? 0);
+                $newLevel = (int) floor($newXp / 1000) + 1;
+                if ($user->level !== $newLevel) {
+                    $user->update(['level' => $newLevel]);
+                }
             } catch (\Throwable $e) {
             }
         }
@@ -1200,10 +1227,11 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
         return response()->json([
             'status' => 'success',
             'success' => true,
-            'message' => "🎉 Check-in completed at {$spot->name}! Earned +50 XP!",
+            'message' => "🎉 Check-in completed at {$spot->name}! Earned +{$rewardPoints} Points & XP ({$canonical})!",
             'visits' => (int) $spot->fresh()->visits,
-            'xp_earned' => 50,
-            'points_earned' => 50,
+            'xp_earned' => $rewardPoints,
+            'points_earned' => $rewardPoints,
+            'classification' => $canonical,
         ]);
     });
 
@@ -1246,14 +1274,54 @@ Route::post('/public/destinations/{id}/check-in', function (\Illuminate\Http\Req
     $spot->increment('visits');
     \Illuminate\Support\Facades\Cache::forget('map:public:spots');
     \Illuminate\Support\Facades\Cache::forget('trending:top:5');
-    return response()->json(['status' => 'success', 'success' => true, 'visits' => (int) $spot->fresh()->visits]);
+
+    $rewardPoints = \App\Models\Classification::getPointsForStatus($spot->classification_status);
+    $canonical = \App\Models\Classification::normalizeStatus($spot->classification_status);
+
+    $user = $request->user();
+    if ($user) {
+        try {
+            $user->increment('xp', $rewardPoints);
+            $user->increment('completed_activities');
+            \App\Models\UserPoint::awardPointsSafely($user->id, $rewardPoints, 'check_in', "Check-in at {$spot->name} ({$canonical})", $spot->id);
+        } catch (\Throwable $e) {}
+    }
+
+    return response()->json([
+        'status' => 'success',
+        'success' => true,
+        'visits' => (int) $spot->fresh()->visits,
+        'xp_earned' => $rewardPoints,
+        'points_earned' => $rewardPoints,
+        'classification' => $canonical,
+    ]);
 });
 Route::post('/destinations/{id}/check-in', function (\Illuminate\Http\Request $request, int $id) {
     $spot = TouristSpot::findOrFail($id);
     $spot->increment('visits');
     \Illuminate\Support\Facades\Cache::forget('map:public:spots');
     \Illuminate\Support\Facades\Cache::forget('trending:top:5');
-    return response()->json(['status' => 'success', 'success' => true, 'visits' => (int) $spot->fresh()->visits]);
+
+    $rewardPoints = \App\Models\Classification::getPointsForStatus($spot->classification_status);
+    $canonical = \App\Models\Classification::normalizeStatus($spot->classification_status);
+
+    $user = $request->user();
+    if ($user) {
+        try {
+            $user->increment('xp', $rewardPoints);
+            $user->increment('completed_activities');
+            \App\Models\UserPoint::awardPointsSafely($user->id, $rewardPoints, 'check_in', "Check-in at {$spot->name} ({$canonical})", $spot->id);
+        } catch (\Throwable $e) {}
+    }
+
+    return response()->json([
+        'status' => 'success',
+        'success' => true,
+        'visits' => (int) $spot->fresh()->visits,
+        'xp_earned' => $rewardPoints,
+        'points_earned' => $rewardPoints,
+        'classification' => $canonical,
+    ]);
 });
 Route::post('/points/ar-checkin', function (\Illuminate\Http\Request $request) {
     $spotId = $request->input('spot_id');
@@ -1263,7 +1331,27 @@ Route::post('/points/ar-checkin', function (\Illuminate\Http\Request $request) {
     $spot->increment('visits');
     \Illuminate\Support\Facades\Cache::forget('map:public:spots');
     \Illuminate\Support\Facades\Cache::forget('trending:top:5');
-    return response()->json(['status' => 'success', 'success' => true, 'visits' => (int) $spot->fresh()->visits]);
+
+    $rewardPoints = \App\Models\Classification::getPointsForStatus($spot->classification_status);
+    $canonical = \App\Models\Classification::normalizeStatus($spot->classification_status);
+
+    $user = $request->user();
+    if ($user) {
+        try {
+            $user->increment('xp', $rewardPoints);
+            $user->increment('completed_activities');
+            \App\Models\UserPoint::awardPointsSafely($user->id, $rewardPoints, 'ar_checkin', "AR Check-in at {$spot->name} ({$canonical})", $spot->id);
+        } catch (\Throwable $e) {}
+    }
+
+    return response()->json([
+        'status' => 'success',
+        'success' => true,
+        'visits' => (int) $spot->fresh()->visits,
+        'xp_earned' => $rewardPoints,
+        'points_earned' => $rewardPoints,
+        'classification' => $canonical,
+    ]);
 });
 Route::post('/feedback', [FeedbackController::class, 'store']);
 Route::post('/destinations/{id}/rate', function (\Illuminate\Http\Request $request, int $id) {

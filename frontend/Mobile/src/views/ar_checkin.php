@@ -289,7 +289,8 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
                 document.getElementById('result-title').style.color = '#ef4444';
             }
             
-            document.getElementById('result-xp').textContent = `+${data.xp_earned} XP`;
+            const ptsEarned = data.points_earned || data.xp_earned || 50;
+            document.getElementById('result-xp').textContent = `+${ptsEarned} Points & XP`;
             document.getElementById('result-message').innerHTML = 
                 (data.fun_fact ? `<strong>Did you know?</strong> ${data.fun_fact}` : data.message);
                 
