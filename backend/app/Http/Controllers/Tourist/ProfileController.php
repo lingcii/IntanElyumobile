@@ -417,4 +417,43 @@ class ProfileController extends Controller
             'message' => 'Two-factor authentication successfully activated!'
         ]);
     }
+
+    /**
+     * POST /api/tourist/change-password
+     * Change tourist password with strict policy validation
+     */
+    public function changePassword(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|different:current_password|confirmed',
+        ]);
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->input('current_password'), $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The current password you entered is incorrect.'
+            ], 422);
+        }
+
+        $newPassword = $request->input('new_password');
+
+        if (!preg_match('/[A-Za-z]/', $newPassword) || !preg_match('/[0-9]/', $newPassword)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'New password must be at least 8 characters and contain both letters and numbers.'
+            ], 422);
+        }
+
+        $user->password = \Illuminate\Support\Facades\Hash::make($newPassword);
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password updated successfully!'
+        ]);
+    }
 }
+

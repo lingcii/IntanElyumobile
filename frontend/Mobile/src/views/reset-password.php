@@ -67,11 +67,31 @@ $email = $_GET['email'] ?? '';
                     <input type="hidden" id="reset-token" value="<?= htmlspecialchars($token, ENT_QUOTES) ?>">
                     <input type="hidden" id="reset-email" value="<?= htmlspecialchars($email, ENT_QUOTES) ?>">
 
-                    <div class="input-group" style="margin-bottom: 20px;">
+                    <div class="input-group" style="margin-bottom: 12px;">
                         <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="reset-password-val" class="auth-input" placeholder="New Password (min 8 chars)" required minlength="8">
+                        <input type="password" id="reset-password-val" class="auth-input" placeholder="New Password (min 8 chars)" required minlength="8" oninput="validateResetPasswordMetrics()">
                         <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('reset-password-val', this)"></i>
                     </div>
+
+                    <div id="reset-pwd-strength-container" class="pwd-strength-wrapper" style="display: none; margin-bottom: 16px;" data-score="0">
+                        <div class="pwd-strength-segments">
+                            <div class="pwd-segment seg-1"></div>
+                            <div class="pwd-segment seg-2"></div>
+                            <div class="pwd-segment seg-3"></div>
+                            <div class="pwd-segment seg-4"></div>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 5px; font-size: 11px; font-weight: 700;">
+                            <span id="reset-pwd-strength-label" style="color: #94a3b8; transition: color 0.2s ease;">Password Strength</span>
+                            <span id="reset-pwd-strength-score" style="color: rgba(148, 163, 184, 0.7); font-size: 10px;">0/4</span>
+                        </div>
+                        <div class="pwd-checklist" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; font-size: 10.5px; font-weight: 600;">
+                            <span id="rst-len8" class="pwd-chk-item"><i class="fa-solid fa-circle" style="font-size: 6px; vertical-align: middle;"></i> 8+ chars</span>
+                            <span id="rst-num" class="pwd-chk-item"><i class="fa-solid fa-circle" style="font-size: 6px; vertical-align: middle;"></i> a number</span>
+                            <span id="rst-cap" class="pwd-chk-item"><i class="fa-solid fa-circle" style="font-size: 6px; vertical-align: middle;"></i> a capital</span>
+                            <span id="rst-sym" class="pwd-chk-item"><i class="fa-solid fa-circle" style="font-size: 6px; vertical-align: middle;"></i> a symbol</span>
+                        </div>
+                    </div>
+
                     <div class="input-group" style="margin-bottom: 28px;">
                         <i class="fa-solid fa-lock"></i>
                         <input type="password" id="reset-password-confirm" class="auth-input" placeholder="Confirm New Password" required minlength="8">
@@ -143,6 +163,48 @@ $email = $_GET['email'] ?? '';
             console.warn('Token or email query parameter missing from URL.');
         }
 
+        window.validateResetPasswordMetrics = function() {
+            const pwdEl = document.getElementById('reset-password-val');
+            const container = document.getElementById('reset-pwd-strength-container');
+            const label = document.getElementById('reset-pwd-strength-label');
+            const scoreEl = document.getElementById('reset-pwd-strength-score');
+
+            const chkLen8 = document.getElementById('rst-len8');
+            const chkNum = document.getElementById('rst-num');
+            const chkCap = document.getElementById('rst-cap');
+            const chkSym = document.getElementById('rst-sym');
+
+            if (!pwdEl || !container) return;
+
+            const pwd = pwdEl.value;
+            if (pwd.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'block';
+            const len8 = pwd.length >= 8;
+            const hasNum = /\d/.test(pwd);
+            const hasCap = /[A-Z]/.test(pwd);
+            const hasSym = /[^A-Za-z0-9]/.test(pwd);
+
+            const score = [len8, hasNum, hasCap, hasSym].filter(Boolean).length;
+            container.dataset.score = score;
+            if (scoreEl) scoreEl.textContent = score + '/4';
+
+            if (chkLen8) chkLen8.className = 'pwd-chk-item' + (len8 ? ' passed' : '');
+            if (chkNum) chkNum.className = 'pwd-chk-item' + (hasNum ? ' passed' : '');
+            if (chkCap) chkCap.className = 'pwd-chk-item' + (hasCap ? ' passed' : '');
+            if (chkSym) chkSym.className = 'pwd-chk-item' + (hasSym ? ' passed' : '');
+
+            const labels = ['Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+            const colors = ['#f87171', '#f87171', '#fb923c', '#facc15', '#34d399'];
+            if (label) {
+                label.textContent = labels[score] || 'Password Strength';
+                label.style.color = colors[score] || '#94a3b8';
+            }
+        };
+
         window.handleResetPassword = async function (e) {
             e.preventDefault();
 
@@ -151,6 +213,11 @@ $email = $_GET['email'] ?? '';
 
             if (password.length < 8) {
                 if (typeof showToast === 'function') showToast('Password must be at least 8 characters long.');
+                return;
+            }
+
+            if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+                if (typeof showToast === 'function') showToast('Password must contain both letters and numbers.');
                 return;
             }
 

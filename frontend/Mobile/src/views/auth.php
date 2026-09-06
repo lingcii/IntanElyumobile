@@ -349,7 +349,7 @@
             </div>
             <div>
                 <h3 class="privacy-modal-title">Terms &amp; Privacy Policy</h3>
-                <span class="privacy-modal-badge">Data Protection · Step 1 of 2</span>
+                <span class="privacy-modal-badge"><i class="fa-solid fa-shield-halved"></i> RA 10173 Compliant</span>
             </div>
         </div>
 
@@ -357,7 +357,7 @@
             <div class="policy-welcome-banner">
                 <i class="fa-solid fa-circle-info policy-welcome-icon"></i>
                 <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.95); line-height: 1.55;">
-                    Welcome to <strong style="color: #ffffff;">Intan Elyu Tourism Management System</strong>. Please read through our terms of service and privacy practices before activating your account:
+                    Welcome to <strong style="color: #ffffff;">Intan Elyu Tourism Management System</strong>. In strict compliance with the <strong style="color: #38bdf8;">Data Privacy Act of 2012 (Republic Act No. 10173)</strong>, please review our terms of service and personal data protection practices before activating your account:
                 </p>
             </div>
             
@@ -403,10 +403,10 @@
 
             <div class="policy-item-card">
                 <div class="policy-item-header">
-                    <div class="policy-icon-badge"><i class="fa-solid fa-eye-slash"></i></div>
-                    <span class="policy-item-title">6. Privacy Rights &amp; Profile</span>
+                    <div class="policy-icon-badge"><i class="fa-solid fa-user-shield"></i></div>
+                    <span class="policy-item-title">6. Data Subject Rights (RA 10173)</span>
                 </div>
-                <p class="policy-item-desc">Your email remains private. You can toggle your profile to Private mode anytime in App Settings to hide your rank on public leaderboards or request account erasure.</p>
+                <p class="policy-item-desc">Under Republic Act No. 10173, you retain the Right to be Informed, Right to Access, Right to Object, and Right to Erasure. Your email remains confidential. You can toggle your profile to Private mode anytime in Settings to hide your rank on public leaderboards or request account erasure.</p>
             </div>
         </div>
 

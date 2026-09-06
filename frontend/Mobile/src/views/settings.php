@@ -110,7 +110,26 @@ $backRoute = 'dashboard';
             </div>
             <div style="margin-bottom: 12px;">
                 <label style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); display: block; margin-bottom: 4px;">New Password</label>
-                <input type="password" id="new-password" required placeholder="••••••••" style="width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.12); border: none; outline: none; color: #fff; font-size: 14px;">
+                <input type="password" id="new-password" required placeholder="••••••••" oninput="validateChangePasswordMetrics()" style="width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.12); border: none; outline: none; color: #fff; font-size: 14px;">
+                
+                <div id="change-pwd-strength-container" class="pwd-strength-wrapper" style="display: none; margin-top: 6px; margin-bottom: 8px;" data-score="0">
+                    <div class="pwd-strength-segments">
+                        <div class="pwd-segment seg-1"></div>
+                        <div class="pwd-segment seg-2"></div>
+                        <div class="pwd-segment seg-3"></div>
+                        <div class="pwd-segment seg-4"></div>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 5px; font-size: 11px; font-weight: 700;">
+                        <span id="change-pwd-strength-label" style="color: #94a3b8; transition: color 0.2s ease;">Password Strength</span>
+                        <span id="change-pwd-strength-score" style="color: rgba(148, 163, 184, 0.7); font-size: 10px;">0/4</span>
+                    </div>
+                    <div class="pwd-checklist" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; font-size: 10.5px; font-weight: 600;">
+                        <span id="chg-len8" class="pwd-chk-item"><i class="fa-solid fa-circle" style="font-size: 6px; vertical-align: middle;"></i> 8+ chars</span>
+                        <span id="chg-num" class="pwd-chk-item"><i class="fa-solid fa-circle" style="font-size: 6px; vertical-align: middle;"></i> a number</span>
+                        <span id="chg-cap" class="pwd-chk-item"><i class="fa-solid fa-circle" style="font-size: 6px; vertical-align: middle;"></i> a capital</span>
+                        <span id="chg-sym" class="pwd-chk-item"><i class="fa-solid fa-circle" style="font-size: 6px; vertical-align: middle;"></i> a symbol</span>
+                    </div>
+                </div>
             </div>
             <div style="margin-bottom: 18px;">
                 <label style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); display: block; margin-bottom: 4px;">Confirm New Password</label>
@@ -379,14 +398,64 @@ $backRoute = 'dashboard';
         }
     };
 
+    window.validateChangePasswordMetrics = function() {
+        const pwdEl = document.getElementById('new-password');
+        const container = document.getElementById('change-pwd-strength-container');
+        const label = document.getElementById('change-pwd-strength-label');
+        const scoreEl = document.getElementById('change-pwd-strength-score');
+
+        const chkLen8 = document.getElementById('chg-len8');
+        const chkNum = document.getElementById('chg-num');
+        const chkCap = document.getElementById('chg-cap');
+        const chkSym = document.getElementById('chg-sym');
+
+        if (!pwdEl || !container) return;
+
+        const pwd = pwdEl.value;
+        if (pwd.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+
+        container.style.display = 'block';
+        const len8 = pwd.length >= 8;
+        const hasNum = /\d/.test(pwd);
+        const hasCap = /[A-Z]/.test(pwd);
+        const hasSym = /[^A-Za-z0-9]/.test(pwd);
+
+        const score = [len8, hasNum, hasCap, hasSym].filter(Boolean).length;
+        container.dataset.score = score;
+        if (scoreEl) scoreEl.textContent = score + '/4';
+
+        if (chkLen8) chkLen8.className = 'pwd-chk-item' + (len8 ? ' passed' : '');
+        if (chkNum) chkNum.className = 'pwd-chk-item' + (hasNum ? ' passed' : '');
+        if (chkCap) chkCap.className = 'pwd-chk-item' + (hasCap ? ' passed' : '');
+        if (chkSym) chkSym.className = 'pwd-chk-item' + (hasSym ? ' passed' : '');
+
+        const labels = ['Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+        const colors = ['#f87171', '#f87171', '#fb923c', '#facc15', '#34d399'];
+        if (label) {
+            label.textContent = labels[score] || 'Password Strength';
+            label.style.color = colors[score] || '#94a3b8';
+        }
+    };
+
     window.submitChangePassword = async function(e) {
         if (e) e.preventDefault();
         const currPass = document.getElementById('curr-password').value;
         const newPass = document.getElementById('new-password').value;
         const confPass = document.getElementById('conf-password').value;
 
-        if (!currPass || !newPass) {
+        if (!currPass || !newPass || !confPass) {
             if (typeof showToast === 'function') showToast('Please fill in all password fields.');
+            return;
+        }
+        if (newPass.length < 8) {
+            if (typeof showToast === 'function') showToast('New password must be at least 8 characters.');
+            return;
+        }
+        if (!/[A-Za-z]/.test(newPass) || !/\d/.test(newPass)) {
+            if (typeof showToast === 'function') showToast('Password must contain both letters and numbers.');
             return;
         }
         if (newPass !== confPass) {
@@ -411,17 +480,20 @@ $backRoute = 'dashboard';
                 })
             });
 
-            if (res.ok) {
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.success) {
                 if (typeof showToast === 'function') showToast('Password updated successfully!');
+                document.getElementById('curr-password').value = '';
+                document.getElementById('new-password').value = '';
+                document.getElementById('conf-password').value = '';
+                const container = document.getElementById('change-pwd-strength-container');
+                if (container) container.style.display = 'none';
                 window.closeChangePasswordModal();
             } else {
-                const errData = await res.json().catch(() => ({}));
-                if (typeof showToast === 'function') showToast(errData.message || 'Password update request processed.');
-                window.closeChangePasswordModal();
+                if (typeof showToast === 'function') showToast(data.message || 'Failed to update password.');
             }
         } catch(e) {
-            if (typeof showToast === 'function') showToast('Password update request processed.');
-            window.closeChangePasswordModal();
+            if (typeof showToast === 'function') showToast('Network error while updating password.');
         }
     };
 })();

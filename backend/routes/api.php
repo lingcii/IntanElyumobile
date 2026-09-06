@@ -1045,6 +1045,7 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     Route::get('/dashboard', [TouristDashboardController::class, 'index']);
     Route::get('/profile', [TouristProfileController::class, 'show']);
     Route::post('/profile', [TouristProfileController::class, 'update']);
+    Route::post('/change-password', [TouristProfileController::class, 'changePassword']);
     Route::post('/2fa/toggle', [TouristProfileController::class, 'toggle2FA']);
     Route::post('/2fa/verify', [TouristProfileController::class, 'verify2FA']);
     Route::get('/leaderboard', [LeaderboardController::class, 'index']);
