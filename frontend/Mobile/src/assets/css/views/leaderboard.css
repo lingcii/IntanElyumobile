@@ -131,15 +131,15 @@ body[data-view="leaderboard"] .mobile-header .header-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    padding: 8px 4px;
+    padding: 9px 6px;
     border-radius: 100px;
     border: none !important;
     outline: none !important;
     background: transparent !important;
     color: rgba(255, 255, 255, 0.75) !important;
-    font-size: 11px;
+    font-size: 12.5px;
     font-weight: 700;
+    letter-spacing: 0.2px;
     white-space: nowrap;
     cursor: pointer;
     transition: color 0.25s ease, transform 0.15s ease;

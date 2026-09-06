@@ -46,13 +46,13 @@ $activeTab = 'leaderboard';
     <div class="leaderboard-tabs-wrapper mode-xp stagger-1">
         <div class="leaderboard-tab-glider" id="tab-glider"></div>
         <button class="leaderboard-tab-btn active" id="tab-sort-xp" onclick="setLeaderboardSort('xp')">
-            <i class="fa-solid fa-bolt" style="color:#fbbf24;"></i> Top XP
+            EXP
         </button>
         <button class="leaderboard-tab-btn" id="tab-sort-points" onclick="setLeaderboardSort('points')">
-            <i class="fa-solid fa-coins" style="color:#f59e0b;"></i> Highest Points
+            Points
         </button>
         <button class="leaderboard-tab-btn" id="tab-sort-visited" onclick="setLeaderboardSort('visited')">
-            <i class="fa-solid fa-map-location-dot" style="color:#00f2fe;"></i> Most Visited
+            Visited
         </button>
     </div>
 
