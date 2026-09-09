@@ -38,13 +38,10 @@ class DashboardController extends Controller
         // Technique 2: Server-Side Caching — 2 minute TTL for trending spots
         $trendingLimit = min((int) $request->query('limit', 5), 50);
         $trending = Cache::remember("trending:top:{$trendingLimit}", 30, function () use ($trendingLimit) {
-            return TouristSpot::where(function($q) {
-                    $q->whereIn('status', ['approved', 'active', 'published', 'EXIST', 'exist', 'pending'])
-                      ->orWhereNull('status');
-                })
+            return TouristSpot::activeForTourists()
                 ->orderByDesc('visits')
                 ->limit($trendingLimit)
-                ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'classification_status', 'municipality_id'])
+                ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'classification_status', 'municipality_id', 'status'])
                 ->map(fn($s) => $this->formatSpot($s))
                 ->toArray();
         });
@@ -63,11 +60,8 @@ class DashboardController extends Controller
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('tourist_spots') && $favoriteIds->isNotEmpty()) {
                 $savedPlaces = TouristSpot::whereIn('id', $favoriteIds)
-                    ->where(function($q) {
-                        $q->whereIn('status', ['approved', 'active', 'published', 'EXIST', 'exist', 'pending'])
-                          ->orWhereNull('status');
-                    })
-                    ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'classification_status', 'municipality_id'])
+                    ->activeForTourists()
+                    ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'classification_status', 'municipality_id', 'status'])
                     ->map(fn($s) => $this->formatSpot($s));
             }
         } catch (\Throwable $e) {
@@ -82,14 +76,11 @@ class DashboardController extends Controller
         $recommended = collect();
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('tourist_spots')) {
-                $recommendedQuery = TouristSpot::where(function($q) {
-                        $q->whereIn('status', ['approved', 'active', 'published', 'EXIST', 'exist', 'pending'])
-                          ->orWhereNull('status');
-                    })
+                $recommendedQuery = TouristSpot::activeForTourists()
                     ->when($favoriteIds->isNotEmpty(), function($q) use ($favoriteIds) {
                         $q->whereNotIn('id', $favoriteIds);
                     })
-                    ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'rating', 'description', 'entrance_fee', 'classification_status', 'municipality_id']);
+                    ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'rating', 'description', 'entrance_fee', 'classification_status', 'municipality_id', 'status']);
 
                 if ($lat && $lng) {
                     $recommendedQuery = $recommendedQuery->sortBy(function($spot) use ($lat, $lng) {
@@ -233,6 +224,7 @@ class DashboardController extends Controller
             'description'  => $spot->description,
             'entrance_fee' => $spot->entrance_fee,
             'classification_status' => $spot->classification_status,
+            'status'       => $spot->status ?? 'approved',
             'municipality_id' => $spot->municipality_id,
             'municipality' => $muniName,
             'location'     => $muniName,

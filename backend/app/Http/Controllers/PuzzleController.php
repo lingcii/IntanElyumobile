@@ -10,12 +10,10 @@ class PuzzleController extends Controller
     public function spots(): JsonResponse
     {
         try {
-            $spots = TouristSpot::with('municipality')
+            $spots = TouristSpot::activeForTourists()
+                ->with('municipality')
                 ->whereNotNull('photo_url')
                 ->where('photo_url', '!=', '')
-                ->where(function($q) {
-                    $q->whereNull('status')->orWhere('status', 'approved');
-                })
                 ->inRandomOrder()
                 ->limit(20)
                 ->get();

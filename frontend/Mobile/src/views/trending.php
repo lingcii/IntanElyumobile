@@ -242,7 +242,7 @@ if (is_dir($imgDir)) {
                     return data.trending || [];
                 },
                 (spots) => {
-                    if (spots) trendingSpots = spots;
+                    if (spots) trendingSpots = (spots || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
                 },
                 false,
                 60000
@@ -259,7 +259,7 @@ if (is_dir($imgDir)) {
                 },
                 (data) => {
                     if (data && data.destinations) {
-                        allDestinations = data.destinations;
+                        allDestinations = (data.destinations || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
                     }
                 },
                 false,

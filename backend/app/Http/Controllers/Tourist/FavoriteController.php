@@ -18,7 +18,10 @@ class FavoriteController extends Controller
     {
         $user = $request->user();
 
-        $spot = TouristSpot::findOrFail($id);
+        $spot = TouristSpot::activeForTourists()->find($id);
+        if (!$spot) {
+            return response()->json(['message' => 'This tourist destination is not currently available.'], 404);
+        }
 
         $existing = Favorite::where('user_id', $user->id)
             ->where('tourist_spot_id', $id)

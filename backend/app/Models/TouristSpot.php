@@ -115,4 +115,20 @@ class TouristSpot extends Model
     {
         return $this->hasMany(SiteFeedback::class, 'tourist_spot_id');
     }
+
+    /**
+     * Scope query to only include active/approved spots visible to tourists.
+     * Strictly excludes 'pending', 'rejected', and 'draft' spots.
+     */
+    public function scopeActiveForTourists($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereIn('status', ['approved', 'active', 'published', 'EXIST', 'exist'])
+              ->orWhereNull('status');
+        })->where(function ($q) {
+            $q->whereNotIn('status', ['pending', 'rejected', 'draft'])
+              ->orWhereNull('status');
+        });
+    }
 }
+

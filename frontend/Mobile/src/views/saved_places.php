@@ -59,7 +59,7 @@ if (is_dir($imgDir)) {
             },
             (spots) => {
                 if (spots) {
-                    renderSavedPlaces(spots);
+                    renderSavedPlaces((spots || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending'));
                 } else {
                     const list = document.getElementById('saved-places-list');
                     if (list) list.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">Failed to load saved places.</p>';

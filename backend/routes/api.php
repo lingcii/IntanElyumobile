@@ -1061,7 +1061,10 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     Route::post('/destinations/{id}/favorite', [FavoriteController::class, 'toggle']);
     Route::post('/destinations/{id}/rate', function (Illuminate\Http\Request $request, int $id) {
         $request->validate(['rating' => 'required|integer|min:1|max:5']);
-        $spot = TouristSpot::findOrFail($id);
+        $spot = TouristSpot::activeForTourists()->find($id);
+        if (!$spot) {
+            return response()->json(['message' => 'This tourist spot is not available for rating.'], 404);
+        }
         $user = $request->user();
 
         $alreadyReviewed = false;
@@ -1153,9 +1156,9 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     // AR and Instant GPS Check-in
     Route::post('/points/ar-checkin', function (\Illuminate\Http\Request $request) {
         $spotId = $request->input('spot_id');
-        $spot = TouristSpot::find($spotId);
+        $spot = TouristSpot::activeForTourists()->find($spotId);
         if (!$spot) {
-            return response()->json(['status' => 'error', 'message' => 'Tourist destination not found.'], 404);
+            return response()->json(['status' => 'error', 'message' => 'Tourist destination not found or not active.'], 404);
         }
 
         // Increment spot visits count in database
@@ -1204,7 +1207,10 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
 
     // Direct Destination Check-in
     Route::post('/destinations/{id}/check-in', function (\Illuminate\Http\Request $request, int $id) {
-        $spot = TouristSpot::findOrFail($id);
+        $spot = TouristSpot::activeForTourists()->find($id);
+        if (!$spot) {
+            return response()->json(['status' => 'error', 'message' => 'Tourist destination not found or not active.'], 404);
+        }
         $spot->increment('visits');
 
         $rewardPoints = \App\Models\Classification::getPointsForStatus($spot->classification_status);
@@ -1282,7 +1288,10 @@ Route::prefix('analytics')->group(function () {
 
 // Top-level Public Check-in and Rating aliases
 Route::post('/public/destinations/{id}/check-in', function (\Illuminate\Http\Request $request, int $id) {
-    $spot = TouristSpot::findOrFail($id);
+    $spot = TouristSpot::activeForTourists()->find($id);
+    if (!$spot) {
+        return response()->json(['status' => 'error', 'message' => 'Tourist destination not found or not active.'], 404);
+    }
     $spot->increment('visits');
     \Illuminate\Support\Facades\Cache::forget('map:public:spots');
     \Illuminate\Support\Facades\Cache::forget('trending:top:5');

@@ -54,16 +54,13 @@ class MapController extends Controller
                 }
             } catch (\Throwable $e) {}
 
-            return TouristSpot::where(function($q) {
-                    $q->whereIn('status', ['approved', 'active', 'published', 'EXIST', 'exist', 'pending'])
-                      ->orWhereNull('status');
-                })
+            return TouristSpot::activeForTourists()
                 ->with('municipality:id,name')
                 ->with('images')
                 ->get(['id', 'name', 'category', 'municipality_id', 'barangay', 'latitude', 'longitude',
                        'entrance_fee', 'environmental_fee', 'fee_types', 'route_guide', 'tour_guide_notice',
                        'accessible_by_private_vehicle', 'photo_url', 'description', 'opening_time', 'closing_time',
-                       'is_maintenance', 'rating', 'visits', 'classification_status'])
+                       'is_maintenance', 'rating', 'visits', 'classification_status', 'status'])
                 ->map(function ($spot) use ($spotVehicleMap, $spotServiceCenterMap) {
                     $imageUrl = $spot->photo_url;
                     if (!$imageUrl && $spot->images->isNotEmpty()) {
@@ -115,6 +112,7 @@ class MapController extends Controller
                         'rating'                        => $spot->rating,
                         'visits'                        => $spot->visits,
                         'classification_status'         => $spot->classification_status,
+                        'status'                        => $spot->status ?? 'approved',
                         'accessible_vehicles'           => $vehiclesList,
                     ];
                 })->values()->toArray();  // toArray() stores a plain array in cache — safe to serialize
@@ -131,7 +129,7 @@ class MapController extends Controller
     {
         $municipalities = \Illuminate\Support\Facades\Cache::remember('map:public:municipalities', 300, function () {
             return Municipality::withCount(['touristSpots' => function ($q) {
-                $q->where('status', 'approved');
+                $q->activeForTourists();
             }])
             ->get(['id', 'name', 'latitude', 'longitude'])
             ->map(function ($m) {

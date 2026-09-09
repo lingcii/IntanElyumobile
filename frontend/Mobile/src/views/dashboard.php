@@ -723,11 +723,11 @@ if (is_dir($imgDir)) {
                 },
                 (data) => {
                     if (data && data.destinations) {
-                        window.allTouristSpots = data.destinations;
+                        window.allTouristSpots = (data.destinations || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
                         const activeCat = window.currentDashCategory || 'All';
-                        let filtered = data.destinations;
+                        let filtered = window.allTouristSpots;
                         if (activeCat !== 'All' && typeof window.matchesCategory === 'function') {
-                            filtered = data.destinations.filter(d => window.matchesCategory(d.category, d.name, d.municipality || d.location, activeCat));
+                            filtered = window.allTouristSpots.filter(d => window.matchesCategory(d.category, d.name, d.municipality || d.location, activeCat));
                         }
                         window.renderAllTouristSpots(filtered, activeCat);
                     }
@@ -902,9 +902,9 @@ if (is_dir($imgDir)) {
         const cacheKey = 'dashboard_data_' + (lat && lng ? `${lat.toFixed(3)}_${lng.toFixed(3)}` : 'default');
 
         function renderDashboard(data) {
-            window.dashTrending = data.trending || [];
-            window.dashRecommended = data.recommended || [];
-            window.dashSaved = data.savedPlaces || [];
+            window.dashTrending = (data.trending || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
+            window.dashRecommended = (data.recommended || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
+            window.dashSaved = (data.savedPlaces || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
 
             // Update notification badge
             if (data.stats && typeof window.updateUnreadBadge === 'function') {
@@ -1246,7 +1246,7 @@ if (is_dir($imgDir)) {
                     }
 
                     // Clone spots array so we do not mutate cached data in-place
-                    let rawSpots = data.destinations || [];
+                    let rawSpots = (data.destinations || []).filter(s => !s.status || s.status.toLowerCase() !== 'pending');
                     let spots = rawSpots.map(s => {
                         const copy = { ...s };
                         const sLat = parseFloat(copy.lat || copy.latitude);
@@ -1823,7 +1823,7 @@ if (is_dir($imgDir)) {
                         const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
                         const res = await fetch(backendUrl + '/api/public/map');
                         const data = await res.json();
-                        allDestinationsForSearch = data.destinations || [];
+                        allDestinationsForSearch = (data.destinations || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
                     } catch (err) {
                         console.error('Failed to fetch destinations for search', err);
                         allDestinationsForSearch = [];

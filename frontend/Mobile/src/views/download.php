@@ -272,7 +272,7 @@ $hideBottomNav = true;
     <h1>Download <span>Intan Elyu</span></h1>
     <p>Your ultimate travel companion for La Union, Philippines.<br>Available for Android devices.</p>
     <div class="version-row">
-      <span class="badge blue"><i class="fa-solid fa-code-branch"></i> v1.1.0</span>
+      <span class="badge blue"><i class="fa-solid fa-code-branch"></i> v1.2.0</span>
       <span class="badge green"><i class="fa-solid fa-shield-check"></i> Signed APK</span>
       <span class="badge purple"><i class="fab fa-android"></i> Android 7.0+</span>
     </div>
@@ -357,12 +357,9 @@ $hideBottomNav = true;
 <!-- QR Code Generator -->
 <script>
 (function(){
-  // Determine download URL
-  // If testing on localhost/127.0.0.1, phone cameras cannot connect to "http://localhost",
-  // so we direct the QR scanner to the live cloud APK mirror so scanning works immediately from any phone!
-  var isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('192.168.') || window.location.hostname.startsWith('10.');
+  // Direct APK download URL for QR scanning (guaranteed to trigger direct APK download on any phone)
   var publicApkUrl = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk';
-  var scanDownloadUrl = isLocal ? publicApkUrl : ((window.location.origin || 'https://app.intan-elyu.online') + '/index.php?action=download_apk');
+  var scanDownloadUrl = publicApkUrl;
 
   // Direct button download (for the device viewing this page)
   var btn = document.getElementById('download-btn');

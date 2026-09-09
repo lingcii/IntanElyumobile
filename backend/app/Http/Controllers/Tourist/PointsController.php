@@ -251,93 +251,112 @@ class PointsController extends Controller
      */
     public function redeem(Request $request): JsonResponse
     {
-        $request->validate([
-            'type' => 'required|string|in:pasalubong_discount,environmental_fee',
-        ]);
+        try {
+            $request->validate([
+                'type' => 'required|string|in:pasalubong_discount,environmental_fee',
+            ]);
 
-        $user = $request->user();
-        $type = $request->type;
+            $user = $request->user();
+            $type = $request->type;
 
-        // Costs
-        $costs = [
-            'pasalubong_discount' => 100, // 100 points
-            'environmental_fee' => 150, // 150 points
-        ];
+            // Costs
+            $costs = [
+                'pasalubong_discount' => 100, // 100 points
+                'environmental_fee' => 150, // 150 points
+            ];
 
-        $cost = $costs[$type];
+            $cost = $costs[$type];
 
-        // Get points balance directly from users table
-        $balance = (int) ($user->points ?? 0);
+            // Get points balance directly from users table
+            $balance = (int) ($user->points ?? 0);
 
-        if ($balance < $cost) {
+            if ($balance < $cost) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "Insufficient points. You need {$cost} Points to redeem this reward, but you only have {$balance} Points."
+                ], 400);
+            }
+
+            // Generate guaranteed unique voucher code
+            $prefix = $type === 'pasalubong_discount' ? 'ELYU-PASA-' : 'ELYU-ENV-';
+            $code = '';
+            $attempts = 0;
+            do {
+                $code = $prefix . strtoupper(Str::random(8));
+                $attempts++;
+            } while (PointRedemption::where('voucher_code', $code)->exists() && $attempts < 10);
+
+            // Start transaction
+            $redemption = DB::transaction(function() use ($user, $type, $cost, $code) {
+                try {
+                    if (method_exists($user, 'deductPoints')) {
+                        $user->deductPoints($cost);
+                    } else {
+                        $currentPts = (int) ($user->points ?? 0);
+                        $newPts = max(0, $currentPts - $cost);
+                        if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
+                            $user->points = $newPts;
+                            $user->save();
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    try {
+                        $user->decrement('points', $cost);
+                    } catch (\Throwable $ignored) {}
+                }
+
+                return PointRedemption::create([
+                    'user_id' => $user->id,
+                    'type' => $type,
+                    'points_cost' => $cost,
+                    'voucher_code' => $code,
+                    'status' => 'active'
+                ]);
+            });
+
+            \App\Models\Notification::createSafely(
+                $user->id,
+                'favorite_update',
+                'Voucher Redeemed!',
+                "Redeemed voucher {$code} ({$type}). Present code at merchant checkout!",
+                ['action_url' => '/discount']
+            );
+
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
+                    $typeLabel = ucwords(str_replace('_', ' ', $type));
+                    \App\Models\ActivityLog::create([
+                        'user_id'    => $user->id,
+                        'action'     => 'Points Redeemed',
+                        'details'    => "Redeemed {$cost} Points for {$typeLabel} (Code: {$code})",
+                        'ip_address' => $request->ip() ?? '127.0.0.1',
+                    ]);
+                }
+            } catch (\Throwable $e) {}
+
+            $newPoints = max(0, $balance - $cost);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Reward redeemed successfully!',
+                'new_balance' => $newPoints,
+                'points' => $newPoints,
+                'xp' => (int) ($user->xp ?? 0),
+                'level' => (int) ($user->level ?? 1),
+                'data' => $redemption
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $ve) {
             return response()->json([
                 'status' => 'error',
-                'message' => "Insufficient points. You need {$cost} Points to redeem this reward, but you only have {$balance} Points."
-            ], 400);
+                'message' => $ve->validator->errors()->first() ?: 'Validation failed.',
+                'errors' => $ve->errors()
+            ], 422);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Point reward redemption error: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to redeem reward. Please try again.'
+            ], 500);
         }
-
-        // Generate voucher code
-        $prefix = $type === 'pasalubong_discount' ? 'ELYU-PASA-' : 'ELYU-ENV-';
-        $code = $prefix . strtoupper(Str::random(8));
-
-        // Start transaction
-        $redemption = DB::transaction(function() use ($user, $type, $cost, $code) {
-            try {
-                if (method_exists($user, 'deductPoints')) {
-                    $user->deductPoints($cost);
-                } else {
-                    $currentPts = (int) ($user->points ?? 0);
-                    $newPts = max(0, $currentPts - $cost);
-                    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
-                        $user->points = $newPts;
-                        $user->save();
-                    }
-                }
-            } catch (\Throwable $e) {
-                try {
-                    $user->decrement('points', $cost);
-                } catch (\Throwable $ignored) {}
-            }
-
-            return PointRedemption::create([
-                'user_id' => $user->id,
-                'type' => $type,
-                'points_cost' => $cost,
-                'voucher_code' => $code,
-                'status' => 'active'
-            ]);
-        });
-
-        \App\Models\Notification::createSafely(
-            $user->id,
-            'favorite_update',
-            'Voucher Redeemed!',
-            "Redeemed voucher {$code} ({$type}). Present code at merchant checkout!",
-            ['action_url' => '/discount']
-        );
-
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
-                $typeLabel = ucwords(str_replace('_', ' ', $type));
-                \App\Models\ActivityLog::create([
-                    'user_id'    => $user->id,
-                    'action'     => 'Points Redeemed',
-                    'details'    => "Redeemed {$cost} Points for {$typeLabel} (Code: {$code})",
-                    'ip_address' => $request->ip() ?? '127.0.0.1',
-                ]);
-            }
-        } catch (\Throwable $e) {}
-
-        $newPoints = max(0, $balance - $cost);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Reward redeemed successfully!',
-            'new_balance' => $newPoints,
-            'points' => $newPoints,
-            'xp' => (int) ($user->xp ?? 0),
-            'level' => (int) ($user->level ?? 1),
-            'data' => $redemption
-        ]);
     }
 }

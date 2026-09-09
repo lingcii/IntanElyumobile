@@ -198,11 +198,28 @@ function getVoucherImageUrl(v) {
 let activeCategory = 'All';
 let vouchersData = [];
 
-function getExpiryInfo(dateStr) {
+function getExpiryInfo(dateStr, isExpiredExplicit) {
+    if (isExpiredExplicit === true) {
+        return {
+            label: 'Expired',
+            color: '#ef4444',
+            bgColor: 'rgba(239,68,68,0.12)',
+            isExpired: true,
+            days: 0
+        };
+    }
     const now = new Date();
-    const expiry = new Date(dateStr + 'T23:59:59');
+    let expiry;
+    if (dateStr && (dateStr.includes('T') || dateStr.includes(' '))) {
+        expiry = new Date(dateStr.replace(' ', 'T'));
+    } else if (dateStr) {
+        expiry = new Date(dateStr + 'T23:59:59');
+    } else {
+        expiry = new Date('2026-12-31T23:59:59');
+    }
+
     const diff = expiry - now;
-    const isExpired = diff <= 0;
+    const isExpired = (isExpiredExplicit === true) || diff <= 0;
     const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
     
     let label, color, bgColor;
@@ -281,7 +298,11 @@ async function fetchUserPointsAndRedemptions() {
                     let claimed = getClaimedVouchers();
                     data.vouchers.forEach(v => {
                         // find matching item in vouchersData if any
-                        const match = vouchersData.find(item => item.code === v.voucher_code || (item.dbId && item.title === v.type));
+                        const match = vouchersData.find(item => 
+                            item.code === v.voucher_code || 
+                            (v.voucher_code && item.code && v.voucher_code.startsWith(item.code)) || 
+                            (item.dbId && item.title === v.type)
+                        );
                         if (match && !claimed.includes(match.id)) {
                             claimed.push(match.id);
                         }
@@ -325,6 +346,8 @@ function renderDiscounts() {
     filtered.forEach(v => {
         const isClaimed = claimed.includes(v.id);
         const imgUrl = getVoucherImageUrl(v);
+        const expiryInfo = getExpiryInfo(v.expires, v.is_expired);
+        const isCardExpired = v.is_expired || expiryInfo.isExpired;
         html += `
         <div class="voucher-card">
             <div>
@@ -338,9 +361,9 @@ function renderDiscounts() {
                 <p style="margin: 0 0 8px; font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 500;">
                     <i class="fa-solid fa-store" style="font-size: 10px; margin-right: 4px; color: #00f2fe;"></i>${v.partner}
                 </p>
-                <div style="display: inline-flex; align-items: center; gap: 4px; background: ${getExpiryInfo(v.expires).bgColor}; padding: 3px 8px; border-radius: 6px; margin-bottom: 10px; border: none !important; outline: none !important;">
-                    <i class="fa-regular fa-clock" style="font-size: 9px; color: ${getExpiryInfo(v.expires).color};"></i>
-                    <span style="font-size: 10px; font-weight: 700; color: ${getExpiryInfo(v.expires).color};">${getExpiryInfo(v.expires).label}</span>
+                <div style="display: inline-flex; align-items: center; gap: 4px; background: ${expiryInfo.bgColor}; padding: 3px 8px; border-radius: 6px; margin-bottom: 10px; border: none !important; outline: none !important;">
+                    <i class="fa-regular fa-clock" style="font-size: 9px; color: ${expiryInfo.color};"></i>
+                    <span style="font-size: 10px; font-weight: 700; color: ${expiryInfo.color};">${expiryInfo.label}</span>
                 </div>
                 <p style="margin: 0 0 16px; font-size: 11.5px; color: rgba(255,255,255,0.8); line-height: 1.4;">${v.description}</p>
             </div>
@@ -350,8 +373,8 @@ function renderDiscounts() {
                     <i class="fa-solid fa-coins" style="color: #fbbf24; font-size: 13px;"></i>
                     <span style="font-size: 14px; font-weight: 800; color: #ffffff;">${v.pointsCost || v.required_points || 100} <span style="font-size: 10px; color: rgba(255,255,255,0.7);">Points</span></span>
                 </div>
-                <button onclick="${getExpiryInfo(v.expires).isExpired ? '' : 'openVoucherModal(\'' + v.id + '\')'}" ${getExpiryInfo(v.expires).isExpired ? 'disabled' : ''} style="background: ${getExpiryInfo(v.expires).isExpired ? 'rgba(255,255,255,0.08)' : (isClaimed ? 'rgba(52,199,89,0.25)' : 'linear-gradient(135deg, #00f2fe, #0284c7)')}; border: none !important; outline: none !important; color: #ffffff; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: ${getExpiryInfo(v.expires).isExpired ? 'not-allowed' : 'pointer'}; box-shadow: none !important; opacity: ${getExpiryInfo(v.expires).isExpired ? '0.6' : '1'};">
-                    ${getExpiryInfo(v.expires).isExpired ? '<i class="fa-solid fa-lock" style="margin-right:4px;"></i> Expired' : (isClaimed ? '<i class="fa-solid fa-check" style="margin-right:4px;"></i> Claimed' : 'Redeem Voucher')}
+                <button onclick="${isCardExpired ? '' : 'openVoucherModal(\'' + v.id + '\')'}" ${isCardExpired ? 'disabled' : ''} style="background: ${isCardExpired ? 'rgba(255,255,255,0.08)' : (isClaimed ? 'rgba(52,199,89,0.25)' : 'linear-gradient(135deg, #00f2fe, #0284c7)')}; border: none !important; outline: none !important; color: #ffffff; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: ${isCardExpired ? 'not-allowed' : 'pointer'}; box-shadow: none !important; opacity: ${isCardExpired ? '0.6' : '1'};">
+                    ${isCardExpired ? '<i class="fa-solid fa-lock" style="margin-right:4px;"></i> Expired' : (isClaimed ? '<i class="fa-solid fa-check" style="margin-right:4px;"></i> Claimed' : 'Redeem Voucher')}
                 </button>
             </div>
         </div>`;
@@ -372,7 +395,8 @@ function openVoucherModal(id) {
     document.getElementById('modal-code').textContent = item.code;
 
     // Update expiry badge in modal
-    const expiryInfo = getExpiryInfo(item.expires);
+    const expiryInfo = getExpiryInfo(item.expires, item.is_expired);
+    const isExpired = item.is_expired || expiryInfo.isExpired;
     const expiryBadge = document.getElementById('modal-expiry-badge');
     const expiryText = document.getElementById('modal-expiry-text');
     if (expiryBadge) {
@@ -403,8 +427,19 @@ function openVoucherModal(id) {
     if (redeemBtn) {
         if (isAlreadyClaimed) {
             redeemBtn.style.display = 'none';
+        } else if (isExpired) {
+            redeemBtn.style.display = 'flex';
+            redeemBtn.disabled = true;
+            redeemBtn.style.cursor = 'not-allowed';
+            redeemBtn.style.opacity = '0.55';
+            redeemBtn.style.background = 'rgba(239,68,68,0.2)';
+            if (redeemLabel) redeemLabel.innerHTML = '<i class="fa-solid fa-lock"></i> Voucher Expired';
         } else {
             redeemBtn.style.display = 'flex';
+            redeemBtn.disabled = false;
+            redeemBtn.style.cursor = 'pointer';
+            redeemBtn.style.opacity = '1';
+            redeemBtn.style.background = 'linear-gradient(135deg, #00f2fe 0%, #0284c7 100%)';
             if (redeemLabel) redeemLabel.textContent = `Redeem for ${item.pointsCost || item.required_points || 100} Points`;
         }
     }
@@ -475,6 +510,14 @@ function copyVoucherCode() {
 async function handleModalRedeem() {
     const item = vouchersData.find(v => v.id === currentVoucherId);
     if (!item) return;
+
+    const expiryInfo = getExpiryInfo(item.expires, item.is_expired);
+    if (item.is_expired || expiryInfo.isExpired) {
+        if (typeof showToast === 'function') {
+            showToast("This voucher has expired and can no longer be redeemed.");
+        }
+        return;
+    }
 
     const token = localStorage.getItem('intan_elyu_token');
     if (!token) {
@@ -549,7 +592,11 @@ async function handleModalRedeem() {
             fetchUserPointsAndRedemptions();
             renderDiscounts();
 
-            // Update modal UI
+            // Update modal UI with claimed code
+            const claimCode = (data.data && data.data.voucher_code) ? data.data.voucher_code : (data.claim_code || item.code);
+            const modalCode = document.getElementById('modal-code');
+            if (modalCode) modalCode.textContent = claimCode;
+
             if (btn) btn.style.display = 'none';
             const banner = document.getElementById('copy-success-banner');
             if (banner) {
@@ -558,7 +605,7 @@ async function handleModalRedeem() {
                         <i class="fa-solid fa-circle-check"></i> Voucher Redeemed & Saved to My Vouchers!
                     </div>
                     <p style="margin:0; font-size:11px; color:rgba(226,232,240,0.85); line-height:1.4;">
-                        Present this code (${item.code}) to merchant staff at checkout to enjoy your discount.
+                        Your claim code is <strong>${claimCode}</strong>. Present this code at merchant checkout!
                     </p>
                 `;
                 banner.style.display = 'block';
@@ -608,6 +655,8 @@ async function fetchLiveDatabaseVouchers() {
                         color: '#38bdf8',
                         code: v.code || 'ELYU-PROMO',
                         expires: v.expires || '2026-12-31',
+                        expires_formatted: v.expires_formatted || null,
+                        is_expired: (v.is_expired !== undefined) ? v.is_expired : false,
                         description: v.description || 'Present voucher code at merchant checkout.'
                     };
                 });
