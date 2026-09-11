@@ -75,64 +75,28 @@ body[data-view="saved_places"] #main-content {
     height: 0;
 }
 
-/* Clean White Empty State Styling */
-body[data-view="saved_places"] .dash-empty-state {
-    background: #ffffff !important;
-    border: 1.5px solid #f1f5f9 !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
-    border-radius: 24px !important;
-    padding: 36px 20px !important;
-    margin-top: 24px !important;
+/* Header styling matching dashboard */
+body[data-view="saved_places"] .mobile-header {
+    background: rgba(30, 58, 138, 0.88) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
 }
 
-body[data-view="saved_places"] .dash-empty-title {
-    color: #0f172a !important;
-    font-size: 18px !important;
-    font-weight: 800 !important;
-    letter-spacing: -0.2px;
-}
-
-body[data-view="saved_places"] .dash-empty-desc {
-    color: #64748b !important;
-    font-size: 13.5px !important;
-    line-height: 1.5 !important;
-    max-width: 290px;
-    margin: 0 auto;
-}
-
-body[data-view="saved_places"] .dash-empty-icon-wrap {
-    background: #f0f9ff !important;
-    color: #0284c7 !important;
-    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.15) !important;
-    width: 60px !important;
-    height: 60px !important;
-    border-radius: 18px !important;
-}
-
-body[data-view="saved_places"] .dash-empty-icon-wrap i {
-    color: #0284c7 !important;
-    font-size: 24px !important;
-}
-
-body[data-view="saved_places"] .dash-empty-btn {
-    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+body[data-view="saved_places"] .mobile-header .header-title {
     color: #ffffff !important;
-    border: none !important;
-    outline: none !important;
-    font-size: 14px !important;
     font-weight: 800 !important;
-    padding: 12px 28px !important;
-    border-radius: 100px !important;
-    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3) !important;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    transition: transform 0.15s ease !important;
 }
 
-body[data-view="saved_places"] .dash-empty-btn:active {
-    transform: scale(0.95);
+body[data-view="saved_places"] .mobile-header .header-icon {
+    color: #1e3a8a !important;
+    background: #ffffff !important;
+    border-radius: 12px;
+}
+
+body[data-view="saved_places"] .mobile-header .header-icon i {
+    color: #1e3a8a !important;
 }
 
 /* Card Styling on White Background */
@@ -230,9 +194,9 @@ body[data-view="saved_places"] .trending-card {
                         <i class="fa-solid fa-map-location-dot"></i>
                     </div>
                     <div class="dash-empty-title">No Saved Places Yet</div>
-                    <div class="dash-empty-desc">Discover destinations across La Union on the map and tap the heart icon to save them.</div>
+                    <div class="dash-empty-desc">Discover destinations on the map and tap the heart icon to save your favorite spots.</div>
                     <button type="button" onclick="navigateTo('map')" class="dash-empty-btn">
-                        <i class="fa-solid fa-location-arrow"></i> Go to Map
+                        <i class="fa-solid fa-location-arrow"></i> Open Map
                     </button>
                 </div>
             `;

@@ -24,7 +24,7 @@ if (is_dir($imgDir)) {
 <?php include __DIR__ . '/../components/header.php'; ?>
 
 <link rel="stylesheet" href="assets/css/views/trending.css">
-<div class="saved-trips-page-container trending-page-container has-header animate-slide-up" style="padding-top: calc(65px + env(safe-area-inset-top, 0px) + 8px) !important; padding-left: 16px; padding-right: 16px;">
+<div class="trending-page-container has-header animate-slide-up">
 
     <!-- Segmented Tab Switcher: All Tourist Sites on Left, Trending Sites on Right -->
     <div class="trending-segmented-wrap" id="trending-segmented-wrap">
@@ -92,9 +92,9 @@ if (is_dir($imgDir)) {
 
     <!-- Meta Info Bar -->
     <div id="trending-meta-bar"
-        style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; font-size:11.5px; color:rgba(226,232,240,0.65); font-weight:600;">
+        style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; font-size:11.5px; color:#64748b; font-weight:700;">
         <span id="trending-count-label">Loading destinations...</span>
-        <span id="trending-filter-active" style="display:none; color:#38bdf8; cursor:pointer;"
+        <span id="trending-filter-active" style="display:none; color:#2563eb; font-weight:700; cursor:pointer;"
             onclick="window.resetTrendingFilters()">
             <i class="fa-solid fa-rotate-left" style="margin-right:3px;"></i> Reset
         </span>
@@ -102,8 +102,8 @@ if (is_dir($imgDir)) {
 
     <!-- Trending Grid / List -->
     <div id="trending-list">
-        <p style="text-align:center; color:rgba(255,255,255,0.5); margin-top:40px;">
-            <i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i> Loading destinations...
+        <p style="text-align:center; color:#64748b; margin-top:40px; font-weight:600;">
+            <i class="fa-solid fa-spinner fa-spin" style="margin-right:8px; color:#1e3a8a;"></i> Loading destinations...
         </p>
     </div>
 </div>
@@ -388,7 +388,7 @@ if (is_dir($imgDir)) {
 
                 const iconHtml = currentMode === 'trending'
                     ? `<div class="fire-icon"><i class="fa-solid fa-fire"></i></div>`
-                    : `<div class="fire-icon" style="color:#38bdf8; box-shadow:0 2px 8px rgba(56,189,248,0.25);"><i class="fa-solid fa-compass"></i></div>`;
+                    : `<div class="fire-icon" style="color:#2563eb; box-shadow:0 2px 8px rgba(37,99,235,0.25);"><i class="fa-solid fa-compass"></i></div>`;
 
                 const metaBottomHtml = currentMode === 'trending'
                     ? `<div class="meta"><i class="fa-solid fa-users" style="font-size:9px;"></i>${visitorText}</div>`
