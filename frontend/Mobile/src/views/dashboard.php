@@ -59,25 +59,25 @@ if (is_dir($imgDir)) {
             </div>
         </div>
 
-        <!-- 3 Stat Cards inside Profile Card (Sleek & Gradient Fitted) -->
+        <!-- 3 Stat Cards inside Profile Card (Sleek & Visible, No Outlines) -->
         <div class="stats-row" style="margin-bottom:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
             <div class="stat-card" onclick="event.stopPropagation(); navigateTo('itinerary');"
-                style="background: linear-gradient(135deg, #183170 0%, #2d6298 100%) !important; border: 1px solid rgba(255, 255, 255, 0.16) !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; box-shadow: 0 4px 12px rgba(10, 25, 60, 0.25) !important; transition: transform 0.2s ease;">
+                style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important; transition: transform 0.2s ease;">
                 <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-map-location-dot" style="color:#38bdf8;"></i></div>
                 <div class="stat-value" id="dash-stat-places" style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—</div>
-                <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.92;">Places</div>
+                <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">Places</div>
             </div>
             <div class="stat-card" onclick="event.stopPropagation(); navigateTo('leaderboard');"
-                style="background: linear-gradient(135deg, #183170 0%, #2d6298 100%) !important; border: 1px solid rgba(255, 255, 255, 0.16) !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; box-shadow: 0 4px 12px rgba(10, 25, 60, 0.25) !important; transition: transform 0.2s ease;">
+                style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important; transition: transform 0.2s ease;">
                 <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-coins" style="color:#fbbf24;"></i></div>
                 <div class="stat-value" id="dash-stat-points" style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—</div>
-                <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.92;">Points</div>
+                <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">Points</div>
             </div>
             <div class="stat-card" onclick="event.stopPropagation(); navigateTo('leaderboard');"
-                style="background: linear-gradient(135deg, #183170 0%, #2d6298 100%) !important; border: 1px solid rgba(255, 255, 255, 0.16) !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; box-shadow: 0 4px 12px rgba(10, 25, 60, 0.25) !important; transition: transform 0.2s ease;">
+                style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important; transition: transform 0.2s ease;">
                 <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-trophy" style="color:#f59e0b;"></i></div>
                 <div class="stat-value" id="dash-stat-rank" style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—</div>
-                <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.92;">Rank</div>
+                <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">Rank</div>
             </div>
         </div>
     </div>
@@ -1162,7 +1162,7 @@ if (is_dir($imgDir)) {
                 _renderedNearMuniHeader = cleanName;
                 const nearSectionHeader = document.querySelector('#near-me-container')?.closest('.dash-section')?.querySelector('.section-title h3');
                 if (nearSectionHeader) {
-                    nearSectionHeader.innerHTML = `Near Me <span style="font-size:12px; font-weight:700; color:#38bdf8; margin-left:6px; background:rgba(56,189,248,0.15); padding:2px 8px; border-radius:12px;"><i class="fa-solid fa-location-dot"></i> ${cleanName}</span>`;
+                    nearSectionHeader.innerHTML = `Near Me <span class="dash-count-pill" style="font-size:11px; font-weight:800; color:#1e3a8a !important; margin-left:6px; background:#ffffff !important; border:none !important; outline:none !important; padding:3px 10px; border-radius:100px; box-shadow:0 1px 4px rgba(0,0,0,0.14); display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-location-dot" style="color:#0284c7 !important; font-size:9.5px;"></i> ${cleanName}</span>`;
                 }
             }
 
@@ -1363,11 +1363,11 @@ if (is_dir($imgDir)) {
                         ${desc}
                     </div>
                     <div style="display:flex; gap:8px; font-size:11px; margin-bottom:12px; flex-wrap:wrap;">
-                        ${dest.category ? `<span style="background:rgba(255,255,255,0.2); color:#ffffff; padding:4px 10px; border-radius:100px; font-weight:700;">${dest.category}</span>` : ''}
-                        ${dest.entrance_fee ? `<span style="background:rgba(0,242,254,0.18); color:#00f2fe; padding:4px 10px; border-radius:100px; font-weight:700;">₱${dest.entrance_fee}</span>` : '<span style="background:rgba(34,197,94,0.2); color:#4ade80; padding:4px 10px; border-radius:100px; font-weight:700;">Free</span>'}
+                        ${dest.category ? `<span style="background:#ffffff !important; color:#1e3a8a !important; padding:4px 10px; border-radius:100px; font-weight:800; box-shadow:0 1px 4px rgba(0,0,0,0.12);">${dest.category}</span>` : ''}
+                        ${dest.entrance_fee ? `<span style="background:#ffffff !important; color:#0284c7 !important; padding:4px 10px; border-radius:100px; font-weight:800; box-shadow:0 1px 4px rgba(0,0,0,0.12);">₱${dest.entrance_fee}</span>` : '<span style="background:#ffffff !important; color:#16a34a !important; padding:4px 10px; border-radius:100px; font-weight:800; box-shadow:0 1px 4px rgba(0,0,0,0.12);">Free</span>'}
                     </div>
-                    <button onclick="window.viewDestinationOnMap('${encodedDest}')" style="width:100%; margin-bottom:14px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none; color:#0f172a; padding:10px; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:none; display:flex; align-items:center; justify-content:center; gap:8px;">
-                        <i class="fa-solid fa-map-location-dot"></i> View Details on Map
+                    <button onclick="window.viewDestinationOnMap('${encodedDest}')" style="width:100%; margin-bottom:14px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none; color:#ffffff !important; padding:10px; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:none; display:flex; align-items:center; justify-content:center; gap:8px;">
+                        <i class="fa-solid fa-map-location-dot" style="color:#ffffff !important;"></i> View Details on Map
                     </button>
                 </div>
             </div>
@@ -1530,8 +1530,8 @@ if (is_dir($imgDir)) {
                                                 <button onclick="if(window.sessionStorage){sessionStorage.setItem('active_trip_transport_${trip.id}', '${trip.transport_mode || ''}'); localStorage.setItem('selected_trip_vehicle_${trip.id}', '${trip.transport_mode || ''}');} window.location.href='?view=trip_map&trip_id=${trip.id}${trip.transport_mode ? '&transport=' + encodeURIComponent(trip.transport_mode) : ''}'" style="flex:1; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none; outline:none; color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:none;">
                                                     <i class="fa-solid fa-compass"></i> Start Trip
                                                 </button>
-                                                <button onclick="navigateTo('saved_trips')" style="flex:1; background:rgba(255,255,255,0.22); border:none; outline:none; color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:none;">
-                                                    <i class="fa-solid fa-route"></i> View Details
+                                                <button onclick="navigateTo('saved_trips')" style="flex:1; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important;">
+                                                    <i class="fa-solid fa-route" style="color:#1e3a8a !important;"></i> View Details
                                                 </button>
                                             </div>
                                         </div>

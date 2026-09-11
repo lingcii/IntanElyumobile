@@ -24,22 +24,22 @@ $activeTab = 'profile';
         
         <div id="profile-pref-chips" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 12px;"></div>
 
-        <!-- 3 Stats Cards inside Profile Card (Sleek & Gradient Fitted) -->
+        <!-- 3 Stats Cards inside Profile Card (Sleek & Visible, No Outlines) -->
         <div class="stats-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px;">
-            <div class="stat-card" style="background: linear-gradient(135deg, #183170 0%, #2d6298 100%) !important; border: 1px solid rgba(255, 255, 255, 0.16) !important; outline: none; border-radius: 16px; padding: 10px 6px; text-align: center; box-shadow: 0 4px 12px rgba(10, 25, 60, 0.25);">
+            <div class="stat-card" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important;">
                 <div style="font-size: 18px; margin-bottom: 3px;"><i class="fa-solid fa-map-location-dot" style="color: #38bdf8;"></i></div>
                 <div class="stat-value" id="stat-places" style="font-size: 17px; font-weight: 900; color: #ffffff; margin-bottom: 1px; letter-spacing: -0.4px;">0</div>
-                <div class="stat-label" style="font-size: 10px; font-weight: 800; color: #ffffff; opacity: 0.92; text-transform: uppercase; letter-spacing: 0.5px;">Places</div>
+                <div class="stat-label" style="font-size: 10px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.5px;">Places</div>
             </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #183170 0%, #2d6298 100%) !important; border: 1px solid rgba(255, 255, 255, 0.16) !important; outline: none; border-radius: 16px; padding: 10px 6px; text-align: center; box-shadow: 0 4px 12px rgba(10, 25, 60, 0.25);">
+            <div class="stat-card" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important;">
                 <div style="font-size: 18px; margin-bottom: 3px;"><i class="fa-solid fa-coins" style="color: #fbbf24;"></i></div>
                 <div class="stat-value" id="stat-points" style="font-size: 17px; font-weight: 900; color: #ffffff; margin-bottom: 1px; letter-spacing: -0.4px;">0</div>
-                <div class="stat-label" style="font-size: 10px; font-weight: 800; color: #ffffff; opacity: 0.92; text-transform: uppercase; letter-spacing: 0.5px;">Points</div>
+                <div class="stat-label" style="font-size: 10px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.5px;">Points</div>
             </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #183170 0%, #2d6298 100%) !important; border: 1px solid rgba(255, 255, 255, 0.16) !important; outline: none; border-radius: 16px; padding: 10px 6px; text-align: center; box-shadow: 0 4px 12px rgba(10, 25, 60, 0.25);">
+            <div class="stat-card" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important;">
                 <div style="font-size: 18px; margin-bottom: 3px;"><i class="fa-solid fa-trophy" style="color: #f59e0b;"></i></div>
                 <div class="stat-value" id="stat-rank" style="font-size: 17px; font-weight: 900; color: #ffffff; margin-bottom: 1px; letter-spacing: -0.4px;">—</div>
-                <div class="stat-label" style="font-size: 10px; font-weight: 800; color: #ffffff; opacity: 0.92; text-transform: uppercase; letter-spacing: 0.5px;">Rank</div>
+                <div class="stat-label" style="font-size: 10px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.5px;">Rank</div>
             </div>
         </div>
 

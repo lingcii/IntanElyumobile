@@ -380,15 +380,18 @@
 
 .trending-card .card-cat-pill {
     font-size: 9px;
-    font-weight: 700;
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 1.5px 6px;
-    border-radius: 4px;
+    font-weight: 800;
+    color: #1e3a8a !important;
+    background: #ffffff !important;
+    padding: 2px 7px;
+    border-radius: 6px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 60px;
+    max-width: 75px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+    border: none !important;
+    outline: none !important;
 }
 
 .trending-card .card-rating {

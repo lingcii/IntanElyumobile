@@ -270,9 +270,12 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 }
 
 .profile-header .stat-card {
-    background: linear-gradient(135deg, #183170 0%, #2d6298 100%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.16) !important;
-    box-shadow: 0 4px 12px rgba(10, 25, 60, 0.25) !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-radius: 16px;
     padding: 10px 6px;
 }
@@ -712,16 +715,21 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
     width: 50px;
     height: 50px;
     border-radius: 16px;
-    background: rgba(255, 255, 255, 0.22);
-    border: none;
+    background: #ffffff !important;
+    border: none !important;
+    outline: none !important;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 22px;
-    color: #ffffff;
-    box-shadow: none !important;
+    color: #1e3a8a !important;
+    box-shadow: 0 4px 14px rgba(10, 25, 60, 0.18) !important;
     margin-bottom: 2px;
     flex-shrink: 0;
+}
+
+.dash-empty-icon-wrap i {
+    color: #1e3a8a !important;
 }
 
 .dash-empty-title {
@@ -750,7 +758,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
     font-size: 12.5px;
     font-weight: 800;
     background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%);
-    color: #0f172a !important;
+    color: #ffffff !important;
     border: none;
     cursor: pointer;
     display: inline-flex;
@@ -768,7 +776,11 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 }
 
 .dash-empty-btn:hover {
-    color: #0f172a !important;
+    color: #ffffff !important;
+}
+
+.dash-empty-btn i {
+    color: #ffffff !important;
 }
 
 /* Loading State Card */
@@ -877,14 +889,16 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 .dash-count-pill {
     font-size: 10px;
     font-weight: 800;
-    color: #38bdf8;
-    background: rgba(56, 189, 248, 0.16);
-    border: 1px solid rgba(56, 189, 248, 0.35);
-    padding: 2px 8px;
+    color: #1e3a8a !important;
+    background: #ffffff !important;
+    border: none !important;
+    outline: none !important;
+    padding: 2.5px 9px;
     border-radius: 100px;
     display: inline-flex;
     align-items: center;
     letter-spacing: 0.3px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
 }
 
 .all-spots-grid {
@@ -991,15 +1005,18 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
 .all-spot-pill {
     font-size: 9.5px;
-    font-weight: 700;
-    padding: 2px 7px;
+    font-weight: 800;
+    padding: 2.5px 8px;
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.18);
-    color: #ffffff;
+    background: #ffffff !important;
+    color: #1e3a8a !important;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 65px;
+    max-width: 75px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+    border: none !important;
+    outline: none !important;
 }
 
 .all-spot-rating {

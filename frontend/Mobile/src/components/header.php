@@ -123,10 +123,14 @@
     </div>
 </div>
 
-<div id="notifications-dropdown" class="hide-scrollbar" style="position: fixed; top: max(env(safe-area-inset-top, 0px), 65px); right: 12px; left: 12px; max-width: 360px; margin: 0 auto; background: linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 20px; z-index: 999999; box-shadow: none; padding: 18px; max-height: 75vh; overflow-y: auto; scrollbar-width: none !important; -ms-overflow-style: none !important; opacity: 0; pointer-events: none; transform: translateY(-10px) scale(0.96); transition: opacity 0.25s ease, transform 0.25s ease;">
-    <h3 style="margin: 0 0 12px 0; font-size: 15px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; border: none !important; outline: none !important; padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
-        <span>Notifications</span>
-        <i class="fa-solid fa-xmark" style="font-size: 16px; color: #ffffff; opacity: 0.85; cursor: pointer; padding: 4px; transition: color 0.2s;" onclick="toggleNotifications()"></i>
+<div id="notifications-dropdown" class="hide-scrollbar" style="position: fixed; top: max(env(safe-area-inset-top, 0px), 65px); right: 12px; left: 12px; max-width: 360px; margin: 0 auto; background: linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 22px; z-index: 999999; box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45); padding: 18px; max-height: 75vh; overflow-y: auto; scrollbar-width: none !important; -ms-overflow-style: none !important; opacity: 0; pointer-events: none; transform-origin: top right; transform: scale(0.4) translate(35px, -35px); transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.34s cubic-bezier(0.175, 0.885, 0.32, 1.15) !important;">
+    <h3 style="margin: 0 0 14px 0; font-size: 16px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; border: none !important; outline: none !important; padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-bell" style="color: #00f2fe; font-size: 15px;"></i> Notifications
+        </span>
+        <button type="button" onclick="toggleNotifications()" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0; transition: transform 0.15s ease;" onactive="this.style.transform='scale(0.92)'">
+            <i class="fa-solid fa-xmark" style="color: #1e3a8a !important; font-size: 14px;"></i>
+        </button>
     </h3>
     <div id="notifications-list">
         <div style="color: #ffffff; opacity: 0.85; font-size: 13px; text-align: center; padding: 24px 0;">No new notifications.</div>
@@ -273,11 +277,11 @@
         if (isOpen) {
             dropdown.style.opacity = '0';
             dropdown.style.pointerEvents = 'none';
-            dropdown.style.transform = 'translateY(-10px) scale(0.96)';
+            dropdown.style.transform = 'scale(0.4) translate(35px, -35px)';
         } else {
             dropdown.style.opacity = '1';
             dropdown.style.pointerEvents = 'all';
-            dropdown.style.transform = 'translateY(0) scale(1)';
+            dropdown.style.transform = 'scale(1) translate(0, 0)';
             const bell = document.getElementById('bell-icon');
             if (bell) { bell.classList.remove('bell-ring'); void bell.offsetWidth; bell.classList.add('bell-ring'); }
             const dot = document.getElementById('bell-dot');
@@ -285,6 +289,16 @@
             fetchNotifications();
         }
     }
+
+    // Close notifications dropdown on click outside
+    document.addEventListener('click', function(e) {
+        const dropdown = document.getElementById('notifications-dropdown');
+        if (dropdown && dropdown.style.opacity === '1') {
+            if (!dropdown.contains(e.target) && !e.target.closest('.header-icon')) {
+                toggleNotifications();
+            }
+        }
+    });
 
     async function fetchNotifications() {
         const list = document.getElementById('notifications-list');
@@ -584,7 +598,9 @@
                                     ${isWelcome ? '<span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0, 242, 254, 0.25); color: #00f2fe; padding: 2px 6px; border-radius: 4px; border: none !important; outline: none !important; flex-shrink: 0;">Welcome</span>' : ''}
                                     <span style="font-size: 13px; color: #ffffff; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${displayTitle}</span>
                                 </div>
-                                <button type="button" onclick="event.stopPropagation(); window.deleteNotification('${item.id}', this.closest('.notif-card-item'))" style="background: none; border: none !important; outline: none !important; color: rgba(255, 255, 255, 0.45); font-size: 11px; font-weight: 700; cursor: pointer; padding: 2px 4px; border-radius: 4px; flex-shrink: 0; transition: color 0.15s;" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='rgba(255,255,255,0.45)'">Delete</button>
+                                <button type="button" onclick="event.stopPropagation(); window.deleteNotification('${item.id}', this.closest('.notif-card-item'))" style="background: #ffffff !important; border: none !important; outline: none !important; color: #ef4444 !important; font-size: 10.5px; font-weight: 800; cursor: pointer; padding: 3px 9px; border-radius: 8px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important; display: inline-flex; align-items: center; gap: 4px; transition: transform 0.15s ease;" onactive="this.style.transform='scale(0.92)'">
+                                    <i class="fa-solid fa-trash-can" style="font-size: 9.5px; color: #ef4444 !important;"></i> Delete
+                                </button>
                             </div>
                             <p style="margin: 0 0 6px 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.45; font-weight: ${isUnread ? '500' : '400'};">${displayMsg}</p>
                             <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
@@ -598,9 +614,13 @@
                     </div>
                 `;
             });
-            html += `<div style="display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: none !important; outline: none !important;">
-                ${unread.length > 0 ? '<button onclick="markAllNotifRead()" style="background: none; border: none !important; outline: none !important; color: #38bdf8; font-size: 12px; font-weight: 700; cursor: pointer; padding: 4px 6px;">Mark all read</button>' : '<span></span>'}
-                <button onclick="window.clearAllNotifications()" style="background: none; border: none !important; outline: none !important; color: #f87171; font-size: 12px; font-weight: 700; cursor: pointer; padding: 4px 6px;">Clear all</button>
+            html += `<div style="display: flex; align-items: center; justify-content: space-between; padding-top: 12px; margin-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.12) !important; outline: none !important; gap: 10px;">
+                ${unread.length > 0 ? `<button type="button" onclick="markAllNotifRead()" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; font-size: 11.5px; font-weight: 800; cursor: pointer; padding: 6px 14px; border-radius: 100px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important; display: inline-flex; align-items: center; gap: 6px; transition: transform 0.15s ease;" onactive="this.style.transform='scale(0.92)'">
+                    <i class="fa-solid fa-check-double" style="font-size: 11px; color: #1e3a8a !important;"></i> Mark all read
+                </button>` : '<span></span>'}
+                <button type="button" onclick="window.clearAllNotifications()" style="background: #ffffff !important; border: none !important; outline: none !important; color: #ef4444 !important; font-size: 11.5px; font-weight: 800; cursor: pointer; padding: 6px 14px; border-radius: 100px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important; display: inline-flex; align-items: center; gap: 6px; transition: transform 0.15s ease;" onactive="this.style.transform='scale(0.92)'">
+                    <i class="fa-solid fa-trash-can" style="font-size: 11px; color: #ef4444 !important;"></i> Clear all
+                </button>
             </div>`;
             list.innerHTML = html;
             if (unread.length > 0 && dot) dot.classList.add('show');

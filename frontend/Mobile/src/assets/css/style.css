@@ -549,16 +549,21 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   width: 50px;
   height: 50px;
   border-radius: 16px;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, rgba(56, 189, 248, 0.05) 100%);
-  border: 1px solid rgba(56, 189, 248, 0.28);
+  background: #ffffff !important;
+  border: none !important;
+  outline: none !important;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 22px;
-  color: #38bdf8;
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+  color: #1e3a8a !important;
+  box-shadow: 0 4px 14px rgba(10, 25, 60, 0.18) !important;
   margin-bottom: 2px;
   flex-shrink: 0;
+}
+
+.dash-empty-icon-wrap i {
+  color: #1e3a8a !important;
 }
 
 .dash-empty-title {
