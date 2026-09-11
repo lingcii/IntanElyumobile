@@ -5,7 +5,7 @@
         top: 0;
         left: 0;
         right: 0;
-        background: rgba(30, 58, 138, 0.92) !important;
+        background: #1e3a8a !important;
         backdrop-filter: blur(24px);
         -webkit-backdrop-filter: blur(24px);
         border: none !important;
@@ -18,7 +18,7 @@
         z-index: 9000 !important;
         /* Ensure Android gets safe padding since safe-area-inset-top is sometimes 0 on Android WebViews */
         padding-top: max(env(safe-area-inset-top), 40px);
-        box-shadow: none;
+        box-shadow: none !important;
     }
     
     .header-title {
@@ -167,11 +167,11 @@
         <div>
             <div style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 7px; padding-left: 4px;">Your Stuff</div>
             <div style="display: flex; flex-direction: column; gap: 7px;">
-                <a href="#" onclick="toggleSidebar(); navigateTo('saved_places'); return false;" style="color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                <a href="#" onclick="toggleSidebar(); navigateTo('saved_places'); return false;" style="color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
                     <span style="width: 32px; height: 32px; border-radius: 9px; background: #ff3b30 !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"><i class="fa-solid fa-heart" style="color: #ffffff !important; font-size: 13px;"></i></span>
                     Saved Places
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('saved_trips'); return false;" style="color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                <a href="#" onclick="toggleSidebar(); navigateTo('saved_trips'); return false;" style="color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
                     <span style="width: 32px; height: 32px; border-radius: 9px; background: #34c759 !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"><i class="fa-solid fa-route" style="color: #ffffff !important; font-size: 13px;"></i></span>
                     Saved Trips
                 </a>
@@ -182,15 +182,15 @@
         <div>
             <div style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 7px; padding-left: 4px;">Discover & Explore</div>
             <div style="display: flex; flex-direction: column; gap: 7px;">
-                <a href="#" onclick="toggleSidebar(); navigateTo('trending'); return false;" style="color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                <a href="#" onclick="toggleSidebar(); navigateTo('trending'); return false;" style="color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
                     <span style="width: 32px; height: 32px; border-radius: 9px; background: #ff9500 !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"><i class="fa-solid fa-compass" style="color: #ffffff !important; font-size: 13px;"></i></span>
                     Tourist Sites
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('puzzles'); return false;" style="color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                <a href="#" onclick="toggleSidebar(); navigateTo('puzzles'); return false;" style="color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
                     <span style="width: 32px; height: 32px; border-radius: 9px; background: #0284c7 !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"><i class="fa-solid fa-gamepad" style="color: #ffffff !important; font-size: 13px;"></i></span>
                     GameZone
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('discount'); return false;" style="color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                <a href="#" onclick="toggleSidebar(); navigateTo('discount'); return false;" style="color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
                     <span style="width: 32px; height: 32px; border-radius: 9px; background: #ec4899 !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"><i class="fa-solid fa-tags" style="color: #ffffff !important; font-size: 13px;"></i></span>
                     Discounts & Vouchers
                 </a>

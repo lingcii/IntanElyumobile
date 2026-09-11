@@ -75,13 +75,16 @@ body[data-view="saved_places"] #main-content {
     height: 0;
 }
 
-/* Header styling matching dashboard */
-body[data-view="saved_places"] .mobile-header {
-    background: rgba(30, 58, 138, 0.88) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+/* Header styling matching header.php */
+body[data-view="saved_places"] .mobile-header,
+.mobile-header {
+    background: #1e3a8a !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: none !important;
+    outline: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
 }
 
 body[data-view="saved_places"] .mobile-header .header-title {
@@ -102,7 +105,7 @@ body[data-view="saved_places"] .mobile-header .header-icon i {
 /* Card Styling on White Background */
 body[data-view="saved_places"] .trending-card {
     background: #f8fafc !important;
-    border: 1px solid #edf2f7 !important;
+    border: 1.5px solid #cbd5e1 !important;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06) !important;
     border-radius: 18px !important;
 }

@@ -19,11 +19,13 @@ body[data-view="trending"] #main-content {
 
 /* Header Styling */
 body[data-view="trending"] .mobile-header {
-    background: rgba(30, 58, 138, 0.92) !important;
+    background: #1e3a8a !important;
     backdrop-filter: blur(24px) !important;
     -webkit-backdrop-filter: blur(24px) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+    border: none !important;
+    outline: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
 }
 
 body[data-view="trending"] .mobile-header .header-title {
@@ -60,9 +62,9 @@ body[data-view="trending"] .mobile-header .header-icon i {
     display: grid;
     grid-template-columns: 1fr 1fr;
     position: relative;
-    background: #f1f5f9 !important;
-    border: 1px solid #e2e8f0 !important;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    background: #f8fafc !important;
+    border: 1.5px solid #cbd5e1 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
     padding: 4px;
     border-radius: 100px;
     outline: none !important;
@@ -80,8 +82,8 @@ body[data-view="trending"] .mobile-header .header-icon i {
     left: 4px;
     width: calc(50% - 4px);
     border-radius: 100px;
-    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
-    box-shadow: 0 4px 14px rgba(30, 58, 138, 0.35) !important;
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.35) !important;
     transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
     z-index: 1;
     pointer-events: none;
@@ -137,8 +139,8 @@ body[data-view="trending"] .mobile-header .header-icon i {
 .trending-search-input {
     width: 100%;
     height: 46px;
-    background: #f8fafc !important;
-    border: 1px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
     outline: none !important;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
     border-radius: 100px;
@@ -151,9 +153,9 @@ body[data-view="trending"] .mobile-header .header-icon i {
 
 .trending-search-input:focus {
     background: #ffffff !important;
-    border-color: #2563eb !important;
+    border-color: #203f8d !important;
     outline: none !important;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+    box-shadow: 0 0 0 3px rgba(32, 63, 141, 0.18) !important;
 }
 
 .trending-search-input::placeholder {
@@ -207,11 +209,11 @@ body[data-view="trending"] .mobile-header .header-icon i {
     border-radius: 100px;
     font-size: 12px;
     font-weight: 700;
-    color: #475569 !important;
-    background: #f1f5f9 !important;
-    border: 1px solid #e2e8f0 !important;
+    color: #334155 !important;
+    background: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
     outline: none !important;
-    box-shadow: none !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
     white-space: nowrap;
     cursor: pointer;
     display: inline-flex;
@@ -227,15 +229,16 @@ body[data-view="trending"] .mobile-header .header-icon i {
 
 .trending-cat-pill:not(.active):active {
     transform: scale(0.96);
-    background: #e2e8f0 !important;
+    background: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
 }
 
 .trending-cat-pill.active {
     color: #ffffff !important;
-    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
-    border-color: transparent !important;
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    border: 1.5px solid #203f8d !important;
     outline: none !important;
-    box-shadow: 0 4px 14px rgba(30, 58, 138, 0.35) !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.35) !important;
 }
 
 /* Sort Chips Bar */
@@ -269,11 +272,11 @@ body[data-view="trending"] .mobile-header .header-icon i {
     border-radius: 100px;
     font-size: 11px;
     font-weight: 700;
-    background: #f1f5f9 !important;
-    border: 1px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
     outline: none !important;
-    box-shadow: none !important;
-    color: #475569 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    color: #334155 !important;
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.2s ease;
@@ -282,15 +285,16 @@ body[data-view="trending"] .mobile-header .header-icon i {
 
 .sort-chip:not(.active):active {
     transform: scale(0.96);
-    background: #e2e8f0 !important;
+    background: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
 }
 
 .sort-chip.active {
-    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
     color: #ffffff !important;
-    border-color: transparent !important;
+    border: 1.5px solid #203f8d !important;
     outline: none !important;
-    box-shadow: 0 2px 8px rgba(30, 58, 138, 0.3) !important;
+    box-shadow: 0 2px 8px rgba(32, 63, 141, 0.3) !important;
 }
 
 /* Grid & Cards */
@@ -306,7 +310,7 @@ body[data-view="trending"] .mobile-header .header-icon i {
     border-radius: 18px;
     overflow: hidden;
     background: #f8fafc;
-    border: 1px solid #e2e8f0 !important;
+    border: 1.5px solid #cbd5e1 !important;
     outline: none !important;
     cursor: pointer;
     aspect-ratio: 1 / 1;
@@ -460,7 +464,7 @@ body[data-view="trending"] .mobile-header .header-icon i {
 /* Empty State & Action Buttons */
 .trending-page-container .dash-empty-state {
     background: #f8fafc !important;
-    border: 1px solid #e2e8f0 !important;
+    border: 1.5px solid #cbd5e1 !important;
     border-radius: 24px !important;
     padding: 38px 24px !important;
     text-align: center !important;
@@ -496,7 +500,7 @@ body[data-view="trending"] .mobile-header .header-icon i {
 }
 
 .trending-page-container .dash-empty-btn {
-    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
     color: #ffffff !important;
     border: none !important;
     padding: 12px 30px !important;
@@ -507,7 +511,7 @@ body[data-view="trending"] .mobile-header .header-icon i {
     align-items: center !important;
     justify-content: center !important;
     gap: 8px !important;
-    box-shadow: 0 4px 14px rgba(30, 58, 138, 0.35) !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.35) !important;
     cursor: pointer !important;
     text-decoration: none !important;
     text-transform: uppercase !important;
