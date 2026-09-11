@@ -18,7 +18,7 @@ $backRoute = 'dashboard';
     </div>
 
     <div class="dev-team">
-        <h4><i class="fa-solid fa-users" style="margin-right: 8px; color: #38bdf8;"></i> Development Team</h4>
+        <h4><i class="fa-solid fa-users" style="margin-right: 8px; color: #203f8d;"></i> Development Team</h4>
 
         <div class="team-member">
             <div class="member-avatar">J</div>

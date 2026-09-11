@@ -50,7 +50,7 @@ $backRoute = 'dashboard';
 
     <div class="terms-card">
         <h3><i class="fa-solid fa-envelope"></i> Contact & Data Protection Officer</h3>
-        <p>For questions regarding your privacy rights or account deletion requests, contact our Data Protection desk at <strong style="color: #38bdf8;">support@intan-elyu.online</strong></p>
+        <p>For questions regarding your privacy rights or account deletion requests, contact our Data Protection desk at <strong style="color: #203f8d;">support@intan-elyu.online</strong></p>
     </div>
 </div>
 

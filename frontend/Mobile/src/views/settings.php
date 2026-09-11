@@ -351,12 +351,14 @@ $backRoute = 'dashboard';
         if (pill) {
             if (isActive) {
                 pill.textContent = 'Active';
-                pill.style.background = 'rgba(52, 199, 89, 0.15)';
-                pill.style.color = '#34c759';
+                pill.style.background = 'rgba(34, 197, 94, 0.12)';
+                pill.style.color = '#16a34a';
+                pill.style.border = '1.5px solid #22c55e';
             } else {
                 pill.textContent = 'Disabled';
-                pill.style.background = 'rgba(148, 163, 184, 0.15)';
-                pill.style.color = 'rgba(148, 163, 184, 0.8)';
+                pill.style.background = '#f1f5f9';
+                pill.style.color = '#475569';
+                pill.style.border = '1.5px solid #94a3b8';
             }
         }
 
