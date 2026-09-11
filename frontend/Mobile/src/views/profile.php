@@ -24,22 +24,22 @@ $activeTab = 'profile';
         
         <div id="profile-pref-chips" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 12px;"></div>
 
-        <!-- 3 Stats Cards inside Profile Card -->
-        <div class="stats-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px;">
-            <div class="stat-card" style="background: rgba(10, 25, 65, 0.45); border: 1px solid rgba(255, 255, 255, 0.08); outline: none; border-radius: 20px; padding: 14px 8px; text-align: center; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);">
-                <div style="font-size: 22px; margin-bottom: 6px;"><i class="fa-solid fa-map-location-dot" style="color: #38bdf8;"></i></div>
-                <div class="stat-value" id="stat-places" style="font-size: 20px; font-weight: 900; color: #ffffff; margin-bottom: 2px;">0</div>
-                <div class="stat-label" style="font-size: 11px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.6px;">Places</div>
+        <!-- 3 Stats Cards inside Profile Card (Sleek & Gradient Fitted) -->
+        <div class="stats-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px;">
+            <div class="stat-card" style="background: linear-gradient(135deg, #183170 0%, #2d6298 100%) !important; border: 1px solid rgba(255, 255, 255, 0.16) !important; outline: none; border-radius: 16px; padding: 10px 6px; text-align: center; box-shadow: 0 4px 12px rgba(10, 25, 60, 0.25);">
+                <div style="font-size: 18px; margin-bottom: 3px;"><i class="fa-solid fa-map-location-dot" style="color: #38bdf8;"></i></div>
+                <div class="stat-value" id="stat-places" style="font-size: 17px; font-weight: 900; color: #ffffff; margin-bottom: 1px; letter-spacing: -0.4px;">0</div>
+                <div class="stat-label" style="font-size: 10px; font-weight: 800; color: #ffffff; opacity: 0.92; text-transform: uppercase; letter-spacing: 0.5px;">Places</div>
             </div>
-            <div class="stat-card" style="background: rgba(10, 25, 65, 0.45); border: 1px solid rgba(255, 255, 255, 0.08); outline: none; border-radius: 20px; padding: 14px 8px; text-align: center; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);">
-                <div style="font-size: 22px; margin-bottom: 6px;"><i class="fa-solid fa-coins" style="color: #fbbf24;"></i></div>
-                <div class="stat-value" id="stat-points" style="font-size: 20px; font-weight: 900; color: #ffffff; margin-bottom: 2px;">0</div>
-                <div class="stat-label" style="font-size: 11px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.6px;">Points</div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #183170 0%, #2d6298 100%) !important; border: 1px solid rgba(255, 255, 255, 0.16) !important; outline: none; border-radius: 16px; padding: 10px 6px; text-align: center; box-shadow: 0 4px 12px rgba(10, 25, 60, 0.25);">
+                <div style="font-size: 18px; margin-bottom: 3px;"><i class="fa-solid fa-coins" style="color: #fbbf24;"></i></div>
+                <div class="stat-value" id="stat-points" style="font-size: 17px; font-weight: 900; color: #ffffff; margin-bottom: 1px; letter-spacing: -0.4px;">0</div>
+                <div class="stat-label" style="font-size: 10px; font-weight: 800; color: #ffffff; opacity: 0.92; text-transform: uppercase; letter-spacing: 0.5px;">Points</div>
             </div>
-            <div class="stat-card" style="background: rgba(10, 25, 65, 0.45); border: 1px solid rgba(255, 255, 255, 0.08); outline: none; border-radius: 20px; padding: 14px 8px; text-align: center; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);">
-                <div style="font-size: 22px; margin-bottom: 6px;"><i class="fa-solid fa-trophy" style="color: #f59e0b;"></i></div>
-                <div class="stat-value" id="stat-rank" style="font-size: 20px; font-weight: 900; color: #ffffff; margin-bottom: 2px;">—</div>
-                <div class="stat-label" style="font-size: 11px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.6px;">Rank</div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #183170 0%, #2d6298 100%) !important; border: 1px solid rgba(255, 255, 255, 0.16) !important; outline: none; border-radius: 16px; padding: 10px 6px; text-align: center; box-shadow: 0 4px 12px rgba(10, 25, 60, 0.25);">
+                <div style="font-size: 18px; margin-bottom: 3px;"><i class="fa-solid fa-trophy" style="color: #f59e0b;"></i></div>
+                <div class="stat-value" id="stat-rank" style="font-size: 17px; font-weight: 900; color: #ffffff; margin-bottom: 1px; letter-spacing: -0.4px;">—</div>
+                <div class="stat-label" style="font-size: 10px; font-weight: 800; color: #ffffff; opacity: 0.92; text-transform: uppercase; letter-spacing: 0.5px;">Rank</div>
             </div>
         </div>
 
@@ -764,8 +764,8 @@ $activeTab = 'profile';
             <h3 style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
                 <i class="fa-solid fa-clock-rotate-left" style="color:#38bdf8;"></i> Trip History
             </h3>
-            <button onclick="window.closeFullHistoryModal()" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px;">
-                <i class="fa-solid fa-xmark"></i>
+            <button onclick="window.closeFullHistoryModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
             </button>
         </div>
 
@@ -788,8 +788,8 @@ $activeTab = 'profile';
                     <h3 id="trip-detail-title" style="margin:0; color:#ffffff; font-size:17px; font-weight:800;">Trip Details</h3>
                 </div>
             </div>
-            <button onclick="window.closeTripDetailsModal()" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px;">
-                <i class="fa-solid fa-xmark"></i>
+            <button onclick="window.closeTripDetailsModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
             </button>
         </div>
 
@@ -812,8 +812,8 @@ $activeTab = 'profile';
     <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:24px; padding:24px; width:100%; max-width:340px; box-shadow:0 20px 50px rgba(10,25,60,0.5); text-align:center; transform:scale(0.88); transition:transform 0.25s cubic-bezier(0.16,1,0.3,1); position:relative;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
             <span id="reward-modal-badge" style="font-size:10px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.22); padding:3px 9px; border-radius:8px; border:none !important;">PROMO</span>
-            <button type="button" onclick="window.closeRewardDetailsModal()" style="background:rgba(255,255,255,0.14); border:none !important; outline:none !important; color:#ffffff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px;">
-                <i class="fa-solid fa-xmark"></i>
+            <button type="button" onclick="window.closeRewardDetailsModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
             </button>
         </div>
         <div style="width:70px; height:70px; border-radius:18px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; overflow:hidden; box-shadow:none !important;">

@@ -59,25 +59,25 @@ if (is_dir($imgDir)) {
             </div>
         </div>
 
-        <!-- 3 Stat Cards inside Profile Card -->
-        <div class="stats-row" style="margin-bottom:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
+        <!-- 3 Stat Cards inside Profile Card (Sleek & Gradient Fitted) -->
+        <div class="stats-row" style="margin-bottom:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
             <div class="stat-card" onclick="event.stopPropagation(); navigateTo('itinerary');"
-                style="background: rgba(10, 25, 65, 0.45) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; outline: none !important; border-radius: 20px; padding: 14px 8px; text-align: center; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18) !important; transition: transform 0.2s ease;">
-                <div class="stat-icon" style="font-size:22px; margin-bottom:6px;"><i class="fa-solid fa-map-location-dot" style="color:#38bdf8;"></i></div>
-                <div class="stat-value" id="dash-stat-places" style="font-size:20px; font-weight:900; color:#ffffff; margin-bottom:2px; letter-spacing:-0.5px;">—</div>
-                <div class="stat-label" style="font-size:11px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.6px; opacity:0.95;">Places</div>
+                style="background: linear-gradient(135deg, #183170 0%, #2d6298 100%) !important; border: 1px solid rgba(255, 255, 255, 0.16) !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; box-shadow: 0 4px 12px rgba(10, 25, 60, 0.25) !important; transition: transform 0.2s ease;">
+                <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-map-location-dot" style="color:#38bdf8;"></i></div>
+                <div class="stat-value" id="dash-stat-places" style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—</div>
+                <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.92;">Places</div>
             </div>
             <div class="stat-card" onclick="event.stopPropagation(); navigateTo('leaderboard');"
-                style="background: rgba(10, 25, 65, 0.45) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; outline: none !important; border-radius: 20px; padding: 14px 8px; text-align: center; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18) !important; transition: transform 0.2s ease;">
-                <div class="stat-icon" style="font-size:22px; margin-bottom:6px;"><i class="fa-solid fa-coins" style="color:#fbbf24;"></i></div>
-                <div class="stat-value" id="dash-stat-points" style="font-size:20px; font-weight:900; color:#ffffff; margin-bottom:2px; letter-spacing:-0.5px;">—</div>
-                <div class="stat-label" style="font-size:11px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.6px; opacity:0.95;">Points</div>
+                style="background: linear-gradient(135deg, #183170 0%, #2d6298 100%) !important; border: 1px solid rgba(255, 255, 255, 0.16) !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; box-shadow: 0 4px 12px rgba(10, 25, 60, 0.25) !important; transition: transform 0.2s ease;">
+                <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-coins" style="color:#fbbf24;"></i></div>
+                <div class="stat-value" id="dash-stat-points" style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—</div>
+                <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.92;">Points</div>
             </div>
             <div class="stat-card" onclick="event.stopPropagation(); navigateTo('leaderboard');"
-                style="background: rgba(10, 25, 65, 0.45) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; outline: none !important; border-radius: 20px; padding: 14px 8px; text-align: center; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18) !important; transition: transform 0.2s ease;">
-                <div class="stat-icon" style="font-size:22px; margin-bottom:6px;"><i class="fa-solid fa-trophy" style="color:#f59e0b;"></i></div>
-                <div class="stat-value" id="dash-stat-rank" style="font-size:20px; font-weight:900; color:#ffffff; margin-bottom:2px; letter-spacing:-0.5px;">—</div>
-                <div class="stat-label" style="font-size:11px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.6px; opacity:0.95;">Rank</div>
+                style="background: linear-gradient(135deg, #183170 0%, #2d6298 100%) !important; border: 1px solid rgba(255, 255, 255, 0.16) !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; box-shadow: 0 4px 12px rgba(10, 25, 60, 0.25) !important; transition: transform 0.2s ease;">
+                <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-trophy" style="color:#f59e0b;"></i></div>
+                <div class="stat-value" id="dash-stat-rank" style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—</div>
+                <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.92;">Rank</div>
             </div>
         </div>
     </div>
@@ -124,8 +124,8 @@ if (is_dir($imgDir)) {
                         Fernando, La Union</p>
                 </div>
                 <button onclick="window.closeWeatherModal()"
-                    style="background:rgba(255,255,255,0.2); border:none; color:#fff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                    <i class="fa-solid fa-xmark"></i>
+                    style="background:#ffffff !important; border:none; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                    <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
                 </button>
             </div>
 
@@ -171,8 +171,8 @@ if (is_dir($imgDir)) {
             </div>
         </div>
         <div
-            style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 14px;">
-            <i class="fa-solid fa-play"></i></div>
+            style="width: 34px; height: 34px; border-radius: 50%; background: #ffffff !important; display: flex; align-items: center; justify-content: center; color: #1e3a8a !important; font-size: 13px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0;">
+            <i class="fa-solid fa-play" style="color: #1e3a8a !important; margin-left: 2px;"></i></div>
     </div>
 
     <!-- Categories Section -->

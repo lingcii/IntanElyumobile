@@ -38,7 +38,12 @@ body[data-view="profile"] .mobile-header .header-title {
 }
 
 body[data-view="profile"] .mobile-header .header-icon {
-    color: #ffffff !important;
+    color: #1e3a8a !important;
+    background: #ffffff !important;
+}
+
+body[data-view="profile"] .mobile-header .header-icon i {
+    color: #1e3a8a !important;
 }
 
 /* Profile Header Card */

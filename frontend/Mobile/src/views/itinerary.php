@@ -803,10 +803,10 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
         <div style="display:flex; gap:12px; margin-top:20px;">
             <button class="btn-primary"
-                style="flex:1; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; color:#ffffff; padding:12px; border-radius:14px; font-weight:700; font-size:14px; cursor:pointer; box-shadow:none !important;"
+                style="flex:1; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; padding:12px; border-radius:14px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important; transition:transform 0.15s ease;"
                 onclick="closeSaveModal()">Cancel</button>
             <button class="btn-primary"
-                style="flex:1; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:14px; box-shadow:none !important; cursor:pointer;"
+                style="flex:1; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:14px; box-shadow:0 2px 10px rgba(2, 132, 199, 0.35) !important; cursor:pointer; transition:transform 0.15s ease;"
                 onclick="submitItinerary()" id="btn-submit-trip">Save Trip</button>
         </div>
     </div>

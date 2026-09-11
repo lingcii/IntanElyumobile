@@ -49,7 +49,12 @@ body[data-view="dashboard"] .mobile-header .header-title {
 }
 
 body[data-view="dashboard"] .mobile-header .header-icon {
-    color: #ffffff !important;
+    color: #1e3a8a !important;
+    background: #ffffff !important;
+}
+
+body[data-view="dashboard"] .mobile-header .header-icon i {
+    color: #1e3a8a !important;
 }
 
 /* Main Container: 3 Wave Colors (#1e3a8a/#3f7db7, #0284c7/#38bdf8, #00f2fe/#06b6d4) */
@@ -247,9 +252,9 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 }
 
 .profile-header .stats-row {
-    margin-top: 14px;
+    margin-top: 12px;
     margin-bottom: 0;
-    gap: 10px;
+    gap: 8px;
 }
 
 .stat-card {
@@ -265,11 +270,30 @@ body[data-view="dashboard"] .mobile-header .header-icon {
 }
 
 .profile-header .stat-card {
-    background: rgba(10, 25, 65, 0.45) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18) !important;
-    border-radius: 20px;
-    padding: 14px 8px;
+    background: linear-gradient(135deg, #183170 0%, #2d6298 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    box-shadow: 0 4px 12px rgba(10, 25, 60, 0.25) !important;
+    border-radius: 16px;
+    padding: 10px 6px;
+}
+
+.profile-header .stat-card .stat-icon {
+    font-size: 18px;
+    margin-bottom: 3px;
+}
+
+.profile-header .stat-card .stat-value {
+    font-size: 17px;
+    font-weight: 900;
+    margin-bottom: 1px;
+    letter-spacing: -0.4px;
+}
+
+.profile-header .stat-card .stat-label {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    opacity: 0.92;
 }
 
 .stat-card:active {

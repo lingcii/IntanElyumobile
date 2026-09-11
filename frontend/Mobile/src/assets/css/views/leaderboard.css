@@ -43,7 +43,12 @@ body[data-view="leaderboard"] .mobile-header .header-title {
 }
 
 body[data-view="leaderboard"] .mobile-header .header-icon {
-    color: #ffffff !important;
+    color: #1e3a8a !important;
+    background: #ffffff !important;
+}
+
+body[data-view="leaderboard"] .mobile-header .header-icon i {
+    color: #1e3a8a !important;
 }
 
 /* Title & Subtitle */
@@ -663,21 +668,26 @@ body[data-view="leaderboard"] .mobile-header .header-icon {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.15);
+    background: #ffffff !important;
     border: none !important;
     outline: none !important;
-    color: #ffffff;
+    color: #1e3a8a !important;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     font-size: 13px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
     transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.profile-modal-close i {
+    color: #1e3a8a !important;
 }
 
 .profile-modal-close:active {
     transform: scale(0.9);
-    background: rgba(255, 255, 255, 0.25);
+    background: #f1f5f9 !important;
 }
 
 .profile-modal-header {

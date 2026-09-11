@@ -32,13 +32,13 @@
     }
     
     .header-icon {
-        color: #ffffff !important;
+        color: #1e3a8a !important;
         font-size: 16px;
         cursor: pointer;
         width: 38px;
         height: 38px;
         border-radius: 12px;
-        background: rgba(255, 255, 255, 0.14);
+        background: #ffffff !important;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -46,23 +46,28 @@
         border: none !important;
         outline: none !important;
         flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
         transition: transform 0.15s ease, background 0.15s ease;
+    }
+    
+    .header-icon i {
+        color: #1e3a8a !important;
     }
     
     .header-icon:active {
         transform: scale(0.92);
-        background: rgba(255, 255, 255, 0.24);
+        background: #f1f5f9 !important;
     }
     
     .header-icon .bell-dot {
         position: absolute;
-        top: 8px;
-        right: 8px;
-        width: 8px;
-        height: 8px;
-        background: #00f2fe;
+        top: 6px;
+        right: 6px;
+        width: 9px;
+        height: 9px;
+        background: #0284c7;
         border-radius: 50%;
-        box-shadow: 0 0 0 2px #1e3a8a;
+        box-shadow: 0 0 0 2px #ffffff;
         display: none;
     }
     
@@ -113,7 +118,7 @@
     <?php endif; ?>
     <h1 class="header-title"><?php echo isset($pageTitle) ? $pageTitle : 'Intan Elyu'; ?></h1>
     <div class="header-icon" onclick="toggleNotifications()" title="Notifications">
-        <i class="fa-regular fa-bell" id="bell-icon"></i>
+        <i class="fa-solid fa-bell" id="bell-icon"></i>
         <div class="bell-dot" id="bell-dot"></div>
     </div>
 </div>
@@ -134,8 +139,8 @@
     
     <!-- User Profile Header Banner -->
     <div style="padding: max(calc(env(safe-area-inset-top, 0px) + 20px), 24px) 20px 18px 20px; border-bottom: none; background: rgba(30, 75, 135, 0.58); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); margin-top: 0; position: relative;">
-        <button onclick="toggleSidebar()" style="position: absolute; top: max(calc(env(safe-area-inset-top, 0px) + 16px), 20px); right: 16px; background: rgba(255,255,255,0.16); border: none !important; outline: none !important; color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s;">
-            <i class="fa-solid fa-xmark"></i>
+        <button onclick="toggleSidebar()" style="position: absolute; top: max(calc(env(safe-area-inset-top, 0px) + 16px), 20px); right: 16px; background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: background 0.2s;">
+            <i class="fa-solid fa-xmark" style="color: #1e3a8a !important;"></i>
         </button>
         
         <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 4px;">
