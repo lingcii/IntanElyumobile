@@ -24,22 +24,25 @@ $activeTab = 'profile';
         
         <div id="profile-pref-chips" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 12px;"></div>
 
-    </div>
-    
-    <!-- Stats Cards (Points, Visited, Rank) -->
-    <div class="stats-container stagger-2" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
-        <div class="stat-card" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 18px; padding: 14px 10px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">
-            <div class="stat-value" id="stat-points" style="font-size: 20px; font-weight: 800; color: #00f2fe;">0</div>
-            <div class="stat-label" style="font-size: 11px; font-weight: 700; color: #ffffff; opacity: 0.95; text-transform: uppercase; margin-top: 2px;">Total Points</div>
+        <!-- 3 Stats Cards inside Profile Card -->
+        <div class="stats-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px;">
+            <div class="stat-card" style="background: rgba(10, 25, 65, 0.45); border: 1px solid rgba(255, 255, 255, 0.08); outline: none; border-radius: 20px; padding: 14px 8px; text-align: center; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);">
+                <div style="font-size: 22px; margin-bottom: 6px;"><i class="fa-solid fa-map-location-dot" style="color: #38bdf8;"></i></div>
+                <div class="stat-value" id="stat-places" style="font-size: 20px; font-weight: 900; color: #ffffff; margin-bottom: 2px;">0</div>
+                <div class="stat-label" style="font-size: 11px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.6px;">Places</div>
+            </div>
+            <div class="stat-card" style="background: rgba(10, 25, 65, 0.45); border: 1px solid rgba(255, 255, 255, 0.08); outline: none; border-radius: 20px; padding: 14px 8px; text-align: center; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);">
+                <div style="font-size: 22px; margin-bottom: 6px;"><i class="fa-solid fa-coins" style="color: #fbbf24;"></i></div>
+                <div class="stat-value" id="stat-points" style="font-size: 20px; font-weight: 900; color: #ffffff; margin-bottom: 2px;">0</div>
+                <div class="stat-label" style="font-size: 11px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.6px;">Points</div>
+            </div>
+            <div class="stat-card" style="background: rgba(10, 25, 65, 0.45); border: 1px solid rgba(255, 255, 255, 0.08); outline: none; border-radius: 20px; padding: 14px 8px; text-align: center; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);">
+                <div style="font-size: 22px; margin-bottom: 6px;"><i class="fa-solid fa-trophy" style="color: #f59e0b;"></i></div>
+                <div class="stat-value" id="stat-rank" style="font-size: 20px; font-weight: 900; color: #ffffff; margin-bottom: 2px;">—</div>
+                <div class="stat-label" style="font-size: 11px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.6px;">Rank</div>
+            </div>
         </div>
-        <div class="stat-card" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 18px; padding: 14px 10px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">
-            <div class="stat-value" id="stat-places" style="font-size: 20px; font-weight: 800; color: #ffffff;">0</div>
-            <div class="stat-label" style="font-size: 11px; font-weight: 700; color: #ffffff; opacity: 0.95; text-transform: uppercase; margin-top: 2px;">Visited</div>
-        </div>
-        <div class="stat-card" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 18px; padding: 14px 10px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">
-            <div class="stat-value" id="stat-rank" style="font-size: 20px; font-weight: 800; color: #fbbf24;">—</div>
-            <div class="stat-label" style="font-size: 11px; font-weight: 700; color: #ffffff; opacity: 0.95; text-transform: uppercase; margin-top: 2px;">Leaderboard</div>
-        </div>
+
     </div>
 
     <!-- Trip History -->

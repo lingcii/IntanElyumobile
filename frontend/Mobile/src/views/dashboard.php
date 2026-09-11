@@ -33,10 +33,10 @@ if (is_dir($imgDir)) {
 
 <div class="dashboard-container has-header has-bottom-nav animate-slide-up">
 
-    <!-- Profile Card -->
+    <!-- Profile Card with embedded Stats -->
     <div class="profile-header stagger-1" onclick="navigateTo('profile')"
         style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; box-shadow: 0 10px 24px rgba(10, 25, 60, 0.25) !important;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
             <div class="profile-info-row" style="margin-bottom:0; flex:1;">
                 <div class="profile-avatar">
                     <img id="dash-avatar"
@@ -58,24 +58,27 @@ if (is_dir($imgDir)) {
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Stats Row -->
-    <div class="stats-row stagger-1">
-        <div class="stat-card" onclick="navigateTo('itinerary')">
-            <div class="stat-icon"><i class="fa-solid fa-map-location-dot" style="color:#38bdf8;"></i></div>
-            <div class="stat-value" id="dash-stat-places">—</div>
-            <div class="stat-label">Places</div>
-        </div>
-        <div class="stat-card" onclick="navigateTo('leaderboard')">
-            <div class="stat-icon"><i class="fa-solid fa-coins" style="color:#fbbf24;"></i></div>
-            <div class="stat-value" id="dash-stat-points">—</div>
-            <div class="stat-label">Points</div>
-        </div>
-        <div class="stat-card" onclick="navigateTo('leaderboard')">
-            <div class="stat-icon"><i class="fa-solid fa-trophy" style="color:#f59e0b;"></i></div>
-            <div class="stat-value" id="dash-stat-rank">—</div>
-            <div class="stat-label">Rank</div>
+        <!-- 3 Stat Cards inside Profile Card -->
+        <div class="stats-row" style="margin-bottom:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
+            <div class="stat-card" onclick="event.stopPropagation(); navigateTo('itinerary');"
+                style="background: rgba(10, 25, 65, 0.45) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; outline: none !important; border-radius: 20px; padding: 14px 8px; text-align: center; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18) !important; transition: transform 0.2s ease;">
+                <div class="stat-icon" style="font-size:22px; margin-bottom:6px;"><i class="fa-solid fa-map-location-dot" style="color:#38bdf8;"></i></div>
+                <div class="stat-value" id="dash-stat-places" style="font-size:20px; font-weight:900; color:#ffffff; margin-bottom:2px; letter-spacing:-0.5px;">—</div>
+                <div class="stat-label" style="font-size:11px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.6px; opacity:0.95;">Places</div>
+            </div>
+            <div class="stat-card" onclick="event.stopPropagation(); navigateTo('leaderboard');"
+                style="background: rgba(10, 25, 65, 0.45) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; outline: none !important; border-radius: 20px; padding: 14px 8px; text-align: center; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18) !important; transition: transform 0.2s ease;">
+                <div class="stat-icon" style="font-size:22px; margin-bottom:6px;"><i class="fa-solid fa-coins" style="color:#fbbf24;"></i></div>
+                <div class="stat-value" id="dash-stat-points" style="font-size:20px; font-weight:900; color:#ffffff; margin-bottom:2px; letter-spacing:-0.5px;">—</div>
+                <div class="stat-label" style="font-size:11px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.6px; opacity:0.95;">Points</div>
+            </div>
+            <div class="stat-card" onclick="event.stopPropagation(); navigateTo('leaderboard');"
+                style="background: rgba(10, 25, 65, 0.45) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; outline: none !important; border-radius: 20px; padding: 14px 8px; text-align: center; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18) !important; transition: transform 0.2s ease;">
+                <div class="stat-icon" style="font-size:22px; margin-bottom:6px;"><i class="fa-solid fa-trophy" style="color:#f59e0b;"></i></div>
+                <div class="stat-value" id="dash-stat-rank" style="font-size:20px; font-weight:900; color:#ffffff; margin-bottom:2px; letter-spacing:-0.5px;">—</div>
+                <div class="stat-label" style="font-size:11px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.6px; opacity:0.95;">Rank</div>
+            </div>
         </div>
     </div>
 
