@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\TouristSpot;
-use App\Models\Vehicle;
 use App\Models\FareGuide;
 use App\Models\FareMatrix;
 use Illuminate\Support\Facades\DB;
@@ -29,14 +28,23 @@ class CostEstimationService
             }
         }
 
-        // 2. Fetch vehicle consumption rate (efficiency in km/L) from vehicles table
+        // 2. Fetch vehicle consumption rate (efficiency in km/L)
         $efficiency = $customFuelEfficiency;
         if ($efficiency === null) {
             $dbVehicleName = $this->mapVehicleToDbName($vehicleType);
-            $vehicle = Vehicle::where('name', $dbVehicleName)->first();
-            $efficiency = $vehicle && $vehicle->fuel_efficiency_kml > 0 
-                ? (float) $vehicle->fuel_efficiency_kml 
-                : 12.00; // default to 12 km/L (average private car)
+            $efficiencyMap = [
+                'Tricycle'    => 25.00,
+                'Jeepney'     => 8.00,
+                'MPUJ'        => 8.00,
+                'Bus'         => 4.00,
+                'PUB_Aircon'  => 4.00,
+                'Van'         => 10.00,
+                'Taxi'        => 12.00,
+                'Motorcycle'  => 35.00,
+                'Private Car' => 12.00,
+                'Own Car'     => 12.00,
+            ];
+            $efficiency = $efficiencyMap[$dbVehicleName] ?? 12.00;
         }
 
         if ($efficiency <= 0) {

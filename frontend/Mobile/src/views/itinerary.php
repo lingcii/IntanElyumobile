@@ -654,37 +654,17 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             <input type="hidden" id="trip-transport" value="">
             <div id="transport-slider"
                 style="display:flex; overflow-x:auto; gap:12px; padding-bottom:8px; margin-bottom:16px; scrollbar-width:none; -ms-overflow-style:none;">
-                <div class="transport-option" data-val="own_car" onclick="window.selectTransportMode(this)">
-                    <i class="fa-solid fa-car"></i>
-                    <span>Own Car</span>
-                </div>
                 <div class="transport-option" data-val="jeepney" onclick="window.selectTransportMode(this)">
-                    <i class="fa-solid fa-truck-pickup"></i>
-                    <span>Jeepney</span>
+                    <i class="fa-solid fa-bus"></i>
+                    <span>Modern Jeepney</span>
+                </div>
+                <div class="transport-option" data-val="private_bus" onclick="window.selectTransportMode(this)">
+                    <i class="fa-solid fa-bus-simple"></i>
+                    <span>Aircon Bus</span>
                 </div>
                 <div class="transport-option" data-val="tricycle" onclick="window.selectTransportMode(this)">
                     <i class="fa-solid fa-motorcycle"></i>
                     <span>Tricycle</span>
-                </div>
-                <div class="transport-option" data-val="taxi" onclick="window.selectTransportMode(this)">
-                    <i class="fa-solid fa-taxi"></i>
-                    <span>Taxi</span>
-                </div>
-                <div class="transport-option" data-val="private_bus" onclick="window.selectTransportMode(this)">
-                    <i class="fa-solid fa-bus"></i>
-                    <span>Private Bus</span>
-                </div>
-                <div class="transport-option" data-val="mini_bus" onclick="window.selectTransportMode(this)">
-                    <i class="fa-solid fa-van-shuttle"></i>
-                    <span>Mini Bus</span>
-                </div>
-                <div class="transport-option" data-val="lutrampco" onclick="window.selectTransportMode(this)">
-                    <i class="fa-solid fa-bus-simple"></i>
-                    <span>LUTRAMPCO</span>
-                </div>
-                <div class="transport-option" data-val="motorcycle" onclick="window.selectTransportMode(this)">
-                    <i class="fa-solid fa-motorcycle"></i>
-                    <span>Motorcycle</span>
                 </div>
             </div>
         </div>
@@ -2801,94 +2781,20 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             let optionsList = [];
 
-            if (window.vehicleTypes && Array.isArray(window.vehicleTypes) && window.vehicleTypes.length > 0) {
-                const isPrivate = type === 'private';
-                const privateNames = ['Car', 'Motorcycle', 'Van', 'TAXI'];
-                const matchedTypes = window.vehicleTypes.filter(vt => {
-                    const isPriv = privateNames.includes(vt.name);
-                    return isPrivate ? isPriv : !isPriv;
-                });
-
-                const iconMap = {
-                    'TAXI': 'fa-taxi',
-                    'UVE': 'fa-van-shuttle',
-                    'PUB_Regular': 'fa-bus',
-                    'PUB_Aircon': 'fa-bus-simple',
-                    'MPUJ': 'fa-bus',
-                    'TPUJ': 'fa-truck-pickup',
-                    'Tricycle': 'fa-motorcycle',
-                    'Car': 'fa-car',
-                    'Motorcycle': 'fa-motorcycle',
-                    'Van': 'fa-shuttle-van'
-                };
-
-                const keyMap = {
-                    'TAXI': 'taxi',
-                    'UVE': 'mini_bus',
-                    'PUB_Regular': 'private_bus',
-                    'PUB_Aircon': 'private_bus',
-                    'MPUJ': 'jeepney',
-                    'TPUJ': 'jeepney',
-                    'Tricycle': 'tricycle',
-                    'Car': 'own_car',
-                    'Motorcycle': 'motorcycle',
-                    'Van': 'mini_bus'
-                };
-
-                const labelMap = {
-                    'TAXI': 'Taxi',
-                    'UVE': 'UV Express',
-                    'PUB_Regular': 'Regular Bus',
-                    'PUB_Aircon': 'Aircon Bus',
-                    'MPUJ': 'Modern Jeepney',
-                    'TPUJ': 'Traditional Jeepney',
-                    'Tricycle': 'Tricycle',
-                    'Car': 'Own Car',
-                    'Motorcycle': 'Motorcycle',
-                    'Van': 'Van'
-                };
-
-                optionsList = matchedTypes.map(vt => ({
-                    val: keyMap[vt.name] || vt.name.toLowerCase(),
-                    name: labelMap[vt.name] || vt.name,
-                    icon: iconMap[vt.name] || 'fa-car'
-                }));
-            } else if (window.vehicleData && Array.isArray(window.vehicleData) && window.vehicleData.length > 0) {
-                const isPrivate = type === 'private';
-                const privateNames = ['Private Car', 'Taxi', 'Motorcycle', 'Van'];
-                optionsList = window.vehicleData.filter(v => {
-                    const isPriv = privateNames.includes(v.name);
-                    return isPrivate ? isPriv : !isPriv;
-                }).map(v => {
-                    const keyMap = {
-                        'Tricycle': 'tricycle', 'Jeepney': 'jeepney', 'Bus': 'private_bus',
-                        'Van': 'mini_bus', 'Taxi': 'taxi', 'Motorcycle': 'motorcycle', 'Private Car': 'own_car'
-                    };
-                    return {
-                        val: keyMap[v.name] || v.name.toLowerCase().replace(/\s+/g, '_'),
-                        name: v.name,
-                        icon: v.icon || 'fa-car'
-                    };
-                });
-            }
-
-            if (optionsList.length === 0) {
-                if (type === 'private') {
-                    optionsList = [
-                        { val: 'own_car', name: 'Own Car', icon: 'fa-car' },
-                        { val: 'taxi', name: 'Taxi', icon: 'fa-taxi' },
-                        { val: 'van', name: 'Van', icon: 'fa-shuttle-van' },
-                        { val: 'motorcycle', name: 'Motorcycle', icon: 'fa-motorcycle' }
-                    ];
-                } else {
-                    optionsList = [
-                        { val: 'private_bus', name: 'Bus', icon: 'fa-bus' },
-                        { val: 'mini_bus', name: 'Mini Bus / UVE', icon: 'fa-van-shuttle' },
-                        { val: 'lutrampco', name: 'LUTRAMPCO', icon: 'fa-bus-simple' },
-                        { val: 'jeepney', name: 'Jeepney', icon: 'fa-truck-pickup' },
-                        { val: 'tricycle', name: 'Tricycle', icon: 'fa-motorcycle' }
-                    ];
-                }
+            if (type === 'private') {
+                optionsList = [
+                    { val: 'own_car', name: 'Own Car', icon: 'fa-car' },
+                    { val: 'taxi', name: 'Taxi', icon: 'fa-taxi' },
+                    { val: 'van', name: 'Van', icon: 'fa-shuttle-van' },
+                    { val: 'motorcycle', name: 'Motorcycle', icon: 'fa-motorcycle' }
+                ];
+            } else {
+                // Public: strictly the vehicle types with verified uploaded fare matrices
+                optionsList = [
+                    { val: 'jeepney', name: 'Modern Jeepney', icon: 'fa-bus' },
+                    { val: 'private_bus', name: 'Aircon Bus', icon: 'fa-bus-simple' },
+                    { val: 'tricycle', name: 'Tricycle', icon: 'fa-motorcycle' }
+                ];
             }
 
             const unique = [];

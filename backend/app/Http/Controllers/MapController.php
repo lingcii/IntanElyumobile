@@ -19,13 +19,6 @@ class MapController extends Controller
     {
         $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots', 30, function () {
             $spotVehicleMap = [];
-            try {
-                $spotVehicleMap = \Illuminate\Support\Facades\DB::table('tourist_spot_vehicle_type')
-                    ->join('vehicle_types', 'tourist_spot_vehicle_type.vehicle_type_id', '=', 'vehicle_types.id')
-                    ->select('tourist_spot_vehicle_type.tourist_spot_id', 'vehicle_types.name')
-                    ->get()
-                    ->groupBy('tourist_spot_id');
-            } catch (\Throwable $e) {}
 
             $spotServiceCenterMap = [];
             try {
@@ -299,9 +292,24 @@ class MapController extends Controller
             return $result;
         });
 
-        $vehicles = \Illuminate\Support\Facades\Cache::remember('public:vehicles', 300, function () {
+        $activeFareVehicleTypes = \Illuminate\Support\Facades\Cache::remember('public:active_fare_vehicle_types', 300, function () {
             try {
-                return \App\Models\Vehicle::where('is_active', true)->get();
+                $publicTypes = FareGuide::where('status', 'active')
+                    ->where('is_archived', 0)
+                    ->pluck('vehicle_type')
+                    ->unique()
+                    ->values()
+                    ->map(fn($vt) => ['name' => $vt, 'category' => 'Public Vehicle'])
+                    ->toArray();
+
+                $privateTypes = [
+                    ['name' => 'Car', 'category' => 'Private Vehicle'],
+                    ['name' => 'TAXI', 'category' => 'Private Vehicle'],
+                    ['name' => 'Van', 'category' => 'Private Vehicle'],
+                    ['name' => 'Motorcycle', 'category' => 'Private Vehicle'],
+                ];
+
+                return array_merge($publicTypes, $privateTypes);
             } catch (\Throwable $e) {
                 return [];
             }
@@ -313,19 +321,11 @@ class MapController extends Controller
                 ->value('value') ?? '65.00';
         });
 
-        $vehicleTypes = \Illuminate\Support\Facades\Cache::remember('public:vehicle_types', 300, function () {
-            try {
-                return \Illuminate\Support\Facades\DB::table('vehicle_types')->get();
-            } catch (\Throwable $e) {
-                return [];
-            }
-        });
-
         return response()->json([
             'success'       => true,
             'fares'         => $fares,
-            'vehicles'      => $vehicles,
-            'vehicle_types' => $vehicleTypes,
+            'vehicles'      => [],
+            'vehicle_types' => $activeFareVehicleTypes,
             'fuel_price'    => (float) $fuelPrice
         ]);
     }
