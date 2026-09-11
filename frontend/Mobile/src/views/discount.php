@@ -577,7 +577,7 @@ async function handleModalRedeem() {
                 localStorage.setItem('auth_user', JSON.stringify(storedUser));
             }
 
-            // Signal dashboard and other views to bypass cache and re-render deducted level
+            // Signal dashboard and other views to bypass cache and re-render deducted points
             window.dashboardNeedsRefresh = true;
             try {
                 for (let i = localStorage.length - 1; i >= 0; i--) {

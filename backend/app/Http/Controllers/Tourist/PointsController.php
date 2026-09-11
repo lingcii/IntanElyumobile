@@ -118,7 +118,7 @@ class PointsController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => "Congratulations! You earned {$xp} XP!",
+            'message' => "Congratulations! You earned {$xp} Points!",
             'xp_awarded' => $xp,
             'points_awarded' => $xp
         ]);
@@ -171,7 +171,7 @@ class PointsController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => "Congratulations! You earned {$xp} XP!",
+            'message' => "Congratulations! You earned {$xp} Points!",
             'xp_awarded' => $xp,
             'points_awarded' => $xp
         ]);
@@ -239,7 +239,7 @@ class PointsController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => "Congratulations! You earned {$xp} XP!",
+            'message' => "Congratulations! You earned {$xp} Points!",
             'xp_awarded' => $xp,
             'points_awarded' => $xp
         ]);

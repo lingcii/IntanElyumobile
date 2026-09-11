@@ -2956,7 +2956,7 @@ if (is_dir($imgDir)) {
             // Reset check-in button state
             const checkinBtn = document.getElementById('btn-checkin-spot');
             if (checkinBtn) {
-                checkinBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Check In (+50 XP)';
+                checkinBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Check In (+50 PTS)';
                 checkinBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
                 checkinBtn.disabled = false;
             }
@@ -3826,7 +3826,7 @@ if (is_dir($imgDir)) {
                             </div>
                             <div style="font-size:13.5px; font-weight:800; color:#ffffff; margin-bottom:4px;">No Testimonies Yet</div>
                             <p style="margin:0 0 12px; font-size:12px; color:rgba(255,255,255,0.9); line-height:1.5;">
-                                Be the first verified visitor to review this <strong style="color:${classMeta.color}; font-weight:800;">${classMeta.label}</strong> spot and share policy feedback during your trip navigation to earn <strong>+${classMeta.points} Points & +${classMeta.points} XP</strong>!
+                                Be the first verified visitor to review this <strong style="color:${classMeta.color}; font-weight:800;">${classMeta.label}</strong> spot and share policy feedback during your trip navigation to earn <strong>+${classMeta.points} Points</strong>!
                             </p>
                             <div style="display:inline-flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700; color:#ffffff; background:rgba(255,255,255,0.12); padding:5px 12px; border-radius:20px;">
                                 <i class="fa-solid fa-route" style="color:#ffffff;"></i> Review available in Trip Map & Visited Stops
@@ -3910,7 +3910,7 @@ if (is_dir($imgDir)) {
 
                 const data = await res.json();
                 if (res.ok && (data.status === 'success' || data.success)) {
-                    if (typeof showToast === 'function') showToast(data.message || `Check-in verified! Earned +50 XP at ${dest.name}!`);
+                    if (typeof showToast === 'function') showToast(data.message || `Check-in verified! Earned +50 Points at ${dest.name}!`);
 
                     // Update local spot visitors count
                     const newVisits = data.visits || ((parseInt(dest.visits) || 0) + 1);

@@ -58,7 +58,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             <i class="fa-solid fa-camera" style="font-size:26px; color:#ffffff;"></i>
         </div>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Submit Visit Proof</h3>
-        <p style="font-size:13px; color:rgba(255, 255, 255, 0.85); margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination. Your submission will be submitted for MTO / LUPTO review and approval before earning <strong style="color:#67e8f9; font-weight:800;">+50 XP</strong>.</p>
+        <p style="font-size:13px; color:rgba(255, 255, 255, 0.85); margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination. Your submission will be submitted for MTO / LUPTO review and approval before earning <strong style="color:#67e8f9; font-weight:800;">+50 Points</strong>.</p>
 
         <input type="hidden" id="checkin-item-id">
         
@@ -506,7 +506,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     <div style="display:flex; flex-direction:column; gap:2px;">
                         <span style="background:rgba(52,199,89,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:11px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Visited & Verified</span>
                         <button type="button" data-spot-id="${sId}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${sId}', this)" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px; cursor:pointer; width:fit-content; margin-top:2px;">
-                            ${isReviewed ? '<i class="fa-solid fa-check" style="margin-right:4px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="margin-right:4px;"></i> Review Site (+${sMeta.points} PTS & XP)`}
+                            ${isReviewed ? '<i class="fa-solid fa-check" style="margin-right:4px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="margin-right:4px;"></i> Review Site (+${sMeta.points} PTS)`}
                         </button>
                     </div>
                 </div>`;
@@ -524,7 +524,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     <span style="background:rgba(255,149,0,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:11px; padding:4px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-clock"></i> Pending MTO / LUPTO Review</span>
                 </div>`;
             } else if (isActive) {
-                actionBtnHtml = `<button onclick="event.stopPropagation(); window.currentCheckinItemId='${item.id}'; window.triggerMapCheckinModal()" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; border:none !important; outline:none !important; padding:10px 16px; border-radius:100px; font-weight:800; font-size:12px; box-shadow:0 4px 14px rgba(2,132,199,0.4); cursor:pointer;"><i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In (+50 XP)</button>`;
+                actionBtnHtml = `<button onclick="event.stopPropagation(); window.currentCheckinItemId='${item.id}'; window.triggerMapCheckinModal()" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; border:none !important; outline:none !important; padding:10px 16px; border-radius:100px; font-weight:800; font-size:12px; box-shadow:0 4px 14px rgba(2,132,199,0.4); cursor:pointer;"><i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In (+50 PTS)</button>`;
             } else {
                 actionBtnHtml = `<span style="color:rgba(255,255,255,0.6); font-size:12px; font-weight:700;"><i class="fa-solid fa-lock"></i> Locked</span>`;
             }

@@ -380,9 +380,9 @@
             <div class="policy-item-card">
                 <div class="policy-item-header">
                     <div class="policy-icon-badge"><i class="fa-solid fa-location-dot"></i></div>
-                    <span class="policy-item-title">3. Location &amp; Fair Play XP</span>
+                    <span class="policy-item-title">3. Location &amp; Fair Play Points</span>
                 </div>
-                <p class="policy-item-desc">Device location is accessed strictly during active tourist spot check-ins to verify XP rewards and badge unlocks. We do not track your location in the background.</p>
+                <p class="policy-item-desc">Device location is accessed strictly during active tourist spot check-ins to verify Points rewards and badge unlocks. We do not track your location in the background.</p>
             </div>
             
             <div class="policy-item-card">

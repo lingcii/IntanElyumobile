@@ -131,7 +131,7 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
         <div id="result-state" style="display:none;">
             <div id="result-icon" style="font-size:48px; margin-bottom:16px;">🎉</div>
             <h3 id="result-title" style="margin:0 0 8px;font-size:20px;font-weight:800;">Correct!</h3>
-            <div id="result-xp" style="font-size:24px; font-weight:900; color:#fbbf24; margin-bottom:12px;">+150 XP</div>
+            <div id="result-points" style="font-size:24px; font-weight:900; color:#fbbf24; margin-bottom:12px;">+150 Points</div>
             <p id="result-message" style="font-size:13px;color:rgba(255,255,255,0.7);margin:0 0 20px;"></p>
             
             <button onclick="history.back()" style="width:100%;padding:14px;border-radius:14px;background:linear-gradient(135deg,#6366f1,#38bdf8);border:none;color:#fff;font-weight:800;font-size:14px;cursor:pointer;">
@@ -210,10 +210,10 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
             }
             
             if (data.status === 'success' || data.success) {
-                alert(data.message || '🎉 GPS Check-in Verified! XP awarded!');
+                alert(data.message || '🎉 GPS Check-in Verified! Points awarded!');
                 history.back();
             } else {
-                alert(data.message || '🎉 GPS Check-in Verified! XP awarded!');
+                alert(data.message || '🎉 GPS Check-in Verified! Points awarded!');
                 history.back();
             }
         } catch(e) {
@@ -230,7 +230,7 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
             });
             localStorage.setItem('offline_checkin_queue', JSON.stringify(queue));
             
-            alert('📡 Low Signal / Offline Area Detected:\n\nYour GPS check-in was saved locally! XP will sync automatically as soon as internet connection is restored.');
+            alert('📡 Low Signal / Offline Area Detected:\n\nYour GPS check-in was saved locally! Points will sync automatically as soon as internet connection is restored.');
             history.back();
         }
     };
@@ -290,7 +290,8 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
             }
             
             const ptsEarned = data.points_earned || data.xp_earned || 50;
-            document.getElementById('result-xp').textContent = `+${ptsEarned} Points & XP`;
+            const resPtsEl = document.getElementById('result-points') || document.getElementById('result-xp');
+            if (resPtsEl) resPtsEl.textContent = `+${ptsEarned} Points`;
             document.getElementById('result-message').innerHTML = 
                 (data.fun_fact ? `<strong>Did you know?</strong> ${data.fun_fact}` : data.message);
                 

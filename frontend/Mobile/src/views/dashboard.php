@@ -33,10 +33,10 @@ if (is_dir($imgDir)) {
 
 <div class="dashboard-container has-header has-bottom-nav animate-slide-up">
 
-    <!-- Profile + EXP Card -->
+    <!-- Profile Card -->
     <div class="profile-header stagger-1" onclick="navigateTo('profile')"
         style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; box-shadow: 0 10px 24px rgba(10, 25, 60, 0.25) !important;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0;">
             <div class="profile-info-row" style="margin-bottom:0; flex:1;">
                 <div class="profile-avatar">
                     <img id="dash-avatar"
@@ -58,24 +58,6 @@ if (is_dir($imgDir)) {
                 </div>
             </div>
         </div>
-
-        <!-- Level XP Progress Section -->
-        <div class="exp-container">
-            <div class="exp-header">
-                <span class="exp-label" id="dash-level-label"><i class="fa-solid fa-award"
-                        style="color:#00f2fe; margin-right:4px;"></i> Level Progress</span>
-                <span class="exp-value" id="dash-xp-value"><i class="fa-solid fa-bolt"
-                        style="color:#fbbf24; margin-right:4px;"></i>— XP</span>
-            </div>
-            <div class="exp-bar-bg">
-                <div class="exp-bar-fill" id="dash-xp-bar" style="width:0%;"></div>
-            </div>
-            <div
-                style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#cbd5e1; font-weight:600; margin-top:4px;">
-                <span id="dash-xp-needed" style="color:#cbd5e1;">1,000 XP to next level</span>
-                <span id="dash-xp-pct" style="color:#00f2fe; font-weight:800;">0%</span>
-            </div>
-        </div>
     </div>
 
     <!-- Stats Row -->
@@ -86,9 +68,9 @@ if (is_dir($imgDir)) {
             <div class="stat-label">Places</div>
         </div>
         <div class="stat-card" onclick="navigateTo('leaderboard')">
-            <div class="stat-icon"><i class="fa-solid fa-bolt" style="color:#fbbf24;"></i></div>
-            <div class="stat-value" id="dash-stat-xp">—</div>
-            <div class="stat-label">XP</div>
+            <div class="stat-icon"><i class="fa-solid fa-coins" style="color:#fbbf24;"></i></div>
+            <div class="stat-value" id="dash-stat-points">—</div>
+            <div class="stat-label">Points</div>
         </div>
         <div class="stat-card" onclick="navigateTo('leaderboard')">
             <div class="stat-icon"><i class="fa-solid fa-trophy" style="color:#f59e0b;"></i></div>
@@ -842,22 +824,10 @@ if (is_dir($imgDir)) {
             if (initTouristNum) {
                 setTxt('dash-explorer-id', 'ID: #' + initTouristNum);
             }
-            if (user.xp !== undefined) {
-                const initXp = parseInt(user.xp) || 0;
-                const initLevel = Math.floor(Math.max(0, initXp) / 1000) + 1;
-                setTxt('dash-title', 'Level ' + initLevel + ' Explorer');
-                const initLvlLabel = document.getElementById('dash-level-label');
-                if (initLvlLabel) initLvlLabel.innerHTML = `<i class="fa-solid fa-award" style="color:#00f2fe; margin-right:4px;"></i> Level ${initLevel} Progress`;
-                const initXpInLevel = initXp % 1000;
-                const initXpPct = Math.min((initXpInLevel / 1000) * 100, 100);
-                const initXpVal = document.getElementById('dash-xp-value');
-                if (initXpVal) initXpVal.innerHTML = `<i class="fa-solid fa-bolt" style="color:#fbbf24; margin-right:4px;"></i>${initXpInLevel.toLocaleString()} / 1,000 XP`;
-                const initXpNeedEl = document.getElementById('dash-xp-needed');
-                if (initXpNeedEl) initXpNeedEl.textContent = `${(1000 - initXpInLevel).toLocaleString()} XP to Level ${initLevel + 1}`;
-                const initXpPctEl = document.getElementById('dash-xp-pct');
-                if (initXpPctEl) initXpPctEl.textContent = `${Math.round(initXpPct)}%`;
-                if (document.getElementById('dash-xp-bar')) document.getElementById('dash-xp-bar').style.width = initXpPct + '%';
-            }
+            const initPts = parseInt(user.points !== undefined ? user.points : (user.xp || 0)) || 0;
+            const ptsEl = document.getElementById('dash-stat-points');
+            if (ptsEl) ptsEl.textContent = initPts.toLocaleString();
+            setTxt('dash-title', 'Explorer of Elyu');
         }
 
         if (!token) return;
@@ -913,15 +883,12 @@ if (is_dir($imgDir)) {
 
             const u = data.user || {};
 
-            // XP Bar & Dynamic Level Calculation
-            const xp = parseInt(u.xp) || 0;
-            const level = Math.floor(Math.max(0, xp) / 1000) + 1;
-            u.level = level;
+            const points = parseInt(u.points !== undefined ? u.points : (u.xp || 0)) || 0;
 
             // Profile header
             const firstName = (u.name || 'Explorer').split(' ')[0];
             setHtml('dash-name', 'Hi, ' + firstName + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
-            setTxt('dash-title', 'Level ' + level + ' Explorer');
+            setTxt('dash-title', 'Explorer of Elyu');
 
             const touristNum = u.tourist_number || u.tourist_id || (u.role === 'tourist' ? 1 : (u.id || u.user_id || ''));
             if (touristNum) {
@@ -961,28 +928,9 @@ if (is_dir($imgDir)) {
                 setSrc('dash-avatar', `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Tourist')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
             }
 
-            const xpPerLevel = 1000;
-            const xpInLevel = xp % xpPerLevel;
-            const xpPct = Math.min((xpInLevel / xpPerLevel) * 100, 100);
-            const xpNeeded = xpPerLevel - xpInLevel;
-
-            const lvlLabel = document.getElementById('dash-level-label');
-            if (lvlLabel) lvlLabel.innerHTML = `<i class="fa-solid fa-award" style="color:#00f2fe; margin-right:4px;"></i> Level ${level} Progress`;
-
-            const xpVal = document.getElementById('dash-xp-value');
-            if (xpVal) xpVal.innerHTML = `<i class="fa-solid fa-bolt" style="color:#fbbf24; margin-right:4px;"></i>${xpInLevel.toLocaleString()} / ${xpPerLevel.toLocaleString()} XP`;
-
-            const xpNeedEl = document.getElementById('dash-xp-needed');
-            if (xpNeedEl) xpNeedEl.textContent = `${xpNeeded.toLocaleString()} XP to Level ${level + 1}`;
-
-            const xpPctEl = document.getElementById('dash-xp-pct');
-            if (xpPctEl) xpPctEl.textContent = `${Math.round(xpPct)}%`;
-
-            if (document.getElementById('dash-xp-bar')) document.getElementById('dash-xp-bar').style.width = xpPct + '%';
-
             // Stats
             if (document.getElementById('dash-stat-places')) document.getElementById('dash-stat-places').textContent = (data.stats && data.stats.placesVisited) ? data.stats.placesVisited : 0;
-            if (document.getElementById('dash-stat-xp')) document.getElementById('dash-stat-xp').textContent = xp.toLocaleString();
+            if (document.getElementById('dash-stat-points')) document.getElementById('dash-stat-points').textContent = points.toLocaleString();
 
             // Populate Trending Spots (Limit to top 5, "See All" opens full list)
             const trendingContainer = document.getElementById('trending-container');

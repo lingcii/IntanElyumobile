@@ -39,12 +39,12 @@ $backRoute = 'dashboard';
     <div class="faq-item" onclick="toggleFaq(this)">
         <div class="faq-question">
             <i class="fa-solid fa-circle-question"></i>
-            <span>How is XP calculated?</span>
+            <span>How are Points earned?</span>
             <i class="fa-solid fa-chevron-down"></i>
         </div>
         <div class="faq-answer-wrapper">
             <div class="faq-answer">
-                Earn XP by checking in at destinations, completing itinerary trips, and solving daily challenges. Collecting XP increases your rank level and unlocks exclusive badges and discounts.
+                Earn Points by checking in at destinations, completing itinerary trips, and solving Game Zone puzzles. Accumulating Points boosts your position on the Leaderboard and allows you to claim rewards.
             </div>
         </div>
     </div>

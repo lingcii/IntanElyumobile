@@ -473,7 +473,7 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
 
         return response()->json([
             'success' => true,
-            'message' => "Proof check-in approved successfully! +{$rewardPoints} Points & XP ({$canonical}) awarded to tourist.",
+            'message' => "Proof check-in approved successfully! +{$rewardPoints} Points ({$canonical}) awarded to tourist.",
             'item' => $item,
         ]);
     });
@@ -984,7 +984,7 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
 
             return response()->json([
                 'success' => true,
-                'message' => "Proof check-in approved successfully! +{$rewardPoints} Points & XP ({$canonical}) awarded to tourist.",
+                'message' => "Proof check-in approved successfully! +{$rewardPoints} Points ({$canonical}) awarded to tourist.",
                 'item' => $item,
             ]);
         });
@@ -1121,7 +1121,7 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
         }
 
         return response()->json([
-            'message' => $rewardAwarded ? "Rating submitted successfully! (+{$rewardPoints} Points & +{$rewardPoints} XP earned — {$canonical})" : 'Rating updated successfully!',
+            'message' => $rewardAwarded ? "Rating submitted successfully! (+{$rewardPoints} Points earned — {$canonical})" : 'Rating updated successfully!',
             'reward_awarded' => $rewardAwarded,
             'earned_xp' => $rewardAwarded ? $rewardPoints : 0,
             'earned_points' => $rewardAwarded ? $rewardPoints : 0,
@@ -1197,7 +1197,7 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
         return response()->json([
             'status' => 'success',
             'success' => true,
-            'message' => "🎉 Check-in Verified at {$spot->name}! Earned +{$rewardPoints} Points & XP ({$canonical})!",
+            'message' => "🎉 Check-in Verified at {$spot->name}! Earned +{$rewardPoints} Points ({$canonical})!",
             'visits' => (int) $spot->fresh()->visits,
             'xp_earned' => $rewardPoints,
             'points_earned' => $rewardPoints,
@@ -1245,7 +1245,7 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
         return response()->json([
             'status' => 'success',
             'success' => true,
-            'message' => "🎉 Check-in completed at {$spot->name}! Earned +{$rewardPoints} Points & XP ({$canonical})!",
+            'message' => "🎉 Check-in completed at {$spot->name}! Earned +{$rewardPoints} Points ({$canonical})!",
             'visits' => (int) $spot->fresh()->visits,
             'xp_earned' => $rewardPoints,
             'points_earned' => $rewardPoints,

@@ -13,7 +13,7 @@ $activeTab = 'profile';
     <div class="profile-header stagger-1" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; border-radius: 24px; padding: 24px 20px; text-align: center; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25); margin-bottom: 20px;">
         <div class="profile-avatar-container" style="position: relative; display: inline-block; margin-bottom: 12px;">
             <img src="https://ui-avatars.com/api/?name=User&background=007AFF&color=fff&rounded=true&bold=true&size=128" alt="Profile" class="profile-avatar" id="profile-img" style="width: 100px; height: 100px; border-radius: 50%; border: none !important; outline: none !important; object-fit: cover; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);">
-            <span id="profile-badge-icon" style="position: absolute; bottom: 2px; right: 2px; background: linear-gradient(135deg, #00f2fe, #0284c7); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; border: none !important; outline: none !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);" title="Explorer Level"><i class="fa-solid fa-shield-halved"></i></span>
+            <span id="profile-badge-icon" style="position: absolute; bottom: 2px; right: 2px; background: linear-gradient(135deg, #00f2fe, #0284c7); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; border: none !important; outline: none !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);" title="Verified Explorer"><i class="fa-solid fa-shield-halved"></i></span>
         </div>
 
         <h2 class="profile-name" id="profile-name" style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">Loading...</h2>
@@ -26,11 +26,11 @@ $activeTab = 'profile';
 
     </div>
     
-    <!-- Stats Cards (XP, Visited, Rank) -->
+    <!-- Stats Cards (Points, Visited, Rank) -->
     <div class="stats-container stagger-2" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
         <div class="stat-card" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 18px; padding: 14px 10px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">
-            <div class="stat-value" id="stat-xp" style="font-size: 20px; font-weight: 800; color: #00f2fe;">0</div>
-            <div class="stat-label" style="font-size: 11px; font-weight: 700; color: #ffffff; opacity: 0.95; text-transform: uppercase; margin-top: 2px;">Total XP</div>
+            <div class="stat-value" id="stat-points" style="font-size: 20px; font-weight: 800; color: #00f2fe;">0</div>
+            <div class="stat-label" style="font-size: 11px; font-weight: 700; color: #ffffff; opacity: 0.95; text-transform: uppercase; margin-top: 2px;">Total Points</div>
         </div>
         <div class="stat-card" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 18px; padding: 14px 10px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">
             <div class="stat-value" id="stat-places" style="font-size: 20px; font-weight: 800; color: #ffffff;">0</div>
@@ -39,24 +39,6 @@ $activeTab = 'profile';
         <div class="stat-card" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 18px; padding: 14px 10px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">
             <div class="stat-value" id="stat-rank" style="font-size: 20px; font-weight: 800; color: #fbbf24;">—</div>
             <div class="stat-label" style="font-size: 11px; font-weight: 700; color: #ffffff; opacity: 0.95; text-transform: uppercase; margin-top: 2px;">Leaderboard</div>
-        </div>
-    </div>
-
-    <!-- Explorer Level Progress Card -->
-    <div class="stagger-2" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; border-radius: 20px; padding: 18px; margin-bottom: 20px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-compass" style="color: #00f2fe; font-size: 16px;"></i>
-                <span id="explorer-level-title" style="font-size: 14px; font-weight: 800; color: #ffffff;">Level 1 Explorer</span>
-            </div>
-            <span id="explorer-xp-text" style="font-size: 12px; font-weight: 800; color: #00f2fe;">0 / 1000 XP</span>
-        </div>
-        <div style="background: rgba(255,255,255,0.14); height: 10px; border-radius: 100px; overflow: hidden; position: relative;">
-            <div id="explorer-xp-bar" style="background: linear-gradient(90deg, #00f2fe, #0284c7); height: 100%; width: 0%; border-radius: 100px; transition: width 0.5s ease;"></div>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: #ffffff; opacity: 0.9; font-weight: 600;">
-            <span>Next Level Goal</span>
-            <span id="explorer-xp-pct">0%</span>
         </div>
     </div>
 
@@ -179,19 +161,16 @@ $activeTab = 'profile';
             (data) => {
                 if (!data) return;
                 const u = data.user || {};
-                const elXp = document.getElementById('stat-xp');
+                const elPoints = document.getElementById('stat-points') || document.getElementById('stat-xp');
                 const elPlaces = document.getElementById('stat-places');
                 const elRank = document.getElementById('stat-rank');
                 const elName = document.getElementById('profile-name');
                 const elEmail = document.getElementById('profile-email');
                 const elImg = document.getElementById('profile-img');
 
-                const xp = parseInt(u.xp) || 0;
-                const level = Math.floor(xp / 1000) + 1;
-                const xpInLevel = xp % 1000;
-                const xpPct = Math.min(Math.round((xpInLevel / 1000) * 100), 100);
+                const points = parseInt(u.points !== undefined ? u.points : (u.xp || 0)) || 0;
 
-                if (elXp) elXp.textContent = xp.toLocaleString();
+                if (elPoints) elPoints.textContent = points.toLocaleString();
                 if (elPlaces) elPlaces.textContent = data.places_visited || 0;
                 if (elRank && data.my_rank) elRank.textContent = '#' + data.my_rank;
                 if (elName) elName.textContent = u.name || 'Explorer';
@@ -199,17 +178,6 @@ $activeTab = 'profile';
                 if (elImg && u.avatar) {
                     elImg.src = window.getFullImageUrl(u.avatar);
                 }
-
-                // Level Progress
-                const elLevelTitle = document.getElementById('explorer-level-title');
-                const elXpText = document.getElementById('explorer-xp-text');
-                const elXpBar = document.getElementById('explorer-xp-bar');
-                const elXpPct = document.getElementById('explorer-xp-pct');
-
-                if (elLevelTitle) elLevelTitle.textContent = `Level ${level} Explorer`;
-                if (elXpText) elXpText.textContent = `${xpInLevel} / 1000 XP`;
-                if (elXpBar) elXpBar.style.width = `${xpPct}%`;
-                if (elXpPct) elXpPct.textContent = `${xpPct}%`;
 
                 // Render Badges (Unlocked & Locked)
                 const badges = data.badges || [];
@@ -397,35 +365,18 @@ $activeTab = 'profile';
             });
             const d = await r.json();
             if (d.status === 'success') {
-                const xp = d.xp ?? d.points ?? 0;
-                const level = d.level || (Math.floor(Math.max(0, xp) / 1000) + 1);
-                const xpInLevel = xp % 1000;
-                const xpPct = Math.min(Math.round((xpInLevel / 1000) * 100), 100);
-
                 const pointsBalance = (d.points !== undefined) ? d.points : (d.xp ?? 0);
                 window._userPointsBalance = pointsBalance;
                 const ptsVal = document.getElementById('profile-points-val');
                 if (ptsVal) ptsVal.textContent = pointsBalance.toLocaleString();
 
-                // Re-render Explorer Level Progress Card immediately
-                const elLevelTitle = document.getElementById('explorer-level-title');
-                const elXpText = document.getElementById('explorer-xp-text');
-                const elXpBar = document.getElementById('explorer-xp-bar');
-                const elXpPct = document.getElementById('explorer-xp-pct');
-                const elXp = document.getElementById('stat-xp');
-
-                if (elLevelTitle) elLevelTitle.textContent = `Level ${level} Explorer`;
-                if (elXpText) elXpText.textContent = `${xpInLevel} / 1000 XP`;
-                if (elXpBar) elXpBar.style.width = `${xpPct}%`;
-                if (elXpPct) elXpPct.textContent = `${xpPct}%`;
-                if (elXp) elXp.textContent = xp.toLocaleString();
+                const elPoints = document.getElementById('stat-points') || document.getElementById('stat-xp');
+                if (elPoints) elPoints.textContent = pointsBalance.toLocaleString();
 
                 // Sync auth_user in localStorage
                 try {
                     let stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                    stored.xp = xp;
                     stored.points = pointsBalance;
-                    stored.level = level;
                     localStorage.setItem('auth_user', JSON.stringify(stored));
                 } catch(e) {}
                 
@@ -781,7 +732,7 @@ $activeTab = 'profile';
                         <div style="font-size:13.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
                         <div style="font-size:11.5px; color:rgba(255,255,255,0.8); font-weight:600; margin-top:2px;">${fee}</div>
                     </div>
-                    ${spotId ? `<button type="button" data-spot-id="${spotId}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${spotId}', this)" style="background: ${isReviewed ? 'rgba(255,255,255,0.22)' : 'linear-gradient(135deg, #00f2fe 0%, #0284c7 100%)'}; border: none !important; outline: none !important; color: #ffffff; padding: 7px 14px; border-radius: 100px; font-weight: 800; font-size: 11.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: none !important; flex-shrink: 0;">${isReviewed ? '<i class="fa-solid fa-check" style="font-size: 10px; margin-right: 4px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="font-size: 10px;"></i> Review (+${sMeta.points} PTS & XP)`}</button>` : ''}
+                    ${spotId ? `<button type="button" data-spot-id="${spotId}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${spotId}', this)" style="background: ${isReviewed ? 'rgba(255,255,255,0.22)' : 'linear-gradient(135deg, #00f2fe 0%, #0284c7 100%)'}; border: none !important; outline: none !important; color: #ffffff; padding: 7px 14px; border-radius: 100px; font-weight: 800; font-size: 11.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: none !important; flex-shrink: 0;">${isReviewed ? '<i class="fa-solid fa-check" style="font-size: 10px; margin-right: 4px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="font-size: 10px;"></i> Review (+${sMeta.points} PTS)`}</button>` : ''}
                 </div>`;
             });
         }

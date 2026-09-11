@@ -1861,7 +1861,7 @@ window.processOfflineCheckinQueue = async function () {
         }
 
         if (syncedCount > 0 && typeof showToast === 'function') {
-            showToast(`⚡ ${syncedCount} Offline Check-in(s) synced! XP awarded!`);
+            showToast(`⚡ ${syncedCount} Offline Check-in(s) synced! Points awarded!`);
         }
     } catch (e) {
         console.warn('Failed processing offline checkin queue', e);

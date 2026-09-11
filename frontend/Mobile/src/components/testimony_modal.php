@@ -219,7 +219,7 @@ window.syncReviewedButtons = function() {
         } else if (btn.getAttribute('data-spot-classification') && !btn.innerHTML.includes('fa-check')) {
             const cls = btn.getAttribute('data-spot-classification');
             const meta = (window.getRewardPointsForClassification) ? window.getRewardPointsForClassification(cls) : { points: 50 };
-            btn.innerHTML = `<i class="fa-solid fa-pen" style="font-size:10px; margin-right:4px;"></i> Review (+${meta.points} PTS & XP)`;
+            btn.innerHTML = `<i class="fa-solid fa-pen" style="font-size:10px; margin-right:4px;"></i> Review (+${meta.points} PTS)`;
         }
     });
 };
@@ -278,7 +278,7 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
             iconEl.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#10b981;"></i>';
         }
         if (bannerTitleEl) bannerTitleEl.innerHTML = '<span style="color:#10b981; font-weight:800;">Review Already Claimed</span>';
-        if (bannerDescEl) bannerDescEl.textContent = 'Rewards are one-time per spot. Updating will not grant additional XP.';
+        if (bannerDescEl) bannerDescEl.textContent = 'Rewards are one-time per spot. Updating will not grant additional Points.';
         if (bannerBadgesEl) {
             bannerBadgesEl.innerHTML = '';
             bannerBadgesEl.style.display = 'none';
@@ -307,7 +307,7 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
             iconEl.innerHTML = `<i class="fa-solid ${classMeta.icon}" style="color:${classMeta.color};"></i>`;
         }
         if (bannerTitleEl) bannerTitleEl.innerHTML = `<span style="color:${classMeta.color}; font-weight:800;">${classMeta.label} Site</span> • Earn Rewards`;
-        if (bannerDescEl) bannerDescEl.textContent = `Submit review to claim +${classMeta.points} Points & +${classMeta.points} XP`;
+        if (bannerDescEl) bannerDescEl.textContent = `Submit review to claim +${classMeta.points} Points`;
         if (bannerBadgesEl) {
             bannerBadgesEl.innerHTML = '';
             bannerBadgesEl.style.display = 'none';
@@ -494,12 +494,11 @@ window.submitTestimony = async function(event) {
 
             if (isRewardAwarded) {
                 const earnedPts = (data && data.earned_points !== undefined) ? parseInt(data.earned_points) : 50;
-                const earnedXp = (data && data.earned_xp !== undefined) ? parseInt(data.earned_xp) : 50;
                 if (window.confetti) {
                     window.confetti({ particleCount: 85, spread: 70, origin: { y: 0.6 } });
                 }
                 if (typeof showToast === 'function') {
-                    showToast(data.message || `Review submitted! You earned +${earnedPts} Points & +${earnedXp} XP!`);
+                    showToast(data.message || `Review submitted! You earned +${earnedPts} Points!`);
                 }
                 // Invalidate cached user profile & dashboard so rewards counters immediately update
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
@@ -507,7 +506,7 @@ window.submitTestimony = async function(event) {
                     localStorage.removeItem('user_profile_' + token.substring(0, 10));
                     localStorage.removeItem('dashboard_data_' + token.substring(0, 10));
                 }
-                window.dispatchEvent(new CustomEvent('user-points-updated', { detail: { xp: earnedXp, points: earnedPts } }));
+                window.dispatchEvent(new CustomEvent('user-points-updated', { detail: { points: earnedPts } }));
                 if (typeof window.fetchUserProfile === 'function') {
                     window.fetchUserProfile(true);
                 }

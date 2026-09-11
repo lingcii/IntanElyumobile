@@ -17,7 +17,7 @@ $backRoute = 'dashboard';
         <p>You agree to use the app only for lawful purposes and in a way that respects the culture and heritage of La Union communities.</p>
         <ul>
             <li>Do not provide false identity or impersonate other tourists</li>
-            <li>Do not manipulate GPS location or cheat the check-in and XP rewards system</li>
+            <li>Do not manipulate GPS location or cheat the check-in and Points rewards system</li>
             <li>Respect fellow tourists and practice responsible, eco-friendly tourism</li>
         </ul>
     </div>
@@ -27,7 +27,7 @@ $backRoute = 'dashboard';
         <p>Intan Elyu strictly adheres to <strong>Republic Act No. 10173 (Philippine Data Privacy Act of 2012)</strong>, upholding your fundamental right to data privacy and ensuring transparency in all data handling practices:</p>
         <ul>
             <li><strong>Personal Data Collected:</strong> Full Name, Email, Profile Avatar, and optional travel preferences.</li>
-            <li><strong>Location Data:</strong> Device GPS coordinates are requested strictly on-demand during destination check-ins to prevent fraudulent XP claims. Background tracking is never performed.</li>
+            <li><strong>Location Data:</strong> Device GPS coordinates are requested strictly on-demand during destination check-ins to prevent fraudulent points claims. Background tracking is never performed.</li>
             <li><strong>Non-Disclosure:</strong> We never sell, monetize, or trade your personal information with unauthorized commercial third parties.</li>
         </ul>
     </div>
