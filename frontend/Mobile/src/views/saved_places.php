@@ -24,10 +24,130 @@ if (is_dir($imgDir)) {
 
 <link rel="stylesheet" href="assets/css/views/trending.css">
 
-<div class="saved-trips-page-container has-header animate-slide-up" style="padding-left: 16px; padding-right: 16px;">
+<style>
+/* Saved Places View Scoped Styles — Smooth White Theme & Dynamic Scrollview */
+html:has(body[data-view="saved_places"]),
+body[data-view="saved_places"] {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body[data-view="saved_places"] #app-container,
+body[data-view="saved_places"] #main-content {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    overflow: hidden !important;
+}
+
+/* Page container specifically for saved places */
+.saved-places-page-container {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    padding-top: calc(56px + max(env(safe-area-inset-top, 0px), 40px)) !important;
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 24px) !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    background: #ffffff !important;
+    overflow-x: hidden !important;
+    overflow-y: hidden; /* Default: NO scrollview when not many tourist sites */
+}
+
+/* Only enable scrollview when too many tourist sites are saved */
+.saved-places-page-container.is-scrollable {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.saved-places-page-container.is-scrollable::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+/* Clean White Empty State Styling */
+body[data-view="saved_places"] .dash-empty-state {
+    background: #ffffff !important;
+    border: 1.5px solid #f1f5f9 !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+    border-radius: 24px !important;
+    padding: 36px 20px !important;
+    margin-top: 24px !important;
+}
+
+body[data-view="saved_places"] .dash-empty-title {
+    color: #0f172a !important;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.2px;
+}
+
+body[data-view="saved_places"] .dash-empty-desc {
+    color: #64748b !important;
+    font-size: 13.5px !important;
+    line-height: 1.5 !important;
+    max-width: 290px;
+    margin: 0 auto;
+}
+
+body[data-view="saved_places"] .dash-empty-icon-wrap {
+    background: #f0f9ff !important;
+    color: #0284c7 !important;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.15) !important;
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 18px !important;
+}
+
+body[data-view="saved_places"] .dash-empty-icon-wrap i {
+    color: #0284c7 !important;
+    font-size: 24px !important;
+}
+
+body[data-view="saved_places"] .dash-empty-btn {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    outline: none !important;
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    padding: 12px 28px !important;
+    border-radius: 100px !important;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3) !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform 0.15s ease !important;
+}
+
+body[data-view="saved_places"] .dash-empty-btn:active {
+    transform: scale(0.95);
+}
+
+/* Card Styling on White Background */
+body[data-view="saved_places"] .trending-card {
+    background: #f8fafc !important;
+    border: 1px solid #edf2f7 !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06) !important;
+    border-radius: 18px !important;
+}
+</style>
+
+<div id="saved-places-container" class="saved-places-page-container has-header animate-slide-up">
     <div id="saved-places-list" style="margin-top: 16px;">
-        <p style="text-align:center; color:rgba(255,255,255,0.5); margin-top:40px;">
-            <i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i> Loading saved places...
+        <p style="text-align:center; color:#64748b; font-size: 14px; font-weight: 600; margin-top:40px;">
+            <i class="fa-solid fa-spinner fa-spin" style="margin-right:8px; color:#0284c7;"></i> Loading saved places...
         </p>
     </div>
 </div>
@@ -37,6 +157,35 @@ if (is_dir($imgDir)) {
     var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
 
     window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
+
+    function updateScrollviewState() {
+        const container = document.getElementById('saved-places-container');
+        const list = document.getElementById('saved-places-list');
+        if (!container || !list) return;
+
+        const cards = list.querySelectorAll('.trending-card');
+        const hasEmptyState = list.querySelector('.dash-empty-state');
+
+        // If empty state or 0 cards, remove scrollview completely
+        if (hasEmptyState || cards.length === 0) {
+            container.classList.remove('is-scrollable');
+            container.scrollTop = 0;
+            return;
+        }
+
+        // Only show scrollview if too many tourist sites are saved
+        requestAnimationFrame(() => {
+            const isOverflowing = cards.length > 4 || list.scrollHeight > (container.clientHeight - 30);
+            if (isOverflowing) {
+                container.classList.add('is-scrollable');
+            } else {
+                container.classList.remove('is-scrollable');
+                container.scrollTop = 0;
+            }
+        });
+    }
+
+    window.addEventListener('resize', updateScrollviewState);
 
     async function fetchSavedPlaces(forceRefresh = false) {
         const token = localStorage.getItem('intan_elyu_token');
@@ -62,7 +211,8 @@ if (is_dir($imgDir)) {
                     renderSavedPlaces((spots || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending'));
                 } else {
                     const list = document.getElementById('saved-places-list');
-                    if (list) list.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">Failed to load saved places.</p>';
+                    if (list) list.innerHTML = '<p style="text-align:center; color:#94a3b8; margin-top:20px;">Failed to load saved places.</p>';
+                    updateScrollviewState();
                 }
             },
             forceRefresh,
@@ -75,7 +225,7 @@ if (is_dir($imgDir)) {
         if (!list) return;
         if (!spots.length) {
             list.innerHTML = `
-                <div class="dash-empty-state" style="margin-top: 24px !important;">
+                <div class="dash-empty-state">
                     <div class="dash-empty-icon-wrap">
                         <i class="fa-solid fa-map-location-dot"></i>
                     </div>
@@ -86,6 +236,7 @@ if (is_dir($imgDir)) {
                     </button>
                 </div>
             `;
+            updateScrollviewState();
             return;
         }
         let html = '<div class="trending-grid">';
@@ -101,7 +252,9 @@ if (is_dir($imgDir)) {
             html += `
                 <div class="trending-card" style="animation-delay:${i * 0.08}s" onclick="window.viewTrendingDest(${dest.id}, '${dest.name.replace(/'/g, "\\'")}', '${encodedDest}')">
                     ${dest.classification_status ? `<div class="badge" style="background:${badgeColor};">${badgeLabel}</div>` : ''}
-                    <i class="fa-solid fa-heart fire-icon" style="color: #ff3b30;" onclick="event.stopPropagation(); window.toggleFavLocal(${dest.id}, this)"></i>
+                    <div class="fire-icon" style="position: absolute; top: 8px; right: 8px; z-index: 5; width: 30px; height: 30px; border-radius: 50%; background: #ffffff !important; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.18); cursor: pointer;" onclick="event.stopPropagation(); window.toggleFavLocal(${dest.id}, this)">
+                        <i class="fa-solid fa-heart" style="color: #ff3b30 !important; font-size: 13px;"></i>
+                    </div>
                     <img src="${img}" alt="${dest.name}" onerror="this.onerror=null; this.src=window.noImageFallback;">
                     <div class="overlay">
                         <div class="name">${dest.name}</div>
@@ -112,6 +265,7 @@ if (is_dir($imgDir)) {
         });
         html += '</div>';
         list.innerHTML = html;
+        updateScrollviewState();
     }
 
     window.toggleFavLocal = async function(id, btn) {
@@ -150,6 +304,7 @@ if (is_dir($imgDir)) {
                     card.style.transform = 'scale(0.9)';
                     setTimeout(() => { 
                         card.remove();
+                        updateScrollviewState();
                         if (document.querySelectorAll('.trending-card').length === 0) {
                             fetchSavedPlaces(true); // refresh with forceRefresh to show empty state
                         }

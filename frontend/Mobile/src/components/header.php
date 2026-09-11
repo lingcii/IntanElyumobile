@@ -142,19 +142,19 @@
 <div id="sidebar-menu" style="position: fixed; top: 0; left: -280px; width: 260px; bottom: 0; background: #ffffff; z-index: 99991; transition: left 0.32s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; box-shadow: 10px 0 35px rgba(0,0,0,0.12); border-right: 1px solid #f1f5f9; outline: none !important; overflow: hidden;">
     
     <!-- User Profile Header Banner -->
-    <div style="padding: max(calc(env(safe-area-inset-top, 0px) + 16px), 20px) 16px 14px 16px; border-bottom: 1px solid #f1f5f9; background: #ffffff; margin-top: 0; position: relative; flex-shrink: 0;">
-        <button onclick="toggleSidebar()" style="position: absolute; top: max(calc(env(safe-area-inset-top, 0px) + 14px), 18px); right: 14px; background: #f1f5f9 !important; border: none !important; outline: none !important; color: #475569 !important; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
-            <i class="fa-solid fa-xmark" style="color: #475569 !important; font-size: 13px;"></i>
+    <div style="padding: max(calc(env(safe-area-inset-top, 0px) + 16px), 20px) 16px 14px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%); margin-top: 0; position: relative; flex-shrink: 0;">
+        <button onclick="toggleSidebar()" style="position: absolute; top: max(calc(env(safe-area-inset-top, 0px) + 14px), 18px); right: 14px; background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.18); transition: all 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+            <i class="fa-solid fa-xmark" style="color: #1e3a8a !important; font-size: 13px;"></i>
         </button>
         
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 2px;">
-            <div style="width: 46px; height: 46px; border-radius: 50%; overflow: hidden; border: 2px solid #f1f5f9; box-shadow: 0 2px 6px rgba(0,0,0,0.06); flex-shrink: 0;">
+            <div style="width: 46px; height: 46px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255, 255, 255, 0.35); box-shadow: 0 2px 8px rgba(0,0,0,0.2); flex-shrink: 0;">
                 <img id="sidebar-avatar" src="https://ui-avatars.com/api/?name=Explorer&background=007AFF&color=fff&rounded=true&bold=true&size=128" alt="Avatar" style="width:100%; height:100%; object-fit:cover;">
             </div>
             <div style="flex: 1; min-width: 0; padding-right: 28px;">
-                <h3 id="sidebar-user-name" style="margin: 0 0 3px 0; font-size: 16px; font-weight: 800; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px;">Explorer</h3>
-                <span style="font-size: 10.5px; font-weight: 800; color: #0284c7; background: #e0f2fe; padding: 2px 8px; border-radius: 100px; border: none !important; outline: none !important; display: inline-flex; align-items: center; gap: 4px;">
-                    <i class="fa-solid fa-compass" style="font-size: 9.5px; color: #0284c7;"></i> Elyu Tourist
+                <h3 id="sidebar-user-name" style="margin: 0 0 3px 0; font-size: 16px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px;">Explorer</h3>
+                <span style="font-size: 10.5px; font-weight: 800; color: #00f2fe; background: rgba(0, 242, 254, 0.18); padding: 2px 8px; border-radius: 100px; border: none !important; outline: none !important; display: inline-flex; align-items: center; gap: 4px;">
+                    <i class="fa-solid fa-compass" style="font-size: 9.5px; color: #00f2fe;"></i> Elyu Tourist
                 </span>
             </div>
         </div>
@@ -220,7 +220,7 @@
 
     <!-- Locked Bottom Corner: Log Out Button -->
     <div style="flex-shrink: 0; padding: 12px 14px max(calc(env(safe-area-inset-bottom, 0px) + 12px), 14px) 14px; background: #ffffff; border-top: 1px solid #f1f5f9;">
-        <a href="#" onclick="logoutUser(); return false;" id="sidebar-logout-btn" style="color: #ffffff !important; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 14px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; border: none !important; outline: none !important; border-radius: 12px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+        <a href="#" onclick="logoutUser(); return false;" id="sidebar-logout-btn" style="color: #ffffff !important; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 14px; background: linear-gradient(135deg, #1e3a8a 0%, #193375 100%) !important; border: none !important; outline: none !important; border-radius: 12px; box-shadow: 0 4px 14px rgba(30, 58, 138, 0.35); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
             <i class="fa-solid fa-right-from-bracket" style="color: #ffffff !important; font-size: 14px;"></i> Log Out
         </a>
     </div>
