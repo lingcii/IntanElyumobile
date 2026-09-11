@@ -24,6 +24,287 @@ if (is_dir($imgDir)) {
 <?php include __DIR__ . '/../components/header.php'; ?>
 
 <link rel="stylesheet" href="assets/css/views/trending.css">
+
+<style>
+/* Guaranteed High Visibility Outlines for Mobile */
+body[data-view="trending"] .mobile-header,
+.mobile-header {
+    background: #1e3a8a !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: none !important;
+    outline: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+
+/* 1. Segmented Switcher Capsule */
+.trending-segmented-wrap {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    position: relative !important;
+    background: #e2e8f0 !important;
+    border: 2px solid #94a3b8 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    padding: 4px !important;
+    border-radius: 100px !important;
+    outline: none !important;
+    margin-top: 0 !important;
+    margin-bottom: 14px !important;
+    user-select: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    overflow: hidden !important;
+}
+
+.trending-seg-slider {
+    position: absolute !important;
+    top: 4px !important;
+    bottom: 4px !important;
+    left: 4px !important;
+    width: calc(50% - 4px) !important;
+    border-radius: 100px !important;
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.4) !important;
+    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1) !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
+    transform: translateX(0) !important;
+}
+
+.trending-segmented-wrap.mode-trending .trending-seg-slider {
+    transform: translateX(100%) !important;
+}
+
+.trending-seg-tab {
+    position: relative !important;
+    z-index: 2 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 10px 14px !important;
+    border-radius: 100px !important;
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+    color: #1e293b !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    cursor: pointer !important;
+    transition: color 0.25s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1) !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+.trending-seg-tab:active {
+    transform: scale(0.96) !important;
+}
+
+.trending-seg-tab.active {
+    color: #ffffff !important;
+    font-weight: 800 !important;
+}
+
+.trending-seg-tab i {
+    font-size: 13px !important;
+}
+
+/* 2. Search Bar */
+.trending-search-wrap {
+    position: relative !important;
+    margin-top: 0 !important;
+    margin-bottom: 14px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.trending-search-input {
+    width: 100% !important;
+    height: 48px !important;
+    background: #ffffff !important;
+    border: 2px solid #94a3b8 !important;
+    outline: none !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+    border-radius: 100px !important;
+    padding: 0 40px 0 42px !important;
+    color: #0f172a !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    font-family: inherit !important;
+    transition: all 0.25s ease !important;
+}
+
+.trending-search-input:focus {
+    background: #ffffff !important;
+    border-color: #203f8d !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(32, 63, 141, 0.2) !important;
+}
+
+.trending-search-input::placeholder {
+    color: #64748b !important;
+    font-weight: 600 !important;
+}
+
+.trending-search-icon {
+    position: absolute !important;
+    left: 15px !important;
+    color: #334155 !important;
+    font-size: 15px !important;
+    pointer-events: none !important;
+}
+
+.trending-search-clear {
+    position: absolute !important;
+    right: 12px !important;
+    background: none !important;
+    border: none !important;
+    color: #64748b !important;
+    font-size: 15px !important;
+    cursor: pointer !important;
+    padding: 4px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: color 0.2s ease !important;
+}
+
+.trending-search-clear:active {
+    color: #1e3a8a !important;
+}
+
+/* 3. Category Filter Pills */
+.trending-categories-bar {
+    display: flex !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 12px !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+.trending-categories-bar::-webkit-scrollbar {
+    display: none !important;
+}
+
+.trending-cat-pill {
+    padding: 8px 16px !important;
+    border-radius: 100px !important;
+    font-size: 12.5px !important;
+    font-weight: 800 !important;
+    color: #1e293b !important;
+    background: #f8fafc !important;
+    border: 2px solid #94a3b8 !important;
+    outline: none !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    flex-shrink: 0 !important;
+}
+
+.trending-cat-pill i {
+    font-size: 12px !important;
+    color: #203f8d !important;
+}
+
+.trending-cat-pill:not(.active):active {
+    transform: scale(0.96) !important;
+    background: #e2e8f0 !important;
+    border-color: #64748b !important;
+}
+
+.trending-cat-pill.active {
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    border: 2px solid #203f8d !important;
+    outline: none !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.4) !important;
+}
+
+.trending-cat-pill.active i {
+    color: #ffffff !important;
+}
+
+/* 4. Sort Chips Bar */
+.trending-sort-bar {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 12px !important;
+    scrollbar-width: none !important;
+}
+
+.trending-sort-bar::-webkit-scrollbar {
+    display: none !important;
+}
+
+.sort-label {
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    color: #1e293b !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    flex-shrink: 0 !important;
+    margin-right: 4px !important;
+}
+
+.sort-label i {
+    color: #203f8d !important;
+}
+
+.sort-chip {
+    padding: 7px 15px !important;
+    border-radius: 100px !important;
+    font-size: 11.5px !important;
+    font-weight: 800 !important;
+    background: #f8fafc !important;
+    border: 2px solid #94a3b8 !important;
+    outline: none !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) !important;
+    color: #1e293b !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    transition: all 0.2s ease !important;
+    flex-shrink: 0 !important;
+}
+
+.sort-chip:not(.active):active {
+    transform: scale(0.96) !important;
+    background: #e2e8f0 !important;
+    border-color: #64748b !important;
+}
+
+.sort-chip.active {
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    color: #ffffff !important;
+    border: 2px solid #203f8d !important;
+    outline: none !important;
+    box-shadow: 0 2px 8px rgba(32, 63, 141, 0.35) !important;
+}
+
+/* 5. Destination Cards */
+.trending-card {
+    position: relative !important;
+    border-radius: 18px !important;
+    overflow: hidden !important;
+    background: #f8fafc !important;
+    border: 2px solid #cbd5e1 !important;
+    outline: none !important;
+    cursor: pointer !important;
+    aspect-ratio: 1 / 1 !important;
+    animation: trendFadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+    transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1) !important;
+}
+</style>
+
 <div class="trending-page-container has-header animate-slide-up">
 
     <!-- Segmented Tab Switcher: All Tourist Sites on Left, Trending Sites on Right -->
