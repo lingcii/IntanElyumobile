@@ -138,41 +138,41 @@
 </div>
 
 <!-- Sidebar Menu Drawer -->
-<div id="sidebar-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 99990; transition: opacity 0.3s ease;" onclick="toggleSidebar()"></div>
-<div id="sidebar-menu" style="position: fixed; top: 0; left: -280px; width: 260px; bottom: 0; background: linear-gradient(180deg, #1e3a8a 0%, #193375 50%, #152857 100%); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); z-index: 99991; transition: left 0.32s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; box-shadow: 15px 0 45px rgba(0,0,0,0.5); border: none !important; outline: none !important; overflow: hidden;">
+<div id="sidebar-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 99990; transition: opacity 0.3s ease;" onclick="toggleSidebar()"></div>
+<div id="sidebar-menu" style="position: fixed; top: 0; left: -280px; width: 260px; bottom: 0; background: #ffffff; z-index: 99991; transition: left 0.32s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; box-shadow: 10px 0 35px rgba(0,0,0,0.12); border-right: 1px solid #f1f5f9; outline: none !important; overflow: hidden;">
     
     <!-- User Profile Header Banner -->
-    <div style="padding: max(calc(env(safe-area-inset-top, 0px) + 16px), 20px) 16px 14px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: rgba(15, 23, 42, 0.28); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); margin-top: 0; position: relative; flex-shrink: 0;">
-        <button onclick="toggleSidebar()" style="position: absolute; top: max(calc(env(safe-area-inset-top, 0px) + 14px), 18px); right: 14px; background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.18); transition: transform 0.15s ease;" onactive="this.style.transform='scale(0.92)'">
-            <i class="fa-solid fa-xmark" style="color: #1e3a8a !important; font-size: 13px;"></i>
+    <div style="padding: max(calc(env(safe-area-inset-top, 0px) + 16px), 20px) 16px 14px 16px; border-bottom: 1px solid #f1f5f9; background: #ffffff; margin-top: 0; position: relative; flex-shrink: 0;">
+        <button onclick="toggleSidebar()" style="position: absolute; top: max(calc(env(safe-area-inset-top, 0px) + 14px), 18px); right: 14px; background: #f1f5f9 !important; border: none !important; outline: none !important; color: #475569 !important; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+            <i class="fa-solid fa-xmark" style="color: #475569 !important; font-size: 13px;"></i>
         </button>
         
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 2px;">
-            <div style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; border: none !important; outline: none !important; box-shadow: none; flex-shrink: 0;">
+            <div style="width: 46px; height: 46px; border-radius: 50%; overflow: hidden; border: 2px solid #f1f5f9; box-shadow: 0 2px 6px rgba(0,0,0,0.06); flex-shrink: 0;">
                 <img id="sidebar-avatar" src="https://ui-avatars.com/api/?name=Explorer&background=007AFF&color=fff&rounded=true&bold=true&size=128" alt="Avatar" style="width:100%; height:100%; object-fit:cover;">
             </div>
             <div style="flex: 1; min-width: 0; padding-right: 28px;">
-                <h3 id="sidebar-user-name" style="margin: 0 0 3px 0; font-size: 16px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Explorer</h3>
-                <span style="font-size: 10.5px; font-weight: 800; color: #00f2fe; background: rgba(0, 242, 254, 0.18); padding: 2px 8px; border-radius: 100px; border: none !important; outline: none !important; display: inline-flex; align-items: center; gap: 4px;">
-                    <i class="fa-solid fa-compass" style="font-size: 9.5px;"></i> Elyu Tourist
+                <h3 id="sidebar-user-name" style="margin: 0 0 3px 0; font-size: 16px; font-weight: 800; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px;">Explorer</h3>
+                <span style="font-size: 10.5px; font-weight: 800; color: #0284c7; background: #e0f2fe; padding: 2px 8px; border-radius: 100px; border: none !important; outline: none !important; display: inline-flex; align-items: center; gap: 4px;">
+                    <i class="fa-solid fa-compass" style="font-size: 9.5px; color: #0284c7;"></i> Elyu Tourist
                 </span>
             </div>
         </div>
     </div>
 
     <!-- Scrollable Navigation Items -->
-    <div style="flex: 1; min-height: 0; padding: 14px 12px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none;">
+    <div style="flex: 1; min-height: 0; padding: 14px 12px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; background: #ffffff;">
         
         <!-- Section: Your Stuff -->
         <div>
-            <div style="font-size: 10.5px; font-weight: 800; color: #ffffff; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; padding-left: 4px;">Your Stuff</div>
-            <div style="display: flex; flex-direction: column; gap: 5px;">
-                <a href="#" onclick="toggleSidebar(); navigateTo('saved_places'); return false;" style="color: #ffffff; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.09); border: none !important; outline: none !important; transition: background 0.15s ease;" onactive="this.style.background='rgba(255,255,255,0.18)'">
-                    <span style="width: 30px; height: 30px; border-radius: 9px; background: #ff3b30 !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"><i class="fa-solid fa-heart" style="color: #ffffff !important; font-size: 13px;"></i></span>
+            <div style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 7px; padding-left: 4px;">Your Stuff</div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <a href="#" onclick="toggleSidebar(); navigateTo('saved_places'); return false;" style="color: #1e293b; text-decoration: none; font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 11px; padding: 9px 12px; border-radius: 13px; background: #f8fafc; border: 1px solid #edf2f7; transition: all 0.15s ease;" onpointerdown="this.style.background='#e2e8f0'" onpointerup="this.style.background='#f8fafc'" onpointercancel="this.style.background='#f8fafc'">
+                    <span style="width: 32px; height: 32px; border-radius: 9px; background: #ff3b30 !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(255, 59, 48, 0.28);"><i class="fa-solid fa-heart" style="color: #ffffff !important; font-size: 13px;"></i></span>
                     Saved Places
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('saved_trips'); return false;" style="color: #ffffff; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.09); border: none !important; outline: none !important; transition: background 0.15s ease;" onactive="this.style.background='rgba(255,255,255,0.18)'">
-                    <span style="width: 30px; height: 30px; border-radius: 9px; background: #34c759 !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"><i class="fa-solid fa-route" style="color: #ffffff !important; font-size: 13px;"></i></span>
+                <a href="#" onclick="toggleSidebar(); navigateTo('saved_trips'); return false;" style="color: #1e293b; text-decoration: none; font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 11px; padding: 9px 12px; border-radius: 13px; background: #f8fafc; border: 1px solid #edf2f7; transition: all 0.15s ease;" onpointerdown="this.style.background='#e2e8f0'" onpointerup="this.style.background='#f8fafc'" onpointercancel="this.style.background='#f8fafc'">
+                    <span style="width: 32px; height: 32px; border-radius: 9px; background: #34c759 !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(52, 199, 89, 0.28);"><i class="fa-solid fa-route" style="color: #ffffff !important; font-size: 13px;"></i></span>
                     Saved Trips
                 </a>
             </div>
@@ -180,18 +180,18 @@
 
         <!-- Section: Discover -->
         <div>
-            <div style="font-size: 10.5px; font-weight: 800; color: #ffffff; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; padding-left: 4px;">Discover & Explore</div>
-            <div style="display: flex; flex-direction: column; gap: 5px;">
-                <a href="#" onclick="toggleSidebar(); navigateTo('trending'); return false;" style="color: #ffffff; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.09); border: none !important; outline: none !important; transition: background 0.15s ease;" onactive="this.style.background='rgba(255,255,255,0.18)'">
-                    <span style="width: 30px; height: 30px; border-radius: 9px; background: #ff9500 !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"><i class="fa-solid fa-compass" style="color: #ffffff !important; font-size: 13px;"></i></span>
+            <div style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 7px; padding-left: 4px;">Discover & Explore</div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <a href="#" onclick="toggleSidebar(); navigateTo('trending'); return false;" style="color: #1e293b; text-decoration: none; font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 11px; padding: 9px 12px; border-radius: 13px; background: #f8fafc; border: 1px solid #edf2f7; transition: all 0.15s ease;" onpointerdown="this.style.background='#e2e8f0'" onpointerup="this.style.background='#f8fafc'" onpointercancel="this.style.background='#f8fafc'">
+                    <span style="width: 32px; height: 32px; border-radius: 9px; background: #ff9500 !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(255, 149, 0, 0.28);"><i class="fa-solid fa-compass" style="color: #ffffff !important; font-size: 13px;"></i></span>
                     Tourist Sites
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('puzzles'); return false;" style="color: #ffffff; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.09); border: none !important; outline: none !important; transition: background 0.15s ease;" onactive="this.style.background='rgba(255,255,255,0.18)'">
-                    <span style="width: 30px; height: 30px; border-radius: 9px; background: #0284c7 !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"><i class="fa-solid fa-gamepad" style="color: #ffffff !important; font-size: 13px;"></i></span>
+                <a href="#" onclick="toggleSidebar(); navigateTo('puzzles'); return false;" style="color: #1e293b; text-decoration: none; font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 11px; padding: 9px 12px; border-radius: 13px; background: #f8fafc; border: 1px solid #edf2f7; transition: all 0.15s ease;" onpointerdown="this.style.background='#e2e8f0'" onpointerup="this.style.background='#f8fafc'" onpointercancel="this.style.background='#f8fafc'">
+                    <span style="width: 32px; height: 32px; border-radius: 9px; background: #0284c7 !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.28);"><i class="fa-solid fa-gamepad" style="color: #ffffff !important; font-size: 13px;"></i></span>
                     GameZone
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('discount'); return false;" style="color: #ffffff; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.09); border: none !important; outline: none !important; transition: background 0.15s ease;" onactive="this.style.background='rgba(255,255,255,0.18)'">
-                    <span style="width: 30px; height: 30px; border-radius: 9px; background: #ec4899 !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);"><i class="fa-solid fa-tags" style="color: #ffffff !important; font-size: 13px;"></i></span>
+                <a href="#" onclick="toggleSidebar(); navigateTo('discount'); return false;" style="color: #1e293b; text-decoration: none; font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 11px; padding: 9px 12px; border-radius: 13px; background: #f8fafc; border: 1px solid #edf2f7; transition: all 0.15s ease;" onpointerdown="this.style.background='#e2e8f0'" onpointerup="this.style.background='#f8fafc'" onpointercancel="this.style.background='#f8fafc'">
+                    <span style="width: 32px; height: 32px; border-radius: 9px; background: #ec4899 !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(236, 72, 153, 0.28);"><i class="fa-solid fa-tags" style="color: #ffffff !important; font-size: 13px;"></i></span>
                     Discounts & Vouchers
                 </a>
             </div>
@@ -199,19 +199,19 @@
 
         <!-- Section: Support -->
         <div>
-            <div style="font-size: 10.5px; font-weight: 800; color: #ffffff; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; padding-left: 4px;">Support & System</div>
+            <div style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 7px; padding-left: 4px;">Support & System</div>
             <div style="display: flex; flex-direction: column; gap: 3px;">
-                <a href="#" onclick="toggleSidebar(); navigateTo('settings'); return false;" style="color: #ffffff; opacity: 0.95; text-decoration: none; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; transition: background 0.15s ease;">
-                    <i class="fa-solid fa-gear" style="color: #ffffff; width: 18px; text-align: center; font-size: 13px;"></i> Settings
+                <a href="#" onclick="toggleSidebar(); navigateTo('settings'); return false;" style="color: #334155; text-decoration: none; font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 11px; padding: 8px 10px; border-radius: 10px; transition: background 0.15s ease;" onpointerdown="this.style.background='#f1f5f9'" onpointerup="this.style.background='transparent'" onpointercancel="this.style.background='transparent'">
+                    <i class="fa-solid fa-gear" style="color: #64748b; width: 18px; text-align: center; font-size: 14px;"></i> Settings
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('help'); return false;" style="color: #ffffff; opacity: 0.95; text-decoration: none; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; transition: background 0.15s ease;">
-                    <i class="fa-solid fa-circle-question" style="color: #ffffff; width: 18px; text-align: center; font-size: 13px;"></i> Help & FAQ
+                <a href="#" onclick="toggleSidebar(); navigateTo('help'); return false;" style="color: #334155; text-decoration: none; font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 11px; padding: 8px 10px; border-radius: 10px; transition: background 0.15s ease;" onpointerdown="this.style.background='#f1f5f9'" onpointerup="this.style.background='transparent'" onpointercancel="this.style.background='transparent'">
+                    <i class="fa-solid fa-circle-question" style="color: #64748b; width: 18px; text-align: center; font-size: 14px;"></i> Help & FAQ
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('terms'); return false;" style="color: #ffffff; opacity: 0.95; text-decoration: none; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; transition: background 0.15s ease;">
-                    <i class="fa-solid fa-shield-halved" style="color: #ffffff; width: 18px; text-align: center; font-size: 13px;"></i> Terms & Privacy
+                <a href="#" onclick="toggleSidebar(); navigateTo('terms'); return false;" style="color: #334155; text-decoration: none; font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 11px; padding: 8px 10px; border-radius: 10px; transition: background 0.15s ease;" onpointerdown="this.style.background='#f1f5f9'" onpointerup="this.style.background='transparent'" onpointercancel="this.style.background='transparent'">
+                    <i class="fa-solid fa-shield-halved" style="color: #64748b; width: 18px; text-align: center; font-size: 14px;"></i> Terms & Privacy
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('about'); return false;" style="color: #ffffff; opacity: 0.95; text-decoration: none; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; transition: background 0.15s ease;">
-                    <i class="fa-solid fa-circle-info" style="color: #ffffff; width: 18px; text-align: center; font-size: 13px;"></i> About Us
+                <a href="#" onclick="toggleSidebar(); navigateTo('about'); return false;" style="color: #334155; text-decoration: none; font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 11px; padding: 8px 10px; border-radius: 10px; transition: background 0.15s ease;" onpointerdown="this.style.background='#f1f5f9'" onpointerup="this.style.background='transparent'" onpointercancel="this.style.background='transparent'">
+                    <i class="fa-solid fa-circle-info" style="color: #64748b; width: 18px; text-align: center; font-size: 14px;"></i> About Us
                 </a>
             </div>
         </div>
@@ -219,9 +219,9 @@
     </div>
 
     <!-- Locked Bottom Corner: Log Out Button -->
-    <div style="flex-shrink: 0; padding: 12px 14px max(calc(env(safe-area-inset-bottom, 0px) + 12px), 14px) 14px; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-top: 1px solid rgba(255, 255, 255, 0.08);">
-        <a href="#" onclick="logoutUser(); return false;" id="sidebar-logout-btn" style="color: #ffffff !important; text-decoration: none; font-size: 14.5px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 14px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; border: none !important; outline: none !important; border-radius: 12px; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
-            <i class="fa-solid fa-right-from-bracket" style="color: #ffffff !important; font-size: 15px;"></i> Log Out
+    <div style="flex-shrink: 0; padding: 12px 14px max(calc(env(safe-area-inset-bottom, 0px) + 12px), 14px) 14px; background: #ffffff; border-top: 1px solid #f1f5f9;">
+        <a href="#" onclick="logoutUser(); return false;" id="sidebar-logout-btn" style="color: #ffffff !important; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 14px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; border: none !important; outline: none !important; border-radius: 12px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+            <i class="fa-solid fa-right-from-bracket" style="color: #ffffff !important; font-size: 14px;"></i> Log Out
         </a>
     </div>
 </div>
@@ -257,14 +257,14 @@
         const sidebar = document.getElementById('sidebar-menu');
         const overlay = document.getElementById('sidebar-overlay');
         if (sidebar && overlay) {
-            const isClosed = sidebar.style.left === '-270px' || !sidebar.style.left || sidebar.style.left === '' || sidebar.style.left.startsWith('-');
+            const isClosed = sidebar.style.left === '-280px' || !sidebar.style.left || sidebar.style.left === '' || sidebar.style.left.startsWith('-');
             if (isClosed) {
                 updateSidebarUserProfile();
                 sidebar.style.left = '0px';
                 overlay.style.display = 'block';
                 overlay.style.opacity = '1';
             } else {
-                sidebar.style.left = '-270px';
+                sidebar.style.left = '-280px';
                 overlay.style.opacity = '0';
                 setTimeout(() => { overlay.style.display = 'none'; }, 300);
             }
