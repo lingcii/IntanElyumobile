@@ -36,6 +36,16 @@
         }
         return false;
     };
+
+    const origConsoleError = console.error;
+    console.error = function () {
+        const args = Array.prototype.slice.call(arguments);
+        const fullStr = args.map(function (a) {
+            return typeof a === 'string' ? a : (a && (a.message || a.stack)) ? (a.message + ' ' + a.stack) : String(a);
+        }).join(' ');
+        if (shouldSuppress(fullStr)) return;
+        return origConsoleError.apply(console, arguments);
+    };
 })();
 
 window.safeJsonParse = function (str, fallback = {}) {

@@ -2424,9 +2424,9 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     boxZoom: true,
                     keyboard: true
                 });
-                L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     maxZoom: 19,
-                    subdomains: ['a', 'b'],
+                    subdomains: ['a', 'b', 'c'],
                     detectRetina: true,
                     keepBuffer: 4,
                     updateWhenZooming: true,

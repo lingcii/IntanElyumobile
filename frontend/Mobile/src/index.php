@@ -98,6 +98,15 @@ if ($isAjax) {
                 if (typeof prevOnError === 'function') return prevOnError.apply(this, arguments);
                 return false;
             };
+            var origConsoleError = console.error;
+            console.error = function () {
+                var args = Array.prototype.slice.call(arguments);
+                var fullStr = args.map(function (a) {
+                    return typeof a === 'string' ? a : (a && (a.message || a.stack)) ? (a.message + ' ' + a.stack) : String(a);
+                }).join(' ');
+                if (shouldSuppress(fullStr)) return;
+                return origConsoleError.apply(console, arguments);
+            };
         })();
     </script>
     <meta charset="UTF-8">

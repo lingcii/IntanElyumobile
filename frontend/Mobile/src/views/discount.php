@@ -8,18 +8,17 @@ $backRoute = 'dashboard';
 
 <div class="merch-page-container has-header animate-fade-in" style="padding-left: 16px; padding-right: 16px; padding-bottom: 40px; background: #ffffff !important; min-height: 100vh; box-sizing: border-box;">
     <!-- Hero Section -->
-    <div class="merch-hero" style="background: #f8fafc; border: 1.5px solid #cbd5e1 !important; outline: none !important; border-radius: 24px; padding: 24px; text-align: center; margin-top: 16px; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);">
-        <div style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); border: 1.5px solid #203f8d !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #ffffff; margin: 0 auto 12px; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.25);">
-            <i class="fa-solid fa-tags"></i>
+    <div class="merch-hero" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 24px; padding: 24px; text-align: center; margin-top: 16px; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; color: #ffffff !important;">
+        <div style="width: 56px; height: 56px; border-radius: 16px; background: #ffffff !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #203f8d !important; margin: 0 auto 14px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
+            <i class="fa-solid fa-tags" style="color: #203f8d !important;"></i>
         </div>
-        <h2 style="margin: 0 0 6px; font-size: 22px; font-weight: 800; color: #0f172a;">Discounts & Vouchers</h2>
-        <p style="margin: 0 0 14px; font-size: 13px; color: #475569; line-height: 1.5; max-width: 340px; margin-left: auto; margin-right: auto;">
-            Redeem your hard-earned <strong style="color: #203f8d;">Points</strong> for exclusive dining discounts, surf rentals, resort vouchers, and eco-passes!
+        <p style="margin: 0 0 16px; font-size: 13.5px; color: rgba(255, 255, 255, 0.95); line-height: 1.5; max-width: 340px; margin-left: auto; margin-right: auto; font-weight: 500;">
+            Redeem your hard-earned <strong style="color: #ffffff; font-weight: 800;">Points</strong> for exclusive dining discounts, surf rentals, resort vouchers, and eco-passes!
         </p>
-        <div style="display:inline-flex; align-items:center; gap:8px; background:#ffffff; border:1.5px solid #94a3b8 !important; outline:none !important; padding:6px 16px; border-radius:100px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
-            <i class="fa-solid fa-coins" style="color:#f59e0b; font-size:13px;"></i>
-            <span style="font-size:12px; color:#475569; font-weight:600;">Your Balance:</span>
-            <strong id="discount-user-pts" style="color:#0f172a; font-size:14px; font-weight:900;">-- Points</strong>
+        <div style="display:inline-flex; align-items:center; gap:8px; background:#ffffff !important; border:none !important; outline:none !important; padding:7px 18px; border-radius:100px; box-shadow: 0 2px 8px rgba(0,0,0,0.12);">
+            <i class="fa-solid fa-coins" style="color:#f59e0b; font-size:14px;"></i>
+            <span style="font-size:12px; color:#475569; font-weight:700;">Your Balance:</span>
+            <strong id="discount-user-pts" style="color:#203f8d; font-size:14px; font-weight:900;">-- Points</strong>
         </div>
     </div>
 
@@ -45,59 +44,59 @@ $backRoute = 'dashboard';
 #voucher-modal.active .voucher-card-anim { transform: scale(1) translateY(0) !important; opacity: 1 !important; }
 </style>
 <div id="voucher-modal" style="display:none; position:fixed; inset:0; z-index:10000; background:rgba(15,23,42,0.65); align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); opacity:0; transition:opacity 0.3s ease;">
-    <div class="voucher-card-anim" style="background:#ffffff; border:1.5px solid #cbd5e1 !important; outline:none !important; border-radius:24px; padding:24px; width:100%; max-width:360px; box-shadow:0 20px 50px rgba(15,23,42,0.25); text-align:center; position:relative; box-sizing:border-box; transform:scale(0.86) translateY(20px); opacity:0; transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;">
-        <button onclick="closeVoucherModal()" style="position:absolute; top:16px; right:16px; background:#f1f5f9; border:1.5px solid #cbd5e1 !important; outline:none !important; border-radius:50%; width:32px; height:32px; color:#475569; cursor:pointer; display:flex; align-items:center; justify-content:center;">
-            <i class="fa-solid fa-xmark"></i>
+    <div class="voucher-card-anim" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline:none !important; border-radius:24px; padding:24px; width:100%; max-width:360px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; text-align:center; position:relative; box-sizing:border-box; transform:scale(0.86) translateY(20px); opacity:0; transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease; color: #ffffff !important;">
+        <button onclick="closeVoucherModal()" style="position:absolute; top:16px; right:16px; background:#ffffff !important; border:none !important; outline:none !important; border-radius:50%; width:32px; height:32px; color:#203f8d !important; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow: 0 2px 8px rgba(0,0,0,0.18);">
+            <i class="fa-solid fa-xmark" style="color:#203f8d !important;"></i>
         </button>
 
-        <div id="modal-icon-wrap" style="width:64px; height:64px; border-radius:18px; background:#f8fafc; border:1.5px solid #cbd5e1 !important; outline:none !important; display:flex; align-items:center; justify-content:center; font-size:28px; color:#203f8d; margin:0 auto 14px;">
-            <i class="fa-solid fa-ticket"></i>
+        <div id="modal-icon-wrap" style="width:64px; height:64px; border-radius:18px; background:#ffffff; border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; font-size:28px; color:#203f8d; margin:0 auto 14px; box-shadow: 0 4px 14px rgba(0,0,0,0.15);">
+            <i class="fa-solid fa-ticket" style="color:#203f8d !important;"></i>
         </div>
 
-        <span id="modal-category" style="font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:#203f8d; display:block; margin-bottom:4px;">Food & Dining</span>
-        <h3 id="modal-title" style="margin:0 0 8px; font-size:18px; font-weight:800; color:#0f172a;">15% OFF at El Union Coffee</h3>
-        <p id="modal-location" style="margin:0 0 8px; font-size:12px; color:#64748b; font-weight:500;"><i class="fa-solid fa-location-dot" style="color:#ef4444; margin-right:4px;"></i>San Juan, La Union</p>
+        <span id="modal-category" style="font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:#38bdf8; display:block; margin-bottom:4px;">Food & Dining</span>
+        <h3 id="modal-title" style="margin:0 0 8px; font-size:18px; font-weight:800; color:#ffffff;">15% OFF at El Union Coffee</h3>
+        <p id="modal-location" style="margin:0 0 8px; font-size:12px; color:rgba(255,255,255,0.85); font-weight:500;"><i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i>San Juan, La Union</p>
 
         <!-- Expiry Badge in Modal -->
-        <div id="modal-expiry-badge" style="display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:8px; margin-bottom:14px; font-size:11px; font-weight:700; border:1.5px solid #cbd5e1 !important; outline:none !important;">
-            <i class="fa-regular fa-clock" style="font-size:10px;"></i>
+        <div id="modal-expiry-badge" style="display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:8px; margin-bottom:14px; font-size:11px; font-weight:700; background:rgba(255,255,255,0.18); color:#ffffff; border:none !important; outline:none !important;">
+            <i class="fa-regular fa-clock" style="font-size:10px; color:#ffffff;"></i>
             <span id="modal-expiry-text">Valid until Aug 15, 2026</span>
         </div>
 
-        <div style="background:#f8fafc; border:1.5px solid #cbd5e1 !important; outline:none !important; border-radius:14px; padding:12px; margin-bottom:16px; text-align:left;">
-            <p id="modal-description" style="margin:0; font-size:12px; color:#475569; line-height:1.5;"></p>
+        <div style="background:rgba(0,0,0,0.15); border:none !important; outline:none !important; border-radius:14px; padding:12px; margin-bottom:16px; text-align:left;">
+            <p id="modal-description" style="margin:0; font-size:12px; color:rgba(255,255,255,0.95); line-height:1.5;"></p>
         </div>
 
         <!-- Voucher Code Box -->
-        <div style="background:#f8fafc; border:1.5px solid #cbd5e1 !important; outline:none !important; border-radius:14px; padding:14px; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between;">
+        <div style="background:rgba(0,0,0,0.18); border:none !important; outline:none !important; border-radius:14px; padding:14px; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between;">
             <div>
-                <span style="display:block; font-size:9px; color:#64748b; text-transform:uppercase; font-weight:700;">Promo / Claim Code</span>
-                <span id="modal-code" style="font-size:18px; font-weight:900; color:#203f8d; letter-spacing:1px;">ELYU-COFFEE-15</span>
+                <span style="display:block; font-size:9px; color:rgba(255,255,255,0.75); text-transform:uppercase; font-weight:700;">Promo / Claim Code</span>
+                <span id="modal-code" style="font-size:18px; font-weight:900; color:#ffffff; letter-spacing:1px;">ELYU-COFFEE-15</span>
             </div>
-            <button id="btn-copy-voucher" onclick="copyVoucherCode()" style="background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); border:1.5px solid #203f8d !important; outline:none !important; color:#ffffff; padding:8px 14px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer; display:flex; align-items:center; gap:4px; transition:all 0.2s;">
-                <i class="fa-solid fa-copy" id="copy-btn-icon"></i> <span id="copy-btn-label">Copy</span>
+            <button id="btn-copy-voucher" onclick="copyVoucherCode()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#203f8d !important; padding:8px 14px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer; display:flex; align-items:center; gap:4px; transition:all 0.2s; box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+                <i class="fa-solid fa-copy" id="copy-btn-icon" style="color:#203f8d !important;"></i> <span id="copy-btn-label">Copy</span>
             </button>
         </div>
 
         <!-- Post-Copy Instructions & Next Steps Banner -->
-        <div id="copy-success-banner" style="display:none; background:rgba(34,197,94,0.12); border:1.5px solid #22c55e !important; outline:none !important; border-radius:14px; padding:12px; margin-bottom:14px; text-align:left;">
-            <div style="display:flex; align-items:center; gap:8px; color:#16a34a; font-size:12px; font-weight:800; margin-bottom:4px;">
+        <div id="copy-success-banner" style="display:none; background:rgba(34,197,94,0.2); border:1px solid rgba(34,197,94,0.4) !important; outline:none !important; border-radius:14px; padding:12px; margin-bottom:14px; text-align:left;">
+            <div style="display:flex; align-items:center; gap:8px; color:#4ade80; font-size:12px; font-weight:800; margin-bottom:4px;">
                 <i class="fa-solid fa-circle-check"></i> Code Copied & Saved to My Vouchers!
             </div>
-            <p style="margin:0; font-size:11px; color:#334155; line-height:1.4;">
+            <p style="margin:0; font-size:11px; color:#ffffff; line-height:1.4;">
                 Present this promo code or show this screen to staff at checkout to claim your discount.
             </p>
         </div>
 
         <div id="modal-action-row" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
-            <button id="modal-redeem-btn" onclick="handleModalRedeem()" style="width:100%; padding:12px; border:1.5px solid #203f8d !important; outline:none !important; border-radius:12px; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); color:#fff; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 12px rgba(32,63,141,0.25) !important;">
-                <i class="fa-solid fa-gift"></i> <span id="modal-redeem-btn-label">Redeem for 100 Points</span>
+            <button id="modal-redeem-btn" onclick="handleModalRedeem()" style="width:100%; padding:12px; border:none !important; outline:none !important; border-radius:12px; background:#ffffff !important; color:#203f8d !important; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 12px rgba(0,0,0,0.18) !important;">
+                <i class="fa-solid fa-gift" style="color:#203f8d !important;"></i> <span id="modal-redeem-btn-label">Redeem for 100 Points</span>
             </button>
             <div style="display:flex; gap:8px;">
-                <button onclick="navigateTo('map'); closeVoucherModal();" style="flex:1; padding:10px; border:1.5px solid #cbd5e1 !important; outline:none !important; border-radius:10px; background:#f8fafc; color:#0f172a; font-size:11px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
-                    <i class="fa-solid fa-map-location-dot" style="color:#203f8d;"></i> View on Map
+                <button onclick="navigateTo('map'); closeVoucherModal();" style="flex:1; padding:10px; border:none !important; outline:none !important; border-radius:10px; background:rgba(255,255,255,0.18); color:#ffffff; font-size:11px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                    <i class="fa-solid fa-map-location-dot" style="color:#38bdf8;"></i> View on Map
                 </button>
-                <button onclick="closeVoucherModal()" style="flex:1; padding:10px; border:1.5px solid #cbd5e1 !important; outline:none !important; border-radius:10px; background:#f8fafc; color:#475569; font-size:11px; font-weight:800; cursor:pointer;">
+                <button onclick="closeVoucherModal()" style="flex:1; padding:10px; border:none !important; outline:none !important; border-radius:10px; background:rgba(255,255,255,0.18); color:#ffffff; font-size:11px; font-weight:800; cursor:pointer;">
                     Close
                 </button>
             </div>
@@ -107,8 +106,8 @@ $backRoute = 'dashboard';
 
 <style>
 .discount-cat-btn {
-    background: #f8fafc !important;
-    border: 1.5px solid #94a3b8 !important;
+    background: #f1f5f9 !important;
+    border: none !important;
     outline: none !important;
     color: #1e293b !important;
     padding: 8px 16px;
@@ -120,7 +119,7 @@ $backRoute = 'dashboard';
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     user-select: none;
     -webkit-tap-highlight-color: transparent;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 .discount-cat-btn:active {
     transform: scale(0.94);
@@ -128,21 +127,22 @@ $backRoute = 'dashboard';
 .discount-cat-btn.active {
     background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
     color: #ffffff !important;
-    border: 1.5px solid #203f8d !important;
+    border: none !important;
     outline: none !important;
-    box-shadow: 0 4px 12px rgba(32, 63, 141, 0.25) !important;
+    box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28) !important;
 }
 
 .voucher-card {
-    background: #f8fafc !important;
-    border: 1.5px solid #cbd5e1 !important;
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    border: none !important;
     outline: none !important;
     border-radius: 20px;
     padding: 18px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05) !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
+    color: #ffffff !important;
     transition: transform 0.2s ease;
 }
 .voucher-card:active {
@@ -339,7 +339,7 @@ function renderDiscounts() {
         const msg = activeCategory === 'Claimed' 
             ? 'You have not claimed any vouchers yet. Redeem vouchers using Points to save them here!' 
             : 'No vouchers available in this category.';
-        grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #475569; padding: 36px 20px; font-size: 13px; font-weight:600; background: #f8fafc; border: 1.5px solid #cbd5e1 !important; outline: none !important; border-radius: 20px; box-shadow: 0 4px 14px rgba(15,23,42,0.05);">${msg}</div>`;
+        grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #ffffff; padding: 36px 20px; font-size: 13px; font-weight:600; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); border: none !important; outline: none !important; border-radius: 20px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28);">${msg}</div>`;
         return;
     }
 
@@ -353,28 +353,28 @@ function renderDiscounts() {
         <div class="voucher-card">
             <div>
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                    <div style="width: 44px; height: 44px; border-radius: 12px; background: #ffffff; border: 1.5px solid #cbd5e1 !important; outline: none !important; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: #ffffff; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.12);">
                         <img src="${imgUrl}" alt="${v.title}" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
                     </div>
-                    <span style="font-size: 10.5px; font-weight: 800; background: rgba(32, 63, 141, 0.08); color: #203f8d; border: 1.5px solid #203f8d !important; outline: none !important; padding: 4px 10px; border-radius: 8px; text-transform: uppercase;">${v.badge}</span>
+                    <span style="font-size: 10.5px; font-weight: 800; background: #ffffff !important; color: #203f8d !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; box-shadow: 0 2px 6px rgba(0,0,0,0.12);">${v.badge}</span>
                 </div>
-                <h4 style="margin: 0 0 4px; font-size: 15px; font-weight: 800; color: #0f172a; line-height: 1.3;">${v.title}</h4>
-                <p style="margin: 0 0 8px; font-size: 12px; color: #64748b; font-weight: 600;">
-                    <i class="fa-solid fa-store" style="font-size: 10px; margin-right: 4px; color: #203f8d;"></i>${v.partner}
+                <h4 style="margin: 0 0 4px; font-size: 15px; font-weight: 800; color: #ffffff; line-height: 1.3;">${v.title}</h4>
+                <p style="margin: 0 0 8px; font-size: 12px; color: rgba(255, 255, 255, 0.85); font-weight: 600;">
+                    <i class="fa-solid fa-store" style="font-size: 10px; margin-right: 4px; color: #38bdf8;"></i>${v.partner}
                 </p>
-                <div style="display: inline-flex; align-items: center; gap: 4px; background: ${expiryInfo.bgColor}; padding: 3px 8px; border-radius: 6px; margin-bottom: 10px; border: 1.5px solid ${expiryInfo.color} !important; outline: none !important;">
-                    <i class="fa-regular fa-clock" style="font-size: 9px; color: ${expiryInfo.color};"></i>
-                    <span style="font-size: 10px; font-weight: 700; color: ${expiryInfo.color};">${expiryInfo.label}</span>
+                <div style="display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.18); padding: 3px 8px; border-radius: 6px; margin-bottom: 10px; border: none !important; outline: none !important;">
+                    <i class="fa-regular fa-clock" style="font-size: 9px; color: #ffffff;"></i>
+                    <span style="font-size: 10px; font-weight: 700; color: #ffffff;">${expiryInfo.label}</span>
                 </div>
-                <p style="margin: 0 0 16px; font-size: 12px; color: #475569; line-height: 1.4;">${v.description}</p>
+                <p style="margin: 0 0 16px; font-size: 12px; color: rgba(255, 255, 255, 0.9); line-height: 1.4;">${v.description}</p>
             </div>
             
-            <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.18);">
                 <div style="display: flex; align-items: center; gap: 4px;">
-                    <i class="fa-solid fa-coins" style="color: #f59e0b; font-size: 13px;"></i>
-                    <span style="font-size: 14px; font-weight: 800; color: #0f172a;">${v.pointsCost || v.required_points || 100} <span style="font-size: 10.5px; color: #64748b; font-weight: 600;">Points</span></span>
+                    <i class="fa-solid fa-coins" style="color: #fbbf24; font-size: 13px;"></i>
+                    <span style="font-size: 14px; font-weight: 800; color: #ffffff;">${v.pointsCost || v.required_points || 100} <span style="font-size: 10.5px; color: rgba(255, 255, 255, 0.8); font-weight: 600;">Points</span></span>
                 </div>
-                <button onclick="${isCardExpired ? '' : 'openVoucherModal(\'' + v.id + '\')'}" ${isCardExpired ? 'disabled' : ''} style="background: ${isCardExpired ? '#e2e8f0' : (isClaimed ? 'rgba(34, 197, 94, 0.12)' : 'linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%)')}; border: 1.5px solid ${isCardExpired ? '#cbd5e1' : (isClaimed ? '#22c55e' : '#203f8d')} !important; outline: none !important; color: ${isCardExpired ? '#94a3b8' : (isClaimed ? '#16a34a' : '#ffffff')}; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: ${isCardExpired ? 'not-allowed' : 'pointer'}; box-shadow: ${isCardExpired || isClaimed ? 'none' : '0 2px 8px rgba(32, 63, 141, 0.25)'} !important; opacity: 1;">
+                <button onclick="${isCardExpired ? '' : 'openVoucherModal(\'' + v.id + '\')'}" ${isCardExpired ? 'disabled' : ''} style="background: ${isCardExpired ? 'rgba(255, 255, 255, 0.2)' : (isClaimed ? 'rgba(34, 197, 94, 0.25)' : '#ffffff')} !important; border: none !important; outline: none !important; color: ${isCardExpired ? 'rgba(255, 255, 255, 0.6)' : (isClaimed ? '#4ade80' : '#203f8d')} !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: ${isCardExpired ? 'not-allowed' : 'pointer'}; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important; opacity: 1;">
                     ${isCardExpired ? '<i class="fa-solid fa-lock" style="margin-right:4px;"></i> Expired' : (isClaimed ? '<i class="fa-solid fa-check" style="margin-right:4px;"></i> Claimed' : 'Redeem Voucher')}
                 </button>
             </div>

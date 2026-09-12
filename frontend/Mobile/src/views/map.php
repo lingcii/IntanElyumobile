@@ -597,8 +597,9 @@ if (is_dir($imgDir)) {
                     "osm": {
                         "type": "raster",
                         "tiles": [
-                            "https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
-                            "https://b.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+                            "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                            "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                            "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         ],
                         "tileSize": 256
                     },
