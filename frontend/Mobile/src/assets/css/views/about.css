@@ -3,8 +3,8 @@
  * ============================================================ */
 html:has(body[data-view="about"]),
 body[data-view="about"] {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
+    background: #f8fafc !important;
+    background-color: #f8fafc !important;
     color: #0f172a !important;
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
@@ -12,8 +12,8 @@ body[data-view="about"] {
 
 body[data-view="about"] #app-container,
 body[data-view="about"] #main-content {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
+    background: #f8fafc !important;
+    background-color: #f8fafc !important;
 }
 
 body[data-view="about"] .mobile-header,
@@ -24,7 +24,7 @@ body[data-view="about"] .mobile-header,
     border: none !important;
     outline: none !important;
     border-bottom: none !important;
-    box-shadow: none !important;
+    box-shadow: 0 4px 14px rgba(10, 25, 60, 0.15) !important;
 }
 
 .about-container {
@@ -35,8 +35,8 @@ body[data-view="about"] .mobile-header,
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: #ffffff !important;
-    background-color: #ffffff !important;
+    background: #f8fafc !important;
+    background-color: #f8fafc !important;
     min-height: 100vh;
     box-sizing: border-box;
 }
@@ -45,7 +45,8 @@ body[data-view="about"] .mobile-header,
     width: 90px;
     height: 90px;
     background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
-    border: 1.5px solid #203f8d !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 28px;
     display: flex;
     justify-content: center;
@@ -76,12 +77,13 @@ body[data-view="about"] .mobile-header,
     line-height: 1.7;
     color: #334155 !important;
     margin-bottom: 32px;
-    background: #f8fafc !important;
-    border: 1.5px solid #cbd5e1 !important;
-    padding: 20px;
+    background: #ffffff !important;
+    border: none !important;
+    outline: none !important;
+    padding: 20px 22px;
     border-radius: 20px;
     text-align: left;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05) !important;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(15, 23, 42, 0.03) !important;
 }
 
 .dev-team {
@@ -108,12 +110,18 @@ body[data-view="about"] .mobile-header,
     display: flex;
     align-items: center;
     gap: 14px;
-    background: #f8fafc !important;
-    border: 1.5px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    border: none !important;
+    outline: none !important;
     padding: 14px 18px;
     border-radius: 18px;
     margin-bottom: 12px;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05) !important;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.03) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.team-member:active {
+    transform: scale(0.98);
 }
 
 .member-avatar {
@@ -128,8 +136,9 @@ body[data-view="about"] .mobile-header,
     font-weight: 800;
     font-size: 16px;
     flex-shrink: 0;
-    border: 1.5px solid #203f8d !important;
-    box-shadow: 0 2px 6px rgba(32, 63, 141, 0.2) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 3px 8px rgba(32, 63, 141, 0.25) !important;
 }
 
 .member-name {

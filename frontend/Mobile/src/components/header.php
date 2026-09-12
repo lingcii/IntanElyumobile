@@ -123,9 +123,9 @@
     </div>
 </div>
 
-<div id="notifications-dropdown" class="hide-scrollbar" style="position: fixed; top: max(env(safe-area-inset-top, 0px), 65px); right: 12px; left: 12px; max-width: 360px; margin: 0 auto; background: #ffffff; border: 1px solid rgba(255, 255, 255, 0.2); outline: none !important; border-radius: 22px; z-index: 999999; box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45); padding: 0; max-height: 75vh; display: flex; flex-direction: column; overflow: hidden; opacity: 0; pointer-events: none; transform-origin: top right; transform: scale(0.4) translate(35px, -35px); transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.34s cubic-bezier(0.175, 0.885, 0.32, 1.15) !important;">
+<div id="notifications-dropdown" class="hide-scrollbar" style="position: fixed; top: max(env(safe-area-inset-top, 0px), 65px); right: 12px; left: 12px; max-width: 360px; margin: 0 auto; background: #ffffff; border: none !important; outline: none !important; border-radius: 22px; z-index: 999999; box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45); padding: 0; max-height: 75vh; display: flex; flex-direction: column; overflow: hidden; opacity: 0; pointer-events: none; transform-origin: top right; transform: scale(0.4) translate(35px, -35px); transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.34s cubic-bezier(0.175, 0.885, 0.32, 1.15) !important;">
     <!-- Notifications Header Banner -->
-    <div style="padding: 14px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%); flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;">
+    <div style="padding: 14px 16px; border-bottom: none !important; background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%); flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; border: none !important; outline: none !important;">
         <span style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">
             <i class="fa-solid fa-bell" style="color: #00f2fe; font-size: 15px;"></i> Notifications
         </span>
@@ -135,10 +135,10 @@
     </div>
 
     <!-- Scrollable Middle Body (White Background) -->
-    <div id="notifications-list" class="hide-scrollbar" style="flex: 1; min-height: 0; padding: 14px 12px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; scrollbar-width: none !important; -ms-overflow-style: none !important; background: #ffffff;">
-        <div class="empty-state-card notif-empty-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px 18px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; border-radius: 16px; margin: 4px 0; border: none !important;">
-            <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(0, 242, 254, 0.18); border: 1.5px solid rgba(0, 242, 254, 0.35); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 0 16px rgba(0, 242, 254, 0.25);">
-                <i class="fa-solid fa-bell-slash" style="color: #00f2fe; font-size: 22px;"></i>
+    <div id="notifications-list" class="hide-scrollbar" style="flex: 1; min-height: 0; padding: 14px 12px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; scrollbar-width: none !important; -ms-overflow-style: none !important; background: #ffffff; border: none !important; outline: none !important;">
+        <div class="empty-state-card notif-empty-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px 18px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; border-radius: 16px; margin: 4px 0; border: none !important; outline: none !important;">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: #ffffff !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);">
+                <i class="fa-solid fa-bell-slash" style="color: #1e3a8a !important; font-size: 22px;"></i>
             </div>
             <h4 style="margin: 0 0 6px 0; font-size: 15px; font-weight: 800; color: #ffffff; letter-spacing: -0.2px;">No Notifications Yet</h4>
             <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.85); line-height: 1.45; max-width: 230px;">
@@ -148,7 +148,7 @@
     </div>
 
     <!-- Locked Bottom Footer Banner -->
-    <div id="notifications-footer" style="flex-shrink: 0; padding: 12px 14px; background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%); border-top: 1px solid rgba(255, 255, 255, 0.12); display: none; align-items: center; justify-content: space-between; gap: 10px;">
+    <div id="notifications-footer" style="flex-shrink: 0; padding: 12px 14px; background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%); border-top: none !important; border: none !important; outline: none !important; display: none; align-items: center; justify-content: space-between; gap: 10px;">
         <button type="button" id="notif-mark-all-btn" onclick="markAllNotifRead()" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; font-size: 11.5px; font-weight: 800; cursor: pointer; padding: 6px 14px; border-radius: 100px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important; display: inline-flex; align-items: center; gap: 6px; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
             <i class="fa-solid fa-check-double" style="font-size: 11px; color: #1e3a8a !important;"></i> Mark all read
         </button>
@@ -160,7 +160,7 @@
 
 <!-- Sidebar Menu Drawer -->
 <div id="sidebar-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 99990; transition: opacity 0.3s ease;" onclick="toggleSidebar()"></div>
-<div id="sidebar-menu" style="position: fixed; top: 0; left: -280px; width: 260px; bottom: 0; background: #ffffff; z-index: 99991; transition: left 0.32s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; box-shadow: 10px 0 35px rgba(0,0,0,0.12); border-right: 1px solid #f1f5f9; outline: none !important; overflow: hidden;">
+<div id="sidebar-menu" style="position: fixed; top: 0; left: -280px; width: 260px; bottom: 0; background: #ffffff; z-index: 99991; transition: left 0.32s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; box-shadow: 10px 0 35px rgba(0,0,0,0.12); border: none !important; border-right: none !important; outline: none !important; overflow: hidden;">
     
     <!-- User Profile Header Banner -->
     <div style="padding: max(calc(env(safe-area-inset-top, 0px) + 16px), 20px) 16px 14px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%); margin-top: 0; position: relative; flex-shrink: 0;">
@@ -620,9 +620,9 @@
 
     function getNotifEmptyStateHtml() {
         return `
-            <div class="empty-state-card notif-empty-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px 18px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; border-radius: 16px; margin: 4px 0; border: none !important;">
-                <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(0, 242, 254, 0.18); border: 1.5px solid rgba(0, 242, 254, 0.35); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 0 16px rgba(0, 242, 254, 0.25);">
-                    <i class="fa-solid fa-bell-slash" style="color: #00f2fe; font-size: 22px;"></i>
+            <div class="empty-state-card notif-empty-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px 18px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; border-radius: 16px; margin: 4px 0; border: none !important; outline: none !important;">
+                <div style="width: 56px; height: 56px; border-radius: 50%; background: #ffffff !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);">
+                    <i class="fa-solid fa-bell-slash" style="color: #1e3a8a !important; font-size: 22px;"></i>
                 </div>
                 <h4 style="margin: 0 0 6px 0; font-size: 15px; font-weight: 800; color: #ffffff; letter-spacing: -0.2px;">No Notifications Yet</h4>
                 <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.85); line-height: 1.45; max-width: 230px;">
