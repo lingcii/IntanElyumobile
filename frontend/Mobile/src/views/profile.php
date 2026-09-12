@@ -47,13 +47,13 @@ $activeTab = 'profile';
 
     <!-- Trip History -->
     <div class="stagger-3" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; margin-left: 4px;">
-        <h3 style="font-size: 16px; font-weight: 800; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-route" style="color: #00f2fe;"></i> Trip History
+        <h3 style="font-size: 16px; font-weight: 800; color: #0f172a !important; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-route" style="color: #1e3a8a;"></i> Trip History
         </h3>
         <div style="display: flex; align-items: center; gap: 8px;">
-            <span id="trip-history-count-badge" style="font-size: 11px; font-weight: 800; background: rgba(0, 242, 254, 0.2); color: #00f2fe; padding: 3px 10px; border-radius: 100px; border: none !important; outline: none !important;">0 Completed</span>
-            <button onclick="window.openFullHistoryModal()" style="background: rgba(255, 255, 255, 0.16); border: none !important; outline: none !important; color: #ffffff; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 12px; border-radius: 100px; display: flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
-                View All <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i>
+            <span id="trip-history-count-badge" style="font-size: 11px; font-weight: 800; background: #eff6ff; color: #1e3a8a; padding: 3px 10px; border-radius: 100px; border: none !important; outline: none !important;">0 Completed</span>
+            <button onclick="window.openFullHistoryModal()" style="background: #f1f5f9; border: none !important; outline: none !important; color: #1e3a8a; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 12px; border-radius: 100px; display: flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
+                View All <i class="fa-solid fa-chevron-right" style="font-size: 9px; color: #1e3a8a;"></i>
             </button>
         </div>
     </div>
@@ -64,7 +64,7 @@ $activeTab = 'profile';
     </div>
     
     <!-- Points & Rewards -->
-    <h3 class="stagger-3" style="font-size: 16px; font-weight: 800; color: #ffffff; margin-bottom: 12px; margin-left: 4px; display: flex; align-items: center; gap: 8px;">
+    <h3 class="stagger-3" style="font-size: 16px; font-weight: 800; color: #0f172a !important; margin-bottom: 12px; margin-left: 4px; display: flex; align-items: center; gap: 8px;">
         <i class="fa-solid fa-coins" style="color: #fbbf24;"></i> Points & Rewards
     </h3>
     
@@ -107,8 +107,8 @@ $activeTab = 'profile';
     </div>
     
     <!-- Account Settings -->
-    <h3 class="stagger-3" style="font-size: 16px; font-weight: 800; color: #ffffff; margin-bottom: 12px; margin-left: 4px; display: flex; align-items: center; gap: 8px;">
-        <i class="fa-solid fa-user-gear" style="color: #00f2fe;"></i> Account Settings
+    <h3 class="stagger-3" style="font-size: 16px; font-weight: 800; color: #0f172a !important; margin-bottom: 12px; margin-left: 4px; display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-user-gear" style="color: #1e3a8a;"></i> Account Settings
     </h3>
     
     <div class="settings-group stagger-3" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 20px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">

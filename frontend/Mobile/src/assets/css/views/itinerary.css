@@ -223,23 +223,22 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
     width: 76px;
     height: 76px;
     border-radius: 50%;
-    background: rgba(56, 189, 248, 0.14);
+    background: #ffffff !important;
     border: none !important;
     outline: none !important;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 20px;
-    color: #38bdf8 !important;
-    -webkit-text-fill-color: #38bdf8 !important;
+    color: #1e3a8a !important;
+    -webkit-text-fill-color: #1e3a8a !important;
     font-size: 34px;
-    box-shadow: 0 0 24px rgba(56, 189, 248, 0.3);
-    animation: pulseGlow 3.5s infinite ease-in-out;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
 }
 
 .empty-state-icon i {
-    color: #38bdf8 !important;
-    -webkit-text-fill-color: #38bdf8 !important;
+    color: #1e3a8a !important;
+    -webkit-text-fill-color: #1e3a8a !important;
     font-size: 30px !important;
     display: inline-block;
 }

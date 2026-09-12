@@ -63,10 +63,10 @@ $activeTab = 'leaderboard';
         <div class="stagger-2"
             style="display: flex; justify-content: space-between; align-items: center; margin: 20px 4px 12px 4px;">
             <h3
-                style="font-size: 15px; font-weight: 800; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 6px;">
-                <i class="fa-solid fa-list-ol" style="color: #00f2fe;"></i> Explorer Leaderboard
+                style="font-size: 15px; font-weight: 800; color: #0f172a !important; margin: 0; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-list-ol" style="color: #1e3a8a;"></i> Explorer Leaderboard
             </h3>
-            <span style="font-size: 11px; font-weight: 700; color: #ffffff; opacity: 0.9;"
+            <span style="font-size: 11px; font-weight: 700; color: #64748b !important;"
                 id="explorers-count-badge">Top Ranks</span>
         </div>
 

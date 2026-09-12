@@ -493,8 +493,9 @@ body[data-view="trending"] .mobile-header .header-icon i {
     width: 64px !important;
     height: 64px !important;
     border-radius: 50% !important;
-    background: #eff6ff !important;
+    background: #ffffff !important;
     color: #1e3a8a !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;

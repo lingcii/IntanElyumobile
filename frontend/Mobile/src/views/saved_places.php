@@ -193,8 +193,8 @@ body[data-view="saved_places"] .trending-card {
         if (!spots.length) {
             list.innerHTML = `
                 <div class="dash-empty-state">
-                    <div class="dash-empty-icon-wrap">
-                        <i class="fa-solid fa-map-location-dot"></i>
+                    <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                        <i class="fa-solid fa-map-location-dot" style="color: #1e3a8a !important;"></i>
                     </div>
                     <div class="dash-empty-title">No Saved Places Yet</div>
                     <div class="dash-empty-desc">Discover destinations on the map and tap the heart icon to save your favorite spots.</div>

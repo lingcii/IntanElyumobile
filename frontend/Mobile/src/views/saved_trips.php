@@ -259,8 +259,8 @@ body[data-view="saved_trips"],
 
         const emptyStateHtml = `
             <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px;">
-                <div class="empty-state-icon">
-                    <i class="fa-solid fa-route"></i>
+                <div class="empty-state-icon" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                    <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
                 </div>
                 <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff; text-wrap: balance;">No Saved Trips Yet</h3>
                 <p style="margin: 0; font-size: 13.5px; color: rgba(255, 255, 255, 0.88); line-height: 1.5; max-width: 260px; text-wrap: pretty;">

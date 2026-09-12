@@ -704,8 +704,8 @@ body[data-view="trending"] .mobile-header,
             if (!list) return;
             list.innerHTML = `
             <div class="dash-empty-state" style="margin-top: 24px !important;">
-                <div class="dash-empty-icon-wrap">
-                    <i class="fa-solid fa-compass"></i>
+                <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                    <i class="fa-solid fa-compass" style="color: #1e3a8a !important;"></i>
                 </div>
                 <div class="dash-empty-title">${title}</div>
                 <div class="dash-empty-desc">${desc}</div>
@@ -721,8 +721,8 @@ body[data-view="trending"] .mobile-header,
             if (!list) return;
             list.innerHTML = `
             <div class="dash-empty-state" style="margin-top: 24px !important;">
-                <div class="dash-empty-icon-wrap">
-                    <i class="fa-solid fa-compass"></i>
+                <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                    <i class="fa-solid fa-compass" style="color: #1e3a8a !important;"></i>
                 </div>
                 <div class="dash-empty-title">No Sites Match Filter</div>
                 <div class="dash-empty-desc">No destinations match your search or category selection. Try searching another keyword or reset your filter.</div>

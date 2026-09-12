@@ -1,39 +1,35 @@
 /* ============================================================
  * Leaderboard View Styles - leaderboard.css
- * Intan Elyu Mobile — Ultra-Premium Glassmorphic Design System
+ * Intan Elyu Mobile — Clean Pure White Theme with Royal Blue Accents
  * ============================================================ */
 
-/* Main Container with Header Clearances */
-/* Main Container with Header Clearances */
-.leaderboard-container {
-    width: 100%;
-    min-height: 100vh;
-    padding-top: calc(var(--header-height, 90px) + 16px) !important;
-    padding-left: 16px !important;
-    padding-right: 16px !important;
-    padding-bottom: 120px !important;
-    box-sizing: border-box;
-    background:
-        radial-gradient(ellipse at 85% 5%, rgba(0, 242, 254, 0.35) 0%, transparent 55%),
-        radial-gradient(ellipse at 15% 45%, rgba(56, 189, 248, 0.3) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 80%, rgba(63, 125, 183, 0.4) 0%, transparent 60%),
-        linear-gradient(180deg, #1e3a8a 0%, #3f7db7 30%, #0284c7 65%, #06b6d4 90%, #00f2fe 100%) !important;
-    background-attachment: fixed !important;
-    color: #ffffff !important;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
-    overflow-x: hidden;
+/* Full Page White Background */
+html:has(body[data-view="leaderboard"]),
+body[data-view="leaderboard"],
+html:has(.leaderboard-container),
+body:has(.leaderboard-container) {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
 }
 
-body[data-view="leaderboard"] {
-    background-color: #1e3a8a !important;
-    color: #ffffff !important;
+body[data-view="leaderboard"] #app-container,
+body[data-view="leaderboard"] #main-content,
+body:has(.leaderboard-container) #app-container,
+body:has(.leaderboard-container) #main-content {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
 }
 
 body[data-view="leaderboard"] .mobile-header {
-    background: rgba(30, 58, 138, 0.88) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
+    background: #1e3a8a !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: none !important;
+    outline: none !important;
+    border-bottom: none !important;
     box-shadow: none !important;
 }
 
@@ -45,10 +41,28 @@ body[data-view="leaderboard"] .mobile-header .header-title {
 body[data-view="leaderboard"] .mobile-header .header-icon {
     color: #1e3a8a !important;
     background: #ffffff !important;
+    border: none !important;
+    outline: none !important;
 }
 
 body[data-view="leaderboard"] .mobile-header .header-icon i {
     color: #1e3a8a !important;
+}
+
+/* Main Container: Pure White Background */
+.leaderboard-container {
+    width: 100%;
+    min-height: 100vh;
+    padding-top: calc(var(--header-height, 90px) + 16px) !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-bottom: 120px !important;
+    box-sizing: border-box;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    overflow-x: hidden;
 }
 
 /* Title & Subtitle */
@@ -60,7 +74,7 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
 .leaderboard-title h2 {
     font-size: 22px !important;
     font-weight: 900 !important;
-    color: #ffffff !important;
+    color: #0f172a !important;
     letter-spacing: -0.5px !important;
     margin: 0 0 4px 0 !important;
     display: flex;
@@ -73,8 +87,8 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
     margin: 0;
     font-size: 12.5px;
     font-weight: 600;
-    color: #ffffff !important;
-    opacity: 0.95 !important;
+    color: #64748b !important;
+    opacity: 1 !important;
     letter-spacing: 0.2px;
 }
 
@@ -82,11 +96,9 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
 .leaderboard-tabs-wrapper {
     position: relative;
     display: flex;
-    background: rgba(30, 58, 138, 0.65);
+    background: #f1f5f9 !important;
     border: none !important;
     outline: none !important;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     border-radius: 100px;
     padding: 4px;
     margin: 0 auto 18px;
@@ -95,6 +107,7 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
     gap: 0;
     box-sizing: border-box;
     overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
 }
 
 .leaderboard-tab-glider {
@@ -135,7 +148,7 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
     border: none !important;
     outline: none !important;
     background: transparent !important;
-    color: rgba(255, 255, 255, 0.75) !important;
+    color: #64748b !important;
     font-size: 12.5px;
     font-weight: 700;
     letter-spacing: 0.2px;
@@ -157,28 +170,25 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
 
 /* ── Your Current Standing Banner ── */
 .standing-banner-card {
-    background: rgba(30, 75, 135, 0.58) !important;
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
     border: none !important;
     outline: none !important;
     border-radius: 22px;
     padding: 12px 16px;
     margin-bottom: 24px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     cursor: pointer;
-    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, border-color 0.2s ease;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
-    box-shadow: none !important;
+    box-shadow: 0 4px 16px rgba(32, 63, 141, 0.25) !important;
 }
 
 .standing-banner-card:active {
     transform: scale(0.97);
-    background: rgba(38, 85, 150, 0.75) !important;
 }
 
 .standing-rank-avatar-wrap {
@@ -383,7 +393,7 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: #ffffff;
+    color: #0f172a !important;
 }
 
 .podium-metric-pill,
@@ -400,36 +410,36 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
 
 .podium-metric-1,
 .podium-xp-1 {
-    background: rgba(251, 191, 36, 0.32) !important;
-    border: none !important;
+    background: #fef3c7 !important;
+    border: 1px solid #fde68a !important;
     outline: none !important;
-    color: #ffffff !important;
+    color: #b45309 !important;
     font-weight: 800;
 }
 .podium-metric-1 i,
-.podium-xp-1 i { color: #fde047 !important; }
+.podium-xp-1 i { color: #d97706 !important; }
 
 .podium-metric-2,
 .podium-xp-2 {
-    background: rgba(255, 255, 255, 0.25) !important;
-    border: none !important;
+    background: #f1f5f9 !important;
+    border: 1px solid #e2e8f0 !important;
     outline: none !important;
-    color: #ffffff !important;
+    color: #475569 !important;
     font-weight: 800;
 }
 .podium-metric-2 i,
-.podium-xp-2 i { color: #ffffff !important; }
+.podium-xp-2 i { color: #64748b !important; }
 
 .podium-metric-3,
 .podium-xp-3 {
-    background: rgba(249, 115, 22, 0.32) !important;
-    border: none !important;
+    background: #ffedd5 !important;
+    border: 1px solid #fed7aa !important;
     outline: none !important;
-    color: #ffffff !important;
+    color: #c2410c !important;
     font-weight: 800;
 }
 .podium-metric-3 i,
-.podium-xp-3 i { color: #fed7aa !important; }
+.podium-xp-3 i { color: #ea580c !important; }
 
 /* 3D Glassmorphic Podium Step Blocks - Bright, Clear, and Borderless */
 .podium-block {
@@ -480,14 +490,12 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
 
 /* ── Rank List Section ── */
 .rank-list-wrapper {
-    background: rgba(30, 75, 135, 0.58) !important;
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    background: #f8fafc !important;
     border: none !important;
     outline: none !important;
     border-radius: 24px;
     padding: 12px 14px;
-    box-shadow: none !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
 }
 
 .rank-list {
@@ -502,40 +510,42 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
     align-items: center;
     justify-content: space-between;
     padding: 10px 12px;
-    background: rgba(255, 255, 255, 0.08) !important;
+    background: #ffffff !important;
     border: none !important;
     outline: none !important;
     border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
-    transition: background 0.2s ease !important;
+    transition: background 0.2s ease, transform 0.15s ease !important;
     animation: none !important;
     transform: none !important;
 }
 
 .rank-item:active {
-    transform: scale(0.97) !important;
-    background: rgba(255, 255, 255, 0.18) !important;
+    transform: scale(0.98) !important;
+    background: #f1f5f9 !important;
 }
 
 .rank-item.is-me {
-    background: rgba(0, 242, 254, 0.18) !important;
-    border: none !important;
+    background: #eff6ff !important;
+    border: 1px solid #bfdbfe !important;
     outline: none !important;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1) !important;
 }
 
 .rank-number-box {
     width: 26px;
     font-size: 14px;
     font-weight: 900;
-    color: #ffffff !important;
+    color: #1e3a8a !important;
     text-align: center;
     flex-shrink: 0;
 }
 
 .rank-item.is-me .rank-number-box {
-    color: #00f2fe !important;
+    color: #2563eb !important;
 }
 
 .rank-avatar {
@@ -560,7 +570,7 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
 .rank-user-name {
     font-size: 13.5px;
     font-weight: 800;
-    color: #ffffff;
+    color: #0f172a !important;
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
@@ -571,8 +581,8 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
 
 .rank-user-meta {
     font-size: 11px;
-    color: #ffffff !important;
-    opacity: 0.9 !important;
+    color: #64748b !important;
+    opacity: 1 !important;
     font-weight: 600;
     margin-top: 1px;
 }
@@ -581,7 +591,7 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
 .rank-xp-badge {
     font-size: 13.5px;
     font-weight: 800;
-    color: #ffffff;
+    color: #0f172a !important;
     flex-shrink: 0;
     text-align: right;
     margin-left: 10px;
@@ -593,7 +603,7 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
 .rank-metric-badge span,
 .rank-xp-badge span {
     font-size: 10.5px;
-    color: #fbbf24;
+    color: #d97706 !important;
 }
 
 /* ── Invite Button ── */
@@ -602,7 +612,7 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
     margin-top: 12px;
     padding: 12px;
     border-radius: 100px;
-    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
     border: none !important;
     outline: none !important;
     color: #ffffff !important;
@@ -613,7 +623,7 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
     justify-content: center;
     gap: 8px;
     cursor: pointer;
-    box-shadow: none !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.25) !important;
     transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 /* ── User Profile Modal Overlay & Card ── */

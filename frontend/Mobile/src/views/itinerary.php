@@ -406,8 +406,8 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
     <!-- Empty State Card -->
     <div id="itinerary-empty-state" class="empty-state-card is-hidden" style="display:none;">
-        <div class="empty-state-icon">
-            <i class="fa-solid fa-route"></i>
+        <div class="empty-state-icon" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;">
+            <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
         </div>
         <h3>No plans yet</h3>
         <p>Go to the Map and tap <strong>"Add to Itinerary"</strong> on a place to start building your trip!</p>

@@ -1546,8 +1546,8 @@ if (is_dir($imgDir)) {
                         } else {
                             tripsContainer.innerHTML = `
                             <div class="dash-empty-state">
-                                <div class="dash-empty-icon-wrap">
-                                    <i class="fa-solid fa-route"></i>
+                                <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                                    <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
                                 </div>
                                 <div class="dash-empty-title">No Saved Trips Yet</div>
                                 <div class="dash-empty-desc">Create custom itineraries and explore recommended routes for your La Union adventure.</div>
@@ -2021,8 +2021,8 @@ if (is_dir($imgDir)) {
                         if (tripsContainer && (!tripsContainer.querySelectorAll('.trip-swipe-container') || tripsContainer.querySelectorAll('.trip-swipe-container').length === 0)) {
                             tripsContainer.innerHTML = `
                                 <div class="dash-empty-state">
-                                    <div class="dash-empty-icon-wrap">
-                                        <i class="fa-solid fa-route"></i>
+                                    <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                                        <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
                                     </div>
                                     <div class="dash-empty-title">No Saved Trips Yet</div>
                                     <div class="dash-empty-desc">Create custom itineraries and explore recommended routes for your La Union adventure.</div>

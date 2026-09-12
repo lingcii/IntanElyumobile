@@ -1,34 +1,35 @@
 /* ============================================================
  * Profile View Styles - profile.css
- * Intan Elyu Mobile — Ultra-Premium Coastal Wave Theme
+ * Intan Elyu Mobile — Clean Pure White Theme with Royal Blue Accents
  * ============================================================ */
 
-/* Main Container */
-.profile-container {
-    width: 100%;
-    min-height: 100vh;
-    padding: 16px 16px 120px 16px;
-    box-sizing: border-box;
-    background:
-        radial-gradient(ellipse at 85% 5%, rgba(0, 242, 254, 0.35) 0%, transparent 55%),
-        radial-gradient(ellipse at 15% 45%, rgba(56, 189, 248, 0.3) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 80%, rgba(63, 125, 183, 0.4) 0%, transparent 60%),
-        linear-gradient(180deg, #1e3a8a 0%, #3f7db7 30%, #0284c7 65%, #06b6d4 90%, #00f2fe 100%) !important;
-    background-attachment: fixed !important;
-    color: #ffffff !important;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+/* Full Page White Background */
+html:has(body[data-view="profile"]),
+body[data-view="profile"],
+html:has(.profile-container),
+body:has(.profile-container) {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
 }
 
-body[data-view="profile"] {
-    background-color: #1e3a8a !important;
-    color: #ffffff !important;
+body[data-view="profile"] #app-container,
+body[data-view="profile"] #main-content,
+body:has(.profile-container) #app-container,
+body:has(.profile-container) #main-content {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
 }
 
 body[data-view="profile"] .mobile-header {
-    background: rgba(30, 58, 138, 0.88) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
+    background: #1e3a8a !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: none !important;
+    outline: none !important;
+    border-bottom: none !important;
     box-shadow: none !important;
 }
 
@@ -40,10 +41,24 @@ body[data-view="profile"] .mobile-header .header-title {
 body[data-view="profile"] .mobile-header .header-icon {
     color: #1e3a8a !important;
     background: #ffffff !important;
+    border: none !important;
+    outline: none !important;
 }
 
 body[data-view="profile"] .mobile-header .header-icon i {
     color: #1e3a8a !important;
+}
+
+/* Main Container: Pure White Background */
+.profile-container {
+    width: 100%;
+    min-height: 100vh;
+    padding: 16px 16px 120px 16px;
+    box-sizing: border-box;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
 }
 
 /* Profile Header Card */
@@ -124,12 +139,31 @@ body[data-view="profile"] .profile-header {
     letter-spacing: 0.5px;
 }
 
-/* Section Subtitles */
-.profile-container h3,
-.profile-container h4,
-.profile-container h5 {
-    color: #ffffff !important;
+/* Section Subtitles on White Background */
+.profile-container > h3,
+.profile-container > div > h3,
+.profile-container h3.stagger-3 {
+    color: #0f172a !important;
     font-weight: 800 !important;
+}
+
+.profile-header h2,
+.profile-header h3,
+.profile-header h4,
+.profile-header h5,
+.profile-header p,
+.profile-header span,
+.profile-header div {
+    color: #ffffff;
+}
+
+.settings-group h3,
+.settings-group h4,
+.settings-group h5,
+.settings-group a,
+.settings-group div,
+.settings-group span {
+    color: #ffffff;
 }
 
 /* Settings & Account Group Card */
