@@ -3,8 +3,8 @@
  * ============================================================ */
 html:has(body[data-view="terms"]),
 body[data-view="terms"] {
-    background: #f8fafc !important;
-    background-color: #f8fafc !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
     color: #0f172a !important;
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
@@ -12,8 +12,8 @@ body[data-view="terms"] {
 
 body[data-view="terms"] #app-container,
 body[data-view="terms"] #main-content {
-    background: #f8fafc !important;
-    background-color: #f8fafc !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
 }
 
 body[data-view="terms"] .mobile-header,
@@ -24,31 +24,31 @@ body[data-view="terms"] .mobile-header,
     border: none !important;
     outline: none !important;
     border-bottom: none !important;
-    box-shadow: 0 4px 14px rgba(10, 25, 60, 0.15) !important;
+    box-shadow: none !important;
 }
 
 .terms-container {
     padding: 20px 16px 100px;
     max-width: 600px;
     margin: 0 auto;
-    background: #f8fafc !important;
-    background-color: #f8fafc !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
     min-height: 100vh;
     box-sizing: border-box;
 }
 
 .terms-card {
-    background: #ffffff !important;
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
     border: none !important;
     outline: none !important;
     border-radius: 20px;
     padding: 22px;
     margin-bottom: 16px;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(15, 23, 42, 0.03) !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
 }
 
 .terms-card h3 {
-    color: #0f172a !important;
+    color: #ffffff !important;
     margin-top: 0;
     margin-bottom: 12px;
     display: flex;
@@ -60,7 +60,7 @@ body[data-view="terms"] .mobile-header,
 }
 
 .terms-card h3 i {
-    color: #203f8d !important;
+    color: #00f2fe !important;
     font-size: 16px;
     width: 20px;
     text-align: center;
@@ -69,8 +69,13 @@ body[data-view="terms"] .mobile-header,
 .terms-card p {
     font-size: 13.5px;
     line-height: 1.7;
-    color: #334155 !important;
+    color: rgba(255, 255, 255, 0.92) !important;
     margin-bottom: 12px;
+}
+
+.terms-card p strong {
+    color: #ffffff !important;
+    font-weight: 800;
 }
 
 .terms-card p:last-child { margin-bottom: 0; }
@@ -78,9 +83,13 @@ body[data-view="terms"] .mobile-header,
 .terms-card ul {
     margin: 8px 0;
     padding-left: 20px;
-    color: #334155 !important;
+    color: rgba(255, 255, 255, 0.92) !important;
     font-size: 13.5px;
     line-height: 1.7;
 }
 
 .terms-card ul li { margin-bottom: 6px; }
+
+.terms-card ul li strong {
+    color: #ffffff !important;
+}

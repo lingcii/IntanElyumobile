@@ -3,8 +3,8 @@
  * ============================================================ */
 html:has(body[data-view="about"]),
 body[data-view="about"] {
-    background: #f8fafc !important;
-    background-color: #f8fafc !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
     color: #0f172a !important;
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
@@ -12,8 +12,8 @@ body[data-view="about"] {
 
 body[data-view="about"] #app-container,
 body[data-view="about"] #main-content {
-    background: #f8fafc !important;
-    background-color: #f8fafc !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
 }
 
 body[data-view="about"] .mobile-header,
@@ -24,7 +24,7 @@ body[data-view="about"] .mobile-header,
     border: none !important;
     outline: none !important;
     border-bottom: none !important;
-    box-shadow: 0 4px 14px rgba(10, 25, 60, 0.15) !important;
+    box-shadow: none !important;
 }
 
 .about-container {
@@ -35,8 +35,8 @@ body[data-view="about"] .mobile-header,
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: #f8fafc !important;
-    background-color: #f8fafc !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
     min-height: 100vh;
     box-sizing: border-box;
 }
@@ -54,7 +54,7 @@ body[data-view="about"] .mobile-header,
     margin-bottom: 16px;
     font-size: 38px;
     color: #ffffff !important;
-    box-shadow: 0 8px 24px rgba(32, 63, 141, 0.25) !important;
+    box-shadow: 0 8px 24px rgba(32, 63, 141, 0.28) !important;
 }
 
 .app-name {
@@ -75,15 +75,20 @@ body[data-view="about"] .mobile-header,
 .about-description {
     font-size: 14px;
     line-height: 1.7;
-    color: #334155 !important;
+    color: rgba(255, 255, 255, 0.95) !important;
     margin-bottom: 32px;
-    background: #ffffff !important;
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
     border: none !important;
     outline: none !important;
     padding: 20px 22px;
     border-radius: 20px;
     text-align: left;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(15, 23, 42, 0.03) !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
+}
+
+.about-description strong {
+    color: #ffffff !important;
+    font-weight: 800;
 }
 
 .dev-team {
@@ -110,13 +115,13 @@ body[data-view="about"] .mobile-header,
     display: flex;
     align-items: center;
     gap: 14px;
-    background: #ffffff !important;
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
     border: none !important;
     outline: none !important;
     padding: 14px 18px;
     border-radius: 18px;
     margin-bottom: 12px;
-    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.03) !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -128,8 +133,8 @@ body[data-view="about"] .mobile-header,
     width: 42px;
     height: 42px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
-    color: #ffffff !important;
+    background: #ffffff !important;
+    color: #1e3a8a !important;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -138,18 +143,18 @@ body[data-view="about"] .mobile-header,
     flex-shrink: 0;
     border: none !important;
     outline: none !important;
-    box-shadow: 0 3px 8px rgba(32, 63, 141, 0.25) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important;
 }
 
 .member-name {
     font-weight: 700;
-    color: #0f172a !important;
-    font-size: 14px;
+    color: #ffffff !important;
+    font-size: 14.5px;
 }
 
 .member-role {
     font-size: 12px;
-    color: #64748b !important;
+    color: rgba(255, 255, 255, 0.8) !important;
     margin-top: 2px;
     font-weight: 500;
 }
