@@ -9,6 +9,11 @@ $backRoute = 'itinerary';
 <link rel="stylesheet" href="assets/css/views/saved_trips.css?v=<?= time() ?>">
 
 <style>
+body[data-view="saved_trips"],
+.saved-trips-page-container {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+}
 .timeline-collapsible {
     display: grid;
     grid-template-rows: 0fr;

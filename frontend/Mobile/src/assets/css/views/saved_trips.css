@@ -1,37 +1,35 @@
 /* ============================================================
  * Saved Trips View Styles - saved_trips.css
- * Intan Elyu Mobile — Ultra-Premium Coastal Wave Theme
+ * Intan Elyu Mobile — Clean Pure White Theme with Royal Blue Cards
  * ============================================================ */
 
-/* Main Container with Header Clearances & Adjusted Spacing */
-.saved-trips-page-container {
-    width: 100%;
-    min-height: 100vh;
-    padding-top: calc(var(--header-height, 90px) + 24px) !important;
-    padding-left: 18px !important;
-    padding-right: 18px !important;
-    padding-bottom: 110px !important;
-    box-sizing: border-box;
-    background:
-        radial-gradient(ellipse at 85% 5%, rgba(116, 163, 207, 0.35) 0%, transparent 55%),
-        radial-gradient(ellipse at 15% 45%, rgba(116, 163, 207, 0.3) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 80%, rgba(30, 58, 138, 0.4) 0%, transparent 60%),
-        linear-gradient(180deg, #1e3a8a 0%, #3a6a9e 40%, #74a3cf 100%) !important;
-    background-attachment: fixed !important;
-    color: #ffffff !important;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+/* Full Page White Background */
+html:has(body[data-view="saved_trips"]),
+body[data-view="saved_trips"],
+html:has(.saved-trips-page-container),
+body:has(.saved-trips-page-container) {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
 }
 
-body[data-view="saved_trips"] {
-    background-color: #1e3a8a !important;
-    color: #ffffff !important;
+body[data-view="saved_trips"] #app-container,
+body[data-view="saved_trips"] #main-content,
+body:has(.saved-trips-page-container) #app-container,
+body:has(.saved-trips-page-container) #main-content {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
 }
 
 body[data-view="saved_trips"] .mobile-header {
-    background: rgba(30, 58, 138, 0.88) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
+    background: #1e3a8a !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: none !important;
+    outline: none !important;
+    border-bottom: none !important;
     box-shadow: none !important;
 }
 
@@ -43,16 +41,47 @@ body[data-view="saved_trips"] .mobile-header .header-title {
 body[data-view="saved_trips"] .mobile-header .header-icon {
     color: #1e3a8a !important;
     background: #ffffff !important;
+    border: none !important;
+    outline: none !important;
 }
 
 body[data-view="saved_trips"] .mobile-header .header-icon i {
     color: #1e3a8a !important;
 }
 
+/* Main Container: Pure White Background */
+.saved-trips-page-container {
+    width: 100%;
+    min-height: 100vh;
+    padding-top: calc(var(--header-height, 90px) + 24px) !important;
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+    padding-bottom: 110px !important;
+    box-sizing: border-box;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+}
+
 /* Headings & Section Titles */
-.saved-trips-page-container h2, 
-.saved-trips-page-container h3, 
-.saved-trips-page-container h4 {
+.saved-trips-page-container > h2, 
+.saved-trips-page-container > h3, 
+.saved-trips-page-container > h4,
+.saved-trips-page-container > div > h2,
+.saved-trips-page-container > div > h3,
+.saved-trips-page-container > div > h4 {
+    color: #0f172a !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.4px !important;
+}
+
+.saved-trips-page-container .trip-swipe-content h2, 
+.saved-trips-page-container .trip-swipe-content h3, 
+.saved-trips-page-container .trip-swipe-content h4,
+.saved-trips-page-container .empty-state-card h2, 
+.saved-trips-page-container .empty-state-card h3, 
+.saved-trips-page-container .empty-state-card h4 {
     color: #ffffff !important;
     font-weight: 900 !important;
     letter-spacing: -0.4px !important;

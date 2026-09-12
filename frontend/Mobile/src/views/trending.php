@@ -26,7 +26,7 @@ if (is_dir($imgDir)) {
 <link rel="stylesheet" href="assets/css/views/trending.css">
 
 <style>
-/* Guaranteed High Visibility Outlines for Mobile */
+/* Clean Outlines-Free Styles for Trending / Tourist Sites */
 body[data-view="trending"] .mobile-header,
 .mobile-header {
     background: #1e3a8a !important;
@@ -43,12 +43,12 @@ body[data-view="trending"] .mobile-header,
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
     position: relative !important;
-    background: #e2e8f0 !important;
-    border: 2px solid #94a3b8 !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    background: #f1f5f9 !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
     padding: 4px !important;
     border-radius: 100px !important;
-    outline: none !important;
     margin-top: 0 !important;
     margin-bottom: 14px !important;
     user-select: none !important;
@@ -64,7 +64,9 @@ body[data-view="trending"] .mobile-header,
     width: calc(50% - 4px) !important;
     border-radius: 100px !important;
     background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
-    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.4) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
     transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1) !important;
     z-index: 1 !important;
     pointer-events: none !important;
@@ -87,7 +89,7 @@ body[data-view="trending"] .mobile-header,
     border: none !important;
     outline: none !important;
     background: transparent !important;
-    color: #1e293b !important;
+    color: #64748b !important;
     font-size: 13px !important;
     font-weight: 800 !important;
     cursor: pointer !important;
@@ -120,10 +122,10 @@ body[data-view="trending"] .mobile-header,
 .trending-search-input {
     width: 100% !important;
     height: 48px !important;
-    background: #ffffff !important;
-    border: 2px solid #94a3b8 !important;
+    background: #f1f5f9 !important;
+    border: none !important;
     outline: none !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
     border-radius: 100px !important;
     padding: 0 40px 0 42px !important;
     color: #0f172a !important;
@@ -135,9 +137,9 @@ body[data-view="trending"] .mobile-header,
 
 .trending-search-input:focus {
     background: #ffffff !important;
-    border-color: #203f8d !important;
+    border: none !important;
     outline: none !important;
-    box-shadow: 0 0 0 3px rgba(32, 63, 141, 0.2) !important;
+    box-shadow: 0 0 0 2px rgba(32, 63, 141, 0.25), 0 4px 12px rgba(0, 0, 0, 0.06) !important;
 }
 
 .trending-search-input::placeholder {
@@ -148,7 +150,7 @@ body[data-view="trending"] .mobile-header,
 .trending-search-icon {
     position: absolute !important;
     left: 15px !important;
-    color: #334155 !important;
+    color: #64748b !important;
     font-size: 15px !important;
     pointer-events: none !important;
 }
@@ -158,6 +160,7 @@ body[data-view="trending"] .mobile-header,
     right: 12px !important;
     background: none !important;
     border: none !important;
+    outline: none !important;
     color: #64748b !important;
     font-size: 15px !important;
     cursor: pointer !important;
@@ -192,11 +195,11 @@ body[data-view="trending"] .mobile-header,
     border-radius: 100px !important;
     font-size: 12.5px !important;
     font-weight: 800 !important;
-    color: #1e293b !important;
-    background: #f8fafc !important;
-    border: 2px solid #94a3b8 !important;
+    color: #475569 !important;
+    background: #f1f5f9 !important;
+    border: none !important;
     outline: none !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
     white-space: nowrap !important;
     cursor: pointer !important;
     display: inline-flex !important;
@@ -214,15 +217,15 @@ body[data-view="trending"] .mobile-header,
 .trending-cat-pill:not(.active):active {
     transform: scale(0.96) !important;
     background: #e2e8f0 !important;
-    border-color: #64748b !important;
+    border: none !important;
 }
 
 .trending-cat-pill.active {
     color: #ffffff !important;
     background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
-    border: 2px solid #203f8d !important;
+    border: none !important;
     outline: none !important;
-    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.4) !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
 }
 
 .trending-cat-pill.active i {
@@ -264,11 +267,11 @@ body[data-view="trending"] .mobile-header,
     border-radius: 100px !important;
     font-size: 11.5px !important;
     font-weight: 800 !important;
-    background: #f8fafc !important;
-    border: 2px solid #94a3b8 !important;
+    background: #f1f5f9 !important;
+    border: none !important;
     outline: none !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) !important;
-    color: #1e293b !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+    color: #475569 !important;
     cursor: pointer !important;
     white-space: nowrap !important;
     transition: all 0.2s ease !important;
@@ -278,15 +281,15 @@ body[data-view="trending"] .mobile-header,
 .sort-chip:not(.active):active {
     transform: scale(0.96) !important;
     background: #e2e8f0 !important;
-    border-color: #64748b !important;
+    border: none !important;
 }
 
 .sort-chip.active {
     background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
     color: #ffffff !important;
-    border: 2px solid #203f8d !important;
+    border: none !important;
     outline: none !important;
-    box-shadow: 0 2px 8px rgba(32, 63, 141, 0.35) !important;
+    box-shadow: 0 2px 8px rgba(32, 63, 141, 0.28) !important;
 }
 
 /* 5. Destination Cards */
@@ -295,13 +298,13 @@ body[data-view="trending"] .mobile-header,
     border-radius: 18px !important;
     overflow: hidden !important;
     background: #f8fafc !important;
-    border: 2px solid #cbd5e1 !important;
+    border: none !important;
     outline: none !important;
     cursor: pointer !important;
     aspect-ratio: 1 / 1 !important;
     animation: trendFadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both !important;
     transition: transform 0.25s ease, box-shadow 0.25s ease !important;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1) !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08) !important;
 }
 </style>
 

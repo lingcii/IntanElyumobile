@@ -29,17 +29,19 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
-    body {
-        background: var(--bg-primary) !important;
+    body,
+    body[data-view="itinerary"],
+    .itinerary-container {
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        color: #0f172a !important;
     }
 
     .route-toggle-container {
         display: grid !important;
         grid-template-columns: 1fr 1fr !important;
         position: relative;
-        background: rgba(10, 25, 60, 0.45);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
+        background: #f1f5f9 !important;
         border: none !important;
         outline: none !important;
         border-radius: 9999px;
@@ -48,7 +50,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         width: 240px;
         max-width: 100%;
         box-sizing: border-box;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
         user-select: none;
         -webkit-tap-highlight-color: transparent;
         overflow: hidden;
@@ -61,8 +63,8 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         left: 3px;
         width: calc(50% - 3px);
         border-radius: 9999px;
-        background: linear-gradient(135deg, #00f2fe 0%, #0284c7 60%, #1e3a8a 100%);
-        box-shadow: 0 4px 14px rgba(0, 242, 254, 0.35);
+        background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+        box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
         transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
         z-index: 1;
         pointer-events: none;
@@ -79,7 +81,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         background: transparent !important;
         border: none !important;
         outline: none !important;
-        color: rgba(255, 255, 255, 0.75) !important;
+        color: #64748b !important;
         padding: 8px 0 !important;
         border-radius: 9999px !important;
         font-size: 12.5px !important;
@@ -106,7 +108,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         outline: none !important;
         color: #ffffff !important;
         font-weight: 800 !important;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        text-shadow: none !important;
     }
 
     .hide-scrollbar::-webkit-scrollbar {
@@ -115,14 +117,12 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
     /* Itinerary Stops Container & Swap Controls */
     .itinerary-stops-container {
-        background: rgba(10, 25, 60, 0.38) !important;
-        backdrop-filter: blur(16px) !important;
-        -webkit-backdrop-filter: blur(16px) !important;
+        background: #f8fafc !important;
         border: none !important;
         outline: none !important;
         border-radius: 26px !important;
         padding: 14px !important;
-        box-shadow: none !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03) !important;
         display: flex !important;
         flex-direction: column !important;
         gap: 8px !important;
@@ -147,13 +147,13 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         left: 20px !important;
         right: 20px !important;
         height: 1px !important;
-        background: rgba(255, 255, 255, 0.12) !important;
+        background: #e2e8f0 !important;
         pointer-events: none !important;
     }
 
     .btn-swap-pill {
         position: relative !important;
-        background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
+        background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
         color: #ffffff !important;
         border: none !important;
         outline: none !important;
@@ -164,7 +164,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         align-items: center !important;
         justify-content: center !important;
         cursor: pointer !important;
-        box-shadow: none !important;
+        box-shadow: 0 2px 8px rgba(32, 63, 141, 0.28) !important;
         font-size: 12px !important;
         transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
         z-index: 2 !important;
@@ -172,7 +172,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
     .btn-swap-pill:hover {
         transform: scale(1.12) !important;
-        box-shadow: none !important;
+        box-shadow: 0 4px 12px rgba(32, 63, 141, 0.35) !important;
     }
 
     .btn-swap-pill:active {
@@ -217,18 +217,16 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
     }
 
     .stops-leg-chip {
-        background: rgba(255, 255, 255, 0.16) !important;
-        backdrop-filter: blur(12px) !important;
-        -webkit-backdrop-filter: blur(12px) !important;
+        background: #ffffff !important;
         border-radius: 100px !important;
         padding: 5px 13px !important;
         font-size: 11px !important;
         font-weight: 700 !important;
-        color: #ffffff !important;
+        color: #1e3a8a !important;
         display: inline-flex !important;
         align-items: center !important;
         gap: 6px !important;
-        box-shadow: none !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) !important;
         border: none !important;
         outline: none !important;
         user-select: none;
@@ -245,7 +243,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
     .starting-leg-icon-pill {
         position: relative !important;
-        background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
+        background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
         color: #ffffff !important;
         border: none !important;
         outline: none !important;
@@ -255,7 +253,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        box-shadow: none !important;
+        box-shadow: 0 2px 8px rgba(32, 63, 141, 0.28) !important;
         font-size: 11px !important;
         z-index: 2 !important;
         flex-shrink: 0 !important;
@@ -345,15 +343,15 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px; padding-top: 16px;"
         class="stagger-1">
-        <h2 style="margin:0; font-size:22px; font-weight:800; letter-spacing:-0.5px;">Draft Plan</h2>
+        <h2 style="margin:0; font-size:22px; font-weight:800; letter-spacing:-0.5px; color:#0f172a !important;">Draft Plan</h2>
         <div style="display:flex; align-items:center; gap: 8px;">
             <!-- Saved Trips Button (Small) -->
             <button onclick="navigateTo('saved_trips')"
-                style="background: rgba(30, 58, 138, 0.78); border: none !important; outline: none !important; color: #ffffff; font-weight:700; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; box-sizing: border-box; box-shadow: none;">
+                style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; color: #ffffff !important; font-weight:700; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; box-sizing: border-box; box-shadow: 0 2px 8px rgba(32, 63, 141, 0.28) !important;">
                 <i class="fa-solid fa-bookmark" style="margin-right:6px;"></i> Saved Trips
             </button>
             <span
-                style="background:rgba(255, 255, 255, 0.16); border: none !important; outline: none !important; color:#ffffff; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; font-weight:800; display:flex; align-items:center; box-sizing: border-box;">
+                style="background:#f1f5f9 !important; border: none !important; outline: none !important; color:#1e3a8a !important; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; font-weight:800; display:flex; align-items:center; box-sizing: border-box; box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;">
                 <span id="itinerary-count" style="margin-right:4px;">0</span> Places
             </span>
         </div>
@@ -401,7 +399,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
     <!-- Save Itinerary Action -->
     <button class="btn-primary" id="btn-save-itinerary"
-        style="display:none; width:100%; padding:16px; border-radius:20px; font-weight:900; font-size:16px; margin-bottom:40px; border: none !important; outline: none !important; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; box-shadow:none;"
+        style="display:none; width:100%; padding:16px; border-radius:20px; font-weight:900; font-size:16px; margin-bottom:40px; border: none !important; outline: none !important; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; color:#ffffff !important; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;"
         onclick="openSaveModal()">
         <i class="fa-solid fa-cloud-arrow-up" style="margin-right:8px;"></i> Save Draft Plan
     </button>
