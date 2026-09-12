@@ -123,17 +123,38 @@
     </div>
 </div>
 
-<div id="notifications-dropdown" class="hide-scrollbar" style="position: fixed; top: max(env(safe-area-inset-top, 0px), 65px); right: 12px; left: 12px; max-width: 360px; margin: 0 auto; background: linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 22px; z-index: 999999; box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45); padding: 18px; max-height: 75vh; overflow-y: auto; scrollbar-width: none !important; -ms-overflow-style: none !important; opacity: 0; pointer-events: none; transform-origin: top right; transform: scale(0.4) translate(35px, -35px); transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.34s cubic-bezier(0.175, 0.885, 0.32, 1.15) !important;">
-    <h3 style="margin: 0 0 14px 0; font-size: 16px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; border: none !important; outline: none !important; padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
-        <span style="display: flex; align-items: center; gap: 8px;">
+<div id="notifications-dropdown" class="hide-scrollbar" style="position: fixed; top: max(env(safe-area-inset-top, 0px), 65px); right: 12px; left: 12px; max-width: 360px; margin: 0 auto; background: #ffffff; border: 1px solid rgba(255, 255, 255, 0.2); outline: none !important; border-radius: 22px; z-index: 999999; box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45); padding: 0; max-height: 75vh; display: flex; flex-direction: column; overflow: hidden; opacity: 0; pointer-events: none; transform-origin: top right; transform: scale(0.4) translate(35px, -35px); transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.34s cubic-bezier(0.175, 0.885, 0.32, 1.15) !important;">
+    <!-- Notifications Header Banner -->
+    <div style="padding: 14px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%); flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;">
+        <span style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">
             <i class="fa-solid fa-bell" style="color: #00f2fe; font-size: 15px;"></i> Notifications
         </span>
-        <button type="button" onclick="toggleNotifications()" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0; transition: transform 0.15s ease;" onactive="this.style.transform='scale(0.92)'">
+        <button type="button" onclick="toggleNotifications()" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
             <i class="fa-solid fa-xmark" style="color: #1e3a8a !important; font-size: 14px;"></i>
         </button>
-    </h3>
-    <div id="notifications-list">
-        <div style="color: #ffffff; opacity: 0.85; font-size: 13px; text-align: center; padding: 24px 0;">No new notifications.</div>
+    </div>
+
+    <!-- Scrollable Middle Body (White Background) -->
+    <div id="notifications-list" class="hide-scrollbar" style="flex: 1; min-height: 0; padding: 14px 12px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; scrollbar-width: none !important; -ms-overflow-style: none !important; background: #ffffff;">
+        <div class="empty-state-card notif-empty-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px 18px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; border-radius: 16px; margin: 4px 0; border: none !important;">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(0, 242, 254, 0.18); border: 1.5px solid rgba(0, 242, 254, 0.35); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 0 16px rgba(0, 242, 254, 0.25);">
+                <i class="fa-solid fa-bell-slash" style="color: #00f2fe; font-size: 22px;"></i>
+            </div>
+            <h4 style="margin: 0 0 6px 0; font-size: 15px; font-weight: 800; color: #ffffff; letter-spacing: -0.2px;">No Notifications Yet</h4>
+            <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.85); line-height: 1.45; max-width: 230px;">
+                You're all caught up! Updates, trip reminders, and vouchers will appear here.
+            </p>
+        </div>
+    </div>
+
+    <!-- Locked Bottom Footer Banner -->
+    <div id="notifications-footer" style="flex-shrink: 0; padding: 12px 14px; background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%); border-top: 1px solid rgba(255, 255, 255, 0.12); display: none; align-items: center; justify-content: space-between; gap: 10px;">
+        <button type="button" id="notif-mark-all-btn" onclick="markAllNotifRead()" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; font-size: 11.5px; font-weight: 800; cursor: pointer; padding: 6px 14px; border-radius: 100px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important; display: inline-flex; align-items: center; gap: 6px; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+            <i class="fa-solid fa-check-double" style="font-size: 11px; color: #1e3a8a !important;"></i> Mark all read
+        </button>
+        <button type="button" onclick="window.clearAllNotifications()" style="background: #ffffff !important; border: none !important; outline: none !important; color: #ef4444 !important; font-size: 11.5px; font-weight: 800; cursor: pointer; padding: 6px 14px; border-radius: 100px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important; display: inline-flex; align-items: center; gap: 6px; margin-left: auto; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+            <i class="fa-solid fa-trash-can" style="font-size: 11px; color: #ef4444 !important;"></i> Clear all
+        </button>
     </div>
 </div>
 
@@ -231,16 +252,6 @@
 </div>
 
 <script>
-    document.addEventListener('click', function(e) {
-        const dropdown = document.getElementById('notifications-dropdown');
-        const bell = document.querySelector('.header-icon .fa-bell');
-        if (dropdown && dropdown.style.opacity === '1' && bell && !e.target.closest('.header-icon') && !e.target.closest('#notifications-dropdown')) {
-            dropdown.style.opacity = '0';
-            dropdown.style.pointerEvents = 'none';
-            dropdown.style.transform = 'translateY(-8px)';
-        }
-    });
-
     function updateSidebarUserProfile() {
         try {
             const user = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : (JSON.parse(localStorage.getItem('auth_user') || '{}'));
@@ -318,12 +329,26 @@
 
     async function fetchNotifications() {
         const list = document.getElementById('notifications-list');
+        const footer = document.getElementById('notifications-footer');
         if (!list) return;
-        list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;">Loading...</div>';
+        if (footer) footer.style.display = 'none';
+        list.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 16px; gap: 10px; color: #64748b;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 22px; color: #1e3a8a;"></i>
+                <span style="font-size: 13px; font-weight: 600; color: #64748b;">Loading notifications...</span>
+            </div>
+        `;
 
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
         if (!token) {
-            list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;">Please sign in to view notifications.</div>';
+            list.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 16px; gap: 10px; color: #64748b;">
+                    <div style="width: 48px; height: 48px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-regular fa-user" style="font-size: 20px; color: #94a3b8;"></i>
+                    </div>
+                    <span style="font-size: 13px; font-weight: 600; color: #64748b;">Please sign in to view notifications.</span>
+                </div>
+            `;
             return;
         }
 
@@ -340,7 +365,12 @@
             const data = await res.json();
             renderNotifications(data.notifications || []);
         } catch (e) {
-            list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;">Failed to load notifications.</div>';
+            list.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 16px; gap: 10px; color: #64748b;">
+                    <i class="fa-solid fa-circle-exclamation" style="font-size: 22px; color: #ef4444;"></i>
+                    <span style="font-size: 13px; font-weight: 600; color: #64748b;">Failed to load notifications.</span>
+                </div>
+            `;
         }
     }
 </script>
@@ -588,8 +618,23 @@
         }, 1000);
     }
 
+    function getNotifEmptyStateHtml() {
+        return `
+            <div class="empty-state-card notif-empty-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px 18px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; border-radius: 16px; margin: 4px 0; border: none !important;">
+                <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(0, 242, 254, 0.18); border: 1.5px solid rgba(0, 242, 254, 0.35); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 0 16px rgba(0, 242, 254, 0.25);">
+                    <i class="fa-solid fa-bell-slash" style="color: #00f2fe; font-size: 22px;"></i>
+                </div>
+                <h4 style="margin: 0 0 6px 0; font-size: 15px; font-weight: 800; color: #ffffff; letter-spacing: -0.2px;">No Notifications Yet</h4>
+                <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.85); line-height: 1.45; max-width: 230px;">
+                    You're all caught up! Updates, trip reminders, and vouchers will appear here.
+                </p>
+            </div>
+        `;
+    }
+
     function renderNotifications(notifications) {
         const list = document.getElementById('notifications-list');
+        const footer = document.getElementById('notifications-footer');
         const dot = document.getElementById('bell-dot');
         if (!list) return;
 
@@ -607,38 +652,36 @@
                 const displayMsg = window.cleanNotifMessage(item.message);
 
                 html += `
-                    <div class="notif-card-item" id="notif-item-${item.id}" style="display: block; margin-bottom: 10px; padding: 12px 14px; background: ${isWelcome ? 'linear-gradient(135deg, rgba(0, 242, 254, 0.14) 0%, rgba(2, 132, 199, 0.08) 100%)' : (isUnread ? 'rgba(56,189,248,0.08)' : 'rgba(255,255,255,0.03)')}; border: none !important; outline: none !important; border-radius: 14px; cursor: pointer; transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s;" onclick="handleNotifClick('${encodedItem}', this)">
+                    <div class="notif-card-item" id="notif-item-${item.id}" style="display: block; padding: 12px 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28) !important; border: none !important; outline: none !important; border-radius: 14px; cursor: pointer; transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s;" onclick="handleNotifClick('${encodedItem}', this)" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px;">
                             <div style="display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1;">
                                 ${isUnread ? '<span class="unread-dot" style="width: 7px; height: 7px; border-radius: 50%; background: #00f2fe; flex-shrink: 0; box-shadow: 0 0 8px #00f2fe; display: inline-block;"></span>' : ''}
                                 ${isWelcome ? '<span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0, 242, 254, 0.25); color: #00f2fe; padding: 2px 6px; border-radius: 4px; border: none !important; outline: none !important; flex-shrink: 0;">Welcome</span>' : ''}
-                                <span style="font-size: 13px; color: #ffffff; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${displayTitle}</span>
+                                <span style="font-size: 13.5px; color: #ffffff; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${displayTitle}</span>
                             </div>
-                            <button type="button" onclick="event.stopPropagation(); window.deleteNotification('${item.id}', this.closest('.notif-card-item'))" style="background: #ffffff !important; border: none !important; outline: none !important; color: #ef4444 !important; font-size: 11px; font-weight: 800; cursor: pointer; padding: 3px 10px; border-radius: 8px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important; display: inline-flex; align-items: center; justify-content: center; transition: transform 0.15s ease;" onactive="this.style.transform='scale(0.92)'">Delete</button>
+                            <button type="button" onclick="event.stopPropagation(); window.deleteNotification('${item.id}', this.closest('.notif-card-item'))" style="background: #ffffff !important; border: none !important; outline: none !important; color: #ef4444 !important; font-size: 11px; font-weight: 800; cursor: pointer; padding: 3px 10px; border-radius: 8px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important; display: inline-flex; align-items: center; justify-content: center; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">Delete</button>
                         </div>
-                        <p style="margin: 0 0 6px 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.45; font-weight: ${isUnread ? '500' : '400'};">${displayMsg}</p>
+                        <p style="margin: 0 0 6px 0; font-size: 12px; color: ${isUnread ? '#ffffff' : 'rgba(255, 255, 255, 0.85)'}; line-height: 1.45; font-weight: ${isUnread ? '600' : '400'};">${displayMsg}</p>
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                            <span class="notif-reverse-timer" data-time="${itemTime}" style="font-size: 10px; font-weight: 700; color: #00f2fe; display: inline-flex; align-items: center; background: rgba(0, 242, 254, 0.12); padding: 2px 8px; border-radius: 100px; border: none !important; outline: none !important;">
+                            <span class="notif-reverse-timer" data-time="${itemTime}" style="font-size: 10px; font-weight: 700; color: #00f2fe; display: inline-flex; align-items: center; background: rgba(0, 242, 254, 0.18); padding: 2px 8px; border-radius: 100px; border: none !important; outline: none !important;">
                                 <span class="timer-text">${timerStr}</span>
                             </span>
-                            <span style="font-size: 10.5px; color: rgba(148,163,184,0.6); font-weight: 500;">${formattedDate}</span>
+                            <span style="font-size: 10.5px; color: rgba(255, 255, 255, 0.65); font-weight: 500;">${formattedDate}</span>
                         </div>
                     </div>
                 `;
             });
-            html += `<div style="display: flex; align-items: center; justify-content: space-between; padding-top: 12px; margin-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.12) !important; outline: none !important; gap: 10px;">
-                ${unread.length > 0 ? `<button type="button" onclick="markAllNotifRead()" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; font-size: 11.5px; font-weight: 800; cursor: pointer; padding: 6px 14px; border-radius: 100px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important; display: inline-flex; align-items: center; gap: 6px; transition: transform 0.15s ease;" onactive="this.style.transform='scale(0.92)'">
-                    <i class="fa-solid fa-check-double" style="font-size: 11px; color: #1e3a8a !important;"></i> Mark all read
-                </button>` : '<span></span>'}
-                <button type="button" onclick="window.clearAllNotifications()" style="background: #ffffff !important; border: none !important; outline: none !important; color: #ef4444 !important; font-size: 11.5px; font-weight: 800; cursor: pointer; padding: 6px 14px; border-radius: 100px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important; display: inline-flex; align-items: center; gap: 6px; transition: transform 0.15s ease;" onactive="this.style.transform='scale(0.92)'">
-                    <i class="fa-solid fa-trash-can" style="font-size: 11px; color: #ef4444 !important;"></i> Clear all
-                </button>
-            </div>`;
             list.innerHTML = html;
+            if (footer) {
+                footer.style.display = 'flex';
+                const markBtn = document.getElementById('notif-mark-all-btn');
+                if (markBtn) markBtn.style.display = unread.length > 0 ? 'inline-flex' : 'none';
+            }
             if (unread.length > 0 && dot) dot.classList.add('show');
             startNotifTimerTicker();
         } else {
-            list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;">No new notifications.</div>';
+            list.innerHTML = getNotifEmptyStateHtml();
+            if (footer) footer.style.display = 'none';
             if (dot) dot.classList.remove('show');
         }
     }
@@ -765,9 +808,19 @@
                 const list = document.getElementById('notifications-list');
                 const remaining = list ? list.querySelectorAll('.notif-card-item') : [];
                 if (remaining.length === 0 && list) {
-                    list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;">No new notifications.</div>';
+                    list.innerHTML = getNotifEmptyStateHtml();
                     const dot = document.getElementById('bell-dot');
                     if (dot) dot.classList.remove('show');
+                    const footer = document.getElementById('notifications-footer');
+                    if (footer) footer.style.display = 'none';
+                } else {
+                    const unreadRemaining = list ? list.querySelectorAll('.unread-dot') : [];
+                    if (unreadRemaining.length === 0) {
+                        const dot = document.getElementById('bell-dot');
+                        if (dot) dot.classList.remove('show');
+                        const markBtn = document.getElementById('notif-mark-all-btn');
+                        if (markBtn) markBtn.style.display = 'none';
+                    }
                 }
             }, 200);
         }
@@ -798,10 +851,12 @@
 
         const list = document.getElementById('notifications-list');
         if (list) {
-            list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;">No new notifications.</div>';
+            list.innerHTML = getNotifEmptyStateHtml();
         }
         const dot = document.getElementById('bell-dot');
         if (dot) dot.classList.remove('show');
+        const footer = document.getElementById('notifications-footer');
+        if (footer) footer.style.display = 'none';
 
         try {
             const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
@@ -831,14 +886,21 @@
                 }
             });
             if (el) {
-                el.style.opacity = '0.5';
-                el.onclick = null;
                 const dot = el.querySelector('.unread-dot');
                 if (dot) dot.remove();
+                const msg = el.querySelector('p');
+                if (msg) {
+                    msg.style.fontWeight = '400';
+                    msg.style.color = 'rgba(255, 255, 255, 0.85)';
+                }
             }
             const dot = document.getElementById('bell-dot');
             const remaining = document.querySelectorAll('#notifications-list .unread-dot');
-            if (remaining.length === 0 && dot) dot.classList.remove('show');
+            if (remaining.length === 0) {
+                if (dot) dot.classList.remove('show');
+                const markBtn = document.getElementById('notif-mark-all-btn');
+                if (markBtn) markBtn.style.display = 'none';
+            }
         } catch (e) {}
     }
 
@@ -856,13 +918,18 @@
             });
             const items = document.querySelectorAll('#notifications-list .notif-card-item');
             items.forEach(el => {
-                el.style.opacity = '0.5';
-                el.onclick = null;
                 const dot = el.querySelector('.unread-dot');
                 if (dot) dot.remove();
+                const msg = el.querySelector('p');
+                if (msg) {
+                    msg.style.fontWeight = '400';
+                    msg.style.color = 'rgba(255, 255, 255, 0.85)';
+                }
             });
             const dot = document.getElementById('bell-dot');
             if (dot) dot.classList.remove('show');
+            const markBtn = document.getElementById('notif-mark-all-btn');
+            if (markBtn) markBtn.style.display = 'none';
         } catch (e) {}
     }
 
