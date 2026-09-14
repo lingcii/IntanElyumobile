@@ -277,9 +277,16 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
     justify-content: center;
     align-items: flex-end;
     gap: 12px;
-    margin-bottom: 26px;
+    margin-bottom: 24px;
     margin-top: 10px;
-    padding: 26px 4px 0 4px;
+    padding: 38px 12px 14px 12px;
+    background: #f8fafc !important;
+    border: 1.5px solid #e2e8f0 !important;
+    outline: none !important;
+    border-radius: 26px !important;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 8px -1px rgba(15, 23, 42, 0.04) !important;
+    box-sizing: border-box;
+    position: relative;
 }
 
 .podium-place {
@@ -491,11 +498,12 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
 /* ── Rank List Section ── */
 .rank-list-wrapper {
     background: #f8fafc !important;
-    border: none !important;
+    border: 1.5px solid #e2e8f0 !important;
     outline: none !important;
-    border-radius: 24px;
-    padding: 12px 14px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+    border-radius: 26px !important;
+    padding: 14px 14px 16px 14px !important;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.07), 0 2px 8px -1px rgba(15, 23, 42, 0.04) !important;
+    box-sizing: border-box !important;
 }
 
 .rank-list {
@@ -509,16 +517,16 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 12px;
+    padding: 11px 13px;
     background: #ffffff !important;
-    border: none !important;
+    border: 1px solid #e2e8f0 !important;
     outline: none !important;
-    border-radius: 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important;
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
-    transition: background 0.2s ease, transform 0.15s ease !important;
+    transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease !important;
     animation: none !important;
     transform: none !important;
 }
@@ -530,9 +538,9 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
 
 .rank-item.is-me {
     background: #eff6ff !important;
-    border: 1px solid #bfdbfe !important;
+    border: 1.5px solid #93c5fd !important;
     outline: none !important;
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1) !important;
+    box-shadow: 0 2px 10px rgba(37, 99, 235, 0.12) !important;
 }
 
 .rank-number-box {
@@ -609,9 +617,9 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
 /* ── Invite Button ── */
 .btn-invite-friends {
     width: 100%;
-    margin-top: 12px;
-    padding: 12px;
-    border-radius: 100px;
+    margin-top: 14px;
+    padding: 13px;
+    border-radius: 18px !important;
     background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
     border: none !important;
     outline: none !important;

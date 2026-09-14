@@ -115,6 +115,34 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         display: none;
     }
 
+    /* Big Container from Recommended to Save Draft Plan */
+    .draft-plan-card-wrapper {
+        background: #f8fafc !important;
+        border: 1.5px solid #e2e8f0 !important;
+        outline: none !important;
+        border-radius: 26px !important;
+        padding: 16px !important;
+        margin-top: 14px !important;
+        margin-bottom: 36px !important;
+        box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 8px -1px rgba(15, 23, 42, 0.03) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+        width: 100% !important;
+    }
+
+    .draft-plan-card-wrapper .itinerary-stops-container {
+        background: transparent !important;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        border-radius: 0 !important;
+    }
+
     /* Itinerary Stops Container & Swap Controls */
     .itinerary-stops-container {
         background: #f8fafc !important;
@@ -357,52 +385,55 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         </div>
     </div>
 
-    <!-- Map Visualization Container -->
-    <div id="draft-map-wrapper" style="display:none; margin-top:16px; margin-bottom:20px;" class="stagger-2">
-        <!-- Route Type Container with Smooth Sliding Pill -->
-        <div class="route-toggle-container" id="route-toggle-container">
-            <div class="route-toggle-slider" id="route-toggle-slider"></div>
-            <button class="btn-route-type active" id="btn-route-rec"
-                onclick="setRouteType('recommended', this)">Recommended</button>
-            <button class="btn-route-type" id="btn-route-alt"
-                onclick="setRouteType('alternative', this)">Alternative</button>
-        </div>
-
-        <!-- The Map -->
-        <div id="draft-map-container"
-            style="height: 260px; width:100%; border-radius: 20px; overflow: hidden; border: none !important; outline: none !important; position:relative; background:#cadce4; box-shadow: none;">
-            <div id="itinerary-map" style="width:100%; height:100%;"></div>
-        </div>
-
-        <!-- Map Route Stats -->
-        <div
-            style="display:flex; justify-content:space-around; align-items:center; margin-top:12px; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border: none !important; outline: none !important; border-radius:18px; padding:14px; box-shadow:none !important;">
-            <div style="color:white; font-size:14px; font-weight:700;">
-                <i class="fa-solid fa-route" style="color:#00f2fe; margin-right:6px; font-size:16px;"></i> <span
-                    id="draft-map-dist">0 km</span>
+    <!-- Big Container from Recommended to Save Draft Plan -->
+    <div id="draft-plan-card-wrapper" class="draft-plan-card-wrapper stagger-2" style="display:none;">
+        <!-- Map Visualization Container -->
+        <div id="draft-map-wrapper" style="display:none; margin-top:0; margin-bottom:14px;">
+            <!-- Route Type Container with Smooth Sliding Pill -->
+            <div class="route-toggle-container" id="route-toggle-container">
+                <div class="route-toggle-slider" id="route-toggle-slider"></div>
+                <button class="btn-route-type active" id="btn-route-rec"
+                    onclick="setRouteType('recommended', this)">Recommended</button>
+                <button class="btn-route-type" id="btn-route-alt"
+                    onclick="setRouteType('alternative', this)">Alternative</button>
             </div>
-            <div style="width:1px; height:20px; background:rgba(255,255,255,0.2);"></div>
+
+            <!-- The Map -->
+            <div id="draft-map-container"
+                style="height: 260px; width:100%; border-radius: 20px; overflow: hidden; border: none !important; outline: none !important; position:relative; background:#cadce4; box-shadow: none;">
+                <div id="itinerary-map" style="width:100%; height:100%;"></div>
+            </div>
+
+            <!-- Map Route Stats -->
             <div
-                style="color:white; font-size:14px; font-weight:700; display:flex; flex-direction:column; align-items:center;">
-                <div><i class="fa-solid fa-clock" style="color:#00f2fe; margin-right:6px; font-size:16px;"></i> <span
-                        id="draft-map-time">0 min</span></div>
-                <div id="draft-traffic-warning" style="display:none; margin-top:2px; font-size:10px; font-weight:500;">
+                style="display:flex; justify-content:space-around; align-items:center; margin-top:12px; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border: none !important; outline: none !important; border-radius:18px; padding:14px; box-shadow:none !important;">
+                <div style="color:white; font-size:14px; font-weight:700;">
+                    <i class="fa-solid fa-route" style="color:#00f2fe; margin-right:6px; font-size:16px;"></i> <span
+                        id="draft-map-dist">0 km</span>
+                </div>
+                <div style="width:1px; height:20px; background:rgba(255,255,255,0.2);"></div>
+                <div
+                    style="color:white; font-size:14px; font-weight:700; display:flex; flex-direction:column; align-items:center;">
+                    <div><i class="fa-solid fa-clock" style="color:#00f2fe; margin-right:6px; font-size:16px;"></i> <span
+                            id="draft-map-time">0 min</span></div>
+                    <div id="draft-traffic-warning" style="display:none; margin-top:2px; font-size:10px; font-weight:500;">
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Dynamic Timeline Container -->
-    <div class="timeline stagger-2" id="itinerary-timeline" style="margin-bottom: 20px;">
-        <!-- Rendered via JS -->
-    </div>
+        <!-- Dynamic Timeline Container -->
+        <div class="timeline" id="itinerary-timeline" style="margin-bottom: 14px;">
+            <!-- Rendered via JS -->
+        </div>
 
-    <!-- Save Itinerary Action -->
-    <button class="btn-primary" id="btn-save-itinerary"
-        style="display:none; width:100%; padding:16px; border-radius:20px; font-weight:900; font-size:16px; margin-bottom:40px; border: none !important; outline: none !important; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; color:#ffffff !important; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;"
-        onclick="openSaveModal()">
-        <i class="fa-solid fa-cloud-arrow-up" style="margin-right:8px;"></i> Save Draft Plan
-    </button>
+        <!-- Save Itinerary Action -->
+        <button class="btn-primary" id="btn-save-itinerary"
+            style="display:none; width:100%; padding:16px; border-radius:20px; font-weight:900; font-size:16px; margin-top:4px; margin-bottom:0; border: none !important; outline: none !important; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; color:#ffffff !important; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;"
+            onclick="openSaveModal()">
+            <i class="fa-solid fa-cloud-arrow-up" style="margin-right:8px;"></i> Save Draft Plan
+        </button>
+    </div>
 
     <!-- Empty State Card -->
     <div id="itinerary-empty-state" class="empty-state-card is-hidden" style="display:none;">
@@ -1219,10 +1250,12 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             const emptyState = document.getElementById('itinerary-empty-state');
             const fab = document.getElementById('btn-save-itinerary');
             const mapWrapper = document.getElementById('draft-map-wrapper');
+            const draftPlanCard = document.getElementById('draft-plan-card-wrapper');
 
             document.getElementById('itinerary-count').innerText = rawDraft.length;
 
             if (rawDraft.length === 0) {
+                if (draftPlanCard) draftPlanCard.style.setProperty('display', 'none', 'important');
                 timeline.innerHTML = '';
                 emptyState.style.setProperty('display', 'flex', 'important');
                 emptyState.classList.remove('is-hidden');
@@ -1236,6 +1269,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             emptyState.style.setProperty('display', 'none', 'important');
             emptyState.classList.add('is-hidden');
+            if (draftPlanCard) draftPlanCard.style.setProperty('display', 'flex', 'important');
             fab.style.setProperty('display', 'flex', 'important');
             if (mapWrapper) mapWrapper.style.display = 'block';
 

@@ -284,9 +284,37 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
     transform: scale(0.95) !important;
 }
 
+/* Big Container from Recommended to Save Draft Plan */
+.draft-plan-card-wrapper {
+    background: #f8fafc !important;
+    border: 1.5px solid #e2e8f0 !important;
+    outline: none !important;
+    border-radius: 26px !important;
+    padding: 16px !important;
+    margin-top: 14px !important;
+    margin-bottom: 36px !important;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 8px -1px rgba(15, 23, 42, 0.03) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+    width: 100% !important;
+}
+
+.draft-plan-card-wrapper .itinerary-stops-container {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    border-radius: 0 !important;
+}
+
 /* Save Draft Plan Button */
 #btn-save-itinerary {
-    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
     color: #ffffff !important;
     border: none !important;
     outline: none !important;
@@ -295,17 +323,20 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
     font-weight: 900 !important;
     font-size: 15px !important;
     letter-spacing: 0.3px !important;
-    box-shadow: none !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
     cursor: pointer !important;
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
+    margin-top: 4px;
+    margin-bottom: 0;
 }
 
 #btn-save-itinerary:hover {
     transform: translateY(-2px) scale(1.01) !important;
+    box-shadow: 0 6px 18px rgba(32, 63, 141, 0.35) !important;
 }
 
 #btn-save-itinerary:active {
@@ -317,7 +348,7 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
     display: flex !important;
     flex-direction: column !important;
     gap: 16px !important;
-    margin-bottom: 24px !important;
+    margin-bottom: 14px !important;
 }
 
 /* Itinerary Stops Container & Swap Controls */

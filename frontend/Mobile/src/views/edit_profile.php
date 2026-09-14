@@ -5,15 +5,52 @@ $backRoute = 'profile';
 
 <link rel="stylesheet" href="assets/css/views/edit_profile.css?v=<?= time() ?>">
 <style>
-/* Embedded styles for Edit Profile view */
-body[data-view="edit_profile"] {
-    background:
-        radial-gradient(ellipse at 85% 5%, rgba(0, 242, 254, 0.35) 0%, transparent 55%),
-        radial-gradient(ellipse at 15% 45%, rgba(56, 189, 248, 0.3) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 80%, rgba(63, 125, 183, 0.4) 0%, transparent 60%),
-        linear-gradient(180deg, #1e3a8a 0%, #3f7db7 30%, #0284c7 65%, #06b6d4 90%, #00f2fe 100%) !important;
-    background-attachment: fixed !important;
+/* Full Page White Background */
+html:has(body[data-view="edit_profile"]),
+body[data-view="edit_profile"],
+html:has(.edit-profile-container),
+body:has(.edit-profile-container) {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+body[data-view="edit_profile"] #app-container,
+body[data-view="edit_profile"] #main-content,
+body:has(.edit-profile-container) #app-container,
+body:has(.edit-profile-container) #main-content {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+}
+
+body[data-view="edit_profile"] .mobile-header {
+    background: #1e3a8a !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: none !important;
+    outline: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+
+body[data-view="edit_profile"] .mobile-header .header-title {
     color: #ffffff !important;
+    font-weight: 800 !important;
+}
+
+body[data-view="edit_profile"] .mobile-header .header-icon,
+body[data-view="edit_profile"] .mobile-header .header-back-btn {
+    color: #1e3a8a !important;
+    background: #ffffff !important;
+    border: none !important;
+    outline: none !important;
+}
+
+body[data-view="edit_profile"] .mobile-header .header-icon i,
+body[data-view="edit_profile"] .mobile-header .header-back-btn i {
+    color: #1e3a8a !important;
 }
 
 .edit-profile-container {
@@ -25,6 +62,8 @@ body[data-view="edit_profile"] {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
 }
 
 .edit-profile-card {
@@ -126,8 +165,7 @@ body[data-view="edit_profile"] {
 }
 
 .edit-section-title i {
-    color: #00f2fe;
-    font-size: 14px;
+    display: none !important;
 }
 
 .form-group {
@@ -149,8 +187,7 @@ body[data-view="edit_profile"] {
 }
 
 .form-label i {
-    color: #00f2fe;
-    font-size: 13px;
+    display: none !important;
 }
 
 .form-control {
@@ -223,23 +260,34 @@ textarea.form-control {
 }
 
 .chip-item {
-    background: rgba(255, 255, 255, 0.12);
-    border: none !important;
+    background: rgba(255, 255, 255, 0.14) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
     outline: none !important;
-    color: rgba(255, 255, 255, 0.85);
-    padding: 8px 14px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    user-select: none;
+    color: #ffffff !important;
+    padding: 9px 15px !important;
+    border-radius: 20px !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    user-select: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.chip-item:active {
+    transform: scale(0.95) !important;
 }
 
 .chip-item.active {
-    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%);
-    color: #ffffff;
-    box-shadow: 0 4px 14px rgba(0, 242, 254, 0.35);
+    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
+    border: 1px solid #00f2fe !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    box-shadow: 0 4px 14px rgba(0, 242, 254, 0.45) !important;
+    transform: scale(1.03) !important;
 }
 
 .toggle-row {
@@ -397,57 +445,57 @@ input:checked + .slider:before {
         <form class="edit-profile-form" onsubmit="saveProfile(event)">
             <!-- Personal Info -->
             <div class="edit-section-title">
-                <i class="fa-solid fa-user-gear"></i> Personal Details
+                Personal Details
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="profile-name">
-                    <i class="fa-solid fa-user-pen"></i> Full Name
+                    Full Name
                 </label>
                 <input class="form-control" id="profile-name" type="text" placeholder="Enter your full name" required autocomplete="name">
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="profile-email">
-                    <i class="fa-solid fa-envelope"></i> Email Address
+                    Email Address
                 </label>
                 <input class="form-control" id="profile-email" type="email" placeholder="Email address" required autocomplete="email">
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="profile-phone">
-                    <i class="fa-solid fa-phone"></i> Phone / Mobile Number
+                    Phone / Mobile Number
                 </label>
                 <input class="form-control" id="profile-phone" type="tel" placeholder="+63 9XX XXX XXXX" autocomplete="tel">
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="profile-location">
-                    <i class="fa-solid fa-location-dot"></i> Hometown / Origin
+                    Hometown / Origin
                 </label>
                 <input class="form-control" id="profile-location" type="text" placeholder="e.g. San Juan, La Union / Manila">
             </div>
 
             <!-- Bio / Motto -->
             <div class="edit-section-title">
-                <i class="fa-solid fa-quote-left"></i> Travel Bio & Motto
+                Travel Bio & Motto
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="profile-bio">
-                    <i class="fa-solid fa-pen-nib"></i> Bio / Traveler Statement
+                    Bio / Traveler Statement
                 </label>
                 <textarea class="form-control" id="profile-bio" placeholder="Share a brief motto or your passion for exploring La Union..."></textarea>
             </div>
 
             <!-- Travel Preferences -->
             <div class="edit-section-title">
-                <i class="fa-solid fa-compass"></i> Travel Preferences
+                Travel Preferences
             </div>
 
             <div class="form-group">
                 <label class="form-label">
-                    <i class="fa-solid fa-heart"></i> Preferred Spot Categories
+                    Preferred Spot Categories
                 </label>
                 <div class="chips-container" id="preferences-chips">
                     <div class="chip-item" onclick="toggleChip(this)" data-value="Surfing & Beach">🏄‍♂️ Surfing & Beach</div>
@@ -540,20 +588,95 @@ input:checked + .slider:before {
     if (locationInput && user.home_location) locationInput.value = user.home_location;
     if (bioInput && user.bio) bioInput.value = user.bio;
 
-    // Populate travel preferences chips
-    if (user.travel_preferences) {
-        const selected = user.travel_preferences.split(',').map(s => s.trim());
-        document.querySelectorAll('#preferences-chips .chip-item').forEach(chip => {
-            if (selected.includes(chip.getAttribute('data-value'))) {
-                chip.classList.add('active');
+    function syncPreferencesFromData(u) {
+        const chips = document.querySelectorAll('#preferences-chips .chip-item');
+        if (!chips.length) return;
+
+        let rawPrefs = (u && u.travel_preferences) ? u.travel_preferences : '';
+        if (!rawPrefs) {
+            try {
+                const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                rawPrefs = stored.travel_preferences || '';
+            } catch (e) {}
+        }
+
+        if (rawPrefs && typeof rawPrefs === 'string' && rawPrefs.trim() !== '') {
+            const prefList = rawPrefs.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+            let anyMatched = false;
+
+            chips.forEach(chip => {
+                const val = (chip.getAttribute('data-value') || '').toLowerCase();
+                const text = chip.textContent.toLowerCase();
+
+                const isMatch = prefList.some(p => {
+                    const cleanP = p.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+                    if (!cleanP) return false;
+                    return val.includes(cleanP) || cleanP.includes(val) ||
+                           text.includes(cleanP) || cleanP.includes(text) ||
+                           (cleanP.includes('surf') && val.includes('surf')) ||
+                           (cleanP.includes('beach') && val.includes('beach')) ||
+                           ((cleanP.includes('nature') || cleanP.includes('fall') || cleanP.includes('hike')) && val.includes('nature')) ||
+                           ((cleanP.includes('heritage') || cleanP.includes('cultur')) && val.includes('heritage')) ||
+                           ((cleanP.includes('food') || cleanP.includes('dine') || cleanP.includes('dining')) && val.includes('food')) ||
+                           ((cleanP.includes('sunset') || cleanP.includes('night')) && val.includes('sunset'));
+                });
+
+                if (isMatch) {
+                    chip.classList.add('active');
+                    anyMatched = true;
+                } else {
+                    chip.classList.remove('active');
+                }
+            });
+
+            if (!anyMatched) {
+                chips.forEach(chip => chip.classList.add('active'));
             }
-        });
+        } else {
+            // Activate preferences by default when editing so the user has them activated and ready
+            chips.forEach(chip => chip.classList.add('active'));
+        }
     }
+
+    // Run initial sync from current user
+    syncPreferencesFromData(user);
 
     // Toggle chip helper
     window.toggleChip = function(el) {
         el.classList.toggle('active');
     };
+
+    // Immediately fetch fresh profile from API to ensure 100% accuracy from DB
+    (async function fetchLatestUserData() {
+        const token = localStorage.getItem('intan_elyu_token');
+        if (!token) return;
+        try {
+            const res = await fetch((window.backendUrl || '') + '/api/tourist/profile', {
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.user) {
+                    const u = data.user;
+                    if (nameInput && (!nameInput.value || nameInput.value === 'Explorer')) nameInput.value = u.name || '';
+                    if (emailInput && (!emailInput.value || emailInput.value.includes('loading'))) emailInput.value = u.email || '';
+                    if (phoneInput && u.phone) phoneInput.value = u.phone;
+                    if (locationInput && u.home_location) locationInput.value = u.home_location;
+                    if (bioInput && u.bio) bioInput.value = u.bio;
+                    syncPreferencesFromData(u);
+
+                    const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    Object.assign(stored, u);
+                    localStorage.setItem('auth_user', JSON.stringify(stored));
+                }
+            }
+        } catch (e) {
+            console.warn('Could not fetch fresh user profile in edit_profile:', e);
+        }
+    })();
 
     if (user.avatar && img) {
         let avatarUrl = user.avatar;

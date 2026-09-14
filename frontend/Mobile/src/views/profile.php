@@ -182,6 +182,14 @@ $activeTab = 'profile';
                     elImg.src = window.getFullImageUrl(u.avatar);
                 }
 
+                if (u && u.id) {
+                    try {
+                        const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                        Object.assign(stored, u);
+                        localStorage.setItem('auth_user', JSON.stringify(stored));
+                    } catch (e) {}
+                }
+
                 // Render Badges (Unlocked & Locked)
                 const badges = data.badges || [];
                 window._cachedMasterBadges = badges;

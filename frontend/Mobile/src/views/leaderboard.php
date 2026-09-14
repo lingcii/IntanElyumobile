@@ -283,12 +283,12 @@ $activeTab = 'leaderboard';
                 }
                 if (podiumContainer) {
                     podiumContainer.innerHTML = `
-                        <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 32px 16px; background: rgba(30, 58, 138, 0.4); border-radius: 24px; backdrop-filter: blur(16px); margin-bottom: 20px; border:none !important; outline:none !important;">
-                            <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(245, 158, 11, 0.18); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #f59e0b; font-size: 22px; border:none !important;">
+                        <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 24px 16px; background: transparent; border:none !important; outline:none !important;">
+                            <div style="width: 52px; height: 52px; border-radius: 50%; background: #fef3c7; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #d97706; font-size: 22px; border:none !important;">
                                 <i class="fa-solid fa-trophy"></i>
                             </div>
-                            <div style="font-size: 15px; font-weight: 800; color: #ffffff; margin-bottom: 5px;">No Ranked Explorers Yet</div>
-                            <div style="font-size: 12px; color: rgba(255,255,255,0.75); max-width: 270px; margin: 0 auto; line-height: 1.4;">
+                            <div style="font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 5px;">No Ranked Explorers Yet</div>
+                            <div style="font-size: 12px; color: #64748b; max-width: 270px; margin: 0 auto; line-height: 1.4;">
                                 ${emptySubtext}
                             </div>
                         </div>
