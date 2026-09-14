@@ -56,7 +56,7 @@ body[data-view="saved_trips"],
     <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:380px; box-shadow:0 16px 40px rgba(10, 25, 60, 0.45); text-align:center;">
         <i class="fa-solid fa-camera" style="font-size:32px; color:#ffffff; margin-bottom:10px; display:block;"></i>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Submit Visit Proof</h3>
-        <p style="font-size:13px; color:#ffffff; opacity:0.95; margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination. Your submission will be submitted for MTO / LUPTO review and approval before earning <strong style="color:#ffffff; font-weight:800;">+50 Points</strong>.</p>
+        <p style="font-size:13px; color:#ffffff; opacity:0.95; margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination. Your submission will be submitted for review and approval before earning <strong style="color:#ffffff; font-weight:800;">+50 Points</strong>.</p>
 
         <input type="hidden" id="checkin-item-id">
         
@@ -392,9 +392,9 @@ body[data-view="saved_trips"],
                                                 ${proofImgHtml}
                                                 <div>
                                                     <span style="background:rgba(255,149,0,0.2); border:none !important; outline:none !important; color:#FF9500; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
-                                                        <i class="fa-solid fa-clock"></i> Pending MTO / LUPTO Review
+                                                        <i class="fa-solid fa-clock"></i> Pending Review
                                                     </span>
-                                                    <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Awaiting Approval from Tourism Office</span>
+                                                    <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Awaiting Approval</span>
                                                 </div>
                                             </div>` : 
                                             `<button class="btn-primary" style="padding: 8px 14px; font-size:12px; font-weight:800; width:max-content; border-radius:100px; background: linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; box-shadow: none; color:#fff; cursor:pointer;" onclick="window.openCheckinModal('${item.id}')">
@@ -565,6 +565,52 @@ body[data-view="saved_trips"],
         if (modal) modal.style.display = 'none';
     };
 
+    window.compressImageFile = async function(fileOrBlob, maxDimension = 1280, quality = 0.8) {
+        return new Promise((resolve) => {
+            if (!fileOrBlob || !fileOrBlob.type || !fileOrBlob.type.startsWith('image/')) {
+                return resolve(fileOrBlob);
+            }
+            const img = new Image();
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxDimension || height > maxDimension) {
+                        if (width > height) {
+                            height = Math.round((height * maxDimension) / width);
+                            width = maxDimension;
+                        } else {
+                            width = Math.round((width * maxDimension) / height);
+                            height = maxDimension;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob((blob) => {
+                        if (!blob) {
+                            resolve(fileOrBlob);
+                            return;
+                        }
+                        const name = (fileOrBlob.name || 'proof_' + Date.now() + '.jpg').replace(/\.[^/.]+$/, "") + ".jpg";
+                        const compressedFile = new File([blob], name, { type: 'image/jpeg', lastModified: Date.now() });
+                        resolve(compressedFile);
+                    }, 'image/jpeg', quality);
+                };
+                img.onerror = () => resolve(fileOrBlob);
+                img.src = e.target.result;
+            };
+            reader.onerror = () => resolve(fileOrBlob);
+            reader.readAsDataURL(fileOrBlob);
+        });
+    };
+
     window.selectCheckinImageSource = async function(mode) {
         window.closeCheckinImagePickerModal();
         const input = document.getElementById('checkin-proof-image');
@@ -581,7 +627,9 @@ body[data-view="saved_trips"],
             try {
                 const cameraPlugin = window.Capacitor.Plugins.Camera;
                 const image = await cameraPlugin.getPhoto({
-                    quality: 85,
+                    quality: 80,
+                    width: 1280,
+                    height: 1280,
                     allowEditing: false,
                     resultType: 'dataUrl',
                     source: mode === 'camera' ? 'CAMERA' : 'PHOTOS'
@@ -590,8 +638,9 @@ body[data-view="saved_trips"],
                 if (image && image.dataUrl) {
                     const res = await fetch(image.dataUrl);
                     const blob = await res.blob();
-                    const file = new File([blob], 'proof_' + Date.now() + '.jpg', { type: blob.type || 'image/jpeg' });
-                    window.selectedCheckinImageFile = file;
+                    const rawFile = new File([blob], 'proof_' + Date.now() + '.jpg', { type: blob.type || 'image/jpeg' });
+                    const compressed = await window.compressImageFile(rawFile, 1280, 0.8);
+                    window.selectedCheckinImageFile = compressed;
                     window.updateCheckinPhotoPreview(image.dataUrl);
                 }
             } catch (err) {
@@ -608,15 +657,25 @@ body[data-view="saved_trips"],
         }
     };
 
-    window.handlePhotoSelected = function(input) {
+    window.handlePhotoSelected = async function(input) {
         if (input.files && input.files[0]) {
-            const file = input.files[0];
-            window.selectedCheckinImageFile = file;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                window.updateCheckinPhotoPreview(e.target.result);
-            };
-            reader.readAsDataURL(file);
+            const rawFile = input.files[0];
+            try {
+                const compressed = await window.compressImageFile(rawFile, 1280, 0.8);
+                window.selectedCheckinImageFile = compressed;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    window.updateCheckinPhotoPreview(e.target.result);
+                };
+                reader.readAsDataURL(compressed);
+            } catch (err) {
+                window.selectedCheckinImageFile = rawFile;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    window.updateCheckinPhotoPreview(e.target.result);
+                };
+                reader.readAsDataURL(rawFile);
+            }
         }
     };
 
@@ -695,10 +754,19 @@ body[data-view="saved_trips"],
             const itemId = document.getElementById('checkin-item-id').value;
             if (!itemId) return;
 
+            let fileToUpload = imageFile;
+            if (fileToUpload && (fileToUpload.size > 1024 * 1024 || !fileToUpload.type)) {
+                try {
+                    fileToUpload = await window.compressImageFile(fileToUpload, 1280, 0.8);
+                } catch (e) {
+                    console.warn('Saved trips check-in compression failed:', e);
+                }
+            }
+
             const formData = new FormData();
             formData.append('lat', lat);
             formData.append('lng', lng);
-            formData.append('image', imageFile);
+            formData.append('image', fileToUpload);
 
             try {
                 const response = await fetch(backendUrl + '/api/tourist/itineraries/items/' + itemId + '/visit', {

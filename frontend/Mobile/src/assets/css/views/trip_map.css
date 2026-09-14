@@ -172,7 +172,7 @@ html.keyboard-open .btn-3d-view {
 #trip-summary-pill {
     border: none !important;
     outline: none !important;
-    box-shadow: 0 10px 28px rgba(10, 25, 60, 0.35) !important;
+    box-shadow: none !important;
 }
 
 #trip-info-vehicle-btn:active {
@@ -183,11 +183,12 @@ html.keyboard-open .btn-3d-view {
 .conveyor-card {
     border: none !important;
     outline: none !important;
-    box-shadow: 0 12px 32px rgba(10, 25, 60, 0.35) !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
 }
 
 .conveyor-card.active {
-    box-shadow: 0 14px 40px rgba(10, 25, 60, 0.45) !important;
+    box-shadow: none !important;
 }
 
 .conveyor-card:active {

@@ -575,7 +575,7 @@ body[data-view="user_manual"]::-webkit-scrollbar,
             <div class="manual-section-icon red"><i class="fa-solid fa-camera"></i></div>
             <div>
                 <h2 class="manual-section-title">Step 6 &mdash; Photo Proof Check-In</h2>
-                <p class="manual-section-sub">Location verification and MTO / LUPTO approval</p>
+                <p class="manual-section-sub">Location verification and review approval</p>
             </div>
         </div>
         <div class="step-card">
@@ -595,8 +595,8 @@ body[data-view="user_manual"]::-webkit-scrollbar,
         <div class="step-card">
             <div class="step-num">3</div>
             <div class="step-content">
-                <div class="step-title">MTO / LUPTO Review &amp; Reward</div>
-                <div class="step-desc">Your check-in is set to <strong>Pending</strong>. Once reviewed and approved by Municipal Tourism (MTO) or Provincial Tourism (LUPTO) officers, you will be awarded <strong>+50 Points</strong>!</div>
+                <div class="step-title">Review &amp; Reward</div>
+                <div class="step-desc">Your check-in is set to <strong>Pending</strong>. Once reviewed and approved by tourism officers, you will be awarded <strong>+50 Points</strong>!</div>
             </div>
         </div>
     </div>

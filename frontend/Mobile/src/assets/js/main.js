@@ -988,7 +988,7 @@ window.startLocationWatch = function () {
             document.dispatchEvent(new CustomEvent('gpsUpdated', { detail: { lat: currentLat, lng: currentLng, accuracy, altitude, speed, source: 'gps' } }));
         });
 
-        // Proximity auto check-in is intentionally disabled as check-in requires explicit photo proof submission and pending review by MTO / LUPTO.
+        // Proximity auto check-in is intentionally disabled as check-in requires explicit photo proof submission and pending review.
     };
 
     const onErr = (error) => {

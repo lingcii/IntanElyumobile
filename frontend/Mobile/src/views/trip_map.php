@@ -58,7 +58,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             <i class="fa-solid fa-camera" style="font-size:26px; color:#ffffff;"></i>
         </div>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Submit Visit Proof</h3>
-        <p style="font-size:13px; color:rgba(255, 255, 255, 0.85); margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination. Your submission will be submitted for MTO / LUPTO review and approval before earning <strong style="color:#67e8f9; font-weight:800;">+50 Points</strong>.</p>
+        <p style="font-size:13px; color:rgba(255, 255, 255, 0.85); margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination. Your submission will be submitted for review and approval before earning <strong style="color:#67e8f9; font-weight:800;">+50 Points</strong>.</p>
 
         <input type="hidden" id="checkin-item-id">
         
@@ -493,7 +493,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     pUrl = b + '/' + pUrl.replace(/^\//, '');
                 }
                 let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + item.proof_image.replace(/^\//, '');
-                proofThumbnail = `<img src="${pUrl}" onerror="if(this.src!=='${fallbackUrl}'){this.src='${fallbackUrl}';}" alt="Proof" style="width:40px; height:40px; border-radius:8px; object-fit:cover; border:none !important; box-shadow:0 2px 8px rgba(0,0,0,0.3); flex-shrink:0;">`;
+                proofThumbnail = `<img src="${pUrl}" onerror="if(this.src!=='${fallbackUrl}'){this.src='${fallbackUrl}';}" alt="Proof" style="width:34px; height:34px; border-radius:8px; object-fit:cover; border:none !important; box-shadow:none !important; flex-shrink:0;">`;
             }
 
             let actionBtnHtml = '';
@@ -502,30 +502,30 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 const isReviewed = sId && window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(sId));
                 const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
                 const sMeta = (window.getRewardPointsForClassification) ? window.getRewardPointsForClassification(sClass) : { points: 50 };
-                actionBtnHtml = `<div style="display:flex; align-items:center; gap:10px;">
+                actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                     ${proofThumbnail}
                     <div style="display:flex; flex-direction:column; gap:2px;">
-                        <span style="background:rgba(52,199,89,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:11px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Visited & Verified</span>
-                        <button type="button" data-spot-id="${sId}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${sId}', this)" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px; cursor:pointer; width:fit-content; margin-top:2px;">
-                            ${isReviewed ? '<i class="fa-solid fa-check" style="margin-right:4px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="margin-right:4px;"></i> Review Site (+${sMeta.points} PTS)`}
+                        <span style="background:rgba(52,199,89,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:10.5px; padding:3px 7px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Visited</span>
+                        <button type="button" data-spot-id="${sId}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${sId}', this)" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; font-size:10px; font-weight:700; padding:3px 8px; border-radius:100px; cursor:pointer; width:fit-content;">
+                            ${isReviewed ? '<i class="fa-solid fa-check" style="margin-right:2px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="margin-right:2px;"></i> Review (+${sMeta.points} PTS)`}
                         </button>
                     </div>
                 </div>`;
             } else if (isRejected) {
-                actionBtnHtml = `<div style="display:flex; align-items:center; gap:8px;">
+                actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                     ${proofThumbnail}
-                    <div style="display:flex; flex-direction:column; gap:4px;">
-                        <span style="background:rgba(239,68,68,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:11px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>
-                        <button onclick="event.stopPropagation(); window.currentCheckinItemId='${item.id}'; window.triggerMapCheckinModal()" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:#ffffff; border:none !important; outline:none !important; padding:6px 10px; border-radius:100px; font-weight:800; font-size:10px; cursor:pointer;"><i class="fa-solid fa-camera" style="margin-right:4px;"></i> Re-upload</button>
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <span style="background:rgba(239,68,68,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:10.5px; padding:3px 7px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>
+                        <button onclick="event.stopPropagation(); window.currentCheckinItemId='${item.id}'; window.triggerMapCheckinModal()" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:#ffffff; border:none !important; outline:none !important; padding:4px 8px; border-radius:100px; font-weight:800; font-size:10px; cursor:pointer;"><i class="fa-solid fa-camera" style="margin-right:2px;"></i> Re-upload</button>
                     </div>
                 </div>`;
             } else if (isPending) {
-                actionBtnHtml = `<div style="display:flex; align-items:center; gap:8px;">
+                actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                     ${proofThumbnail}
-                    <span style="background:rgba(255,149,0,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:11px; padding:4px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-clock"></i> Pending MTO / LUPTO Review</span>
+                    <span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:10.5px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-clock"></i> Under Review</span>
                 </div>`;
             } else if (isActive) {
-                actionBtnHtml = `<button onclick="event.stopPropagation(); window.currentCheckinItemId='${item.id}'; window.triggerMapCheckinModal()" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; border:none !important; outline:none !important; padding:10px 16px; border-radius:100px; font-weight:800; font-size:12px; box-shadow:0 4px 14px rgba(2,132,199,0.4); cursor:pointer;"><i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In (+50 PTS)</button>`;
+                actionBtnHtml = `<button onclick="event.stopPropagation(); window.currentCheckinItemId='${item.id}'; window.triggerMapCheckinModal()" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; border:none !important; outline:none !important; padding:8px 14px; border-radius:100px; font-weight:800; font-size:11px; box-shadow:none !important; cursor:pointer;"><i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In (+50 PTS)</button>`;
             } else {
                 actionBtnHtml = `<span style="color:rgba(255,255,255,0.6); font-size:12px; font-weight:700;"><i class="fa-solid fa-lock"></i> Locked</span>`;
             }
@@ -533,16 +533,16 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             const classBadge = dest.classification_status ? `<span style="padding: 3px 8px; border-radius: 100px; font-size: 8px; font-weight: 800; text-transform: uppercase; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#10b981' : (dest.classification_status === 'EMERGE' ? '#0284c7' : '#f59e0b')}; border:none !important; outline:none !important; flex-shrink:0;">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : '';
 
             conveyorHtml += `
-            <div id="conveyor-card-${idx}" class="conveyor-card ${isActive ? 'active' : ''}" onclick="window.flyToConveyorSpot(${lng}, ${lat}, ${idx})" style="scroll-snap-align: center; flex: 0 0 calc(100vw - 64px); max-width: 320px; min-width: 250px; box-sizing: border-box; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: none !important; outline: none !important; border-radius: 24px; padding: 16px 18px; box-shadow: 0 12px 32px rgba(10, 25, 60, 0.35); cursor: pointer; transition: transform 0.25s ease;">
+            <div id="conveyor-card-${idx}" class="conveyor-card ${isActive ? 'active' : ''}" onclick="window.flyToConveyorSpot(${lng}, ${lat}, ${idx})" style="scroll-snap-align: center; flex: 0 0 calc(100vw - 64px); max-width: 320px; min-width: 250px; box-sizing: border-box; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: none !important; outline: none !important; border-radius: 24px; padding: 16px 18px; box-shadow: none !important; overflow: hidden !important; cursor: pointer; transition: transform 0.25s ease;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px;">
                     ${badgeHtml}
                     ${classBadge}
                 </div>
                 <h4 style="margin:0 0 4px 0; font-size:16px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${dest.name}">${dest.name}</h4>
                 <p style="margin:0 0 12px 0; font-size:12px; color:rgba(255,255,255,0.85); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-location-dot" style="color:#67e8f9; margin-right:5px;"></i>${dest.municipality || 'La Union'}</p>
-                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; min-width:0;">
                     <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.75); flex-shrink:0;"><i class="fa-solid fa-compass" style="color:#67e8f9;"></i> Tap to view</span>
-                    <div style="flex-shrink:0;">${actionBtnHtml}</div>
+                    <div style="flex-shrink:0; max-width:68%;">${actionBtnHtml}</div>
                 </div>
             </div>`;
         });
@@ -660,7 +660,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                             </div>
                         `;
                     } else if (isPending) {
-                        // PENDING MTO/LUPTO REVIEW - Orange Clock
+                        // PENDING REVIEW - Orange Clock
                         iconHtml = `
                             <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
                                 <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(245,158,11,0.4); z-index: 2;">
@@ -901,6 +901,52 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         if (modal) modal.style.display = 'none';
     };
 
+    window.compressImageFile = async function(fileOrBlob, maxDimension = 1280, quality = 0.8) {
+        return new Promise((resolve) => {
+            if (!fileOrBlob || !fileOrBlob.type || !fileOrBlob.type.startsWith('image/')) {
+                return resolve(fileOrBlob);
+            }
+            const img = new Image();
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxDimension || height > maxDimension) {
+                        if (width > height) {
+                            height = Math.round((height * maxDimension) / width);
+                            width = maxDimension;
+                        } else {
+                            width = Math.round((width * maxDimension) / height);
+                            height = maxDimension;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob((blob) => {
+                        if (!blob) {
+                            resolve(fileOrBlob);
+                            return;
+                        }
+                        const name = (fileOrBlob.name || 'proof_' + Date.now() + '.jpg').replace(/\.[^/.]+$/, "") + ".jpg";
+                        const compressedFile = new File([blob], name, { type: 'image/jpeg', lastModified: Date.now() });
+                        resolve(compressedFile);
+                    }, 'image/jpeg', quality);
+                };
+                img.onerror = () => resolve(fileOrBlob);
+                img.src = e.target.result;
+            };
+            reader.onerror = () => resolve(fileOrBlob);
+            reader.readAsDataURL(fileOrBlob);
+        });
+    };
+
     window.selectCheckinImageSource = async function(mode) {
         window.closeCheckinImagePickerModal();
         const input = document.getElementById('checkin-proof-image');
@@ -917,7 +963,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             try {
                 const cameraPlugin = window.Capacitor.Plugins.Camera;
                 const image = await cameraPlugin.getPhoto({
-                    quality: 85,
+                    quality: 80,
+                    width: 1280,
+                    height: 1280,
                     allowEditing: false,
                     resultType: 'dataUrl',
                     source: mode === 'camera' ? 'CAMERA' : 'PHOTOS'
@@ -926,8 +974,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 if (image && image.dataUrl) {
                     const res = await fetch(image.dataUrl);
                     const blob = await res.blob();
-                    const file = new File([blob], 'proof_' + Date.now() + '.jpg', { type: blob.type || 'image/jpeg' });
-                    window.selectedCheckinImageFile = file;
+                    const rawFile = new File([blob], 'proof_' + Date.now() + '.jpg', { type: blob.type || 'image/jpeg' });
+                    const compressed = await window.compressImageFile(rawFile, 1280, 0.8);
+                    window.selectedCheckinImageFile = compressed;
                     window.updateCheckinPhotoPreview(image.dataUrl);
                 }
             } catch (err) {
@@ -944,15 +993,25 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         }
     };
 
-    window.handlePhotoSelected = function(input) {
+    window.handlePhotoSelected = async function(input) {
         if (input.files && input.files[0]) {
-            const file = input.files[0];
-            window.selectedCheckinImageFile = file;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                window.updateCheckinPhotoPreview(e.target.result);
-            };
-            reader.readAsDataURL(file);
+            const rawFile = input.files[0];
+            try {
+                const compressed = await window.compressImageFile(rawFile, 1280, 0.8);
+                window.selectedCheckinImageFile = compressed;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    window.updateCheckinPhotoPreview(e.target.result);
+                };
+                reader.readAsDataURL(compressed);
+            } catch (err) {
+                window.selectedCheckinImageFile = rawFile;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    window.updateCheckinPhotoPreview(e.target.result);
+                };
+                reader.readAsDataURL(rawFile);
+            }
         }
     };
 
@@ -1005,7 +1064,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
     };
 
     window.verifyGpsCheckIn = async function() {
-        const imageFile = window.selectedCheckinImageFile || (document.getElementById('checkin-proof-image') ? document.getElementById('checkin-proof-image').files[0] : null);
+        let imageFile = window.selectedCheckinImageFile || (document.getElementById('checkin-proof-image') ? document.getElementById('checkin-proof-image').files[0] : null);
         if (!imageFile) {
             if (typeof showToast === 'function') showToast('Please select or capture a photo proof first.');
             return;
@@ -1018,7 +1077,15 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i> Verifying...';
         btn.disabled = true;
 
-        const token = localStorage.getItem('intan_elyu_token');
+        if (imageFile && (imageFile.size > 1024 * 1024 || !imageFile.type)) {
+            try {
+                imageFile = await window.compressImageFile(imageFile, 1280, 0.8);
+            } catch (e) {
+                console.warn('Check-in pre-compression failed:', e);
+            }
+        }
+
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
         const formData = new FormData();
         formData.append('lat', window.myLat || 16.6159);
         formData.append('lng', window.myLng || 120.3186);

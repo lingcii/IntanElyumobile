@@ -419,7 +419,7 @@ if (is_dir($imgDir)) {
                                     style="font-size:12.5px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:6px;">
                                     <i class="fa-solid fa-headset" style="color:#ffffff;"></i> Tourist Support & Service Centers
                                 </span>
-                                <span class="dest-support-badge" id="sheet-support-badge">LUPTO / MTO</span>
+                                <span class="dest-support-badge" id="sheet-support-badge">Tourism Office</span>
                             </div>
 
                             <!-- Dynamic Service Centers list -->
@@ -3148,7 +3148,7 @@ if (is_dir($imgDir)) {
                 } else {
                     scContainer.style.display = 'none';
                     scContainer.innerHTML = '';
-                    if (supportBadgeEl) supportBadgeEl.textContent = 'LUPTO / MTO';
+                    if (supportBadgeEl) supportBadgeEl.textContent = 'Tourism Office';
                 }
             }
 
