@@ -311,7 +311,12 @@ body[data-view="saved_trips"],
                 
                 <!-- Rich Glassmorphic Front Card Content (Overlays z-index 2) -->
                 <div class="trip-swipe-content" style="position:relative; z-index:2; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 24px; padding: 22px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease; box-shadow: 0 10px 28px rgba(10, 25, 60, 0.28);">
-                    <h3 style="margin: 0 0 6px 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">${trip.title}</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 6px;">
+                        <h3 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; flex: 1; min-width: 0; word-break: break-word;">${trip.title}</h3>
+                        <button type="button" class="btn-edit-saved-trip" onclick="event.stopPropagation(); window.editSavedTrip('${trip.id}')" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" style="background: rgba(255,255,255,0.18); border: none !important; outline: none !important; border-radius: 12px; padding: 6px 14px; color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; transition: all 0.2s ease;">
+                            <i class="fa-solid fa-pen-to-square"></i> Edit
+                        </button>
+                    </div>
                     <p style="font-size: 13px; color: #ffffff; opacity: 0.95; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                         <span><i class="fa-regular fa-calendar" style="color: #ffffff; margin-right: 4px;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}</span> 
                         ${transportBadge}
@@ -993,6 +998,31 @@ body[data-view="saved_trips"],
         }
         if (typeof window.openWriteTestimonyModal === 'function') {
             window.openWriteTestimonyModal(spotId, btnEl);
+        }
+    window.editSavedTrip = function(tripId) {
+        const trip = (window._cachedSavedTrips || []).find(t => String(t.id) === String(tripId));
+        if (!trip) return;
+
+        sessionStorage.setItem('editing_itinerary_id', trip.id);
+        sessionStorage.setItem('editing_trip_title', trip.title || '');
+        sessionStorage.setItem('editing_trip_date', trip.trip_date || '');
+        sessionStorage.setItem('editing_trip_budget', trip.budget || '');
+        sessionStorage.setItem('editing_trip_transport', trip.transport_mode || '');
+
+        const spots = (trip.items || []).map(i => {
+            if (i.destination) {
+                return {
+                    ...i.destination,
+                    itinerary_item_id: i.id
+                };
+            }
+            return null;
+        }).filter(Boolean);
+
+        localStorage.setItem('intan_elyu_draft_itinerary', JSON.stringify(spots));
+
+        if (typeof window.navigateTo === 'function') {
+            window.navigateTo('itinerary');
         }
     };
 

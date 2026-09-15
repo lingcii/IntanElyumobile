@@ -326,13 +326,29 @@ class ItineraryController extends Controller
             'budget'         => 'nullable|numeric|min:0',
             'route_type'     => 'nullable|string|max:255',
             'transport_mode' => 'nullable|string|max:255',
+            'destinations'   => 'nullable|array',
+            'destinations.*' => 'integer|exists:tourist_spots,id',
         ]);
 
         $itinerary->update($request->only(['title', 'trip_date', 'budget', 'route_type', 'transport_mode']));
 
+        if ($request->has('destinations') && is_array($request->destinations) && count($request->destinations) > 0) {
+            $spots = TouristSpot::whereIn('id', $request->destinations)->get();
+            $totalFee = $spots->sum('entrance_fee');
+            $itinerary->update(['total_cost' => $totalFee]);
+
+            $itinerary->items()->delete();
+            foreach ($request->destinations as $spotId) {
+                ItineraryItem::create([
+                    'itinerary_id'    => $itinerary->id,
+                    'tourist_spot_id' => $spotId,
+                ]);
+            }
+        }
+
         return response()->json([
             'message'    => 'Trip updated successfully!',
-            'itinerary'  => $itinerary->fresh()            ->load(['items.destination:id,name,photo_url,latitude,longitude,entrance_fee,classification_status']),
+            'itinerary'  => $itinerary->fresh()->load(['items.destination:id,name,photo_url,latitude,longitude,entrance_fee,classification_status']),
         ]);
     }
 

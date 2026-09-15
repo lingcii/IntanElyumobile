@@ -548,7 +548,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
     <div
         style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none !important; outline:none !important; border-radius:24px; padding:22px; width:100%; max-width:400px; max-height:90vh; overflow-y:auto; box-shadow:none !important;" class="hide-scrollbar">
-        <h3 style="margin-top:0; color:#ffffff; font-size:20px; font-weight:800; display:flex; align-items:center; gap:8px;">
+        <h3 id="save-trip-modal-title" style="margin-top:0; color:#ffffff; font-size:20px; font-weight:800; display:flex; align-items:center; gap:8px;">
             <i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8; font-size:18px;"></i> Save Your Trip
         </h3>
         <p style="font-size:13px; color:rgba(255, 255, 255, 0.9); margin-bottom:18px; line-height:1.4;">Give your awesome adventure a name so you can pull it up later!</p>
@@ -683,18 +683,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             <input type="hidden" id="trip-transport" value="">
             <div id="transport-slider"
                 style="display:flex; overflow-x:auto; gap:12px; padding-bottom:8px; margin-bottom:16px; scrollbar-width:none; -ms-overflow-style:none;">
-                <div class="transport-option" data-val="jeepney" onclick="window.selectTransportMode(this)">
-                    <i class="fa-solid fa-bus"></i>
-                    <span>Modern Jeepney</span>
-                </div>
-                <div class="transport-option" data-val="private_bus" onclick="window.selectTransportMode(this)">
-                    <i class="fa-solid fa-bus-simple"></i>
-                    <span>Aircon Bus</span>
-                </div>
-                <div class="transport-option" data-val="tricycle" onclick="window.selectTransportMode(this)">
-                    <i class="fa-solid fa-motorcycle"></i>
-                    <span>Tricycle</span>
-                </div>
+                <!-- Populated dynamically based on draft destination municipality and active fare matrices -->
             </div>
         </div>
 
@@ -1036,14 +1025,24 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             let fareEntry = null;
 
             if (normType === 'tricycle' || normType === 'trike') {
-                const muniKey = municipality ? municipality.toLowerCase().trim().replace(/[^a-z0-9]/g, '_') : 'san_juan';
-                const muniRaw = municipality ? municipality.toLowerCase().trim() : 'san juan';
-                
-                if (window.fareData.by_municipality) {
-                    fareEntry = window.fareData.by_municipality[muniKey] || window.fareData.by_municipality[muniRaw];
+                if (municipality && window.fareData.by_municipality) {
+                    const cleanMuni = municipality.toString().trim().replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '');
+                    const muniKey = cleanMuni.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                    const muniRaw = cleanMuni.toLowerCase();
+                    const muniObj = window.fareData.by_municipality[muniKey] || window.fareData.by_municipality[muniRaw];
+                    if (muniObj) {
+                        fareEntry = muniObj.tricycle || muniObj.default || muniObj;
+                    }
+                }
+                if (!fareEntry && window.fareData.by_municipality) {
+                    const firstMKey = Object.keys(window.fareData.by_municipality)[0];
+                    if (firstMKey) {
+                        const mObj = window.fareData.by_municipality[firstMKey];
+                        fareEntry = mObj ? (mObj.tricycle || mObj.default || mObj) : null;
+                    }
                 }
                 if (!fareEntry) {
-                    fareEntry = window.fareData['san_juan'] || window.fareData['san juan'] || window.fareData['tricycle'];
+                    fareEntry = window.fareData['tricycle'] || null;
                 }
             } else if (['jeepney', 'puj_ordinary', 'puj_aircon', 'lutrampco', 'mini_bus', 'van', 'uve'].includes(normType)) {
                 fareEntry = window.fareData['jeepney'] || window.fareData['lutrampco'] || window.fareData['mini_bus'] || window.fareData['van'];
@@ -1271,6 +1270,8 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             emptyState.classList.add('is-hidden');
             if (draftPlanCard) draftPlanCard.style.setProperty('display', 'flex', 'important');
             fab.style.setProperty('display', 'flex', 'important');
+            const isEditingPlan = Boolean(sessionStorage.getItem('editing_itinerary_id'));
+            fab.innerHTML = isEditingPlan ? '<i class="fa-solid fa-pen-to-square" style="margin-right:8px;"></i> Update Saved Trip' : '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:8px;"></i> Save Draft Plan';
             if (mapWrapper) mapWrapper.style.display = 'block';
 
             // Sync active class on route toggle buttons
@@ -1790,7 +1791,99 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 }
             }
             _donutAnimFrame = requestAnimationFrame(step);
-        }
+        };
+
+        window.computeItineraryTransCost = function (draft, transport) {
+            if (!draft || draft.length === 0 || !transport) return 0;
+            const modes = transport.split(',').map(m => m.trim()).filter(Boolean);
+            if (modes.length === 0) return 0;
+
+            const pts = [];
+            if (window.myLat && window.myLng) {
+                pts.push({ lat: parseFloat(window.myLat), lng: parseFloat(window.myLng), muni: (draft[0]?.municipality || draft[0]?.city || '').trim() });
+            }
+            draft.forEach(p => {
+                const lat = parseFloat(p.lat || p.latitude);
+                const lng = parseFloat(p.lng || p.longitude);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    pts.push({ lat, lng, muni: (p.municipality || p.city || '').trim() });
+                }
+            });
+
+            const calcHaversine = (lat1, lon1, lat2, lon2) => {
+                const p = 0.017453292519943295;
+                const a = 0.5 - Math.cos((lat2 - lat1) * p) / 2 + Math.cos(lat1 * p) * Math.cos(lat2 * p) * (1 - Math.cos((lon2 - lon1) * p)) / 2;
+                return (12742 * Math.asin(Math.sqrt(a))) * 1.25;
+            };
+
+            const legs = [];
+            let totalDist = 0;
+            for (let i = 0; i < pts.length - 1; i++) {
+                const pA = pts[i];
+                const pB = pts[i + 1];
+                const d = Math.max(0.5, calcHaversine(pA.lat, pA.lng, pB.lat, pB.lng));
+                totalDist += d;
+                legs.push({ distKm: d, muniA: pA.muni || pB.muni || '', muniB: pB.muni || pA.muni || '' });
+            }
+
+            const distKm = Math.max(window._draftDistanceKm || 0, totalDist, 1);
+            if (legs.length === 0) {
+                const defMuni = (draft[0]?.municipality || draft[0]?.city || '').trim();
+                legs.push({ distKm, muniA: defMuni, muniB: defMuni });
+            }
+
+            let totalCost = 0;
+            modes.forEach(mode => {
+                if (mode === 'own_car') {
+                    const fuelPrice = parseFloat(document.getElementById('fuel-price')?.value) || window.fuelPrice || 65;
+                    const fuelEffic = parseFloat(document.getElementById('fuel-efficiency')?.value) || 12;
+                    const liters = distKm / fuelEffic;
+                    totalCost += Math.ceil(liters * fuelPrice);
+                } else if (mode === 'taxi') {
+                    totalCost += Math.max(50, Math.round(40 + (distKm * 13)));
+                } else if (mode === 'tricycle') {
+                    let trikeTotal = 0;
+                    legs.forEach(leg => {
+                        const mA = leg.muniA.toLowerCase();
+                        const mB = leg.muniB.toLowerCase();
+                        if (mA && mB && mA !== mB) {
+                            // Boundary-crossing leg: cut distance into two municipal segments
+                            const dA = leg.distKm / 2;
+                            const dB = leg.distKm / 2;
+                            const fareA = window.getFareFromMatrix('tricycle', dA, leg.muniA) ?? Math.max(16, Math.round(16.32 + (Math.max(0, dA - 1.7) * 2.0)));
+                            const fareB = window.getFareFromMatrix('tricycle', dB, leg.muniB) ?? Math.max(16, Math.round(16.32 + (Math.max(0, dB - 1.7) * 2.0)));
+                            trikeTotal += (fareA + fareB);
+                        } else {
+                            const fare = window.getFareFromMatrix('tricycle', leg.distKm, leg.muniA || leg.muniB) ?? Math.max(16, Math.round(16.32 + (Math.max(0, leg.distKm - 1.7) * 2.0)));
+                            trikeTotal += fare;
+                        }
+                    });
+                    totalCost += Math.round(trikeTotal);
+                } else if (mode === 'private_bus' || mode === 'bus') {
+                    const dbFare = window.getFareFromMatrix('bus', distKm);
+                    if (dbFare !== null) totalCost += Math.round(dbFare);
+                    else totalCost += Math.max(15, Math.round(15 + (Math.max(0, distKm - 5) * 2.2)));
+                } else if (mode === 'jeepney') {
+                    const dbFare = window.getFareFromMatrix('jeepney', distKm);
+                    if (dbFare !== null) totalCost += Math.round(dbFare);
+                    else totalCost += Math.max(13, Math.round(13 + (Math.max(0, distKm - 4) * 1.8)));
+                } else if (mode === 'lutrampco') {
+                    const dbFare = window.getFareFromMatrix('lutrampco', distKm);
+                    if (dbFare !== null) totalCost += Math.round(dbFare);
+                    else totalCost += Math.max(14, Math.round(14 + (Math.max(0, distKm - 4) * 2.2)));
+                } else if (mode === 'mini_bus' || mode === 'van' || mode === 'uve') {
+                    const dbFare = window.getFareFromMatrix('mini_bus', distKm) || window.getFareFromMatrix('van', distKm);
+                    if (dbFare !== null) totalCost += Math.round(dbFare);
+                    else totalCost += Math.max(25, Math.round(25 + (Math.max(0, distKm - 4) * 2.5)));
+                } else {
+                    const dbFare = window.getFareFromMatrix(mode, distKm);
+                    if (dbFare !== null) totalCost += Math.round(dbFare);
+                    else totalCost += 30;
+                }
+            });
+
+            return totalCost;
+        };
 
         window.calculateModalBudget = function () {
             const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
@@ -1805,100 +1898,18 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 return;
             }
 
-            // Transport cost — sum across all selected modes with realistic commuter rates
-            let transCost = 0;
-            const modes = transport ? transport.split(',').filter(Boolean) : [];
-            let distKm = window._draftDistanceKm || 0;
-            if (distKm <= 0 && draft.length > 0) {
-                let totalD = 0;
-                const pts = [];
-                if (window.myLat && window.myLng) pts.push([parseFloat(window.myLat), parseFloat(window.myLng)]);
-                draft.forEach(p => {
-                    const lat = parseFloat(p.lat || p.latitude);
-                    const lng = parseFloat(p.lng || p.longitude);
-                    if (!isNaN(lat) && !isNaN(lng)) pts.push([lat, lng]);
-                });
-                for (let i = 0; i < pts.length - 1; i++) {
-                    const lat1 = pts[i][0], lon1 = pts[i][1];
-                    const lat2 = pts[i + 1][0], lon2 = pts[i + 1][1];
-                    const p = 0.017453292519943295;
-                    const a = 0.5 - Math.cos((lat2 - lat1) * p) / 2 + Math.cos(lat1 * p) * Math.cos(lat2 * p) * (1 - Math.cos((lon2 - lon1) * p)) / 2;
-                    totalD += (12742 * Math.asin(Math.sqrt(a))) * 1.25;
-                }
-                distKm = Math.max(1, totalD);
-            }
-            modes.forEach(mode => {
-                if (mode === 'own_car') {
-                    const fuelPrice = parseFloat(document.getElementById('fuel-price')?.value) || 65;
-                    const fuelEffic = parseFloat(document.getElementById('fuel-efficiency')?.value) || 12;
-                    const litersNeeded = distKm / fuelEffic;
-                    const cost = Math.ceil(litersNeeded * fuelPrice);
-                    transCost += cost;
+            const transCost = window.computeItineraryTransCost(draft, transport);
 
-                    const hint = document.getElementById('fuel-distance-hint');
-                    if (hint && distKm > 0) {
-                        hint.textContent = `Route: ${distKm.toFixed(1)} km • ~${litersNeeded.toFixed(2)} L needed`;
-                        hint.style.color = 'rgba(255,255,255,0.5)';
-                    } else if (hint) {
-                        hint.textContent = 'Open the Map first to get an accurate route distance.';
-                        hint.style.color = '#FF9500';
-                        transCost += Math.ceil((1 * fuelPrice) / fuelEffic);
-                    }
-                }
-                const primaryMuni = (draft[0]?.municipality || 'San Juan');
-                if (mode === 'private_bus' || mode === 'bus') {
-                    const dbFare = window.getFareFromMatrix('bus', distKm, primaryMuni) || window.getFareFromMatrix('private_bus', distKm, primaryMuni);
-                    if (dbFare !== null) {
-                        transCost += Math.round(dbFare);
-                    } else {
-                        // Standard Provincial Commuter Bus fare: ₱15 base (first 5 km) + ₱2.20/km
-                        transCost += Math.max(15, Math.round(15 + (Math.max(0, distKm - 5) * 2.2)));
-                    }
-                }
-                else if (mode === 'mini_bus' || mode === 'van' || mode === 'uve') {
-                    const dbFare = window.getFareFromMatrix('mini_bus', distKm, primaryMuni) || window.getFareFromMatrix('van', distKm, primaryMuni);
-                    if (dbFare !== null) {
-                        transCost += Math.round(dbFare);
-                    } else {
-                        // Standard UV Express / Mini Bus fare: ₱25 base (first 4 km) + ₱2.50/km
-                        transCost += Math.max(25, Math.round(25 + (Math.max(0, distKm - 4) * 2.5)));
-                    }
-                }
-                else if (mode === 'lutrampco') {
-                    const dbFare = window.getFareFromMatrix('lutrampco', distKm, primaryMuni);
-                    if (dbFare !== null) {
-                        transCost += Math.round(dbFare);
-                    } else {
-                        // Standard LUTRAMPCO Modernized Jeepney fare: ₱14 base (first 4 km) + ₱2.20/km
-                        transCost += Math.max(14, Math.round(14 + (Math.max(0, distKm - 4) * 2.2)));
-                    }
-                }
-                else if (mode === 'jeepney') {
-                    const dbFare = window.getFareFromMatrix('jeepney', distKm, primaryMuni);
-                    if (dbFare !== null) {
-                        transCost += Math.round(dbFare);
-                    } else {
-                        // Traditional Jeepney fare: ₱13 base (first 4 km) + ₱1.80/km
-                        transCost += Math.max(13, Math.round(13 + (Math.max(0, distKm - 4) * 1.8)));
-                    }
-                }
-                else if (mode === 'tricycle') {
-                    const dbFare = window.getFareFromMatrix('tricycle', distKm, primaryMuni);
-                    if (dbFare !== null) {
-                        transCost += Math.round(dbFare);
-                    } else {
-                        transCost += Math.max(16, Math.round(16.32 + (Math.max(0, distKm - 1.7) * 2.0)));
-                    }
-                }
-                else if (mode === 'taxi') {
-                    transCost += Math.max(50, Math.round(40 + (distKm * 13)));
-                }
-                else {
-                    const dbFare = window.getFareFromMatrix(mode, distKm, primaryMuni);
-                    if (dbFare !== null) transCost += Math.round(dbFare);
-                    else transCost += 30;
-                }
-            });
+            const distKm = window._draftDistanceKm || 0;
+            const hint = document.getElementById('fuel-distance-hint');
+            if (hint && distKm > 0) {
+                const fuelEffic = parseFloat(document.getElementById('fuel-efficiency')?.value) || 12;
+                hint.textContent = `Route: ${distKm.toFixed(1)} km • ~${(distKm / fuelEffic).toFixed(2)} L needed`;
+                hint.style.color = 'rgba(255,255,255,0.5)';
+            } else if (hint) {
+                hint.textContent = 'Open the Map first to get an accurate route distance.';
+                hint.style.color = '#FF9500';
+            }
 
             // Sum Entrance Fees & Environmental Fees across all destinations in draft
             let feesTotal = 0;
@@ -2151,8 +2162,83 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             }
         };
 
+        window.resetSaveModalInputs = function () {
+            const titleInput = document.getElementById('trip-title');
+            if (titleInput) titleInput.value = '';
+            window.customClearDate();
+            window.toggleCustomCalendar(null, false);
+            const transInput = document.getElementById('trip-transport');
+            if (transInput) transInput.value = '';
+            const budgetInput = document.getElementById('trip-budget');
+            if (budgetInput) budgetInput.value = '';
+            const details = document.getElementById('save-budget-details');
+            if (details) details.style.display = 'none';
+            const pctEl = document.getElementById('modal-donut-pct');
+            const remainingRow = document.getElementById('save-budget-remaining-row');
+            const donutWrapper = document.getElementById('modal-donut-wrapper');
+            if (pctEl) pctEl.textContent = '';
+            if (remainingRow) remainingRow.style.display = 'none';
+            if (donutWrapper) { donutWrapper.style.opacity = '0'; donutWrapper.style.transform = 'scale(0.7)'; donutWrapper.style.width = '0'; donutWrapper.style.marginRight = '0'; }
+            if (_donutAnimFrame) { cancelAnimationFrame(_donutAnimFrame); _donutAnimFrame = null; }
+            _currentDonutPct = 0;
+            document.querySelectorAll('.transport-option').forEach(opt => opt.classList.remove('active'));
+            const wrapper = document.getElementById('transport-slider-wrapper');
+            if (wrapper) wrapper.style.display = 'none';
+
+            sessionStorage.removeItem('editing_itinerary_id');
+            sessionStorage.removeItem('editing_trip_title');
+            sessionStorage.removeItem('editing_trip_date');
+            sessionStorage.removeItem('editing_trip_budget');
+            sessionStorage.removeItem('editing_trip_transport');
+        };
+
         window.openSaveModal = function () {
             const draft = window.getEffectiveDraft();
+
+            // Check if in edit mode
+            const editingId = sessionStorage.getItem('editing_itinerary_id');
+            const modalTitleEl = document.getElementById('save-trip-modal-title');
+            const submitBtn = document.getElementById('btn-submit-trip');
+
+            if (editingId) {
+                if (modalTitleEl) {
+                    modalTitleEl.innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:#38bdf8; font-size:18px;"></i> Edit Your Trip';
+                }
+                if (submitBtn) {
+                    submitBtn.textContent = 'Update Trip';
+                }
+                const savedTitle = sessionStorage.getItem('editing_trip_title');
+                const savedDate = sessionStorage.getItem('editing_trip_date');
+                const savedBudget = sessionStorage.getItem('editing_trip_budget');
+                const savedTransport = sessionStorage.getItem('editing_trip_transport');
+
+                const titleInput = document.getElementById('trip-title');
+                if (titleInput && (!titleInput.value || titleInput.value.trim() === '') && savedTitle) {
+                    titleInput.value = savedTitle;
+                }
+                const dateInput = document.getElementById('trip-date');
+                if (dateInput && (!dateInput.value || dateInput.value.trim() === '') && savedDate) {
+                    dateInput.value = savedDate;
+                    const display = document.getElementById('trip-date-display');
+                    if (display) display.value = new Date(savedDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    const clearLink = document.getElementById('calendar-clear-link');
+                    if (clearLink) clearLink.style.display = 'block';
+                }
+                const budgetInput = document.getElementById('trip-budget');
+                if (budgetInput && (!budgetInput.value || budgetInput.value.trim() === '') && savedBudget) {
+                    budgetInput.value = savedBudget;
+                }
+                if (savedTransport && !document.getElementById('trip-transport').value) {
+                    document.getElementById('trip-transport').value = savedTransport;
+                }
+            } else {
+                if (modalTitleEl) {
+                    modalTitleEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8; font-size:18px;"></i> Save Your Trip';
+                }
+                if (submitBtn) {
+                    submitBtn.textContent = 'Save Trip';
+                }
+            }
 
             // Populate dynamic fuel price from Railway DB
             const fuelInput = document.getElementById('fuel-price');
@@ -2160,24 +2246,36 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 fuelInput.value = window.fuelPrice;
             }
 
-            // Auto-detect transport type from selected vehicles, default to 'public'
-            const veh = draft.find(p => p.transport_type);
-            const initialTransport = veh ? veh.transport_type : 'public';
-            window.setTransportType(initialTransport);
+            // Auto-detect transport type from existing trip-transport or draft
+            let existingTransport = document.getElementById('trip-transport').value;
+            let currentTransType = 'public';
+            if (existingTransport) {
+                const parts = existingTransport.split(',').filter(Boolean);
+                const privateSet = ['own_car', 'taxi', 'van', 'motorcycle'];
+                if (parts.some(p => privateSet.includes(p))) {
+                    currentTransType = 'private';
+                }
+            } else {
+                const veh = draft.find(p => p.transport_type);
+                currentTransType = veh ? veh.transport_type : 'public';
+            }
+            window.setTransportType(currentTransType);
 
-            const vehicles = [...new Set(draft.flatMap(p => p.selected_vehicles || []).filter(Boolean))];
-            if (vehicles.length > 0) {
+            // Manage active vehicle cards in the slider
+            const activeVehicles = existingTransport ? existingTransport.split(',').filter(Boolean) : [...new Set(draft.flatMap(p => p.selected_vehicles || []).filter(Boolean))];
+            if (activeVehicles.length > 0) {
                 document.querySelectorAll('.transport-option').forEach(opt => {
-                    if (vehicles.includes(opt.dataset.val)) {
+                    if (activeVehicles.includes(opt.dataset.val)) {
                         opt.classList.add('active');
                     }
                 });
-                document.getElementById('trip-transport').value = vehicles.join(',');
+                document.getElementById('trip-transport').value = activeVehicles.join(',');
             } else {
-                const defaultVehicle = initialTransport === 'private' ? 'own_car' : 'jeepney';
-                const defaultOpt = document.querySelector(`.transport-option[data-val="${defaultVehicle}"]`);
-                if (defaultOpt) defaultOpt.classList.add('active');
-                document.getElementById('trip-transport').value = defaultVehicle;
+                const defaultOpt = document.querySelector('.transport-option');
+                if (defaultOpt) {
+                    defaultOpt.classList.add('active');
+                    document.getElementById('trip-transport').value = defaultOpt.dataset.val;
+                }
             }
 
             // Initialize calendar to current month
@@ -2189,7 +2287,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             document.getElementById('save-trip-modal').style.display = 'flex';
             window.calculateModalBudget();
 
-            // Hide bottom nav while modal is open (prevents keyboard pushing it up)
+            // Hide bottom nav while modal is open
             const bottomNav = document.getElementById('bottom-navigation');
             if (bottomNav) bottomNav.classList.add('nav-hidden');
         };
@@ -2200,28 +2298,10 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             // Restore bottom nav
             const bottomNav = document.getElementById('bottom-navigation');
             if (bottomNav) bottomNav.classList.remove('nav-hidden');
-            document.getElementById('trip-title').value = '';
-            window.customClearDate();
+
+            // Close calendar dropdown without clearing date or input values
             window.toggleCustomCalendar(null, false);
-            document.getElementById('trip-transport').value = '';
-            document.getElementById('trip-budget').value = '';
-            document.getElementById('save-budget-details').style.display = 'none';
-            const pctEl = document.getElementById('modal-donut-pct');
-            const remainingRow = document.getElementById('save-budget-remaining-row');
-            const donutWrapper = document.getElementById('modal-donut-wrapper');
-            if (pctEl) pctEl.textContent = '';
-            if (remainingRow) remainingRow.style.display = 'none';
-            if (donutWrapper) { donutWrapper.style.opacity = '0'; donutWrapper.style.transform = 'scale(0.7)'; donutWrapper.style.width = '0'; donutWrapper.style.marginRight = '0'; }
-            if (_donutAnimFrame) { cancelAnimationFrame(_donutAnimFrame); _donutAnimFrame = null; }
-            _currentDonutPct = 0;
-            // Reset transport mode UI
-            document.querySelectorAll('.transport-option').forEach(opt => opt.classList.remove('active'));
-            const wrapper = document.getElementById('transport-slider-wrapper');
-            if (wrapper) wrapper.style.display = 'none';
-            const btnPublic = document.getElementById('btn-trans-public');
-            const btnPrivate = document.getElementById('btn-trans-private');
-            if (btnPublic) { btnPublic.style.background = 'transparent'; btnPublic.style.color = 'rgba(255,255,255,0.7)'; btnPublic.style.boxShadow = 'none'; }
-            if (btnPrivate) { btnPrivate.style.background = 'transparent'; btnPrivate.style.color = 'rgba(255,255,255,0.7)'; btnPrivate.style.boxShadow = 'none'; }
+            // All draft inputs (#trip-title, #trip-date, #trip-budget, #trip-transport) remain intact on cancel!
         };
 
         window.submitItinerary = async function () {
@@ -2247,95 +2327,9 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             }
 
             const btn = document.getElementById('btn-submit-trip');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+            const editingId = sessionStorage.getItem('editing_itinerary_id');
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${editingId ? 'Updating...' : 'Saving...'}`;
             btn.disabled = true;
-
-            let totalTransCost = 0;
-            const modes = transport ? transport.split(',').filter(Boolean) : [];
-            let distKm = window._draftDistanceKm || 0;
-            if (distKm <= 0 && draft.length > 0) {
-                let totalD = 0;
-                const pts = [];
-                if (window.myLat && window.myLng) pts.push([parseFloat(window.myLat), parseFloat(window.myLng)]);
-                draft.forEach(p => {
-                    const lat = parseFloat(p.lat || p.latitude);
-                    const lng = parseFloat(p.lng || p.longitude);
-                    if (!isNaN(lat) && !isNaN(lng)) pts.push([lat, lng]);
-                });
-                for (let i = 0; i < pts.length - 1; i++) {
-                    const lat1 = pts[i][0], lon1 = pts[i][1];
-                    const lat2 = pts[i + 1][0], lon2 = pts[i + 1][1];
-                    const p = 0.017453292519943295;
-                    const a = 0.5 - Math.cos((lat2 - lat1) * p) / 2 + Math.cos(lat1 * p) * Math.cos(lat2 * p) * (1 - Math.cos((lon2 - lon1) * p)) / 2;
-                    totalD += (12742 * Math.asin(Math.sqrt(a))) * 1.25;
-                }
-                distKm = Math.max(1, totalD);
-            }
-            const primaryMuni = (draft[0]?.municipality || 'San Juan');
-            modes.forEach(mode => {
-                if (mode === 'own_car') {
-                    const fuelPrice = parseFloat(document.getElementById('fuel-price')?.value) || 65;
-                    const fuelEffic = parseFloat(document.getElementById('fuel-efficiency')?.value) || 12;
-                    const litersNeeded = distKm / fuelEffic;
-                    let cost = Math.ceil(litersNeeded * fuelPrice);
-                    if (distKm <= 0) cost = Math.ceil((1 * fuelPrice) / fuelEffic);
-                    totalTransCost += cost;
-                }
-                else if (mode === 'private_bus' || mode === 'bus') {
-                    const dbFare = window.getFareFromMatrix('bus', distKm, primaryMuni) || window.getFareFromMatrix('private_bus', distKm, primaryMuni);
-                    if (dbFare !== null) {
-                        totalTransCost += Math.round(dbFare);
-                    } else {
-                        // Standard Provincial Commuter Bus fare: ₱15 base (first 5 km) + ₱2.20/km
-                        totalTransCost += Math.max(15, Math.round(15 + (Math.max(0, distKm - 5) * 2.2)));
-                    }
-                }
-                else if (mode === 'mini_bus' || mode === 'van' || mode === 'uve') {
-                    const dbFare = window.getFareFromMatrix('mini_bus', distKm, primaryMuni) || window.getFareFromMatrix('van', distKm, primaryMuni);
-                    if (dbFare !== null) {
-                        totalTransCost += Math.round(dbFare);
-                    } else {
-                        // Standard UV Express / Mini Bus fare: ₱25 base (first 4 km) + ₱2.50/km
-                        totalTransCost += Math.max(25, Math.round(25 + (Math.max(0, distKm - 4) * 2.5)));
-                    }
-                }
-                else if (mode === 'lutrampco') {
-                    const dbFare = window.getFareFromMatrix('lutrampco', distKm, primaryMuni);
-                    if (dbFare !== null) {
-                        totalTransCost += Math.round(dbFare);
-                    } else {
-                        // Standard LUTRAMPCO Modernized Jeepney fare: ₱14 base (first 4 km) + ₱2.20/km
-                        totalTransCost += Math.max(14, Math.round(14 + (Math.max(0, distKm - 4) * 2.2)));
-                    }
-                }
-                else if (mode === 'jeepney') {
-                    const dbFare = window.getFareFromMatrix('jeepney', distKm, primaryMuni);
-                    if (dbFare !== null) {
-                        totalTransCost += Math.round(dbFare);
-                    } else {
-                        // Traditional Jeepney fare: ₱13 base (first 4 km) + ₱1.80/km
-                        totalTransCost += Math.max(13, Math.round(13 + (Math.max(0, distKm - 4) * 1.8)));
-                    }
-                }
-                else if (mode === 'tricycle') {
-                    const dbFare = window.getFareFromMatrix('tricycle', distKm, primaryMuni);
-                    if (dbFare !== null) {
-                        totalTransCost += Math.round(dbFare);
-                    } else {
-                        totalTransCost += Math.max(16, Math.round(16.32 + (Math.max(0, distKm - 1.7) * 2.0)));
-                    }
-                }
-                else if (mode === 'taxi') {
-                    totalTransCost += Math.max(50, Math.round(40 + (distKm * 13)));
-                }
-                else {
-                    const dbFare = window.getFareFromMatrix(mode, distKm, primaryMuni);
-                    if (dbFare !== null) totalTransCost += Math.round(dbFare);
-                    else totalTransCost += 30;
-                }
-            });
-
-            const transCostPerPlace = transport ? (totalTransCost / draft.length) : null;
 
             const destinations = draft.map(place => place.id);
 
@@ -2343,21 +2337,31 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 const activeRouteType = document.querySelector('.btn-route-type.active')?.innerText || ((window.currentRouteType === 'alternative' || window.currentRouteType === 'alternate') ? 'Alternative' : 'Recommended');
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
                 if (!token) {
-                    btn.innerHTML = 'Save Trip';
+                    btn.innerHTML = editingId ? 'Update Trip' : 'Save Trip';
                     btn.disabled = false;
                     showToast("Session expired. Please log in to save your trip.");
                     navigateTo('auth');
                     return;
                 }
 
-                const response = await fetch(backendUrl + '/api/tourist/itineraries', {
-                    method: 'POST',
+                const url = editingId ? `${backendUrl}/api/tourist/itineraries/${editingId}` : `${backendUrl}/api/tourist/itineraries`;
+                const method = editingId ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
                         'Authorization': 'Bearer ' + token
                     },
-                    body: JSON.stringify({ title: title, trip_date: date, budget: budget, destinations: destinations, route_type: activeRouteType, transport_mode: transport })
+                    body: JSON.stringify({
+                        title: title,
+                        trip_date: date,
+                        budget: budget,
+                        destinations: destinations,
+                        route_type: activeRouteType,
+                        transport_mode: transport
+                    })
                 });
 
                 if (response.status === 401) {
@@ -2371,34 +2375,13 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 const data = await response.json();
 
                 if (response.ok) {
-                    // Optimistically inject the new trip into the saved trips cache so it appears with 0ms latency
+                    // Invalidate caches
                     const cacheKey = 'saved_trips_' + token.substring(0, 10);
                     const dashCacheKey = 'dashboard_trips_' + token.substring(0, 10);
                     localStorage.removeItem(dashCacheKey);
+                    localStorage.removeItem(cacheKey);
 
-                    if (data.itinerary) {
-                        try {
-                            const rawCached = localStorage.getItem(cacheKey);
-                            let existingTrips = [];
-                            if (rawCached) {
-                                const parsed = window.safeJsonParse(rawCached, null);
-                                if (parsed && Array.isArray(parsed.data)) {
-                                    existingTrips = parsed.data;
-                                }
-                            }
-                            const updatedTrips = [data.itinerary, ...existingTrips.filter(t => t.id !== data.itinerary.id)];
-                            localStorage.setItem(cacheKey, JSON.stringify({
-                                data: updatedTrips,
-                                timestamp: Date.now()
-                            }));
-                        } catch (e) {
-                            localStorage.removeItem(cacheKey);
-                        }
-                    } else {
-                        localStorage.removeItem(cacheKey);
-                    }
-
-                    const savedId = String(data.itinerary_id || (data.itinerary && data.itinerary.id) || '');
+                    const savedId = String(editingId || data.itinerary_id || (data.itinerary && data.itinerary.id) || '');
                     if (savedId) {
                         sessionStorage.setItem('just_saved_trip_id', savedId);
                         if (transport) {
@@ -2407,19 +2390,22 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                         }
                     }
 
-                    showToast("Trip saved successfully!");
+                    showToast(editingId ? "Trip updated successfully!" : "Trip saved successfully!");
                     localStorage.removeItem('intan_elyu_draft_itinerary');
-                    closeSaveModal();
+                    window.resetSaveModalInputs();
+                    document.getElementById('save-trip-modal').style.display = 'none';
+                    const bottomNav = document.getElementById('bottom-navigation');
+                    if (bottomNav) bottomNav.classList.remove('nav-hidden');
                     window.renderItinerary();
                     navigateTo('saved_trips');
                 } else {
-                    throw new Error(data.message || "Failed to save trip");
+                    throw new Error(data.message || (editingId ? "Failed to update trip" : "Failed to save trip"));
                 }
             } catch (error) {
                 console.error("Save Error:", error);
                 showToast(error.message || "Failed to save. Check connection.");
             } finally {
-                btn.innerHTML = 'Save Trip';
+                btn.innerHTML = editingId ? 'Update Trip' : 'Save Trip';
                 btn.disabled = false;
             }
         };
@@ -2580,11 +2566,38 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                                 const legData = await legRes.json();
 
                                 if (legData.code === 'Ok' && legData.routes && legData.routes.length > 0) {
-                                    // Choose secondary/alternative route if available
-                                    const chosen = (legData.routes.length > 1) ? legData.routes[1] : legData.routes[0];
-                                    legGeometries.push(chosen.geometry);
-                                    totalDist += chosen.distance;
-                                    totalDur += chosen.duration;
+                                    if (legData.routes.length > 1) {
+                                        // Distinct alternative path returned by OSRM
+                                        const chosen = legData.routes[1];
+                                        legGeometries.push(chosen.geometry);
+                                        totalDist += chosen.distance;
+                                        totalDur += chosen.duration;
+                                    } else {
+                                        // OSRM only returned 1 route (same as recommended).
+                                        // Route via inland bypass waypoint to change direction away from highway!
+                                        let routedBypass = false;
+                                        try {
+                                            const midLat = (fetchLatLngs[k][0] + fetchLatLngs[k+1][0]) / 2;
+                                            const midLon = (fetchLatLngs[k][1] + fetchLatLngs[k+1][1]) / 2 + 0.013;
+                                            const bypassUrl = `https://router.project-osrm.org/route/v1/driving/${p1};${midLon.toFixed(6)},${midLat.toFixed(6)};${p2}?overview=full&geometries=geojson&continue_straight=true`;
+                                            const bpRes = await fetch(bypassUrl);
+                                            const bpData = await bpRes.json();
+                                            if (bpData.code === 'Ok' && bpData.routes && bpData.routes.length > 0) {
+                                                legGeometries.push(bpData.routes[0].geometry);
+                                                totalDist += bpData.routes[0].distance;
+                                                totalDur += bpData.routes[0].duration;
+                                                routedBypass = true;
+                                            }
+                                        } catch (bpErr) {
+                                            console.warn("Bypass waypoint routing:", bpErr);
+                                        }
+
+                                        if (!routedBypass) {
+                                            legGeometries.push(legData.routes[0].geometry);
+                                            totalDist += legData.routes[0].distance;
+                                            totalDur += legData.routes[0].duration;
+                                        }
+                                    }
                                 }
                             }
 
@@ -2821,12 +2834,63 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     { val: 'motorcycle', name: 'Motorcycle', icon: 'fa-motorcycle' }
                 ];
             } else {
-                // Public: strictly the vehicle types with verified uploaded fare matrices
-                optionsList = [
-                    { val: 'jeepney', name: 'Modern Jeepney', icon: 'fa-bus' },
-                    { val: 'private_bus', name: 'Aircon Bus', icon: 'fa-bus-simple' },
-                    { val: 'tricycle', name: 'Tricycle', icon: 'fa-motorcycle' }
-                ];
+                // Public vehicles: dynamically activated by municipal matrices & inter-municipal routes
+                const draft = window.getEffectiveDraft ? window.getEffectiveDraft() : [];
+                const rawMunis = draft.map(p => (p.municipality || '').trim()).filter(Boolean);
+                const uniqueMunis = [...new Set(rawMunis)];
+
+                // Inter-municipal trip condition: draft crosses more than 1 municipality
+                const isInterMunicipal = uniqueMunis.length > 1;
+
+                const vehicleCatalog = {
+                    'jeepney': { val: 'jeepney', name: 'Modern Jeepney', icon: 'fa-bus' },
+                    'bus': { val: 'private_bus', name: 'Aircon Bus', icon: 'fa-bus-simple' },
+                    'private_bus': { val: 'private_bus', name: 'Aircon Bus', icon: 'fa-bus-simple' },
+                    'tricycle': { val: 'tricycle', name: 'Tricycle', icon: 'fa-motorcycle' },
+                    'lutrampco': { val: 'lutrampco', name: 'Modern Jeepney', icon: 'fa-bus' },
+                    'mini_bus': { val: 'mini_bus', name: 'Mini Bus', icon: 'fa-bus-simple' },
+                    'van': { val: 'van', name: 'UV Express / Van', icon: 'fa-shuttle-van' }
+                };
+
+                if (isInterMunicipal) {
+                    // Inter-municipal trips: activate highway/inter-municipal vehicles alongside local Tricycle
+                    optionsList = [
+                        vehicleCatalog['jeepney'],
+                        vehicleCatalog['bus'],
+                        vehicleCatalog['tricycle']
+                    ];
+                } else {
+                    // Single municipality trip: activate strictly the vehicles registered for that destination municipality
+                    const destMuni = uniqueMunis.length === 1 ? uniqueMunis[0] : '';
+                    const muniKey = destMuni.toLowerCase().replace(/[^a-z0-9]/g, '_');
+
+                    let activeTypes = [];
+                    if (window.fareData?.active_vehicles_by_municipality?.[muniKey]) {
+                        activeTypes = window.fareData.active_vehicles_by_municipality[muniKey];
+                    } else if (window.fareData?.by_municipality?.[muniKey]) {
+                        activeTypes = Object.keys(window.fareData.by_municipality[muniKey]);
+                    }
+
+                    if (activeTypes && activeTypes.length > 0) {
+                        activeTypes.forEach(vType => {
+                            const normalized = vType.toLowerCase();
+                            if (vehicleCatalog[normalized]) {
+                                optionsList.push(vehicleCatalog[normalized]);
+                            } else if (normalized.includes('jeep')) {
+                                optionsList.push(vehicleCatalog['jeepney']);
+                            } else if (normalized.includes('bus')) {
+                                optionsList.push(vehicleCatalog['bus']);
+                            } else if (normalized.includes('tri') || normalized.includes('pedicab')) {
+                                optionsList.push(vehicleCatalog['tricycle']);
+                            }
+                        });
+                    }
+
+                    // Fallback to municipal Tricycle if no specific active vehicle registered yet
+                    if (optionsList.length === 0) {
+                        optionsList.push(vehicleCatalog['tricycle']);
+                    }
+                }
             }
 
             const unique = [];
