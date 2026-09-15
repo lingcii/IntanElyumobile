@@ -14,25 +14,64 @@ class VoucherController extends Controller
 {
     /**
      * GET /api/vouchers
-     * Returns all active vouchers created by Admin in the database.
+     * Returns all active and upcoming vouchers created by Admin in the database.
      */
     public function index(Request $request): JsonResponse
     {
         try {
+            // 1. Automatically activate upcoming vouchers whose valid_from has arrived or is null
+            try {
+                Voucher::where(function($q) {
+                    $q->where(DB::raw('LOWER(status)'), 'upcoming');
+                })->where(function ($q) {
+                    $q->whereNull('valid_from')
+                      ->orWhere('valid_from', '<=', now());
+                })->update(['status' => 'active']);
+            } catch (\Throwable $ignored) {}
+
             $query = Voucher::with('municipality');
 
-            // Include active vouchers created by Admin in Railway DB
+            // 2. Include active & upcoming vouchers created by Admin in Railway DB
+            // (Exclude only explicitly deleted, inactive, or archived vouchers)
             $query->where(function($q) {
-                $q->where('status', 'active')
-                  ->orWhereNull('status');
+                $q->whereIn(DB::raw('LOWER(COALESCE(status, "active"))'), ['active', 'upcoming'])
+                  ->orWhereNull('status')
+                  ->orWhere('status', '');
+            })->where(function($q) {
+                $q->whereNotIn(DB::raw('LOWER(COALESCE(status, ""))'), ['inactive', 'disabled', 'archived']);
             });
 
             $vouchers = $query->latest()->get();
 
             // Format response for Mobile app compatibility
             $formatted = $vouchers->map(function($v) {
+                // Partner establishment resolution (support single field or multi-establishment JSON array)
+                $partner = $v->partner_establishment;
+                if (empty($partner) && !empty($v->partner_establishments)) {
+                    $estArr = is_array($v->partner_establishments) ? $v->partner_establishments : json_decode($v->partner_establishments, true);
+                    if (!empty($estArr) && is_array($estArr)) {
+                        $partner = implode(', ', $estArr);
+                    }
+                }
+                if (empty($partner)) {
+                    $partner = $v->municipality ? $v->municipality->name . ' Tourism' : 'LUPTO Tourism';
+                }
+
+                // Municipality resolution (support single id or multi-municipality JSON array)
+                $muni = $v->municipality;
+                if (!$muni && !empty($v->municipality_ids)) {
+                    $muniIds = is_array($v->municipality_ids) ? $v->municipality_ids : json_decode($v->municipality_ids, true);
+                    if (!empty($muniIds) && is_array($muniIds)) {
+                        $firstId = $muniIds[0] ?? null;
+                        if ($firstId) {
+                            $muni = \App\Models\Municipality::find($firstId);
+                        }
+                    }
+                }
+                $location = $muni ? $muni->name . ', La Union' : 'La Union';
+
                 $category = 'Food & Dining';
-                $text = strtolower(($v->voucher_name ?? '') . ' ' . ($v->partner_establishment ?? '') . ' ' . ($v->description ?? ''));
+                $text = strtolower(($v->voucher_name ?? '') . ' ' . ($partner ?? '') . ' ' . ($v->description ?? '') . ' ' . ($v->terms_and_conditions ?? ''));
                 if (str_contains($text, 'surf') || str_contains($text, 'activity') || str_contains($text, 'tour') || str_contains($text, 'hike') || str_contains($text, 'rental') || str_contains($text, 'lesson')) {
                     $category = 'Activities';
                 } elseif (str_contains($text, 'hotel') || str_contains($text, 'resort') || str_contains($text, 'stay') || str_contains($text, 'room') || str_contains($text, 'inn') || str_contains($text, 'villa')) {
@@ -44,8 +83,11 @@ class VoucherController extends Controller
                 }
 
                 $badge = 'PROMO';
-                if ($v->discount_value) {
-                    $badge = $v->discount_type === 'percentage' ? $v->discount_value . '% OFF' : '₱' . $v->discount_value . ' OFF';
+                if ($v->discount_value !== null && $v->discount_value > 0) {
+                    $val = (float) $v->discount_value == (int) $v->discount_value ? (int) $v->discount_value : $v->discount_value;
+                    $badge = (str_contains(strtolower($v->discount_type ?? ''), 'percent')) ? "{$val}% OFF" : "₱{$val} OFF";
+                } elseif (!empty($v->discount_type) && str_starts_with(strtolower($v->discount_type), 'custom:')) {
+                    $badge = strtoupper(trim(substr($v->discount_type, 7)));
                 }
 
                 // Resolve image to Cloudflare R2 URL
@@ -58,9 +100,9 @@ class VoucherController extends Controller
                         $imageUrl = $r2PublicUrl . '/' . ltrim($v->image, '/');
                     }
                 } else {
-                    $muniName = $v->municipality ? $v->municipality->name : null;
+                    $muniName = $muni ? $muni->name : null;
                     if (!$muniName) {
-                        $partnerLower = strtolower($v->partner_establishment ?? '');
+                        $partnerLower = strtolower($partner ?? '');
                         $muniList = ['san fernando', 'san gabriel', 'san juan', 'santo tomas', 'agoo', 'aringay', 'bacnotan', 'bagulin', 'balaoan', 'bangar', 'bauang', 'burgos', 'caba', 'luna', 'naguilian', 'pugo', 'rosario', 'santol', 'sudipen', 'tubao'];
                         foreach ($muniList as $m) {
                             if (str_contains($partnerLower, $m)) {
@@ -78,22 +120,28 @@ class VoucherController extends Controller
                 }
 
                 $isExpired = $v->expires_at ? $v->expires_at->isPast() : false;
+                $isUpcoming = $v->valid_from ? $v->valid_from->isFuture() : false;
+                $computedStatus = $isExpired ? 'expired' : ($isUpcoming ? 'upcoming' : 'active');
 
                 return [
                     'id' => $v->id,
                     'title' => $v->voucher_name,
                     'category' => $category,
-                    'partner' => $v->partner_establishment ?: ($v->municipality ? $v->municipality->name . ' Tourism' : 'LUPTO Tourism'),
-                    'location' => $v->municipality ? $v->municipality->name . ', La Union' : 'San Juan, La Union',
+                    'partner' => $partner,
+                    'location' => $location,
                     'badge' => $badge,
                     'xpCost' => (int) ($v->required_points ?: 100),
                     'pointsCost' => (int) ($v->required_points ?: 100),
                     'points' => (int) ($v->required_points ?: 100),
                     'required_points' => (int) ($v->required_points ?: 100),
                     'code' => $v->voucher_code,
-                    'expires' => $v->expires_at ? $v->expires_at->toIso8601String() : '2026-12-31T23:59:59Z',
-                    'expires_formatted' => $v->expires_at ? $v->expires_at->format('M d, Y') : 'Dec 31, 2026',
+                    'valid_from' => $v->valid_from ? $v->valid_from->toIso8601String() : null,
+                    'valid_from_formatted' => $v->valid_from ? $v->valid_from->format('M d, Y') : null,
+                    'expires' => $v->expires_at ? $v->expires_at->toIso8601String() : '2027-12-31T23:59:59Z',
+                    'expires_formatted' => $v->expires_at ? $v->expires_at->format('M d, Y') : 'Dec 31, 2027',
                     'is_expired' => $isExpired,
+                    'is_upcoming' => $isUpcoming,
+                    'status' => $computedStatus,
                     'description' => $v->description ?: $v->terms_and_conditions ?: 'Present voucher code at merchant checkout.',
                     'image' => $imageUrl,
                     'available_quantity' => $v->available_quantity,
@@ -132,8 +180,24 @@ class VoucherController extends Controller
             }
 
             $voucher = Voucher::find($request->voucher_id);
-            if (!$voucher || $voucher->status !== 'active') {
+            if (!$voucher) {
+                return response()->json(['status' => 'error', 'message' => 'Voucher not found.'], 404);
+            }
+
+            // Auto-activate if valid_from has arrived or is null
+            if (strtolower($voucher->status ?? '') === 'upcoming' && ($voucher->valid_from === null || $voucher->valid_from->isPast())) {
+                $voucher->status = 'active';
+                $voucher->save();
+            }
+
+            $statusLower = strtolower($voucher->status ?? 'active');
+            if (in_array($statusLower, ['inactive', 'disabled', 'archived'])) {
                 return response()->json(['status' => 'error', 'message' => 'Voucher is inactive or unavailable.'], 404);
+            }
+
+            if ($voucher->valid_from && $voucher->valid_from->isFuture()) {
+                $timeStr = $voucher->valid_from->format('M d, Y g:i A');
+                return response()->json(['status' => 'error', 'message' => "This voucher is upcoming and will be available on {$timeStr}."], 400);
             }
 
             if ($voucher->expires_at && $voucher->expires_at->isPast()) {

@@ -635,14 +635,26 @@ $activeTab = 'profile';
         if (costText) costText.textContent = `${voucher.pointsCost || voucher.required_points || 100} Points`;
 
         if (redeemBtn) {
-            redeemBtn.onclick = function() {
-                window.closeRewardDetailsModal();
-                if (typeof voucher.id === 'string' && voucher.id.includes('_')) {
-                    redeemReward(voucher.id, voucher.pointsCost);
-                } else {
-                    window.redeemAdminVoucher(voucher.id, voucher.pointsCost, voucher.title);
-                }
-            };
+            if (voucher.is_upcoming) {
+                redeemBtn.disabled = true;
+                redeemBtn.style.cursor = 'not-allowed';
+                redeemBtn.style.opacity = '0.7';
+                redeemBtn.textContent = `Starts on ${voucher.valid_from_formatted || 'Soon'}`;
+                redeemBtn.onclick = null;
+            } else {
+                redeemBtn.disabled = false;
+                redeemBtn.style.cursor = 'pointer';
+                redeemBtn.style.opacity = '1';
+                redeemBtn.textContent = `Redeem for ${voucher.pointsCost || voucher.required_points || 100} Points`;
+                redeemBtn.onclick = function() {
+                    window.closeRewardDetailsModal();
+                    if (typeof voucher.id === 'string' && voucher.id.includes('_')) {
+                        redeemReward(voucher.id, voucher.pointsCost);
+                    } else {
+                        window.redeemAdminVoucher(voucher.id, voucher.pointsCost, voucher.title);
+                    }
+                };
+            }
         }
 
         modal.style.display = 'flex';

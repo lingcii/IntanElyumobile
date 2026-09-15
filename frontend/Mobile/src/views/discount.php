@@ -30,6 +30,7 @@ $backRoute = 'dashboard';
         <button class="discount-cat-btn" onclick="filterDiscounts('Activities')">Activities & Surf</button>
         <button class="discount-cat-btn" onclick="filterDiscounts('Accommodations')">Accommodations</button>
         <button class="discount-cat-btn" onclick="filterDiscounts('Souvenirs')">Gear & Passes</button>
+        <button class="discount-cat-btn" onclick="filterDiscounts('Upcoming')">Upcoming</button>
     </div>
 
     <!-- Discounts Grid -->
@@ -199,24 +200,51 @@ function getVoucherImageUrl(v) {
 let activeCategory = 'All';
 let vouchersData = [];
 
-function getExpiryInfo(dateStr, isExpiredExplicit) {
+function getExpiryInfo(dateStr, isExpiredExplicit, isUpcomingExplicit, validFromStr, validFromFormatted) {
     if (isExpiredExplicit === true) {
         return {
             label: 'Expired',
             color: '#dc2626',
             bgColor: '#fef2f2',
             isExpired: true,
+            isUpcoming: false,
             days: 0
         };
     }
     const now = new Date();
+
+    // Check if upcoming
+    let isUpcoming = isUpcomingExplicit === true;
+    if (validFromStr) {
+        let validFrom;
+        if (validFromStr.includes('T') || validFromStr.includes(' ')) {
+            validFrom = new Date(validFromStr.replace(' ', 'T'));
+        } else {
+            validFrom = new Date(validFromStr + 'T00:00:00');
+        }
+        if (validFrom > now) {
+            isUpcoming = true;
+        }
+    }
+
+    if (isUpcoming) {
+        return {
+            label: validFromFormatted ? `Starts ${validFromFormatted}` : 'Starts Soon',
+            color: '#0284c7',
+            bgColor: '#e0f2fe',
+            isExpired: false,
+            isUpcoming: true,
+            days: 0
+        };
+    }
+
     let expiry;
     if (dateStr && (dateStr.includes('T') || dateStr.includes(' '))) {
         expiry = new Date(dateStr.replace(' ', 'T'));
     } else if (dateStr) {
         expiry = new Date(dateStr + 'T23:59:59');
     } else {
-        expiry = new Date('2026-12-31T23:59:59');
+        expiry = new Date('2027-12-31T23:59:59');
     }
 
     const diff = expiry - now;
@@ -242,7 +270,7 @@ function getExpiryInfo(dateStr, isExpiredExplicit) {
         color = '#059669';
         bgColor = '#ecfdf5';
     }
-    return { label, color, bgColor, isExpired, days };
+    return { label, color, bgColor, isExpired, isUpcoming: false, days };
 }
 
 let currentVoucherId = null;
@@ -329,6 +357,8 @@ function renderDiscounts() {
 
     if (activeCategory === 'Claimed') {
         filtered = vouchersData.filter(v => claimed.includes(v.id));
+    } else if (activeCategory === 'Upcoming') {
+        filtered = vouchersData.filter(v => v.is_upcoming && !v.is_expired);
     } else if (activeCategory === 'All') {
         filtered = vouchersData;
     } else {
@@ -336,9 +366,12 @@ function renderDiscounts() {
     }
 
     if (filtered.length === 0) {
-        const msg = activeCategory === 'Claimed' 
-            ? 'You have not claimed any vouchers yet. Redeem vouchers using Points to save them here!' 
-            : 'No vouchers available in this category.';
+        let msg = 'No vouchers available in this category.';
+        if (activeCategory === 'Claimed') {
+            msg = 'You have not claimed any vouchers yet. Redeem vouchers using Points to save them here!';
+        } else if (activeCategory === 'Upcoming') {
+            msg = 'No upcoming promotions scheduled right now. Check back soon for new discounts!';
+        }
         grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #ffffff; padding: 36px 20px; font-size: 13px; font-weight:600; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); border: none !important; outline: none !important; border-radius: 20px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28);">${msg}</div>`;
         return;
     }
@@ -347,8 +380,37 @@ function renderDiscounts() {
     filtered.forEach(v => {
         const isClaimed = claimed.includes(v.id);
         const imgUrl = getVoucherImageUrl(v);
-        const expiryInfo = getExpiryInfo(v.expires, v.is_expired);
+        const expiryInfo = getExpiryInfo(v.expires, v.is_expired, v.is_upcoming, v.valid_from, v.valid_from_formatted);
         const isCardExpired = v.is_expired || expiryInfo.isExpired;
+        const isCardUpcoming = !isCardExpired && (v.is_upcoming || expiryInfo.isUpcoming);
+
+        let actionBtnHtml = '';
+        if (isCardExpired) {
+            actionBtnHtml = `
+                <button disabled style="background: rgba(255, 255, 255, 0.2) !important; border: none !important; outline: none !important; color: rgba(255, 255, 255, 0.6) !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: not-allowed; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;">
+                    <i class="fa-solid fa-lock" style="margin-right:4px;"></i> Expired
+                </button>
+            `;
+        } else if (isClaimed) {
+            actionBtnHtml = `
+                <button onclick="openVoucherModal('${v.id}')" style="background: rgba(34, 197, 94, 0.25) !important; border: none !important; outline: none !important; color: #4ade80 !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;">
+                    <i class="fa-solid fa-check" style="margin-right:4px;"></i> Claimed
+                </button>
+            `;
+        } else if (isCardUpcoming) {
+            actionBtnHtml = `
+                <button onclick="openVoucherModal('${v.id}')" style="background: rgba(255, 255, 255, 0.22) !important; border: 1px solid rgba(255,255,255,0.4) !important; outline: none !important; color: #ffffff !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;">
+                    <i class="fa-regular fa-clock" style="margin-right:4px;"></i> Starts Soon
+                </button>
+            `;
+        } else {
+            actionBtnHtml = `
+                <button onclick="openVoucherModal('${v.id}')" style="background: #ffffff !important; border: none !important; outline: none !important; color: #203f8d !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;">
+                    Redeem Voucher
+                </button>
+            `;
+        }
+
         html += `
         <div class="voucher-card">
             <div>
@@ -363,7 +425,7 @@ function renderDiscounts() {
                     <i class="fa-solid fa-store" style="font-size: 10px; margin-right: 4px; color: #38bdf8;"></i>${v.partner}
                 </p>
                 <div style="display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.18); padding: 3px 8px; border-radius: 6px; margin-bottom: 10px; border: none !important; outline: none !important;">
-                    <i class="fa-regular fa-clock" style="font-size: 9px; color: #ffffff;"></i>
+                    <i class="fa-regular ${isCardUpcoming ? 'fa-calendar-check' : 'fa-clock'}" style="font-size: 9px; color: #ffffff;"></i>
                     <span style="font-size: 10px; font-weight: 700; color: #ffffff;">${expiryInfo.label}</span>
                 </div>
                 <p style="margin: 0 0 16px; font-size: 12px; color: rgba(255, 255, 255, 0.9); line-height: 1.4;">${v.description}</p>
@@ -374,9 +436,7 @@ function renderDiscounts() {
                     <i class="fa-solid fa-coins" style="color: #fbbf24; font-size: 13px;"></i>
                     <span style="font-size: 14px; font-weight: 800; color: #ffffff;">${v.pointsCost || v.required_points || 100} <span style="font-size: 10.5px; color: rgba(255, 255, 255, 0.8); font-weight: 600;">Points</span></span>
                 </div>
-                <button onclick="${isCardExpired ? '' : 'openVoucherModal(\'' + v.id + '\')'}" ${isCardExpired ? 'disabled' : ''} style="background: ${isCardExpired ? 'rgba(255, 255, 255, 0.2)' : (isClaimed ? 'rgba(34, 197, 94, 0.25)' : '#ffffff')} !important; border: none !important; outline: none !important; color: ${isCardExpired ? 'rgba(255, 255, 255, 0.6)' : (isClaimed ? '#4ade80' : '#203f8d')} !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: ${isCardExpired ? 'not-allowed' : 'pointer'}; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important; opacity: 1;">
-                    ${isCardExpired ? '<i class="fa-solid fa-lock" style="margin-right:4px;"></i> Expired' : (isClaimed ? '<i class="fa-solid fa-check" style="margin-right:4px;"></i> Claimed' : 'Redeem Voucher')}
-                </button>
+                ${actionBtnHtml}
             </div>
         </div>`;
     });
@@ -396,8 +456,10 @@ function openVoucherModal(id) {
     document.getElementById('modal-code').textContent = item.code;
 
     // Update expiry badge in modal
-    const expiryInfo = getExpiryInfo(item.expires, item.is_expired);
+    const expiryInfo = getExpiryInfo(item.expires, item.is_expired, item.is_upcoming, item.valid_from, item.valid_from_formatted);
     const isExpired = item.is_expired || expiryInfo.isExpired;
+    const isUpcoming = !isExpired && (item.is_upcoming || expiryInfo.isUpcoming);
+
     const expiryBadge = document.getElementById('modal-expiry-badge');
     const expiryText = document.getElementById('modal-expiry-text');
     if (expiryBadge) {
@@ -438,6 +500,15 @@ function openVoucherModal(id) {
             redeemBtn.style.color = '#94a3b8';
             redeemBtn.style.border = '1.5px solid #cbd5e1';
             if (redeemLabel) redeemLabel.innerHTML = '<i class="fa-solid fa-lock"></i> Voucher Expired';
+        } else if (isUpcoming) {
+            redeemBtn.style.display = 'flex';
+            redeemBtn.disabled = true;
+            redeemBtn.style.cursor = 'not-allowed';
+            redeemBtn.style.opacity = '0.88';
+            redeemBtn.style.background = 'rgba(255,255,255,0.2)';
+            redeemBtn.style.color = '#ffffff';
+            redeemBtn.style.border = '1.5px solid rgba(255,255,255,0.35)';
+            if (redeemLabel) redeemLabel.innerHTML = `<i class="fa-regular fa-clock"></i> Starts on ${item.valid_from_formatted || 'Soon'}`;
         } else {
             redeemBtn.style.display = 'flex';
             redeemBtn.disabled = false;
@@ -518,10 +589,17 @@ async function handleModalRedeem() {
     const item = vouchersData.find(v => v.id === currentVoucherId);
     if (!item) return;
 
-    const expiryInfo = getExpiryInfo(item.expires, item.is_expired);
+    const expiryInfo = getExpiryInfo(item.expires, item.is_expired, item.is_upcoming, item.valid_from, item.valid_from_formatted);
     if (item.is_expired || expiryInfo.isExpired) {
         if (typeof showToast === 'function') {
             showToast("This voucher has expired and can no longer be redeemed.");
+        }
+        return;
+    }
+
+    if (item.is_upcoming || expiryInfo.isUpcoming) {
+        if (typeof showToast === 'function') {
+            showToast(`This voucher is upcoming and will unlock on ${item.valid_from_formatted || 'its start date'}.`);
         }
         return;
     }
@@ -661,9 +739,14 @@ async function fetchLiveDatabaseVouchers() {
                         icon: icon,
                         color: '#38bdf8',
                         code: v.code || 'ELYU-PROMO',
-                        expires: v.expires || '2026-12-31',
+                        image: v.image || null,
+                        valid_from: v.valid_from || null,
+                        valid_from_formatted: v.valid_from_formatted || null,
+                        expires: v.expires || '2027-12-31',
                         expires_formatted: v.expires_formatted || null,
                         is_expired: (v.is_expired !== undefined) ? v.is_expired : false,
+                        is_upcoming: (v.is_upcoming !== undefined) ? v.is_upcoming : false,
+                        status: v.status || 'active',
                         description: v.description || 'Present voucher code at merchant checkout.'
                     };
                 });
