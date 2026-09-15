@@ -15,6 +15,11 @@
         -ms-overflow-style: none;
         scrollbar-width: none;
     }
+    @keyframes markerPulse {
+        0% { transform: scale(0.6); opacity: 0.9; }
+        50% { transform: scale(1.3); opacity: 0.4; }
+        100% { transform: scale(2.0); opacity: 0; }
+    }
 </style>
 <?php
 $pageTitle = "Trip Route";
@@ -756,9 +761,11 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             bounds.extend([window.myLng, window.myLat]);
             
             const gpsEl = document.createElement('div');
+            gpsEl.className = 'user-gps-tracking-marker';
             gpsEl.innerHTML = `
-                <div style="width: 32px; height: 32px; background-color: #FFFFFF; border: 2.5px solid #0284c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #0284c7; box-shadow: 0 4px 12px rgba(2,132,199,0.35);">
-                    <i class="fa-solid fa-location-crosshairs" style="font-size:14px;"></i>
+                <div style="position:relative; width:24px; height:24px; display:flex; align-items:center; justify-content:center;">
+                    <div style="position:absolute; width:40px; height:40px; border-radius:50%; background:rgba(56,189,248,0.38); animation:markerPulse 2s infinite ease-out; pointer-events:none;"></div>
+                    <div style="position:relative; background:#0284c7; width:20px; height:20px; border-radius:50%; border:2.5px solid #ffffff; box-shadow:0 2px 8px rgba(2,132,199,0.6); z-index:2;"></div>
                 </div>
             `;
             window.tripGpsMarker = new maplibregl.Marker({ element: gpsEl, anchor: 'center' })

@@ -1967,9 +1967,9 @@ if (is_dir($imgDir)) {
                         const el = document.createElement('div');
                         el.className = 'user-gps-tracking-marker';
                         el.innerHTML = `
-                        <div style="position:relative; width:22px; height:22px; display:flex; align-items:center; justify-content:center;">
-                            <div style="position:absolute; width:36px; height:36px; border-radius:50%; background:rgba(56,189,248,0.35); animation:pulse 2s infinite;"></div>
-                            <div style="position:relative; background:#0284c7; width:20px; height:20px; border-radius:50%; border:3px solid #ffffff; box-shadow:0 0 12px rgba(2,132,199,0.8); z-index:2;"></div>
+                        <div style="position:relative; width:24px; height:24px; display:flex; align-items:center; justify-content:center;">
+                            <div style="position:absolute; width:40px; height:40px; border-radius:50%; background:rgba(56,189,248,0.38); animation:pulse 2s infinite ease-out; pointer-events:none;"></div>
+                            <div style="position:relative; background:#0284c7; width:20px; height:20px; border-radius:50%; border:2.5px solid #ffffff; box-shadow:0 2px 8px rgba(2,132,199,0.6); z-index:2;"></div>
                         </div>
                     `;
                         window.userMarker = new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).addTo(window.mapInstance);

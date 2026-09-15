@@ -1669,9 +1669,12 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             }
         };
 
-        // Real-time dynamic GPS listener
+        // Real-time dynamic GPS listener (Singleton listener to prevent duplicates)
         let _gpsUpdateTimeout = null;
-        document.addEventListener('gpsUpdated', function (e) {
+        if (window._itineraryGpsHandler) {
+            document.removeEventListener('gpsUpdated', window._itineraryGpsHandler);
+        }
+        window._itineraryGpsHandler = function (e) {
             const lat = e.detail.lat;
             const lng = e.detail.lng;
             window.myLat = lat;
@@ -1703,13 +1706,18 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     // Smoothly animate the marker to the new physical coordinate
                     window.myDraftMarker.setLatLng([lat, lng]);
                 } else {
-                    // Dynamically create and inject the glowing GPS user marker
+                    // Ensure any old GPS markers are cleanly removed
+                    draftMap.eachLayer(layer => {
+                        if (layer._isUserGps) {
+                            try { draftMap.removeLayer(layer); } catch (err) {}
+                        }
+                    });
+
+                    // Dynamically create and inject the clean blue GPS location dot
                     const myIconHtml = `
                     <div class="gps-user-marker-icon">
                         <div class="gps-user-marker-wave"></div>
-                        <div class="gps-user-marker-inner">
-                            <i class="fa-solid fa-location-crosshairs" style="font-size:14px;"></i>
-                        </div>
+                        <div class="gps-user-marker-inner"></div>
                     </div>
                 `;
                     const myIcon = L.divIcon({
@@ -1721,6 +1729,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     window.myDraftMarker = L.marker([lat, lng], { icon: myIcon, zIndexOffset: 1000 })
                         .addTo(draftMap)
                         .bindPopup('<b>📍 Your Current Location</b><br><span style="font-size:11px;color:#64748b;">Starting Point of Itinerary</span>');
+                    window.myDraftMarker._isUserGps = true;
                     if (typeof draftMarkers !== 'undefined') draftMarkers.push(window.myDraftMarker);
                 }
 
@@ -1731,7 +1740,8 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     if (window.initDraftMap) window.initDraftMap(currentDraft, false);
                 }, 2000);
             }
-        });
+        };
+        document.addEventListener('gpsUpdated', window._itineraryGpsHandler);
 
         window.routeToPlace = function (id) {
             const mapContainer = document.getElementById('draft-map-wrapper');
@@ -2460,26 +2470,28 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 });
             });
 
-            // clear old markers and routes
-            draftMarkers.forEach(m => draftMap.removeLayer(m));
-            if (draftRouteLineBg) draftMap.removeLayer(draftRouteLineBg);
-            if (draftRouteLine) draftMap.removeLayer(draftRouteLine);
-            if (window.myDraftMarker && draftMap) draftMap.removeLayer(window.myDraftMarker);
+            // Clear ALL previous markers, overlays, and routes from draftMap (leaving only base tiles)
+            if (draftMap) {
+                draftMap.eachLayer(layer => {
+                    if (!(layer instanceof L.TileLayer)) {
+                        try { draftMap.removeLayer(layer); } catch (e) {}
+                    }
+                });
+            }
+            draftRouteLineBg = null;
+            draftRouteLine = null;
             window.myDraftMarker = null;
             draftMarkers = [];
 
             let latlngs = [];
 
-            // Add a global 'My Location' indicator.
-            // We strictly rely on real-time GPS locks.
+            // Add single GPS Location indicator
             if (window.myLat && window.myLng) {
                 latlngs.push([window.myLat, window.myLng]);
                 const myIconHtml = `
                 <div class="gps-user-marker-icon">
                     <div class="gps-user-marker-wave"></div>
-                    <div class="gps-user-marker-inner">
-                        <i class="fa-solid fa-location-crosshairs" style="font-size:14px;"></i>
-                    </div>
+                    <div class="gps-user-marker-inner"></div>
                 </div>
             `;
                 const myIcon = L.divIcon({
@@ -2491,6 +2503,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 window.myDraftMarker = L.marker([window.myLat, window.myLng], { icon: myIcon, zIndexOffset: 1000 })
                     .addTo(draftMap)
                     .bindPopup('<b>📍 Your Current Location</b><br><span style="font-size:11px;color:#64748b;">Starting Point of Itinerary</span>');
+                window.myDraftMarker._isUserGps = true;
                 draftMarkers.push(window.myDraftMarker);
             }
 

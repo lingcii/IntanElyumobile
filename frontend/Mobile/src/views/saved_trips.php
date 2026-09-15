@@ -999,6 +999,8 @@ body[data-view="saved_trips"],
         if (typeof window.openWriteTestimonyModal === 'function') {
             window.openWriteTestimonyModal(spotId, btnEl);
         }
+    };
+
     window.editSavedTrip = function(tripId) {
         const trip = (window._cachedSavedTrips || []).find(t => String(t.id) === String(tripId));
         if (!trip) return;
