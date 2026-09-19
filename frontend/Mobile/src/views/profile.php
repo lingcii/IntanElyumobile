@@ -7,7 +7,7 @@ $activeTab = 'profile';
 <?php include __DIR__ . '/../components/header.php'; ?>
 <?php include __DIR__ . '/../components/testimony_modal.php'; ?>
 
-<div class="profile-container has-header has-bottom-nav animate-slide-up" style="padding-bottom: 90px;">
+<div class="profile-container has-header has-bottom-nav animate-slide-up">
     
     <!-- Profile Main Header Card -->
     <div class="profile-header stagger-1" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; border-radius: 24px; padding: 24px 20px; text-align: center; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25); margin-bottom: 20px;">

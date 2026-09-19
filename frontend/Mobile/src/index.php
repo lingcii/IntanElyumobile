@@ -257,38 +257,52 @@ if ($isAjax) {
             }
             ?>
         </main>
-
-        <?php
-        $noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual'];
-        $navHiddenClass = in_array($view, $noNavViews) ? 'nav-hidden' : '';
-        ?>
-        <div id="bottom-navigation" class="<?= $navHiddenClass ?>">
-            <?php include __DIR__ . '/components/bottom_nav.php'; ?>
-        </div>
-        <style>
-            #bottom-navigation {
-                transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s ease !important;
-                will-change: transform, opacity;
-            }
-
-            #bottom-navigation.nav-hidden {
-                opacity: 0;
-                pointer-events: none;
-                transform: translateY(20px);
-                visibility: hidden !important;
-            }
-
-            #bottom-navigation.keyboard-hidden,
-            body.keyboard-open #bottom-navigation,
-            html.keyboard-open #bottom-navigation,
-            body.map-search-active #bottom-navigation {
-                opacity: 0 !important;
-                pointer-events: none !important;
-                transform: translateY(140px) !important;
-                visibility: hidden !important;
-            }
-        </style>
     </div>
+
+    <?php
+    $noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual'];
+    $navHiddenClass = in_array($view, $noNavViews) ? 'nav-hidden' : '';
+    ?>
+    <!-- Bottom Navigation Bar (Locked to viewport bottom) -->
+    <div id="bottom-navigation" class="<?= $navHiddenClass ?>">
+        <?php include __DIR__ . '/components/bottom_nav.php'; ?>
+    </div>
+    <style>
+        #bottom-navigation {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            height: 0 !important;
+            overflow: visible !important;
+            z-index: 1000 !important;
+            pointer-events: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s ease !important;
+        }
+
+        #bottom-navigation.nav-hidden {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            transform: translateY(140px) !important;
+            visibility: hidden !important;
+        }
+
+        #bottom-navigation.keyboard-hidden,
+        body.keyboard-open #bottom-navigation,
+        html.keyboard-open #bottom-navigation,
+        body.map-search-active #bottom-navigation,
+        body.sheet-open #bottom-navigation,
+        html.sheet-open #bottom-navigation {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            transform: translateY(140px) !important;
+            visibility: hidden !important;
+        }
+    </style>
 </body>
 
 </html>
