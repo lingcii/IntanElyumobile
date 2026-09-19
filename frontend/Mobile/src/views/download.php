@@ -139,18 +139,28 @@ $apkSizeStr = file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 *
       color: #ffffff;
       position: relative;
       overflow: hidden;
+      padding-top: 76px; /* Offset for fixed locked navigation bar */
     }
 
-    /* Sticky Navigation Bar */
+    /* Locked Fixed Navigation Bar */
     .portal-nav {
-      position: sticky;
+      position: fixed;
       top: 0;
-      z-index: 999;
-      background: rgba(30, 58, 138, 0.92);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
-      transition: all 0.3s ease;
+      left: 0;
+      right: 0;
+      width: 100%;
+      z-index: 1000;
+      background: rgba(30, 58, 138, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .portal-nav.is-scrolled {
+      background: rgba(20, 39, 94, 0.98);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.32);
     }
 
     .nav-inner {
@@ -1297,33 +1307,34 @@ $apkSizeStr = file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 *
 <body>
 
   <!-- ─────────────────────────────────────────────────────────────────────────────
-       1. BLUE HEADER & HERO
+       1. LOCKED FIXED NAVIGATION BAR
+       ───────────────────────────────────────────────────────────────────────────── -->
+  <nav class="portal-nav">
+    <div class="nav-inner">
+      <a href="index.php?view=download" class="brand-group">
+        <div class="brand-logo-badge">
+          <img src="assets/img/logo.png" alt="Intan Elyu Logo">
+        </div>
+        <div class="brand-text-col">
+          <h1>Intan Elyu</h1>
+          <span>Province of La Union</span>
+        </div>
+      </a>
+
+      <div class="nav-links">
+        <a href="#about-elyu" class="nav-link">About La Union</a>
+        <a href="#municipalities" class="nav-link">Municipalities</a>
+        <a href="#tourist-spots" class="nav-link">Tourist Spots</a>
+        <a href="#discounts" class="nav-link">Discounts</a>
+        <a href="#points-mechanism" class="nav-link">Points System</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ─────────────────────────────────────────────────────────────────────────────
+       2. BLUE HEADER & HERO SECTION
        ───────────────────────────────────────────────────────────────────────────── -->
   <header class="portal-header-wrapper">
-    
-    <!-- Sticky Navigation Bar (No Login, No Get App) -->
-    <nav class="portal-nav">
-      <div class="nav-inner">
-        <a href="index.php?view=download" class="brand-group">
-          <div class="brand-logo-badge">
-            <img src="assets/img/logo.png" alt="Intan Elyu Logo">
-          </div>
-          <div class="brand-text-col">
-            <h1>Intan Elyu</h1>
-            <span>Province of La Union</span>
-          </div>
-        </a>
-
-        <div class="nav-links">
-          <a href="#about-elyu" class="nav-link">About La Union</a>
-          <a href="#municipalities" class="nav-link">Municipalities</a>
-          <a href="#tourist-spots" class="nav-link">Tourist Spots</a>
-          <a href="#discounts" class="nav-link">Discounts</a>
-          <a href="#points-mechanism" class="nav-link">Points System</a>
-        </div>
-      </div>
-    </nav>
-
     <!-- Hero Section with QR Code Directly in Hero -->
     <section class="portal-hero">
       <div class="hero-left-col">
@@ -2102,6 +2113,18 @@ $apkSizeStr = file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 *
       }
     });
 
+    // Dynamic Navbar Glassmorphism on Scroll
+    const portalNav = document.querySelector('.portal-nav');
+    if (portalNav) {
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 20) {
+          portalNav.classList.add('is-scrolled');
+        } else {
+          portalNav.classList.remove('is-scrolled');
+        }
+      }, { passive: true });
+    }
+
     // 2. Smooth Scroll for Navigation Anchors
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function(e) {
@@ -2110,7 +2133,7 @@ $apkSizeStr = file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 *
         const targetEl = document.querySelector(targetId);
         if (targetEl) {
           e.preventDefault();
-          const navOffset = 70;
+          const navOffset = 84;
           const elementPosition = targetEl.getBoundingClientRect().top;
           const offsetPosition = elementPosition + window.pageYOffset - navOffset;
 
