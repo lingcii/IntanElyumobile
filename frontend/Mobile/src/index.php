@@ -34,7 +34,13 @@ if (
 }
 
 // Extract view name safely - from $_GET['view'] or URI path (e.g. /download)
-$rawView = 'splash';
+// Detect if running inside the native Android APK vs regular web browser (Brave, Chrome, Safari, etc.)
+$isApk = (isset($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'IntanElyuAPK') !== false) || isset($_GET['app']);
+
+// Default view: If accessed via web browser or search engine crawler with no view specified,
+// default to 'download' (the official tourism portal website) so the site is rich, indexable, and searchable!
+// If running inside the native Android APK, default to 'splash'.
+$rawView = $isApk ? 'splash' : 'download';
 if (isset($_GET['view'])) {
     $rawView = $_GET['view'];
 } else {
@@ -124,10 +130,28 @@ if ($isAjax) {
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=overlays-content">
-    <title>Intan Elyu</title>
+    <title>Intan Elyu — Official Tourism Portal & Mobile App | Province of La Union</title>
+    <meta name="description" content="Official smart tourism mobile platform and portal of the Provincial Government of La Union (PGLU). Discover 20 municipalities, attractions, surf spots, discounts, travel fares, and download the Intan Elyu mobile app.">
+    <meta name="keywords" content="Intan Elyu, Intan Elyu mobile, Intan Elyu app, Intan Elyu download, Intan Elyu APK, La Union tourism, Elyu, San Juan surfing, PGLU, LUPTO, PICTO, Tangadan Falls, Balaoan Immuki Island, Luna Pebble Beach, Bauang grapes, La Union travel guide, mobile tourism app, Northern Luzon">
+    <meta name="author" content="Provincial Government of La Union (PGLU)">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow">
+    <meta name="bingbot" content="index, follow">
+    <link rel="canonical" href="https://app.intan-elyu.online/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Intan Elyu">
+    <meta property="og:url" content="https://app.intan-elyu.online/">
+    <meta property="og:title" content="Intan Elyu — Official Tourism Portal & Mobile App | Province of La Union">
+    <meta property="og:description" content="Discover, explore, and experience the whole of La Union with Intan Elyu. Plan itineraries, discover 20 municipalities, view tourist spots, discounts, and earn gamified rewards.">
+    <meta property="og:image" content="https://app.intan-elyu.online/assets/img/logo.png">
+    <meta property="og:locale" content="en_PH">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Intan Elyu — Official Tourism Portal & Mobile App | Province of La Union">
+    <meta name="twitter:description" content="Discover, explore, and experience the whole of La Union with Intan Elyu. Plan itineraries, discover 20 municipalities, view tourist spots, discounts, and earn gamified rewards.">
+    <meta name="twitter:image" content="https://app.intan-elyu.online/assets/img/logo.png">
     <link rel="icon" type="image/png" href="assets/img/logo.png">
     <link rel="apple-touch-icon" href="assets/img/logo.png">
-    <meta name="theme-color" content="#0a0a0e">
+    <meta name="theme-color" content="#1e3a8a">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">

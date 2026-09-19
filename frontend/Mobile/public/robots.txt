@@ -1,0 +1,35 @@
+# Robots.txt for Intan Elyu - Official Tourism Portal & Mobile App
+# Provincial Government of La Union (PGLU)
+
+User-agent: *
+Allow: /
+Allow: /index.php?view=download
+Allow: /download
+Allow: /assets/
+
+# Welcome Brave Search Crawler
+User-agent: Bravebot
+Allow: /
+
+# Googlebot
+User-agent: Googlebot
+Allow: /
+
+# Bingbot
+User-agent: Bingbot
+Allow: /
+
+# Applebot
+User-agent: Applebot
+Allow: /
+
+# DuckDuckBot
+User-agent: DuckDuckBot
+Allow: /
+
+# Disallow internal backend and sensitive folders from indexing
+Disallow: /api/
+Disallow: /backend/
+Disallow: /storage/proofs/
+
+Sitemap: https://app.intan-elyu.online/sitemap.xml

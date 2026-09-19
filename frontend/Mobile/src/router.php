@@ -66,6 +66,8 @@ if (file_exists($localStaticFile) && is_file($localStaticFile)) {
         'ttf' => 'font/ttf',
         'ico' => 'image/x-icon',
         'html' => 'text/html; charset=utf-8',
+        'txt' => 'text/plain; charset=utf-8',
+        'xml' => 'application/xml; charset=utf-8',
     ];
     if ($ext !== 'php' && isset($staticMimeMap[$ext])) {
         header('Content-Type: ' . $staticMimeMap[$ext]);

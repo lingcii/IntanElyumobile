@@ -11,8 +11,77 @@ $apkSizeStr = file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 *
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Intan Elyu — Official Tourism Portal of La Union</title>
-  <meta name="description" content="Discover, explore, and experience the whole of La Union with Intan Elyu. Plan itineraries, discover 20 municipalities, view tourist spots, discounts, and earn gamified rewards.">
+  <title>Intan Elyu — Official Tourism Portal & Mobile App | Province of La Union</title>
+  <meta name="description" content="Official smart tourism mobile platform and portal of the Provincial Government of La Union (PGLU). Discover 20 municipalities, attractions, surf spots, discounts, travel fares, and download the Intan Elyu mobile app.">
+  <meta name="keywords" content="Intan Elyu, Intan Elyu mobile, Intan Elyu app, Intan Elyu download, Intan Elyu APK, La Union tourism, Elyu, San Juan surfing, PGLU, LUPTO, PICTO, Tangadan Falls, Balaoan Immuki Island, Luna Pebble Beach, Bauang grapes, La Union travel guide, mobile tourism app, Northern Luzon">
+  <meta name="author" content="Provincial Government of La Union (PGLU)">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="googlebot" content="index, follow">
+  <meta name="bingbot" content="index, follow">
+  <link rel="canonical" href="https://app.intan-elyu.online/">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1e3a8a">
+  
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Intan Elyu">
+  <meta property="og:url" content="https://app.intan-elyu.online/">
+  <meta property="og:title" content="Intan Elyu — Official Tourism Portal & Mobile App | Province of La Union">
+  <meta property="og:description" content="Discover, explore, and experience the whole of La Union with Intan Elyu. Plan itineraries, discover 20 municipalities, view tourist spots, discounts, and earn gamified rewards.">
+  <meta property="og:image" content="https://app.intan-elyu.online/assets/img/logo.png">
+  <meta property="og:locale" content="en_PH">
+  
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Intan Elyu — Official Tourism Portal & Mobile App | Province of La Union">
+  <meta name="twitter:description" content="Discover, explore, and experience the whole of La Union with Intan Elyu. Plan itineraries, discover 20 municipalities, view tourist spots, discounts, and earn gamified rewards.">
+  <meta name="twitter:image" content="https://app.intan-elyu.online/assets/img/logo.png">
+  
+  <!-- Schema.org JSON-LD Structured Data for Search Engines (Brave, Google, Bing) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "name": "Intan Elyu",
+        "alternateName": "Intan Elyu Mobile App",
+        "operatingSystem": "Android 8.0+",
+        "applicationCategory": "TravelApplication",
+        "description": "The Official Smart Tourism Mobile Application for the Provincial Government of La Union (PGLU). Features 20 municipalities, curated tourist attractions, public transport fares, offline maps, and merchant discount vouchers.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "PHP"
+        },
+        "downloadUrl": "https://app.intan-elyu.online/index.php?action=download_apk",
+        "publisher": {
+          "@type": "GovernmentOrganization",
+          "name": "Provincial Government of La Union (PGLU)",
+          "url": "https://launion.gov.ph"
+        }
+      },
+      {
+        "@type": "WebSite",
+        "name": "Intan Elyu — Official Tourism Portal of La Union",
+        "url": "https://app.intan-elyu.online/",
+        "description": "Official tourism portal of La Union featuring 20 municipalities, classified tourist spots, travel discounts, and points rewards.",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://app.intan-elyu.online/index.php?view=download&q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "TouristDestination",
+        "name": "Province of La Union",
+        "alternateName": "Elyu",
+        "description": "Premier surfing, cultural heritage, and eco-tourism province in Northern Luzon, Philippines."
+      }
+    ]
+  }
+  </script>
+
   <link rel="icon" type="image/png" href="assets/img/logo.png">
   <link rel="apple-touch-icon" href="assets/img/logo.png">
   
@@ -1966,8 +2035,8 @@ $apkSizeStr = file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 *
       const cards = document.querySelectorAll('#municipalities-grid .muni-card');
       cards.forEach(card => {
         const cardDistrict = card.getAttribute('data-district');
-        const cardName = (card.getAttribute('data-name') || '').toLowerCase();
-        const textMatch = !searchVal || cardName.includes(searchVal);
+        const cardText = (card.textContent || card.innerText || '').toLowerCase();
+        const textMatch = !searchVal || cardText.includes(searchVal);
         const districtMatch = currentDistrict === 'all' || cardDistrict === currentDistrict;
 
         if (textMatch && districtMatch) {
@@ -1976,6 +2045,14 @@ $apkSizeStr = file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 *
           card.style.display = 'none';
         }
       });
+    }
+
+    // Auto-search from URL query parameter (e.g. from search engines ?q=... or ?search=...)
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryParam = urlParams.get('q') || urlParams.get('search');
+    if (queryParam && searchInput) {
+      searchInput.value = queryParam;
+      filterMunicipalities();
     }
 
     // 4. Fallback Dynamic QR Code Generator for Current Domain
