@@ -13,6 +13,12 @@
   <link rel="canonical" href="https://app.intan-elyu.online/?view=download">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1e3a8a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Intan Elyu">
+  <meta name="application-name" content="Intan Elyu">
+  <meta name="format-detection" content="telephone=no">
   
   <!-- Open Graph / Social Sharing -->
   <meta property="og:type" content="website">
@@ -1186,6 +1192,98 @@
       .steps-grid { grid-template-columns: 1fr; }
       .hero-stats-strip { flex-direction: column; gap: 14px; }
     }
+
+    /* Sticky Mobile Download Dock (Visible only on phones) */
+    .mobile-sticky-dock {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(30, 58, 138, 0.96);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      padding: 10px 18px;
+      z-index: 998;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    @media (max-width: 768px) {
+      .mobile-sticky-dock {
+        display: flex;
+      }
+      body {
+        padding-bottom: 68px;
+      }
+    }
+
+    .dock-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #ffffff;
+      text-decoration: none;
+      min-width: 0;
+    }
+
+    .dock-logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 2px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .dock-text {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .dock-title {
+      font-size: 13.5px;
+      font-weight: 800;
+      line-height: 1.2;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .dock-sub {
+      font-size: 11px;
+      color: #93c5fd;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .btn-dock-dl {
+      background: #38bdf8;
+      color: #0f172a;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 8px 18px;
+      border-radius: 100px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.4);
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .btn-dock-dl:hover {
+      background: #0ea5e9;
+      color: #ffffff;
+    }
   </style>
 </head>
 <body>
@@ -1267,7 +1365,7 @@
           </div>
           <div class="hero-qr-title">Scan or Tap to Download</div>
           <p class="hero-qr-caption">
-            Point your phone's camera at the QR code above or tap the button below to install on Android.
+            Scan with another device's camera, or tap the button below to download directly to this phone.
           </p>
           <a href="index.php?action=download_apk" download="intan-elyu.apk" class="btn-hero-dl">
             <i class="fa-brands fa-android"></i> Download APK (~111.6 MB)
@@ -1955,6 +2053,20 @@
       </div>
     </div>
   </footer>
+
+  <!-- Sticky Download Bar for Mobile Viewers -->
+  <div class="mobile-sticky-dock" id="mobileDock">
+    <a href="#about-elyu" class="dock-brand">
+      <img src="assets/img/logo.png" alt="Intan Elyu" class="dock-logo">
+      <div class="dock-text">
+        <span class="dock-title">Intan Elyu App</span>
+        <span class="dock-sub">Official Tourism App</span>
+      </div>
+    </a>
+    <a href="index.php?action=download_apk" download="intan-elyu.apk" class="btn-dock-dl">
+      <i class="fa-brands fa-android"></i> Download APK
+    </a>
+  </div>
 
   <!-- ─────────────────────────────────────────────────────────────────────────────
        4. INTERACTIVE JAVASCRIPT
