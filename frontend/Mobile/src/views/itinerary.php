@@ -618,9 +618,9 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             <!-- Smooth Sliding Pill Indicator with zero-twitch 3D transform -->
             <div id="transport-toggle-pill"
                 style="position:absolute; top:4px; bottom:4px; left:4px; width:calc(50% - 4px); background:#ffffff; border-radius:10px; will-change:transform; transform:translate3d(0,0,0); -webkit-transform:translate3d(0,0,0); transition:transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important; pointer-events:none; z-index:1; border:none !important; outline:none !important; box-shadow:none !important; -webkit-backface-visibility:hidden; backface-visibility:hidden;"></div>
-            <button type="button" class="btn-transport-toggle active" id="btn-trans-public" onclick="window.setTransportType('public')"
+            <button type="button" class="btn-transport-toggle active" id="btn-trans-public" onclick="window.setTransportType('public', true)"
                 style="position:relative; z-index:2; height:36px; line-height:36px; padding:0; border-radius:10px; border:none !important; outline:none !important; background:transparent !important; font-size:13px; font-weight:800 !important; color:#1e3a8a; transition:color 0.2s ease; cursor:pointer; box-shadow:none !important; text-align:center; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; touch-action:manipulation; user-select:none;">Public</button>
-            <button type="button" class="btn-transport-toggle" id="btn-trans-private" onclick="window.setTransportType('private')"
+            <button type="button" class="btn-transport-toggle" id="btn-trans-private" onclick="window.setTransportType('private', true)"
                 style="position:relative; z-index:2; height:36px; line-height:36px; padding:0; border-radius:10px; border:none !important; outline:none !important; background:transparent !important; font-size:13px; font-weight:800 !important; color:rgba(255,255,255,0.85); transition:color 0.2s ease; cursor:pointer; box-shadow:none !important; text-align:center; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; touch-action:manipulation; user-select:none;">Private</button>
         </div>
 
@@ -642,41 +642,54 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     min-width: 90px;
                     padding: 14px 10px;
                     border-radius: 16px;
-                    background: rgba(255, 255, 255, 0.12);
-                    border: none !important;
+                    background: #ffffff !important;
+                    border: 2.5px solid transparent !important;
                     outline: none !important;
-                    box-shadow: none !important;
+                    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;
                     cursor: pointer;
-                    transition: 0.2s ease;
-                    color: rgba(255, 255, 255, 0.85);
+                    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+                    color: #1e293b !important;
                     flex-shrink: 0;
+                    box-sizing: border-box;
+                    user-select: none;
+                    -webkit-tap-highlight-color: transparent;
+                }
+
+                .transport-option:active {
+                    transform: scale(0.96);
                 }
 
                 .transport-option i {
                     font-size: 22px;
                     margin-bottom: 8px;
-                    color: #ffffff;
+                    color: #1e3a8a !important;
+                    transition: color 0.2s ease, transform 0.2s ease;
                 }
 
                 .transport-option span {
                     font-size: 11px;
-                    font-weight: 700;
+                    font-weight: 800;
                     text-align: center;
-                    color: #ffffff;
+                    color: #1e293b !important;
                     white-space: nowrap;
+                    transition: color 0.2s ease;
                 }
 
                 .transport-option.active {
-                    background: rgba(255, 255, 255, 0.28) !important;
-                    color: #ffffff !important;
-                    border: none !important;
-                    outline: none !important;
-                    box-shadow: none !important;
+                    background: #ffffff !important;
+                    border: 2.5px solid #0284c7 !important;
+                    box-shadow: 0 0 0 3.5px rgba(2, 132, 199, 0.35), 0 6px 18px rgba(0, 0, 0, 0.22) !important;
+                    transform: translateY(-2px);
                 }
 
-                .transport-option.active i,
+                .transport-option.active i {
+                    color: #0284c7 !important;
+                    transform: scale(1.1);
+                }
+
                 .transport-option.active span {
-                    color: #ffffff !important;
+                    color: #0284c7 !important;
+                    font-weight: 800 !important;
                 }
             </style>
 
@@ -1428,9 +1441,12 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                                 </div>
                                 <div style="flex:1; min-width:0;">
                                     <h3 class="place-name" style="margin:0 0 3px 0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px; line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${place.name}</h3>
-                                    <div style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; margin-bottom:4px; display:flex; align-items:center; gap:5px;">
-                                        <i class="fa-solid fa-tag" style="color:#38bdf8; font-size:10px;"></i>
-                                        <span>${place.category && place.category !== 'null' ? place.category : 'Tourist Destination'}</span>
+                                    <div style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; margin-bottom:4px; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                        <div style="display:flex; align-items:center; gap:5px;">
+                                            <i class="fa-solid fa-tag" style="color:#38bdf8; font-size:10px;"></i>
+                                            <span>${place.category && place.category !== 'null' ? place.category : 'Tourist Destination'}</span>
+                                        </div>
+                                        ${place.classification_status ? `<span style="padding: 2px 7px; border-radius: 100px; font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${place.classification_status === 'EXIST' ? '#0284c7' : (place.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; border: none !important; outline: none !important;">${place.classification_status === 'EXIST' ? 'EXISTING' : (place.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
                                     </div>
                                     <div class="place-details" style="font-size:12px; color:rgba(255,255,255,0.75); display:flex; align-items:center; gap:5px;">
                                         <i class="fa-solid fa-location-dot" style="color:#00f2fe; font-size:11px; flex-shrink:0;"></i>
@@ -2269,7 +2285,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 const veh = draft.find(p => p.transport_type);
                 currentTransType = veh ? veh.transport_type : 'public';
             }
-            window.setTransportType(currentTransType);
+            window.setTransportType(currentTransType, false);
 
             // Manage active vehicle cards in the slider
             const activeVehicles = existingTransport ? existingTransport.split(',').filter(Boolean) : [...new Set(draft.flatMap(p => p.selected_vehicles || []).filter(Boolean))];
@@ -2930,7 +2946,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             slider.innerHTML = html;
         };
 
-        window.setTransportType = function (type) {
+        window.setTransportType = function (type, shouldReset = false) {
             const btnPublic = document.getElementById('btn-trans-public');
             const btnPrivate = document.getElementById('btn-trans-private');
             const pill = document.getElementById('transport-toggle-pill');
@@ -2962,13 +2978,23 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 wrapper.style.display = 'block';
             }
 
+            // Reset transport selection if button clicked
+            if (shouldReset) {
+                const transInput = document.getElementById('trip-transport');
+                if (transInput) transInput.value = '';
+                document.querySelectorAll('.transport-option').forEach(opt => opt.classList.remove('active'));
+
+                const fuelCalc = document.getElementById('fuel-cost-calc');
+                if (fuelCalc) fuelCalc.textContent = '₱0.00';
+            }
+
             // Dynamically render vehicle options from Railway DB!
             window.renderRailwayVehicleOptions(type);
 
             const fuelPanel = document.getElementById('own-car-fuel-panel');
             const isCarSelected = (document.getElementById('trip-transport').value || '').includes('own_car');
             if (fuelPanel) {
-                if (isCarSelected) {
+                if (isCarSelected && !shouldReset) {
                     fuelPanel.style.maxHeight = '200px';
                     fuelPanel.style.opacity = '1';
                 } else {

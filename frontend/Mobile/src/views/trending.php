@@ -658,8 +658,8 @@ body[data-view="trending"] .mobile-header,
             let html = '<div class="trending-grid">';
             spots.forEach((dest, i) => {
                 const img = window.getDestImage(dest, 400);
-                const badgeColor = dest.classification_status === 'EXIST' ? '#34c759' :
-                    (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b');
+                const badgeColor = dest.classification_status === 'EXIST' ? '#0284c7' :
+                    (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981');
                 const badgeLabel = dest.classification_status === 'EXIST' ? 'EXISTING' :
                     (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL');
 

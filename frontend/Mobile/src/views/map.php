@@ -117,33 +117,33 @@ if (is_dir($imgDir)) {
             <div style="display: flex; flex-direction: column; gap: 6px;">
                 <!-- 1. Existing -->
                 <div class="classification-item-chip" onclick="window.filterByClassification('EXIST')" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; transition: background 0.15s ease;">
-                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #34c759; box-shadow: none !important; flex-shrink: 0;"></span>
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #0284c7; box-shadow: none !important; flex-shrink: 0;"></span>
                     <div style="flex: 1;">
                         <div style="font-size: 12px; font-weight: 800; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
                             <span>Existing</span>
-                            <span id="count-exist" style="font-size: 10px; font-weight: 800; color: #34c759; background: rgba(52,199,89,0.22); padding: 1px 6px; border-radius: 6px;">Site</span>
+                            <span id="count-exist" style="font-size: 10px; font-weight: 800; color: #0284c7; background: rgba(2,132,199,0.22); padding: 1px 6px; border-radius: 6px;">Site</span>
                         </div>
                         <div style="font-size: 10px; color: rgba(255,255,255,0.85); font-weight: 500;">Fully developed spots & facilities</div>
                     </div>
                 </div>
                 <!-- 2. Potential (Middle) -->
                 <div class="classification-item-chip" onclick="window.filterByClassification('POTENTIAL')" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; transition: background 0.15s ease;">
-                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; box-shadow: none !important; flex-shrink: 0;"></span>
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; box-shadow: none !important; flex-shrink: 0;"></span>
                     <div style="flex: 1;">
                         <div style="font-size: 12px; font-weight: 800; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
                             <span>Potential</span>
-                            <span id="count-potential" style="font-size: 10px; font-weight: 800; color: #f59e0b; background: rgba(245,158,11,0.22); padding: 1px 6px; border-radius: 6px;">Site</span>
+                            <span id="count-potential" style="font-size: 10px; font-weight: 800; color: #10b981; background: rgba(16,185,129,0.22); padding: 1px 6px; border-radius: 6px;">Site</span>
                         </div>
                         <div style="font-size: 10px; color: rgba(255,255,255,0.85); font-weight: 500;">Unspoiled spots with high promise</div>
                     </div>
                 </div>
                 <!-- 3. Emerging (Bottom) -->
                 <div class="classification-item-chip" onclick="window.filterByClassification('EMERGE')" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; transition: background 0.15s ease;">
-                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #38bdf8; box-shadow: none !important; flex-shrink: 0;"></span>
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444; box-shadow: none !important; flex-shrink: 0;"></span>
                     <div style="flex: 1;">
                         <div style="font-size: 12px; font-weight: 800; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
                             <span>Emerging</span>
-                            <span id="count-emerge" style="font-size: 10px; font-weight: 800; color: #38bdf8; background: rgba(56,189,248,0.22); padding: 1px 6px; border-radius: 6px;">Site</span>
+                            <span id="count-emerge" style="font-size: 10px; font-weight: 800; color: #ef4444; background: rgba(239,68,68,0.22); padding: 1px 6px; border-radius: 6px;">Site</span>
                         </div>
                         <div style="font-size: 10px; color: rgba(255,255,255,0.85); font-weight: 500;">Rising attractions gaining visitors</div>
                     </div>
@@ -161,9 +161,9 @@ if (is_dir($imgDir)) {
             title="Classifications">
             <!-- 3 Vertical Classification Dots: Existing (top), Potential (middle), Emerging (bottom) -->
             <span style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
-                <span id="dot-exist" style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #34c759; box-shadow: none !important; transition: transform 0.2s ease, opacity 0.2s ease;"></span>
-                <span id="dot-potential" style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #f59e0b; box-shadow: none !important; transition: transform 0.2s ease, opacity 0.2s ease;"></span>
-                <span id="dot-emerge" style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #38bdf8; box-shadow: none !important; transition: transform 0.2s ease, opacity 0.2s ease;"></span>
+                <span id="dot-exist" style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #0284c7; box-shadow: none !important; transition: transform 0.2s ease, opacity 0.2s ease;"></span>
+                <span id="dot-potential" style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #10b981; box-shadow: none !important; transition: transform 0.2s ease, opacity 0.2s ease;"></span>
+                <span id="dot-emerge" style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #ef4444; box-shadow: none !important; transition: transform 0.2s ease, opacity 0.2s ease;"></span>
             </span>
         </button>
     </div>
@@ -1064,13 +1064,13 @@ if (is_dir($imgDir)) {
                                 }
 
                                 const status = (loc.classification_status || 'EXIST').toUpperCase().trim();
-                                let catColor = '#34c759';
+                                let catColor = '#0284c7';
                                 let statusLabel = 'Existing';
                                 if (status === 'EMERGE' || status === 'EMERGING') {
-                                    catColor = '#38bdf8';
+                                    catColor = '#ef4444';
                                     statusLabel = 'Emerging';
                                 } else if (status === 'POTENTIAL') {
-                                    catColor = '#f59e0b';
+                                    catColor = '#10b981';
                                     statusLabel = 'Potential';
                                 }
 
@@ -3633,13 +3633,13 @@ if (is_dir($imgDir)) {
                 }
                 const c = String(status || '').toUpperCase().trim();
                 if (c === 'EMERGE' || c === 'EMERGING') {
-                    return { label: 'Emerging', points: 100, color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.22)', border: 'rgba(56, 189, 248, 0.35)', icon: 'fa-sparkles' };
+                    return { label: 'Emerging', points: 100, color: '#ef4444', bg: 'rgba(239, 68, 68, 0.22)', border: 'rgba(239, 68, 68, 0.35)', icon: 'fa-sparkles' };
                 }
                 if (c === 'POTENTIAL') {
-                    return { label: 'Potential', points: 75, color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.22)', border: 'rgba(251, 191, 36, 0.35)', icon: 'fa-compass' };
+                    return { label: 'Potential', points: 75, color: '#10b981', bg: 'rgba(16, 185, 129, 0.22)', border: 'rgba(16, 185, 129, 0.35)', icon: 'fa-compass' };
                 }
-                // Default: EXISTING (Green)
-                return { label: 'Existing', points: 50, color: '#10b981', bg: 'rgba(16, 185, 129, 0.22)', border: 'rgba(16, 185, 129, 0.35)', icon: 'fa-circle-check' };
+                // Default: EXISTING (Blue)
+                return { label: 'Existing', points: 50, color: '#0284c7', bg: 'rgba(2, 132, 199, 0.22)', border: 'rgba(2, 132, 199, 0.35)', icon: 'fa-circle-check' };
             };
 
             let classMeta = resolveClassification(spotClassStatus);

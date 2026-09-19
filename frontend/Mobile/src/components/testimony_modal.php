@@ -168,13 +168,13 @@ window.userReviewedSpotData = window.userReviewedSpotData || {};
 window.getRewardPointsForClassification = function(status) {
     const c = String(status || '').toUpperCase().trim();
     if (c === 'EMERGE' || c === 'EMERGING') {
-        return { label: 'Emerging', points: 100, color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.22)', border: 'rgba(56, 189, 248, 0.35)', icon: 'fa-sparkles' };
+        return { label: 'Emerging', points: 100, color: '#ef4444', bg: 'rgba(239, 68, 68, 0.22)', border: 'rgba(239, 68, 68, 0.35)', icon: 'fa-sparkles' };
     }
     if (c === 'POTENTIAL') {
-        return { label: 'Potential', points: 75, color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.22)', border: 'rgba(251, 191, 36, 0.35)', icon: 'fa-compass' };
+        return { label: 'Potential', points: 75, color: '#10b981', bg: 'rgba(16, 185, 129, 0.22)', border: 'rgba(16, 185, 129, 0.35)', icon: 'fa-compass' };
     }
-    // Default: EXISTING (Green)
-    return { label: 'Existing', points: 50, color: '#10b981', bg: 'rgba(16, 185, 129, 0.22)', border: 'rgba(16, 185, 129, 0.35)', icon: 'fa-circle-check' };
+    // Default: EXISTING (Blue)
+    return { label: 'Existing', points: 50, color: '#0284c7', bg: 'rgba(2, 132, 199, 0.22)', border: 'rgba(2, 132, 199, 0.35)', icon: 'fa-circle-check' };
 };
 
 // Fetch spot IDs reviewed by user to keep UI synchronized across Trip Map, Saved Trips, and Trip History
