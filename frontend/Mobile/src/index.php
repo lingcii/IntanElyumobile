@@ -260,7 +260,7 @@ if ($isAjax) {
     </div>
 
     <?php
-    $noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual'];
+    $noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual', 'download'];
     $navHiddenClass = in_array($view, $noNavViews) ? 'nav-hidden' : '';
     ?>
     <!-- Bottom Navigation Bar (Locked to viewport bottom) -->
@@ -268,6 +268,18 @@ if ($isAjax) {
         <?php include __DIR__ . '/components/bottom_nav.php'; ?>
     </div>
     <style>
+        body[data-view="download"] #app-container,
+        body[data-view="download"] #main-content {
+            max-width: 100% !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+        body[data-view="download"] #global-cloud-container {
+            display: none !important;
+        }
         #bottom-navigation {
             position: fixed !important;
             bottom: 0 !important;
