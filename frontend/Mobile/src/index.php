@@ -50,6 +50,18 @@ if ($view === 'resetpassword') {
     $view = 'reset-password';
 }
 $destinationId = isset($_GET['id']) ? (int) $_GET['id'] : null;
+
+// Standalone Website Handling:
+// If viewing the download page / official tourism website, serve it completely standalone
+// so it is 100% decoupled from the mobile app container, mobile CSS rules, and mobile router.
+if ($view === 'download') {
+    $viewPath = __DIR__ . '/views/download.php';
+    if (file_exists($viewPath)) {
+        include $viewPath;
+        exit;
+    }
+}
+
 $isAjax = (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') || isset($_GET['ajax']);
 
 // If it's an AJAX request, just return the view content
