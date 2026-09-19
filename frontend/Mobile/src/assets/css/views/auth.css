@@ -877,11 +877,15 @@ body[data-view="reset-password"] {
 .custom-terms-checkbox {
     appearance: none;
     -webkit-appearance: none;
-    width: 18px;
-    height: 18px;
+    -moz-appearance: none;
+    width: 19px;
+    height: 19px;
     border-radius: 50%;
-    border: 2px solid #1d4ed8;
-    background: #ffffff;
+    border: 2px solid #1d4ed8 !important;
+    background-color: #ffffff !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 0 0;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -897,32 +901,41 @@ body[data-view="reset-password"] {
 .custom-terms-checkbox:user-valid,
 .custom-terms-checkbox:valid {
     border: 2px solid #1d4ed8 !important;
-    border-bottom-color: #1d4ed8 !important;
 }
 
 .custom-terms-checkbox:hover {
     border-color: #2563eb !important;
-    border-bottom-color: #2563eb !important;
     box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.15);
 }
 
 .custom-terms-checkbox:checked,
 .custom-terms-checkbox:checked:user-valid,
 .custom-terms-checkbox:checked:valid {
-    background: #1d4ed8 !important;
+    background-color: #1d4ed8 !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ffffff'%3E%3Cpath d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 11px 11px !important;
     border-color: #1d4ed8 !important;
-    border-bottom-color: #1d4ed8 !important;
     box-shadow: 0 2px 6px rgba(29, 78, 216, 0.35);
 }
 
+.custom-terms-checkbox::after,
 .custom-terms-checkbox:checked::after {
-    content: '';
-    width: 4px;
-    height: 8px;
-    border: solid #ffffff;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg) translate(-0.5px, -0.5px);
-    display: block;
+    display: none !important;
+    content: none !important;
+}
+
+.terms-agreement-text {
+    font-size: 12px;
+    color: #0f172a;
+    font-weight: 600;
+    line-height: 1.35;
+    flex: 1;
+    display: inline-flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0;
 }
 
 .terms-agreement-label {
@@ -931,19 +944,35 @@ body[data-view="reset-password"] {
     font-weight: 600;
     cursor: pointer;
     margin: 0;
-    line-height: 1.35;
-    flex: 1;
+    display: inline;
 }
 
-.terms-policy-highlight {
-    color: #1d4ed8;
-    font-weight: 800;
-    text-decoration: underline;
+.terms-policy-btn {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 0 0 4px !important;
+    font-family: inherit !important;
+    font-size: 12px !important;
+    color: #1d4ed8 !important;
+    font-weight: 800 !important;
+    text-decoration: underline !important;
+    cursor: pointer !important;
+    display: inline !important;
+    vertical-align: baseline !important;
+    line-height: inherit !important;
     transition: color 0.2s ease;
 }
 
-.terms-policy-highlight:hover {
-    color: #2563eb;
+.terms-policy-btn:hover {
+    color: #2563eb !important;
+}
+
+.terms-period {
+    color: #0f172a;
+    font-weight: 600;
+    font-size: 12px;
+    display: inline;
 }
 
 /* Privacy Modal Overlay Card */
@@ -1173,7 +1202,8 @@ body[data-view="reset-password"] {
     40%, 60% { transform: translate3d(5px, 0, 0); }
 }
 
-.privacy-acceptance-box label {
+.privacy-acceptance-box label,
+.privacy-acceptance-box span {
     color: #ffffff !important;
     font-size: 12px !important;
     font-weight: 600 !important;
@@ -1182,7 +1212,10 @@ body[data-view="reset-password"] {
 
 .privacy-acceptance-box .custom-terms-checkbox {
     border: 2px solid rgba(255, 255, 255, 0.9) !important;
-    background: rgba(255, 255, 255, 0.15) !important;
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 0 0;
     outline: none !important;
 }
 
@@ -1194,14 +1227,19 @@ body[data-view="reset-password"] {
 .privacy-acceptance-box .custom-terms-checkbox:checked,
 .privacy-acceptance-box .custom-terms-checkbox:checked:user-valid,
 .privacy-acceptance-box .custom-terms-checkbox:checked:valid {
-    background: #ffffff !important;
+    background-color: #ffffff !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%231e3a8a'%3E%3Cpath d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 11px 11px !important;
     border-color: #ffffff !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
 }
 
+.privacy-acceptance-box .custom-terms-checkbox::after,
 .privacy-acceptance-box .custom-terms-checkbox:checked::after {
-    border: solid #1e3a8a !important;
-    border-width: 0 2px 2px 0 !important;
+    display: none !important;
+    content: none !important;
 }
 
 /* Privacy Action Buttons */

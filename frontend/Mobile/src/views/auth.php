@@ -147,9 +147,10 @@
                     
                     <div class="terms-agreement-row">
                         <input type="checkbox" id="reg-privacy-checkbox" class="custom-terms-checkbox">
-                        <label for="reg-privacy-checkbox" id="reg-privacy-label" class="terms-agreement-label">
-                            I agree to the <a href="#" id="link-terms-privacy" onclick="openPrivacyPolicyModal(event)" class="terms-policy-highlight">Terms &amp; Privacy Policy</a>.
-                        </label>
+                        <div class="terms-agreement-text">
+                            <label for="reg-privacy-checkbox" id="reg-privacy-label" class="terms-agreement-label">I agree to the</label>
+                            <button type="button" id="link-terms-privacy" onclick="openPrivacyPolicyModal(event)" class="terms-policy-btn">Terms &amp; Privacy Policy</button><span class="terms-period">.</span>
+                        </div>
                     </div>
                     
                     <button type="submit" id="btn-register" class="btn-circle-submit">
@@ -337,9 +338,9 @@
     </div>
 </div>
 
-<div id="privacy-policy-modal" class="auth-2fa-overlay" style="display: none;">
+<div id="privacy-policy-modal" class="auth-2fa-overlay" style="display: none;" onclick="if(event.target===this) closePrivacyPolicyModal(event);">
     <div class="privacy-modal-card">
-        <button type="button" class="privacy-modal-close" onclick="closePrivacyPolicyModal()" aria-label="Close">
+        <button type="button" class="privacy-modal-close" onclick="closePrivacyPolicyModal(event)" aria-label="Close">
             <i class="fa-solid fa-xmark"></i>
         </button>
         
@@ -410,18 +411,18 @@
             </div>
         </div>
 
-        <div class="privacy-acceptance-box" onclick="togglePrivacyCheckboxFromBox(event)" style="cursor: pointer;">
+        <label class="privacy-acceptance-box" for="chk-accept-privacy" id="box-chk-accept-privacy" style="cursor: pointer;">
             <input type="checkbox" id="chk-accept-privacy" class="custom-terms-checkbox" style="cursor: pointer;">
-            <label for="chk-accept-privacy" id="lbl-chk-accept-privacy" style="cursor: pointer; margin: 0; line-height: 1.35; font-size: 11.5px; font-weight: 600; color: #ffffff;">
+            <span id="lbl-chk-accept-privacy" style="cursor: pointer; margin: 0; line-height: 1.35; font-size: 11.5px; font-weight: 600; color: #ffffff;">
                 I have read, understood, and accept the Terms &amp; Privacy Policy.
-            </label>
-        </div>
+            </span>
+        </label>
 
         <div class="privacy-modal-actions">
-            <button type="button" onclick="closePrivacyPolicyModal()" class="btn-privacy-decline">
+            <button type="button" onclick="declinePrivacyPolicy(event)" class="btn-privacy-decline">
                 Decline
             </button>
-            <button type="button" id="btn-accept-policy-proceed" onclick="acceptPolicyAndProceed()" class="btn-privacy-accept">
+            <button type="button" id="btn-accept-policy-proceed" onclick="acceptPolicyAndProceed(event)" class="btn-privacy-accept">
                 Accept
             </button>
         </div>
@@ -1216,31 +1217,25 @@
     };
 
     window.openPrivacyPolicyModal = function(e) {
-        if (e) e.preventDefault();
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
 
         const modal = document.getElementById('privacy-policy-modal');
         if (!modal) return;
 
         const chk = document.getElementById('chk-accept-privacy');
-        const lblChk = document.getElementById('lbl-chk-accept-privacy');
-        const acceptBtn = document.getElementById('btn-accept-policy-proceed');
+        const box = document.querySelector('.privacy-acceptance-box');
         const scrollBody = document.getElementById('privacy-modal-scroll-body');
 
+        // Always reset modal acceptance checkbox to unchecked on open
         if (chk) { 
             chk.checked = false; 
             chk.disabled = false; 
-            chk.style.opacity = '1'; 
-            chk.style.cursor = 'pointer'; 
         }
-        if (lblChk) { 
-            lblChk.style.cursor = 'pointer'; 
-            lblChk.style.opacity = '1'; 
-        }
-        if (acceptBtn) {
-            acceptBtn.disabled = false;
-            acceptBtn.style.opacity = '1';
-            acceptBtn.style.cursor = 'pointer';
-            acceptBtn.innerHTML = 'Accept';
+        if (box) {
+            box.classList.remove('shake-attention');
         }
 
         if (scrollBody) {
@@ -1252,43 +1247,58 @@
             modal.classList.add('active');
             if (scrollBody) {
                 scrollBody.scrollTop = 0;
-                scrollBody.scrollTo(0, 0);
             }
         });
     };
 
-    window.closePrivacyPolicyModal = function() {
+    window.closePrivacyPolicyModal = function(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         const modal = document.getElementById('privacy-policy-modal');
         const scrollBody = document.getElementById('privacy-modal-scroll-body');
         if (modal) modal.classList.remove('active');
         if (scrollBody) {
             scrollBody.scrollTop = 0;
-            scrollBody.scrollTo(0, 0);
         }
         setTimeout(() => {
             if (modal) modal.style.display = 'none';
-        }, 300);
+        }, 280);
+    };
+
+    window.declinePrivacyPolicy = function(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        // Explicitly keep register terms unchecked if declined
+        const regChk = document.getElementById('reg-privacy-checkbox');
+        if (regChk) {
+            regChk.checked = false;
+            regChk.dispatchEvent(new Event('change'));
+        }
+        window.closePrivacyPolicyModal();
     };
 
     window.togglePrivacyCheckboxFromBox = function(e) {
-        if (e.target.id === 'chk-accept-privacy' || e.target.id === 'lbl-chk-accept-privacy' || e.target.closest('#lbl-chk-accept-privacy')) {
-            return;
-        }
+        // Handled natively by label for="chk-accept-privacy"
         const chk = document.getElementById('chk-accept-privacy');
-        if (chk) {
-            chk.checked = !chk.checked;
-            const box = document.querySelector('.privacy-acceptance-box');
-            if (box && chk.checked) {
-                box.classList.remove('shake-attention');
-            }
+        const box = document.querySelector('.privacy-acceptance-box');
+        if (box && chk && chk.checked) {
+            box.classList.remove('shake-attention');
         }
     };
 
-    window.acceptPolicyAndProceed = async function() {
+    window.acceptPolicyAndProceed = async function(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         const chk = document.getElementById('chk-accept-privacy');
         if (!chk || !chk.checked) {
             if (typeof showToast === 'function') {
-                showToast('Please check the policy first before proceeding.');
+                showToast('Please check the box to accept the Terms & Privacy Policy first.');
             }
             const box = document.querySelector('.privacy-acceptance-box');
             if (box) {
@@ -1299,13 +1309,14 @@
             return;
         }
 
+        // Only check the register checkbox when user explicitly clicked ACCEPT with the box checked!
         const regChk = document.getElementById('reg-privacy-checkbox');
         if (regChk) {
             regChk.checked = true;
             regChk.dispatchEvent(new Event('change'));
         }
 
-        closePrivacyPolicyModal();
+        window.closePrivacyPolicyModal();
     };
 
     window.submitRegistrationAndTrigger2FA = async function() {
