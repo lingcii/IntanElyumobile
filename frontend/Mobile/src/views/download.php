@@ -491,19 +491,19 @@ $apkSizeStr = file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 *
 
     .hero-wave-divider {
       position: absolute;
-      bottom: 0;
+      bottom: -1px;
       left: 0;
       width: 100%;
       overflow: hidden;
       line-height: 0;
-      transform: rotate(180deg);
-      z-index: 1;
+      z-index: 3;
+      pointer-events: none;
     }
 
     .hero-wave-divider svg {
       position: relative;
       display: block;
-      width: calc(100% + 1.3px);
+      width: 100%;
       height: 48px;
     }
 
@@ -1293,7 +1293,7 @@ $apkSizeStr = file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 *
     <!-- Smooth Wave Divider into White Middle Section -->
     <div class="hero-wave-divider">
       <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-        <path d="M0,0 C150,90 350,-40 500,60 C650,140 900,10 1200,40 L1200,120 L0,120 Z" class="shape-fill"></path>
+        <path d="M0,0 C150,90 350,-40 500,60 C650,140 900,10 1200,40 L1200,120 L0,120 Z" fill="#ffffff" class="shape-fill"></path>
       </svg>
     </div>
   </header>
