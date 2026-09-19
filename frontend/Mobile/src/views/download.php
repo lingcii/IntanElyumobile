@@ -18,14 +18,14 @@ $apkSizeStr = file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 *
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <meta name="googlebot" content="index, follow">
   <meta name="bingbot" content="index, follow">
-  <link rel="canonical" href="https://app.intan-elyu.online/">
+  <link rel="canonical" href="https://app.intan-elyu.online/?view=download">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1e3a8a">
   
   <!-- Open Graph / Social Sharing -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Intan Elyu">
-  <meta property="og:url" content="https://app.intan-elyu.online/">
+  <meta property="og:url" content="https://app.intan-elyu.online/?view=download">
   <meta property="og:title" content="Intan Elyu — Official Tourism Portal & Mobile App | Province of La Union">
   <meta property="og:description" content="Discover, explore, and experience the whole of La Union with Intan Elyu. Plan itineraries, discover 20 municipalities, view tourist spots, discounts, and earn gamified rewards.">
   <meta property="og:image" content="https://app.intan-elyu.online/assets/img/logo.png">

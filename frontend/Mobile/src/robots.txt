@@ -7,29 +7,48 @@ Allow: /index.php?view=download
 Allow: /download
 Allow: /assets/
 
+# Block in-app mobile views from search engines so only the official download portal is indexed
+Disallow: /*?view=splash*
+Disallow: /*?view=auth*
+Disallow: /*?view=dashboard*
+Disallow: /*?view=map*
+Disallow: /api/
+Disallow: /backend/
+Disallow: /storage/proofs/
+
 # Welcome Brave Search Crawler
 User-agent: Bravebot
 Allow: /
+Allow: /index.php?view=download
+Allow: /download
+Disallow: /*?view=splash*
 
 # Googlebot
 User-agent: Googlebot
 Allow: /
+Allow: /index.php?view=download
+Allow: /download
+Disallow: /*?view=splash*
 
 # Bingbot
 User-agent: Bingbot
 Allow: /
+Allow: /index.php?view=download
+Allow: /download
+Disallow: /*?view=splash*
 
 # Applebot
 User-agent: Applebot
 Allow: /
+Allow: /index.php?view=download
+Allow: /download
+Disallow: /*?view=splash*
 
 # DuckDuckBot
 User-agent: DuckDuckBot
 Allow: /
-
-# Disallow internal backend and sensitive folders from indexing
-Disallow: /api/
-Disallow: /backend/
-Disallow: /storage/proofs/
+Allow: /index.php?view=download
+Allow: /download
+Disallow: /*?view=splash*
 
 Sitemap: https://app.intan-elyu.online/sitemap.xml

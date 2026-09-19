@@ -3,7 +3,7 @@
   "appName": "Intan Elyu",
   "webDir": "public",
   "bundledWebRuntime": false,
-  "overrideUserAgent": "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36",
+  "overrideUserAgent": "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36 IntanElyuAPK/1.0",
   "plugins": {
     "Keyboard": {
       "resize": "none",
@@ -11,7 +11,7 @@
     }
   },
   "server": {
-    "url": "https://app.intan-elyu.online",
+    "url": "https://app.intan-elyu.online?app=true",
     "cleartext": true,
     "allowNavigation": [
       "app.intan-elyu.online",

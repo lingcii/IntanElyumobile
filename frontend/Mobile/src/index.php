@@ -35,12 +35,29 @@ if (
 
 // Extract view name safely - from $_GET['view'] or URI path (e.g. /download)
 // Detect if running inside the native Android APK vs regular web browser (Brave, Chrome, Safari, etc.)
-$isApk = (isset($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'IntanElyuAPK') !== false) || isset($_GET['app']);
+$userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+$isApk = (strpos($userAgent, 'IntanElyuAPK') !== false) || 
+         (strpos($userAgent, 'Capacitor') !== false) ||
+         isset($_GET['app']) ||
+         isset($_COOKIE['is_intan_elyu_app']) ||
+         (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strpos($_SERVER['HTTP_X_REQUESTED_WITH'], 'com.intan.elyu') !== false);
 
-// Default view: If accessed via web browser or search engine crawler with no view specified,
-// default to 'download' (the official tourism portal website) so the site is rich, indexable, and searchable!
-// If running inside the native Android APK, default to 'splash'.
-$rawView = $isApk ? 'splash' : 'download';
+// WEB BROWSER PROTECTION:
+// If accessed via a normal web browser (like Brave, Chrome, Safari, Edge) and NOT inside the Android APK:
+// The user flow is strictly: Search Intan Elyu -> View Website / Download Page -> Scan QR / Download APK -> Open Mobile App.
+// Web browsers are BLOCKED from accessing mobile app screens (?view=splash, ?view=auth, etc.)
+// and redirected immediately to https://app.intan-elyu.online/?view=download!
+if (!$isApk) {
+    $reqView = $_GET['view'] ?? '';
+    // If not on the download view, redirect immediately to ?view=download
+    if ($reqView !== 'download') {
+        header('Location: index.php?view=download');
+        exit;
+    }
+}
+
+// Inside the APK:
+$rawView = 'splash';
 if (isset($_GET['view'])) {
     $rawView = $_GET['view'];
 } else {

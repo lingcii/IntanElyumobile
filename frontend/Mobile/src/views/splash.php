@@ -1,4 +1,10 @@
 <!-- Splash Screen View -->
+<script>
+    // Browser Guard: Web browsers must not access the mobile splash screen. Redirect to the official download portal.
+    if (!window.Capacitor && !navigator.userAgent.includes('IntanElyuAPK') && !window.location.search.includes('app=')) {
+        window.location.replace('index.php?view=download');
+    }
+</script>
 
 <div class="splash-container animate-fade-in" id="splash-main">
     <div class="stagger-1" style="position:relative; z-index:100;">
