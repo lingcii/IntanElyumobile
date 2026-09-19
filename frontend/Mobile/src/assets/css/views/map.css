@@ -274,6 +274,25 @@ body[data-view="map"] #main-content {
     background: rgba(63, 125, 183, 0.85);
 }
 
+/* ── Classification Button & Wrapper Transition on Search/Keyboard ── */
+.btn-classification-wrapper {
+    position: absolute;
+    bottom: calc(115px + env(safe-area-inset-bottom));
+    left: 10px;
+    z-index: 895;
+    transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease, visibility 0.38s ease !important;
+    will-change: transform, opacity;
+}
+
+body.keyboard-open .btn-classification-wrapper,
+body.map-search-active .btn-classification-wrapper,
+.btn-classification-wrapper.search-hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(30px) scale(0.85) !important;
+    visibility: hidden !important;
+}
+
 /* ── Bottom Sheet (Intact Docked Design) ── */
 .bottom-sheet {
     position: fixed !important;

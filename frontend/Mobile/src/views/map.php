@@ -105,7 +105,7 @@ if (is_dir($imgDir)) {
     </div>
 
     <!-- Classification Toggle Button & Popover (Vertical on Left Side Corner) -->
-    <div class="btn-classification-wrapper" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); left: 10px; z-index: 895;">
+    <div class="btn-classification-wrapper" id="btn-classification-wrapper" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); left: 10px; z-index: 895; transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease, visibility 0.38s ease;">
         <!-- Popover showing the 3 Types of Classification (Matched to blue gradient theme) -->
         <div id="classification-popover" style="display: none; position: absolute; bottom: 0; left: calc(100% + 10px); transform-origin: bottom left; transform: scale(0.95); opacity: 0; width: 250px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(45, 90, 155, 0.94) 50%, rgba(63, 125, 183, 0.94) 100%) !important; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 20px; padding: 12px 14px; box-shadow: 0 16px 36px rgba(10, 25, 60, 0.45); border: none !important; outline: none !important; transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.18);">
@@ -672,14 +672,32 @@ if (is_dir($imgDir)) {
             };
             window.mapInstance.on('zoom', updateAmenityZoomState);
 
-            // Collapse any expanded amenity markers when user clicks background map
+            // Collapse any expanded amenity markers & dismiss search when user clicks background map
             window.mapInstance.on('click', (e) => {
                 if (e && e.originalEvent && e.originalEvent.target && e.originalEvent.target.closest('.elyu-amenity-marker')) {
                     return;
                 }
+                const sInput = document.getElementById('map-search-input');
+                if (sInput && (document.activeElement === sInput || document.body.classList.contains('map-search-active'))) {
+                    sInput.blur();
+                    if (typeof window.deactivateMapSearchGlobal === 'function') {
+                        window.deactivateMapSearchGlobal(true);
+                    }
+                }
                 document.querySelectorAll('.elyu-amenity-marker.is-expanded').forEach(el => {
                     el.classList.remove('is-expanded');
                 });
+            });
+
+            // Dismiss search when user drags/pans the map
+            window.mapInstance.on('dragstart', () => {
+                const sInput = document.getElementById('map-search-input');
+                if (sInput && (document.activeElement === sInput || document.body.classList.contains('map-search-active'))) {
+                    sInput.blur();
+                    if (typeof window.deactivateMapSearchGlobal === 'function') {
+                        window.deactivateMapSearchGlobal(true);
+                    }
+                }
             });
 
             // Map Load Initialization
@@ -1823,6 +1841,7 @@ if (is_dir($imgDir)) {
                 suggestionsEl.classList.remove('open');
                 searchInput.value = loc.name;
                 searchInput.blur(); // Dismiss mobile soft keyboard
+                if (typeof deactivateMapSearch === 'function') deactivateMapSearch(true);
                 const activeCatEl = document.querySelector('.category-pill.active');
                 window.filterCategory('All', document.querySelector('.category-pill'));
                 const lat = parseFloat(loc.lat);
@@ -1831,6 +1850,9 @@ if (is_dir($imgDir)) {
                     window.openSheet(loc);
                 }
             }
+
+            var activateMapSearch = null;
+            var deactivateMapSearch = null;
 
             if (searchInput) {
                 // Input event — filter map markers AND show suggestions
@@ -1841,15 +1863,47 @@ if (is_dir($imgDir)) {
                     renderSuggestions(searchInput.value);
                 });
 
-                // Focus — show suggestions and auto-hide navigation bar
-                searchInput.addEventListener('focus', () => {
+                activateMapSearch = () => {
                     document.body.classList.add('keyboard-open');
+                    document.body.classList.add('map-search-active');
+                    const classWrapper = document.getElementById('btn-classification-wrapper');
+                    if (classWrapper) classWrapper.classList.add('search-hidden');
+                    if (typeof window.toggleClassificationMenu === 'function') window.toggleClassificationMenu(false);
                     const bNav = document.getElementById('bottom-navigation');
                     const mNav = document.getElementById('magic-nav');
                     if (bNav) bNav.classList.add('keyboard-hidden');
                     if (mNav) mNav.classList.add('keyboard-hidden');
                     renderSuggestions(searchInput.value);
-                });
+                };
+
+                deactivateMapSearch = (immediate = false) => {
+                    const doDeactivate = () => {
+                        if (suggestionsEl) suggestionsEl.classList.remove('open');
+                        const active = document.activeElement;
+                        if (!active || (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA')) {
+                            document.body.classList.remove('keyboard-open');
+                            document.body.classList.remove('map-search-active');
+                            const classWrapper = document.getElementById('btn-classification-wrapper');
+                            if (classWrapper) classWrapper.classList.remove('search-hidden');
+                            const bNav = document.getElementById('bottom-navigation');
+                            const mNav = document.getElementById('magic-nav');
+                            if (bNav) bNav.classList.remove('keyboard-hidden');
+                            if (mNav) mNav.classList.remove('keyboard-hidden');
+                        }
+                    };
+                    if (immediate) {
+                        doDeactivate();
+                    } else {
+                        setTimeout(doDeactivate, 180);
+                    }
+                };
+
+                window.activateMapSearchGlobal = activateMapSearch;
+                window.deactivateMapSearchGlobal = deactivateMapSearch;
+
+                // Focus & Click — show suggestions, hide classification button and smoothly animate navigation bar
+                searchInput.addEventListener('focus', activateMapSearch);
+                searchInput.addEventListener('click', activateMapSearch);
 
                 // Click on suggestions via delegation
                 if (suggestionsEl) {
@@ -1890,20 +1944,8 @@ if (is_dir($imgDir)) {
                     if (activeIdx >= 0) items[activeIdx].classList.add('active');
                 });
 
-                // Blur — hide suggestions with smooth transition and restore nav bar
-                searchInput.addEventListener('blur', () => {
-                    setTimeout(() => {
-                        if (suggestionsEl) suggestionsEl.classList.remove('open');
-                        const active = document.activeElement;
-                        if (!active || (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA')) {
-                            document.body.classList.remove('keyboard-open');
-                            const bNav = document.getElementById('bottom-navigation');
-                            const mNav = document.getElementById('magic-nav');
-                            if (bNav) bNav.classList.remove('keyboard-hidden');
-                            if (mNav) mNav.classList.remove('keyboard-hidden');
-                        }
-                    }, 180);
-                });
+                // Blur — hide suggestions with smooth transition and restore nav bar & classification button
+                searchInput.addEventListener('blur', deactivateMapSearch);
             }
 
             const locateBtn = document.getElementById('btn-locate-me');

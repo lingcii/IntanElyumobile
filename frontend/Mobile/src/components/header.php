@@ -123,6 +123,9 @@
     </div>
 </div>
 
+<!-- Notifications Modal Backdrop with Soft Blur -->
+<div id="notifications-backdrop" onclick="toggleNotifications()" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: rgba(10, 25, 60, 0.45); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 999990; opacity: 0; transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none;"></div>
+
 <div id="notifications-dropdown" class="hide-scrollbar" style="position: fixed; top: max(env(safe-area-inset-top, 0px), 65px); right: 12px; left: 12px; max-width: 360px; margin: 0 auto; background: #ffffff; border: none !important; outline: none !important; border-radius: 22px; z-index: 999999; box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45); padding: 0; max-height: 75vh; display: flex; flex-direction: column; overflow: hidden; opacity: 0; pointer-events: none; transform-origin: top right; transform: scale(0.4) translate(35px, -35px); transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.34s cubic-bezier(0.175, 0.885, 0.32, 1.15) !important;">
     <!-- Notifications Header Banner -->
     <div style="padding: 14px 16px; border-bottom: none !important; background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%); flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; border: none !important; outline: none !important;">
@@ -300,12 +303,29 @@
 
     function toggleNotifications() {
         const dropdown = document.getElementById('notifications-dropdown');
+        const backdrop = document.getElementById('notifications-backdrop');
+        if (!dropdown) return;
         const isOpen = dropdown.style.opacity === '1';
         if (isOpen) {
             dropdown.style.opacity = '0';
             dropdown.style.pointerEvents = 'none';
             dropdown.style.transform = 'scale(0.4) translate(35px, -35px)';
+            if (backdrop) {
+                backdrop.style.opacity = '0';
+                backdrop.style.pointerEvents = 'none';
+                setTimeout(() => {
+                    if (dropdown.style.opacity === '0') {
+                        backdrop.style.display = 'none';
+                    }
+                }, 300);
+            }
         } else {
+            if (backdrop) {
+                backdrop.style.display = 'block';
+                void backdrop.offsetHeight; // trigger reflow for smooth animation
+                backdrop.style.opacity = '1';
+                backdrop.style.pointerEvents = 'all';
+            }
             dropdown.style.opacity = '1';
             dropdown.style.pointerEvents = 'all';
             dropdown.style.transform = 'scale(1) translate(0, 0)';
@@ -321,7 +341,7 @@
     document.addEventListener('click', function(e) {
         const dropdown = document.getElementById('notifications-dropdown');
         if (dropdown && dropdown.style.opacity === '1') {
-            if (!dropdown.contains(e.target) && !e.target.closest('.header-icon')) {
+            if (!dropdown.contains(e.target) && !e.target.closest('.header-icon') && !e.target.closest('#notifications-backdrop')) {
                 toggleNotifications();
             }
         }

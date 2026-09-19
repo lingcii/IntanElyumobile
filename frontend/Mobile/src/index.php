@@ -267,7 +267,8 @@ if ($isAjax) {
         </div>
         <style>
             #bottom-navigation {
-                transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+                transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s ease !important;
+                will-change: transform, opacity;
             }
 
             #bottom-navigation.nav-hidden {
@@ -279,7 +280,8 @@ if ($isAjax) {
 
             #bottom-navigation.keyboard-hidden,
             body.keyboard-open #bottom-navigation,
-            html.keyboard-open #bottom-navigation {
+            html.keyboard-open #bottom-navigation,
+            body.map-search-active #bottom-navigation {
                 opacity: 0 !important;
                 pointer-events: none !important;
                 transform: translateY(140px) !important;
