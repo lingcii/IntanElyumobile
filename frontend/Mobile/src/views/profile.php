@@ -244,8 +244,6 @@ $activeTab = 'profile';
                     }).join('');
                 }
 
-                }
-
                 // Extra Meta (Tourist ID, Age, Gender, Phone & Home Location)
                 window.renderProfileUserMeta(u);
 
