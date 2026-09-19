@@ -157,6 +157,8 @@ class DashboardController extends Controller
                 'level'          => $level,
                 'points'         => $points,
                 'avatar'         => $user->avatar,
+                'age'            => $user->age ?? null,
+                'gender'         => $user->gender ?? null,
             ],
             'stats' => [
                 'placesVisited'        => $placesVisited,

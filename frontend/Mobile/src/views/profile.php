@@ -244,21 +244,10 @@ $activeTab = 'profile';
                     }).join('');
                 }
 
-                // Extra Meta (Tourist ID, Phone & Home Location)
-                const elMeta = document.getElementById('profile-meta');
-                if (elMeta) {
-                    let metaParts = [];
-                    const tNum = u.tourist_number || u.tourist_id || (u.role === 'tourist' ? 1 : '');
-                    if (tNum) metaParts.push(`<span style="background:#2563eb; color:#ffffff; padding:3px 10px; border-radius:100px; font-size:11px; font-weight:800; border:none !important; outline:none !important; box-shadow:0 2px 6px rgba(0,0,0,0.2);">ID: #${tNum}</span>`);
-                    if (u.home_location) metaParts.push(`<i class="fa-solid fa-location-dot"></i> ${u.home_location}`);
-                    if (u.phone) metaParts.push(`<i class="fa-solid fa-phone"></i> ${u.phone}`);
-                    if (metaParts.length > 0) {
-                        elMeta.innerHTML = metaParts.join(' &nbsp;•&nbsp; ');
-                        elMeta.style.display = 'flex';
-                    } else {
-                        elMeta.style.display = 'none';
-                    }
                 }
+
+                // Extra Meta (Tourist ID, Age, Gender, Phone & Home Location)
+                window.renderProfileUserMeta(u);
 
                 // Bio
                 const elBio = document.getElementById('profile-bio-text');
@@ -772,6 +761,42 @@ $activeTab = 'profile';
         const modal = document.getElementById('trip-details-modal');
         if (modal) modal.style.display = 'none';
     };
+
+    window.renderProfileUserMeta = function(u) {
+        const elMeta = document.getElementById('profile-meta');
+        if (!elMeta || !u) return;
+        let metaParts = [];
+        const tNum = u.tourist_number || u.tourist_id || (u.role === 'tourist' ? 1 : '');
+        if (tNum) metaParts.push(`<span style="background:#2563eb; color:#ffffff; padding:3px 10px; border-radius:100px; font-size:11px; font-weight:800; border:none !important; outline:none !important; box-shadow:0 2px 6px rgba(0,0,0,0.2);">ID: #${tNum}</span>`);
+        if (u.age) metaParts.push(`<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-cake-candles" style="color:#00f2fe;"></i> ${u.age} yrs old</span>`);
+        if (u.gender) {
+            const gLow = String(u.gender).toLowerCase();
+            let gIcon = 'fa-venus-mars';
+            if (gLow === 'male') gIcon = 'fa-mars';
+            else if (gLow === 'female') gIcon = 'fa-venus';
+            metaParts.push(`<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid ${gIcon}" style="color:#00f2fe;"></i> ${u.gender}</span>`);
+        }
+        if (u.home_location) metaParts.push(`<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-location-dot" style="color:#00f2fe;"></i> ${u.home_location}</span>`);
+        if (u.phone) metaParts.push(`<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-phone" style="color:#00f2fe;"></i> ${u.phone}</span>`);
+        if (metaParts.length > 0) {
+            elMeta.innerHTML = metaParts.join(' &nbsp;•&nbsp; ');
+            elMeta.style.display = 'flex';
+        } else {
+            elMeta.style.display = 'none';
+        }
+    };
+
+    // Instant local cache render for zero-latency UI
+    try {
+        const _cachedAuth = JSON.parse(localStorage.getItem('auth_user') || '{}');
+        if (_cachedAuth.name && document.getElementById('profile-name')) {
+            document.getElementById('profile-name').textContent = _cachedAuth.name;
+        }
+        if (_cachedAuth.email && document.getElementById('profile-email')) {
+            document.getElementById('profile-email').textContent = _cachedAuth.email;
+        }
+        window.renderProfileUserMeta(_cachedAuth);
+    } catch(e) {}
 
     fetchProfileData();
     fetchPointsAndVouchers();

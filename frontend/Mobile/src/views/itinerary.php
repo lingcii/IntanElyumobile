@@ -2590,43 +2590,16 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                             for (let k = 0; k < fetchLatLngs.length - 1; k++) {
                                 const p1 = `${fetchLatLngs[k][1]},${fetchLatLngs[k][0]}`;
                                 const p2 = `${fetchLatLngs[k+1][1]},${fetchLatLngs[k+1][0]}`;
-                                const legUrl = `https://router.project-osrm.org/route/v1/driving/${p1};${p2}?overview=full&geometries=geojson&alternatives=true&continue_straight=true`;
+                                const legUrl = `https://router.project-osrm.org/route/v1/driving/${p1};${p2}?overview=full&geometries=geojson&alternatives=3&continue_straight=true`;
                                 const legRes = await fetch(legUrl);
                                 const legData = await legRes.json();
 
                                 if (legData.code === 'Ok' && legData.routes && legData.routes.length > 0) {
-                                    if (legData.routes.length > 1) {
-                                        // Distinct alternative path returned by OSRM
-                                        const chosen = legData.routes[1];
-                                        legGeometries.push(chosen.geometry);
-                                        totalDist += chosen.distance;
-                                        totalDur += chosen.duration;
-                                    } else {
-                                        // OSRM only returned 1 route (same as recommended).
-                                        // Route via inland bypass waypoint to change direction away from highway!
-                                        let routedBypass = false;
-                                        try {
-                                            const midLat = (fetchLatLngs[k][0] + fetchLatLngs[k+1][0]) / 2;
-                                            const midLon = (fetchLatLngs[k][1] + fetchLatLngs[k+1][1]) / 2 + 0.013;
-                                            const bypassUrl = `https://router.project-osrm.org/route/v1/driving/${p1};${midLon.toFixed(6)},${midLat.toFixed(6)};${p2}?overview=full&geometries=geojson&continue_straight=true`;
-                                            const bpRes = await fetch(bypassUrl);
-                                            const bpData = await bpRes.json();
-                                            if (bpData.code === 'Ok' && bpData.routes && bpData.routes.length > 0) {
-                                                legGeometries.push(bpData.routes[0].geometry);
-                                                totalDist += bpData.routes[0].distance;
-                                                totalDur += bpData.routes[0].duration;
-                                                routedBypass = true;
-                                            }
-                                        } catch (bpErr) {
-                                            console.warn("Bypass waypoint routing:", bpErr);
-                                        }
-
-                                        if (!routedBypass) {
-                                            legGeometries.push(legData.routes[0].geometry);
-                                            totalDist += legData.routes[0].distance;
-                                            totalDur += legData.routes[0].duration;
-                                        }
-                                    }
+                                    // Choose genuine secondary route if returned by OSRM road network, otherwise follow direct road
+                                    const chosen = (legData.routes.length > 1) ? legData.routes[1] : legData.routes[0];
+                                    legGeometries.push(chosen.geometry);
+                                    totalDist += chosen.distance;
+                                    totalDur += chosen.duration;
                                 }
                             }
 

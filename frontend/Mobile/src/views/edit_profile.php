@@ -476,6 +476,29 @@ input:checked + .slider:before {
                 <input class="form-control" id="profile-location" type="text" placeholder="e.g. San Juan, La Union / Manila">
             </div>
 
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                    <label class="form-label" for="profile-age">
+                        Age
+                    </label>
+                    <input class="form-control" id="profile-age" type="number" min="1" max="120" placeholder="e.g. 24">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="profile-gender">
+                        Gender
+                    </label>
+                    <select class="form-control" id="profile-gender" style="cursor: pointer; background: rgba(255, 255, 255, 0.12) !important; color: #ffffff !important; border: none !important; outline: none !important; border-radius: 16px; padding: 13px 14px; font-size: 14px; font-weight: 600; width: 100%; box-sizing: border-box;">
+                        <option value="" style="background: #1e3a8a; color: #ffffff;">Select gender</option>
+                        <option value="Male" style="background: #1e3a8a; color: #ffffff;">Male</option>
+                        <option value="Female" style="background: #1e3a8a; color: #ffffff;">Female</option>
+                        <option value="Non-binary" style="background: #1e3a8a; color: #ffffff;">Non-binary</option>
+                        <option value="Prefer not to say" style="background: #1e3a8a; color: #ffffff;">Prefer not to say</option>
+                        <option value="Other" style="background: #1e3a8a; color: #ffffff;">Other</option>
+                    </select>
+                </div>
+            </div>
+
             <!-- Bio / Motto -->
             <div class="edit-section-title">
                 Travel Bio & Motto
@@ -577,6 +600,8 @@ input:checked + .slider:before {
     const emailInput = document.getElementById('profile-email');
     const phoneInput = document.getElementById('profile-phone');
     const locationInput = document.getElementById('profile-location');
+    const ageInput = document.getElementById('profile-age');
+    const genderInput = document.getElementById('profile-gender');
     const bioInput = document.getElementById('profile-bio');
     const img = document.getElementById('avatar-img');
     const icon = document.getElementById('avatar-icon');
@@ -586,6 +611,8 @@ input:checked + .slider:before {
     if (emailInput && user.email) emailInput.value = user.email;
     if (phoneInput && user.phone) phoneInput.value = user.phone;
     if (locationInput && user.home_location) locationInput.value = user.home_location;
+    if (ageInput && user.age !== undefined && user.age !== null) ageInput.value = user.age;
+    if (genderInput && user.gender) genderInput.value = user.gender;
     if (bioInput && user.bio) bioInput.value = user.bio;
 
     function syncPreferencesFromData(u) {
@@ -665,6 +692,8 @@ input:checked + .slider:before {
                     if (emailInput && (!emailInput.value || emailInput.value.includes('loading'))) emailInput.value = u.email || '';
                     if (phoneInput && u.phone) phoneInput.value = u.phone;
                     if (locationInput && u.home_location) locationInput.value = u.home_location;
+                    if (ageInput && u.age !== undefined && u.age !== null) ageInput.value = u.age;
+                    if (genderInput && u.gender) genderInput.value = u.gender;
                     if (bioInput && u.bio) bioInput.value = u.bio;
                     syncPreferencesFromData(u);
 
@@ -792,6 +821,8 @@ input:checked + .slider:before {
         const email = document.getElementById('profile-email')?.value || '';
         const phone = document.getElementById('profile-phone')?.value || '';
         const homeLocation = document.getElementById('profile-location')?.value || '';
+        const age = document.getElementById('profile-age')?.value || '';
+        const gender = document.getElementById('profile-gender')?.value || '';
         const bio = document.getElementById('profile-bio')?.value || '';
 
         // Active preferences chips
@@ -806,6 +837,8 @@ input:checked + .slider:before {
         formData.append('email', email);
         formData.append('phone', phone);
         formData.append('home_location', homeLocation);
+        formData.append('age', age);
+        formData.append('gender', gender);
         formData.append('bio', bio);
         formData.append('travel_preferences', travelPreferences);
 
@@ -834,6 +867,8 @@ input:checked + .slider:before {
                     stored.email = data.user.email;
                     stored.phone = data.user.phone;
                     stored.home_location = data.user.home_location;
+                    stored.age = data.user.age;
+                    stored.gender = data.user.gender;
                     stored.bio = data.user.bio;
                     stored.travel_preferences = data.user.travel_preferences;
 

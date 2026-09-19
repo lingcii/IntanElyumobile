@@ -29,6 +29,8 @@ class User extends Authenticatable
         'phone',
         'home_location',
         'bio',
+        'age',
+        'gender',
         'travel_preferences',
         'is_leaderboard_private',
         'last_gps_lat',
@@ -45,6 +47,7 @@ class User extends Authenticatable
     protected $casts = [
         'xp'                => 'integer',
         'points'            => 'integer',
+        'age'               => 'integer',
         'email_verified_at' => 'datetime',
         'last_activity'     => 'datetime',
         'created_at'        => 'datetime',

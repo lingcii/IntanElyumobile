@@ -100,6 +100,8 @@ class ProfileController extends Controller
         $hasPhone = Schema::hasColumn('users', 'phone');
         $hasLocation = Schema::hasColumn('users', 'home_location');
         $hasBio = Schema::hasColumn('users', 'bio');
+        $hasAge = Schema::hasColumn('users', 'age');
+        $hasGender = Schema::hasColumn('users', 'gender');
         $hasPrefs = Schema::hasColumn('users', 'travel_preferences');
         $hasPrivacy = Schema::hasColumn('users', 'is_leaderboard_private');
         $has2FA = Schema::hasColumn('users', 'two_factor_enabled');
@@ -232,6 +234,8 @@ class ProfileController extends Controller
                 'phone' => $hasPhone ? $user->phone : null,
                 'home_location' => $hasLocation ? $user->home_location : null,
                 'bio' => $hasBio ? $user->bio : null,
+                'age' => $hasAge ? $user->age : null,
+                'gender' => $hasGender ? $user->gender : null,
                 'travel_preferences' => $hasPrefs ? $user->travel_preferences : null,
                 'is_leaderboard_private' => $hasPrivacy ? (bool) $user->is_leaderboard_private : false,
                 'two_factor_enabled' => (bool) $is2FAEnabled,
@@ -262,6 +266,8 @@ class ProfileController extends Controller
             'phone' => 'nullable|string|max:50',
             'home_location' => 'nullable|string|max:255',
             'bio' => 'nullable|string|max:500',
+            'age' => 'nullable|integer|min:1|max:120',
+            'gender' => 'nullable|string|max:50',
             'travel_preferences' => 'nullable|string|max:255',
             'avatar' => 'sometimes|file|mimes:jpeg,png,jpg,gif,webp,heic,heif|max:10240',
         ]);
@@ -284,6 +290,16 @@ class ProfileController extends Controller
 
         if ($request->has('bio') && Schema::hasColumn('users', 'bio')) {
             $user->bio = $request->input('bio');
+        }
+
+        if ($request->has('age') && Schema::hasColumn('users', 'age')) {
+            $ageVal = $request->input('age');
+            $user->age = ($ageVal !== null && $ageVal !== '') ? (int) $ageVal : null;
+        }
+
+        if ($request->has('gender') && Schema::hasColumn('users', 'gender')) {
+            $genderVal = $request->input('gender');
+            $user->gender = ($genderVal !== null && trim($genderVal) !== '') ? trim($genderVal) : null;
         }
 
         if ($request->has('travel_preferences') && Schema::hasColumn('users', 'travel_preferences')) {
