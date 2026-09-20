@@ -2944,6 +2944,13 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 }
             });
 
+            // Sort: Available first, Unavailable second
+            unique.sort((a, b) => {
+                const aAvail = a.available !== false ? 1 : 0;
+                const bAvail = b.available !== false ? 1 : 0;
+                return bAvail - aAvail;
+            });
+
             const currentSelected = (document.getElementById('trip-transport').value || '').split(',').filter(Boolean);
 
             // Clean trip-transport to drop any vehicle that is now unavailable
