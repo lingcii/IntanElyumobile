@@ -645,7 +645,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     background: #ffffff !important;
                     border: none !important;
                     outline: none !important;
-                    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
+                    box-shadow: none !important;
                     cursor: pointer;
                     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
                     color: #1e293b !important;
@@ -672,18 +672,18 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 }
 
                 .transport-option.active {
-                    background: #ffffff !important;
+                    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
                     border: none !important;
                     outline: none !important;
-                    box-shadow: 0 6px 20px rgba(2, 132, 199, 0.45) !important;
+                    box-shadow: none !important;
                 }
 
                 .transport-option.active i {
-                    color: #0284c7 !important;
+                    color: #ffffff !important;
                 }
 
                 .transport-option.active span {
-                    color: #0284c7 !important;
+                    color: #ffffff !important;
                     font-weight: 800 !important;
                 }
 
