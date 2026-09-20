@@ -388,13 +388,13 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
     <!-- Big Container from Recommended to Save Draft Plan -->
     <div id="draft-plan-card-wrapper" class="draft-plan-card-wrapper stagger-2" style="display:none;">
         <!-- Active Editing Trip Banner -->
-        <div id="editing-plan-banner" style="display:none; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color:#ffffff; padding:10px 16px; border-radius:14px; margin-bottom:14px; font-size:12.5px; font-weight:700; border:none !important; outline:none !important; box-shadow:none !important;">
+        <div id="editing-plan-banner" style="display:none; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color:#ffffff; padding:10px 16px; border-radius:14px; margin-bottom:14px; font-size:12.5px; font-weight:700; border:none !important; outline:none !important; box-shadow:none !important; cursor:pointer;" onclick="window.cancelEditingSavedTrip()">
             <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
                 <i class="fa-solid fa-pen-to-square" style="color:#38bdf8; font-size:14px;"></i>
                 <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Editing: <strong id="editing-banner-title">Saved Trip</strong></span>
             </div>
-            <button type="button" onclick="window.cancelEditingSavedTrip()" style="background:rgba(255,255,255,0.22); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:5px 12px; border-radius:100px; cursor:pointer; margin-left:10px; flex-shrink:0; box-shadow:none !important; transition:background 0.2s ease;">
-                Cancel Edit
+            <button type="button" onclick="event.stopPropagation(); window.cancelEditingSavedTrip();" style="background:rgba(255,255,255,0.22); border:none !important; outline:none !important; color:#ffffff; font-size:11.5px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; margin-left:10px; flex-shrink:0; box-shadow:none !important; transition:all 0.2s ease; user-select:none; -webkit-tap-highlight-color:transparent;">
+                <i class="fa-solid fa-xmark" style="margin-right:4px;"></i> Cancel Edit
             </button>
         </div>
         <!-- Map Visualization Container -->
@@ -2292,14 +2292,42 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         };
 
         window.cancelEditingSavedTrip = function () {
+            // Check if there was an existing draft with added spots before entering edit mode
+            const backupDraftRaw = localStorage.getItem('intan_elyu_pre_edit_backup_draft') || sessionStorage.getItem('intan_elyu_pre_edit_backup_draft');
+            let restored = false;
+
+            if (backupDraftRaw) {
+                try {
+                    const parsed = JSON.parse(backupDraftRaw);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        localStorage.setItem('intan_elyu_draft_itinerary', backupDraftRaw);
+                        restored = true;
+                    } else {
+                        localStorage.removeItem('intan_elyu_draft_itinerary');
+                    }
+                } catch (e) {
+                    localStorage.removeItem('intan_elyu_draft_itinerary');
+                }
+            } else {
+                // If there were no prior added spots in itinerary, go back to empty state!
+                localStorage.removeItem('intan_elyu_draft_itinerary');
+            }
+
+            // Clean up pre-edit backup
+            localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+            sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+
+            // Clear editing trip session keys
             sessionStorage.removeItem('editing_itinerary_id');
             sessionStorage.removeItem('editing_trip_title');
             sessionStorage.removeItem('editing_trip_date');
             sessionStorage.removeItem('editing_trip_budget');
             sessionStorage.removeItem('editing_trip_transport');
+
             if (typeof showToast === 'function') {
-                showToast("Exited trip edit mode.");
+                showToast(restored ? "Restored your draft itinerary." : "Exited trip edit mode.");
             }
+
             window.renderItinerary();
         };
 
@@ -2514,7 +2542,26 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     }
 
                     showToast(editingId ? "Trip updated successfully!" : "Trip saved successfully!");
-                    localStorage.removeItem('intan_elyu_draft_itinerary');
+
+                    // If the user updated an edited trip, restore their original pre-edit draft (if any was saved)
+                    const backupDraftRaw = localStorage.getItem('intan_elyu_pre_edit_backup_draft') || sessionStorage.getItem('intan_elyu_pre_edit_backup_draft');
+                    if (editingId && backupDraftRaw) {
+                        try {
+                            const parsed = JSON.parse(backupDraftRaw);
+                            if (Array.isArray(parsed) && parsed.length > 0) {
+                                localStorage.setItem('intan_elyu_draft_itinerary', backupDraftRaw);
+                            } else {
+                                localStorage.removeItem('intan_elyu_draft_itinerary');
+                            }
+                        } catch (e) {
+                            localStorage.removeItem('intan_elyu_draft_itinerary');
+                        }
+                    } else {
+                        localStorage.removeItem('intan_elyu_draft_itinerary');
+                    }
+                    localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                    sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+
                     window.resetSaveModalInputs();
                     document.getElementById('save-trip-modal').style.display = 'none';
                     const bottomNav = document.getElementById('bottom-navigation');

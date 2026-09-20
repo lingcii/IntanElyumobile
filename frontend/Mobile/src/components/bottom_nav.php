@@ -35,7 +35,7 @@
                 </svg>
             </span>
         </a>
-        <a href="#" class="magic-nav-item" data-index="2" data-view="itinerary" data-color="#1e3a8a" onclick="navigateTo('itinerary'); return false;">
+        <a href="#" class="magic-nav-item" data-index="2" data-view="itinerary" data-color="#1e3a8a" onclick="if(window.state && window.state.currentView === 'itinerary' && sessionStorage.getItem('editing_itinerary_id') && typeof window.cancelEditingSavedTrip === 'function'){ window.cancelEditingSavedTrip(); return false; } navigateTo('itinerary'); return false;">
             <span class="icon">
                 <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />

@@ -1023,6 +1023,30 @@ body[data-view="saved_trips"],
             return;
         }
 
+        // Backup existing draft itinerary spots if user was building a plan before editing
+        const existingDraftRaw = localStorage.getItem('intan_elyu_draft_itinerary');
+        const isAlreadyEditing = Boolean(sessionStorage.getItem('editing_itinerary_id'));
+        if (!isAlreadyEditing) {
+            if (existingDraftRaw) {
+                try {
+                    const parsed = JSON.parse(existingDraftRaw);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        localStorage.setItem('intan_elyu_pre_edit_backup_draft', existingDraftRaw);
+                        sessionStorage.setItem('intan_elyu_pre_edit_backup_draft', existingDraftRaw);
+                    } else {
+                        localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                        sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                    }
+                } catch (e) {
+                    localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                    sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                }
+            } else {
+                localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+            }
+        }
+
         sessionStorage.setItem('editing_itinerary_id', trip.id);
         sessionStorage.setItem('editing_trip_title', trip.title || '');
         sessionStorage.setItem('editing_trip_date', trip.trip_date || '');
