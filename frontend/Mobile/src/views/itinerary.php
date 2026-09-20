@@ -730,9 +730,10 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         <script>
             window.selectTransportMode = function (el) {
                 if (el.getAttribute('data-available') === '0' || el.classList.contains('disabled-transport')) {
-                    const vehName = el.querySelector('span')?.textContent || 'This vehicle';
+                    const vehName = el.querySelector('span')?.textContent;
+                    const msg = vehName ? `${vehName} is not available.` : 'This vehicle is not available.';
                     if (typeof showToast === 'function') {
-                        showToast(`No imported fare guide for ${vehName} in this municipality.`);
+                        showToast(msg);
                     }
                     return;
                 }
