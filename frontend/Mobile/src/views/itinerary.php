@@ -643,11 +643,11 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     padding: 14px 10px;
                     border-radius: 16px;
                     background: #ffffff !important;
-                    border: 2.5px solid transparent !important;
+                    border: none !important;
                     outline: none !important;
-                    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;
+                    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
                     cursor: pointer;
-                    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+                    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
                     color: #1e293b !important;
                     flex-shrink: 0;
                     box-sizing: border-box;
@@ -655,15 +655,11 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     -webkit-tap-highlight-color: transparent;
                 }
 
-                .transport-option:active {
-                    transform: scale(0.96);
-                }
-
                 .transport-option i {
                     font-size: 22px;
                     margin-bottom: 8px;
                     color: #1e3a8a !important;
-                    transition: color 0.2s ease, transform 0.2s ease;
+                    transition: color 0.25s ease;
                 }
 
                 .transport-option span {
@@ -672,24 +668,55 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     text-align: center;
                     color: #1e293b !important;
                     white-space: nowrap;
-                    transition: color 0.2s ease;
+                    transition: color 0.25s ease;
                 }
 
                 .transport-option.active {
                     background: #ffffff !important;
-                    border: 2.5px solid #0284c7 !important;
-                    box-shadow: 0 0 0 3.5px rgba(2, 132, 199, 0.35), 0 6px 18px rgba(0, 0, 0, 0.22) !important;
-                    transform: translateY(-2px);
+                    border: none !important;
+                    outline: none !important;
+                    box-shadow: 0 6px 20px rgba(2, 132, 199, 0.45) !important;
                 }
 
                 .transport-option.active i {
                     color: #0284c7 !important;
-                    transform: scale(1.1);
                 }
 
                 .transport-option.active span {
                     color: #0284c7 !important;
                     font-weight: 800 !important;
+                }
+
+                .transport-option.disabled-transport {
+                    opacity: 0.45 !important;
+                    background: rgba(255, 255, 255, 0.65) !important;
+                    border: none !important;
+                    outline: none !important;
+                    box-shadow: none !important;
+                    cursor: not-allowed !important;
+                }
+
+                .transport-option.disabled-transport i {
+                    color: #94a3b8 !important;
+                }
+
+                .transport-option.disabled-transport span {
+                    color: #94a3b8 !important;
+                }
+
+                .trans-badge-unavailable {
+                    font-size: 8.5px;
+                    font-weight: 800;
+                    text-transform: uppercase;
+                    letter-spacing: 0.4px;
+                    padding: 2px 6px;
+                    border-radius: 6px;
+                    margin-top: 5px;
+                    background: rgba(239, 68, 68, 0.14);
+                    color: #ef4444;
+                    border: none !important;
+                    outline: none !important;
+                    display: inline-block;
                 }
             </style>
 
@@ -702,6 +729,13 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
         <script>
             window.selectTransportMode = function (el) {
+                if (el.getAttribute('data-available') === '0' || el.classList.contains('disabled-transport')) {
+                    const vehName = el.querySelector('span')?.textContent || 'This vehicle';
+                    if (typeof showToast === 'function') {
+                        showToast(`No imported fare guide for ${vehName} in this municipality.`);
+                    }
+                    return;
+                }
                 const val = el.getAttribute('data-val');
                 const privateKeys = ['own_car', 'taxi', 'motorcycle', 'van'];
                 const isPrivate = privateKeys.includes(val);
@@ -722,7 +756,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     const activePublic = [];
                     document.querySelectorAll('.transport-option.active').forEach(opt => {
                         const oVal = opt.getAttribute('data-val');
-                        if (!privateKeys.includes(oVal)) {
+                        if (!privateKeys.includes(oVal) && opt.getAttribute('data-available') !== '0') {
                             activePublic.push(oVal);
                         }
                     });
@@ -2287,18 +2321,24 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             }
             window.setTransportType(currentTransType, false);
 
-            // Manage active vehicle cards in the slider
+            // Manage active vehicle cards in the slider (only select available options)
             const activeVehicles = existingTransport ? existingTransport.split(',').filter(Boolean) : [...new Set(draft.flatMap(p => p.selected_vehicles || []).filter(Boolean))];
             if (activeVehicles.length > 0) {
-                document.querySelectorAll('.transport-option').forEach(opt => {
+                document.querySelectorAll('.transport-option:not(.disabled-transport)').forEach(opt => {
                     if (activeVehicles.includes(opt.dataset.val)) {
                         opt.classList.add('active');
                     }
                 });
-                document.getElementById('trip-transport').value = activeVehicles.join(',');
+                const validActive = [];
+                document.querySelectorAll('.transport-option.active').forEach(opt => {
+                    if (opt.getAttribute('data-available') !== '0') {
+                        validActive.push(opt.dataset.val);
+                    }
+                });
+                document.getElementById('trip-transport').value = validActive.join(',');
             } else {
-                const defaultOpt = document.querySelector('.transport-option');
-                if (defaultOpt) {
+                const defaultOpt = document.querySelector('.transport-option:not(.disabled-transport)') || document.querySelector('.transport-option');
+                if (defaultOpt && defaultOpt.getAttribute('data-available') !== '0') {
                     defaultOpt.classList.add('active');
                     document.getElementById('trip-transport').value = defaultOpt.dataset.val;
                 }
@@ -2830,13 +2870,13 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             if (type === 'private') {
                 optionsList = [
-                    { val: 'own_car', name: 'Own Car', icon: 'fa-car' },
-                    { val: 'taxi', name: 'Taxi', icon: 'fa-taxi' },
-                    { val: 'van', name: 'Van', icon: 'fa-shuttle-van' },
-                    { val: 'motorcycle', name: 'Motorcycle', icon: 'fa-motorcycle' }
+                    { val: 'own_car', name: 'Own Car', icon: 'fa-car', available: true },
+                    { val: 'taxi', name: 'Taxi', icon: 'fa-taxi', available: true },
+                    { val: 'van', name: 'Van', icon: 'fa-shuttle-van', available: true },
+                    { val: 'motorcycle', name: 'Motorcycle', icon: 'fa-motorcycle', available: true }
                 ];
             } else {
-                // Public vehicles: dynamically activated by municipal matrices & inter-municipal routes
+                // Public vehicles: show all standard public vehicles; mark as unavailable if no imported fare guide
                 const draft = window.getEffectiveDraft ? window.getEffectiveDraft() : [];
                 const rawMunis = draft.map(p => (p.municipality || '').trim()).filter(Boolean);
                 const uniqueMunis = [...new Set(rawMunis)];
@@ -2844,54 +2884,54 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 // Inter-municipal trip condition: draft crosses more than 1 municipality
                 const isInterMunicipal = uniqueMunis.length > 1;
 
-                const vehicleCatalog = {
-                    'jeepney': { val: 'jeepney', name: 'Modern Jeepney', icon: 'fa-bus' },
-                    'bus': { val: 'private_bus', name: 'Aircon Bus', icon: 'fa-bus-simple' },
-                    'private_bus': { val: 'private_bus', name: 'Aircon Bus', icon: 'fa-bus-simple' },
-                    'tricycle': { val: 'tricycle', name: 'Tricycle', icon: 'fa-motorcycle' },
-                    'lutrampco': { val: 'lutrampco', name: 'Modern Jeepney', icon: 'fa-bus' },
-                    'mini_bus': { val: 'mini_bus', name: 'Mini Bus', icon: 'fa-bus-simple' },
-                    'van': { val: 'van', name: 'UV Express / Van', icon: 'fa-shuttle-van' }
-                };
-
                 if (isInterMunicipal) {
-                    // Inter-municipal trips: activate highway/inter-municipal vehicles alongside local Tricycle
+                    // Inter-municipal trips: highway vehicles (Jeepney, Bus) have provincial LTFRB guides; Tricycle handles boundary routes
                     optionsList = [
-                        vehicleCatalog['jeepney'],
-                        vehicleCatalog['bus'],
-                        vehicleCatalog['tricycle']
+                        { val: 'jeepney', name: 'Modern Jeepney', icon: 'fa-bus', available: true },
+                        { val: 'private_bus', name: 'Aircon Bus', icon: 'fa-bus-simple', available: true },
+                        { val: 'tricycle', name: 'Tricycle', icon: 'fa-motorcycle', available: true }
                     ];
                 } else {
-                    // Single municipality trip: activate strictly the vehicles registered for that destination municipality
+                    // Single municipality trip: check imported fare guides for this municipality
                     const destMuni = uniqueMunis.length === 1 ? uniqueMunis[0] : '';
-                    const muniKey = destMuni.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                    const cleanMuni = destMuni.replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim();
+                    const muniKey = cleanMuni.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                    const muniRaw = cleanMuni.toLowerCase();
 
                     let activeTypes = [];
-                    if (window.fareData?.active_vehicles_by_municipality?.[muniKey]) {
+                    if (muniKey && window.fareData?.active_vehicles_by_municipality?.[muniKey]) {
                         activeTypes = window.fareData.active_vehicles_by_municipality[muniKey];
-                    } else if (window.fareData?.by_municipality?.[muniKey]) {
+                    } else if (muniRaw && window.fareData?.active_vehicles_by_municipality?.[muniRaw]) {
+                        activeTypes = window.fareData.active_vehicles_by_municipality[muniRaw];
+                    } else if (muniKey && window.fareData?.by_municipality?.[muniKey]) {
                         activeTypes = Object.keys(window.fareData.by_municipality[muniKey]);
+                    } else if (muniRaw && window.fareData?.by_municipality?.[muniRaw]) {
+                        activeTypes = Object.keys(window.fareData.by_municipality[muniRaw]);
                     }
 
-                    if (activeTypes && activeTypes.length > 0) {
-                        activeTypes.forEach(vType => {
-                            const normalized = vType.toLowerCase();
-                            if (vehicleCatalog[normalized]) {
-                                optionsList.push(vehicleCatalog[normalized]);
-                            } else if (normalized.includes('jeep')) {
-                                optionsList.push(vehicleCatalog['jeepney']);
-                            } else if (normalized.includes('bus')) {
-                                optionsList.push(vehicleCatalog['bus']);
-                            } else if (normalized.includes('tri') || normalized.includes('pedicab')) {
-                                optionsList.push(vehicleCatalog['tricycle']);
-                            }
-                        });
-                    }
+                    const activeLower = activeTypes.map(t => String(t).toLowerCase());
 
-                    // Fallback to municipal Tricycle if no specific active vehicle registered yet
-                    if (optionsList.length === 0) {
-                        optionsList.push(vehicleCatalog['tricycle']);
-                    }
+                    // If no municipality selected yet (e.g. empty draft), default all to available
+                    const noDraft = uniqueMunis.length === 0;
+
+                    const hasTrike = noDraft || activeLower.some(t => t.includes('tri') || t.includes('pedicab')) || !!window.fareData?.by_municipality?.[muniKey]?.tricycle;
+                    const hasJeep = noDraft || activeLower.some(t => t.includes('jeep') || t.includes('mpuj') || t.includes('puj')) || !!window.fareData?.by_municipality?.[muniKey]?.jeepney;
+                    const hasBus = noDraft || activeLower.some(t => t.includes('bus') || t.includes('pub')) || !!window.fareData?.by_municipality?.[muniKey]?.bus;
+
+                    optionsList = [
+                        { val: 'jeepney', name: 'Modern Jeepney', icon: 'fa-bus', available: hasJeep },
+                        { val: 'private_bus', name: 'Aircon Bus', icon: 'fa-bus-simple', available: hasBus },
+                        { val: 'tricycle', name: 'Tricycle', icon: 'fa-motorcycle', available: hasTrike }
+                    ];
+
+                    // Also include any other imported public vehicle types (e.g. UV Express / Mini Bus)
+                    activeLower.forEach(vType => {
+                        if ((vType.includes('van') || vType.includes('uve')) && !optionsList.some(o => o.val === 'van')) {
+                            optionsList.push({ val: 'van', name: 'UV Express / Van', icon: 'fa-shuttle-van', available: true });
+                        } else if (vType.includes('mini') && !optionsList.some(o => o.val === 'mini_bus')) {
+                            optionsList.push({ val: 'mini_bus', name: 'Mini Bus', icon: 'fa-bus-simple', available: true });
+                        }
+                    });
                 }
             }
 
@@ -2906,13 +2946,28 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             const currentSelected = (document.getElementById('trip-transport').value || '').split(',').filter(Boolean);
 
+            // Clean trip-transport to drop any vehicle that is now unavailable
+            const availKeys = unique.filter(o => o.available !== false).map(o => o.val);
+            const validSelected = currentSelected.filter(v => availKeys.includes(v));
+            if (validSelected.length !== currentSelected.length) {
+                document.getElementById('trip-transport').value = validSelected.join(',');
+            }
+
             let html = '';
             unique.forEach(opt => {
-                const isActive = currentSelected.includes(opt.val) ? 'active' : '';
+                const isAvail = opt.available !== false;
+                const isActive = (isAvail && validSelected.includes(opt.val)) ? 'active' : '';
+                const disabledClass = !isAvail ? 'disabled-transport' : '';
+                const badgeHtml = !isAvail ? '<span class="trans-badge-unavailable">Unavailable</span>' : '';
+
                 html += `
-            <div class="transport-option ${isActive}" data-val="${opt.val}" onclick="window.selectTransportMode(this)">
+            <div class="transport-option ${isActive} ${disabledClass}" 
+                 data-val="${opt.val}" 
+                 data-available="${isAvail ? '1' : '0'}"
+                 onclick="window.selectTransportMode(this)">
                 <i class="fa-solid ${opt.icon}"></i>
                 <span>${opt.name}</span>
+                ${badgeHtml}
             </div>`;
             });
 
