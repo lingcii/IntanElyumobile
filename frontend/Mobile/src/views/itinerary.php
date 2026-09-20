@@ -385,19 +385,18 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         </div>
     </div>
 
-    <!-- Active Editing Trip Banner -->
-    <div id="editing-plan-banner" style="display:none; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color:#ffffff; padding:10px 16px; border-radius:14px; margin-bottom:14px; font-size:12.5px; font-weight:700; border:none !important; outline:none !important; box-shadow:none !important;">
-        <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
-            <i class="fa-solid fa-pen-to-square" style="color:#38bdf8; font-size:14px;"></i>
-            <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Editing: <strong id="editing-banner-title">Saved Trip</strong></span>
-        </div>
-        <button type="button" onclick="window.cancelEditingSavedTrip()" style="background:rgba(255,255,255,0.22); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:5px 12px; border-radius:100px; cursor:pointer; margin-left:10px; flex-shrink:0; box-shadow:none !important; transition:background 0.2s ease;">
-            Cancel Edit
-        </button>
-    </div>
-
     <!-- Big Container from Recommended to Save Draft Plan -->
     <div id="draft-plan-card-wrapper" class="draft-plan-card-wrapper stagger-2" style="display:none;">
+        <!-- Active Editing Trip Banner -->
+        <div id="editing-plan-banner" style="display:none; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color:#ffffff; padding:10px 16px; border-radius:14px; margin-bottom:14px; font-size:12.5px; font-weight:700; border:none !important; outline:none !important; box-shadow:none !important;">
+            <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
+                <i class="fa-solid fa-pen-to-square" style="color:#38bdf8; font-size:14px;"></i>
+                <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Editing: <strong id="editing-banner-title">Saved Trip</strong></span>
+            </div>
+            <button type="button" onclick="window.cancelEditingSavedTrip()" style="background:rgba(255,255,255,0.22); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:5px 12px; border-radius:100px; cursor:pointer; margin-left:10px; flex-shrink:0; box-shadow:none !important; transition:background 0.2s ease;">
+                Cancel Edit
+            </button>
+        </div>
         <!-- Map Visualization Container -->
         <div id="draft-map-wrapper" style="display:none; margin-top:0; margin-bottom:14px;">
             <!-- Route Type Container with Smooth Sliding Pill -->
@@ -871,21 +870,21 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
 <!-- Confirm Modal -->
 <div id="confirm-modal"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10, 25, 60, 0.75); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); z-index:100002 !important; justify-content:center; align-items:center; padding:16px;">
     <div
-        style="background:var(--glass-bg); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid var(--glass-border); border-radius:24px; padding:24px; width:85%; max-width:360px; box-shadow:0 20px 40px rgba(0,0,0,0.2); text-align:center;">
+        style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%) !important; backdrop-filter:blur(24px) !important; -webkit-backdrop-filter:blur(24px) !important; border:none !important; outline:none !important; border-radius:24px; padding:26px 22px; width:90%; max-width:360px; box-shadow:none !important; text-align:center; color:#ffffff;">
         <div
-            style="width:48px; height:48px; border-radius:50%; background:rgba(245,158,11,0.15); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
-            <i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b; font-size:22px;"></i>
+            style="width:52px; height:52px; border-radius:50%; background:rgba(245, 158, 11, 0.18); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; border:none !important; outline:none !important; box-shadow:none !important;">
+            <i class="fa-solid fa-triangle-exclamation" style="color:#fbbf24; font-size:24px;"></i>
         </div>
-        <h3 style="margin:0 0 8px; color:#f8fafc; font-size:18px;">Missing Details</h3>
+        <h3 style="margin:0 0 8px; color:#ffffff; font-size:19px; font-weight:800; letter-spacing:-0.3px;">Missing Details</h3>
         <p id="confirm-modal-msg"
-            style="margin:0 0 24px; color:rgba(148,163,184,0.9); font-size:14px; line-height:1.5;"></p>
+            style="margin:0 0 24px; color:rgba(255,255,255,0.85); font-size:13.5px; line-height:1.55; font-weight:500;"></p>
         <div style="display:flex; gap:12px;">
-            <button class="btn-primary" id="btn-confirm-cancel"
-                style="flex:1; background:transparent; border:1px solid rgba(255,255,255,0.2); color:white;">Cancel</button>
-            <button class="btn-primary" id="btn-confirm-ok"
-                style="flex:1; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none;">Save Anyway</button>
+            <button type="button" class="btn-primary" id="btn-confirm-cancel"
+                style="flex:1; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; padding:12px; border-radius:14px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:none !important; transition:transform 0.15s ease;">Cancel</button>
+            <button type="button" class="btn-primary" id="btn-confirm-ok"
+                style="flex:1; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important; border:none !important; outline:none !important; color:#ffffff !important; padding:12px; border-radius:14px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:none !important; transition:transform 0.15s ease;">Save Anyway</button>
         </div>
     </div>
 </div>
@@ -1055,11 +1054,14 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     modal.style.display = 'none';
                     btnOk.removeEventListener('click', onOk);
                     btnCancel.removeEventListener('click', onCancel);
+                    modal.removeEventListener('click', onBackdrop);
                 }
                 function onOk() { cleanup(); resolve(true); }
                 function onCancel() { cleanup(); resolve(false); }
+                function onBackdrop(e) { if (e.target === modal) { cleanup(); resolve(false); } }
                 btnOk.addEventListener('click', onOk);
                 btnCancel.addEventListener('click', onCancel);
+                modal.addEventListener('click', onBackdrop);
             });
         };
 
@@ -1314,6 +1316,15 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             if (rawDraft.length === 0) {
                 if (draftPlanCard) draftPlanCard.style.setProperty('display', 'none', 'important');
+                const pageTitleEl = document.getElementById('itinerary-page-title');
+                const editBannerEl = document.getElementById('editing-plan-banner');
+                if (editBannerEl) editBannerEl.style.setProperty('display', 'none', 'important');
+                if (pageTitleEl) pageTitleEl.textContent = 'Draft Plan';
+                sessionStorage.removeItem('editing_itinerary_id');
+                sessionStorage.removeItem('editing_trip_title');
+                sessionStorage.removeItem('editing_trip_date');
+                sessionStorage.removeItem('editing_trip_budget');
+                sessionStorage.removeItem('editing_trip_transport');
                 timeline.innerHTML = '';
                 emptyState.style.setProperty('display', 'flex', 'important');
                 emptyState.classList.remove('is-hidden');
@@ -2431,9 +2442,10 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             if (!transport || !budgetStr) {
                 let msg = "You haven't set ";
                 const missing = [];
-                if (!transport) missing.push('a transport type');
+                if (!transport) missing.push('a transport mode');
                 if (!budgetStr) missing.push('a budget');
                 msg += missing.join(' or ');
+                msg += '. Do you want to save anyway?';
                 if (!(await window.showConfirmModal(msg))) return;
             }
 
