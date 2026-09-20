@@ -313,7 +313,7 @@ body[data-view="saved_trips"],
                 <div class="trip-swipe-content" style="position:relative; z-index:2; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 24px; padding: 22px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease; box-shadow: 0 10px 28px rgba(10, 25, 60, 0.28);">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 6px;">
                         <h3 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; flex: 1; min-width: 0; word-break: break-word;">${trip.title}</h3>
-                        <button type="button" class="btn-edit-saved-trip" onclick="event.stopPropagation(); window.editSavedTrip('${trip.id}')" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" style="background: rgba(255,255,255,0.18); border: none !important; outline: none !important; border-radius: 12px; padding: 6px 14px; color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; transition: all 0.2s ease;">
+                        <button type="button" class="btn-edit-saved-trip" onclick="event.stopPropagation(); window.editSavedTrip('${trip.id}')" ontouchstart="event.stopPropagation();" onpointerdown="event.stopPropagation();" onmousedown="event.stopPropagation();" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" style="background: rgba(255,255,255,0.18); border: none !important; outline: none !important; border-radius: 12px; padding: 6px 14px; color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; transition: all 0.2s ease; box-shadow: none !important; position: relative; z-index: 10; pointer-events: auto; touch-action: manipulation;">
                             <i class="fa-solid fa-pen-to-square"></i> Edit
                         </button>
                     </div>
@@ -1002,19 +1002,41 @@ body[data-view="saved_trips"],
     };
 
     window.editSavedTrip = function(tripId) {
-        const trip = (window._cachedSavedTrips || []).find(t => String(t.id) === String(tripId));
-        if (!trip) return;
+        let trip = (window._cachedSavedTrips || []).find(t => String(t.id) === String(tripId));
+        if (!trip) {
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            if (token) {
+                try {
+                    const rawCached = localStorage.getItem('saved_trips_' + token.substring(0, 10));
+                    if (rawCached) {
+                        const parsed = (typeof window.safeJsonParse === 'function') ? window.safeJsonParse(rawCached, null) : JSON.parse(rawCached);
+                        const list = parsed && parsed.data ? parsed.data : parsed;
+                        if (Array.isArray(list)) {
+                            trip = list.find(t => String(t.id) === String(tripId));
+                        }
+                    }
+                } catch(e) {}
+            }
+        }
+        if (!trip) {
+            if (typeof showToast === 'function') showToast("Could not load trip details for editing.");
+            return;
+        }
 
         sessionStorage.setItem('editing_itinerary_id', trip.id);
         sessionStorage.setItem('editing_trip_title', trip.title || '');
         sessionStorage.setItem('editing_trip_date', trip.trip_date || '');
-        sessionStorage.setItem('editing_trip_budget', trip.budget || '');
+        sessionStorage.setItem('editing_trip_budget', (trip.budget !== null && trip.budget !== undefined) ? trip.budget : '');
         sessionStorage.setItem('editing_trip_transport', trip.transport_mode || '');
 
         const spots = (trip.items || []).map(i => {
             if (i.destination) {
                 return {
                     ...i.destination,
+                    lat: i.destination.latitude,
+                    lng: i.destination.longitude,
+                    photo_url: i.destination.image || i.destination.photo_url || '',
+                    municipality: i.destination.municipality || '',
                     itinerary_item_id: i.id
                 };
             }
@@ -1025,6 +1047,8 @@ body[data-view="saved_trips"],
 
         if (typeof window.navigateTo === 'function') {
             window.navigateTo('itinerary');
+        } else {
+            window.location.href = '?view=itinerary';
         }
     };
 
@@ -1136,7 +1160,10 @@ body[data-view="saved_trips"],
             const bg = container.querySelector('.trip-swipe-bg');
             if (!content) return;
 
-            const handleStart = (clientX) => {
+            const handleStart = (clientX, target) => {
+                if (target && target.closest('button, .btn-edit-saved-trip, a, input, select, textarea, .start-collapsible')) {
+                    return;
+                }
                 startX = clientX;
                 currentX = startX;
                 isSwiping = true;
@@ -1214,11 +1241,11 @@ body[data-view="saved_trips"],
                 moved = false;
             };
 
-            content.addEventListener('touchstart', (e) => handleStart(e.touches[0].clientX), { passive: true });
+            content.addEventListener('touchstart', (e) => handleStart(e.touches[0].clientX, e.target), { passive: true });
             content.addEventListener('touchmove', (e) => handleMove(e.touches[0].clientX), { passive: true });
             content.addEventListener('touchend', handleEnd, { passive: true });
 
-            content.addEventListener('mousedown', (e) => handleStart(e.clientX));
+            content.addEventListener('mousedown', (e) => handleStart(e.clientX, e.target));
             window.addEventListener('mousemove', (e) => { if (isSwiping) handleMove(e.clientX); });
             window.addEventListener('mouseup', () => { if (isSwiping) handleEnd(); });
         });

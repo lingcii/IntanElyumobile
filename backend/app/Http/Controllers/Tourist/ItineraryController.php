@@ -22,7 +22,10 @@ class ItineraryController extends Controller
         $user = $request->user();
 
         $itineraries = Itinerary::where('user_id', $user->id)
-            ->with(['items.destination:id,name,photo_url,latitude,longitude,entrance_fee,classification_status'])
+            ->with([
+                'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,classification_status,municipality_id',
+                'items.destination.municipality:id,name'
+            ])
             ->orderByDesc('created_at')
             ->get()
             ->map(function ($itinerary) {
@@ -45,6 +48,7 @@ class ItineraryController extends Controller
                             'longitude'    => $dest->longitude,
                             'entrance_fee' => $dest->entrance_fee,
                             'classification_status' => $dest->classification_status,
+                            'municipality' => $dest->municipality?->name,
                         ] : null,
                     ];
                 });
@@ -73,7 +77,10 @@ class ItineraryController extends Controller
     {
         $user = $request->user();
         $itinerary = Itinerary::where('user_id', $user->id)
-            ->with(['items.destination:id,name,photo_url,latitude,longitude,entrance_fee,classification_status'])
+            ->with([
+                'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,classification_status,municipality_id',
+                'items.destination.municipality:id,name'
+            ])
             ->findOrFail($id);
 
         $items = $itinerary->items->map(function ($item) {
@@ -94,6 +101,7 @@ class ItineraryController extends Controller
                     'longitude'    => $dest->longitude,
                     'entrance_fee' => $dest->entrance_fee,
                     'classification_status' => $dest->classification_status,
+                    'municipality' => $dest->municipality?->name,
                 ] : null,
             ];
         });
@@ -330,25 +338,43 @@ class ItineraryController extends Controller
             'destinations.*' => 'integer|exists:tourist_spots,id',
         ]);
 
-        $itinerary->update($request->only(['title', 'trip_date', 'budget', 'route_type', 'transport_mode']));
+        $updateData = $request->only(['title', 'trip_date', 'budget', 'route_type', 'transport_mode']);
+        if (isset($updateData['trip_date']) && $updateData['trip_date'] === '') {
+            $updateData['trip_date'] = null;
+        }
+        if (isset($updateData['budget']) && $updateData['budget'] === '') {
+            $updateData['budget'] = null;
+        }
+        $itinerary->update($updateData);
 
         if ($request->has('destinations') && is_array($request->destinations) && count($request->destinations) > 0) {
             $spots = TouristSpot::whereIn('id', $request->destinations)->get();
             $totalFee = $spots->sum('entrance_fee');
             $itinerary->update(['total_cost' => $totalFee]);
 
-            $itinerary->items()->delete();
+            $existingItems = $itinerary->items->keyBy('tourist_spot_id');
+            // Remove items no longer in destinations
+            $itinerary->items()->whereNotIn('tourist_spot_id', $request->destinations)->delete();
+
+            // Re-create only new destination stops (preserves existing proof/visited statuses)
             foreach ($request->destinations as $spotId) {
-                ItineraryItem::create([
-                    'itinerary_id'    => $itinerary->id,
-                    'tourist_spot_id' => $spotId,
-                ]);
+                if (!$existingItems->has($spotId)) {
+                    ItineraryItem::create([
+                        'itinerary_id'    => $itinerary->id,
+                        'tourist_spot_id' => $spotId,
+                    ]);
+                }
             }
         }
 
+        Cache::forget("profile:trips:{$user->id}");
+
         return response()->json([
             'message'    => 'Trip updated successfully!',
-            'itinerary'  => $itinerary->fresh()->load(['items.destination:id,name,photo_url,latitude,longitude,entrance_fee,classification_status']),
+            'itinerary'  => $itinerary->fresh()->load([
+                'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,classification_status,municipality_id',
+                'items.destination.municipality:id,name'
+            ]),
         ]);
     }
 

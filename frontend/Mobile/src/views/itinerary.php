@@ -371,18 +371,29 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px; padding-top: 16px;"
         class="stagger-1">
-        <h2 style="margin:0; font-size:22px; font-weight:800; letter-spacing:-0.5px; color:#0f172a !important;">Draft Plan</h2>
+        <h2 id="itinerary-page-title" style="margin:0; font-size:22px; font-weight:800; letter-spacing:-0.5px; color:#0f172a !important;">Draft Plan</h2>
         <div style="display:flex; align-items:center; gap: 8px;">
             <!-- Saved Trips Button (Small) -->
             <button onclick="navigateTo('saved_trips')"
-                style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; color: #ffffff !important; font-weight:700; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; box-sizing: border-box; box-shadow: 0 2px 8px rgba(32, 63, 141, 0.28) !important;">
+                style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; color: #ffffff !important; font-weight:700; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; box-sizing: border-box; box-shadow: none !important;">
                 <i class="fa-solid fa-bookmark" style="margin-right:6px;"></i> Saved Trips
             </button>
             <span
-                style="background:#f1f5f9 !important; border: none !important; outline: none !important; color:#1e3a8a !important; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; font-weight:800; display:flex; align-items:center; box-sizing: border-box; box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;">
+                style="background:#f1f5f9 !important; border: none !important; outline: none !important; color:#1e3a8a !important; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; font-weight:800; display:flex; align-items:center; box-sizing: border-box; box-shadow: none !important;">
                 <span id="itinerary-count" style="margin-right:4px;">0</span> Places
             </span>
         </div>
+    </div>
+
+    <!-- Active Editing Trip Banner -->
+    <div id="editing-plan-banner" style="display:none; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color:#ffffff; padding:10px 16px; border-radius:14px; margin-bottom:14px; font-size:12.5px; font-weight:700; border:none !important; outline:none !important; box-shadow:none !important;">
+        <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
+            <i class="fa-solid fa-pen-to-square" style="color:#38bdf8; font-size:14px;"></i>
+            <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Editing: <strong id="editing-banner-title">Saved Trip</strong></span>
+        </div>
+        <button type="button" onclick="window.cancelEditingSavedTrip()" style="background:rgba(255,255,255,0.22); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:5px 12px; border-radius:100px; cursor:pointer; margin-left:10px; flex-shrink:0; box-shadow:none !important; transition:background 0.2s ease;">
+            Cancel Edit
+        </button>
     </div>
 
     <!-- Big Container from Recommended to Save Draft Plan -->
@@ -429,7 +440,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
         <!-- Save Itinerary Action -->
         <button class="btn-primary" id="btn-save-itinerary"
-            style="display:none; width:100%; padding:16px; border-radius:20px; font-weight:900; font-size:16px; margin-top:4px; margin-bottom:0; border: none !important; outline: none !important; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; color:#ffffff !important; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;"
+            style="display:none; width:100%; padding:16px; border-radius:20px; font-weight:900; font-size:16px; margin-top:4px; margin-bottom:0; border: none !important; outline: none !important; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; color:#ffffff !important; box-shadow: none !important;"
             onclick="openSaveModal()">
             <i class="fa-solid fa-cloud-arrow-up" style="margin-right:8px;"></i> Save Draft Plan
         </button>
@@ -1319,7 +1330,23 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             if (draftPlanCard) draftPlanCard.style.setProperty('display', 'flex', 'important');
             fab.style.setProperty('display', 'flex', 'important');
             const isEditingPlan = Boolean(sessionStorage.getItem('editing_itinerary_id'));
-            fab.innerHTML = isEditingPlan ? '<i class="fa-solid fa-pen-to-square" style="margin-right:8px;"></i> Update Saved Trip' : '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:8px;"></i> Save Draft Plan';
+            const pageTitleEl = document.getElementById('itinerary-page-title');
+            const editBannerEl = document.getElementById('editing-plan-banner');
+            const editBannerTitleEl = document.getElementById('editing-banner-title');
+            const savedTitle = sessionStorage.getItem('editing_trip_title') || '';
+
+            if (isEditingPlan) {
+                if (pageTitleEl) pageTitleEl.textContent = 'Edit Saved Trip';
+                if (editBannerEl) {
+                    editBannerEl.style.display = 'flex';
+                    if (editBannerTitleEl) editBannerTitleEl.textContent = savedTitle || 'Saved Trip';
+                }
+                fab.innerHTML = '<i class="fa-solid fa-pen-to-square" style="margin-right:8px;"></i> Update Saved Trip';
+            } else {
+                if (pageTitleEl) pageTitleEl.textContent = 'Draft Plan';
+                if (editBannerEl) editBannerEl.style.display = 'none';
+                fab.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:8px;"></i> Save Draft Plan';
+            }
             if (mapWrapper) mapWrapper.style.display = 'block';
 
             // Sync active class on route toggle buttons
@@ -2253,6 +2280,18 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             sessionStorage.removeItem('editing_trip_transport');
         };
 
+        window.cancelEditingSavedTrip = function () {
+            sessionStorage.removeItem('editing_itinerary_id');
+            sessionStorage.removeItem('editing_trip_title');
+            sessionStorage.removeItem('editing_trip_date');
+            sessionStorage.removeItem('editing_trip_budget');
+            sessionStorage.removeItem('editing_trip_transport');
+            if (typeof showToast === 'function') {
+                showToast("Exited trip edit mode.");
+            }
+            window.renderItinerary();
+        };
+
         window.openSaveModal = function () {
             const draft = window.getEffectiveDraft();
 
@@ -2274,23 +2313,26 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 const savedTransport = sessionStorage.getItem('editing_trip_transport');
 
                 const titleInput = document.getElementById('trip-title');
-                if (titleInput && (!titleInput.value || titleInput.value.trim() === '') && savedTitle) {
+                if (titleInput && savedTitle !== null && savedTitle !== undefined) {
                     titleInput.value = savedTitle;
                 }
                 const dateInput = document.getElementById('trip-date');
-                if (dateInput && (!dateInput.value || dateInput.value.trim() === '') && savedDate) {
-                    dateInput.value = savedDate;
+                if (dateInput) {
+                    dateInput.value = savedDate || '';
                     const display = document.getElementById('trip-date-display');
-                    if (display) display.value = new Date(savedDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    if (display) {
+                        display.value = savedDate ? new Date(savedDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+                    }
                     const clearLink = document.getElementById('calendar-clear-link');
-                    if (clearLink) clearLink.style.display = 'block';
+                    if (clearLink) clearLink.style.display = savedDate ? 'block' : 'none';
                 }
                 const budgetInput = document.getElementById('trip-budget');
-                if (budgetInput && (!budgetInput.value || budgetInput.value.trim() === '') && savedBudget) {
-                    budgetInput.value = savedBudget;
+                if (budgetInput) {
+                    budgetInput.value = (savedBudget !== null && savedBudget !== undefined && savedBudget !== '') ? savedBudget : '';
                 }
-                if (savedTransport && !document.getElementById('trip-transport').value) {
-                    document.getElementById('trip-transport').value = savedTransport;
+                if (savedTransport) {
+                    const transEl = document.getElementById('trip-transport');
+                    if (transEl) transEl.value = savedTransport;
                 }
             } else {
                 if (modalTitleEl) {
@@ -2325,9 +2367,11 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             // Manage active vehicle cards in the slider (only select available options)
             const activeVehicles = existingTransport ? existingTransport.split(',').filter(Boolean) : [...new Set(draft.flatMap(p => p.selected_vehicles || []).filter(Boolean))];
             if (activeVehicles.length > 0) {
-                document.querySelectorAll('.transport-option:not(.disabled-transport)').forEach(opt => {
-                    if (activeVehicles.includes(opt.dataset.val)) {
+                document.querySelectorAll('.transport-option').forEach(opt => {
+                    if (activeVehicles.includes(opt.dataset.val) && !opt.classList.contains('disabled-transport')) {
                         opt.classList.add('active');
+                    } else {
+                        opt.classList.remove('active');
                     }
                 });
                 const validActive = [];
@@ -2398,7 +2442,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${editingId ? 'Updating...' : 'Saving...'}`;
             btn.disabled = true;
 
-            const destinations = draft.map(place => place.id);
+            const destinations = draft.map(place => parseInt(place.id || place.tourist_spot_id || 0)).filter(id => id > 0);
 
             try {
                 const activeRouteType = document.querySelector('.btn-route-type.active')?.innerText || ((window.currentRouteType === 'alternative' || window.currentRouteType === 'alternate') ? 'Alternative' : 'Recommended');
@@ -2423,7 +2467,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     },
                     body: JSON.stringify({
                         title: title,
-                        trip_date: date,
+                        trip_date: date || null,
                         budget: budget,
                         destinations: destinations,
                         route_type: activeRouteType,
