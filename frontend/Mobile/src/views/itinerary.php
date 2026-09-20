@@ -870,21 +870,21 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
 <!-- Confirm Modal -->
 <div id="confirm-modal"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10, 25, 60, 0.75); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); z-index:100002 !important; justify-content:center; align-items:center; padding:16px;">
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6, 11, 25, 0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:100002 !important; justify-content:center; align-items:center; padding:16px;">
     <div
-        style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%) !important; backdrop-filter:blur(24px) !important; -webkit-backdrop-filter:blur(24px) !important; border:none !important; outline:none !important; border-radius:24px; padding:26px 22px; width:90%; max-width:360px; box-shadow:none !important; text-align:center; color:#ffffff;">
+        style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; backdrop-filter:blur(24px) !important; -webkit-backdrop-filter:blur(24px) !important; border:none !important; outline:none !important; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:0 16px 40px rgba(10, 25, 60, 0.45) !important; text-align:center; color:#ffffff;">
         <div
-            style="width:52px; height:52px; border-radius:50%; background:rgba(245, 158, 11, 0.18); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; border:none !important; outline:none !important; box-shadow:none !important;">
-            <i class="fa-solid fa-triangle-exclamation" style="color:#fbbf24; font-size:24px;"></i>
+            style="width:56px; height:56px; border-radius:50%; background:#ffffff !important; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; border:none !important; outline:none !important; box-shadow:none !important;">
+            <i class="fa-solid fa-triangle-exclamation" style="color:#1e3a8a !important; font-size:26px;"></i>
         </div>
-        <h3 style="margin:0 0 8px; color:#ffffff; font-size:19px; font-weight:800; letter-spacing:-0.3px;">Missing Details</h3>
+        <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800; letter-spacing:-0.3px;">Missing Details</h3>
         <p id="confirm-modal-msg"
-            style="margin:0 0 24px; color:rgba(255,255,255,0.85); font-size:13.5px; line-height:1.55; font-weight:500;"></p>
+            style="margin:0 0 24px; color:rgba(255,255,255,0.95); font-size:13.5px; line-height:1.55; font-weight:500;"></p>
         <div style="display:flex; gap:12px;">
             <button type="button" class="btn-primary" id="btn-confirm-cancel"
-                style="flex:1; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; padding:12px; border-radius:14px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:none !important; transition:transform 0.15s ease;">Cancel</button>
+                style="flex:1; background:rgba(255,255,255,0.22) !important; border:none !important; outline:none !important; color:#ffffff !important; padding:13px; border-radius:14px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:none !important; transition:transform 0.15s ease;">Cancel</button>
             <button type="button" class="btn-primary" id="btn-confirm-ok"
-                style="flex:1; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important; border:none !important; outline:none !important; color:#ffffff !important; padding:12px; border-radius:14px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:none !important; transition:transform 0.15s ease;">Save Anyway</button>
+                style="flex:1; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; padding:13px; border-radius:14px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:none !important; transition:transform 0.15s ease;">Save Anyway</button>
         </div>
     </div>
 </div>
