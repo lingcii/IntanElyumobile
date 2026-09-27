@@ -1387,13 +1387,13 @@ $apkSizeStr = file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 *
             Scan with another device's camera, or tap the button below to download directly to this phone.
           </p>
           <a href="index.php?action=download_apk" download="intan-elyu.apk" class="btn-hero-dl">
-            <i class="fa-brands fa-android"></i> Download APK (<?= $apkSizeStr ?>)
+            <i class="fa-brands fa-android"></i> Download APK
           </a>
           <div class="hero-mirror-row">
             <a href="https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk" target="_blank" rel="noopener" class="hero-mirror-link">
               <i class="fa-solid fa-cloud-arrow-down"></i> Cloud Mirror (R2)
             </a>
-            <span class="hero-ver-tag">v1.2.0 &bull; Android 8.0+</span>
+            <span class="hero-ver-tag">v0.0.0 &bull; Android 8.0+</span>
           </div>
         </div>
       </div>
@@ -2193,9 +2193,10 @@ $apkSizeStr = file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 *
     // 4. Fallback Dynamic QR Code Generator for Current Domain
     (function() {
       const qrImg = document.getElementById('portal-hero-qr');
-      if (!qrImg) return;
-      
-      const apkUrl = window.location.origin + '/index.php?action=download_apk';
+      const hostOrigin = (window.location.hostname.indexOf('railway.app') !== -1)
+        ? 'https://app.intan-elyu.online'
+        : window.location.origin;
+      const apkUrl = hostOrigin + '/index.php?action=download_apk';
       const qrSource = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(apkUrl) + '&margin=1';
       
       qrImg.src = qrSource;

@@ -465,7 +465,7 @@ if (is_dir($imgDir)) {
             return `
                 <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                     ${badgeHtml}
-                    <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
+                    <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='assets/img/no_image.svg';">
                     <div class="fav-card-overlay">
                         <span class="fav-card-name">${dest.name}</span>
                         ${muni ? `<span style="display:block; font-size:10px; color:#38bdf8; margin-top:2px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-location-dot" style="margin-right:3px;"></i>${muni}</span>` : ''}
@@ -564,7 +564,7 @@ if (is_dir($imgDir)) {
                         return `
                             <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                                 ${badgeHtml}
-                                <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
+                                <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='assets/img/no_image.svg';">
                                 <div class="fav-card-overlay">
                                     <span class="fav-card-name">${dest.name}</span>
                                     ${distText ? `<span style="display:block; font-size:10px; color:#38bdf8; margin-top:2px; font-weight:700;"><i class="fa-solid fa-location-arrow"></i> ${distText}</span>` : ''}

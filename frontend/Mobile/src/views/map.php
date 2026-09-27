@@ -2278,7 +2278,7 @@ if (is_dir($imgDir)) {
 
                     html += `
                     <div class="nearby-site-card" style="animation: nearbyCardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s forwards; opacity: 0; background:rgba(255,255,255,0.14); border:none !important; outline:none !important; border-radius:18px; padding:10px 12px; display:flex; align-items:center; gap:12px;" onclick="window.selectNearbySite('${safeSpotStr}')">
-                        <img src="${img}" alt="${spot.name}" loading="lazy" decoding="async" style="width:64px; height:64px; border-radius:12px; object-fit:cover; flex-shrink:0; transition: transform 0.3s ease;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
+                        <img src="${img}" alt="${spot.name}" loading="lazy" decoding="async" style="width:64px; height:64px; border-radius:12px; object-fit:cover; flex-shrink:0; transition: transform 0.3s ease;" onerror="this.onerror=null; this.src='assets/img/no_image.svg';">
                         <div style="flex:1; min-width:0;">
                             <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:3px;">
                                 <h4 style="margin:0; font-size:14px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${spot.name}</h4>

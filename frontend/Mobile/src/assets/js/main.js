@@ -917,11 +917,6 @@ window.showInAppNotification = function (title, message, iconUrl = '') {
         modal.style.opacity = '1';
         modal.querySelector('div > div').style.transform = 'scale(1)';
     });
-
-    try {
-        const audio = new Audio('assets/audio/tuturu.mp3');
-        audio.play().catch(e => { });
-    } catch (e) { }
 };
 
 window.closeNotifModal = function () {
@@ -1571,22 +1566,22 @@ window.getDestImage = function (dest, width) {
         }
     }
 
-    // Phase 3: Final fallback to Cloudflare R2 verified spot image
-    return 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a686f4d0f48b.jpg';
+    // Phase 3: Final fallback to no_image.svg if no image was uploaded or inputted
+    return 'assets/img/no_image.svg';
 };
 
 window.handleImgError = function (imgEl, spotName, muniName) {
     if (!imgEl) return;
     imgEl.onerror = null;
-    var r2Default = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a686f4d0f48b.jpg';
+    var defaultNoImage = 'assets/img/no_image.svg';
     if (window.getDestImage && (spotName || muniName)) {
         var fallback = window.getDestImage({ name: spotName || '', municipality: muniName || '', photo_url: null }, 600);
-        if (fallback && fallback !== imgEl.src && !fallback.includes('unsplash.com') && !fallback.startsWith('data:image/svg')) {
+        if (fallback && fallback !== imgEl.src && !fallback.includes('unsplash.com') && !fallback.endsWith('no_image.svg')) {
             imgEl.src = fallback;
             return;
         }
     }
-    imgEl.src = r2Default;
+    imgEl.src = defaultNoImage;
 };
 
 /**
@@ -1604,7 +1599,7 @@ window.getDestImages = function (dest, width) {
         if (Array.isArray(dest.images) && dest.images.length > 0) {
             dest.images.forEach(function (imgItem) {
                 var resolved = window.getDestImage(imgItem, width);
-                if (resolved && !list.includes(resolved) && resolved !== window.noImageFallback) {
+                if (resolved && !list.includes(resolved) && resolved !== 'assets/img/no_image.svg' && resolved !== window.noImageFallback) {
                     list.push(resolved);
                 }
             });
@@ -1619,8 +1614,7 @@ window.getDestImages = function (dest, width) {
     return list;
 };
 
-var rawFallbackSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" fill="none"><rect width="600" height="400" fill="#0F172A"/><rect x="2" y="2" width="596" height="396" rx="16" fill="url(#bg_grad)" stroke="rgba(255,255,255,0.08)" stroke-width="2"/><defs><linearGradient id="bg_grad" x1="0" y1="0" x2="600" y2="400" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#0F172A"/><stop offset="100%" stop-color="#1E293B"/></linearGradient></defs><circle cx="300" cy="165" r="44" fill="rgba(56,189,248,0.1)" stroke="#38BDF8" stroke-width="2" stroke-dasharray="4 4"/><path d="M284 153H288L290.5 149H309.5L312 153H316C320.418 153 324 156.582 324 161V177C324 181.418 320.418 185 316 185H284C279.582 185 276 181.418 276 177V161C276 156.582 279.582 153 284 153Z" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="300" cy="169" r="7" stroke="#38BDF8" stroke-width="3"/><text x="300" y="240" text-anchor="middle" fill="#F8FAFC" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="20" font-weight="800" letter-spacing="2">NO IMAGE ADDED</text><text x="300" y="268" text-anchor="middle" fill="#94A3B8" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="500" letter-spacing="0.5">Destination photo coming soon</text></svg>';
-window.noImageFallback = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(rawFallbackSvg);
+window.noImageFallback = 'assets/img/no_image.svg';
 
 /**
  * Stale-While-Revalidate Caching fetch helper

@@ -1510,7 +1510,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                             </div>
                             <div style="display:flex; gap:14px; align-items:flex-start;">
                                 <div class="stop-thumbnail-wrapper">
-                                    <img src="${r2ThumbUrl}" alt="${place.name}" loading="lazy" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a686f4d0f48b.jpg';">
+                                    <img src="${r2ThumbUrl}" alt="${place.name}" loading="lazy" onerror="this.onerror=null; this.src='assets/img/no_image.svg';">
                                 </div>
                                 <div style="flex:1; min-width:0;">
                                     <h3 class="place-name" style="margin:0 0 3px 0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px; line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${place.name}</h3>

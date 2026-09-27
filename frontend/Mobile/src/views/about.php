@@ -10,7 +10,7 @@ $backRoute = 'dashboard';
         <i class="fa-solid fa-compass"></i>
     </div>
     <h1 class="app-name">Intan Elyu</h1>
-    <p class="app-version">Version 1.0.0</p>
+    <p class="app-version">v0.0.0</p>
 
     <div class="about-description">
         <p style="margin: 0 0 12px 0;"><strong>Intan Elyu</strong> is your ultimate travel companion for exploring La Union. Discover hidden gems, plan your itineraries, track your adventures, and earn rewards as you explore the Surfing Capital of the North.</p>

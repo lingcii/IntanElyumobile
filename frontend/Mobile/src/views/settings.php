@@ -86,7 +86,7 @@ $backRoute = 'dashboard';
                 <div class="settings-icon-box gray"><i class="fa-solid fa-circle-info"></i></div> 
                 <div>
                     <div class="settings-title">Intan Elyu App Version</div>
-                    <div class="settings-subtitle">Mobile PWA Edition v2.4.0 (Latest)</div>
+                    <div class="settings-subtitle">v0.0.0 (Latest)</div>
                 </div>
             </div>
         </div>

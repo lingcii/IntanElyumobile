@@ -669,7 +669,7 @@ $activeTab = 'profile';
 
         const trips = window._cachedCompletedTrips || [];
         if (trips.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:24px; color:rgba(148, 163, 184, 0.8); font-size:13px; background:rgba(37, 99, 235, 0.1); border:1px solid rgba(56, 189, 248, 0.2); border-radius:16px;">No completed trips found in your history.</div>';
+            container.innerHTML = '<div style="text-align:center; padding:24px 16px; color:#64748b; font-size:13px; font-weight:600; background:#f8fafc; border:none !important; outline:none !important; box-shadow:none !important; border-radius:16px;">No completed trips found in your history.</div>';
         } else {
             let html = '';
             trips.forEach((trip, idx) => {
@@ -678,22 +678,22 @@ $activeTab = 'profile';
                 const cost = parseFloat(trip.total_cost || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
 
                 html += `
-                <div onclick="window.showTripDetailsModal('${trip.id}')" style="background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 18px; padding: 16px; margin-bottom: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.borderColor='rgba(56,189,248,0.5)'" onmouseout="this.style.borderColor='rgba(56,189,248,0.25)'">
+                <div onclick="window.showTripDetailsModal('${trip.id}')" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: none !important; border-radius: 18px; padding: 16px; margin-bottom: 12px; cursor: pointer; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                         <div>
-                            <div style="font-size:10px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Trip #${trips.length - idx}</div>
-                            <strong style="color: #f8fafc; font-size: 16px; font-weight: 800;">${trip.title || 'Completed Trip'}</strong>
+                            <div style="font-size:10px; font-weight:800; color:#00f2fe; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Trip #${trips.length - idx}</div>
+                            <strong style="color: #ffffff; font-size: 16px; font-weight: 800; line-height: 1.3;">${trip.title || 'Completed Trip'}</strong>
                         </div>
-                        <span style="color: #34c759; font-weight: 800; font-size: 11px; background: rgba(52, 199, 89, 0.15); border: 1px solid rgba(52, 199, 89, 0.3); padding: 4px 10px; border-radius: 100px; white-space: nowrap;">
-                            <i class="fa-solid fa-circle-check" style="margin-right: 4px;"></i>Completed
+                        <span style="color: #ffffff; font-weight: 800; font-size: 11px; background: #10b981; border: none !important; outline: none !important; box-shadow: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap;">
+                            <i class="fa-solid fa-circle-check" style="margin-right: 4px; color: #ffffff;"></i>Completed
                         </span>
                     </div>
-                    <div style="font-size: 12px; color: rgba(226, 232, 240, 0.85); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 8px 12px; border-radius: 12px;">
-                        <span><i class="fa-regular fa-calendar" style="color: #38bdf8; margin-right: 4px;"></i>${date}</span>
+                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.95); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: rgba(255,255,255,0.14); border: none !important; outline: none !important; box-shadow: none !important; padding: 8px 12px; border-radius: 12px;">
+                        <span><i class="fa-regular fa-calendar" style="color: #00f2fe; margin-right: 4px;"></i>${date}</span>
                         <span>&bull;</span>
-                        <span><i class="fa-solid fa-coins" style="color: #f59e0b; margin-right: 4px;"></i>₱${cost}</span>
+                        <span><i class="fa-solid fa-coins" style="color: #fbbf24; margin-right: 4px;"></i>₱${cost}</span>
                         <span>&bull;</span>
-                        <span><i class="fa-solid fa-location-dot" style="color: #34c759; margin-right: 4px;"></i>${count} Destinations Visited</span>
+                        <span><i class="fa-solid fa-location-dot" style="color: #34d399; margin-right: 4px;"></i>${count} Destinations Visited</span>
                     </div>
                 </div>`;
             });
@@ -714,9 +714,9 @@ $activeTab = 'profile';
         if (!trip) return;
 
         document.getElementById('trip-detail-title').textContent = trip.title || 'Completed Trip';
-        document.getElementById('trip-detail-date').innerHTML = `<i class="fa-regular fa-calendar" style="color:#38bdf8; margin-right:4px;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}`;
+        document.getElementById('trip-detail-date').innerHTML = `<i class="fa-regular fa-calendar" style="color:#0284c7; margin-right:4px;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}`;
         const cost = parseFloat(trip.total_cost || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-        document.getElementById('trip-detail-cost').innerHTML = `<i class="fa-solid fa-coins" style="color:#f59e0b; margin-right:4px;"></i>₱${cost}`;
+        document.getElementById('trip-detail-cost').innerHTML = `<i class="fa-solid fa-coins" style="color:#d97706; margin-right:4px;"></i>₱${cost}`;
         
         const items = trip.items || [];
         const visitedCount = items.filter(i => i.is_visited).length || items.length;
@@ -724,7 +724,7 @@ $activeTab = 'profile';
 
         let destHtml = '';
         if (items.length === 0) {
-            destHtml = '<div style="text-align:center; padding:16px; color:rgba(148,163,184,0.8); font-size:12px;">No destination details found for this trip.</div>';
+            destHtml = '<div style="text-align:center; padding:16px; color:#94a3b8; font-size:12px;">No destination details found for this trip.</div>';
         } else {
             items.forEach((item, idx) => {
                 const dest = item.destination;
@@ -736,13 +736,13 @@ $activeTab = 'profile';
                 const sMeta = (typeof window.getRewardPointsForClassification === 'function') ? window.getRewardPointsForClassification(sClass) : { points: 50 };
 
                 destHtml += `
-                <div style="display:flex; align-items:center; gap:10px; padding:12px 14px; background:rgba(255,255,255,0.14); border:none !important; outline:none !important; border-radius:14px; margin-bottom:8px;">
-                    <div style="width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:900; font-size:14px; color:#ffffff;">${idx + 1}</div>
+                <div style="display:flex; align-items:center; gap:10px; padding:12px 14px; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; box-shadow:none !important; border-radius:14px; margin-bottom:8px;">
+                    <div style="width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,0.2); border:none !important; outline:none !important; box-shadow:none !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:900; font-size:14px; color:#ffffff;">${idx + 1}</div>
                     <div style="flex:1; min-width:0;">
                         <div style="font-size:13.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
-                        <div style="font-size:11.5px; color:rgba(255,255,255,0.8); font-weight:600; margin-top:2px;">${fee}</div>
+                        <div style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">${fee}</div>
                     </div>
-                    ${spotId ? `<button type="button" data-spot-id="${spotId}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${spotId}', this)" style="background: ${isReviewed ? 'rgba(255,255,255,0.22)' : 'linear-gradient(135deg, #00f2fe 0%, #0284c7 100%)'}; border: none !important; outline: none !important; color: #ffffff; padding: 7px 14px; border-radius: 100px; font-weight: 800; font-size: 11.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: none !important; flex-shrink: 0;">${isReviewed ? '<i class="fa-solid fa-check" style="font-size: 10px; margin-right: 4px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="font-size: 10px;"></i> Review (+${sMeta.points} PTS)`}</button>` : ''}
+                    ${spotId ? `<button type="button" data-spot-id="${spotId}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${spotId}', this)" style="background: ${isReviewed ? 'rgba(255,255,255,0.22)' : 'linear-gradient(135deg, #00f2fe 0%, #0284c7 100%)'}; border: none !important; outline: none !important; box-shadow: none !important; color: #ffffff; padding: 7px 14px; border-radius: 100px; font-weight: 800; font-size: 11.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;">${isReviewed ? '<i class="fa-solid fa-check" style="font-size: 10px; margin-right: 4px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="font-size: 10px;"></i> Review (+${sMeta.points} PTS)`}</button>` : ''}
                 </div>`;
             });
         }
@@ -802,49 +802,55 @@ $activeTab = 'profile';
 
 <!-- Full Trip History Modal -->
 <div id="full-history-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center; padding:20px;">
-    <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:24px; padding:24px 20px; width:100%; max-width:400px; max-height:82vh; display:flex; flex-direction:column; box-shadow:0 24px 60px rgba(10,25,60,0.6); text-align:left;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; padding-bottom:12px; border-bottom:none !important;">
-            <h3 style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
-                <i class="fa-solid fa-clock-rotate-left" style="color:#38bdf8;"></i> Trip History
+    <div style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:400px; max-height:82vh; display:flex; flex-direction:column; box-shadow:none !important; overflow:hidden; text-align:left; padding:0;">
+        <!-- Trip History Header Banner -->
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border:none !important; outline:none !important; box-shadow:none !important; flex-shrink:0;">
+            <h3 style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:9px; letter-spacing:-0.2px;">
+                <i class="fa-solid fa-clock-rotate-left" style="color:#00f2fe; font-size:17px;"></i> Trip History
             </h3>
-            <button onclick="window.closeFullHistoryModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+            <button onclick="window.closeFullHistoryModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; box-shadow:none !important; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
                 <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
             </button>
         </div>
 
-        <div id="full-history-list" style="flex:1; overflow-y:auto; padding-right:4px;">
-            <div style="text-align:center; padding:20px; color:rgba(148, 163, 184, 0.8); font-size:13px;">Loading history...</div>
+        <!-- Body Area Below Header (Pure White, No Shadow, No Outlines) -->
+        <div id="full-history-list" class="hide-scrollbar" style="flex:1; overflow-y:auto; padding:18px 16px; background:#ffffff !important; border:none !important; outline:none !important; box-shadow:none !important;">
+            <div style="text-align:center; padding:20px; color:#64748b; font-size:13px; font-weight:600;">Loading history...</div>
         </div>
     </div>
 </div>
 
 <!-- Completed Trip Details Modal -->
 <div id="trip-details-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:2000000; justify-content:center; align-items:center; padding:20px;">
-    <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:24px; padding:24px 20px; width:100%; max-width:400px; max-height:82vh; display:flex; flex-direction:column; box-shadow:0 24px 60px rgba(10,25,60,0.6); text-align:left;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:none !important;">
+    <div style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:400px; max-height:82vh; display:flex; flex-direction:column; box-shadow:none !important; overflow:hidden; text-align:left; padding:0;">
+        <!-- Header Banner -->
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border:none !important; outline:none !important; box-shadow:none !important; flex-shrink:0;">
             <div style="display:flex; align-items:center; gap:10px;">
-                <div style="width:36px; height:36px; border-radius:12px; background:#10b981; border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:16px;">
+                <div style="width:34px; height:34px; border-radius:10px; background:#10b981; border:none !important; outline:none !important; box-shadow:none !important; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:15px;">
                     <i class="fa-solid fa-flag-checkered"></i>
                 </div>
                 <div>
-                    <div style="font-size:10.5px; font-weight:800; color:#10b981; text-transform:uppercase; letter-spacing:0.5px;">Finished Trip Details</div>
-                    <h3 id="trip-detail-title" style="margin:0; color:#ffffff; font-size:17px; font-weight:800;">Trip Details</h3>
+                    <div style="font-size:10px; font-weight:800; color:#00f2fe; text-transform:uppercase; letter-spacing:0.5px;">Finished Trip Details</div>
+                    <h3 id="trip-detail-title" style="margin:0; color:#ffffff; font-size:17px; font-weight:800; letter-spacing:-0.2px;">Trip Details</h3>
                 </div>
             </div>
-            <button onclick="window.closeTripDetailsModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+            <button onclick="window.closeTripDetailsModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; box-shadow:none !important; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
                 <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
             </button>
         </div>
 
-        <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
-            <span id="trip-detail-date" style="font-size:11.5px; color:#ffffff; background:rgba(255,255,255,0.16); border:none !important; outline:none !important; padding:6px 12px; border-radius:100px; font-weight:700;"><i class="fa-regular fa-calendar" style="color:#38bdf8; margin-right:5px;"></i>--</span>
-            <span id="trip-detail-cost" style="font-size:11.5px; color:#ffffff; background:rgba(255,255,255,0.16); border:none !important; outline:none !important; padding:6px 12px; border-radius:100px; font-weight:700;"><i class="fa-solid fa-coins" style="color:#f59e0b; margin-right:5px;"></i>₱0.00</span>
-            <span id="trip-detail-count" style="font-size:11.5px; color:#ffffff; background:#10b981; border:none !important; outline:none !important; padding:6px 12px; border-radius:100px; font-weight:800;"><i class="fa-solid fa-location-dot" style="margin-right:5px; color:#ffffff;"></i>0 Visited</span>
-        </div>
+        <!-- Body Area Below Header (Pure White, No Shadow, No Outlines) -->
+        <div class="hide-scrollbar" style="flex:1; overflow-y:auto; padding:18px 16px; background:#ffffff !important; border:none !important; outline:none !important; box-shadow:none !important;">
+            <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+                <span id="trip-detail-date" style="font-size:11.5px; color:#1e3a8a; background:#f1f5f9; border:none !important; outline:none !important; box-shadow:none !important; padding:6px 12px; border-radius:100px; font-weight:700;"><i class="fa-regular fa-calendar" style="color:#0284c7; margin-right:5px;"></i>--</span>
+                <span id="trip-detail-cost" style="font-size:11.5px; color:#1e3a8a; background:#f1f5f9; border:none !important; outline:none !important; box-shadow:none !important; padding:6px 12px; border-radius:100px; font-weight:700;"><i class="fa-solid fa-coins" style="color:#d97706; margin-right:5px;"></i>₱0.00</span>
+                <span id="trip-detail-count" style="font-size:11.5px; color:#ffffff; background:#10b981; border:none !important; outline:none !important; box-shadow:none !important; padding:6px 12px; border-radius:100px; font-weight:800;"><i class="fa-solid fa-location-dot" style="margin-right:5px; color:#ffffff;"></i>0 Visited</span>
+            </div>
 
-        <div style="font-size:11px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Destinations Visited</div>
-        <div id="trip-detail-destinations-list" style="flex:1; overflow-y:auto; padding-right:4px;">
-            <div style="text-align:center; padding:16px; color:rgba(148,163,184,0.8); font-size:12px;">Loading destinations...</div>
+            <div style="font-size:11px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Destinations Visited</div>
+            <div id="trip-detail-destinations-list" style="padding-right:0;">
+                <div style="text-align:center; padding:16px; color:#94a3b8; font-size:12px;">Loading destinations...</div>
+            </div>
         </div>
     </div>
 </div>

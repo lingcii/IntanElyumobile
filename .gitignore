@@ -27,3 +27,7 @@ dist-ssr
 
 # Binary application packages (>100MB, hosted on Cloudflare R2 mirror)
 *.apk
+
+# Runtime image proxy cache
+frontend/Mobile/src/assets/img/upload_image/*
+!frontend/Mobile/src/assets/img/upload_image/.gitkeep

@@ -3,6 +3,26 @@ if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
     @session_start();
 }
 
+$reqUri = $_SERVER['REQUEST_URI'] ?? '/';
+$reqPath = parse_url($reqUri, PHP_URL_PATH);
+
+// Health check endpoint for Railway/cloud monitoring
+if ($reqPath === '/up' || $reqPath === '/health') {
+    http_response_code(200);
+    header('Content-Type: text/plain');
+    echo 'OK';
+    exit;
+}
+
+// Canonical Host Redirection:
+// If accessed via default Railway subdomain (*.railway.app),
+// permanently redirect (301) to official custom domain (https://app.intan-elyu.online)
+$httpHost = $_SERVER['HTTP_HOST'] ?? '';
+if (strpos($httpHost, 'railway.app') !== false) {
+    header('Location: https://app.intan-elyu.online' . $reqUri, true, 301);
+    exit;
+}
+
 // Direct APK Binary Streaming Handler
 if (
     (isset($_GET['action']) && $_GET['action'] === 'download_apk') ||
