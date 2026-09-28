@@ -73,33 +73,20 @@ class CostEstimationService
         $guide = null;
 
         if (in_array($normType, ['tricycle', 'trike'])) {
-            $muni = $municipality ? trim(strtolower($municipality)) : 'san juan';
+            $muni = $municipality ? trim(strtolower($municipality)) : null;
             
-            // 1. Try to find active tricycle guide matching requested municipality (e.g. San Juan)
-            $guide = FareGuide::where('status', 'active')
-                ->where('vehicle_type', 'Tricycle')
-                ->where(function ($q) use ($muni) {
-                    $q->whereRaw('LOWER(region) LIKE ?', ["%{$muni}%"])
-                      ->orWhereRaw('LOWER(title) LIKE ?', ["%{$muni}%"]);
-                })
-                ->latest('effective_date')
-                ->first();
+            // Only resolve tricycle guide if the requested municipality actually has an active tricycle matrix in LUPTO
+            if ($muni) {
+                $cleanMuni = trim(preg_replace('/^(municipality of|city of)\s+/i', '', $muni));
+                $cleanMuni = trim(preg_replace('/,\s*la\s*union$/i', '', $cleanMuni));
 
-            // 2. Default to San Juan (Guide #29) as primary tourism hub if not found
-            if (!$guide) {
                 $guide = FareGuide::where('status', 'active')
                     ->where('vehicle_type', 'Tricycle')
-                    ->where(function ($q) {
-                        $q->whereRaw('LOWER(region) LIKE ?', ['%san juan%'])
-                          ->orWhereRaw('LOWER(title) LIKE ?', ['%san juan%']);
+                    ->where(function ($q) use ($cleanMuni) {
+                        $q->whereRaw('LOWER(region) LIKE ?', ["%{$cleanMuni}%"])
+                          ->orWhereRaw('LOWER(title) LIKE ?', ["%{$cleanMuni}%"]);
                     })
-                    ->first() ?? FareGuide::find(29);
-            }
-
-            // 3. Fallback to any active tricycle guide
-            if (!$guide) {
-                $guide = FareGuide::where('status', 'active')
-                    ->where('vehicle_type', 'Tricycle')
+                    ->latest('effective_date')
                     ->first();
             }
         } elseif (in_array($normType, ['pub_aircon'])) {
@@ -189,8 +176,7 @@ class CostEstimationService
                 return round(15.00 + (max(0, $distanceKm - 5) * 2.20), 2);
             case 'tricycle':
             case 'trike':
-                // San Juan base ₱16.32 + ₱2/km fallback
-                return round(16.32 + (max(0, $distanceKm - 1.7) * 2.00), 2);
+                return 0.00;
             default:
                 return 0.00;
         }

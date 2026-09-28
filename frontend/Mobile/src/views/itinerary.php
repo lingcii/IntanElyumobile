@@ -1181,10 +1181,10 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     fareEntry = window.fareData['pub_ordinary'] || window.fareData['pub_regular'] || window.fareData['bus'];
                 } else if (normType === 'mpuj' || normType.includes('mpuj') || normType.includes('modern')) {
                     fareEntry = window.fareData['mpuj'] || window.fareData['jeepney'] || window.fareData['lutrampco'];
-                } else if (normType === 'tpuj' || normType.includes('tpuj') || normType.includes('traditional')) {
-                    fareEntry = window.fareData['tpuj'] || window.fareData['jeepney'] || window.fareData['mpuj'];
                 } else if (normType === 'tricycle' || normType === 'trike') {
-                    fareEntry = window.fareData['tricycle'] || (window.fareData.by_municipality && Object.values(window.fareData.by_municipality)[0]?.tricycle);
+                    fareEntry = (cleanMuni && window.fareData?.by_municipality?.[muniKey]?.tricycle)
+                        || (cleanMuni && window.fareData?.by_municipality?.[muniRaw]?.tricycle)
+                        || null;
                 } else if (normType === 'bus' || normType === 'private_bus') {
                     fareEntry = window.fareData['pub_aircon'] || window.fareData['pub_ordinary'] || window.fareData['bus'];
                 } else if (normType === 'jeepney' || normType === 'lutrampco') {
@@ -2132,8 +2132,8 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                             estimateB = Math.round(dB * 13);
                             legTotal = priceA + estimateB;
                         } else if (normMode === 'tricycle' || normMode === 'trike') {
-                            priceA = window.getFareFromMatrix('tricycle', dA, cleanA) ?? Math.max(16, Math.round(16.32 + Math.max(0, dA - 1.7) * 2.0));
-                            estimateB = window.getFareFromMatrix('tricycle', dB, cleanB) ?? Math.max(16, Math.round(16.32 + Math.max(0, dB - 1.7) * 2.0));
+                            priceA = window.getFareFromMatrix('tricycle', dA, cleanA) ?? 0;
+                            estimateB = window.getFareFromMatrix('tricycle', dB, cleanB) ?? 0;
                             legTotal = priceA + estimateB;
                         } else {
                             // Public Transit: MPUJ, TPUJ, PUB Aircon, PUB Ordinary, Bus, Van/UVE
@@ -2175,7 +2175,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                             priceA = Math.round(base + (d * 13));
                             legTotal = priceA;
                         } else if (normMode === 'tricycle' || normMode === 'trike') {
-                            priceA = window.getFareFromMatrix('tricycle', d, cleanA) ?? Math.max(16, Math.round(16.32 + Math.max(0, d - 1.7) * 2.0));
+                            priceA = window.getFareFromMatrix('tricycle', d, cleanA) ?? 0;
                             legTotal = priceA;
                         } else {
                             const targetVeh = (normMode === 'private_bus') ? 'pub_aircon' : normMode;
@@ -3306,10 +3306,10 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 const noDraft = uniqueMunis.length === 0;
 
                 const hasMpuj = noDraft || isInterMunicipal || activeLower.some(t => t.includes('mpuj') || t.includes('modern')) || !!window.fareData?.mpuj;
-                const hasTpuj = noDraft || isInterMunicipal || activeLower.some(t => t.includes('tpuj') || t.includes('jeep') || t.includes('traditional')) || !!window.fareData?.tpuj;
                 const hasPubAircon = noDraft || isInterMunicipal || activeLower.some(t => t.includes('aircon') || t.includes('pub_aircon')) || !!window.fareData?.pub_aircon;
                 const hasPubOrdinary = noDraft || isInterMunicipal || activeLower.some(t => t.includes('ordinary') || t.includes('regular') || t.includes('pub_ordinary')) || !!window.fareData?.pub_ordinary;
-                const hasTrike = true; // Tricycle is universally available across all 20 municipalities in La Union
+                // Tricycle is municipality-specific: only available if all spots are within ONE municipality AND that municipality has an active Tricycle fare matrix in LUPTO
+                const hasTrike = !isInterMunicipal && uniqueMunis.length === 1 && activeLower.some(t => t.includes('trike') || t.includes('tricycle'));
 
                 optionsList = [
                     { val: 'mpuj', name: 'Modern Jeepney (MPUJ)', icon: 'fa-van-shuttle', available: hasMpuj, key: 'mpuj' },

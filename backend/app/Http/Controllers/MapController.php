@@ -183,7 +183,7 @@ class MapController extends Controller
      */
     public function publicFares(Request $request): JsonResponse
     {
-        $cacheKey = 'map:public:fares:v4';
+        $cacheKey = 'map:public:fares:v5';
 
         $fares = \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function () {
             $allActiveGuides = FareGuide::with(['matrices' => function ($q) {
@@ -235,10 +235,6 @@ class MapController extends Controller
             $uveGuide = $allActiveGuides->first(function ($g) {
                 return in_array(strtoupper($g->vehicle_type), ['UVE', 'UV EXPRESS', 'VAN']);
             });
-
-            $tricycleGuide = $allActiveGuides->first(function ($g) {
-                return strtoupper($g->vehicle_type) === 'TRICYCLE';
-            }) ?? FareGuide::find(29);
 
             $allMuniNames = Municipality::pluck('name')->toArray();
             if (empty($allMuniNames)) {
@@ -306,27 +302,13 @@ class MapController extends Controller
                 }
             }
 
-            // Ensure Tricycle coverage is accessible across municipalities
-            $defaultTrikeData = $formatGuide($tricycleGuide);
-            if ($defaultTrikeData) {
-                foreach ($byMunicipality as $mKey => &$mMap) {
-                    if (!isset($mMap['tricycle'])) {
-                        $mMap['tricycle'] = $defaultTrikeData;
-                    }
-                    if (!in_array('Tricycle', $activeVehiclesByMuni[$mKey])) {
-                        $activeVehiclesByMuni[$mKey][] = 'Tricycle';
-                    }
-                }
-                unset($mMap);
-            }
-
             $result = [
                 'mpuj' => $formatGuide($mpujGuide),
                 'tpuj' => $formatGuide($tpujGuide),
                 'pub_aircon' => $formatGuide($pubAirconGuide),
                 'pub_ordinary' => $formatGuide($pubOrdinaryGuide),
                 'pub_regular' => $formatGuide($pubOrdinaryGuide),
-                'tricycle' => $defaultTrikeData,
+                'tricycle' => null, // Tricycle is municipality-specific, found under by_municipality
                 'uve' => $formatGuide($uveGuide),
                 // Compatibility aliases
                 'jeepney' => $formatGuide($mpujGuide ?? $tpujGuide),
