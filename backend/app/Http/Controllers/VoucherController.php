@@ -43,32 +43,45 @@ class VoucherController extends Controller
 
             $vouchers = $query->latest()->get();
 
-            // Format response for Mobile app compatibility
+            // Format response for Mobile app compatibility with full LUPTO voucher fields
             $formatted = $vouchers->map(function($v) {
                 // Partner establishment resolution (support single field or multi-establishment JSON array)
                 $partner = $v->partner_establishment;
-                if (empty($partner) && !empty($v->partner_establishments)) {
+                $partnerEstablishments = [];
+                if (!empty($v->partner_establishments)) {
                     $estArr = is_array($v->partner_establishments) ? $v->partner_establishments : json_decode($v->partner_establishments, true);
                     if (!empty($estArr) && is_array($estArr)) {
-                        $partner = implode(', ', $estArr);
+                        $partnerEstablishments = array_values(array_filter($estArr));
+                        if (empty($partner) && count($partnerEstablishments) > 0) {
+                            $partner = implode(', ', $partnerEstablishments);
+                        }
                     }
+                }
+                if (!empty($partner) && empty($partnerEstablishments)) {
+                    $partnerEstablishments = array_values(array_filter(array_map('trim', explode(',', $partner))));
                 }
                 if (empty($partner)) {
                     $partner = $v->municipality ? $v->municipality->name . ' Tourism' : 'LUPTO Tourism';
+                    $partnerEstablishments = [$partner];
                 }
 
                 // Municipality resolution (support single id or multi-municipality JSON array)
                 $muni = $v->municipality;
-                if (!$muni && !empty($v->municipality_ids)) {
+                $municipalityNames = [];
+                if (!empty($v->municipality_ids)) {
                     $muniIds = is_array($v->municipality_ids) ? $v->municipality_ids : json_decode($v->municipality_ids, true);
                     if (!empty($muniIds) && is_array($muniIds)) {
-                        $firstId = $muniIds[0] ?? null;
-                        if ($firstId) {
-                            $muni = \App\Models\Municipality::find($firstId);
+                        $munis = \App\Models\Municipality::whereIn('id', $muniIds)->pluck('name')->toArray();
+                        if (!empty($munis)) {
+                            $municipalityNames = $munis;
                         }
                     }
                 }
-                $location = $muni ? $muni->name . ', La Union' : 'La Union';
+                if (empty($municipalityNames) && $muni) {
+                    $municipalityNames = [$muni->name];
+                }
+
+                $location = count($municipalityNames) > 0 ? implode(', ', $municipalityNames) . ', La Union' : ($muni ? $muni->name . ', La Union' : 'La Union');
 
                 $category = 'Food & Dining';
                 $text = strtolower(($v->voucher_name ?? '') . ' ' . ($partner ?? '') . ' ' . ($v->description ?? '') . ' ' . ($v->terms_and_conditions ?? ''));
@@ -88,6 +101,9 @@ class VoucherController extends Controller
                     $badge = (str_contains(strtolower($v->discount_type ?? ''), 'percent')) ? "{$val}% OFF" : "₱{$val} OFF";
                 } elseif (!empty($v->discount_type) && str_starts_with(strtolower($v->discount_type), 'custom:')) {
                     $badge = strtoupper(trim(substr($v->discount_type, 7)));
+                } elseif (!empty($v->discount_type)) {
+                    $cleanType = strtoupper(trim(str_replace(['_', '-'], ' ', $v->discount_type)));
+                    $badge = $cleanType ?: 'PROMO';
                 }
 
                 // Resolve image to Cloudflare R2 URL
@@ -100,7 +116,7 @@ class VoucherController extends Controller
                         $imageUrl = $r2PublicUrl . '/' . ltrim($v->image, '/');
                     }
                 } else {
-                    $muniName = $muni ? $muni->name : null;
+                    $muniName = count($municipalityNames) > 0 ? $municipalityNames[0] : ($muni ? $muni->name : null);
                     if (!$muniName) {
                         $partnerLower = strtolower($partner ?? '');
                         $muniList = ['san fernando', 'san gabriel', 'san juan', 'santo tomas', 'agoo', 'aringay', 'bacnotan', 'bagulin', 'balaoan', 'bangar', 'bauang', 'burgos', 'caba', 'luna', 'naguilian', 'pugo', 'rosario', 'santol', 'sudipen', 'tubao'];
@@ -119,41 +135,70 @@ class VoucherController extends Controller
                     }
                 }
 
-                $isExpired = $v->expires_at ? $v->expires_at->isPast() : false;
+                // Expiration type resolution matching LUPTO Admin options
+                $expType = strtolower($v->expiration_type ?? 'date');
+                $isNoExpiration = in_array($expType, ['no_expiry_claim', 'no_expiry_usable', 'no_expiration_claim', 'no_expiration_usable']);
+                $isExpired = false;
+                $expiresFormatted = 'No Expiration';
+                $expiresIso = $v->expires_at ? $v->expires_at->toIso8601String() : null;
+
+                if ($isNoExpiration) {
+                    if (str_contains($expType, 'claim')) {
+                        $expiresFormatted = 'Until Fully Claimed';
+                    } else {
+                        $expiresFormatted = 'No Expiration';
+                    }
+                    $isExpired = false;
+                } else {
+                    $isExpired = $v->expires_at ? $v->expires_at->isPast() : false;
+                    $expiresFormatted = $v->expires_at ? $v->expires_at->format('M d, Y') : 'No Expiry';
+                }
+
                 $isUpcoming = $v->valid_from ? $v->valid_from->isFuture() : false;
                 $computedStatus = $isExpired ? 'expired' : ($isUpcoming ? 'upcoming' : 'active');
+                $isOutOfStock = ($v->remaining_quantity !== null && $v->remaining_quantity <= 0);
 
                 return [
-                    'id' => $v->id,
-                    'title' => $v->voucher_name,
-                    'category' => $category,
-                    'partner' => $partner,
-                    'location' => $location,
-                    'badge' => $badge,
-                    'xpCost' => (int) ($v->required_points ?: 100),
-                    'pointsCost' => (int) ($v->required_points ?: 100),
-                    'points' => (int) ($v->required_points ?: 100),
-                    'required_points' => (int) ($v->required_points ?: 100),
-                    'code' => $v->voucher_code,
-                    'valid_from' => $v->valid_from ? $v->valid_from->toIso8601String() : null,
-                    'valid_from_formatted' => $v->valid_from ? $v->valid_from->format('M d, Y') : null,
-                    'expires' => $v->expires_at ? $v->expires_at->toIso8601String() : '2027-12-31T23:59:59Z',
-                    'expires_formatted' => $v->expires_at ? $v->expires_at->format('M d, Y') : 'Dec 31, 2027',
-                    'is_expired' => $isExpired,
-                    'is_upcoming' => $isUpcoming,
-                    'status' => $computedStatus,
-                    'description' => $v->description ?: $v->terms_and_conditions ?: 'Present voucher code at merchant checkout.',
-                    'image' => $imageUrl,
-                    'available_quantity' => $v->available_quantity,
-                    'remaining_quantity' => $v->remaining_quantity,
+                    'id'                       => $v->id,
+                    'title'                    => $v->voucher_name,
+                    'category'                 => $category,
+                    'partner'                  => $partner,
+                    'partner_establishments'   => $partnerEstablishments,
+                    'location'                 => $location,
+                    'municipalities'           => $municipalityNames,
+                    'badge'                    => $badge,
+                    'discount_type'            => $v->discount_type ?? 'percentage',
+                    'discount_value'           => (float) ($v->discount_value ?? 0),
+                    'xpCost'                   => (int) ($v->required_points ?: 100),
+                    'pointsCost'               => (int) ($v->required_points ?: 100),
+                    'points'                   => (int) ($v->required_points ?: 100),
+                    'required_points'          => (int) ($v->required_points ?: 100),
+                    'code'                     => $v->voucher_code,
+                    'valid_from'               => $v->valid_from ? $v->valid_from->toIso8601String() : null,
+                    'valid_from_formatted'     => $v->valid_from ? $v->valid_from->format('M d, Y') : null,
+                    'expiration_type'          => $expType,
+                    'is_no_expiration'         => $isNoExpiration,
+                    'expires'                  => $expiresIso,
+                    'expires_formatted'        => $expiresFormatted,
+                    'is_expired'               => $isExpired,
+                    'is_upcoming'              => $isUpcoming,
+                    'is_out_of_stock'          => $isOutOfStock,
+                    'id_needed'                => (bool) ($v->id_needed ?? false),
+                    'terms_and_conditions'     => $v->terms_and_conditions ?: null,
+                    'status'                   => $computedStatus,
+                    'description'              => $v->description ?: $v->terms_and_conditions ?: 'Present voucher code at merchant checkout.',
+                    'image'                    => $imageUrl,
+                    'available_quantity'       => $v->available_quantity,
+                    'remaining_quantity'       => $v->remaining_quantity,
+                    'redeemed_quantity'        => $v->redeemed_quantity,
                 ];
             });
 
             return response()->json([
                 'status' => 'success',
-                'data' => $formatted,
-                'raw' => $vouchers
-            ]);
+                'data'   => $formatted,
+                'raw'    => $vouchers
+            ])->header('Cache-Control', 'public, max-age=120, stale-while-revalidate=300');
         } catch (\Throwable $e) {
             return response()->json([
                 'status' => 'error',

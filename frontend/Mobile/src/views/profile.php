@@ -439,6 +439,7 @@ $activeTab = 'profile';
                                         <div style="display:flex; align-items:center; gap:6px;">
                                             <strong style="display:block; font-size:13px; font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.title}</strong>
                                             <span style="font-size:9px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.2); padding:2px 7px; border-radius:6px; border:none !important; flex-shrink:0;">${v.badge}</span>
+                                            ${v.id_needed ? `<span style="font-size:8px; font-weight:800; color:#fca5a5; background:rgba(239,68,68,0.3); padding:2px 5px; border-radius:4px; flex-shrink:0;"><i class="fa-solid fa-id-card"></i> ID</span>` : ''}
                                         </div>
                                         <span style="font-size:11px; color:rgba(226,232,240,0.7); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.partner}</span>
                                     </div>
@@ -522,6 +523,12 @@ $activeTab = 'profile';
                 }
                 window.dashboardNeedsRefresh = true;
                 try {
+                    let claimed = JSON.parse(localStorage.getItem('intan_elyu_claimed_vouchers') || '[]');
+                    const dbKey = 'db_' + voucherId;
+                    if (!claimed.includes(dbKey)) claimed.push(dbKey);
+                    localStorage.setItem('intan_elyu_claimed_vouchers', JSON.stringify(claimed));
+                    localStorage.removeItem('intan_elyu_cached_vouchers');
+
                     for (let i = localStorage.length - 1; i >= 0; i--) {
                         const k = localStorage.key(i);
                         if (k && (k.startsWith('dashboard_data_') || k.startsWith('profile_data_'))) {
@@ -613,12 +620,24 @@ $activeTab = 'profile';
         const desc = document.getElementById('reward-modal-desc');
         const costText = document.getElementById('reward-modal-cost-text');
         const redeemBtn = document.getElementById('reward-modal-redeem-btn');
+        const idNotice = document.getElementById('reward-modal-id-notice');
 
         if (badge) badge.textContent = voucher.badge || 'PROMO';
         if (img) img.src = voucher.image || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png';
         if (title) title.textContent = voucher.title || 'Exclusive Reward';
         if (partner) partner.textContent = voucher.partner || voucher.merchant || 'La Union Partner';
-        if (desc) desc.textContent = voucher.description || 'Redeem this voucher with your available Points to enjoy discounts at this partner establishment.';
+        if (idNotice) idNotice.style.display = voucher.id_needed ? 'block' : 'none';
+
+        if (desc) {
+            let descText = voucher.description || 'Redeem this voucher with your available Points to enjoy discounts at this partner establishment.';
+            if (voucher.terms_and_conditions) {
+                descText += '\n\n• Terms & Conditions:\n' + voucher.terms_and_conditions;
+            }
+            if (voucher.expires_formatted) {
+                descText += '\n\n• Validity: ' + voucher.expires_formatted;
+            }
+            desc.textContent = descText;
+        }
         if (costText) costText.textContent = `${voucher.pointsCost || voucher.required_points || 100} Points`;
 
         if (redeemBtn) {
@@ -872,6 +891,11 @@ $activeTab = 'profile';
         <p style="margin:0 0 14px; font-size:12px; color:rgba(226,232,240,0.85); display:flex; align-items:center; justify-content:center; gap:4px;">
             <i class="fa-solid fa-store" style="font-size:11px; color:#38bdf8;"></i> <span id="reward-modal-partner-name">Partner</span>
         </p>
+        <div id="reward-modal-id-notice" style="display:none; background:rgba(239, 68, 68, 0.22); border:1px solid rgba(239, 68, 68, 0.45); border-radius:12px; padding:8px 12px; margin-bottom:12px; text-align:left;">
+            <div style="display:flex; align-items:center; gap:6px; color:#fca5a5; font-size:11.5px; font-weight:800;">
+                <i class="fa-solid fa-id-card"></i> Valid ID Required Upon Redemption
+            </div>
+        </div>
         <div style="background:rgba(255,255,255,0.1); border-radius:14px; padding:12px; margin-bottom:16px; text-align:left;">
             <div style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:rgba(255,255,255,0.65); margin-bottom:4px;">Description & Terms</div>
             <p id="reward-modal-desc" style="margin:0; font-size:12px; color:rgba(255,255,255,0.92); line-height:1.45;"></p>
