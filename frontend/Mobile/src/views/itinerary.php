@@ -1075,6 +1075,34 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             window.fuelPrice = d.fuel_price || 65.0;
         }).catch(e => console.error("Fares fetch error:", e));
 
+        // Preload map spot metadata to guarantee vehicle availability can always be resolved
+        window._cachedMapSpots = {};
+        try {
+            const rawMap = localStorage.getItem('public_map_data');
+            if (rawMap) {
+                const parsed = (typeof window.safeJsonParse === 'function') ? window.safeJsonParse(rawMap, null) : JSON.parse(rawMap);
+                const list = (parsed && parsed.data && parsed.data.destinations) ? parsed.data.destinations : (parsed && parsed.destinations ? parsed.destinations : []);
+                if (Array.isArray(list)) {
+                    list.forEach(s => { if (s && s.id) window._cachedMapSpots[String(s.id)] = s; });
+                }
+            }
+        } catch(e) {}
+
+        if (Object.keys(window._cachedMapSpots).length === 0) {
+            fetch(backendUrl + '/api/public/map', { headers: { 'Accept': 'application/json' } })
+                .then(r => r.json())
+                .then(fresh => {
+                    if (fresh && fresh.destinations && Array.isArray(fresh.destinations)) {
+                        fresh.destinations.forEach(s => { if (s && s.id) window._cachedMapSpots[String(s.id)] = s; });
+                        // Re-render vehicle options if transport modal is active
+                        if (typeof window.renderRailwayVehicleOptions === 'function') {
+                            const curType = document.getElementById('btn-trans-private')?.classList.contains('active') ? 'private' : 'public';
+                            window.renderRailwayVehicleOptions(curType);
+                        }
+                    }
+                }).catch(() => {});
+        }
+
         window.getFareFromMatrix = function (vehicleType, distanceKm, municipality = null) {
             if (!window.fareData) return null;
             
@@ -2471,10 +2499,12 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 });
                 document.getElementById('trip-transport').value = validActive.join(',');
             } else {
-                const defaultOpt = document.querySelector('.transport-option:not(.disabled-transport)') || document.querySelector('.transport-option');
+                const defaultOpt = document.querySelector('.transport-option:not(.disabled-transport)');
                 if (defaultOpt && defaultOpt.getAttribute('data-available') !== '0') {
                     defaultOpt.classList.add('active');
                     document.getElementById('trip-transport').value = defaultOpt.dataset.val;
+                } else {
+                    document.getElementById('trip-transport').value = '';
                 }
             }
 
@@ -3011,6 +3041,41 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             let optionsList = [];
             const draft = window.getEffectiveDraft ? window.getEffectiveDraft() : [];
 
+            // Helper to determine if a vehicle type is allowed for a spot's accessible vehicles
+            const isVehAllowed = (vehKey, vehVal, accVehicles) => {
+                if (!Array.isArray(accVehicles) || accVehicles.length === 0) return false;
+                const list = accVehicles.map(v => String(v).toLowerCase().trim());
+                if (vehVal === 'own_car' || vehKey === 'car') return list.some(v => v.includes('car'));
+                if (vehVal === 'taxi' || vehKey === 'taxi') return list.some(v => v.includes('taxi'));
+                if (vehVal === 'van' || vehKey === 'van') return list.some(v => v.includes('van'));
+                if (vehVal === 'motorcycle' || vehKey === 'motorcycle') return list.some(v => v.includes('motorcycle') || v.includes('motor'));
+                if (vehVal === 'mpuj' || vehKey === 'mpuj') return list.some(v => v.includes('mpuj') || (v.includes('modern') && v.includes('jeep')));
+                if (vehVal === 'tpuj' || vehKey === 'tpuj') return list.some(v => v.includes('tpuj') || v.includes('traditional') || (v.includes('jeep') && !v.includes('modern')));
+                if (vehVal === 'pub_aircon' || vehKey === 'pub_aircon') return list.some(v => v.includes('pub_aircon') || v.includes('aircon'));
+                if (vehVal === 'pub_ordinary' || vehKey === 'pub_regular') return list.some(v => v.includes('pub_regular') || v.includes('ordinary') || v.includes('regular'));
+                if (vehVal === 'tricycle' || vehKey === 'tricycle') return list.some(v => v.includes('tricycle') || v.includes('trike'));
+                if (vehVal === 'uve' || vehKey === 'uve') return list.some(v => v.includes('uve') || v.includes('van'));
+                return list.some(v => v.includes(vehKey) || v.includes(vehVal));
+            };
+
+            const resolveSpotVehicleInfo = (p) => {
+                const spotId = String(p.id || p.tourist_spot_id || '');
+                const cachedSpot = (window._cachedMapSpots && window._cachedMapSpots[spotId]) ? window._cachedMapSpots[spotId] : null;
+
+                let accVeh = (Array.isArray(p.accessible_vehicles) && p.accessible_vehicles.length > 0)
+                    ? p.accessible_vehicles
+                    : (cachedSpot && Array.isArray(cachedSpot.accessible_vehicles) ? cachedSpot.accessible_vehicles : (p.accessible_vehicles || []));
+
+                let hasVeh = (p.has_available_vehicles !== undefined)
+                    ? p.has_available_vehicles
+                    : (cachedSpot && cachedSpot.has_available_vehicles !== undefined ? cachedSpot.has_available_vehicles : (Array.isArray(accVeh) && accVeh.length > 0));
+
+                return {
+                    accessible_vehicles: accVeh,
+                    has_available_vehicles: Boolean(hasVeh) && Array.isArray(accVeh) && accVeh.length > 0
+                };
+            };
+
             if (type === 'private') {
                 const privDefs = [
                     { val: 'own_car', name: 'Own Car', icon: 'fa-car', key: 'car' },
@@ -3023,17 +3088,14 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     let avail = true;
                     if (draft.length > 0) {
                         for (const p of draft) {
-                            if (p.has_available_vehicles === false || (Array.isArray(p.accessible_vehicles) && p.accessible_vehicles.length === 0)) {
+                            const info = resolveSpotVehicleInfo(p);
+                            if (info.has_available_vehicles === false || info.accessible_vehicles.length === 0) {
                                 avail = false;
                                 break;
                             }
-                            if (Array.isArray(p.accessible_vehicles) && p.accessible_vehicles.length > 0) {
-                                const accLower = p.accessible_vehicles.map(v => String(v).toLowerCase());
-                                const match = accLower.some(v => v.includes(opt.key) || (opt.val === 'own_car' && v.includes('car')));
-                                if (!match) {
-                                    avail = false;
-                                    break;
-                                }
+                            if (!isVehAllowed(opt.key, opt.val, info.accessible_vehicles)) {
+                                avail = false;
+                                break;
                             }
                         }
                     }
@@ -3089,17 +3151,14 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     optionsList = optionsList.map(opt => {
                         let avail = opt.available;
                         for (const p of draft) {
-                            if (p.has_available_vehicles === false || (Array.isArray(p.accessible_vehicles) && p.accessible_vehicles.length === 0)) {
+                            const info = resolveSpotVehicleInfo(p);
+                            if (info.has_available_vehicles === false || info.accessible_vehicles.length === 0) {
                                 avail = false;
                                 break;
                             }
-                            if (Array.isArray(p.accessible_vehicles) && p.accessible_vehicles.length > 0) {
-                                const accLower = p.accessible_vehicles.map(v => String(v).toLowerCase());
-                                const match = accLower.some(v => v.includes(opt.key) || (opt.val === 'tricycle' && (v.includes('trike') || v.includes('tricycle'))));
-                                if (!match) {
-                                    avail = false;
-                                    break;
-                                }
+                            if (!isVehAllowed(opt.key, opt.val, info.accessible_vehicles)) {
+                                avail = false;
+                                break;
                             }
                         }
                         return { val: opt.val, name: opt.name, icon: opt.icon, available: avail };

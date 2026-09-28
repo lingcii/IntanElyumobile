@@ -1073,15 +1073,48 @@ body[data-view="saved_trips"],
         sessionStorage.setItem('editing_trip_date', trip.trip_date || '');
         sessionStorage.setItem('editing_trip_budget', (trip.budget !== null && trip.budget !== undefined) ? trip.budget : '');
         sessionStorage.setItem('editing_trip_transport', trip.transport_mode || '');
+        // Build map of public_map_data cached spots to enrich missing vehicle data if needed
+        let mapSpotsMap = {};
+        try {
+            const rawMap = localStorage.getItem('public_map_data');
+            if (rawMap) {
+                const parsedMap = (typeof window.safeJsonParse === 'function') ? window.safeJsonParse(rawMap, null) : JSON.parse(rawMap);
+                const spotsArr = (parsedMap && parsedMap.data && parsedMap.data.destinations) ? parsedMap.data.destinations : (parsedMap && parsedMap.destinations ? parsedMap.destinations : []);
+                if (Array.isArray(spotsArr)) {
+                    spotsArr.forEach(s => { if (s && s.id) mapSpotsMap[String(s.id)] = s; });
+                }
+            }
+        } catch(e) {}
 
         const spots = (trip.items || []).map(i => {
             if (i.destination) {
+                const mapSpot = mapSpotsMap[String(i.destination.id)] || {};
+                const accVeh = (Array.isArray(i.destination.accessible_vehicles) && i.destination.accessible_vehicles.length > 0)
+                    ? i.destination.accessible_vehicles
+                    : (Array.isArray(mapSpot.accessible_vehicles) ? mapSpot.accessible_vehicles : (i.destination.accessible_vehicles || []));
+
+                const hasVeh = (i.destination.has_available_vehicles !== undefined)
+                    ? Boolean(i.destination.has_available_vehicles)
+                    : (mapSpot.has_available_vehicles !== undefined ? Boolean(mapSpot.has_available_vehicles) : (Array.isArray(accVeh) && accVeh.length > 0));
+
+                const pubVeh = (Array.isArray(i.destination.public_vehicles) && i.destination.public_vehicles.length > 0)
+                    ? i.destination.public_vehicles
+                    : (Array.isArray(mapSpot.public_vehicles) ? mapSpot.public_vehicles : (i.destination.public_vehicles || []));
+
+                const privVeh = (Array.isArray(i.destination.private_vehicles) && i.destination.private_vehicles.length > 0)
+                    ? i.destination.private_vehicles
+                    : (Array.isArray(mapSpot.private_vehicles) ? mapSpot.private_vehicles : (i.destination.private_vehicles || []));
+
                 return {
                     ...i.destination,
-                    lat: i.destination.latitude,
-                    lng: i.destination.longitude,
-                    photo_url: i.destination.image || i.destination.photo_url || '',
-                    municipality: i.destination.municipality || '',
+                    lat: i.destination.latitude || mapSpot.lat,
+                    lng: i.destination.longitude || mapSpot.lng,
+                    photo_url: i.destination.image || i.destination.photo_url || mapSpot.photo_url || '',
+                    municipality: i.destination.municipality || mapSpot.municipality || '',
+                    accessible_vehicles: accVeh,
+                    public_vehicles: pubVeh,
+                    private_vehicles: privVeh,
+                    has_available_vehicles: hasVeh,
                     itinerary_item_id: i.id
                 };
             }
