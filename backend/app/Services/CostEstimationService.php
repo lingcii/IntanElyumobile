@@ -481,22 +481,30 @@ class CostEstimationService
         }
 
         // Multiple spots: N-1 legs
-        $coords = $orderedSpots->map(function ($spot) {
-            return "{$spot->longitude},{$spot->latitude}";
-        })->implode(';');
+        $allValid = $orderedSpots->every(function ($spot) {
+            $lat = (float) $spot->latitude;
+            $lng = (float) $spot->longitude;
+            return ($lat > 15.0 && $lat < 18.0 && $lng > 119.0 && $lng < 122.0);
+        });
 
         $osrmLegs = [];
-        try {
-            $response = Http::timeout(3)->get("https://router.project-osrm.org/route/v1/driving/{$coords}", [
-                'overview'   => 'false',
-                'geometries' => 'geojson'
-            ]);
+        if ($allValid) {
+            $coords = $orderedSpots->map(function ($spot) {
+                return "{$spot->longitude},{$spot->latitude}";
+            })->implode(';');
 
-            if ($response->successful() && isset($response->json()['routes'][0]['legs'])) {
-                $osrmLegs = $response->json()['routes'][0]['legs'];
+            try {
+                $response = Http::timeout(3)->get("https://router.project-osrm.org/route/v1/driving/{$coords}", [
+                    'overview'   => 'false',
+                    'geometries' => 'geojson'
+                ]);
+
+                if ($response->successful() && isset($response->json()['routes'][0]['legs'])) {
+                    $osrmLegs = $response->json()['routes'][0]['legs'];
+                }
+            } catch (\Throwable $e) {
+                Log::warning("OSRM API failed in calculateRouteLegs, using Haversine: " . $e->getMessage());
             }
-        } catch (\Throwable $e) {
-            Log::warning("OSRM API failed in calculateRouteLegs, using Haversine: " . $e->getMessage());
         }
 
         $legs = [];
@@ -504,18 +512,21 @@ class CostEstimationService
             $spotA = $orderedSpots[$i];
             $spotB = $orderedSpots[$i + 1];
 
-            $distKm = 0.0;
+            $distKm = 2.0;
             if (isset($osrmLegs[$i]['distance'])) {
                 $distKm = round(((float) $osrmLegs[$i]['distance']) / 1000.0, 2);
             } else {
-                $rawDist = $this->haversine(
-                    (float) $spotA->latitude,
-                    (float) $spotA->longitude,
-                    (float) $spotB->latitude,
-                    (float) $spotB->longitude
-                );
-                // 1.25 factor for realistic road curves
-                $distKm = max(0.5, round(($rawDist / 1000.0) * 1.25, 2));
+                $latA = (float) $spotA->latitude;
+                $lngA = (float) $spotA->longitude;
+                $latB = (float) $spotB->latitude;
+                $lngB = (float) $spotB->longitude;
+
+                if ($latA > 15.0 && $latA < 18.0 && $lngA > 119.0 && $lngA < 122.0 &&
+                    $latB > 15.0 && $latB < 18.0 && $lngB > 119.0 && $lngB < 122.0) {
+                    $rawDist = $this->haversine($latA, $lngA, $latB, $lngB);
+                    // 1.25 factor for realistic road curves
+                    $distKm = max(0.5, round(($rawDist / 1000.0) * 1.25, 2));
+                }
             }
 
             $muniA = $spotA->municipality?->name ?? 'San Juan';

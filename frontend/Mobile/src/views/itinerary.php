@@ -2016,16 +2016,56 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             let calculatedDist = 0;
 
             if (pts.length === 1) {
-                // 1 Spot added: 1 nominal intra-municipal leg
+                // 1 Spot added: Calculate from user's starting point if GPS available, or nominal intra-municipal
                 const defMuni = pts[0].muni;
+                let originMuni = defMuni;
+                let legDist = 2.0;
+
+                const curLat = window.myLat || window.currentGPSLat;
+                const curLng = window.myLng || window.currentGPSLng;
+
+                if (curLat && curLng && pts[0].lat !== null && pts[0].lng !== null) {
+                    if (typeof window.getDistanceAndETA === 'function') {
+                        const eta = window.getDistanceAndETA(pts[0].lat, pts[0].lng);
+                        if (eta && eta.distanceKm && !isNaN(eta.distanceKm)) {
+                            legDist = Math.max(0.5, Math.round(eta.distanceKm * 10) / 10);
+                        }
+                    } else {
+                        const d = calcHaversine(curLat, curLng, pts[0].lat, pts[0].lng);
+                        if (!isNaN(d)) {
+                            legDist = Math.max(0.5, Math.round(d * 10) / 10);
+                        }
+                    }
+
+                    // Identify user's starting municipality from closest cached tourist spot
+                    if (window._cachedMapSpots && Object.keys(window._cachedMapSpots).length > 0) {
+                        let closestD = Infinity;
+                        let foundMuni = '';
+                        Object.values(window._cachedMapSpots).forEach(s => {
+                            const sLat = parseFloat(s.latitude || s.lat);
+                            const sLng = parseFloat(s.longitude || s.lng);
+                            if (!isNaN(sLat) && !isNaN(sLng) && s.municipality) {
+                                const d = calcHaversine(curLat, curLng, sLat, sLng);
+                                if (d < closestD) {
+                                    closestD = d;
+                                    foundMuni = s.municipality;
+                                }
+                            }
+                        });
+                        if (foundMuni && closestD <= 25.0) {
+                            originMuni = foundMuni;
+                        }
+                    }
+                }
+
                 legs.push({
-                    from: pts[0].name,
+                    from: (originMuni && defMuni && originMuni.toLowerCase() !== defMuni.toLowerCase()) ? `Your Location (${originMuni})` : pts[0].name,
                     to: pts[0].name,
-                    distKm: 2.0,
-                    muniA: defMuni,
+                    distKm: legDist,
+                    muniA: originMuni,
                     muniB: defMuni
                 });
-                calculatedDist = 2.0;
+                calculatedDist = legDist;
             } else if (pts.length >= 2) {
                 // 2, 3, 4, 5, or more spots: N - 1 consecutive legs
                 for (let i = 0; i < pts.length - 1; i++) {
@@ -2180,7 +2220,9 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         };
 
         window.calculateModalBudget = function () {
-            const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+            const draft = (typeof window.getEffectiveDraft === 'function') 
+                ? window.getEffectiveDraft() 
+                : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
             if (draft.length === 0) return;
 
             const transport = document.getElementById('trip-transport').value;
