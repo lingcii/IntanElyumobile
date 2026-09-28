@@ -386,29 +386,12 @@ if (is_dir($imgDir)) {
 
     <!-- Bottom Sheet (hidden by default) -->
     <div class="bottom-sheet" id="place-details-sheet">
-        <div class="sheet-drag-handle" id="place-drag-handle"><span class="sheet-drag-dot"></span></div>
-        <div class="draggable-content" id="place-details-scroll">
-
-            <!-- Destination Sheet Top Header -->
-            <div class="dest-sheet-top-header"
-                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding: 2px 8px;">
-                <div>
-                    <h3
-                        style="margin:0; font-size:17px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
-                        <i class="fa-solid fa-map-location-dot" style="color:#00f2fe;"></i> Destination Details
-                    </h3>
-                    <p id="dest-sheet-subtext" style="margin:3px 0 0 0; font-size:12px; color:#ffffff; opacity:0.95;">
-                        Discover fees, operating hours & travel guides
-                    </p>
-                </div>
-                <button type="button" class="dest-sheet-close-btn" onclick="window.closeSheet()" aria-label="Close"
-                    style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:background 0.2s;">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+        <!-- Royal Blue Header: Tourist site name ON TOP instead of Destination Details -->
+        <div class="dest-sheet-royal-header" id="sheet-title-frame">
+            <div class="sheet-drag-handle" id="place-drag-handle">
+                <span class="sheet-drag-dot"></span>
             </div>
-
-            <!-- Destination Header -->
-            <div class="dest-sheet-header" id="sheet-title-frame">
+            <div class="dest-sheet-header-content">
                 <div class="dest-sheet-header-main">
                     <h3 class="sheet-title" id="sheet-title">Destination Name</h3>
                     <p class="sheet-location" id="sheet-location-container">
@@ -416,7 +399,14 @@ if (is_dir($imgDir)) {
                         <span id="sheet-location">Location details</span>
                     </p>
                 </div>
+                <button type="button" class="dest-sheet-close-btn" onclick="window.closeSheet()" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
+        </div>
+
+        <!-- Scrollable Body (White background below) -->
+        <div class="draggable-content place-details-white-body" id="place-details-scroll">
 
             <!-- Slidable Image Banner Carousel -->
             <div id="sheet-slider-container" class="dest-slider-container">
@@ -474,7 +464,7 @@ if (is_dir($imgDir)) {
 
             <!-- Site Fee Summary Banner -->
             <div id="sheet-fees-card" class="dest-fees-card"
-                style="display:flex; flex-direction:column; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; border-radius:16px; padding:12px 14px; margin-bottom:10px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
+                style="display:flex; flex-direction:column; background:#f8fafc; border:1px solid #e2e8f0 !important; border-radius:16px; padding:12px 14px; margin-bottom:10px; box-shadow:0 1px 4px rgba(0,0,0,0.05);">
                 <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <div class="dest-fee-icon-box">
@@ -482,9 +472,9 @@ if (is_dir($imgDir)) {
                         </div>
                         <div style="display:flex; flex-direction:column;">
                             <span
-                                style="font-size:10px; font-weight:700; color:#e2e8f0; text-transform:uppercase; letter-spacing:0.5px;">Site
+                                style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">Site
                                 Fees</span>
-                            <span id="sheet-fee-main-text" style="font-size:13px; font-weight:800; color:#ffffff;">Free
+                            <span id="sheet-fee-main-text" style="font-size:13px; font-weight:800; color:#0f172a;">Free
                                 Admission</span>
                         </div>
                     </div>
@@ -494,7 +484,7 @@ if (is_dir($imgDir)) {
                 </div>
 
                 <!-- Fee Options Breakdown Grid (Adult, Child, PWD, Senior Citizen, Envi Fee) -->
-                <div id="sheet-fee-options-container" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.12); display:flex; flex-direction:column; gap:6px; width:100%;">
+                <div id="sheet-fee-options-container" style="margin-top:10px; padding-top:10px; border-top:1px solid #e2e8f0; display:flex; flex-direction:column; gap:6px; width:100%;">
                     <!-- Dynamically populated in JavaScript with Adult, Child, PWD, Senior Citizen, Envi Fee -->
                 </div>
             </div>
@@ -504,71 +494,71 @@ if (is_dir($imgDir)) {
 
                 <!-- Tour Guide Needed Card -->
                 <div id="sheet-tour-guide-card"
-                    style="display:none; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
+                    style="display:none; align-items:center; justify-content:space-between; background:#eff6ff; border:1px solid #bfdbfe !important; border-radius:14px; padding:12px 14px; box-shadow:0 1px 4px rgba(0,0,0,0.05);">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <div style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#0284c7 !important; font-size:16px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
                             <i class="fa-solid fa-person-hiking" style="color:#0284c7 !important;"></i>
                         </div>
                         <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Tour Guide Needed</span>
-                            <span style="font-size:10.5px; color:#93c5fd; font-weight:600;" id="sheet-tour-guide-detail">Certified guide required</span>
+                            <span style="font-size:13px; font-weight:800; color:#1e3a8a; letter-spacing:0.2px;">Tour Guide Needed</span>
+                            <span style="font-size:10.5px; color:#2563eb; font-weight:600;" id="sheet-tour-guide-detail">Certified guide required</span>
                         </div>
                     </div>
-                    <span style="font-size:10px; font-weight:800; padding:4px 10px; border-radius:100px; background:rgba(37,99,235,0.3); color:#bfdbfe; text-transform:uppercase; letter-spacing:0.5px;">Required</span>
+                    <span style="font-size:10px; font-weight:800; padding:4px 10px; border-radius:100px; background:#dbeafe; color:#1e40af; text-transform:uppercase; letter-spacing:0.5px;">Required</span>
                 </div>
 
                 <!-- Open 24 Hours Card -->
                 <div id="sheet-24h-card"
-                    style="display:none; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
+                    style="display:none; align-items:center; justify-content:space-between; background:#f0fdf4; border:1px solid #bbf7d0 !important; border-radius:14px; padding:12px 14px; box-shadow:0 1px 4px rgba(0,0,0,0.05);">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <div style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#0284c7 !important; font-size:16px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
                             <i class="fa-regular fa-clock" style="color:#0284c7 !important;"></i>
                         </div>
                         <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Open 24 Hours</span>
-                            <span style="font-size:10.5px; color:#fde68a; font-weight:600;">Always accessible</span>
+                            <span style="font-size:13px; font-weight:800; color:#166534; letter-spacing:0.2px;">Open 24 Hours</span>
+                            <span style="font-size:10.5px; color:#15803d; font-weight:600;">Always accessible</span>
                         </div>
                     </div>
-                    <span style="font-size:11px; font-weight:700; color:#cbd5e1;">Available all day</span>
+                    <span style="font-size:11px; font-weight:700; color:#166534;">Available all day</span>
                 </div>
 
                 <!-- Under Maintenance Card -->
                 <div id="sheet-maint-card"
-                    style="display:none; align-items:center; justify-content:space-between; background:rgba(239,68,68,0.18); border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
+                    style="display:none; align-items:center; justify-content:space-between; background:#fef2f2; border:1px solid #fecaca !important; border-radius:14px; padding:12px 14px; box-shadow:0 1px 4px rgba(0,0,0,0.05);">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <div style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#ef4444 !important; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
                             <i class="fa-solid fa-wrench" style="color:#ef4444 !important;"></i>
                         </div>
                         <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Under Maintenance</span>
-                            <span style="font-size:10.5px; color:#fca5a5; font-weight:600;">Site temporarily closed for maintenance</span>
+                            <span style="font-size:13px; font-weight:800; color:#991b1b; letter-spacing:0.2px;">Under Maintenance</span>
+                            <span style="font-size:10.5px; color:#b91c1c; font-weight:600;">Site temporarily closed for maintenance</span>
                         </div>
                     </div>
-                    <span style="font-size:10px; font-weight:800; padding:4px 10px; border-radius:100px; background:rgba(239,68,68,0.3); color:#fca5a5; text-transform:uppercase; letter-spacing:0.5px;">Temporary</span>
+                    <span style="font-size:10px; font-weight:800; padding:4px 10px; border-radius:100px; background:#fee2e2; color:#991b1b; text-transform:uppercase; letter-spacing:0.5px;">Temporary</span>
                 </div>
 
             </div>
 
             <!-- Available Vehicles / Transportation Card (Shown only if available vehicles exist) -->
             <div id="sheet-vehicles-card" class="dest-vehicles-card"
-                style="display:none; flex-direction:column; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; border-radius:18px; padding:14px 16px; margin-bottom:12px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
+                style="display:none; flex-direction:column; background:#f8fafc; border:1px solid #e2e8f0 !important; border-radius:18px; padding:14px 16px; margin-bottom:12px; box-shadow:0 1px 4px rgba(0,0,0,0.05);">
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <div style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#0284c7 !important; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
                             <i class="fa-solid fa-van-shuttle" style="color:#0284c7 !important;"></i>
                         </div>
                         <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:10px; font-weight:700; color:#e2e8f0; text-transform:uppercase; letter-spacing:0.5px;">Transportation</span>
-                            <span style="font-size:13px; font-weight:800; color:#ffffff;">Available Vehicles</span>
+                            <span style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">Transportation</span>
+                            <span style="font-size:13px; font-weight:800; color:#0f172a;">Available Vehicles</span>
                         </div>
                     </div>
-                    <span id="sheet-vehicles-count-badge" style="font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; background:rgba(56,189,248,0.2); color:#38bdf8;">--</span>
+                    <span id="sheet-vehicles-count-badge" style="font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; background:#e0f2fe; color:#0284c7;">--</span>
                 </div>
 
                 <!-- Private Vehicle Access -->
-                <div style="margin-bottom:8px; background:rgba(0,0,0,0.14); border-radius:12px; padding:9px 12px;">
-                    <div style="font-size:11px; font-weight:800; color:#a5f3fc; margin-bottom:5px; display:flex; align-items:center; gap:5px;">
-                        <i class="fa-solid fa-car" style="font-size:10px; color:#38bdf8;"></i> Private Vehicle
+                <div style="margin-bottom:8px; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:9px 12px; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                    <div style="font-size:11px; font-weight:800; color:#0369a1; margin-bottom:5px; display:flex; align-items:center; gap:5px;">
+                        <i class="fa-solid fa-car" style="font-size:10px; color:#0284c7;"></i> Private Vehicle
                     </div>
                     <div id="sheet-private-vehicles-list" style="display:flex; flex-wrap:wrap; gap:6px;">
                         <!-- Injected via JS -->
@@ -576,9 +566,9 @@ if (is_dir($imgDir)) {
                 </div>
 
                 <!-- Public Vehicle Access -->
-                <div style="margin-bottom:12px; background:rgba(0,0,0,0.14); border-radius:12px; padding:9px 12px;">
-                    <div style="font-size:11px; font-weight:800; color:#fed7aa; margin-bottom:5px; display:flex; align-items:center; gap:5px;">
-                        <i class="fa-solid fa-bus" style="font-size:10px; color:#fb923c;"></i> Public Vehicle
+                <div style="margin-bottom:12px; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:9px 12px; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                    <div style="font-size:11px; font-weight:800; color:#c2410c; margin-bottom:5px; display:flex; align-items:center; gap:5px;">
+                        <i class="fa-solid fa-bus" style="font-size:10px; color:#ea580c;"></i> Public Vehicle
                     </div>
                     <div id="sheet-public-vehicles-list" style="display:flex; flex-wrap:wrap; gap:6px;">
                         <!-- Injected via JS -->
@@ -587,7 +577,7 @@ if (is_dir($imgDir)) {
 
                 <!-- Vehicles Action Button (Disabled & unclickable if no vehicles available) -->
                 <button id="sheet-btn-view-vehicles" type="button" onclick="window.openSpotVehiclesModal()"
-                    style="width:100%; border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s ease;">
+                    style="width:100%; border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s ease; background:#1e3a8a !important; color:#ffffff !important; box-shadow:0 4px 14px rgba(30,58,138,0.25); cursor:pointer;">
                     <i class="fa-solid fa-van-shuttle"></i> View Available Vehicles & Fares
                 </button>
             </div>
@@ -637,8 +627,8 @@ if (is_dir($imgDir)) {
                                         <i class="fa-solid fa-map-pin"></i>
                                     </span>
                                     <div>
-                                        <div style="font-size:12px; font-weight:800; color:#ffffff; line-height:1.2;">Nearby Amenities</div>
-                                        <div style="font-size:10px; color:rgba(255,255,255,0.75);">Distance from this tourist site</div>
+                                        <div style="font-size:12px; font-weight:800; color:#0f172a; line-height:1.2;">Nearby Amenities</div>
+                                        <div style="font-size:10px; color:#64748b;">Distance from this tourist site</div>
                                     </div>
                                 </div>
                                 <span id="sheet-amenities-count-badge" class="dest-amenities-count-badge">--</span>
@@ -658,8 +648,8 @@ if (is_dir($imgDir)) {
                         <div class="dest-support-box">
                             <div class="dest-support-header">
                                 <span
-                                    style="font-size:12.5px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:6px;">
-                                    <i class="fa-solid fa-headset" style="color:#ffffff;"></i> Tourist Support & Service Centers
+                                    style="font-size:12.5px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:6px;">
+                                    <i class="fa-solid fa-headset" style="color:#0284c7;"></i> Tourist Support & Service Centers
                                 </span>
                                 <span class="dest-support-badge" id="sheet-support-badge">Tourism Office</span>
                             </div>
@@ -669,21 +659,21 @@ if (is_dir($imgDir)) {
 
                             <div class="dest-contacts-list">
                                 <div class="dest-contact-row" id="sheet-service-phone-row">
-                                    <span class="dest-contact-label"><i class="fa-solid fa-phone"
-                                            style="font-size:10px; color:#ffffff;"></i> Service Hotline:</span>
+                                    <span class="dest-contact-label" style="color:#64748b;"><i class="fa-solid fa-phone"
+                                            style="font-size:10px; color:#0284c7;"></i> Service Hotline:</span>
                                     <span class="dest-contact-val"><a id="sheet-service-phone"
-                                            href="tel:+630728882454" style="color:#ffffff; text-decoration:none; font-weight:700;">+63 (072) 888-2454</a></span>
+                                            href="tel:+630728882454" style="color:#0284c7; text-decoration:none; font-weight:700;">+63 (072) 888-2454</a></span>
                                 </div>
                                 <div class="dest-contact-row">
-                                    <span class="dest-contact-label"><i class="fa-solid fa-clock"
-                                            style="font-size:10px; color:#ffffff;"></i> Service Hours:</span>
-                                    <span class="dest-contact-val" id="sheet-service-hours" style="color:#ffffff; font-weight:700;">8:00 AM - 5:00 PM
+                                    <span class="dest-contact-label" style="color:#64748b;"><i class="fa-solid fa-clock"
+                                            style="font-size:10px; color:#0284c7;"></i> Service Hours:</span>
+                                    <span class="dest-contact-val" id="sheet-service-hours" style="color:#0f172a; font-weight:700;">8:00 AM - 5:00 PM
                                         (Daily)</span>
                                 </div>
                                 <div class="dest-contact-row">
-                                    <span class="dest-contact-label"><i class="fa-solid fa-kit-medical"
-                                            style="font-size:10px; color:#34d399;"></i> Emergency / Medical:</span>
-                                    <span class="dest-contact-val emergency"><a href="tel:911" style="color:#34d399; font-weight:800; text-decoration:none;">MDRRMO / Call
+                                    <span class="dest-contact-label" style="color:#64748b;"><i class="fa-solid fa-kit-medical"
+                                            style="font-size:10px; color:#ef4444;"></i> Emergency / Medical:</span>
+                                    <span class="dest-contact-val emergency"><a href="tel:911" style="color:#ef4444; font-weight:800; text-decoration:none;">MDRRMO / Call
                                             911</a></span>
                                 </div>
                             </div>
@@ -693,14 +683,14 @@ if (is_dir($imgDir)) {
                         <div id="sheet-testimonies-section" class="dest-support-box" style="display:none; margin-top:14px;">
                             <div class="dest-support-header">
                                 <span
-                                    style="font-size:12.5px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:6px;">
-                                    <i class="fa-solid fa-comments" style="color:#ffffff;"></i> Tourist Testimonies
+                                    style="font-size:12.5px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:6px;">
+                                    <i class="fa-solid fa-comments" style="color:#0284c7;"></i> Tourist Testimonies
                                 </span>
                                 <span class="dest-support-badge" id="sheet-testimonies-badge">Verified Reviews</span>
                             </div>
                             <div id="testimonies-summary-metrics" style="display:none; margin-bottom:10px;"></div>
                             <div id="testimonies-list-container" style="display:flex; flex-direction:column; gap:8px;">
-                                <div style="font-size:12.5px; color:#ffffff; opacity:0.95; font-weight:500; text-align:center; padding:12px 0;">
+                                <div style="font-size:12.5px; color:#64748b; font-weight:500; text-align:center; padding:12px 0;">
                                     Loading reviews...</div>
                             </div>
                         </div>
@@ -711,11 +701,11 @@ if (is_dir($imgDir)) {
             <!-- Action Buttons -->
             <div class="sheet-btn-row" style="display:flex; gap:10px; align-items:center; margin-top:14px;">
                 <button id="btn-add-itinerary" onclick="window.addToItinerary()" class="btn-add-itinerary-premium"
-                    style="flex:1;">
+                    style="flex:1; background:#1e3a8a !important; color:#ffffff !important; box-shadow:0 4px 14px rgba(30,58,138,0.3) !important;">
                     <i class="fa-solid fa-calendar-plus"></i> Add to Trip
                 </button>
                 <button id="sheet-fav-btn" onclick="window.toggleMapFavorite(this)" class="btn-sheet-fav"
-                    aria-label="Save to favorites" style="flex-shrink:0;">
+                    aria-label="Save to favorites" style="flex-shrink:0; background:#f8fafc; border:1.5px solid #cbd5e1; color:#64748b;">
                     <i class="fa-solid fa-heart"></i>
                 </button>
             </div>
@@ -3495,69 +3485,69 @@ if (is_dir($imgDir)) {
 
                 let tagsHtml = '';
                 if (hasEntrance && effectiveAdult > 0) {
-                    tagsHtml += `<span style="font-size:11px; font-weight:800; background:rgba(56,189,248,0.22); color:#7dd3fc; border:none !important; outline:none !important; padding:4px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-ticket" style="font-size:10px;"></i> Entrance: ₱${effectiveAdult.toFixed(2)}</span>`;
+                    tagsHtml += `<span style="font-size:11px; font-weight:800; background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; padding:4px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-ticket" style="font-size:10px;"></i> Entrance: ₱${effectiveAdult.toFixed(2)}</span>`;
                 }
                 if (hasEnvironmental && environmentalFee > 0) {
-                    tagsHtml += `<span style="font-size:11px; font-weight:800; background:rgba(52,211,153,0.22); color:#6ee7b7; border:none !important; outline:none !important; padding:4px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-leaf" style="font-size:10px;"></i> Envi: ₱${environmentalFee.toFixed(2)}</span>`;
+                    tagsHtml += `<span style="font-size:11px; font-weight:800; background:#dcfce7; color:#15803d; border:1px solid #bbf7d0; padding:4px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-leaf" style="font-size:10px;"></i> Envi: ₱${environmentalFee.toFixed(2)}</span>`;
                 }
 
                 if (hasAnyFees) {
                     const baseTotal = (hasEntrance ? effectiveAdult : 0) + (hasEnvironmental ? environmentalFee : 0);
                     feeMainText.textContent = baseTotal > 0 ? `₱${baseTotal.toFixed(2)} Base Total` : 'Tiered Rates';
-                    feeTags.innerHTML = tagsHtml !== '' ? tagsHtml : `<span style="font-size:11px; font-weight:800; background:rgba(56,189,248,0.22); color:#7dd3fc; border:none !important; outline:none !important; padding:4px 9px; border-radius:8px;">Special Pricing</span>`;
+                    feeTags.innerHTML = tagsHtml !== '' ? tagsHtml : `<span style="font-size:11px; font-weight:800; background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; padding:4px 9px; border-radius:8px;">Special Pricing</span>`;
                 } else {
                     feeMainText.textContent = 'Free Admission';
-                    feeTags.innerHTML = `<span style="font-size:11px; font-weight:800; background:rgba(16,185,129,0.22); color:#6ee7b7; border:none !important; outline:none !important; padding:4px 9px; border-radius:8px;">No Entrance Fee</span>`;
+                    feeTags.innerHTML = `<span style="font-size:11px; font-weight:800; background:#dcfce7; color:#15803d; border:1px solid #bbf7d0; padding:4px 9px; border-radius:8px;">No Entrance Fee</span>`;
                 }
 
                 if (feeOptionsContainer) {
                     if (hasAnyFees) {
                         feeOptionsContainer.style.display = 'flex';
                         feeOptionsContainer.innerHTML = `
-                            <div style="font-size:10.5px; font-weight:800; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; display:flex; align-items:center; gap:5px;">
-                                <i class="fa-solid fa-tags" style="color:#00f2fe; font-size:10px;"></i> Fee Options & Categories
+                            <div style="font-size:10.5px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; display:flex; align-items:center; gap:5px;">
+                                <i class="fa-solid fa-tags" style="color:#0284c7; font-size:10px;"></i> Fee Options & Categories
                             </div>
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; width:100%;">
-                                <div style="background:rgba(255,255,255,0.08); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
-                                    <span style="font-size:11px; font-weight:700; color:#e2e8f0; display:flex; align-items:center; gap:6px;">
-                                        <i class="fa-solid fa-user" style="color:#38bdf8; font-size:11px;"></i> Adult
+                                <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                                    <span style="font-size:11px; font-weight:700; color:#334155; display:flex; align-items:center; gap:6px;">
+                                        <i class="fa-solid fa-user" style="color:#0284c7; font-size:11px;"></i> Adult
                                     </span>
-                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${effectiveAdult > 0 ? `₱${effectiveAdult.toFixed(2)}` : 'Free'}</span>
+                                    <span style="font-size:11.5px; font-weight:800; color:#0f172a;">${effectiveAdult > 0 ? `₱${effectiveAdult.toFixed(2)}` : 'Free'}</span>
                                 </div>
-                                <div style="background:rgba(255,255,255,0.08); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
-                                    <span style="font-size:11px; font-weight:700; color:#e2e8f0; display:flex; align-items:center; gap:6px;">
-                                        <i class="fa-solid fa-child" style="color:#fbbf24; font-size:11px;"></i> Child
+                                <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                                    <span style="font-size:11px; font-weight:700; color:#334155; display:flex; align-items:center; gap:6px;">
+                                        <i class="fa-solid fa-child" style="color:#d97706; font-size:11px;"></i> Child
                                     </span>
-                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${effectiveChild > 0 ? `₱${effectiveChild.toFixed(2)}` : 'Free'}</span>
+                                    <span style="font-size:11.5px; font-weight:800; color:#0f172a;">${effectiveChild > 0 ? `₱${effectiveChild.toFixed(2)}` : 'Free'}</span>
                                 </div>
-                                <div style="background:rgba(255,255,255,0.08); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
-                                    <span style="font-size:11px; font-weight:700; color:#e2e8f0; display:flex; align-items:center; gap:6px;">
-                                        <i class="fa-solid fa-wheelchair" style="color:#a78bfa; font-size:11px;"></i> PWD
+                                <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                                    <span style="font-size:11px; font-weight:700; color:#334155; display:flex; align-items:center; gap:6px;">
+                                        <i class="fa-solid fa-wheelchair" style="color:#7c3aed; font-size:11px;"></i> PWD
                                     </span>
-                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${effectivePwd > 0 ? `₱${effectivePwd.toFixed(2)}` : 'Free'}</span>
+                                    <span style="font-size:11.5px; font-weight:800; color:#0f172a;">${effectivePwd > 0 ? `₱${effectivePwd.toFixed(2)}` : 'Free'}</span>
                                 </div>
-                                <div style="background:rgba(255,255,255,0.08); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
-                                    <span style="font-size:11px; font-weight:700; color:#e2e8f0; display:flex; align-items:center; gap:6px;">
-                                        <i class="fa-solid fa-person-cane" style="color:#f472b6; font-size:11px;"></i> Senior Citizen
+                                <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                                    <span style="font-size:11px; font-weight:700; color:#334155; display:flex; align-items:center; gap:6px;">
+                                        <i class="fa-solid fa-person-cane" style="color:#db2777; font-size:11px;"></i> Senior Citizen
                                     </span>
-                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${effectiveSenior > 0 ? `₱${effectiveSenior.toFixed(2)}` : 'Free'}</span>
+                                    <span style="font-size:11.5px; font-weight:800; color:#0f172a;">${effectiveSenior > 0 ? `₱${effectiveSenior.toFixed(2)}` : 'Free'}</span>
                                 </div>
                             </div>
                             ${(hasEnvironmental && environmentalFee > 0) ? `
-                                <div style="background:rgba(52,211,153,0.15); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between; margin-top:2px;">
-                                    <span style="font-size:11px; font-weight:700; color:#6ee7b7; display:flex; align-items:center; gap:6px;">
-                                        <i class="fa-solid fa-leaf" style="color:#34d399; font-size:11px;"></i> Environmental Fee
+                                <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between; margin-top:2px;">
+                                    <span style="font-size:11px; font-weight:700; color:#166534; display:flex; align-items:center; gap:6px;">
+                                        <i class="fa-solid fa-leaf" style="color:#16a34a; font-size:11px;"></i> Environmental Fee
                                     </span>
-                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">₱${environmentalFee.toFixed(2)}</span>
+                                    <span style="font-size:11.5px; font-weight:800; color:#166534;">₱${environmentalFee.toFixed(2)}</span>
                                 </div>
                             ` : ''}
                         `;
                     } else {
                         feeOptionsContainer.style.display = 'flex';
                         feeOptionsContainer.innerHTML = `
-                            <div style="background:rgba(16,185,129,0.12); border-radius:10px; padding:8px 12px; display:flex; align-items:center; justify-content:center; gap:8px;">
-                                <i class="fa-solid fa-circle-check" style="color:#34d399; font-size:13px;"></i>
-                                <span style="font-size:11.5px; font-weight:700; color:#6ee7b7;">Free admission for Adults, Children, PWD & Senior Citizens</span>
+                            <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:8px 12px; display:flex; align-items:center; justify-content:center; gap:8px;">
+                                <i class="fa-solid fa-circle-info" style="color:#16a34a; font-size:13px;"></i>
+                                <span style="font-size:11.5px; font-weight:700; color:#166534;">Free admission for Adults, Children, PWD & Senior Citizens</span>
                             </div>
                         `;
                     }
@@ -3597,31 +3587,31 @@ if (is_dir($imgDir)) {
 
                 if (vehCountBadge) {
                     vehCountBadge.textContent = `${allVehicles.length} Available`;
-                    vehCountBadge.style.background = 'rgba(56,189,248,0.2)';
-                    vehCountBadge.style.color = '#38bdf8';
+                    vehCountBadge.style.background = '#e0f2fe';
+                    vehCountBadge.style.color = '#0284c7';
                 }
 
                 if (privVehList) {
                     if (privVehicles.length > 0) {
                         privVehList.innerHTML = privVehicles.map(v => `
-                            <span style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; background:rgba(56,189,248,0.16); color:#7dd3fc; border:1px solid rgba(56,189,248,0.25); padding:4px 9px; border-radius:8px;">
-                                <i class="fa-solid ${getVehIcon(v)}" style="font-size:10px; color:#38bdf8;"></i> ${v}
+                            <span style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; background:#f0f9ff; color:#0369a1; border:1px solid #bae6fd; padding:4px 9px; border-radius:8px;">
+                                <i class="fa-solid ${getVehIcon(v)}" style="font-size:10px; color:#0284c7;"></i> ${v}
                             </span>
                         `).join('');
                     } else {
-                        privVehList.innerHTML = '<span style="font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.45); font-style:italic;">None</span>';
+                        privVehList.innerHTML = '<span style="font-size:11.5px; font-weight:700; color:#94a3b8; font-style:italic;">None</span>';
                     }
                 }
 
                 if (pubVehList) {
                     if (pubVehicles.length > 0) {
                         pubVehList.innerHTML = pubVehicles.map(v => `
-                            <span style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; background:rgba(251,146,60,0.16); color:#fed7aa; border:1px solid rgba(251,146,60,0.25); padding:4px 9px; border-radius:8px;">
-                                <i class="fa-solid ${getVehIcon(v)}" style="font-size:10px; color:#fb923c;"></i> ${v}
+                            <span style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; padding:4px 9px; border-radius:8px;">
+                                <i class="fa-solid ${getVehIcon(v)}" style="font-size:10px; color:#ea580c;"></i> ${v}
                             </span>
                         `).join('');
                     } else {
-                        pubVehList.innerHTML = '<span style="font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.45); font-style:italic;">None</span>';
+                        pubVehList.innerHTML = '<span style="font-size:11.5px; font-weight:700; color:#94a3b8; font-style:italic;">None</span>';
                     }
                 }
 
@@ -3630,9 +3620,9 @@ if (is_dir($imgDir)) {
                     btnViewVehicles.style.pointerEvents = 'auto';
                     btnViewVehicles.style.cursor = 'pointer';
                     btnViewVehicles.style.opacity = '1';
-                    btnViewVehicles.style.background = 'linear-gradient(135deg, #00f2fe 0%, #0284c7 100%)';
+                    btnViewVehicles.style.background = '#1e3a8a';
                     btnViewVehicles.style.color = '#ffffff';
-                    btnViewVehicles.style.boxShadow = '0 4px 14px rgba(2, 132, 199, 0.4)';
+                    btnViewVehicles.style.boxShadow = '0 4px 14px rgba(30, 58, 138, 0.25)';
                     btnViewVehicles.innerHTML = `<i class="fa-solid fa-van-shuttle"></i> View Available Vehicles & Fares (${allVehicles.length})`;
                 }
             }
@@ -3656,15 +3646,15 @@ if (is_dir($imgDir)) {
                     scContainer.style.gap = '6px';
                     if (supportBadgeEl) supportBadgeEl.textContent = `${locationData.service_centers.length} Service Center${locationData.service_centers.length > 1 ? 's' : ''}`;
                     scContainer.innerHTML = locationData.service_centers.map(sc => `
-                    <div style="background:rgba(56,189,248,0.08); border:none !important; outline:none !important; border-radius:12px; padding:8px 10px;">
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-                            <span style="font-size:12px; font-weight:800; color:#38bdf8; display:flex; align-items:center; gap:5px;">
+                            <span style="font-size:12px; font-weight:800; color:#0284c7; display:flex; align-items:center; gap:5px;">
                                 <i class="fa-solid fa-building-flag" style="font-size:11px;"></i> ${sc.name}
                             </span>
-                            <span style="font-size:9.5px; font-weight:700; color:#94a3b8; background:rgba(255,255,255,0.08); padding:1px 6px; border-radius:4px;">${sc.type || 'Terminal'}</span>
+                            <span style="font-size:9.5px; font-weight:700; color:#64748b; background:#e2e8f0; padding:1px 6px; border-radius:4px;">${sc.type || 'Terminal'}</span>
                         </div>
-                        ${sc.address ? `<div style="font-size:11px; color:rgba(226,232,240,0.85); margin-bottom:2px;"><i class="fa-solid fa-location-dot" style="font-size:10px; color:#38bdf8; margin-right:4px;"></i>${sc.address}</div>` : ''}
-                        ${sc.contact_number ? `<div style="font-size:11px; color:#34d399; font-weight:700;"><i class="fa-solid fa-phone" style="font-size:10px; margin-right:4px;"></i><a href="tel:${sc.contact_number}" style="color:#34d399; text-decoration:none;">${sc.contact_number}</a></div>` : ''}
+                        ${sc.address ? `<div style="font-size:11px; color:#475569; margin-bottom:2px;"><i class="fa-solid fa-location-dot" style="font-size:10px; color:#0284c7; margin-right:4px;"></i>${sc.address}</div>` : ''}
+                        ${sc.contact_number ? `<div style="font-size:11px; color:#15803d; font-weight:700;"><i class="fa-solid fa-phone" style="font-size:10px; margin-right:4px;"></i><a href="tel:${sc.contact_number}" style="color:#15803d; text-decoration:none;">${sc.contact_number}</a></div>` : ''}
                     </div>
                 `).join('');
                 } else {
@@ -3943,7 +3933,7 @@ if (is_dir($imgDir)) {
                                     <i class="fa-solid fa-tags" style="font-size:8.5px;"></i> ${discDisplay}
                                 </div>
                             ` : (est?.isPrivate ? `
-                                <div style="font-size:10px; font-weight:800; color:#34d399; margin-top:1px;"><i class="fa-solid fa-circle-check" style="font-size:8.5px;"></i> Personal / Own Vehicle</div>
+                                <div style="font-size:10px; font-weight:800; color:#34d399; margin-top:1px;"><i class="fa-solid fa-car" style="font-size:8.5px;"></i> Personal / Own Vehicle</div>
                             ` : '')}
                         </div>
                     </div>
@@ -4291,7 +4281,7 @@ if (is_dir($imgDir)) {
                     return { label: 'Potential', points: 75, color: '#10b981', bg: 'rgba(16, 185, 129, 0.22)', border: 'rgba(16, 185, 129, 0.35)', icon: 'fa-compass' };
                 }
                 // Default: EXISTING (Blue)
-                return { label: 'Existing', points: 50, color: '#0284c7', bg: 'rgba(2, 132, 199, 0.22)', border: 'rgba(2, 132, 199, 0.35)', icon: 'fa-circle-check' };
+                return { label: 'Existing', points: 50, color: '#0284c7', bg: 'rgba(2, 132, 199, 0.22)', border: 'rgba(2, 132, 199, 0.35)', icon: 'fa-location-dot' };
             };
 
             let classMeta = resolveClassification(spotClassStatus);
@@ -4335,13 +4325,13 @@ if (is_dir($imgDir)) {
 
                         summary.style.display = 'block';
                         summary.innerHTML = `
-                        <div style="background:rgba(255,255,255,0.08); border-radius:12px; padding:11px 14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; border:none !important; outline:none !important;">
+                        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:11px 14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
                             <div style="display:flex; align-items:center; gap:6px;">
-                                <span style="color:#fbbf24; font-size:16px; font-weight:800;">★ ${avgRating}</span>
-                                <span style="font-size:11.5px; color:rgba(255,255,255,0.75); font-weight:700;">/ 5.0</span>
+                                <span style="color:#d97706; font-size:16px; font-weight:800;">★ ${avgRating}</span>
+                                <span style="font-size:11.5px; color:#64748b; font-weight:700;">/ 5.0</span>
                             </div>
                             <div style="display:flex; align-items:center; gap:6px;">
-                                <span style="font-size:11.5px; color:#ffffff; font-weight:800; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-chart-simple" style="color:#38bdf8;"></i> Visitor Insights (${reviewText})</span>
+                                <span style="font-size:11.5px; color:#0f172a; font-weight:800; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-chart-simple" style="color:#0284c7;"></i> Visitor Insights (${reviewText})</span>
                             </div>
                         </div>`;
                     } else {
@@ -4390,9 +4380,9 @@ if (is_dir($imgDir)) {
                             let starsHtml = '';
                             for (let s = 1; s <= 5; s++) {
                                 if (s <= ratingNum) {
-                                    starsHtml += '<i class="fa-solid fa-star" style="color:#fbbf24; font-size:10.5px;"></i>';
+                                    starsHtml += '<i class="fa-solid fa-star" style="color:#d97706; font-size:10.5px;"></i>';
                                 } else {
-                                    starsHtml += '<i class="fa-regular fa-star" style="color:rgba(255,255,255,0.3); font-size:10.5px;"></i>';
+                                    starsHtml += '<i class="fa-regular fa-star" style="color:#cbd5e1; font-size:10.5px;"></i>';
                                 }
                             }
 
@@ -4407,46 +4397,46 @@ if (is_dir($imgDir)) {
 
                             const metricsHtml = `
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:9px 0 10px 0;">
-                                <div style="background:rgba(255,255,255,0.08); border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center; border:none !important;">
-                                    <span style="font-size:10px; color:rgba(255,255,255,0.85); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Cleanliness</span>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="font-size:10px; color:#64748b; text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Cleanliness</span>
                                     <span style="font-size:11px; font-weight:800; color:#ffffff; background:${cleanBg}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center;">${cleanVal}</span>
                                 </div>
-                                <div style="background:rgba(255,255,255,0.08); border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center; border:none !important;">
-                                    <span style="font-size:10px; color:rgba(255,255,255,0.85); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Safety</span>
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="font-size:10px; color:#64748b; text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Safety</span>
                                     <span style="font-size:11px; font-weight:800; color:#ffffff; background:${safeBg}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center;">${safeVal}</span>
                                 </div>
                             </div>`;
 
                             const policyHtml = fb.policy_recommendation ? `
-                            <div style="background:rgba(12,74,110,0.6); border-left:3px solid #38bdf8; border-radius:10px; padding:10px 12px; margin-top:10px;">
+                            <div style="background:#f0f9ff; border-left:3px solid #0284c7; border:1px solid #bae6fd; border-left-width:3px; border-radius:10px; padding:10px 12px; margin-top:10px;">
                                 <div style="display:flex; align-items:center; gap:5px; margin-bottom:4px;">
-                                    <i class="fa-solid fa-lightbulb" style="color:#38bdf8; font-size:11px;"></i>
-                                    <strong style="font-size:10px; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; font-weight:800;">Policy Recommendation for LGU</strong>
+                                    <i class="fa-solid fa-lightbulb" style="color:#0284c7; font-size:11px;"></i>
+                                    <strong style="font-size:10px; color:#0284c7; text-transform:uppercase; letter-spacing:0.5px; font-weight:800;">Policy Recommendation for LGU</strong>
                                 </div>
-                                <span style="color:#ffffff; font-size:12px; line-height:1.45; display:block;">${fb.policy_recommendation}</span>
+                                <span style="color:#334155; font-size:12px; line-height:1.45; display:block;">${fb.policy_recommendation}</span>
                             </div>` : '';
 
                             return `
-                        <div style="background:rgba(255,255,255,0.08); border-radius:14px; padding:14px; font-size:12px; border:none !important;">
+                        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:14px; font-size:12px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
                                 <div style="display:flex; align-items:center; gap:8px;">
-                                    <div style="width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg, #0284c7 0%, #2563eb 100%); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:11.5px; flex-shrink:0;">
+                                    <div style="width:30px; height:30px; border-radius:50%; background:#1e3a8a; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:11.5px; flex-shrink:0;">
                                         ${initial}
                                     </div>
                                     <div>
                                         <div style="display:flex; align-items:center; gap:6px;">
-                                            <strong style="color:#ffffff; font-size:13px; font-weight:700;">${maskedName}</strong>
-                                            <span style="font-size:9.5px; font-weight:800; background:#10b981; color:#ffffff; padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:3px;"><i class="fa-solid fa-circle-check" style="font-size:8.5px;"></i> Verified</span>
+                                            <strong style="color:#0f172a; font-size:13px; font-weight:700;">${maskedName}</strong>
+                                            <span style="font-size:9.5px; font-weight:800; background:#dcfce7; color:#15803d; border:1px solid #bbf7d0; padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center;">Verified</span>
                                         </div>
                                         <div style="display:flex; align-items:center; gap:4px; margin-top:2px;">
                                             ${starsHtml}
                                         </div>
                                     </div>
                                 </div>
-                                <span style="font-size:10px; color:rgba(255,255,255,0.7); font-weight:600;"><i class="fa-regular fa-clock" style="margin-right:3px; font-size:9px;"></i>${date}</span>
+                                <span style="font-size:10px; color:#64748b; font-weight:600;"><i class="fa-regular fa-clock" style="margin-right:3px; font-size:9px;"></i>${date}</span>
                             </div>
                             ${metricsHtml}
-                            <p style="margin:0; color:#ffffff; font-size:12.5px; line-height:1.5;">${fb.testimony || 'Visited and checked in.'}</p>
+                            <p style="margin:0; color:#334155; font-size:12.5px; line-height:1.5;">${fb.testimony || 'Visited this destination.'}</p>
                             ${policyHtml}
                         </div>`;
                         };
@@ -4463,9 +4453,9 @@ if (is_dir($imgDir)) {
                             ${extraCardsHtml}
                         </div>
                         <div style="display:flex; justify-content:center; margin-top:6px;">
-                            <button id="btn-toggle-testimonies" onclick="window.toggleAllTestimonies()" style="background:rgba(255,255,255,0.14); border:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:8px 18px; border-radius:20px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+                            <button id="btn-toggle-testimonies" onclick="window.toggleAllTestimonies()" style="background:#f1f5f9; border:1px solid #e2e8f0; color:#0f172a; font-size:11px; font-weight:800; padding:8px 18px; border-radius:20px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
                                 <span id="toggle-testimonies-text">View All Testimonies (${d.data.length})</span>
-                                <i class="fa-solid fa-chevron-down" id="toggle-testimonies-chevron" style="transition:transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);"></i>
+                                <i class="fa-solid fa-chevron-down" id="toggle-testimonies-chevron" style="transition:transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); color:#64748b;"></i>
                             </button>
                         </div>`;
                         }
@@ -4473,16 +4463,16 @@ if (is_dir($imgDir)) {
                         list.innerHTML = html;
                     } else {
                         list.innerHTML = `
-                        <div style="background:rgba(255,255,255,0.06); border-radius:14px; padding:20px 16px; text-align:center; border:none !important;">
-                            <div style="width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.12); display:inline-flex; align-items:center; justify-content:center; color:#ffffff; font-size:16px; margin-bottom:8px;">
+                        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:20px 16px; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+                            <div style="width:40px; height:40px; border-radius:50%; background:#f1f5f9; border:1px solid #e2e8f0; display:inline-flex; align-items:center; justify-content:center; color:#64748b; font-size:16px; margin-bottom:8px;">
                                 <i class="fa-regular fa-comment-dots"></i>
                             </div>
-                            <div style="font-size:13.5px; font-weight:800; color:#ffffff; margin-bottom:4px;">No Testimonies Yet</div>
-                            <p style="margin:0 0 12px; font-size:12px; color:rgba(255,255,255,0.9); line-height:1.5;">
+                            <div style="font-size:13.5px; font-weight:800; color:#0f172a; margin-bottom:4px;">No Testimonies Yet</div>
+                            <p style="margin:0 0 12px; font-size:12px; color:#475569; line-height:1.5;">
                                 Be the first verified visitor to review this <strong style="color:${classMeta.color}; font-weight:800;">${classMeta.label}</strong> spot and share policy feedback during your trip navigation to earn <strong>+${classMeta.points} Points</strong>!
                             </p>
-                            <div style="display:inline-flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700; color:#ffffff; background:rgba(255,255,255,0.12); padding:5px 12px; border-radius:20px;">
-                                <i class="fa-solid fa-route" style="color:#ffffff;"></i> Review available in Trip Map & Visited Stops
+                            <div style="display:inline-flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700; color:#0369a1; background:#f0f9ff; border:1px solid #bae6fd; padding:5px 12px; border-radius:20px;">
+                                <i class="fa-solid fa-route" style="color:#0284c7;"></i> Review available in Trip Map & Visited Stops
                             </div>
                         </div>`;
                     }
