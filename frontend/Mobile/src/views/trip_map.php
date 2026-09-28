@@ -43,11 +43,10 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             <i class="fa-solid fa-stopwatch" style="color:#34d399;"></i> <span id="trip-info-time">-- mins</span>
         </div>
         <div style="width:1px; height:12px; background:rgba(255,255,255,0.25);"></div>
-        <button id="trip-info-vehicle-btn" type="button" onclick="window.openVehicleSelectorModal()" style="display:flex; align-items:center; gap:6px; color:#ffffff; font-size:12px; font-weight:800; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; border-radius:100px; padding:4px 10px; cursor:pointer; transition:transform 0.15s, background 0.15s;" title="Tap to switch vehicle">
+        <div id="trip-info-vehicle-badge" style="display:flex; align-items:center; gap:6px; color:#ffffff; font-size:12px; font-weight:800; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; border-radius:100px; padding:4px 10px;">
             <i id="trip-info-vehicle-icon" class="fa-solid fa-car" style="color:#f59e0b;"></i>
             <span id="trip-info-vehicle-name">Own Car</span>
-            <i class="fa-solid fa-chevron-down" style="font-size:9px; opacity:0.8; margin-left:2px;"></i>
-        </button>
+        </div>
     </div>
 
     <!-- Conveyor Cards Carousel Scroll Container -->
@@ -129,25 +128,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
     </div>
 </div>
 
-<!-- Vehicle Selector Bottom Sheet Modal -->
-<div id="vehicle-selector-modal" onclick="if(event.target===this) window.closeVehicleSelectorModal()" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100vw; height:100vh; background:rgba(6,11,25,0.75); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:999999; align-items:flex-end; justify-content:center; padding:0; margin:0; box-sizing:border-box;">
-    <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:28px 28px 0 0; width:100%; max-width:500px; padding:24px 20px calc(24px + env(safe-area-inset-bottom)) 20px; box-shadow:0 -10px 45px rgba(10,25,60,0.6); animation:slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); box-sizing:border-box; max-height:85vh; overflow-y:auto;" class="hide-scrollbar">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
-            <div>
-                <h3 style="margin:0; font-size:18px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
-                    <i class="fa-solid fa-van-shuttle" style="color:#67e8f9; font-size:17px;"></i> Select Vehicle Mode
-                </h3>
-                <p style="margin:3px 0 0 0; font-size:12px; color:rgba(255,255,255,0.8); font-weight:600;">Choose how you are traveling on this route</p>
-            </div>
-            <button type="button" onclick="window.closeVehicleSelectorModal()" style="background:rgba(255,255,255,0.15); border:none; color:#ffffff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                <i class="fa-solid fa-xmark" style="font-size:15px;"></i>
-            </button>
-        </div>
-        <div id="vehicle-options-grid" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-bottom:12px;">
-            <!-- Populated via JS -->
-        </div>
-    </div>
-</div>
+
 
 <style>
 @keyframes slideDown {
@@ -263,13 +244,10 @@ include_once __DIR__ . '/../components/testimony_modal.php';
     ];
 
     function resolveTripVehicle(trip, tripId) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlTransport = urlParams.get('transport');
-        const sessionVal = tripId ? sessionStorage.getItem('active_trip_transport_' + tripId) : null;
-        const localVal = tripId ? localStorage.getItem('selected_trip_vehicle_' + tripId) : null;
+        // Strictly use the vehicle selected when saving the trip
+        let raw = (trip ? trip.transport_mode : null);
         
-        let cachedTransport = null;
-        if (!trip && tripId) {
+        if (!raw && tripId) {
             try {
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
                 if (token) {
@@ -280,7 +258,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         if (parsed && Array.isArray(parsed.data)) {
                             const cachedTrip = parsed.data.find(t => t.id == tripId);
                             if (cachedTrip && cachedTrip.transport_mode) {
-                                cachedTransport = cachedTrip.transport_mode;
+                                raw = cachedTrip.transport_mode;
                             }
                         }
                     }
@@ -288,7 +266,10 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             } catch (e) {}
         }
 
-        let raw = localVal || sessionVal || urlTransport || cachedTransport || (trip ? trip.transport_mode : null);
+        if (!raw) {
+            const urlParams = new URLSearchParams(window.location.search);
+            raw = urlParams.get('transport');
+        }
 
         if (!raw && trip && trip.items && trip.items.length > 0) {
             for (let item of trip.items) {
@@ -339,28 +320,10 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         window.currentActiveVehicle = vehicle;
         const vehicleNameEl = document.getElementById('trip-info-vehicle-name');
         const vehicleIconEl = document.getElementById('trip-info-vehicle-icon');
-        const vehicleBtnEl = document.getElementById('trip-info-vehicle-btn');
         if (vehicleNameEl) vehicleNameEl.textContent = vehicle.name;
         if (vehicleIconEl) {
             vehicleIconEl.className = 'fa-solid ' + vehicle.icon;
             vehicleIconEl.style.color = vehicle.color || '#f59e0b';
-        }
-
-        // Check if any stop has zero available vehicles
-        const items = window.currentTripItems || [];
-        const hasNoVehicles = items.some(it => {
-            const spot = it.tourist_spot || it.destination || it;
-            return spot.has_available_vehicles === false || (Array.isArray(spot.accessible_vehicles) && spot.accessible_vehicles.length === 0);
-        });
-
-        if (vehicleBtnEl) {
-            if (hasNoVehicles && items.length > 0) {
-                vehicleBtnEl.style.opacity = '0.7';
-                vehicleBtnEl.title = 'Some destinations have restricted vehicle access';
-            } else {
-                vehicleBtnEl.style.opacity = '1';
-                vehicleBtnEl.title = 'Tap to switch vehicle';
-            }
         }
     }
 
@@ -374,101 +337,10 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         }
     })();
 
-    window.openVehicleSelectorModal = function() {
-        const modal = document.getElementById('vehicle-selector-modal');
-        const grid = document.getElementById('vehicle-options-grid');
-        if (!modal || !grid) return;
-
-        const currentKey = window.currentActiveVehicle?.key || 'own_car';
-        const items = window.currentTripItems || [];
-
-        grid.innerHTML = VEHICLE_CATALOG.filter(v => !v.hiddenFromModal).map(v => {
-            const isSel = v.key === currentKey;
-            let isAvail = true;
-            if (items.length > 0) {
-                for (const it of items) {
-                    const spot = it.tourist_spot || it.destination || it;
-                    if (spot.has_available_vehicles === false || (Array.isArray(spot.accessible_vehicles) && spot.accessible_vehicles.length === 0)) {
-                        isAvail = false;
-                        break;
-                    }
-                    if (Array.isArray(spot.accessible_vehicles) && spot.accessible_vehicles.length > 0) {
-                        const accLower = spot.accessible_vehicles.map(a => String(a).toLowerCase());
-                        const match = accLower.some(a => a.includes(v.key) || (v.key === 'own_car' && a.includes('car')) || (v.key === 'pub_ordinary' && a.includes('regular')));
-                        if (!match) {
-                            isAvail = false;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            const clickAttr = isAvail ? `onclick="window.selectTripVehicle('${v.key}')"` : '';
-            const bg = isSel ? 'rgba(255,255,255,0.28)' : (isAvail ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)');
-            const opacity = isAvail ? '1' : '0.55';
-            const cursor = isAvail ? 'pointer' : 'not-allowed';
-
-            return `
-                <div ${clickAttr} style="background:${bg}; opacity:${opacity}; cursor:${cursor}; border:none !important; outline:none !important; border-radius:16px; padding:12px 14px; display:flex; align-items:center; gap:10px; transition:transform 0.15s, background 0.15s; ${isSel ? 'box-shadow:0 4px 14px rgba(0,0,0,0.25);' : ''}">
-                    <div style="width:36px; height:36px; border-radius:10px; background:${isSel ? 'linear-gradient(135deg, #00f2fe 0%, #0284c7 100%)' : 'rgba(255,255,255,0.15)'}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                        <i class="fa-solid ${v.icon}" style="color:${isSel ? '#ffffff' : (v.color || '#ffffff')}; font-size:16px;"></i>
-                    </div>
-                    <div style="overflow:hidden; text-align:left; flex:1;">
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <span style="font-size:13px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.name}</span>
-                            ${!isAvail ? '<span style="font-size:8.5px; font-weight:800; background:rgba(239,68,68,0.22); color:#fca5a5; padding:1px 6px; border-radius:6px; text-transform:uppercase;">Unavailable</span>' : ''}
-                        </div>
-                        <div style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.75); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.desc}</div>
-                    </div>
-                    ${isSel ? '<i class="fa-solid fa-circle-check" style="margin-left:auto; color:#ffffff; font-size:14px;"></i>' : ''}
-                </div>
-            `;
-        }).join('');
-
-        modal.style.display = 'flex';
-    };
-
-    window.closeVehicleSelectorModal = function() {
-        const modal = document.getElementById('vehicle-selector-modal');
-        if (modal) modal.style.display = 'none';
-    };
-
-    window.selectTripVehicle = function(vehicleKey) {
-        const v = VEHICLE_CATALOG.find(item => item.key === vehicleKey) || VEHICLE_CATALOG[0];
-        applyVehicleToUI(v);
-        window.closeVehicleSelectorModal();
-
-        const tripId = window.currentTripId;
-        if (tripId) {
-            localStorage.setItem('selected_trip_vehicle_' + tripId, v.key);
-            sessionStorage.setItem('active_trip_transport_' + tripId, v.key);
-
-            // Background update backend itinerary
-            const token = localStorage.getItem('intan_elyu_token');
-            if (token) {
-                fetch(backendUrl + '/api/tourist/itineraries/' + tripId, {
-                    method: 'PUT',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify({ transport_mode: v.key })
-                }).catch(e => console.warn("Async vehicle sync:", e));
-            }
-        }
-
-        if (typeof showToast === 'function') {
-            showToast(`Vehicle mode set to ${v.name}`);
-        }
-
-        // Force route recalculation with new vehicle
-        window._lastRouteLat = null;
-        window._lastRouteLng = null;
-        if (window.currentTripItems) {
-            plotTrip(window.currentTripItems, window.currentRouteType);
-        }
-    };
+    // Stubs for modal removal to avoid errors if triggered anywhere
+    window.openVehicleSelectorModal = function() {};
+    window.closeVehicleSelectorModal = function() {};
+    window.selectTripVehicle = function() {};
 
     function calcCoordDistMeters(lat1, lon1, lat2, lon2) {
         if (!lat1 || !lon1 || !lat2 || !lon2) return 999999;

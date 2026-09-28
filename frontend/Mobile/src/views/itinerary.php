@@ -2515,17 +2515,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             if (draft.length === 0) return showToast("Your itinerary is empty!");
 
             const transport = document.getElementById('trip-transport').value;
-
-            // Warn if no transport or budget is set — confirm before saving
-            if (!transport || !budgetStr) {
-                let msg = "You haven't set ";
-                const missing = [];
-                if (!transport) missing.push('a transport mode');
-                if (!budgetStr) missing.push('a budget');
-                msg += missing.join(' or ');
-                msg += '. Do you want to save anyway?';
-                if (!(await window.showConfirmModal(msg))) return;
-            }
+            const effectiveTransport = transport || 'own_car';
 
             const btn = document.getElementById('btn-submit-trip');
             const editingId = sessionStorage.getItem('editing_itinerary_id');
@@ -2561,7 +2551,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                         budget: budget,
                         destinations: destinations,
                         route_type: activeRouteType,
-                        transport_mode: transport
+                        transport_mode: effectiveTransport
                     })
                 });
 
@@ -2585,10 +2575,8 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     const savedId = String(editingId || data.itinerary_id || (data.itinerary && data.itinerary.id) || '');
                     if (savedId) {
                         sessionStorage.setItem('just_saved_trip_id', savedId);
-                        if (transport) {
-                            sessionStorage.setItem('active_trip_transport_' + savedId, transport);
-                            localStorage.setItem('selected_trip_vehicle_' + savedId, transport);
-                        }
+                        sessionStorage.setItem('active_trip_transport_' + savedId, effectiveTransport);
+                        localStorage.setItem('selected_trip_vehicle_' + savedId, effectiveTransport);
                     }
 
                     showToast(editingId ? "Trip updated successfully!" : "Trip saved successfully!");

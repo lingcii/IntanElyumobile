@@ -505,9 +505,9 @@ if (is_dir($imgDir)) {
                 </div>
             </div>
 
-            <!-- Available Vehicles / Transportation Card -->
+            <!-- Available Vehicles / Transportation Card (Shown only if available vehicles exist) -->
             <div id="sheet-vehicles-card" class="dest-vehicles-card"
-                style="display:flex; flex-direction:column; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; border-radius:18px; padding:14px 16px; margin-bottom:12px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
+                style="display:none; flex-direction:column; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; border-radius:18px; padding:14px 16px; margin-bottom:12px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <div style="width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:15px; flex-shrink:0;">
@@ -3460,22 +3460,11 @@ if (is_dir($imgDir)) {
             }
 
             // 2b. Available Transportation & Vehicles Access
+            const vehCard = document.getElementById('sheet-vehicles-card');
             const vehCountBadge = document.getElementById('sheet-vehicles-count-badge');
             const privVehList = document.getElementById('sheet-private-vehicles-list');
             const pubVehList = document.getElementById('sheet-public-vehicles-list');
             const btnViewVehicles = document.getElementById('sheet-btn-view-vehicles');
-
-            const getVehIcon = (name) => {
-                const n = (name || '').toLowerCase();
-                if (n.includes('car') || n.includes('sedan') || n.includes('suv')) return 'fa-car';
-                if (n.includes('motorcycle') || n.includes('motor') || n.includes('scooter') || n.includes('bike')) return 'fa-motorcycle';
-                if (n.includes('van') || n.includes('uve')) return 'fa-van-shuttle';
-                if (n.includes('pub') || n.includes('bus')) return 'fa-bus';
-                if (n.includes('puj') || n.includes('jeep')) return 'fa-bus-simple';
-                if (n.includes('trike') || n.includes('tricycle')) return 'fa-bicycle';
-                if (n.includes('taxi')) return 'fa-taxi';
-                return 'fa-car-side';
-            };
 
             const privVehicles = Array.isArray(locationData.private_vehicles) ? locationData.private_vehicles : [];
             const pubVehicles = Array.isArray(locationData.public_vehicles) ? locationData.public_vehicles : [];
@@ -3484,38 +3473,54 @@ if (is_dir($imgDir)) {
                 : [...privVehicles, ...pubVehicles];
             const hasVehicles = (locationData.has_available_vehicles === true) || (allVehicles.length > 0);
 
-            if (vehCountBadge) {
-                vehCountBadge.textContent = hasVehicles ? `${allVehicles.length} Available` : 'None';
-                vehCountBadge.style.background = hasVehicles ? 'rgba(56,189,248,0.2)' : 'rgba(239,68,68,0.18)';
-                vehCountBadge.style.color = hasVehicles ? '#38bdf8' : '#f87171';
+            if (vehCard) {
+                vehCard.style.display = hasVehicles ? 'flex' : 'none';
             }
 
-            if (privVehList) {
-                if (privVehicles.length > 0) {
-                    privVehList.innerHTML = privVehicles.map(v => `
-                        <span style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; background:rgba(56,189,248,0.16); color:#7dd3fc; border:1px solid rgba(56,189,248,0.25); padding:4px 9px; border-radius:8px;">
-                            <i class="fa-solid ${getVehIcon(v)}" style="font-size:10px; color:#38bdf8;"></i> ${v}
-                        </span>
-                    `).join('');
-                } else {
-                    privVehList.innerHTML = '<span style="font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.45); font-style:italic;">None</span>';
+            if (hasVehicles) {
+                const getVehIcon = (name) => {
+                    const n = (name || '').toLowerCase();
+                    if (n.includes('car') || n.includes('sedan') || n.includes('suv')) return 'fa-car';
+                    if (n.includes('motorcycle') || n.includes('motor') || n.includes('scooter') || n.includes('bike')) return 'fa-motorcycle';
+                    if (n.includes('van') || n.includes('uve')) return 'fa-van-shuttle';
+                    if (n.includes('pub') || n.includes('bus')) return 'fa-bus';
+                    if (n.includes('puj') || n.includes('jeep')) return 'fa-bus-simple';
+                    if (n.includes('trike') || n.includes('tricycle')) return 'fa-bicycle';
+                    if (n.includes('taxi')) return 'fa-taxi';
+                    return 'fa-car-side';
+                };
+
+                if (vehCountBadge) {
+                    vehCountBadge.textContent = `${allVehicles.length} Available`;
+                    vehCountBadge.style.background = 'rgba(56,189,248,0.2)';
+                    vehCountBadge.style.color = '#38bdf8';
                 }
-            }
 
-            if (pubVehList) {
-                if (pubVehicles.length > 0) {
-                    pubVehList.innerHTML = pubVehicles.map(v => `
-                        <span style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; background:rgba(251,146,60,0.16); color:#fed7aa; border:1px solid rgba(251,146,60,0.25); padding:4px 9px; border-radius:8px;">
-                            <i class="fa-solid ${getVehIcon(v)}" style="font-size:10px; color:#fb923c;"></i> ${v}
-                        </span>
-                    `).join('');
-                } else {
-                    pubVehList.innerHTML = '<span style="font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.45); font-style:italic;">None</span>';
+                if (privVehList) {
+                    if (privVehicles.length > 0) {
+                        privVehList.innerHTML = privVehicles.map(v => `
+                            <span style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; background:rgba(56,189,248,0.16); color:#7dd3fc; border:1px solid rgba(56,189,248,0.25); padding:4px 9px; border-radius:8px;">
+                                <i class="fa-solid ${getVehIcon(v)}" style="font-size:10px; color:#38bdf8;"></i> ${v}
+                            </span>
+                        `).join('');
+                    } else {
+                        privVehList.innerHTML = '<span style="font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.45); font-style:italic;">None</span>';
+                    }
                 }
-            }
 
-            if (btnViewVehicles) {
-                if (hasVehicles) {
+                if (pubVehList) {
+                    if (pubVehicles.length > 0) {
+                        pubVehList.innerHTML = pubVehicles.map(v => `
+                            <span style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; background:rgba(251,146,60,0.16); color:#fed7aa; border:1px solid rgba(251,146,60,0.25); padding:4px 9px; border-radius:8px;">
+                                <i class="fa-solid ${getVehIcon(v)}" style="font-size:10px; color:#fb923c;"></i> ${v}
+                            </span>
+                        `).join('');
+                    } else {
+                        pubVehList.innerHTML = '<span style="font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.45); font-style:italic;">None</span>';
+                    }
+                }
+
+                if (btnViewVehicles) {
                     btnViewVehicles.disabled = false;
                     btnViewVehicles.style.pointerEvents = 'auto';
                     btnViewVehicles.style.cursor = 'pointer';
@@ -3524,15 +3529,6 @@ if (is_dir($imgDir)) {
                     btnViewVehicles.style.color = '#ffffff';
                     btnViewVehicles.style.boxShadow = '0 4px 14px rgba(2, 132, 199, 0.4)';
                     btnViewVehicles.innerHTML = `<i class="fa-solid fa-van-shuttle"></i> View Available Vehicles & Fares (${allVehicles.length})`;
-                } else {
-                    btnViewVehicles.disabled = true;
-                    btnViewVehicles.style.pointerEvents = 'none';
-                    btnViewVehicles.style.cursor = 'not-allowed';
-                    btnViewVehicles.style.opacity = '0.55';
-                    btnViewVehicles.style.background = 'rgba(255, 255, 255, 0.1)';
-                    btnViewVehicles.style.color = 'rgba(255, 255, 255, 0.55)';
-                    btnViewVehicles.style.boxShadow = 'none';
-                    btnViewVehicles.innerHTML = `<i class="fa-solid fa-ban" style="color:#ef4444; margin-right:4px;"></i> No Available Vehicles for this Site`;
                 }
             }
 
@@ -3708,6 +3704,8 @@ if (is_dir($imgDir)) {
             if (window.clearAmenityMarkers) {
                 window.clearAmenityMarkers();
             }
+            const vehCard = document.getElementById('sheet-vehicles-card');
+            if (vehCard) vehCard.style.display = 'none';
             const placeSheet = document.getElementById('place-details-sheet');
             if (placeSheet.closeSheet) placeSheet.closeSheet();
             else placeSheet.classList.remove('active');
