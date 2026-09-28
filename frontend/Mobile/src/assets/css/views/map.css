@@ -683,59 +683,52 @@ body.map-search-active .btn-classification-wrapper,
     justify-content: center !important;
     font-size: 15px !important;
     flex-shrink: 0 !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
     border: none !important;
     outline: none !important;
-    color: #ffffff !important;
+    background: #ffffff !important;
+    color: #0284c7 !important;
 }
 
 .quick-stat-icon i {
-    color: #ffffff !important;
+    color: #0284c7 !important;
     font-size: 15px !important;
 }
 
-.quick-stat-icon.blue {
-    background: #007AFF !important;
-    color: #ffffff !important;
-    border: none !important;
-}
-
-.quick-stat-icon.emerald {
-    background: #34C759 !important;
-    color: #ffffff !important;
-    border: none !important;
-}
-
-.quick-stat-icon.amber {
-    background: #FF9500 !important;
-    color: #ffffff !important;
-    border: none !important;
-}
-
+.quick-stat-icon.blue,
+.quick-stat-icon.emerald,
+.quick-stat-icon.amber,
 .quick-stat-icon.purple {
-    background: #AF52DE !important;
-    color: #ffffff !important;
+    background: #ffffff !important;
+    color: #0284c7 !important;
     border: none !important;
+}
+
+.quick-stat-icon.blue i,
+.quick-stat-icon.emerald i,
+.quick-stat-icon.amber i,
+.quick-stat-icon.purple i {
+    color: #0284c7 !important;
 }
 
 .dest-fee-icon-box {
     width: 36px !important;
     height: 36px !important;
     border-radius: 10px !important;
-    background: #34C759 !important;
-    color: #ffffff !important;
+    background: #ffffff !important;
+    color: #0284c7 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     font-size: 15px !important;
     flex-shrink: 0 !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
     border: none !important;
     outline: none !important;
 }
 
 .dest-fee-icon-box i {
-    color: #ffffff !important;
+    color: #0284c7 !important;
     font-size: 15px !important;
 }
 
@@ -794,16 +787,16 @@ body.map-search-active .btn-classification-wrapper,
     align-items: center !important;
     justify-content: center !important;
     font-size: 15px !important;
-    background: #007AFF !important;
-    color: #ffffff !important;
+    background: #ffffff !important;
+    color: #0284c7 !important;
     border: none !important;
     outline: none !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
     flex-shrink: 0 !important;
 }
 
 .dest-section-icon i {
-    color: #ffffff !important;
+    color: #0284c7 !important;
     font-size: 15px !important;
 }
 
@@ -842,6 +835,16 @@ body.map-search-active .btn-classification-wrapper,
     color: #ef4444;
     font-size: 14px;
     margin-top: 2px;
+}
+
+.dest-warning-icon-box {
+    background: #ffffff !important;
+    color: #ef4444 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dest-warning-icon-box i {
+    color: #ef4444 !important;
 }
 
 .dest-warning-card h6 {
@@ -1666,13 +1669,18 @@ body[data-view="map"] .btn-locate-me {
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.18);
+    background: #ffffff !important;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #ffffff;
+    color: #0284c7 !important;
     font-size: 12px;
     flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dest-amenities-icon-circle i {
+    color: #0284c7 !important;
 }
 
 .dest-amenities-count-badge {

@@ -506,8 +506,8 @@ if (is_dir($imgDir)) {
                 <div id="sheet-tour-guide-card"
                     style="display:none; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="width:34px; height:34px; border-radius:10px; background:rgba(37,99,235,0.22); display:flex; align-items:center; justify-content:center; color:#60a5fa; font-size:16px; flex-shrink:0;">
-                            <i class="fa-solid fa-person-hiking"></i>
+                        <div style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#0284c7 !important; font-size:16px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                            <i class="fa-solid fa-person-hiking" style="color:#0284c7 !important;"></i>
                         </div>
                         <div style="display:flex; flex-direction:column;">
                             <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Tour Guide Needed</span>
@@ -521,8 +521,8 @@ if (is_dir($imgDir)) {
                 <div id="sheet-24h-card"
                     style="display:none; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="width:34px; height:34px; border-radius:10px; background:rgba(254,243,199,0.9); display:flex; align-items:center; justify-content:center; color:#d97706; font-size:16px; flex-shrink:0;">
-                            <i class="fa-regular fa-clock"></i>
+                        <div style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#0284c7 !important; font-size:16px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                            <i class="fa-regular fa-clock" style="color:#0284c7 !important;"></i>
                         </div>
                         <div style="display:flex; flex-direction:column;">
                             <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Open 24 Hours</span>
@@ -536,8 +536,8 @@ if (is_dir($imgDir)) {
                 <div id="sheet-maint-card"
                     style="display:none; align-items:center; justify-content:space-between; background:rgba(239,68,68,0.18); border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="width:34px; height:34px; border-radius:10px; background:rgba(254,226,226,0.9); display:flex; align-items:center; justify-content:center; color:#dc2626; font-size:15px; flex-shrink:0;">
-                            <i class="fa-solid fa-wrench"></i>
+                        <div style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#ef4444 !important; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                            <i class="fa-solid fa-wrench" style="color:#ef4444 !important;"></i>
                         </div>
                         <div style="display:flex; flex-direction:column;">
                             <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Under Maintenance</span>
@@ -554,8 +554,8 @@ if (is_dir($imgDir)) {
                 style="display:none; flex-direction:column; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; border-radius:18px; padding:14px 16px; margin-bottom:12px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:15px; flex-shrink:0;">
-                            <i class="fa-solid fa-van-shuttle"></i>
+                        <div style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#0284c7 !important; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                            <i class="fa-solid fa-van-shuttle" style="color:#0284c7 !important;"></i>
                         </div>
                         <div style="display:flex; flex-direction:column;">
                             <span style="font-size:10px; font-weight:700; color:#e2e8f0; text-transform:uppercase; letter-spacing:0.5px;">Transportation</span>
@@ -595,8 +595,8 @@ if (is_dir($imgDir)) {
             <!-- About This Location & Travel Details -->
             <div id="sheet-desc-container" class="dest-info-card" style="display:none;">
                 <div id="vehicle-accessibility-warning" class="dest-warning-card" style="display:none;">
-                    <div class="dest-warning-icon-box" style="width:36px; height:36px; border-radius:10px; background:#FF3B30 !important; color:#ffffff !important; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.25);">
-                        <i class="fa-solid fa-triangle-exclamation" style="color:#ffffff !important;"></i>
+                    <div class="dest-warning-icon-box" style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; color:#ef4444 !important; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                        <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444 !important;"></i>
                     </div>
                     <div>
                         <h6>Inaccessible by Private Car</h6>
@@ -754,8 +754,8 @@ if (is_dir($imgDir)) {
     <div style="background:linear-gradient(145deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-radius:28px 28px 0 0; padding:22px 20px calc(24px + env(safe-area-inset-bottom)); width:100%; max-width:540px; max-height:84vh; overflow-y:auto; box-shadow:0 -10px 40px rgba(0,0,0,0.5); text-align:left; box-sizing:border-box;">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
             <div style="display:flex; align-items:center; gap:10px;">
-                <div style="width:38px; height:38px; border-radius:12px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:18px;">
-                    <i class="fa-solid fa-van-shuttle"></i>
+                <div style="width:38px; height:38px; border-radius:12px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#0284c7 !important; font-size:18px; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                    <i class="fa-solid fa-van-shuttle" style="color:#0284c7 !important;"></i>
                 </div>
                 <div>
                     <h4 id="spot-veh-modal-title" style="margin:0; font-size:17px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Available Vehicles & Fares</h4>
@@ -2122,8 +2122,8 @@ if (is_dir($imgDir)) {
 
                     return `
                     <div class="map-search-suggestion-item" data-id="${loc.id}" data-lat="${loc.lat}" data-lng="${loc.lng}">
-                        <div class="suggestion-icon" style="background:${color}22; color:${color}; border:1px solid ${color}44;">
-                            <i class="fa-solid ${icon}"></i>
+                        <div class="suggestion-icon" style="background:#ffffff !important; color:#0284c7 !important; border:none !important; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                            <i class="fa-solid ${icon}" style="color:#0284c7 !important;"></i>
                         </div>
                         <div class="suggestion-info" style="flex:1; min-width:0; overflow:hidden;">
                             <div class="suggestion-name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${highlightedName}</div>
@@ -3926,8 +3926,8 @@ if (is_dir($imgDir)) {
                 <div style="background:rgba(255,255,255,0.1); border-radius:16px; padding:12px 14px; border:none !important; outline:none !important; box-shadow:0 2px 8px rgba(0,0,0,0.12);">
                     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
                         <div style="display:flex; align-items:center; gap:9px;">
-                            <div style="width:36px; height:36px; border-radius:10px; background:${isPub ? 'rgba(251,146,60,0.22)' : 'rgba(56,189,248,0.22)'}; display:flex; align-items:center; justify-content:center; color:${isPub ? '#fb923c' : '#38bdf8'}; font-size:15px; flex-shrink:0;">
-                                <i class="fa-solid ${getVehIcon(vehName)}"></i>
+                            <div style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#0284c7 !important; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                                <i class="fa-solid ${getVehIcon(vehName)}" style="color:#0284c7 !important;"></i>
                             </div>
                             <div>
                                 <div style="font-size:13.5px; font-weight:800; color:#ffffff;">${vehName}</div>
