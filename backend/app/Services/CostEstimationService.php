@@ -12,54 +12,12 @@ use Illuminate\Support\Facades\Log;
 class CostEstimationService
 {
     /**
-     * Calculate fuel cost based on distance, efficiency, and real-time local fuel price.
+     * Calculate fuel cost based on distance and fuel price (Disabled - Personal vehicles have no fare).
      */
     public function estimateFuelCost(float $distanceKm, string $vehicleType, ?float $customFuelPrice = null, ?float $customFuelEfficiency = null): float
     {
-        // 1. Fetch real-time local fuel price from system_settings or transportation_routes table
-        $fuelPrice = $customFuelPrice;
-        if ($fuelPrice === null) {
-            $fuelPrice = 65.00;
-            try {
-                $fuelPriceSetting = DB::table('system_settings')->where('key', 'fuel_price')->value('value');
-                if ($fuelPriceSetting !== null) {
-                    $fuelPrice = (float) $fuelPriceSetting;
-                }
-            } catch (\Throwable $e) {}
-
-            try {
-                $routeFuelPrice = DB::table('transportation_routes')->whereNotNull('fuel_price')->value('fuel_price');
-                if ($routeFuelPrice !== null) {
-                    $fuelPrice = (float) $routeFuelPrice;
-                }
-            } catch (\Throwable $e) {}
-        }
-
-        // 2. Fetch vehicle consumption rate (efficiency in km/L)
-        $efficiency = $customFuelEfficiency;
-        if ($efficiency === null) {
-            $dbVehicleName = $this->mapVehicleToDbName($vehicleType);
-            $efficiencyMap = [
-                'Tricycle'    => 25.00,
-                'Jeepney'     => 8.00,
-                'MPUJ'        => 8.00,
-                'Bus'         => 4.00,
-                'PUB_Aircon'  => 4.00,
-                'Van'         => 10.00,
-                'Taxi'        => 12.00,
-                'Motorcycle'  => 35.00,
-                'Private Car' => 12.00,
-                'Own Car'     => 12.00,
-            ];
-            $efficiency = $efficiencyMap[$dbVehicleName] ?? 12.00;
-        }
-
-        if ($efficiency <= 0) {
-            return 0.0;
-        }
-
-        // Formula: (Distance / Efficiency) * Fuel Price
-        return ($distanceKm / $efficiency) * $fuelPrice;
+        // Fuel costing has been removed; personal/private vehicles have 0 fare.
+        return 0.0;
     }
 
     /**

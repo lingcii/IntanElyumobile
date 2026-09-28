@@ -33,67 +33,61 @@ if (is_dir($imgDir)) {
         const rawType = (vehicleType || '').toString().toLowerCase().trim();
         const normType = rawType.replace(/[- ]/g, '_');
         
-        const currentFuel = window.fuelPrice || 65.0;
-
-        // Private formula-based vehicles
+        // Private vehicles (Personal / Own vehicle - No Fare Required)
         if (normType === 'own_car' || normType === 'car' || normType === 'sedan' || normType === 'suv' || normType === 'private_car') {
-            const fare = Math.max(15, Math.round((dKm / 12.0) * currentFuel));
             return {
-                fare: fare,
-                discountedFare: fare,
-                baseFare: 15,
+                fare: 0,
+                discountedFare: 0,
+                baseFare: 0,
                 boundaryKm: dKm,
                 prevBoundaryKm: 0,
                 isPassedBoundary: false,
                 isExceedingMax: false,
                 isPrivate: true,
-                boundaryLabel: `Fuel formula: 12.0 km/L @ ₱${currentFuel.toFixed(2)}/L`,
-                title: 'Private Car Fuel Estimate'
+                boundaryLabel: 'Direct road access • No fare required',
+                title: 'Personal / Own Vehicle'
             };
         }
         if (normType === 'motorcycle' || (normType === 'motor' && isPrivate !== false)) {
-            const fare = Math.max(10, Math.round((dKm / 35.0) * currentFuel));
             return {
-                fare: fare,
-                discountedFare: fare,
-                baseFare: 10,
+                fare: 0,
+                discountedFare: 0,
+                baseFare: 0,
                 boundaryKm: dKm,
                 prevBoundaryKm: 0,
                 isPassedBoundary: false,
                 isExceedingMax: false,
                 isPrivate: true,
-                boundaryLabel: `Fuel formula: 35.0 km/L @ ₱${currentFuel.toFixed(2)}/L`,
-                title: 'Motorcycle Fuel Estimate'
+                boundaryLabel: 'Direct road access • No fare required',
+                title: 'Personal / Own Vehicle'
             };
         }
         if ((normType === 'van' && isPrivate !== false) || normType === 'private_van') {
-            const fare = Math.max(25, Math.round((dKm / 10.0) * currentFuel));
             return {
-                fare: fare,
-                discountedFare: fare,
-                baseFare: 25,
+                fare: 0,
+                discountedFare: 0,
+                baseFare: 0,
                 boundaryKm: dKm,
                 prevBoundaryKm: 0,
                 isPassedBoundary: false,
                 isExceedingMax: false,
                 isPrivate: true,
-                boundaryLabel: `Fuel formula: 10.0 km/L @ ₱${currentFuel.toFixed(2)}/L`,
-                title: 'Private Van Fuel Estimate'
+                boundaryLabel: 'Direct road access • No fare required',
+                title: 'Personal / Own Vehicle'
             };
         }
         if (normType === 'tricycle' && isPrivate === true) {
-            const fare = Math.max(10, Math.round((dKm / 25.0) * currentFuel));
             return {
-                fare: fare,
-                discountedFare: fare,
-                baseFare: 10,
+                fare: 0,
+                discountedFare: 0,
+                baseFare: 0,
                 boundaryKm: dKm,
                 prevBoundaryKm: 0,
                 isPassedBoundary: false,
                 isExceedingMax: false,
                 isPrivate: true,
-                boundaryLabel: `Fuel formula: 25.0 km/L @ ₱${currentFuel.toFixed(2)}/L`,
-                title: 'Private Tricycle Fuel Estimate'
+                boundaryLabel: 'Direct road access • No fare required',
+                title: 'Personal / Own Vehicle'
             };
         }
         if (normType === 'taxi') {
@@ -831,7 +825,6 @@ if (is_dir($imgDir)) {
                         cachedFares = parsedF;
                         window.fareData = parsedF.data.fares || {};
                         window.vehicleData = parsedF.data.vehicles || [];
-                        window.fuelPrice = parsedF.data.fuel_price || 65.0;
                     }
                 }
             } catch (e) {}
@@ -844,7 +837,6 @@ if (is_dir($imgDir)) {
                     if (d && d.fares) {
                         window.fareData = d.fares || {};
                         window.vehicleData = d.vehicles || [];
-                        window.fuelPrice = d.fuel_price || 65.0;
                         try {
                             localStorage.setItem(FARES_CACHE_KEY, JSON.stringify({ data: d, timestamp: Date.now() }));
                         } catch (e) {}
@@ -3840,10 +3832,10 @@ if (is_dir($imgDir)) {
 
             const renderCard = (vehName, isPub) => {
                 const est = window.getFareBoundaryEstimate(vehName, distKm, dest.municipality, !isPub);
-                const fareDisplay = est ? `₱${est.fare.toFixed(2)}` : 'Rate on inquiry';
+                const fareDisplay = est ? (est.isPrivate ? '₱0.00' : `₱${est.fare.toFixed(2)}`) : 'Rate on inquiry';
                 const discDisplay = (isPub && est && est.discountedFare < est.fare) ? `₱${est.discountedFare.toFixed(2)} Disc.` : '';
-                const boundaryText = est?.boundaryLabel || 'Boundary step calculated';
-                const baseText = est ? `Base: ₱${est.baseFare.toFixed(2)}` : '';
+                const boundaryText = est?.boundaryLabel || (est?.isPrivate ? 'Direct road access • No fare required' : 'Boundary step calculated');
+                const baseText = (est && !est.isPrivate && est.baseFare > 0) ? `Base: ₱${est.baseFare.toFixed(2)}` : '';
 
                 return `
                 <div style="background:rgba(255,255,255,0.1); border-radius:16px; padding:12px 14px; border:none !important; outline:none !important; box-shadow:0 2px 8px rgba(0,0,0,0.12);">
@@ -3860,19 +3852,19 @@ if (is_dir($imgDir)) {
                             </div>
                         </div>
                         <div style="text-align:right;">
-                            <div style="font-size:15.5px; font-weight:900; color:#ffffff; letter-spacing:-0.2px;">${fareDisplay}</div>
+                            <div style="font-size:15.5px; font-weight:900; color:${est?.isPrivate ? '#34d399' : '#ffffff'}; letter-spacing:-0.2px;">${fareDisplay}</div>
                             ${discDisplay ? `
                                 <div style="font-size:10px; font-weight:800; color:#34d399; margin-top:1px;">
                                     <i class="fa-solid fa-tags" style="font-size:8.5px;"></i> ${discDisplay}
                                 </div>
                             ` : (est?.isPrivate ? `
-                                <div style="font-size:10px; font-weight:700; color:#cbd5e1; margin-top:1px;">Est. Fuel / Trip</div>
+                                <div style="font-size:10px; font-weight:800; color:#34d399; margin-top:1px;"><i class="fa-solid fa-circle-check" style="font-size:8.5px;"></i> Personal / Own Vehicle</div>
                             ` : '')}
                         </div>
                     </div>
                     <div style="background:rgba(0,0,0,0.18); border-radius:10px; padding:7px 11px; font-size:11px; color:#e2e8f0; display:flex; align-items:center; justify-content:space-between; gap:6px;">
                         <span style="display:flex; align-items:center; gap:5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                            <i class="fa-solid fa-chart-line" style="color:#38bdf8; font-size:10px; flex-shrink:0;"></i>
+                            <i class="fa-solid ${est?.isPrivate ? 'fa-route' : 'fa-chart-line'}" style="color:#38bdf8; font-size:10px; flex-shrink:0;"></i>
                             <span style="font-size:10.5px; font-weight:600;">${boundaryText}</span>
                         </span>
                         ${baseText ? `<span style="font-weight:800; color:#7dd3fc; font-size:10.5px; flex-shrink:0;">${baseText}</span>` : ''}
@@ -4008,7 +4000,7 @@ if (is_dir($imgDir)) {
             }
 
             const createCard = (name, icon, color, desc, baseFare, schedule, isPublic = true) => {
-                const finalFare = Math.round(baseFare * peakSurcharge);
+                const finalFare = (!isPublic && baseFare === 0) ? 0 : Math.round(baseFare * peakSurcharge);
                 return `
             <div onclick="toggleVehicle(this)"
                  data-vehicle='${JSON.stringify({ name, icon, color, desc, fare: finalFare })}'
@@ -4025,7 +4017,7 @@ if (is_dir($imgDir)) {
                     </div>
                 </div>
                 <div style="display:flex; align-items:center; gap:8px;">
-                    <div style="background:rgba(56,189,248,0.16); border:none !important; outline:none !important; padding:6px 12px; border-radius:10px; font-weight:800; color:#38bdf8; font-size:15px; flex-shrink:0;">₱${finalFare}</div>
+                    <div style="background:${finalFare === 0 ? 'rgba(52,211,153,0.18)' : 'rgba(56,189,248,0.16)'}; border:none !important; outline:none !important; padding:6px 12px; border-radius:10px; font-weight:800; color:${finalFare === 0 ? '#34d399' : '#38bdf8'}; font-size:${finalFare === 0 ? '12px' : '15px'}; flex-shrink:0;">${finalFare === 0 ? '₱0.00' : '₱' + finalFare}</div>
                     <div class="vehicle-check" style="width:22px;height:22px;border-radius:50%;border:none !important;outline:none !important;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;transition:all 0.15s;"><i class="fa-solid fa-check" style="opacity:0;transition:opacity 0.15s;"></i></div>
                 </div>
             </div>`;
@@ -4033,9 +4025,6 @@ if (is_dir($imgDir)) {
 
             const targetMuni = destData.municipality || 'San Juan';
             const dbFare = (type) => window.getFareFromMatrix(type, distanceKm, targetMuni);
-
-            const carKml = 12.0;
-            const currentFuelPrice = window.fuelPrice || 65.0;
 
             if (tightRoads) {
                 const trikeFare = dbFare('tricycle') ?? Math.round(16.32 + (Math.max(0, distanceKm - 1.7) * 2.0));
@@ -4070,11 +4059,8 @@ if (is_dir($imgDir)) {
                     const taxiFare = Math.round(40 + (distanceKm * 13));
                     faresHtml += createCard('Taxi', 'fa-taxi', '#f97316', 'Main roads / highways — metered fare', taxiFare, '24/7 Service', false);
                 }
-                const ownCarFare = Math.max(10, Math.round((distanceKm / carKml) * currentFuelPrice));
-                faresHtml += createCard('Own Car (Fuel Est.)', 'fa-car', '#34d399', 'Private automobile fuel consumption estimate', ownCarFare, 'Anytime', false);
-
-                const motorcycleFare = Math.max(5, Math.round((distanceKm / 35.0) * currentFuelPrice));
-                faresHtml += createCard('Motorcycle (Fuel Est.)', 'fa-motorcycle', '#a855f7', 'Motorbike / scooter fuel consumption estimate', motorcycleFare, 'Anytime', false);
+                faresHtml += createCard('Own Car', 'fa-car', '#34d399', 'Personal / own vehicle (No fare required)', 0, 'Anytime', false);
+                faresHtml += createCard('Motorcycle', 'fa-motorcycle', '#a855f7', 'Personal / own motorbike (No fare required)', 0, 'Anytime', false);
             }
             document.getElementById('fare-list').innerHTML = faresHtml;
             setupVehicleSelection();

@@ -742,11 +742,6 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 document.querySelectorAll('.transport-option').forEach(opt => opt.classList.remove('active'));
                 if (el) el.classList.add('active');
                 document.getElementById('trip-transport').value = '';
-                const fuelPanel = document.getElementById('own-car-fuel-panel');
-                if (fuelPanel) {
-                    fuelPanel.style.maxHeight = '0';
-                    fuelPanel.style.opacity = '0';
-                }
                 if (window.calculateModalBudget) window.calculateModalBudget();
             };
 
@@ -808,55 +803,9 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                         if (noVehCard) noVehCard.classList.add('active');
                     }
                 }
-
-                // Show/Hide Fuel details for Own Car
-                const fuelPanel = document.getElementById('own-car-fuel-panel');
-                if (fuelPanel) {
-                    const isOwnCarActive = document.querySelector('.transport-option[data-val="own_car"]')?.classList.contains('active');
-                    if (isOwnCarActive) {
-                        fuelPanel.style.maxHeight = '200px';
-                        fuelPanel.style.opacity = '1';
-                    } else {
-                        fuelPanel.style.maxHeight = '0';
-                        fuelPanel.style.opacity = '0';
-                    }
-                }
-
                 if (window.calculateModalBudget) window.calculateModalBudget();
             };
         </script>
-
-        <!-- Dynamic Fuel Details Panel for Own Car -->
-        <div id="own-car-fuel-panel"
-            style="max-height:0; opacity:0; overflow:hidden; transition:all 0.3s cubic-bezier(0.16, 1, 0.3, 1); margin-bottom:12px;">
-            <div
-                style="background:rgba(56, 189, 248, 0.05); border:1px solid rgba(56, 189, 248, 0.2); border-radius:12px; padding:12px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <span style="font-size:11px; font-weight:700; color:#38bdf8; text-transform:uppercase;"><i
-                            class="fa-solid fa-gas-pump" style="margin-right:4px;"></i> Estimated Fuel Cost</span>
-                    <span id="fuel-cost-calc" style="font-size:12px; font-weight:700; color:white;">₱0.00</span>
-                </div>
-                <div style="display:flex; gap:10px;">
-                    <div style="flex:1;">
-                        <label
-                            style="font-size:10px; color:white; font-weight:600; display:block; margin-bottom:4px;">Fuel
-                            Price (₱/L)</label>
-                        <input type="number" id="fuel-price" value="65" min="1" oninput="window.calculateModalBudget()"
-                            style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:white; font-family:inherit; font-size:14px;">
-                    </div>
-                    <div style="flex:1;">
-                        <label
-                            style="font-size:10px; color:white; font-weight:600; display:block; margin-bottom:4px;">Fuel
-                            Efficiency (km/L)</label>
-                        <input type="number" id="fuel-efficiency" value="12" min="1"
-                            oninput="window.calculateModalBudget()"
-                            style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:white; font-family:inherit; font-size:14px;">
-                    </div>
-                </div>
-                <p id="fuel-distance-hint" style="font-size:10px; color:white; margin:8px 0 0 0;">Route distance will be
-                    used for calculation.</p>
-            </div>
-        </div>
 
         <div style="position:relative; margin-bottom:12px;">
             <span style="position:absolute; left:16px; top:14px; color:#38bdf8; font-weight:800; font-size:15px;">₱</span>
@@ -1114,7 +1063,6 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     window.fareData = parsed.data.fares || {};
                     window.vehicleData = parsed.data.vehicles || [];
                     window.vehicleTypes = parsed.data.vehicle_types || [];
-                    window.fuelPrice = parsed.data.fuel_price || 65.0;
                 }
             }
         } catch (e) {}
@@ -1130,7 +1078,6 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     window.fareData = d.fares || {};
                     window.vehicleData = d.vehicles || [];
                     window.vehicleTypes = d.vehicle_types || [];
-                    window.fuelPrice = d.fuel_price || 65.0;
                     try {
                         localStorage.setItem(FARES_CACHE_KEY, JSON.stringify({ data: d, timestamp: Date.now() }));
                     } catch (e) {}
@@ -2140,8 +2087,6 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             modes.forEach(mode => {
                 const normMode = mode.toLowerCase().replace(/[- ]/g, '_');
-                const fuelPrice = parseFloat(document.getElementById('fuel-price')?.value) || window.fuelPrice || 65;
-                const fuelEffic = parseFloat(document.getElementById('fuel-efficiency')?.value) || 12;
 
                 legs.forEach((leg, legIdx) => {
                     const cleanA = (leg.muniA || '').replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim();
@@ -2157,14 +2102,11 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                         const dA = Math.round((d / 2.0) * 100) / 100;
                         const dB = Math.max(0.1, Math.round((d - dA) * 100) / 100);
 
-                        if (normMode === 'own_car' || normMode === 'car') {
-                            priceA = Math.ceil((dA / fuelEffic) * fuelPrice);
-                            estimateB = Math.ceil((dB / fuelEffic) * fuelPrice);
-                            legTotal = priceA + estimateB;
-                        } else if (normMode === 'motorcycle') {
-                            priceA = Math.ceil((dA / 35.0) * fuelPrice);
-                            estimateB = Math.ceil((dB / 35.0) * fuelPrice);
-                            legTotal = priceA + estimateB;
+                        if (normMode === 'own_car' || normMode === 'car' || normMode === 'motorcycle' || (normMode === 'van' && !modes.some(m => ['mpuj', 'tpuj', 'uve'].includes(m.toLowerCase())))) {
+                            // Personal / Own Vehicle has 0 fare cost
+                            priceA = 0;
+                            estimateB = 0;
+                            legTotal = 0;
                         } else if (normMode === 'taxi') {
                             const base = (legIdx === 0) ? 40 : 0;
                             priceA = Math.round(base + (dA * 13));
@@ -2203,12 +2145,10 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     } else {
                         // Single municipal boundary leg
                         estimateB = 0;
-                        if (normMode === 'own_car' || normMode === 'car') {
-                            priceA = Math.ceil((d / fuelEffic) * fuelPrice);
-                            legTotal = priceA;
-                        } else if (normMode === 'motorcycle') {
-                            priceA = Math.ceil((d / 35.0) * fuelPrice);
-                            legTotal = priceA;
+                        if (normMode === 'own_car' || normMode === 'car' || normMode === 'motorcycle' || (normMode === 'van' && !modes.some(m => ['mpuj', 'tpuj', 'uve'].includes(m.toLowerCase())))) {
+                            // Personal / Own Vehicle has 0 fare cost
+                            priceA = 0;
+                            legTotal = 0;
                         } else if (normMode === 'taxi') {
                             const base = (legIdx === 0) ? 40 : 0;
                             priceA = Math.round(base + (d * 13));
@@ -2249,12 +2189,6 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 });
             });
 
-            // Update fuel cost calc in UI if Own Car is active
-            const fuelCalc = document.getElementById('fuel-cost-calc');
-            if (fuelCalc && modes.includes('own_car')) {
-                fuelCalc.textContent = '₱' + totalCost.toFixed(2);
-            }
-
             return totalCost;
         };
 
@@ -2269,17 +2203,6 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             const isNoVeh = !transport || transport.toLowerCase().includes('no_vehicle') || transport.toLowerCase().includes('no vehicle');
 
             const transCost = isNoVeh ? 0 : window.computeItineraryTransCost(draft, transport);
-
-            const distKm = window._draftDistanceKm || 0;
-            const hint = document.getElementById('fuel-distance-hint');
-            if (hint && distKm > 0) {
-                const fuelEffic = parseFloat(document.getElementById('fuel-efficiency')?.value) || 12;
-                hint.textContent = `Route: ${distKm.toFixed(1)} km • ~${(distKm / fuelEffic).toFixed(2)} L needed`;
-                hint.style.color = 'rgba(255,255,255,0.5)';
-            } else if (hint) {
-                hint.textContent = 'Route distance calculated dynamically.';
-                hint.style.color = 'rgba(255,255,255,0.5)';
-            }
 
             // Sum Entrance Fees & Environmental Fees across all destinations in draft
             let feesTotal = 0;
@@ -2658,11 +2581,6 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     }
                 }
 
-                // Populate dynamic fuel price from Railway DB
-                const fuelInput = document.getElementById('fuel-price');
-                if (fuelInput && window.fuelPrice) {
-                    fuelInput.value = window.fuelPrice;
-                }
 
                 // Auto-detect transport type from existing trip-transport or draft
                 let existingTransport = document.getElementById('trip-transport')?.value || '';

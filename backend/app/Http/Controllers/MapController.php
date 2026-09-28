@@ -358,19 +358,12 @@ class MapController extends Controller
             ];
         });
 
-        $fuelPrice = \Illuminate\Support\Facades\Cache::remember('system:fuel_price', 3600, function () {
-            return \Illuminate\Support\Facades\DB::table('system_settings')
-                ->where('key', 'fuel_price')
-                ->value('value') ?? '65.00';
-        });
-
         return response()->json([
             'success'                         => true,
             'fares'                           => $fares,
             'vehicles'                        => [],
             'vehicle_types'                   => $activeFareVehicleTypes,
             'active_vehicles_by_municipality' => $fares['active_vehicles_by_municipality'] ?? [],
-            'fuel_price'                      => (float) $fuelPrice
         ])->header('Cache-Control', 'public, max-age=600, stale-while-revalidate=1800');
     }
 
