@@ -424,6 +424,9 @@ if (is_dir($imgDir)) {
                 <div id="sheet-badges-overlay" class="dest-badges-overlay">
                     <div id="sheet-category-badge" class="dest-cat-badge-wrap" style="display:none;"></div>
                     <div id="sheet-status-badge" class="sheet-status-pill" style="display:none;"></div>
+                    <div id="sheet-guide-badge" class="sheet-status-pill" style="display:none; background:rgba(37,99,235,0.88) !important; color:#ffffff !important;">
+                        <i class="fa-solid fa-person-hiking" style="font-size:9px; margin-right:4px; color:#ffffff;"></i>Guide Needed
+                    </div>
                     <div id="sheet-open-badge" class="sheet-open-pill" style="display:none;"></div>
                 </div>
                 <div id="sheet-slider-track" class="dest-slider-track">
@@ -497,6 +500,64 @@ if (is_dir($imgDir)) {
                 <div id="sheet-fee-options-container" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.12); display:flex; flex-direction:column; gap:6px; width:100%;">
                     <!-- Dynamically populated in JavaScript with Adult, Child, PWD, Senior Citizen, Envi Fee -->
                 </div>
+            </div>
+
+            <!-- Site Attributes & Operating Status (Tour Guide Needed, Open 24 Hours, Under Maintenance) -->
+            <div id="sheet-attributes-container" style="display:none; flex-direction:column; gap:8px; margin-bottom:12px;">
+
+                <!-- Tour Guide Needed Card -->
+                <div id="sheet-tour-guide-card"
+                    style="display:none; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; border-radius:14px; padding:11px 14px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="width:22px; height:22px; border-radius:6px; background:#2563eb; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:11px; flex-shrink:0;">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <div style="display:flex; flex-direction:column;">
+                            <span style="font-size:12.5px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Tour Guide Needed</span>
+                            <span style="font-size:10px; color:#93c5fd; font-weight:600;" id="sheet-tour-guide-detail">Certified guide required</span>
+                        </div>
+                    </div>
+                    <span style="font-size:10px; font-weight:800; padding:3px 9px; border-radius:100px; background:rgba(37,99,235,0.3); color:#bfdbfe; display:inline-flex; align-items:center; gap:4px;">
+                        <i class="fa-solid fa-person-hiking" style="font-size:9px;"></i> Required
+                    </span>
+                </div>
+
+                <!-- Open 24 Hours Card -->
+                <div id="sheet-24h-card"
+                    style="display:none; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; border-radius:14px; padding:11px 14px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="width:22px; height:22px; border-radius:6px; background:#ea580c; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:11px; flex-shrink:0;">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <div style="width:30px; height:30px; border-radius:8px; background:rgba(254,243,199,0.9); display:flex; align-items:center; justify-content:center; color:#d97706; font-size:14px; flex-shrink:0;">
+                            <i class="fa-regular fa-clock"></i>
+                        </div>
+                        <div style="display:flex; flex-direction:column;">
+                            <span style="font-size:12.5px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Open 24 Hours</span>
+                            <span style="font-size:10px; color:#fde68a; font-weight:600;">Always accessible</span>
+                        </div>
+                    </div>
+                    <span style="font-size:11px; font-weight:700; color:#e2e8f0;">Available all day</span>
+                </div>
+
+                <!-- Under Maintenance Card -->
+                <div id="sheet-maint-card"
+                    style="display:none; align-items:center; justify-content:space-between; background:rgba(239,68,68,0.18); border:none !important; outline:none !important; border-radius:14px; padding:11px 14px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="width:22px; height:22px; border-radius:6px; background:#ea580c; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:11px; flex-shrink:0;">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <div style="width:30px; height:30px; border-radius:8px; background:rgba(254,226,226,0.9); display:flex; align-items:center; justify-content:center; color:#dc2626; font-size:13px; flex-shrink:0;">
+                            <i class="fa-solid fa-wrench"></i>
+                        </div>
+                        <div style="display:flex; flex-direction:column;">
+                            <span style="font-size:12.5px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Under Maintenance</span>
+                            <span style="font-size:10px; color:#fca5a5; font-weight:600;">Site temporarily closed for maintenance</span>
+                        </div>
+                    </div>
+                    <span style="font-size:11px; font-weight:700; color:#fca5a5;">Hides this site</span>
+                </div>
+
             </div>
 
             <!-- Available Vehicles / Transportation Card (Shown only if available vehicles exist) -->
@@ -3213,10 +3274,28 @@ if (is_dir($imgDir)) {
                 }
             }
 
+            // Guide Needed badge
+            const guideBadge = document.getElementById('sheet-guide-badge');
+            if (guideBadge) {
+                if (locationData.tour_guide_needed) {
+                    guideBadge.style.display = 'inline-flex';
+                } else {
+                    guideBadge.style.display = 'none';
+                }
+            }
+
             // Open/Closed badge with pulse indicator
             const openBadge = document.getElementById('sheet-open-badge');
             if (openBadge) {
-                if (locationData.opening_time && locationData.closing_time) {
+                if (locationData.is_maintenance) {
+                    openBadge.style.display = 'inline-flex';
+                    openBadge.className = 'sheet-open-pill status-maint';
+                    openBadge.innerHTML = '<span class="pulse-dot dot-amber"></span>Maintenance';
+                } else if (locationData.is_open_24_hours) {
+                    openBadge.style.display = 'inline-flex';
+                    openBadge.className = 'sheet-open-pill status-open';
+                    openBadge.innerHTML = '<span class="pulse-dot dot-green"></span>Open 24/7';
+                } else if (locationData.opening_time && locationData.closing_time) {
                     const now = new Date();
                     const currentMinutes = now.getHours() * 60 + now.getMinutes();
                     const openParts = locationData.opening_time.split(':');
@@ -3224,11 +3303,7 @@ if (is_dir($imgDir)) {
                     const openMinutes = parseInt(openParts[0]) * 60 + parseInt(openParts[1]);
                     const closeMinutes = parseInt(closeParts[0]) * 60 + parseInt(closeParts[1]);
 
-                    if (locationData.is_maintenance) {
-                        openBadge.style.display = 'inline-flex';
-                        openBadge.className = 'sheet-open-pill status-maint';
-                        openBadge.innerHTML = '<span class="pulse-dot dot-amber"></span>Maintenance';
-                    } else if (currentMinutes >= openMinutes && currentMinutes < closeMinutes) {
+                    if (currentMinutes >= openMinutes && currentMinutes < closeMinutes) {
                         openBadge.style.display = 'inline-flex';
                         openBadge.className = 'sheet-open-pill status-open';
                         openBadge.innerHTML = '<span class="pulse-dot dot-green"></span>Open Now';
@@ -3240,6 +3315,51 @@ if (is_dir($imgDir)) {
                 } else {
                     openBadge.style.display = 'none';
                 }
+            }
+
+            // Site Attributes (Tour Guide Needed, Open 24 Hours, Under Maintenance)
+            const attrContainer = document.getElementById('sheet-attributes-container');
+            const guideCard = document.getElementById('sheet-tour-guide-card');
+            const open24Card = document.getElementById('sheet-24h-card');
+            const maintCard = document.getElementById('sheet-maint-card');
+
+            let hasAnyAttr = false;
+
+            if (guideCard) {
+                if (locationData.tour_guide_needed) {
+                    guideCard.style.display = 'flex';
+                    hasAnyAttr = true;
+                    const guideDetail = document.getElementById('sheet-tour-guide-detail');
+                    if (guideDetail && locationData.tour_guide_notice && locationData.tour_guide_notice.trim() !== '' && locationData.tour_guide_notice.toLowerCase() !== 'yes') {
+                        guideDetail.textContent = locationData.tour_guide_notice;
+                    } else if (guideDetail) {
+                        guideDetail.textContent = 'Certified guide required';
+                    }
+                } else {
+                    guideCard.style.display = 'none';
+                }
+            }
+
+            if (open24Card) {
+                if (locationData.is_open_24_hours) {
+                    open24Card.style.display = 'flex';
+                    hasAnyAttr = true;
+                } else {
+                    open24Card.style.display = 'none';
+                }
+            }
+
+            if (maintCard) {
+                if (locationData.is_maintenance) {
+                    maintCard.style.display = 'flex';
+                    hasAnyAttr = true;
+                } else {
+                    maintCard.style.display = 'none';
+                }
+            }
+
+            if (attrContainer) {
+                attrContainer.style.display = hasAnyAttr ? 'flex' : 'none';
             }
 
             // Set Visitors & Rating stats in quick stats grid
@@ -3600,7 +3720,10 @@ if (is_dir($imgDir)) {
             const hoursCard = document.getElementById('sheet-hours-stat-card');
             const hoursEl = document.getElementById('sheet-hours');
             if (hoursEl) {
-                if (locationData.opening_time && locationData.closing_time) {
+                if (locationData.is_open_24_hours) {
+                    if (hoursCard) hoursCard.style.display = 'flex';
+                    hoursEl.textContent = '24 Hours (All Day)';
+                } else if (locationData.opening_time && locationData.closing_time) {
                     if (hoursCard) hoursCard.style.display = 'flex';
                     const fmt = (t) => { const p = t.split(':'); const h = parseInt(p[0]), m = p[1]; return (h % 12 || 12) + ':' + m + (h < 12 ? ' AM' : ' PM'); };
                     hoursEl.textContent = fmt(locationData.opening_time) + ' — ' + fmt(locationData.closing_time);
@@ -3722,6 +3845,10 @@ if (is_dir($imgDir)) {
             }
             const vehCard = document.getElementById('sheet-vehicles-card');
             if (vehCard) vehCard.style.display = 'none';
+            const attrCard = document.getElementById('sheet-attributes-container');
+            if (attrCard) attrCard.style.display = 'none';
+            const guideBadge = document.getElementById('sheet-guide-badge');
+            if (guideBadge) guideBadge.style.display = 'none';
             const placeSheet = document.getElementById('place-details-sheet');
             if (placeSheet.closeSheet) placeSheet.closeSheet();
             else placeSheet.classList.remove('active');

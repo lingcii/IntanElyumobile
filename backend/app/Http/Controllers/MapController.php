@@ -17,7 +17,7 @@ class MapController extends Controller
      */
     public function publicMapData(): JsonResponse
     {
-        $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots:v4', 900, function () {
+        $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots:v5', 900, function () {
             $spotPublicVehicles = [];
             $spotPrivateVehicles = [];
             $spotAllVehicles = [];
@@ -71,7 +71,7 @@ class MapController extends Controller
                        'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types',
                        'environmental_fee', 'fee_types', 'route_guide', 'tour_guide_notice',
                        'accessible_by_private_vehicle', 'photo_url', 'description', 'opening_time', 'closing_time',
-                       'is_maintenance', 'rating', 'visits', 'classification_status', 'status'])
+                       'is_open_24_hours', 'is_maintenance', 'rating', 'visits', 'classification_status', 'status'])
                 ->map(function ($spot) use ($spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles, $spotServiceCenterMap) {
                     $imageUrl = $spot->photo_url;
                     if (!$imageUrl && $spot->images->isNotEmpty()) {
@@ -111,6 +111,9 @@ class MapController extends Controller
                         $entranceFeeTypes = is_array($decoded) ? $decoded : [];
                     }
 
+                    $tourGuideNoticeStr = $spot->tour_guide_notice ? trim($spot->tour_guide_notice) : '';
+                    $isGuideNeeded = !empty($tourGuideNoticeStr) && !in_array(strtolower($tourGuideNoticeStr), ['no', 'none', 'false', '0']);
+
                     return [
                         'id'                            => $spot->id,
                         'name'                          => $spot->name,
@@ -129,6 +132,7 @@ class MapController extends Controller
                         'fee_types'                     => $feeTypes ?? [],
                         'route_guide'                   => $spot->route_guide,
                         'tour_guide_notice'             => $spot->tour_guide_notice,
+                        'tour_guide_needed'             => $isGuideNeeded,
                         'accessible_by_private_vehicle' => (bool) ($spot->accessible_by_private_vehicle ?? 1),
                         'service_centers'               => $spotServiceCenterMap[$spot->id] ?? [],
                         'photo_url'                     => $imageUrl,
@@ -136,7 +140,8 @@ class MapController extends Controller
                         'description'                   => $spot->description,
                         'opening_time'                  => $spot->opening_time,
                         'closing_time'                  => $spot->closing_time,
-                        'is_maintenance'                => $spot->is_maintenance,
+                        'is_open_24_hours'              => (bool) ($spot->is_open_24_hours ?? 0),
+                        'is_maintenance'                => (bool) ($spot->is_maintenance ?? 0),
                         'rating'                        => $spot->rating,
                         'visits'                        => $spot->visits,
                         'classification_status'         => $spot->classification_status,

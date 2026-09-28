@@ -14,10 +14,11 @@ try {
             ];
         }
     }
-} catch (\Throwable $e) {}
+} catch (\Throwable $e) {
+}
 ?>
 <script>
-window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
+    window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 </script>
 
 
@@ -371,7 +372,9 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px; padding-top: 16px;"
         class="stagger-1">
-        <h2 id="itinerary-page-title" style="margin:0; font-size:22px; font-weight:800; letter-spacing:-0.5px; color:#0f172a !important;">Draft Plan</h2>
+        <h2 id="itinerary-page-title"
+            style="margin:0; font-size:22px; font-weight:800; letter-spacing:-0.5px; color:#0f172a !important;">Draft
+            Plan</h2>
         <div style="display:flex; align-items:center; gap: 8px;">
             <!-- Saved Trips Button (Small) -->
             <button onclick="navigateTo('saved_trips')"
@@ -388,12 +391,16 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
     <!-- Big Container from Recommended to Save Draft Plan -->
     <div id="draft-plan-card-wrapper" class="draft-plan-card-wrapper stagger-2" style="display:none;">
         <!-- Active Editing Trip Banner -->
-        <div id="editing-plan-banner" style="display:none; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color:#ffffff; padding:10px 16px; border-radius:14px; margin-bottom:14px; font-size:12.5px; font-weight:700; border:none !important; outline:none !important; box-shadow:none !important; cursor:pointer;" onclick="window.cancelEditingSavedTrip()">
+        <div id="editing-plan-banner"
+            style="display:none; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color:#ffffff; padding:10px 16px; border-radius:14px; margin-bottom:14px; font-size:12.5px; font-weight:700; border:none !important; outline:none !important; box-shadow:none !important; cursor:pointer;"
+            onclick="window.cancelEditingSavedTrip()">
             <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
                 <i class="fa-solid fa-pen-to-square" style="color:#38bdf8; font-size:14px;"></i>
-                <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Editing: <strong id="editing-banner-title">Saved Trip</strong></span>
+                <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Editing: <strong
+                        id="editing-banner-title">Saved Trip</strong></span>
             </div>
-            <button type="button" onclick="event.stopPropagation(); window.cancelEditingSavedTrip();" style="background:rgba(255,255,255,0.22); border:none !important; outline:none !important; color:#ffffff; font-size:11.5px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; margin-left:10px; flex-shrink:0; box-shadow:none !important; transition:all 0.2s ease; user-select:none; -webkit-tap-highlight-color:transparent;">
+            <button type="button" onclick="event.stopPropagation(); window.cancelEditingSavedTrip();"
+                style="background:rgba(255,255,255,0.22); border:none !important; outline:none !important; color:#ffffff; font-size:11.5px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; margin-left:10px; flex-shrink:0; box-shadow:none !important; transition:all 0.2s ease; user-select:none; -webkit-tap-highlight-color:transparent;">
                 <i class="fa-solid fa-xmark" style="margin-right:4px;"></i> Cancel Edit
             </button>
         </div>
@@ -424,9 +431,10 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 <div style="width:1px; height:20px; background:rgba(255,255,255,0.2);"></div>
                 <div
                     style="color:white; font-size:14px; font-weight:700; display:flex; flex-direction:column; align-items:center;">
-                    <div><i class="fa-solid fa-clock" style="color:#00f2fe; margin-right:6px; font-size:16px;"></i> <span
-                            id="draft-map-time">0 min</span></div>
-                    <div id="draft-traffic-warning" style="display:none; margin-top:2px; font-size:10px; font-weight:500;">
+                    <div><i class="fa-solid fa-clock" style="color:#00f2fe; margin-right:6px; font-size:16px;"></i>
+                        <span id="draft-map-time">0 min</span></div>
+                    <div id="draft-traffic-warning"
+                        style="display:none; margin-top:2px; font-size:10px; font-weight:500;">
                     </div>
                 </div>
             </div>
@@ -447,7 +455,8 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
     <!-- Empty State Card -->
     <div id="itinerary-empty-state" class="empty-state-card is-hidden" style="display:none;">
-        <div class="empty-state-icon" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;">
+        <div class="empty-state-icon"
+            style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;">
             <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
         </div>
         <h3>No plans yet</h3>
@@ -464,7 +473,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 <!-- Save Trip Modal -->
 <div id="save-trip-modal"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.65); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); z-index:99999; justify-content:center; align-items:center; padding:16px;">
-    
+
     <style>
         #save-trip-modal input,
         #save-trip-modal button,
@@ -474,6 +483,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             -webkit-tap-highlight-color: transparent !important;
             box-sizing: border-box;
         }
+
         #save-trip-modal input[type="text"],
         #save-trip-modal input[type="tel"],
         #save-trip-modal input[type="number"] {
@@ -487,6 +497,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             box-shadow: none !important;
             transition: all 0.2s ease;
         }
+
         #save-trip-modal input[type="text"]:focus,
         #save-trip-modal input[type="tel"]:focus,
         #save-trip-modal input[type="number"]:focus {
@@ -495,38 +506,46 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             box-shadow: none !important;
             background: rgba(255, 255, 255, 0.18) !important;
         }
+
         #save-trip-modal input::placeholder {
             color: rgba(255, 255, 255, 0.8) !important;
             -webkit-text-fill-color: rgba(255, 255, 255, 0.8) !important;
             opacity: 1 !important;
             font-weight: 500 !important;
         }
+
         #save-trip-modal input::-webkit-input-placeholder {
             color: rgba(255, 255, 255, 0.8) !important;
             -webkit-text-fill-color: rgba(255, 255, 255, 0.8) !important;
             opacity: 1 !important;
             font-weight: 500 !important;
         }
+
         #save-trip-modal input::-moz-placeholder {
             color: rgba(255, 255, 255, 0.8) !important;
             opacity: 1 !important;
             font-weight: 500 !important;
         }
+
         #save-trip-modal input:-ms-input-placeholder {
             color: rgba(255, 255, 255, 0.8) !important;
             font-weight: 500 !important;
         }
+
         #save-trip-modal label {
             color: #ffffff !important;
             font-weight: 700 !important;
             font-size: 13px !important;
         }
+
         #save-trip-modal p {
             color: rgba(255, 255, 255, 0.9) !important;
         }
+
         #save-trip-modal * {
             outline: none !important;
         }
+
         #custom-calendar-dropdown {
             overflow: hidden;
             max-height: 0;
@@ -545,6 +564,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             margin-bottom: 0 !important;
             pointer-events: none;
         }
+
         #custom-calendar-dropdown.calendar-open {
             max-height: 480px !important;
             opacity: 1 !important;
@@ -556,41 +576,54 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         }
     </style>
 
-    <div
-        style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none !important; outline:none !important; border-radius:24px; padding:22px; width:100%; max-width:400px; max-height:90vh; overflow-y:auto; box-shadow:none !important;" class="hide-scrollbar">
-        <h3 id="save-trip-modal-title" style="margin-top:0; color:#ffffff; font-size:20px; font-weight:800; display:flex; align-items:center; gap:8px;">
+    <div style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none !important; outline:none !important; border-radius:24px; padding:22px; width:100%; max-width:400px; max-height:90vh; overflow-y:auto; box-shadow:none !important;"
+        class="hide-scrollbar">
+        <h3 id="save-trip-modal-title"
+            style="margin-top:0; color:#ffffff; font-size:20px; font-weight:800; display:flex; align-items:center; gap:8px;">
             <i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8; font-size:18px;"></i> Save Your Trip
         </h3>
-        <p style="font-size:13px; color:rgba(255, 255, 255, 0.9); margin-bottom:18px; line-height:1.4;">Give your awesome adventure a name so you can pull it up later!</p>
+        <p style="font-size:13px; color:rgba(255, 255, 255, 0.9); margin-bottom:18px; line-height:1.4;">Give your
+            awesome adventure a name so you can pull it up later!</p>
 
-        <label style="font-size:13px; color:#ffffff; margin-bottom:6px; display:block; font-weight:700;">Trip Name</label>
+        <label style="font-size:13px; color:#ffffff; margin-bottom:6px; display:block; font-weight:700;">Trip
+            Name</label>
         <input type="text" id="trip-title" placeholder="e.g. La Union Weekend"
             style="width:100%; padding:12px 16px; border-radius:14px; border:none !important; outline:none !important; background:rgba(255,255,255,0.12); color:#ffffff; -webkit-text-fill-color:#ffffff; margin-bottom:16px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; box-shadow:none !important;">
 
         <!-- Custom Designed Calendar Date Picker -->
-        <label style="font-size:13px; color:#ffffff; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; font-weight:700;">
-            <span><i class="fa-regular fa-calendar-days" style="color:#38bdf8; margin-right:5px;"></i> Trip Date (Optional)</span>
-            <span id="calendar-clear-link" onclick="window.customClearDate(event)" style="display:none; font-size:11px; color:#ef4444; cursor:pointer; font-weight:700;">Clear</span>
+        <label
+            style="font-size:13px; color:#ffffff; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; font-weight:700;">
+            <span><i class="fa-regular fa-calendar-days" style="color:#38bdf8; margin-right:5px;"></i> Trip Date
+                (Optional)</span>
+            <span id="calendar-clear-link" onclick="window.customClearDate(event)"
+                style="display:none; font-size:11px; color:#ef4444; cursor:pointer; font-weight:700;">Clear</span>
         </label>
-        
-        <div id="custom-date-trigger" onclick="window.toggleCustomCalendar(event)" style="position:relative; width:100%; padding:11px 16px; border-radius:14px; border:none !important; outline:none !important; background:rgba(255,255,255,0.12); color:white; margin-bottom:16px; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:all 0.25s ease; user-select:none; box-shadow:none !important;">
+
+        <div id="custom-date-trigger" onclick="window.toggleCustomCalendar(event)"
+            style="position:relative; width:100%; padding:11px 16px; border-radius:14px; border:none !important; outline:none !important; background:rgba(255,255,255,0.12); color:white; margin-bottom:16px; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:all 0.25s ease; user-select:none; box-shadow:none !important;">
             <div style="display:flex; align-items:center; gap:10px;">
                 <i class="fa-solid fa-calendar-day" style="color:#38bdf8; font-size:14px;"></i>
-                <span id="custom-date-display" style="color:rgba(255,255,255,0.85); font-weight:600;">Select trip date</span>
+                <span id="custom-date-display" style="color:rgba(255,255,255,0.85); font-weight:600;">Select trip
+                    date</span>
             </div>
-            <i class="fa-solid fa-chevron-down" id="custom-date-arrow" style="font-size:11px; color:rgba(255,255,255,0.8); transition:transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);"></i>
+            <i class="fa-solid fa-chevron-down" id="custom-date-arrow"
+                style="font-size:11px; color:rgba(255,255,255,0.8); transition:transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);"></i>
         </div>
         <input type="hidden" id="trip-date" value="">
 
         <!-- Floating Sleek Custom Calendar Card with Smooth Slide Animation -->
         <div id="custom-calendar-dropdown">
             <!-- Month & Year Navigation -->
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding:0 4px;">
-                <button type="button" onclick="window.changeCalendarMonth(-1)" style="background:rgba(255,255,255,0.12); border:none !important; outline:none !important; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; box-shadow:none !important;">
+            <div
+                style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding:0 4px;">
+                <button type="button" onclick="window.changeCalendarMonth(-1)"
+                    style="background:rgba(255,255,255,0.12); border:none !important; outline:none !important; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; box-shadow:none !important;">
                     <i class="fa-solid fa-chevron-left" style="font-size:11px;"></i>
                 </button>
-                <div id="calendar-month-year" style="font-size:14.5px; font-weight:800; color:#ffffff; letter-spacing:0.3px;"></div>
-                <button type="button" onclick="window.changeCalendarMonth(1)" style="background:rgba(255,255,255,0.12); border:none !important; outline:none !important; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; box-shadow:none !important;">
+                <div id="calendar-month-year"
+                    style="font-size:14.5px; font-weight:800; color:#ffffff; letter-spacing:0.3px;"></div>
+                <button type="button" onclick="window.changeCalendarMonth(1)"
+                    style="background:rgba(255,255,255,0.12); border:none !important; outline:none !important; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; box-shadow:none !important;">
                     <i class="fa-solid fa-chevron-right" style="font-size:11px;"></i>
                 </button>
             </div>
@@ -607,30 +640,38 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             </div>
 
             <!-- Days Grid -->
-            <div id="calendar-days-grid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:3px; text-align:center;">
+            <div id="calendar-days-grid"
+                style="display:grid; grid-template-columns:repeat(7, 1fr); gap:3px; text-align:center;">
                 <!-- Generated dynamically via JS -->
             </div>
 
             <!-- Footer Quick Actions -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.12);">
-                <button type="button" onclick="window.selectTodayDate()" style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:700; padding:6px 14px; border-radius:100px; cursor:pointer; box-shadow:none !important;">
+            <div
+                style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.12);">
+                <button type="button" onclick="window.selectTodayDate()"
+                    style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:700; padding:6px 14px; border-radius:100px; cursor:pointer; box-shadow:none !important;">
                     Today
                 </button>
-                <button type="button" onclick="window.toggleCustomCalendar(null, false)" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 16px; border-radius:100px; cursor:pointer; box-shadow:none !important;">
+                <button type="button" onclick="window.toggleCustomCalendar(null, false)"
+                    style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 16px; border-radius:100px; cursor:pointer; box-shadow:none !important;">
                     Done
                 </button>
             </div>
         </div>
 
-        <label style="font-size:13px; color:#ffffff; margin-bottom:8px; display:block; font-weight:700;">Transport Type</label>
+        <label style="font-size:13px; color:#ffffff; margin-bottom:8px; display:block; font-weight:700;">Transport
+            Type</label>
         <div id="transport-toggle-track"
             style="position:relative; display:grid; grid-template-columns:1fr 1fr; margin-bottom:16px; background:rgba(0,0,0,0.25); padding:4px; border-radius:14px; border:none !important; outline:none !important; box-shadow:none !important; user-select:none; height:44px; box-sizing:border-box; contain:layout style paint; -webkit-tap-highlight-color:transparent;">
             <!-- Smooth Sliding Pill Indicator with zero-twitch 3D transform -->
             <div id="transport-toggle-pill"
-                style="position:absolute; top:4px; bottom:4px; left:4px; width:calc(50% - 4px); background:#ffffff; border-radius:10px; will-change:transform; transform:translate3d(0,0,0); -webkit-transform:translate3d(0,0,0); transition:transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important; pointer-events:none; z-index:1; border:none !important; outline:none !important; box-shadow:none !important; -webkit-backface-visibility:hidden; backface-visibility:hidden;"></div>
-            <button type="button" class="btn-transport-toggle active" id="btn-trans-public" onclick="window.setTransportType('public', true)"
+                style="position:absolute; top:4px; bottom:4px; left:4px; width:calc(50% - 4px); background:#ffffff; border-radius:10px; will-change:transform; transform:translate3d(0,0,0); -webkit-transform:translate3d(0,0,0); transition:transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important; pointer-events:none; z-index:1; border:none !important; outline:none !important; box-shadow:none !important; -webkit-backface-visibility:hidden; backface-visibility:hidden;">
+            </div>
+            <button type="button" class="btn-transport-toggle active" id="btn-trans-public"
+                onclick="window.setTransportType('public', true)"
                 style="position:relative; z-index:2; height:36px; line-height:36px; padding:0; border-radius:10px; border:none !important; outline:none !important; background:transparent !important; font-size:13px; font-weight:800 !important; color:#1e3a8a; transition:color 0.2s ease; cursor:pointer; box-shadow:none !important; text-align:center; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; touch-action:manipulation; user-select:none;">Public</button>
-            <button type="button" class="btn-transport-toggle" id="btn-trans-private" onclick="window.setTransportType('private', true)"
+            <button type="button" class="btn-transport-toggle" id="btn-trans-private"
+                onclick="window.setTransportType('private', true)"
                 style="position:relative; z-index:2; height:36px; line-height:36px; padding:0; border-radius:10px; border:none !important; outline:none !important; background:transparent !important; font-size:13px; font-weight:800 !important; color:rgba(255,255,255,0.85); transition:color 0.2s ease; cursor:pointer; box-shadow:none !important; text-align:center; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; touch-action:manipulation; user-select:none;">Private</button>
         </div>
 
@@ -808,7 +849,8 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         </script>
 
         <div style="position:relative; margin-bottom:12px;">
-            <span style="position:absolute; left:16px; top:14px; color:#38bdf8; font-weight:800; font-size:15px;">₱</span>
+            <span
+                style="position:absolute; left:16px; top:14px; color:#38bdf8; font-weight:800; font-size:15px;">₱</span>
             <input type="tel" id="trip-budget" placeholder="Set a budget (optional)"
                 oninput="this.value=this.value.replace(/\D/g,'');if(this.value.length>5)this.value=this.value.slice(0,5);window.calculateModalBudget()"
                 style="width:100%; padding:12px 16px 12px 34px; border-radius:14px; border:none !important; outline:none !important; background:rgba(255,255,255,0.12); color:#ffffff; -webkit-text-fill-color:#ffffff; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; box-shadow:none !important;">
@@ -862,14 +904,17 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             style="width:56px; height:56px; border-radius:50%; background:#ffffff !important; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; border:none !important; outline:none !important; box-shadow:none !important;">
             <i class="fa-solid fa-triangle-exclamation" style="color:#1e3a8a !important; font-size:26px;"></i>
         </div>
-        <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800; letter-spacing:-0.3px;">Missing Details</h3>
+        <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800; letter-spacing:-0.3px;">Missing
+            Details</h3>
         <p id="confirm-modal-msg"
-            style="margin:0 0 24px; color:rgba(255,255,255,0.95); font-size:13.5px; line-height:1.55; font-weight:500;"></p>
+            style="margin:0 0 24px; color:rgba(255,255,255,0.95); font-size:13.5px; line-height:1.55; font-weight:500;">
+        </p>
         <div style="display:flex; gap:12px;">
             <button type="button" class="btn-primary" id="btn-confirm-cancel"
                 style="flex:1; background:rgba(255,255,255,0.22) !important; border:none !important; outline:none !important; color:#ffffff !important; padding:13px; border-radius:14px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:none !important; transition:transform 0.15s ease;">Cancel</button>
             <button type="button" class="btn-primary" id="btn-confirm-ok"
-                style="flex:1; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; padding:13px; border-radius:14px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:none !important; transition:transform 0.15s ease;">Save Anyway</button>
+                style="flex:1; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; padding:13px; border-radius:14px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:none !important; transition:transform 0.15s ease;">Save
+                Anyway</button>
         </div>
     </div>
 </div>
@@ -1065,7 +1110,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     window.vehicleTypes = parsed.data.vehicle_types || [];
                 }
             }
-        } catch (e) {}
+        } catch (e) { }
 
         const now = Date.now();
         const shouldFetchFreshFares = !cachedFarePayload || !cachedFarePayload.timestamp || (now - cachedFarePayload.timestamp > FARES_CACHE_TTL);
@@ -1080,7 +1125,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     window.vehicleTypes = d.vehicle_types || [];
                     try {
                         localStorage.setItem(FARES_CACHE_KEY, JSON.stringify({ data: d, timestamp: Date.now() }));
-                    } catch (e) {}
+                    } catch (e) { }
                     if (typeof window.recalculateCosts === 'function') {
                         window.recalculateCosts();
                     }
@@ -1099,7 +1144,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     list.forEach(s => { if (s && s.id) window._cachedMapSpots[String(s.id)] = s; });
                 }
             }
-        } catch(e) {}
+        } catch (e) { }
 
         if (Object.keys(window._cachedMapSpots).length === 0) {
             fetch(backendUrl + '/api/public/map', { headers: { 'Accept': 'application/json' } })
@@ -1113,16 +1158,16 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                             window.renderRailwayVehicleOptions(curType);
                         }
                     }
-                }).catch(() => {});
+                }).catch(() => { });
         }
 
         window.getFareFromMatrix = function (vehicleType, distanceKm, municipality = null) {
             if (!window.fareData) return null;
-            
+
             const dKm = parseFloat(distanceKm) || 0;
             const rawType = (vehicleType || '').toString().toLowerCase().trim();
             const normType = rawType.replace(/[- ]/g, '_');
-            
+
             if (['own_car', 'taxi', 'motorcycle', 'car'].includes(normType)) return null;
 
             let fareEntry = null;
@@ -1321,7 +1366,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             const calcDist = (lat1, lon1, lat2, lon2) => {
                 const p = 0.017453292519943295;
                 const c = Math.cos;
-                const a = 0.5 - c((lat2 - lat1) * p)/2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p))/2;
+                const a = 0.5 - c((lat2 - lat1) * p) / 2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2;
                 return 12742 * Math.asin(Math.sqrt(a));
             };
 
@@ -1589,22 +1634,22 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                             </div>
                             ${nextStopEtaHtml}
                             ${(() => {
-                                const acc = Array.isArray(place.accessible_vehicles) ? place.accessible_vehicles : [];
-                                if (acc.length > 0) {
-                                    return `<div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
+                            const acc = Array.isArray(place.accessible_vehicles) ? place.accessible_vehicles : [];
+                            if (acc.length > 0) {
+                                return `<div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
                                         <span style="padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; background:rgba(56,189,248,0.18); color:#7dd3fc; border:none !important; outline:none !important; display:inline-flex; align-items:center; gap:4px;">
                                             <i class="fa-solid fa-van-shuttle" style="font-size:9px; color:#38bdf8;"></i> ${acc.length} Available Vehicle${acc.length > 1 ? 's' : ''}
                                         </span>
                                     </div>`;
-                                } else if (place.has_available_vehicles === false || (Array.isArray(place.accessible_vehicles) && place.accessible_vehicles.length === 0)) {
-                                    return `<div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
+                            } else if (place.has_available_vehicles === false || (Array.isArray(place.accessible_vehicles) && place.accessible_vehicles.length === 0)) {
+                                return `<div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
                                         <span style="padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; background:rgba(239,68,68,0.18); color:#fca5a5; border:none !important; outline:none !important; display:inline-flex; align-items:center; gap:4px;">
                                             <i class="fa-solid fa-ban" style="font-size:9px; color:#ef4444;"></i> No Available Vehicles
                                         </span>
                                     </div>`;
-                                }
-                                return '';
-                            })()}
+                            }
+                            return '';
+                        })()}
                         </div>
                     </div>
                 </div>`;
@@ -1872,7 +1917,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     // Ensure any old GPS markers are cleanly removed
                     draftMap.eachLayer(layer => {
                         if (layer._isUserGps) {
-                            try { draftMap.removeLayer(layer); } catch (err) {}
+                            try { draftMap.removeLayer(layer); } catch (err) { }
                         }
                     });
 
@@ -2113,8 +2158,14 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                             estimateB = Math.round(dB * 13);
                             legTotal = priceA + estimateB;
                         } else if (normMode === 'tricycle' || normMode === 'trike') {
-                            priceA = window.getFareFromMatrix('tricycle', dA, cleanA) ?? 0;
-                            estimateB = window.getFareFromMatrix('tricycle', dB, cleanB) ?? 0;
+                            priceA = window.getFareFromMatrix('tricycle', dA, cleanA);
+                            if (priceA === null || priceA === undefined || priceA === 0) {
+                                priceA = Math.max(15, Math.round(15 + Math.max(0, dA - 1.5) * 2.0));
+                            }
+                            estimateB = window.getFareFromMatrix('tricycle', dB, cleanB);
+                            if (estimateB === null || estimateB === undefined || estimateB === 0) {
+                                estimateB = Math.max(15, Math.round(15 + Math.max(0, dB - 1.5) * 2.0));
+                            }
                             legTotal = priceA + estimateB;
                         } else {
                             // Public Transit: MPUJ, TPUJ, PUB Aircon, PUB Ordinary, Bus, Van/UVE
@@ -2154,7 +2205,10 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                             priceA = Math.round(base + (d * 13));
                             legTotal = priceA;
                         } else if (normMode === 'tricycle' || normMode === 'trike') {
-                            priceA = window.getFareFromMatrix('tricycle', d, cleanA) ?? 0;
+                            priceA = window.getFareFromMatrix('tricycle', d, cleanA);
+                            if (priceA === null || priceA === undefined || priceA === 0) {
+                                priceA = Math.max(15, Math.round(15 + Math.max(0, d - 1.5) * 2.0));
+                            }
                             legTotal = priceA;
                         } else {
                             const targetVeh = (normMode === 'private_bus') ? 'pub_aircon' : normMode;
@@ -2193,8 +2247,8 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         };
 
         window.calculateModalBudget = function () {
-            const draft = (typeof window.getEffectiveDraft === 'function') 
-                ? window.getEffectiveDraft() 
+            const draft = (typeof window.getEffectiveDraft === 'function')
+                ? window.getEffectiveDraft()
                 : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
             if (draft.length === 0) return;
 
@@ -2841,7 +2895,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             if (draftMap) {
                 draftMap.eachLayer(layer => {
                     if (!(layer instanceof L.TileLayer)) {
-                        try { draftMap.removeLayer(layer); } catch (e) {}
+                        try { draftMap.removeLayer(layer); } catch (e) { }
                     }
                 });
             }
@@ -2918,7 +2972,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 const activeRouteEl = document.querySelector('.btn-route-type.active');
                 const isAlt = (window.currentRouteType === 'alternative' || window.currentRouteType === 'alternate' || activeRouteEl?.innerText.trim() === 'Alternative' || activeRouteEl?.innerText.trim() === 'Alternate');
                 const activeRoute = isAlt ? 'Alternative' : 'Recommended';
-                
+
                 let routeColor = isAlt ? '#f59e0b' : '#38bdf8'; // Alternative = Vibrant Amber/Gold, Recommended = Cyan/Blue
                 let shadowColor = isAlt ? '#78350f' : '#0f172a';
 
@@ -2940,7 +2994,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
                             for (let k = 0; k < fetchLatLngs.length - 1; k++) {
                                 const p1 = `${fetchLatLngs[k][1]},${fetchLatLngs[k][0]}`;
-                                const p2 = `${fetchLatLngs[k+1][1]},${fetchLatLngs[k+1][0]}`;
+                                const p2 = `${fetchLatLngs[k + 1][1]},${fetchLatLngs[k + 1][0]}`;
                                 const legUrl = `https://router.project-osrm.org/route/v1/driving/${p1};${p2}?overview=full&geometries=geojson&alternatives=3&continue_straight=true`;
                                 const legRes = await fetch(legUrl);
                                 const legData = await legRes.json();
@@ -2984,7 +3038,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     const osrmUrl = `https://router.project-osrm.org/${osrmService}/v1/driving/${coordString}${osrmQuery}`;
                     const res = await fetch(osrmUrl);
                     const data = await res.json();
-                    
+
                     if (data.code === 'Ok') {
                         let chosenRoute = null;
                         if (isAlt && data.routes && data.routes.length > 1) {
@@ -3287,8 +3341,9 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 const hasTpuj = noDraft || isInterMunicipal || activeLower.some(t => t.includes('tpuj') || t.includes('traditional') || (t.includes('jeep') && !t.includes('modern'))) || !!window.fareData?.tpuj;
                 const hasPubAircon = noDraft || isInterMunicipal || activeLower.some(t => t.includes('aircon') || t.includes('pub_aircon')) || !!window.fareData?.pub_aircon;
                 const hasPubOrdinary = noDraft || isInterMunicipal || activeLower.some(t => t.includes('ordinary') || t.includes('regular') || t.includes('pub_ordinary')) || !!window.fareData?.pub_ordinary;
-                // Tricycle is municipality-specific: only available if all spots are within ONE municipality AND that municipality has an active Tricycle fare matrix in LUPTO
-                const hasTrike = !isInterMunicipal && uniqueMunis.length === 1 && activeLower.some(t => t.includes('trike') || t.includes('tricycle'));
+                // Tricycle is municipality-specific: available if within one municipality (or no draft yet) AND (either active in fare matrix OR assigned to the draft spots by LUPTO)
+                const siteAllowsTrike = draft.length > 0 && draft.every(p => isVehAllowed('tricycle', 'tricycle', resolveSpotVehicleInfo(p).accessible_vehicles));
+                const hasTrike = (!isInterMunicipal && uniqueMunis.length <= 1) && (activeLower.some(t => t.includes('trike') || t.includes('tricycle')) || siteAllowsTrike || noDraft);
 
                 optionsList = [
                     { val: 'mpuj', name: 'Modern Jeepney (MPUJ)', icon: 'fa-van-shuttle', available: hasMpuj, key: 'mpuj' },
@@ -3359,8 +3414,8 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             // Clean trip-transport to drop any vehicle that is now unavailable
             const availKeys = unique.filter(o => o.available !== false).map(o => o.val);
-            const validSelected = isNoVehCurrent 
-                ? ['no_vehicle'] 
+            const validSelected = isNoVehCurrent
+                ? ['no_vehicle']
                 : currentSelected.filter(v => availKeys.includes(v) && v !== 'no_vehicle');
 
             if (isNoVehCurrent) {
