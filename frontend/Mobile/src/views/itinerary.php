@@ -3211,8 +3211,9 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             const draft = window.getEffectiveDraft ? window.getEffectiveDraft() : [];
 
             // Helper to determine if a vehicle type is allowed for a spot's accessible vehicles
+            // If no vehicles are added to a site, it defaults to Available so users can choose freely
             const isVehAllowed = (vehKey, vehVal, accVehicles) => {
-                if (!Array.isArray(accVehicles) || accVehicles.length === 0) return false;
+                if (!Array.isArray(accVehicles) || accVehicles.length === 0) return true;
                 const list = accVehicles.map(v => String(v).toLowerCase().trim());
                 if (vehVal === 'own_car' || vehKey === 'car') return list.some(v => v.includes('car'));
                 if (vehVal === 'taxi' || vehKey === 'taxi') return list.some(v => v.includes('taxi'));
