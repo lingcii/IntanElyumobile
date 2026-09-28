@@ -424,9 +424,6 @@ if (is_dir($imgDir)) {
                 <div id="sheet-badges-overlay" class="dest-badges-overlay">
                     <div id="sheet-category-badge" class="dest-cat-badge-wrap" style="display:none;"></div>
                     <div id="sheet-status-badge" class="sheet-status-pill" style="display:none;"></div>
-                    <div id="sheet-guide-badge" class="sheet-status-pill" style="display:none; background:rgba(37,99,235,0.88) !important; color:#ffffff !important;">
-                        <i class="fa-solid fa-person-hiking" style="font-size:9px; margin-right:4px; color:#ffffff;"></i>Guide Needed
-                    </div>
                     <div id="sheet-open-badge" class="sheet-open-pill" style="display:none;"></div>
                 </div>
                 <div id="sheet-slider-track" class="dest-slider-track">
@@ -507,55 +504,47 @@ if (is_dir($imgDir)) {
 
                 <!-- Tour Guide Needed Card -->
                 <div id="sheet-tour-guide-card"
-                    style="display:none; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; border-radius:14px; padding:11px 14px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
+                    style="display:none; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="width:22px; height:22px; border-radius:6px; background:#2563eb; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:11px; flex-shrink:0;">
-                            <i class="fa-solid fa-check"></i>
+                        <div style="width:34px; height:34px; border-radius:10px; background:rgba(37,99,235,0.22); display:flex; align-items:center; justify-content:center; color:#60a5fa; font-size:16px; flex-shrink:0;">
+                            <i class="fa-solid fa-person-hiking"></i>
                         </div>
                         <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:12.5px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Tour Guide Needed</span>
-                            <span style="font-size:10px; color:#93c5fd; font-weight:600;" id="sheet-tour-guide-detail">Certified guide required</span>
+                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Tour Guide Needed</span>
+                            <span style="font-size:10.5px; color:#93c5fd; font-weight:600;" id="sheet-tour-guide-detail">Certified guide required</span>
                         </div>
                     </div>
-                    <span style="font-size:10px; font-weight:800; padding:3px 9px; border-radius:100px; background:rgba(37,99,235,0.3); color:#bfdbfe; display:inline-flex; align-items:center; gap:4px;">
-                        <i class="fa-solid fa-person-hiking" style="font-size:9px;"></i> Required
-                    </span>
+                    <span style="font-size:10px; font-weight:800; padding:4px 10px; border-radius:100px; background:rgba(37,99,235,0.3); color:#bfdbfe; text-transform:uppercase; letter-spacing:0.5px;">Required</span>
                 </div>
 
                 <!-- Open 24 Hours Card -->
                 <div id="sheet-24h-card"
-                    style="display:none; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; border-radius:14px; padding:11px 14px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
+                    style="display:none; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="width:22px; height:22px; border-radius:6px; background:#ea580c; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:11px; flex-shrink:0;">
-                            <i class="fa-solid fa-check"></i>
-                        </div>
-                        <div style="width:30px; height:30px; border-radius:8px; background:rgba(254,243,199,0.9); display:flex; align-items:center; justify-content:center; color:#d97706; font-size:14px; flex-shrink:0;">
+                        <div style="width:34px; height:34px; border-radius:10px; background:rgba(254,243,199,0.9); display:flex; align-items:center; justify-content:center; color:#d97706; font-size:16px; flex-shrink:0;">
                             <i class="fa-regular fa-clock"></i>
                         </div>
                         <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:12.5px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Open 24 Hours</span>
-                            <span style="font-size:10px; color:#fde68a; font-weight:600;">Always accessible</span>
+                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Open 24 Hours</span>
+                            <span style="font-size:10.5px; color:#fde68a; font-weight:600;">Always accessible</span>
                         </div>
                     </div>
-                    <span style="font-size:11px; font-weight:700; color:#e2e8f0;">Available all day</span>
+                    <span style="font-size:11px; font-weight:700; color:#cbd5e1;">Available all day</span>
                 </div>
 
                 <!-- Under Maintenance Card -->
                 <div id="sheet-maint-card"
-                    style="display:none; align-items:center; justify-content:space-between; background:rgba(239,68,68,0.18); border:none !important; outline:none !important; border-radius:14px; padding:11px 14px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
+                    style="display:none; align-items:center; justify-content:space-between; background:rgba(239,68,68,0.18); border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="width:22px; height:22px; border-radius:6px; background:#ea580c; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:11px; flex-shrink:0;">
-                            <i class="fa-solid fa-check"></i>
-                        </div>
-                        <div style="width:30px; height:30px; border-radius:8px; background:rgba(254,226,226,0.9); display:flex; align-items:center; justify-content:center; color:#dc2626; font-size:13px; flex-shrink:0;">
+                        <div style="width:34px; height:34px; border-radius:10px; background:rgba(254,226,226,0.9); display:flex; align-items:center; justify-content:center; color:#dc2626; font-size:15px; flex-shrink:0;">
                             <i class="fa-solid fa-wrench"></i>
                         </div>
                         <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:12.5px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Under Maintenance</span>
-                            <span style="font-size:10px; color:#fca5a5; font-weight:600;">Site temporarily closed for maintenance</span>
+                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Under Maintenance</span>
+                            <span style="font-size:10.5px; color:#fca5a5; font-weight:600;">Site temporarily closed for maintenance</span>
                         </div>
                     </div>
-                    <span style="font-size:11px; font-weight:700; color:#fca5a5;">Hides this site</span>
+                    <span style="font-size:10px; font-weight:800; padding:4px 10px; border-radius:100px; background:rgba(239,68,68,0.3); color:#fca5a5; text-transform:uppercase; letter-spacing:0.5px;">Temporary</span>
                 </div>
 
             </div>
@@ -638,16 +627,6 @@ if (is_dir($imgDir)) {
                                 <i class="fa-solid fa-signs-post"></i> Route Guide
                             </div>
                             <p id="sheet-manual-guide" class="dest-guide-text"></p>
-                        </div>
-
-                        <!-- Tour Guide Notice -->
-                        <div class="dest-advisory-box" id="sheet-tour-guide-box">
-                            <div class="dest-advisory-title">
-                                <i class="fa-solid fa-circle-info"></i> Tour Guide Notice
-                            </div>
-                            <p id="sheet-tour-guide-text" class="dest-advisory-text">Some destinations may require a
-                                tour guide for entry or navigation. The system only provides informational notices about
-                                this requirement; it does not offer, book, or arrange tour guide services directly.</p>
                         </div>
 
                         <!-- Nearby Amenities Box with Individual Distances -->
@@ -3274,16 +3253,6 @@ if (is_dir($imgDir)) {
                 }
             }
 
-            // Guide Needed badge
-            const guideBadge = document.getElementById('sheet-guide-badge');
-            if (guideBadge) {
-                if (locationData.tour_guide_needed) {
-                    guideBadge.style.display = 'inline-flex';
-                } else {
-                    guideBadge.style.display = 'none';
-                }
-            }
-
             // Open/Closed badge with pulse indicator
             const openBadge = document.getElementById('sheet-open-badge');
             if (openBadge) {
@@ -3294,7 +3263,7 @@ if (is_dir($imgDir)) {
                 } else if (locationData.is_open_24_hours) {
                     openBadge.style.display = 'inline-flex';
                     openBadge.className = 'sheet-open-pill status-open';
-                    openBadge.innerHTML = '<span class="pulse-dot dot-green"></span>Open 24/7';
+                    openBadge.innerHTML = '<span class="pulse-dot dot-green"></span>Open Now';
                 } else if (locationData.opening_time && locationData.closing_time) {
                     const now = new Date();
                     const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -3677,16 +3646,7 @@ if (is_dir($imgDir)) {
                 manualGuideEl.textContent = manualGuide;
             }
 
-            // 4. Tour Guide Notice
-            const tourGuideTextEl = document.getElementById('sheet-tour-guide-text');
-            if (tourGuideTextEl) {
-                let tourGuideNotice = (locationData.tour_guide_notice && locationData.tour_guide_notice.trim())
-                    ? locationData.tour_guide_notice.trim()
-                    : "Some destinations may require a tour guide for entry or navigation. The system only provides informational notices about this requirement; it does not offer, book, or arrange tour guide services directly.";
-                tourGuideTextEl.textContent = tourGuideNotice;
-            }
-
-            // 5. Service Centers & Support
+            // 4. Service Centers & Support
             const scContainer = document.getElementById('sheet-service-centers-container');
             const supportBadgeEl = document.getElementById('sheet-support-badge');
             if (scContainer) {
@@ -3722,7 +3682,7 @@ if (is_dir($imgDir)) {
             if (hoursEl) {
                 if (locationData.is_open_24_hours) {
                     if (hoursCard) hoursCard.style.display = 'flex';
-                    hoursEl.textContent = '24 Hours (All Day)';
+                    hoursEl.textContent = '24 Hours';
                 } else if (locationData.opening_time && locationData.closing_time) {
                     if (hoursCard) hoursCard.style.display = 'flex';
                     const fmt = (t) => { const p = t.split(':'); const h = parseInt(p[0]), m = p[1]; return (h % 12 || 12) + ':' + m + (h < 12 ? ' AM' : ' PM'); };
@@ -3847,8 +3807,6 @@ if (is_dir($imgDir)) {
             if (vehCard) vehCard.style.display = 'none';
             const attrCard = document.getElementById('sheet-attributes-container');
             if (attrCard) attrCard.style.display = 'none';
-            const guideBadge = document.getElementById('sheet-guide-badge');
-            if (guideBadge) guideBadge.style.display = 'none';
             const placeSheet = document.getElementById('place-details-sheet');
             if (placeSheet.closeSheet) placeSheet.closeSheet();
             else placeSheet.classList.remove('active');
