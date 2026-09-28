@@ -26,15 +26,91 @@ if (is_dir($imgDir)) {
 <script>
     window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
 
-    window.getFareFromMatrix = function (vehicleType, distanceKm, municipality = null) {
+    window.getFareBoundaryEstimate = function (vehicleType, distanceKm, municipality = null, isPrivate = null) {
         if (!window.fareData) return null;
         
         const dKm = parseFloat(distanceKm) || 0;
         const rawType = (vehicleType || '').toString().toLowerCase().trim();
         const normType = rawType.replace(/[- ]/g, '_');
         
+        const currentFuel = window.fuelPrice || 65.0;
+
         // Private formula-based vehicles
-        if (['own_car', 'taxi', 'motorcycle', 'car'].includes(normType)) return null;
+        if (normType === 'own_car' || normType === 'car' || normType === 'sedan' || normType === 'suv' || normType === 'private_car') {
+            const fare = Math.max(15, Math.round((dKm / 12.0) * currentFuel));
+            return {
+                fare: fare,
+                discountedFare: fare,
+                baseFare: 15,
+                boundaryKm: dKm,
+                prevBoundaryKm: 0,
+                isPassedBoundary: false,
+                isExceedingMax: false,
+                isPrivate: true,
+                boundaryLabel: `Fuel formula: 12.0 km/L @ ₱${currentFuel.toFixed(2)}/L`,
+                title: 'Private Car Fuel Estimate'
+            };
+        }
+        if (normType === 'motorcycle' || (normType === 'motor' && isPrivate !== false)) {
+            const fare = Math.max(10, Math.round((dKm / 35.0) * currentFuel));
+            return {
+                fare: fare,
+                discountedFare: fare,
+                baseFare: 10,
+                boundaryKm: dKm,
+                prevBoundaryKm: 0,
+                isPassedBoundary: false,
+                isExceedingMax: false,
+                isPrivate: true,
+                boundaryLabel: `Fuel formula: 35.0 km/L @ ₱${currentFuel.toFixed(2)}/L`,
+                title: 'Motorcycle Fuel Estimate'
+            };
+        }
+        if ((normType === 'van' && isPrivate !== false) || normType === 'private_van') {
+            const fare = Math.max(25, Math.round((dKm / 10.0) * currentFuel));
+            return {
+                fare: fare,
+                discountedFare: fare,
+                baseFare: 25,
+                boundaryKm: dKm,
+                prevBoundaryKm: 0,
+                isPassedBoundary: false,
+                isExceedingMax: false,
+                isPrivate: true,
+                boundaryLabel: `Fuel formula: 10.0 km/L @ ₱${currentFuel.toFixed(2)}/L`,
+                title: 'Private Van Fuel Estimate'
+            };
+        }
+        if (normType === 'tricycle' && isPrivate === true) {
+            const fare = Math.max(10, Math.round((dKm / 25.0) * currentFuel));
+            return {
+                fare: fare,
+                discountedFare: fare,
+                baseFare: 10,
+                boundaryKm: dKm,
+                prevBoundaryKm: 0,
+                isPassedBoundary: false,
+                isExceedingMax: false,
+                isPrivate: true,
+                boundaryLabel: `Fuel formula: 25.0 km/L @ ₱${currentFuel.toFixed(2)}/L`,
+                title: 'Private Tricycle Fuel Estimate'
+            };
+        }
+        if (normType === 'taxi') {
+            const fare = Math.round(40 + (dKm * 13.50));
+            return {
+                fare: fare,
+                discountedFare: fare,
+                baseFare: 40,
+                boundaryKm: dKm,
+                prevBoundaryKm: 0,
+                isPassedBoundary: false,
+                isExceedingMax: false,
+                isPrivate: false,
+                boundaryLabel: `Flagdown ₱40.00 + ₱13.50/km`,
+                title: 'Taxi Metered Rate'
+            };
+        }
 
         let fareEntry = null;
 
@@ -86,29 +162,69 @@ if (is_dir($imgDir)) {
         const rates = Array.isArray(fareEntry.rates) ? fareEntry.rates : Object.values(fareEntry.rates);
         if (!rates || rates.length === 0) return null;
 
-        // Stage ceiling lookup: find first stage bracket where rate.distance_km >= dKm
-        let match = null;
+        // Stage boundary lookup: find previous boundary and next boundary bracket
+        let prevMatch = null;
+        let nextMatch = null;
+
         for (let i = 0; i < rates.length; i++) {
             const r = rates[i];
-            if (r && r.distance_km != null && parseFloat(r.distance_km) >= dKm) {
-                match = r;
+            const rDist = parseFloat(r.distance_km || 0);
+            if (rDist < dKm) {
+                prevMatch = r;
+            } else if (rDist >= dKm) {
+                nextMatch = r;
                 break;
             }
         }
 
-        // If distance is higher than the max stage, scale from the highest bracket
-        if (!match) {
-            const maxRate = rates[rates.length - 1];
-            if (maxRate && maxRate.regular_fare != null) {
-                const maxD = parseFloat(maxRate.distance_km || 0);
-                const extra = Math.max(0, dKm - maxD);
-                const perKm = (normType === 'tricycle' || normType === 'trike') ? 2.0 : 1.8;
-                return Math.round(parseFloat(maxRate.regular_fare) + (extra * perKm));
-            }
-        }
+        if (nextMatch) {
+            const fare = parseFloat(nextMatch.regular_fare);
+            const boundaryKm = parseFloat(nextMatch.distance_km);
+            const prevKm = prevMatch ? parseFloat(prevMatch.distance_km) : 0;
+            const passed = prevMatch !== null && dKm > prevKm;
 
-        if (!match || match.regular_fare == null) return null;
-        return parseFloat(match.regular_fare);
+            return {
+                fare: fare,
+                discountedFare: parseFloat(nextMatch.discounted_fare || (fare * 0.8)),
+                baseFare: parseFloat(fareEntry.base_fare || rates[0].regular_fare),
+                boundaryKm: boundaryKm,
+                prevBoundaryKm: prevKm,
+                isPassedBoundary: passed,
+                isExceedingMax: false,
+                isPrivate: false,
+                boundaryLabel: passed 
+                    ? `Passed ${prevKm.toFixed(1)} km boundary &bull; Next boundary: ${boundaryKm.toFixed(1)} km`
+                    : `Within ${boundaryKm.toFixed(1)} km boundary stage`,
+                title: fareEntry.title || fareEntry.vehicle_type
+            };
+        } else {
+            // Distance is past the max boundary step in the matrix
+            const maxRate = rates[rates.length - 1];
+            const maxD = parseFloat(maxRate.distance_km || 0);
+            const extra = Math.max(0, dKm - maxD);
+            const perKm = (normType === 'tricycle' || normType === 'trike') ? 2.0 : 1.8;
+            const projectedNextKm = Math.ceil(dKm);
+            const nextBoundaryExtra = Math.max(1, projectedNextKm - maxD);
+            const fare = Math.round(parseFloat(maxRate.regular_fare) + (nextBoundaryExtra * perKm));
+
+            return {
+                fare: fare,
+                discountedFare: Math.round(fare * 0.8),
+                baseFare: parseFloat(fareEntry.base_fare || rates[0].regular_fare),
+                boundaryKm: projectedNextKm,
+                prevBoundaryKm: maxD,
+                isPassedBoundary: true,
+                isExceedingMax: true,
+                isPrivate: false,
+                boundaryLabel: `Exceeds max matrix (${maxD} km) &bull; Est. next boundary: ${projectedNextKm} km`,
+                title: fareEntry.title || fareEntry.vehicle_type
+            };
+        }
+    };
+
+    window.getFareFromMatrix = function (vehicleType, distanceKm, municipality = null) {
+        const est = window.getFareBoundaryEstimate(vehicleType, distanceKm, municipality);
+        return est ? est.fare : null;
     };
 </script>
 
@@ -389,6 +505,49 @@ if (is_dir($imgDir)) {
                 </div>
             </div>
 
+            <!-- Available Vehicles / Transportation Card -->
+            <div id="sheet-vehicles-card" class="dest-vehicles-card"
+                style="display:flex; flex-direction:column; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; border-radius:18px; padding:14px 16px; margin-bottom:12px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:15px; flex-shrink:0;">
+                            <i class="fa-solid fa-van-shuttle"></i>
+                        </div>
+                        <div style="display:flex; flex-direction:column;">
+                            <span style="font-size:10px; font-weight:700; color:#e2e8f0; text-transform:uppercase; letter-spacing:0.5px;">Transportation</span>
+                            <span style="font-size:13px; font-weight:800; color:#ffffff;">Available Vehicles</span>
+                        </div>
+                    </div>
+                    <span id="sheet-vehicles-count-badge" style="font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; background:rgba(56,189,248,0.2); color:#38bdf8;">--</span>
+                </div>
+
+                <!-- Private Vehicle Access -->
+                <div style="margin-bottom:8px; background:rgba(0,0,0,0.14); border-radius:12px; padding:9px 12px;">
+                    <div style="font-size:11px; font-weight:800; color:#a5f3fc; margin-bottom:5px; display:flex; align-items:center; gap:5px;">
+                        <i class="fa-solid fa-car" style="font-size:10px; color:#38bdf8;"></i> Private Vehicle
+                    </div>
+                    <div id="sheet-private-vehicles-list" style="display:flex; flex-wrap:wrap; gap:6px;">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Public Vehicle Access -->
+                <div style="margin-bottom:12px; background:rgba(0,0,0,0.14); border-radius:12px; padding:9px 12px;">
+                    <div style="font-size:11px; font-weight:800; color:#fed7aa; margin-bottom:5px; display:flex; align-items:center; gap:5px;">
+                        <i class="fa-solid fa-bus" style="font-size:10px; color:#fb923c;"></i> Public Vehicle
+                    </div>
+                    <div id="sheet-public-vehicles-list" style="display:flex; flex-wrap:wrap; gap:6px;">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Vehicles Action Button (Disabled & unclickable if no vehicles available) -->
+                <button id="sheet-btn-view-vehicles" type="button" onclick="window.openSpotVehiclesModal()"
+                    style="width:100%; border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s ease;">
+                    <i class="fa-solid fa-van-shuttle"></i> View Available Vehicles & Fares
+                </button>
+            </div>
+
             <!-- About This Location & Travel Details -->
             <div id="sheet-desc-container" class="dest-info-card" style="display:none;">
                 <div id="vehicle-accessibility-warning" class="dest-warning-card" style="display:none;">
@@ -552,6 +711,41 @@ if (is_dir($imgDir)) {
             style="width:100%; padding:12px; border:none !important; outline:none !important; border-radius:12px; background:rgba(255,255,255,0.16); color:#ffffff; font-size:14px; font-weight:700; cursor:pointer;">
             Continue Exploring
         </button>
+    </div>
+</div>
+
+<!-- Spot Available Vehicles & Boundary Fares Modal -->
+<div id="spot-vehicles-modal" onclick="if(event.target===this)window.closeSpotVehiclesModal()"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:999999; align-items:flex-end; justify-content:center; background:rgba(6,11,25,0.78); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); box-sizing:border-box;">
+    <div style="background:linear-gradient(145deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-radius:28px 28px 0 0; padding:22px 20px calc(24px + env(safe-area-inset-bottom)); width:100%; max-width:540px; max-height:84vh; overflow-y:auto; box-shadow:0 -10px 40px rgba(0,0,0,0.5); text-align:left; box-sizing:border-box;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:38px; height:38px; border-radius:12px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:18px;">
+                    <i class="fa-solid fa-van-shuttle"></i>
+                </div>
+                <div>
+                    <h4 id="spot-veh-modal-title" style="margin:0; font-size:17px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Available Vehicles & Fares</h4>
+                    <span id="spot-veh-modal-subtitle" style="font-size:11.5px; font-weight:600; color:rgba(255,255,255,0.78);">--</span>
+                </div>
+            </div>
+            <button type="button" onclick="window.closeSpotVehiclesModal()" style="width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.18); border:none; color:#ffffff; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Distance & Boundary Step Info Banner -->
+        <div id="spot-veh-modal-dist-banner" style="background:rgba(255,255,255,0.12); border-radius:14px; padding:10px 14px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-location-crosshairs" style="color:#38bdf8; font-size:14px;"></i>
+                <span id="spot-veh-modal-dist-text" style="font-size:12.5px; font-weight:700; color:#ffffff;">Calculating distance...</span>
+            </div>
+            <span style="font-size:10px; font-weight:800; text-transform:uppercase; background:rgba(56,189,248,0.22); color:#7dd3fc; padding:3px 8px; border-radius:100px;">Fare Matrix</span>
+        </div>
+
+        <!-- Vehicles Grid / List -->
+        <div id="spot-veh-modal-list" style="display:flex; flex-direction:column; gap:10px;">
+            <!-- Populated dynamically via JS -->
+        </div>
     </div>
 </div>
 
@@ -3265,6 +3459,83 @@ if (is_dir($imgDir)) {
                 }
             }
 
+            // 2b. Available Transportation & Vehicles Access
+            const vehCountBadge = document.getElementById('sheet-vehicles-count-badge');
+            const privVehList = document.getElementById('sheet-private-vehicles-list');
+            const pubVehList = document.getElementById('sheet-public-vehicles-list');
+            const btnViewVehicles = document.getElementById('sheet-btn-view-vehicles');
+
+            const getVehIcon = (name) => {
+                const n = (name || '').toLowerCase();
+                if (n.includes('car') || n.includes('sedan') || n.includes('suv')) return 'fa-car';
+                if (n.includes('motorcycle') || n.includes('motor') || n.includes('scooter') || n.includes('bike')) return 'fa-motorcycle';
+                if (n.includes('van') || n.includes('uve')) return 'fa-van-shuttle';
+                if (n.includes('pub') || n.includes('bus')) return 'fa-bus';
+                if (n.includes('puj') || n.includes('jeep')) return 'fa-bus-simple';
+                if (n.includes('trike') || n.includes('tricycle')) return 'fa-bicycle';
+                if (n.includes('taxi')) return 'fa-taxi';
+                return 'fa-car-side';
+            };
+
+            const privVehicles = Array.isArray(locationData.private_vehicles) ? locationData.private_vehicles : [];
+            const pubVehicles = Array.isArray(locationData.public_vehicles) ? locationData.public_vehicles : [];
+            const allVehicles = Array.isArray(locationData.accessible_vehicles)
+                ? locationData.accessible_vehicles
+                : [...privVehicles, ...pubVehicles];
+            const hasVehicles = (locationData.has_available_vehicles === true) || (allVehicles.length > 0);
+
+            if (vehCountBadge) {
+                vehCountBadge.textContent = hasVehicles ? `${allVehicles.length} Available` : 'None';
+                vehCountBadge.style.background = hasVehicles ? 'rgba(56,189,248,0.2)' : 'rgba(239,68,68,0.18)';
+                vehCountBadge.style.color = hasVehicles ? '#38bdf8' : '#f87171';
+            }
+
+            if (privVehList) {
+                if (privVehicles.length > 0) {
+                    privVehList.innerHTML = privVehicles.map(v => `
+                        <span style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; background:rgba(56,189,248,0.16); color:#7dd3fc; border:1px solid rgba(56,189,248,0.25); padding:4px 9px; border-radius:8px;">
+                            <i class="fa-solid ${getVehIcon(v)}" style="font-size:10px; color:#38bdf8;"></i> ${v}
+                        </span>
+                    `).join('');
+                } else {
+                    privVehList.innerHTML = '<span style="font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.45); font-style:italic;">None</span>';
+                }
+            }
+
+            if (pubVehList) {
+                if (pubVehicles.length > 0) {
+                    pubVehList.innerHTML = pubVehicles.map(v => `
+                        <span style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; background:rgba(251,146,60,0.16); color:#fed7aa; border:1px solid rgba(251,146,60,0.25); padding:4px 9px; border-radius:8px;">
+                            <i class="fa-solid ${getVehIcon(v)}" style="font-size:10px; color:#fb923c;"></i> ${v}
+                        </span>
+                    `).join('');
+                } else {
+                    pubVehList.innerHTML = '<span style="font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.45); font-style:italic;">None</span>';
+                }
+            }
+
+            if (btnViewVehicles) {
+                if (hasVehicles) {
+                    btnViewVehicles.disabled = false;
+                    btnViewVehicles.style.pointerEvents = 'auto';
+                    btnViewVehicles.style.cursor = 'pointer';
+                    btnViewVehicles.style.opacity = '1';
+                    btnViewVehicles.style.background = 'linear-gradient(135deg, #00f2fe 0%, #0284c7 100%)';
+                    btnViewVehicles.style.color = '#ffffff';
+                    btnViewVehicles.style.boxShadow = '0 4px 14px rgba(2, 132, 199, 0.4)';
+                    btnViewVehicles.innerHTML = `<i class="fa-solid fa-van-shuttle"></i> View Available Vehicles & Fares (${allVehicles.length})`;
+                } else {
+                    btnViewVehicles.disabled = true;
+                    btnViewVehicles.style.pointerEvents = 'none';
+                    btnViewVehicles.style.cursor = 'not-allowed';
+                    btnViewVehicles.style.opacity = '0.55';
+                    btnViewVehicles.style.background = 'rgba(255, 255, 255, 0.1)';
+                    btnViewVehicles.style.color = 'rgba(255, 255, 255, 0.55)';
+                    btnViewVehicles.style.boxShadow = 'none';
+                    btnViewVehicles.innerHTML = `<i class="fa-solid fa-ban" style="color:#ef4444; margin-right:4px;"></i> No Available Vehicles for this Site`;
+                }
+            }
+
             // 3. Route Guide
             const manualGuideEl = document.getElementById('sheet-manual-guide');
             if (manualGuideEl) {
@@ -3474,6 +3745,145 @@ if (is_dir($imgDir)) {
         window.viewItinerary = function () {
             window.closeAddConfirm();
             window.location.hash = '#itinerary';
+        };
+
+        window.openSpotVehiclesModal = function () {
+            const modal = document.getElementById('spot-vehicles-modal');
+            if (!modal) return;
+            const dest = window.currentDestinationForRoute || window.currentSelectedLocationData;
+            if (!dest) return;
+
+            const privVehicles = Array.isArray(dest.private_vehicles) ? dest.private_vehicles : [];
+            const pubVehicles = Array.isArray(dest.public_vehicles) ? dest.public_vehicles : [];
+            const allVehicles = Array.isArray(dest.accessible_vehicles)
+                ? dest.accessible_vehicles
+                : [...privVehicles, ...pubVehicles];
+
+            if (!allVehicles || allVehicles.length === 0) {
+                if (typeof showToast === 'function') showToast('No vehicles available for this tourist site.');
+                return;
+            }
+
+            const titleEl = document.getElementById('spot-veh-modal-title');
+            const subTitleEl = document.getElementById('spot-veh-modal-subtitle');
+            const distTextEl = document.getElementById('spot-veh-modal-dist-text');
+            const listEl = document.getElementById('spot-veh-modal-list');
+
+            if (titleEl) titleEl.textContent = 'Available Vehicles & Fares';
+            if (subTitleEl) subTitleEl.textContent = `${dest.name || 'Tourist Site'} • ${dest.municipality || 'La Union'}`;
+
+            // Determine route or straight line distance
+            const sheetDistEl = document.getElementById('sheet-distance');
+            let distKm = parseFloat(sheetDistEl?.textContent || '0');
+            if (isNaN(distKm) || distKm <= 0) {
+                if (window.deviceLastPos && (dest.lat || dest.latitude) && (dest.lng || dest.longitude)) {
+                    const lat1 = window.deviceLastPos.coords.latitude;
+                    const lon1 = window.deviceLastPos.coords.longitude;
+                    const lat2 = parseFloat(dest.lat || dest.latitude);
+                    const lon2 = parseFloat(dest.lng || dest.longitude);
+                    const R = 6371;
+                    const dLat = (lat2 - lat1) * Math.PI / 180;
+                    const dLon = (lon2 - lon1) * Math.PI / 180;
+                    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                    distKm = R * c;
+                } else {
+                    distKm = 5.0; // fallback standard estimation distance
+                }
+            }
+
+            if (distTextEl) {
+                distTextEl.textContent = `Distance: ${distKm.toFixed(1)} km to destination`;
+            }
+
+            const getVehIcon = (name) => {
+                const n = (name || '').toLowerCase();
+                if (n.includes('car') || n.includes('sedan') || n.includes('suv')) return 'fa-car';
+                if (n.includes('motorcycle') || n.includes('motor') || n.includes('scooter') || n.includes('bike')) return 'fa-motorcycle';
+                if (n.includes('van') || n.includes('uve')) return 'fa-van-shuttle';
+                if (n.includes('pub') || n.includes('bus')) return 'fa-bus';
+                if (n.includes('puj') || n.includes('jeep')) return 'fa-bus-simple';
+                if (n.includes('trike') || n.includes('tricycle')) return 'fa-bicycle';
+                if (n.includes('taxi')) return 'fa-taxi';
+                return 'fa-car-side';
+            };
+
+            let cardsHtml = '';
+
+            // Group into Public & Private categories for clarity
+            const publicAvailable = allVehicles.filter(v => pubVehicles.includes(v) || (!privVehicles.includes(v) && ['MPUJ', 'TPUJ', 'PUB_Aircon', 'PUB_Regular', 'TAXI', 'UVE'].includes(v)));
+            const privateAvailable = allVehicles.filter(v => privVehicles.includes(v) || (!pubVehicles.includes(v) && ['Car', 'Motorcycle', 'Van'].includes(v)));
+
+            const renderCard = (vehName, isPub) => {
+                const est = window.getFareBoundaryEstimate(vehName, distKm, dest.municipality, !isPub);
+                const fareDisplay = est ? `₱${est.fare.toFixed(2)}` : 'Rate on inquiry';
+                const discDisplay = (isPub && est && est.discountedFare < est.fare) ? `₱${est.discountedFare.toFixed(2)} Disc.` : '';
+                const boundaryText = est?.boundaryLabel || 'Boundary step calculated';
+                const baseText = est ? `Base: ₱${est.baseFare.toFixed(2)}` : '';
+
+                return `
+                <div style="background:rgba(255,255,255,0.1); border-radius:16px; padding:12px 14px; border:none !important; outline:none !important; box-shadow:0 2px 8px rgba(0,0,0,0.12);">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                        <div style="display:flex; align-items:center; gap:9px;">
+                            <div style="width:36px; height:36px; border-radius:10px; background:${isPub ? 'rgba(251,146,60,0.22)' : 'rgba(56,189,248,0.22)'}; display:flex; align-items:center; justify-content:center; color:${isPub ? '#fb923c' : '#38bdf8'}; font-size:15px; flex-shrink:0;">
+                                <i class="fa-solid ${getVehIcon(vehName)}"></i>
+                            </div>
+                            <div>
+                                <div style="font-size:13.5px; font-weight:800; color:#ffffff;">${vehName}</div>
+                                <div style="font-size:10.5px; font-weight:700; color:${isPub ? '#fed7aa' : '#a5f3fc'}; text-transform:uppercase; letter-spacing:0.4px;">
+                                    ${isPub ? 'Public Transport' : 'Private Access'}
+                                </div>
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:15.5px; font-weight:900; color:#ffffff; letter-spacing:-0.2px;">${fareDisplay}</div>
+                            ${discDisplay ? `
+                                <div style="font-size:10px; font-weight:800; color:#34d399; margin-top:1px;">
+                                    <i class="fa-solid fa-tags" style="font-size:8.5px;"></i> ${discDisplay}
+                                </div>
+                            ` : (est?.isPrivate ? `
+                                <div style="font-size:10px; font-weight:700; color:#cbd5e1; margin-top:1px;">Est. Fuel / Trip</div>
+                            ` : '')}
+                        </div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.18); border-radius:10px; padding:7px 11px; font-size:11px; color:#e2e8f0; display:flex; align-items:center; justify-content:space-between; gap:6px;">
+                        <span style="display:flex; align-items:center; gap:5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            <i class="fa-solid fa-chart-line" style="color:#38bdf8; font-size:10px; flex-shrink:0;"></i>
+                            <span style="font-size:10.5px; font-weight:600;">${boundaryText}</span>
+                        </span>
+                        ${baseText ? `<span style="font-weight:800; color:#7dd3fc; font-size:10.5px; flex-shrink:0;">${baseText}</span>` : ''}
+                    </div>
+                </div>`;
+            };
+
+            if (publicAvailable.length > 0) {
+                cardsHtml += `
+                <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:#fed7aa; letter-spacing:0.6px; margin:4px 0 2px 2px; display:flex; align-items:center; gap:5px;">
+                    <i class="fa-solid fa-bus" style="font-size:10px;"></i> Public Vehicles (${publicAvailable.length})
+                </div>`;
+                publicAvailable.forEach(v => { cardsHtml += renderCard(v, true); });
+            }
+
+            if (privateAvailable.length > 0) {
+                cardsHtml += `
+                <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:#a5f3fc; letter-spacing:0.6px; margin:8px 0 2px 2px; display:flex; align-items:center; gap:5px;">
+                    <i class="fa-solid fa-car" style="font-size:10px;"></i> Private Vehicles (${privateAvailable.length})
+                </div>`;
+                privateAvailable.forEach(v => { cardsHtml += renderCard(v, false); });
+            }
+
+            if (listEl) {
+                listEl.innerHTML = cardsHtml;
+            }
+
+            modal.style.display = 'flex';
+        };
+
+        window.closeSpotVehiclesModal = function () {
+            const modal = document.getElementById('spot-vehicles-modal');
+            if (modal) modal.style.display = 'none';
         };
 
         window.toggleFullDetails = function () {

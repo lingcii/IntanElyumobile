@@ -17,15 +17,23 @@ class MapController extends Controller
      */
     public function publicMapData(): JsonResponse
     {
-        $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots', 30, function () {
-            $spotVehicleMap = [];
+        $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots:v4', 30, function () {
+            $spotPublicVehicles = [];
+            $spotPrivateVehicles = [];
+            $spotAllVehicles = [];
             try {
                 $spotVehicles = \Illuminate\Support\Facades\DB::table('tourist_spot_vehicle_type')
                     ->join('vehicle_types', 'tourist_spot_vehicle_type.vehicle_type_id', '=', 'vehicle_types.id')
-                    ->select('tourist_spot_vehicle_type.tourist_spot_id', 'vehicle_types.name')
+                    ->select('tourist_spot_vehicle_type.tourist_spot_id', 'vehicle_types.name', 'vehicle_types.category')
                     ->get();
                 foreach ($spotVehicles as $sv) {
-                    $spotVehicleMap[$sv->tourist_spot_id][] = $sv->name;
+                    $isPub = stripos($sv->category, 'Public') !== false;
+                    if ($isPub) {
+                        $spotPublicVehicles[$sv->tourist_spot_id][] = $sv->name;
+                    } else {
+                        $spotPrivateVehicles[$sv->tourist_spot_id][] = $sv->name;
+                    }
+                    $spotAllVehicles[$sv->tourist_spot_id][] = $sv->name;
                 }
             } catch (\Throwable $e) {}
 
@@ -64,7 +72,7 @@ class MapController extends Controller
                        'environmental_fee', 'fee_types', 'route_guide', 'tour_guide_notice',
                        'accessible_by_private_vehicle', 'photo_url', 'description', 'opening_time', 'closing_time',
                        'is_maintenance', 'rating', 'visits', 'classification_status', 'status'])
-                ->map(function ($spot) use ($spotVehicleMap, $spotServiceCenterMap) {
+                ->map(function ($spot) use ($spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles, $spotServiceCenterMap) {
                     $imageUrl = $spot->photo_url;
                     if (!$imageUrl && $spot->images->isNotEmpty()) {
                         $imageUrl = $spot->images->first()->photo_url;
@@ -81,8 +89,14 @@ class MapController extends Controller
                         }
                     }
 
-                    $vehiclesList = isset($spotVehicleMap[$spot->id])
-                        ? array_values(array_unique($spotVehicleMap[$spot->id]))
+                    $pubList = isset($spotPublicVehicles[$spot->id])
+                        ? array_values(array_unique($spotPublicVehicles[$spot->id]))
+                        : [];
+                    $privList = isset($spotPrivateVehicles[$spot->id])
+                        ? array_values(array_unique($spotPrivateVehicles[$spot->id]))
+                        : [];
+                    $allList = isset($spotAllVehicles[$spot->id])
+                        ? array_values(array_unique($spotAllVehicles[$spot->id]))
                         : [];
 
                     $feeTypes = $spot->fee_types;
@@ -127,7 +141,10 @@ class MapController extends Controller
                         'visits'                        => $spot->visits,
                         'classification_status'         => $spot->classification_status,
                         'status'                        => $spot->status ?? 'approved',
-                        'accessible_vehicles'           => $vehiclesList,
+                        'accessible_vehicles'           => $allList,
+                        'public_vehicles'               => $pubList,
+                        'private_vehicles'              => $privList,
+                        'has_available_vehicles'        => !empty($allList),
                     ];
                 })->values()->toArray();  // toArray() stores a plain array in cache — safe to serialize
         });

@@ -1547,7 +1547,23 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                                 </div>
                             </div>
                             ${nextStopEtaHtml}
-                            ${place.selected_vehicles && place.selected_vehicles.length > 0 ? `<div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:8px;">${place.selected_vehicles.map(v => `<span style="padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; background:rgba(56,189,248,0.15); color:#38bdf8; border:none !important; outline:none !important;"><i class="fa-solid fa-car" style="margin-right:3px;font-size:9px;"></i>${v}</span>`).join('')}</div>` : ''}
+                            ${(() => {
+                                const acc = Array.isArray(place.accessible_vehicles) ? place.accessible_vehicles : [];
+                                if (acc.length > 0) {
+                                    return `<div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
+                                        <span style="padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; background:rgba(56,189,248,0.18); color:#7dd3fc; border:none !important; outline:none !important; display:inline-flex; align-items:center; gap:4px;">
+                                            <i class="fa-solid fa-van-shuttle" style="font-size:9px; color:#38bdf8;"></i> ${acc.length} Available Vehicle${acc.length > 1 ? 's' : ''}
+                                        </span>
+                                    </div>`;
+                                } else if (place.has_available_vehicles === false || (Array.isArray(place.accessible_vehicles) && place.accessible_vehicles.length === 0)) {
+                                    return `<div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
+                                        <span style="padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; background:rgba(239,68,68,0.18); color:#fca5a5; border:none !important; outline:none !important; display:inline-flex; align-items:center; gap:4px;">
+                                            <i class="fa-solid fa-ban" style="font-size:9px; color:#ef4444;"></i> No Available Vehicles
+                                        </span>
+                                    </div>`;
+                                }
+                                return '';
+                            })()}
                         </div>
                     </div>
                 </div>`;
@@ -3005,17 +3021,38 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             if (!slider) return;
 
             let optionsList = [];
+            const draft = window.getEffectiveDraft ? window.getEffectiveDraft() : [];
 
             if (type === 'private') {
-                optionsList = [
-                    { val: 'own_car', name: 'Own Car', icon: 'fa-car', available: true },
-                    { val: 'taxi', name: 'Taxi', icon: 'fa-taxi', available: true },
-                    { val: 'van', name: 'Van', icon: 'fa-shuttle-van', available: true },
-                    { val: 'motorcycle', name: 'Motorcycle', icon: 'fa-motorcycle', available: true }
+                const privDefs = [
+                    { val: 'own_car', name: 'Own Car', icon: 'fa-car', key: 'car' },
+                    { val: 'taxi', name: 'Taxi', icon: 'fa-taxi', key: 'taxi' },
+                    { val: 'van', name: 'Van', icon: 'fa-shuttle-van', key: 'van' },
+                    { val: 'motorcycle', name: 'Motorcycle', icon: 'fa-motorcycle', key: 'motorcycle' }
                 ];
+
+                optionsList = privDefs.map(opt => {
+                    let avail = true;
+                    if (draft.length > 0) {
+                        for (const p of draft) {
+                            if (p.has_available_vehicles === false || (Array.isArray(p.accessible_vehicles) && p.accessible_vehicles.length === 0)) {
+                                avail = false;
+                                break;
+                            }
+                            if (Array.isArray(p.accessible_vehicles) && p.accessible_vehicles.length > 0) {
+                                const accLower = p.accessible_vehicles.map(v => String(v).toLowerCase());
+                                const match = accLower.some(v => v.includes(opt.key) || (opt.val === 'own_car' && v.includes('car')));
+                                if (!match) {
+                                    avail = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    return { val: opt.val, name: opt.name, icon: opt.icon, available: avail };
+                });
             } else {
-                // Public vehicles: show all standard public vehicles; mark as unavailable if no imported fare guide
-                const draft = window.getEffectiveDraft ? window.getEffectiveDraft() : [];
+                // Public vehicles: show all standard public vehicles; mark as unavailable if no imported fare guide or site restricts
                 const rawMunis = draft.map(p => (p.municipality || '').trim()).filter(Boolean);
                 const uniqueMunis = [...new Set(rawMunis)];
 
@@ -3048,15 +3085,37 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 const hasTrike = noDraft || activeLower.some(t => t.includes('tri') || t.includes('pedicab')) || !!window.fareData?.by_municipality?.[muniKey]?.tricycle || !!window.fareData?.tricycle;
 
                 optionsList = [
-                    { val: 'mpuj', name: 'Modern Jeepney (MPUJ)', icon: 'fa-van-shuttle', available: hasMpuj },
-                    { val: 'tpuj', name: 'Traditional Jeepney (TPUJ)', icon: 'fa-van-shuttle', available: hasTpuj },
-                    { val: 'pub_aircon', name: 'Aircon Bus (PUB Aircon)', icon: 'fa-bus', available: hasPubAircon },
-                    { val: 'pub_ordinary', name: 'Ordinary Bus (PUB Regular)', icon: 'fa-bus-simple', available: hasPubOrdinary },
-                    { val: 'tricycle', name: 'Tricycle', icon: 'fa-motorcycle', available: hasTrike }
+                    { val: 'mpuj', name: 'Modern Jeepney (MPUJ)', icon: 'fa-van-shuttle', available: hasMpuj, key: 'mpuj' },
+                    { val: 'tpuj', name: 'Traditional Jeepney (TPUJ)', icon: 'fa-van-shuttle', available: hasTpuj, key: 'tpuj' },
+                    { val: 'pub_aircon', name: 'Aircon Bus (PUB Aircon)', icon: 'fa-bus', available: hasPubAircon, key: 'pub_aircon' },
+                    { val: 'pub_ordinary', name: 'Ordinary Bus (PUB Regular)', icon: 'fa-bus-simple', available: hasPubOrdinary, key: 'pub_regular' },
+                    { val: 'tricycle', name: 'Tricycle', icon: 'fa-motorcycle', available: hasTrike, key: 'tricycle' }
                 ];
 
                 if (activeLower.some(t => t.includes('van') || t.includes('uve')) || window.fareData?.uve) {
-                    optionsList.push({ val: 'uve', name: 'UV Express / Van', icon: 'fa-shuttle-van', available: true });
+                    optionsList.push({ val: 'uve', name: 'UV Express / Van', icon: 'fa-shuttle-van', available: true, key: 'uve' });
+                }
+
+                // Filter / disable options if any spot in draft restricts accessible vehicles
+                if (draft.length > 0) {
+                    optionsList = optionsList.map(opt => {
+                        let avail = opt.available;
+                        for (const p of draft) {
+                            if (p.has_available_vehicles === false || (Array.isArray(p.accessible_vehicles) && p.accessible_vehicles.length === 0)) {
+                                avail = false;
+                                break;
+                            }
+                            if (Array.isArray(p.accessible_vehicles) && p.accessible_vehicles.length > 0) {
+                                const accLower = p.accessible_vehicles.map(v => String(v).toLowerCase());
+                                const match = accLower.some(v => v.includes(opt.key) || (opt.val === 'tricycle' && (v.includes('trike') || v.includes('tricycle'))));
+                                if (!match) {
+                                    avail = false;
+                                    break;
+                                }
+                            }
+                        }
+                        return { val: opt.val, name: opt.name, icon: opt.icon, available: avail };
+                    });
                 }
             }
 

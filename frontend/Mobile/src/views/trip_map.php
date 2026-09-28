@@ -339,10 +339,28 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         window.currentActiveVehicle = vehicle;
         const vehicleNameEl = document.getElementById('trip-info-vehicle-name');
         const vehicleIconEl = document.getElementById('trip-info-vehicle-icon');
+        const vehicleBtnEl = document.getElementById('trip-info-vehicle-btn');
         if (vehicleNameEl) vehicleNameEl.textContent = vehicle.name;
         if (vehicleIconEl) {
             vehicleIconEl.className = 'fa-solid ' + vehicle.icon;
             vehicleIconEl.style.color = vehicle.color || '#f59e0b';
+        }
+
+        // Check if any stop has zero available vehicles
+        const items = window.currentTripItems || [];
+        const hasNoVehicles = items.some(it => {
+            const spot = it.tourist_spot || it.destination || it;
+            return spot.has_available_vehicles === false || (Array.isArray(spot.accessible_vehicles) && spot.accessible_vehicles.length === 0);
+        });
+
+        if (vehicleBtnEl) {
+            if (hasNoVehicles && items.length > 0) {
+                vehicleBtnEl.style.opacity = '0.7';
+                vehicleBtnEl.title = 'Some destinations have restricted vehicle access';
+            } else {
+                vehicleBtnEl.style.opacity = '1';
+                vehicleBtnEl.title = 'Tap to switch vehicle';
+            }
         }
     }
 
@@ -362,15 +380,44 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         if (!modal || !grid) return;
 
         const currentKey = window.currentActiveVehicle?.key || 'own_car';
+        const items = window.currentTripItems || [];
+
         grid.innerHTML = VEHICLE_CATALOG.filter(v => !v.hiddenFromModal).map(v => {
             const isSel = v.key === currentKey;
+            let isAvail = true;
+            if (items.length > 0) {
+                for (const it of items) {
+                    const spot = it.tourist_spot || it.destination || it;
+                    if (spot.has_available_vehicles === false || (Array.isArray(spot.accessible_vehicles) && spot.accessible_vehicles.length === 0)) {
+                        isAvail = false;
+                        break;
+                    }
+                    if (Array.isArray(spot.accessible_vehicles) && spot.accessible_vehicles.length > 0) {
+                        const accLower = spot.accessible_vehicles.map(a => String(a).toLowerCase());
+                        const match = accLower.some(a => a.includes(v.key) || (v.key === 'own_car' && a.includes('car')) || (v.key === 'pub_ordinary' && a.includes('regular')));
+                        if (!match) {
+                            isAvail = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            const clickAttr = isAvail ? `onclick="window.selectTripVehicle('${v.key}')"` : '';
+            const bg = isSel ? 'rgba(255,255,255,0.28)' : (isAvail ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)');
+            const opacity = isAvail ? '1' : '0.55';
+            const cursor = isAvail ? 'pointer' : 'not-allowed';
+
             return `
-                <div onclick="window.selectTripVehicle('${v.key}')" style="background:${isSel ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.12)'}; border:none !important; outline:none !important; border-radius:16px; padding:12px 14px; cursor:pointer; display:flex; align-items:center; gap:10px; transition:transform 0.15s, background 0.15s; ${isSel ? 'box-shadow:0 4px 14px rgba(0,0,0,0.25);' : ''}">
+                <div ${clickAttr} style="background:${bg}; opacity:${opacity}; cursor:${cursor}; border:none !important; outline:none !important; border-radius:16px; padding:12px 14px; display:flex; align-items:center; gap:10px; transition:transform 0.15s, background 0.15s; ${isSel ? 'box-shadow:0 4px 14px rgba(0,0,0,0.25);' : ''}">
                     <div style="width:36px; height:36px; border-radius:10px; background:${isSel ? 'linear-gradient(135deg, #00f2fe 0%, #0284c7 100%)' : 'rgba(255,255,255,0.15)'}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                         <i class="fa-solid ${v.icon}" style="color:${isSel ? '#ffffff' : (v.color || '#ffffff')}; font-size:16px;"></i>
                     </div>
-                    <div style="overflow:hidden; text-align:left;">
-                        <div style="font-size:13px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.name}</div>
+                    <div style="overflow:hidden; text-align:left; flex:1;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="font-size:13px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.name}</span>
+                            ${!isAvail ? '<span style="font-size:8.5px; font-weight:800; background:rgba(239,68,68,0.22); color:#fca5a5; padding:1px 6px; border-radius:6px; text-transform:uppercase;">Unavailable</span>' : ''}
+                        </div>
                         <div style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.75); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.desc}</div>
                     </div>
                     ${isSel ? '<i class="fa-solid fa-circle-check" style="margin-left:auto; color:#ffffff; font-size:14px;"></i>' : ''}
