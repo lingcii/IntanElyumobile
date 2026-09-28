@@ -1515,10 +1515,45 @@ if (is_dir($imgDir)) {
                                                     <span style="color:rgba(255,255,255,0.4);">&bull;</span>
                                                     <span><i class="fa-regular fa-calendar" style="margin-right:4px; color:#ffffff;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No Date'}</span>
                                                     ${trip.transport_mode ? (() => {
-                                                        const rawT = String(trip.transport_mode).split(',')[0].trim().toLowerCase();
-                                                        const tMap = { 'own_car': 'Own Car', 'jeepney': 'Jeepney', 'tricycle': 'Tricycle', 'bus': 'Bus', 'private_bus': 'Private Bus', 'mini_bus': 'Mini Bus', 'lutrampco': 'LUTRAMPCO', 'taxi': 'Taxi', 'motorcycle': 'Motorcycle', 'walking': 'Walking' };
-                                                        const tIco = { 'own_car': 'fa-car', 'jeepney': 'fa-van-shuttle', 'tricycle': 'fa-motorcycle', 'bus': 'fa-bus', 'private_bus': 'fa-bus', 'mini_bus': 'fa-bus-simple', 'lutrampco': 'fa-van-shuttle', 'taxi': 'fa-taxi', 'motorcycle': 'fa-motorcycle', 'walking': 'fa-person-walking' };
-                                                        return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid ${tIco[rawT] || 'fa-car'}" style="margin-right:4px; color:#38bdf8;"></i>${tMap[rawT] || rawT}</span>`;
+                                                        const rawT = String(trip.transport_mode).split(',')[0].trim().toLowerCase().replace(/[- ]/g, '_');
+                                                        const tMap = {
+                                                            'own_car': 'Own Car',
+                                                            'mpuj': 'MPUJ',
+                                                            'tpuj': 'TPUJ',
+                                                            'pub_aircon': 'PUB Aircon',
+                                                            'pub_ordinary': 'PUB Ordinary',
+                                                            'pub_regular': 'PUB Regular',
+                                                            'uve': 'UV Express',
+                                                            'jeepney': 'Jeepney',
+                                                            'tricycle': 'Tricycle',
+                                                            'bus': 'Bus',
+                                                            'private_bus': 'PUB Aircon',
+                                                            'mini_bus': 'Mini Bus',
+                                                            'lutrampco': 'LUTRAMPCO',
+                                                            'taxi': 'Taxi',
+                                                            'motorcycle': 'Motorcycle',
+                                                            'walking': 'Walking'
+                                                        };
+                                                        const tIco = {
+                                                            'own_car': 'fa-car',
+                                                            'mpuj': 'fa-van-shuttle',
+                                                            'tpuj': 'fa-van-shuttle',
+                                                            'pub_aircon': 'fa-bus',
+                                                            'pub_ordinary': 'fa-bus-simple',
+                                                            'pub_regular': 'fa-bus-simple',
+                                                            'uve': 'fa-van-shuttle',
+                                                            'jeepney': 'fa-van-shuttle',
+                                                            'tricycle': 'fa-motorcycle',
+                                                            'bus': 'fa-bus',
+                                                            'private_bus': 'fa-bus',
+                                                            'mini_bus': 'fa-bus-simple',
+                                                            'lutrampco': 'fa-van-shuttle',
+                                                            'taxi': 'fa-taxi',
+                                                            'motorcycle': 'fa-motorcycle',
+                                                            'walking': 'fa-person-walking'
+                                                        };
+                                                        const displayName = tMap[rawT] || rawT.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                                        return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid ${tIco[rawT] || 'fa-car'}" style="margin-right:4px; color:#38bdf8;"></i>${displayName}</span>`;
                                                     })() : ''}
                                                 </span>
                                             </div>

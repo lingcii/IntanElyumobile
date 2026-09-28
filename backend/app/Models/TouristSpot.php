@@ -15,6 +15,11 @@ class TouristSpot extends Model
         'barangay',
         'category',
         'entrance_fee',
+        'adult_fee',
+        'kids_fee',
+        'pwd_fee',
+        'senior_citizen_fee',
+        'entrance_fee_types',
         'environmental_fee',
         'fee_types',
         'route_guide',
@@ -35,6 +40,11 @@ class TouristSpot extends Model
 
     protected $casts = [
         'entrance_fee'                  => 'float',
+        'adult_fee'                     => 'float',
+        'kids_fee'                      => 'float',
+        'pwd_fee'                       => 'float',
+        'senior_citizen_fee'            => 'float',
+        'entrance_fee_types'            => 'array',
         'environmental_fee'             => 'float',
         'fee_types'                     => 'array',
         'accessible_by_private_vehicle' => 'boolean',

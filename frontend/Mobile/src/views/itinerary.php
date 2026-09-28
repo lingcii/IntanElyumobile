@@ -1079,38 +1079,55 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             if (!window.fareData) return null;
             
             const dKm = parseFloat(distanceKm) || 0;
-            const normType = (vehicleType || '').toString().toLowerCase().trim();
+            const rawType = (vehicleType || '').toString().toLowerCase().trim();
+            const normType = rawType.replace(/[- ]/g, '_');
             
-            if (normType === 'own_car' || normType === 'taxi' || normType === 'own car') return null;
+            if (['own_car', 'taxi', 'motorcycle', 'car'].includes(normType)) return null;
 
             let fareEntry = null;
 
-            if (normType === 'tricycle' || normType === 'trike') {
-                if (municipality && window.fareData.by_municipality) {
-                    const cleanMuni = municipality.toString().trim().replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '');
-                    const muniKey = cleanMuni.toLowerCase().replace(/[^a-z0-9]/g, '_');
-                    const muniRaw = cleanMuni.toLowerCase();
-                    const muniObj = window.fareData.by_municipality[muniKey] || window.fareData.by_municipality[muniRaw];
-                    if (muniObj) {
-                        fareEntry = muniObj.tricycle || muniObj.default || muniObj;
-                    }
-                }
-                if (!fareEntry && window.fareData.by_municipality) {
-                    const firstMKey = Object.keys(window.fareData.by_municipality)[0];
-                    if (firstMKey) {
-                        const mObj = window.fareData.by_municipality[firstMKey];
-                        fareEntry = mObj ? (mObj.tricycle || mObj.default || mObj) : null;
-                    }
-                }
-                if (!fareEntry) {
-                    fareEntry = window.fareData['tricycle'] || null;
-                }
-            } else if (['jeepney', 'puj_ordinary', 'puj_aircon', 'lutrampco', 'mini_bus', 'van', 'uve'].includes(normType)) {
-                fareEntry = window.fareData['jeepney'] || window.fareData['lutrampco'] || window.fareData['mini_bus'] || window.fareData['van'];
-            } else if (['bus', 'private_bus', 'pub_aircon', 'pub_ordinary'].includes(normType)) {
-                fareEntry = window.fareData['private_bus'] || window.fareData['bus'];
-            } else {
+            // 1. Direct match in top-level window.fareData
+            if (window.fareData[normType]) {
                 fareEntry = window.fareData[normType];
+            }
+
+            // 2. Municipality lookup for local / inter-municipal guides
+            const cleanMuni = municipality ? municipality.toString().trim().replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '') : '';
+            const muniKey = cleanMuni.toLowerCase().replace(/[^a-z0-9]/g, '_');
+            const muniRaw = cleanMuni.toLowerCase();
+
+            if (!fareEntry && window.fareData.by_municipality) {
+                const muniObj = window.fareData.by_municipality[muniKey] || window.fareData.by_municipality[muniRaw];
+                if (muniObj) {
+                    if (muniObj[normType]) {
+                        fareEntry = muniObj[normType];
+                    } else if ((normType === 'tricycle' || normType === 'trike') && muniObj.tricycle) {
+                        fareEntry = muniObj.tricycle;
+                    } else if ((normType === 'tricycle' || normType === 'trike') && muniObj.default) {
+                        fareEntry = muniObj.default;
+                    }
+                }
+            }
+
+            // 3. Fallbacks and alias matching
+            if (!fareEntry) {
+                if (normType === 'pub_aircon' || normType.includes('aircon')) {
+                    fareEntry = window.fareData['pub_aircon'] || window.fareData['bus'] || window.fareData['private_bus'];
+                } else if (normType === 'pub_ordinary' || normType === 'pub_regular' || normType.includes('ordinary') || normType.includes('regular')) {
+                    fareEntry = window.fareData['pub_ordinary'] || window.fareData['pub_regular'] || window.fareData['bus'];
+                } else if (normType === 'mpuj' || normType.includes('mpuj') || normType.includes('modern')) {
+                    fareEntry = window.fareData['mpuj'] || window.fareData['jeepney'] || window.fareData['lutrampco'];
+                } else if (normType === 'tpuj' || normType.includes('tpuj') || normType.includes('traditional')) {
+                    fareEntry = window.fareData['tpuj'] || window.fareData['jeepney'] || window.fareData['mpuj'];
+                } else if (normType === 'tricycle' || normType === 'trike') {
+                    fareEntry = window.fareData['tricycle'] || (window.fareData.by_municipality && Object.values(window.fareData.by_municipality)[0]?.tricycle);
+                } else if (normType === 'bus' || normType === 'private_bus') {
+                    fareEntry = window.fareData['pub_aircon'] || window.fareData['pub_ordinary'] || window.fareData['bus'];
+                } else if (normType === 'jeepney' || normType === 'lutrampco') {
+                    fareEntry = window.fareData['mpuj'] || window.fareData['tpuj'] || window.fareData['jeepney'];
+                } else if (normType === 'uve' || normType === 'van' || normType === 'mini_bus') {
+                    fareEntry = window.fareData['uve'] || window.fareData['van'] || window.fareData['mini_bus'];
+                }
             }
 
             if (!fareEntry || !fareEntry.rates) return null;
@@ -1933,14 +1950,19 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             let totalCost = 0;
             modes.forEach(mode => {
-                if (mode === 'own_car') {
+                const normMode = mode.toLowerCase().replace(/[- ]/g, '_');
+                if (normMode === 'own_car' || normMode === 'car') {
                     const fuelPrice = parseFloat(document.getElementById('fuel-price')?.value) || window.fuelPrice || 65;
                     const fuelEffic = parseFloat(document.getElementById('fuel-efficiency')?.value) || 12;
                     const liters = distKm / fuelEffic;
                     totalCost += Math.ceil(liters * fuelPrice);
-                } else if (mode === 'taxi') {
+                } else if (normMode === 'motorcycle') {
+                    const fuelPrice = parseFloat(document.getElementById('fuel-price')?.value) || window.fuelPrice || 65;
+                    const liters = distKm / 35.0;
+                    totalCost += Math.ceil(liters * fuelPrice);
+                } else if (normMode === 'taxi') {
                     totalCost += Math.max(50, Math.round(40 + (distKm * 13)));
-                } else if (mode === 'tricycle') {
+                } else if (normMode === 'tricycle' || normMode === 'trike') {
                     let trikeTotal = 0;
                     legs.forEach(leg => {
                         const mA = leg.muniA.toLowerCase();
@@ -1958,20 +1980,32 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                         }
                     });
                     totalCost += Math.round(trikeTotal);
-                } else if (mode === 'private_bus' || mode === 'bus') {
+                } else if (normMode === 'mpuj') {
+                    const dbFare = window.getFareFromMatrix('mpuj', distKm);
+                    if (dbFare !== null) totalCost += Math.round(dbFare);
+                    else totalCost += Math.max(15, Math.round(15 + (Math.max(0, distKm - 4) * 2.2)));
+                } else if (normMode === 'tpuj') {
+                    const dbFare = window.getFareFromMatrix('tpuj', distKm);
+                    if (dbFare !== null) totalCost += Math.round(dbFare);
+                    else totalCost += Math.max(13, Math.round(13 + (Math.max(0, distKm - 4) * 1.8)));
+                } else if (normMode === 'pub_aircon' || normMode === 'private_bus') {
+                    const dbFare = window.getFareFromMatrix('pub_aircon', distKm) ?? window.getFareFromMatrix('bus', distKm);
+                    if (dbFare !== null) totalCost += Math.round(dbFare);
+                    else totalCost += Math.max(11, Math.round(10.50 + (Math.max(0, distKm - 5) * 2.2)));
+                } else if (normMode === 'pub_ordinary' || normMode === 'pub_regular') {
+                    const dbFare = window.getFareFromMatrix('pub_ordinary', distKm) ?? window.getFareFromMatrix('bus', distKm);
+                    if (dbFare !== null) totalCost += Math.round(dbFare);
+                    else totalCost += Math.max(11, Math.round(11 + (Math.max(0, distKm - 5) * 2.0)));
+                } else if (normMode === 'bus') {
                     const dbFare = window.getFareFromMatrix('bus', distKm);
                     if (dbFare !== null) totalCost += Math.round(dbFare);
                     else totalCost += Math.max(15, Math.round(15 + (Math.max(0, distKm - 5) * 2.2)));
-                } else if (mode === 'jeepney') {
-                    const dbFare = window.getFareFromMatrix('jeepney', distKm);
+                } else if (normMode === 'jeepney' || normMode === 'lutrampco') {
+                    const dbFare = window.getFareFromMatrix(normMode, distKm) ?? window.getFareFromMatrix('mpuj', distKm);
                     if (dbFare !== null) totalCost += Math.round(dbFare);
                     else totalCost += Math.max(13, Math.round(13 + (Math.max(0, distKm - 4) * 1.8)));
-                } else if (mode === 'lutrampco') {
-                    const dbFare = window.getFareFromMatrix('lutrampco', distKm);
-                    if (dbFare !== null) totalCost += Math.round(dbFare);
-                    else totalCost += Math.max(14, Math.round(14 + (Math.max(0, distKm - 4) * 2.2)));
-                } else if (mode === 'mini_bus' || mode === 'van' || mode === 'uve') {
-                    const dbFare = window.getFareFromMatrix('mini_bus', distKm) || window.getFareFromMatrix('van', distKm);
+                } else if (normMode === 'mini_bus' || normMode === 'van' || normMode === 'uve') {
+                    const dbFare = window.getFareFromMatrix('uve', distKm) || window.getFareFromMatrix('mini_bus', distKm) || window.getFareFromMatrix('van', distKm);
                     if (dbFare !== null) totalCost += Math.round(dbFare);
                     else totalCost += Math.max(25, Math.round(25 + (Math.max(0, distKm - 4) * 2.5)));
                 } else {
@@ -2988,54 +3022,41 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 // Inter-municipal trip condition: draft crosses more than 1 municipality
                 const isInterMunicipal = uniqueMunis.length > 1;
 
-                if (isInterMunicipal) {
-                    // Inter-municipal trips: highway vehicles (Jeepney, Bus) have provincial LTFRB guides; Tricycle handles boundary routes
-                    optionsList = [
-                        { val: 'jeepney', name: 'Modern Jeepney', icon: 'fa-bus', available: true },
-                        { val: 'private_bus', name: 'Aircon Bus', icon: 'fa-bus-simple', available: true },
-                        { val: 'tricycle', name: 'Tricycle', icon: 'fa-motorcycle', available: true }
-                    ];
-                } else {
-                    // Single municipality trip: check imported fare guides for this municipality
-                    const destMuni = uniqueMunis.length === 1 ? uniqueMunis[0] : '';
-                    const cleanMuni = destMuni.replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim();
-                    const muniKey = cleanMuni.toLowerCase().replace(/[^a-z0-9]/g, '_');
-                    const muniRaw = cleanMuni.toLowerCase();
+                const destMuni = uniqueMunis.length === 1 ? uniqueMunis[0] : '';
+                const cleanMuni = destMuni.replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim();
+                const muniKey = cleanMuni.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const muniRaw = cleanMuni.toLowerCase();
 
-                    let activeTypes = [];
-                    if (muniKey && window.fareData?.active_vehicles_by_municipality?.[muniKey]) {
-                        activeTypes = window.fareData.active_vehicles_by_municipality[muniKey];
-                    } else if (muniRaw && window.fareData?.active_vehicles_by_municipality?.[muniRaw]) {
-                        activeTypes = window.fareData.active_vehicles_by_municipality[muniRaw];
-                    } else if (muniKey && window.fareData?.by_municipality?.[muniKey]) {
-                        activeTypes = Object.keys(window.fareData.by_municipality[muniKey]);
-                    } else if (muniRaw && window.fareData?.by_municipality?.[muniRaw]) {
-                        activeTypes = Object.keys(window.fareData.by_municipality[muniRaw]);
-                    }
+                let activeTypes = [];
+                if (muniKey && window.fareData?.active_vehicles_by_municipality?.[muniKey]) {
+                    activeTypes = window.fareData.active_vehicles_by_municipality[muniKey];
+                } else if (muniRaw && window.fareData?.active_vehicles_by_municipality?.[muniRaw]) {
+                    activeTypes = window.fareData.active_vehicles_by_municipality[muniRaw];
+                } else if (muniKey && window.fareData?.by_municipality?.[muniKey]) {
+                    activeTypes = Object.keys(window.fareData.by_municipality[muniKey]);
+                } else if (muniRaw && window.fareData?.by_municipality?.[muniRaw]) {
+                    activeTypes = Object.keys(window.fareData.by_municipality[muniRaw]);
+                }
 
-                    const activeLower = activeTypes.map(t => String(t).toLowerCase());
+                const activeLower = activeTypes.map(t => String(t).toLowerCase());
+                const noDraft = uniqueMunis.length === 0;
 
-                    // If no municipality selected yet (e.g. empty draft), default all to available
-                    const noDraft = uniqueMunis.length === 0;
+                const hasMpuj = noDraft || isInterMunicipal || activeLower.some(t => t.includes('mpuj') || t.includes('modern')) || !!window.fareData?.mpuj;
+                const hasTpuj = noDraft || isInterMunicipal || activeLower.some(t => t.includes('tpuj') || t.includes('jeep') || t.includes('traditional')) || !!window.fareData?.tpuj;
+                const hasPubAircon = noDraft || isInterMunicipal || activeLower.some(t => t.includes('aircon') || t.includes('pub_aircon')) || !!window.fareData?.pub_aircon;
+                const hasPubOrdinary = noDraft || isInterMunicipal || activeLower.some(t => t.includes('ordinary') || t.includes('regular') || t.includes('pub_ordinary')) || !!window.fareData?.pub_ordinary;
+                const hasTrike = noDraft || activeLower.some(t => t.includes('tri') || t.includes('pedicab')) || !!window.fareData?.by_municipality?.[muniKey]?.tricycle || !!window.fareData?.tricycle;
 
-                    const hasTrike = noDraft || activeLower.some(t => t.includes('tri') || t.includes('pedicab')) || !!window.fareData?.by_municipality?.[muniKey]?.tricycle;
-                    const hasJeep = noDraft || activeLower.some(t => t.includes('jeep') || t.includes('mpuj') || t.includes('puj')) || !!window.fareData?.by_municipality?.[muniKey]?.jeepney;
-                    const hasBus = noDraft || activeLower.some(t => t.includes('bus') || t.includes('pub')) || !!window.fareData?.by_municipality?.[muniKey]?.bus;
+                optionsList = [
+                    { val: 'mpuj', name: 'Modern Jeepney (MPUJ)', icon: 'fa-van-shuttle', available: hasMpuj },
+                    { val: 'tpuj', name: 'Traditional Jeepney (TPUJ)', icon: 'fa-van-shuttle', available: hasTpuj },
+                    { val: 'pub_aircon', name: 'Aircon Bus (PUB Aircon)', icon: 'fa-bus', available: hasPubAircon },
+                    { val: 'pub_ordinary', name: 'Ordinary Bus (PUB Regular)', icon: 'fa-bus-simple', available: hasPubOrdinary },
+                    { val: 'tricycle', name: 'Tricycle', icon: 'fa-motorcycle', available: hasTrike }
+                ];
 
-                    optionsList = [
-                        { val: 'jeepney', name: 'Modern Jeepney', icon: 'fa-bus', available: hasJeep },
-                        { val: 'private_bus', name: 'Aircon Bus', icon: 'fa-bus-simple', available: hasBus },
-                        { val: 'tricycle', name: 'Tricycle', icon: 'fa-motorcycle', available: hasTrike }
-                    ];
-
-                    // Also include any other imported public vehicle types (e.g. UV Express / Mini Bus)
-                    activeLower.forEach(vType => {
-                        if ((vType.includes('van') || vType.includes('uve')) && !optionsList.some(o => o.val === 'van')) {
-                            optionsList.push({ val: 'van', name: 'UV Express / Van', icon: 'fa-shuttle-van', available: true });
-                        } else if (vType.includes('mini') && !optionsList.some(o => o.val === 'mini_bus')) {
-                            optionsList.push({ val: 'mini_bus', name: 'Mini Bus', icon: 'fa-bus-simple', available: true });
-                        }
-                    });
+                if (activeLower.some(t => t.includes('van') || t.includes('uve')) || window.fareData?.uve) {
+                    optionsList.push({ val: 'uve', name: 'UV Express / Van', icon: 'fa-shuttle-van', available: true });
                 }
             }
 
@@ -3055,7 +3076,12 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 return bAvail - aAvail;
             });
 
-            const currentSelected = (document.getElementById('trip-transport').value || '').split(',').filter(Boolean);
+            let currentSelected = (document.getElementById('trip-transport').value || '').split(',').filter(Boolean);
+            currentSelected = currentSelected.map(v => {
+                if (v === 'jeepney') return 'mpuj';
+                if (v === 'private_bus' || v === 'bus') return 'pub_aircon';
+                return v;
+            });
 
             // Clean trip-transport to drop any vehicle that is now unavailable
             const availKeys = unique.filter(o => o.available !== false).map(o => o.val);

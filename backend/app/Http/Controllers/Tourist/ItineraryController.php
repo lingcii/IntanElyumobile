@@ -23,7 +23,7 @@ class ItineraryController extends Controller
 
         $itineraries = Itinerary::where('user_id', $user->id)
             ->with([
-                'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,classification_status,municipality_id',
+                'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,municipality_id',
                 'items.destination.municipality:id,name'
             ])
             ->orderByDesc('created_at')
@@ -46,7 +46,12 @@ class ItineraryController extends Controller
                             'image'        => $imageUrl,
                             'latitude'     => $dest->latitude,
                             'longitude'    => $dest->longitude,
-                            'entrance_fee' => $dest->entrance_fee,
+                            'entrance_fee' => (float) ($dest->entrance_fee ?? 0),
+                            'adult_fee'    => (float) ($dest->adult_fee ?? 0),
+                            'kids_fee'     => (float) ($dest->kids_fee ?? 0),
+                            'pwd_fee'      => (float) ($dest->pwd_fee ?? 0),
+                            'senior_citizen_fee' => (float) ($dest->senior_citizen_fee ?? 0),
+                            'environmental_fee'  => (float) ($dest->environmental_fee ?? 0),
                             'classification_status' => $dest->classification_status,
                             'municipality' => $dest->municipality?->name,
                         ] : null,
@@ -78,7 +83,7 @@ class ItineraryController extends Controller
         $user = $request->user();
         $itinerary = Itinerary::where('user_id', $user->id)
             ->with([
-                'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,classification_status,municipality_id',
+                'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,municipality_id',
                 'items.destination.municipality:id,name'
             ])
             ->findOrFail($id);
@@ -99,7 +104,12 @@ class ItineraryController extends Controller
                     'image'        => $imageUrl,
                     'latitude'     => $dest->latitude,
                     'longitude'    => $dest->longitude,
-                    'entrance_fee' => $dest->entrance_fee,
+                    'entrance_fee' => (float) ($dest->entrance_fee ?? 0),
+                    'adult_fee'    => (float) ($dest->adult_fee ?? 0),
+                    'kids_fee'     => (float) ($dest->kids_fee ?? 0),
+                    'pwd_fee'      => (float) ($dest->pwd_fee ?? 0),
+                    'senior_citizen_fee' => (float) ($dest->senior_citizen_fee ?? 0),
+                    'environmental_fee'  => (float) ($dest->environmental_fee ?? 0),
                     'classification_status' => $dest->classification_status,
                     'municipality' => $dest->municipality?->name,
                 ] : null,
@@ -173,7 +183,7 @@ class ItineraryController extends Controller
             return $itinerary;
         });
 
-        $itinerary->load(['items.destination:id,name,photo_url,latitude,longitude,entrance_fee,classification_status']);
+        $itinerary->load(['items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status']);
         $items = $itinerary->items->map(function ($item) {
             $dest = $item->destination;
             $imageUrl = $dest ? $dest->photo_url : null;
@@ -190,7 +200,12 @@ class ItineraryController extends Controller
                     'image'        => $imageUrl,
                     'latitude'     => $dest->latitude,
                     'longitude'    => $dest->longitude,
-                    'entrance_fee' => $dest->entrance_fee,
+                    'entrance_fee' => (float) ($dest->entrance_fee ?? 0),
+                    'adult_fee'    => (float) ($dest->adult_fee ?? 0),
+                    'kids_fee'     => (float) ($dest->kids_fee ?? 0),
+                    'pwd_fee'      => (float) ($dest->pwd_fee ?? 0),
+                    'senior_citizen_fee' => (float) ($dest->senior_citizen_fee ?? 0),
+                    'environmental_fee'  => (float) ($dest->environmental_fee ?? 0),
                     'classification_status' => $dest->classification_status,
                 ] : null,
             ];
@@ -372,7 +387,7 @@ class ItineraryController extends Controller
         return response()->json([
             'message'    => 'Trip updated successfully!',
             'itinerary'  => $itinerary->fresh()->load([
-                'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,classification_status,municipality_id',
+                'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,municipality_id',
                 'items.destination.municipality:id,name'
             ]),
         ]);

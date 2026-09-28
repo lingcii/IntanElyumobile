@@ -30,29 +30,56 @@ if (is_dir($imgDir)) {
         if (!window.fareData) return null;
         
         const dKm = parseFloat(distanceKm) || 0;
-        const normType = (vehicleType || '').toString().toLowerCase().trim();
+        const rawType = (vehicleType || '').toString().toLowerCase().trim();
+        const normType = rawType.replace(/[- ]/g, '_');
         
-        // For own_car and taxi — not in fare matrix table, use formula fallback
-        if (normType === 'own_car' || normType === 'taxi' || normType === 'own car') return null;
+        // Private formula-based vehicles
+        if (['own_car', 'taxi', 'motorcycle', 'car'].includes(normType)) return null;
 
         let fareEntry = null;
 
-        if (normType === 'tricycle' || normType === 'trike') {
-            const muniKey = municipality ? municipality.toLowerCase().trim().replace(/[^a-z0-9]/g, '_') : 'san_juan';
-            const muniRaw = municipality ? municipality.toLowerCase().trim() : 'san juan';
-            
-            if (window.fareData.by_municipality) {
-                fareEntry = window.fareData.by_municipality[muniKey] || window.fareData.by_municipality[muniRaw];
-            }
-            if (!fareEntry) {
-                fareEntry = window.fareData['san_juan'] || window.fareData['san juan'] || window.fareData['tricycle'];
-            }
-        } else if (['jeepney', 'puj_ordinary', 'puj_aircon', 'lutrampco', 'mini_bus', 'van', 'uve'].includes(normType)) {
-            fareEntry = window.fareData['jeepney'] || window.fareData['lutrampco'] || window.fareData['mini_bus'] || window.fareData['van'];
-        } else if (['bus', 'private_bus', 'pub_aircon', 'pub_ordinary'].includes(normType)) {
-            fareEntry = window.fareData['private_bus'] || window.fareData['bus'];
-        } else {
+        // 1. Direct key match in top-level window.fareData
+        if (window.fareData[normType]) {
             fareEntry = window.fareData[normType];
+        }
+
+        // 2. Municipality lookup for local / inter-municipal guides
+        const cleanMuni = municipality ? municipality.toString().trim().replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '') : 'san_juan';
+        const muniKey = cleanMuni.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        const muniRaw = cleanMuni.toLowerCase();
+
+        if (!fareEntry && window.fareData.by_municipality) {
+            const muniObj = window.fareData.by_municipality[muniKey] || window.fareData.by_municipality[muniRaw];
+            if (muniObj) {
+                if (muniObj[normType]) {
+                    fareEntry = muniObj[normType];
+                } else if ((normType === 'tricycle' || normType === 'trike') && muniObj.tricycle) {
+                    fareEntry = muniObj.tricycle;
+                } else if ((normType === 'tricycle' || normType === 'trike') && muniObj.default) {
+                    fareEntry = muniObj.default;
+                }
+            }
+        }
+
+        // 3. Fallbacks and alias matching
+        if (!fareEntry) {
+            if (normType === 'pub_aircon' || normType.includes('aircon')) {
+                fareEntry = window.fareData['pub_aircon'] || window.fareData['bus'] || window.fareData['private_bus'];
+            } else if (normType === 'pub_ordinary' || normType === 'pub_regular' || normType.includes('ordinary') || normType.includes('regular')) {
+                fareEntry = window.fareData['pub_ordinary'] || window.fareData['pub_regular'] || window.fareData['bus'];
+            } else if (normType === 'mpuj' || normType.includes('mpuj') || normType.includes('modern')) {
+                fareEntry = window.fareData['mpuj'] || window.fareData['jeepney'] || window.fareData['lutrampco'];
+            } else if (normType === 'tpuj' || normType.includes('tpuj') || normType.includes('traditional')) {
+                fareEntry = window.fareData['tpuj'] || window.fareData['jeepney'] || window.fareData['mpuj'];
+            } else if (normType === 'tricycle' || normType === 'trike') {
+                fareEntry = window.fareData['tricycle'] || window.fareData['san_juan'] || window.fareData['san juan'];
+            } else if (normType === 'bus' || normType === 'private_bus') {
+                fareEntry = window.fareData['pub_aircon'] || window.fareData['pub_ordinary'] || window.fareData['bus'];
+            } else if (normType === 'jeepney' || normType === 'lutrampco') {
+                fareEntry = window.fareData['mpuj'] || window.fareData['tpuj'] || window.fareData['jeepney'];
+            } else if (normType === 'uve' || normType === 'van' || normType === 'mini_bus') {
+                fareEntry = window.fareData['uve'] || window.fareData['van'] || window.fareData['mini_bus'];
+            }
         }
 
         if (!fareEntry || !fareEntry.rates) return null;
@@ -252,6 +279,24 @@ if (is_dir($imgDir)) {
         <div class="sheet-drag-handle" id="place-drag-handle"><span class="sheet-drag-dot"></span></div>
         <div class="draggable-content" id="place-details-scroll">
 
+            <!-- Destination Sheet Top Header -->
+            <div class="dest-sheet-top-header"
+                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding: 2px 8px;">
+                <div>
+                    <h3
+                        style="margin:0; font-size:17px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-map-location-dot" style="color:#00f2fe;"></i> Destination Details
+                    </h3>
+                    <p id="dest-sheet-subtext" style="margin:3px 0 0 0; font-size:12px; color:#ffffff; opacity:0.95;">
+                        Discover fees, operating hours & travel guides
+                    </p>
+                </div>
+                <button type="button" class="dest-sheet-close-btn" onclick="window.closeSheet()" aria-label="Close"
+                    style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:background 0.2s;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
             <!-- Destination Header -->
             <div class="dest-sheet-header" id="sheet-title-frame">
                 <div class="dest-sheet-header-main">
@@ -261,9 +306,6 @@ if (is_dir($imgDir)) {
                         <span id="sheet-location">Location details</span>
                     </p>
                 </div>
-                <button type="button" class="dest-sheet-close-btn" onclick="window.closeSheet()" aria-label="Close">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
             </div>
 
             <!-- Slidable Image Banner Carousel -->
@@ -322,21 +364,28 @@ if (is_dir($imgDir)) {
 
             <!-- Site Fee Summary Banner -->
             <div id="sheet-fees-card" class="dest-fees-card"
-                style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; border-radius:16px; padding:10px 14px; margin-bottom:10px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <div class="dest-fee-icon-box">
-                        <i class="fa-solid fa-ticket"></i>
+                style="display:flex; flex-direction:column; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; border-radius:16px; padding:12px 14px; margin-bottom:10px; box-shadow:0 4px 16px rgba(10,25,60,0.15);">
+                <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="dest-fee-icon-box">
+                            <i class="fa-solid fa-ticket"></i>
+                        </div>
+                        <div style="display:flex; flex-direction:column;">
+                            <span
+                                style="font-size:10px; font-weight:700; color:#e2e8f0; text-transform:uppercase; letter-spacing:0.5px;">Site
+                                Fees</span>
+                            <span id="sheet-fee-main-text" style="font-size:13px; font-weight:800; color:#ffffff;">Free
+                                Admission</span>
+                        </div>
                     </div>
-                    <div style="display:flex; flex-direction:column;">
-                        <span
-                            style="font-size:10px; font-weight:700; color:#e2e8f0; text-transform:uppercase; letter-spacing:0.5px;">Site
-                            Fees</span>
-                        <span id="sheet-fee-main-text" style="font-size:13px; font-weight:800; color:#ffffff;">Free
-                            Admission</span>
+                    <div id="sheet-fee-breakdown-tags" style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                        <!-- Injected via JS: e.g. Entrance: ₱50 | Environmental: ₱20 -->
                     </div>
                 </div>
-                <div id="sheet-fee-breakdown-tags" style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
-                    <!-- Injected via JS: e.g. Entrance: ₱50 | Environmental: ₱20 -->
+
+                <!-- Fee Options Breakdown Grid (Adult, Child, PWD, Senior Citizen, Envi Fee) -->
+                <div id="sheet-fee-options-container" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.12); display:flex; flex-direction:column; gap:6px; width:100%;">
+                    <!-- Dynamically populated in JavaScript with Adult, Child, PWD, Senior Citizen, Envi Fee -->
                 </div>
             </div>
 
@@ -3120,31 +3169,99 @@ if (is_dir($imgDir)) {
                 }
             }
 
-            // 2. Fees & Pricing Breakdown
+            // 2. Fees & Pricing Breakdown (Adult, Child, PWD, Senior Citizen, Environmental Fee)
             const feeMainText = document.getElementById('sheet-fee-main-text');
             const feeTags = document.getElementById('sheet-fee-breakdown-tags');
+            const feeOptionsContainer = document.getElementById('sheet-fee-options-container');
+
             if (feeMainText && feeTags) {
                 const entranceFee = parseFloat(locationData.entrance_fee || 0);
                 const environmentalFee = parseFloat(locationData.environmental_fee || 0);
+                const adultFee = parseFloat(locationData.adult_fee || 0);
+                const kidsFee = parseFloat(locationData.kids_fee || 0);
+                const pwdFee = parseFloat(locationData.pwd_fee || 0);
+                const seniorCitizenFee = parseFloat(locationData.senior_citizen_fee || 0);
+
                 const feeTypes = Array.isArray(locationData.fee_types) ? locationData.fee_types : [];
-                const hasEntrance = feeTypes.includes('entrance') || feeTypes.includes('Entrance Fee') || entranceFee > 0;
+                const hasEntrance = feeTypes.includes('entrance') || feeTypes.includes('Entrance Fee') || entranceFee > 0 || adultFee > 0;
                 const hasEnvironmental = feeTypes.includes('environmental') || feeTypes.includes('Environmental Fee') || environmentalFee > 0;
 
+                // Determine effective rates
+                const effectiveAdult = adultFee > 0 ? adultFee : entranceFee;
+                const effectiveChild = kidsFee > 0 ? kidsFee : (entranceFee > 0 ? entranceFee : 0);
+                const effectivePwd = pwdFee > 0 ? pwdFee : (entranceFee > 0 ? (entranceFee * 0.8) : 0);
+                const effectiveSenior = seniorCitizenFee > 0 ? seniorCitizenFee : (entranceFee > 0 ? (entranceFee * 0.8) : 0);
+
+                const hasAnyFees = effectiveAdult > 0 || effectiveChild > 0 || effectivePwd > 0 || effectiveSenior > 0 || (hasEnvironmental && environmentalFee > 0);
+
                 let tagsHtml = '';
-                if (hasEntrance && entranceFee > 0) {
-                    tagsHtml += `<span style="font-size:11px; font-weight:800; background:rgba(56,189,248,0.22); color:#7dd3fc; border:none !important; outline:none !important; padding:4px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-ticket" style="font-size:10px;"></i> Entrance: ₱${entranceFee.toFixed(2)}</span>`;
+                if (hasEntrance && effectiveAdult > 0) {
+                    tagsHtml += `<span style="font-size:11px; font-weight:800; background:rgba(56,189,248,0.22); color:#7dd3fc; border:none !important; outline:none !important; padding:4px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-ticket" style="font-size:10px;"></i> Entrance: ₱${effectiveAdult.toFixed(2)}</span>`;
                 }
                 if (hasEnvironmental && environmentalFee > 0) {
                     tagsHtml += `<span style="font-size:11px; font-weight:800; background:rgba(52,211,153,0.22); color:#6ee7b7; border:none !important; outline:none !important; padding:4px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-leaf" style="font-size:10px;"></i> Envi: ₱${environmentalFee.toFixed(2)}</span>`;
                 }
 
-                if (tagsHtml !== '') {
-                    const total = (hasEntrance ? entranceFee : 0) + (hasEnvironmental ? environmentalFee : 0);
-                    feeMainText.textContent = total > 0 ? `₱${total.toFixed(2)} Total Fees` : 'Free Admission';
-                    feeTags.innerHTML = tagsHtml;
+                if (hasAnyFees) {
+                    const baseTotal = (hasEntrance ? effectiveAdult : 0) + (hasEnvironmental ? environmentalFee : 0);
+                    feeMainText.textContent = baseTotal > 0 ? `₱${baseTotal.toFixed(2)} Base Total` : 'Tiered Rates';
+                    feeTags.innerHTML = tagsHtml !== '' ? tagsHtml : `<span style="font-size:11px; font-weight:800; background:rgba(56,189,248,0.22); color:#7dd3fc; border:none !important; outline:none !important; padding:4px 9px; border-radius:8px;">Special Pricing</span>`;
                 } else {
                     feeMainText.textContent = 'Free Admission';
                     feeTags.innerHTML = `<span style="font-size:11px; font-weight:800; background:rgba(16,185,129,0.22); color:#6ee7b7; border:none !important; outline:none !important; padding:4px 9px; border-radius:8px;">No Entrance Fee</span>`;
+                }
+
+                if (feeOptionsContainer) {
+                    if (hasAnyFees) {
+                        feeOptionsContainer.style.display = 'flex';
+                        feeOptionsContainer.innerHTML = `
+                            <div style="font-size:10.5px; font-weight:800; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; display:flex; align-items:center; gap:5px;">
+                                <i class="fa-solid fa-tags" style="color:#00f2fe; font-size:10px;"></i> Fee Options & Categories
+                            </div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; width:100%;">
+                                <div style="background:rgba(255,255,255,0.08); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
+                                    <span style="font-size:11px; font-weight:700; color:#e2e8f0; display:flex; align-items:center; gap:6px;">
+                                        <i class="fa-solid fa-user" style="color:#38bdf8; font-size:11px;"></i> Adult
+                                    </span>
+                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${effectiveAdult > 0 ? `₱${effectiveAdult.toFixed(2)}` : 'Free'}</span>
+                                </div>
+                                <div style="background:rgba(255,255,255,0.08); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
+                                    <span style="font-size:11px; font-weight:700; color:#e2e8f0; display:flex; align-items:center; gap:6px;">
+                                        <i class="fa-solid fa-child" style="color:#fbbf24; font-size:11px;"></i> Child
+                                    </span>
+                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${effectiveChild > 0 ? `₱${effectiveChild.toFixed(2)}` : 'Free'}</span>
+                                </div>
+                                <div style="background:rgba(255,255,255,0.08); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
+                                    <span style="font-size:11px; font-weight:700; color:#e2e8f0; display:flex; align-items:center; gap:6px;">
+                                        <i class="fa-solid fa-wheelchair" style="color:#a78bfa; font-size:11px;"></i> PWD
+                                    </span>
+                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${effectivePwd > 0 ? `₱${effectivePwd.toFixed(2)}` : 'Free'}</span>
+                                </div>
+                                <div style="background:rgba(255,255,255,0.08); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
+                                    <span style="font-size:11px; font-weight:700; color:#e2e8f0; display:flex; align-items:center; gap:6px;">
+                                        <i class="fa-solid fa-person-cane" style="color:#f472b6; font-size:11px;"></i> Senior Citizen
+                                    </span>
+                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${effectiveSenior > 0 ? `₱${effectiveSenior.toFixed(2)}` : 'Free'}</span>
+                                </div>
+                            </div>
+                            ${(hasEnvironmental && environmentalFee > 0) ? `
+                                <div style="background:rgba(52,211,153,0.15); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between; margin-top:2px;">
+                                    <span style="font-size:11px; font-weight:700; color:#6ee7b7; display:flex; align-items:center; gap:6px;">
+                                        <i class="fa-solid fa-leaf" style="color:#34d399; font-size:11px;"></i> Environmental Fee
+                                    </span>
+                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">₱${environmentalFee.toFixed(2)}</span>
+                                </div>
+                            ` : ''}
+                        `;
+                    } else {
+                        feeOptionsContainer.style.display = 'flex';
+                        feeOptionsContainer.innerHTML = `
+                            <div style="background:rgba(16,185,129,0.12); border-radius:10px; padding:8px 12px; display:flex; align-items:center; justify-content:center; gap:8px;">
+                                <i class="fa-solid fa-circle-check" style="color:#34d399; font-size:13px;"></i>
+                                <span style="font-size:11.5px; font-weight:700; color:#6ee7b7;">Free admission for Adults, Children, PWD & Senior Citizens</span>
+                            </div>
+                        `;
+                    }
                 }
             }
 
@@ -3458,9 +3575,8 @@ if (is_dir($imgDir)) {
             </div>`;
             }
 
-            const createCard = (name, icon, color, desc, baseFare, schedule) => {
+            const createCard = (name, icon, color, desc, baseFare, schedule, isPublic = true) => {
                 const finalFare = Math.round(baseFare * peakSurcharge);
-                const isPublic = (['Tricycle', 'Jeepney', 'Bus'].includes(name));
                 return `
             <div onclick="toggleVehicle(this)"
                  data-vehicle='${JSON.stringify({ name, icon, color, desc, fare: finalFare })}'
@@ -3486,56 +3602,47 @@ if (is_dir($imgDir)) {
             const targetMuni = destData.municipality || 'San Juan';
             const dbFare = (type) => window.getFareFromMatrix(type, distanceKm, targetMuni);
 
-            const getDbVehicle = (searchName) => {
-                if (window.vehicleData && Array.isArray(window.vehicleData)) {
-                    return window.vehicleData.find(v => v.name.toLowerCase().includes(searchName.toLowerCase()) || searchName.toLowerCase().includes(v.name.toLowerCase()));
-                }
-                return null;
-            };
-
-            const trikeInfo = getDbVehicle('Tricycle');
-            const jeepInfo = getDbVehicle('Jeepney');
-            const busInfo = getDbVehicle('Bus');
-            const taxiInfo = getDbVehicle('Taxi');
-            const carInfo = getDbVehicle('Private Car') || getDbVehicle('Car');
-
-            const trikeIcon = trikeInfo?.icon || 'fa-motorcycle';
-            const jeepIcon = jeepInfo?.icon || 'fa-bus';
-            const busIcon = busInfo?.icon || 'fa-bus-alt';
-            const taxiIcon = taxiInfo?.icon || 'fa-taxi';
-            const carIcon = carInfo?.icon || 'fa-car';
-
-            const trikeDesc = trikeInfo?.description || 'Fits narrow roads, best for short trips';
-            const jeepDesc = jeepInfo?.description || 'Main roads / highways only';
-            const busDesc = busInfo?.description || 'Main roads / highways — best for long distance';
-            const taxiDesc = taxiInfo?.description || 'Main roads / highways — metered fare';
-            const carDesc = carInfo?.description || 'Cannot go on tight/narrow roads';
-
-            const carKml = carInfo?.fuel_efficiency_kml ? parseFloat(carInfo.fuel_efficiency_kml) : 12.0;
+            const carKml = 12.0;
             const currentFuelPrice = window.fuelPrice || 65.0;
 
             if (tightRoads) {
-                const trikeFare = dbFare('Tricycle') ?? Math.round(16.32 + (Math.max(0, distanceKm - 1.7) * 2.0));
-                faresHtml += createCard('Tricycle', trikeIcon, 'var(--secondary-color)', trikeInfo?.description || 'Only vehicle that fits narrow/tight roads', trikeFare, '24/7 (Night Rates 10PM+)');
+                const trikeFare = dbFare('tricycle') ?? Math.round(16.32 + (Math.max(0, distanceKm - 1.7) * 2.0));
+                faresHtml += createCard('Tricycle', 'fa-motorcycle', 'var(--secondary-color)', 'Only vehicle that fits narrow/tight roads', trikeFare, '24/7 (Night Rates 10PM+)', true);
             } else {
-                if (distanceKm <= 10) {
-                    const trikeFare = dbFare('Tricycle') ?? Math.round(16.32 + (Math.max(0, distanceKm - 1.7) * 2.0));
-                    faresHtml += createCard('Tricycle', trikeIcon, 'var(--secondary-color)', trikeDesc, trikeFare, '24/7 (Night Rates 10PM+)');
+                // Public Vehicles - Official LTFRB & Municipal Fare Matrices
+                if (distanceKm <= 12) {
+                    const trikeFare = dbFare('tricycle') ?? Math.round(16.32 + (Math.max(0, distanceKm - 1.7) * 2.0));
+                    faresHtml += createCard('Tricycle', 'fa-motorcycle', 'var(--secondary-color)', 'Fits narrow roads, best for local transfers', trikeFare, '24/7 (Night Rates 10PM+)', true);
                 }
+
+                // MPUJ (Modernized Jeepney) - Base ₱15
+                const mpujFare = dbFare('mpuj') ?? Math.round(15 + (Math.max(0, distanceKm - 4) * 2.2));
+                faresHtml += createCard('MPUJ (Modern Jeepney)', 'fa-van-shuttle', '#10b981', 'Aircon modern public utility jeepney', mpujFare, '5:30 AM - 9:00 PM', true);
+
+                // TPUJ (Traditional Jeepney)
+                if (distanceKm <= 35) {
+                    const tpujFare = dbFare('tpuj') ?? dbFare('jeepney') ?? Math.round(13 + (Math.max(0, distanceKm - 4) * 1.8));
+                    faresHtml += createCard('TPUJ (Traditional Jeepney)', 'fa-van-shuttle', '#f59e0b', 'Traditional open-air jeepney route', tpujFare, '6:00 AM - 8:30 PM', true);
+                }
+
+                // PUB Aircon (Aircon Bus) - Base ₱10.50
+                const pubAirconFare = dbFare('pub_aircon') ?? dbFare('bus') ?? Math.round(10.50 + (Math.max(0, distanceKm - 5) * 2.2));
+                faresHtml += createCard('PUB Aircon (Aircon Bus)', 'fa-bus', '#38bdf8', 'Aircon provincial bus across La Union', pubAirconFare, '4:00 AM - 11:00 PM', true);
+
+                // PUB Ordinary (Regular Bus) - Base ₱11.00
+                const pubOrdinaryFare = dbFare('pub_ordinary') ?? Math.round(11.00 + (Math.max(0, distanceKm - 5) * 2.0));
+                faresHtml += createCard('PUB Ordinary (Regular Bus)', 'fa-bus-simple', '#06b6d4', 'Standard regular provincial commuter bus', pubOrdinaryFare, '4:00 AM - 10:00 PM', true);
+
+                // Private Vehicles
                 if (distanceKm >= 2) {
                     const taxiFare = Math.round(40 + (distanceKm * 13));
-                    faresHtml += createCard('Taxi', taxiIcon, '#f97316', taxiDesc, taxiFare, '24/7 Service');
-                }
-                if (distanceKm >= 3 && distanceKm <= 35) {
-                    const jeepFare = dbFare('Jeepney') ?? Math.round(13 + (Math.max(0, distanceKm - 4) * 1.8));
-                    faresHtml += createCard('Jeepney', jeepIcon, '#f59e0b', jeepDesc, jeepFare, '6:00 AM - 8:00 PM');
-                }
-                if (distanceKm > 10) {
-                    const busFare = dbFare('Bus') ?? Math.round(15 + (Math.max(0, distanceKm - 5) * 2.2));
-                    faresHtml += createCard('Bus', busIcon, '#ef4444', busDesc, busFare, '4:00 AM - 11:00 PM');
+                    faresHtml += createCard('Taxi', 'fa-taxi', '#f97316', 'Main roads / highways — metered fare', taxiFare, '24/7 Service', false);
                 }
                 const ownCarFare = Math.max(10, Math.round((distanceKm / carKml) * currentFuelPrice));
-                faresHtml += createCard('Own Car (Fuel Est.)', carIcon, '#34d399', carDesc, ownCarFare, 'Anytime');
+                faresHtml += createCard('Own Car (Fuel Est.)', 'fa-car', '#34d399', 'Private automobile fuel consumption estimate', ownCarFare, 'Anytime', false);
+
+                const motorcycleFare = Math.max(5, Math.round((distanceKm / 35.0) * currentFuelPrice));
+                faresHtml += createCard('Motorcycle (Fuel Est.)', 'fa-motorcycle', '#a855f7', 'Motorbike / scooter fuel consumption estimate', motorcycleFare, 'Anytime', false);
             }
             document.getElementById('fare-list').innerHTML = faresHtml;
             setupVehicleSelection();

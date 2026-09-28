@@ -16,16 +16,23 @@ class CostEstimationService
      */
     public function estimateFuelCost(float $distanceKm, string $vehicleType, ?float $customFuelPrice = null, ?float $customFuelEfficiency = null): float
     {
-        // 1. Fetch real-time local fuel price from transportation_routes table (fallback to system_settings)
+        // 1. Fetch real-time local fuel price from system_settings or transportation_routes table
         $fuelPrice = $customFuelPrice;
         if ($fuelPrice === null) {
-            $routeFuelPrice = DB::table('transportation_routes')->whereNotNull('fuel_price')->value('fuel_price');
-            if ($routeFuelPrice !== null) {
-                $fuelPrice = (float) $routeFuelPrice;
-            } else {
+            $fuelPrice = 65.00;
+            try {
                 $fuelPriceSetting = DB::table('system_settings')->where('key', 'fuel_price')->value('value');
-                $fuelPrice = $fuelPriceSetting !== null ? (float) $fuelPriceSetting : 65.00;
-            }
+                if ($fuelPriceSetting !== null) {
+                    $fuelPrice = (float) $fuelPriceSetting;
+                }
+            } catch (\Throwable $e) {}
+
+            try {
+                $routeFuelPrice = DB::table('transportation_routes')->whereNotNull('fuel_price')->value('fuel_price');
+                if ($routeFuelPrice !== null) {
+                    $fuelPrice = (float) $routeFuelPrice;
+                }
+            } catch (\Throwable $e) {}
         }
 
         // 2. Fetch vehicle consumption rate (efficiency in km/L)
@@ -95,14 +102,42 @@ class CostEstimationService
                     ->where('vehicle_type', 'Tricycle')
                     ->first();
             }
-        } elseif (in_array($normType, ['jeepney', 'puj_ordinary', 'puj_aircon', 'lutrampco', 'mini_bus', 'van', 'uve'])) {
+        } elseif (in_array($normType, ['pub_aircon'])) {
             $guide = FareGuide::where('status', 'active')
-                ->whereIn('vehicle_type', ['MPUJ', 'PUJ_Ordinary', 'PUJ_Aircon', 'Jeepney'])
+                ->where('vehicle_type', 'PUB_Aircon')
                 ->latest('effective_date')
-                ->first();
-        } elseif (in_array($normType, ['bus', 'private_bus', 'pub_aircon', 'pub_ordinary'])) {
+                ->first()
+                ?? FareGuide::where('status', 'active')->whereIn('vehicle_type', ['PUB_Aircon', 'Bus'])->first();
+        } elseif (in_array($normType, ['pub_ordinary', 'pub_regular'])) {
+            $guide = FareGuide::where('status', 'active')
+                ->whereIn('vehicle_type', ['PUB_Ordinary', 'PUB_Regular'])
+                ->latest('effective_date')
+                ->first()
+                ?? FareGuide::where('status', 'active')->whereIn('vehicle_type', ['PUB_Ordinary', 'Bus'])->first();
+        } elseif (in_array($normType, ['bus', 'private_bus'])) {
             $guide = FareGuide::where('status', 'active')
                 ->whereIn('vehicle_type', ['PUB_Aircon', 'PUB_Ordinary', 'Bus'])
+                ->latest('effective_date')
+                ->first();
+        } elseif (in_array($normType, ['mpuj'])) {
+            $guide = FareGuide::where('status', 'active')
+                ->where('vehicle_type', 'MPUJ')
+                ->latest('effective_date')
+                ->first();
+        } elseif (in_array($normType, ['tpuj'])) {
+            $guide = FareGuide::where('status', 'active')
+                ->whereIn('vehicle_type', ['TPUJ', 'PUJ_Ordinary'])
+                ->latest('effective_date')
+                ->first();
+        } elseif (in_array($normType, ['uve', 'van', 'mini_bus'])) {
+            $guide = FareGuide::where('status', 'active')
+                ->whereIn('vehicle_type', ['UVE', 'UV Express', 'Van'])
+                ->latest('effective_date')
+                ->first()
+                ?? FareGuide::where('status', 'active')->whereIn('vehicle_type', ['MPUJ', 'PUJ_Ordinary'])->first();
+        } elseif (in_array($normType, ['jeepney', 'puj_ordinary', 'puj_aircon', 'lutrampco'])) {
+            $guide = FareGuide::where('status', 'active')
+                ->whereIn('vehicle_type', ['MPUJ', 'TPUJ', 'PUJ_Ordinary', 'PUJ_Aircon', 'Jeepney'])
                 ->latest('effective_date')
                 ->first();
         } else {
@@ -215,9 +250,11 @@ class CostEstimationService
             ];
         }
 
-        // 1. Calculate entrance fees of all spots and identify municipalities
+        // 1. Calculate entrance fees & environmental fees of all spots and identify municipalities
         $spots = TouristSpot::with('municipality')->whereIn('id', $destinationIds)->get();
         $entranceFees = (float) $spots->sum('entrance_fee');
+        $environmentalFees = (float) $spots->sum('environmental_fee');
+        $siteFeesTotal = $entranceFees + $environmentalFees;
 
         // Extract primary destination municipality (default to San Juan)
         $primaryMuni = $spots->first()?->municipality?->name ?? 'San Juan';
@@ -239,12 +276,15 @@ class CostEstimationService
         $modes = array_filter(explode(',', $transportModeString));
         foreach ($modes as $mode) {
             $mode = trim($mode);
-            if ($mode === 'own_car') {
+            $norm = strtolower($mode);
+            if ($norm === 'own_car' || $norm === 'car') {
                 $fuelCost += $this->estimateFuelCost($distanceKm, 'Private Car', $customFuelPrice, $customFuelEfficiency);
-            } elseif ($mode === 'taxi') {
+            } elseif ($norm === 'motorcycle') {
+                $fuelCost += $this->estimateFuelCost($distanceKm, 'Motorcycle', $customFuelPrice, 35.00);
+            } elseif ($norm === 'taxi') {
                 $transitFares += round(40.00 + ($distanceKm * 13.00), 2);
-            } elseif ($mode === 'private_bus') {
-                $transitFares += $this->estimateTransitFare($distanceKm, 'private_bus', $primaryMuni);
+            } elseif ($norm === 'private_bus') {
+                $transitFares += $this->estimateTransitFare($distanceKm, 'pub_aircon', $primaryMuni);
             } else {
                 $transitFares += $this->estimateTransitFare($distanceKm, $mode, $primaryMuni);
             }
@@ -254,9 +294,9 @@ class CostEstimationService
         $isPeak = $this->isPeakSeason($travelDate);
         $peakMultiplier = $customPeakMultiplier !== null ? (float)$customPeakMultiplier : ($isPeak ? 1.25 : 1.00);
 
-        $subtotal = $entranceFees + $transitFares + $fuelCost;
+        $subtotal = $siteFeesTotal + $transitFares + $fuelCost;
         $transitFaresSurged = $transitFares * $peakMultiplier;
-        $totalCost = $entranceFees + $transitFaresSurged + $fuelCost;
+        $totalCost = $siteFeesTotal + $transitFaresSurged + $fuelCost;
 
         $seasonNote = $isPeak 
             ? "🔥 Peak Season Surge Pricing Applied (+".round(($peakMultiplier - 1.0) * 100)."% on transit & high-demand travel during holidays/surfing season)."
@@ -264,6 +304,8 @@ class CostEstimationService
 
         return [
             'entrance_fees'      => round($entranceFees, 2),
+            'environmental_fees' => round($environmentalFees, 2),
+            'site_fees'          => round($siteFeesTotal, 2),
             'transit_fares'      => round($transitFaresSurged, 2),
             'base_transit_fares' => round($transitFares, 2),
             'fuel_cost'          => round($fuelCost, 2),
@@ -338,14 +380,22 @@ class CostEstimationService
     private function mapVehicleToDbName(string $frontendName): string
     {
         $map = [
-            'tricycle'    => 'Tricycle',
-            'jeepney'     => 'PUJ_Ordinary',
-            'lutrampco'   => 'PUB_Ordinary',
-            'mini_bus'    => 'PUJ_Aircon',
-            'private_bus' => 'PUB_Aircon',
-            'van'         => 'Van',
-            'taxi'        => 'Taxi',
-            'own_car'     => 'Private Car',
+            'tricycle'     => 'Tricycle',
+            'mpuj'         => 'MPUJ',
+            'tpuj'         => 'TPUJ',
+            'pub_aircon'   => 'PUB_Aircon',
+            'pub_ordinary' => 'PUB_Ordinary',
+            'pub_regular'  => 'PUB_Regular',
+            'jeepney'      => 'MPUJ',
+            'lutrampco'    => 'MPUJ',
+            'mini_bus'     => 'UVE',
+            'private_bus'  => 'PUB_Aircon',
+            'bus'          => 'PUB_Aircon',
+            'uve'          => 'UVE',
+            'van'          => 'Van',
+            'taxi'         => 'Taxi',
+            'motorcycle'   => 'Motorcycle',
+            'own_car'      => 'Private Car',
         ];
 
         return $map[strtolower($frontendName)] ?? $frontendName;

@@ -45,10 +45,21 @@ $backRoute = 'dashboard';
 #voucher-modal.active .voucher-card-anim { transform: scale(1) translateY(0) !important; opacity: 1 !important; }
 </style>
 <div id="voucher-modal" style="display:none; position:fixed; inset:0; z-index:10000; background:rgba(15,23,42,0.65); align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); opacity:0; transition:opacity 0.3s ease;">
-    <div class="voucher-card-anim" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline:none !important; border-radius:24px; padding:24px; width:100%; max-width:360px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; text-align:center; position:relative; box-sizing:border-box; transform:scale(0.86) translateY(20px); opacity:0; transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease; color: #ffffff !important;">
-        <button onclick="closeVoucherModal()" style="position:absolute; top:16px; right:16px; background:#ffffff !important; border:none !important; outline:none !important; border-radius:50%; width:32px; height:32px; color:#203f8d !important; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow: 0 2px 8px rgba(0,0,0,0.18);">
-            <i class="fa-solid fa-xmark" style="color:#203f8d !important;"></i>
-        </button>
+    <div class="voucher-card-anim" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline:none !important; border-radius:24px; padding:22px 20px; width:100%; max-width:360px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; text-align:center; position:relative; box-sizing:border-box; transform:scale(0.86) translateY(20px); opacity:0; transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease; color: #ffffff !important;">
+        <!-- Modal Top Header -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.14); text-align:left;">
+            <div>
+                <h4 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-ticket" style="color:#38bdf8;"></i> Voucher Details
+                </h4>
+                <p style="margin:2px 0 0 0; font-size:11.5px; color:rgba(255,255,255,0.85);">
+                    Promo code & discount redemption
+                </p>
+            </div>
+            <button onclick="closeVoucherModal()" style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; border-radius:50%; width:32px; height:32px; color:#ffffff !important; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;">
+                <i class="fa-solid fa-xmark" style="color:#ffffff !important;"></i>
+            </button>
+        </div>
 
         <div id="modal-icon-wrap" style="width:64px; height:64px; border-radius:18px; background:#ffffff; border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; font-size:28px; color:#203f8d; margin:0 auto 14px; box-shadow: 0 4px 14px rgba(0,0,0,0.15);">
             <i class="fa-solid fa-ticket" style="color:#203f8d !important;"></i>

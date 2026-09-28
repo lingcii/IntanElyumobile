@@ -41,7 +41,7 @@ class DashboardController extends Controller
             return TouristSpot::activeForTourists()
                 ->orderByDesc('visits')
                 ->limit($trendingLimit)
-                ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'classification_status', 'municipality_id', 'status'])
+                ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types', 'environmental_fee', 'fee_types', 'classification_status', 'municipality_id', 'status'])
                 ->map(fn($s) => $this->formatSpot($s))
                 ->toArray();
         });
@@ -61,7 +61,7 @@ class DashboardController extends Controller
             if (\Illuminate\Support\Facades\Schema::hasTable('tourist_spots') && $favoriteIds->isNotEmpty()) {
                 $savedPlaces = TouristSpot::whereIn('id', $favoriteIds)
                     ->activeForTourists()
-                    ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'classification_status', 'municipality_id', 'status'])
+                    ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types', 'environmental_fee', 'fee_types', 'classification_status', 'municipality_id', 'status'])
                     ->map(fn($s) => $this->formatSpot($s));
             }
         } catch (\Throwable $e) {
@@ -80,7 +80,7 @@ class DashboardController extends Controller
                     ->when($favoriteIds->isNotEmpty(), function($q) use ($favoriteIds) {
                         $q->whereNotIn('id', $favoriteIds);
                     })
-                    ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'rating', 'description', 'entrance_fee', 'classification_status', 'municipality_id', 'status']);
+                    ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'rating', 'description', 'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types', 'environmental_fee', 'fee_types', 'classification_status', 'municipality_id', 'status']);
 
                 if ($lat && $lng) {
                     $recommendedQuery = $recommendedQuery->sortBy(function($spot) use ($lat, $lng) {
@@ -224,7 +224,14 @@ class DashboardController extends Controller
             'rating'       => $spot->rating,
             'visits'       => $spot->visits,
             'description'  => $spot->description,
-            'entrance_fee' => $spot->entrance_fee,
+            'entrance_fee' => (float) ($spot->entrance_fee ?? 0),
+            'adult_fee'    => (float) ($spot->adult_fee ?? 0),
+            'kids_fee'     => (float) ($spot->kids_fee ?? 0),
+            'pwd_fee'      => (float) ($spot->pwd_fee ?? 0),
+            'senior_citizen_fee' => (float) ($spot->senior_citizen_fee ?? 0),
+            'entrance_fee_types' => $spot->entrance_fee_types ?? [],
+            'environmental_fee'  => (float) ($spot->environmental_fee ?? 0),
+            'fee_types'    => $spot->fee_types ?? [],
             'classification_status' => $spot->classification_status,
             'status'       => $spot->status ?? 'approved',
             'municipality_id' => $spot->municipality_id,

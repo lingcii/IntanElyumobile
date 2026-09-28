@@ -222,10 +222,16 @@ body[data-view="saved_trips"],
         if (!rawMode) return '';
         const catalog = {
             'own_car': { name: 'Own Car', icon: 'fa-car', color: '#f59e0b' },
+            'mpuj': { name: 'MPUJ', icon: 'fa-van-shuttle', color: '#10b981' },
+            'tpuj': { name: 'TPUJ', icon: 'fa-van-shuttle', color: '#f59e0b' },
+            'pub_aircon': { name: 'PUB Aircon', icon: 'fa-bus', color: '#38bdf8' },
+            'pub_ordinary': { name: 'PUB Ordinary', icon: 'fa-bus-simple', color: '#06b6d4' },
+            'pub_regular': { name: 'PUB Regular', icon: 'fa-bus-simple', color: '#06b6d4' },
+            'uve': { name: 'UV Express', icon: 'fa-van-shuttle', color: '#a855f7' },
             'jeepney': { name: 'Jeepney', icon: 'fa-van-shuttle', color: '#38bdf8' },
             'tricycle': { name: 'Tricycle', icon: 'fa-motorcycle', color: '#10b981' },
             'bus': { name: 'Bus', icon: 'fa-bus', color: '#a855f7' },
-            'private_bus': { name: 'Private Bus', icon: 'fa-bus', color: '#a855f7' },
+            'private_bus': { name: 'PUB Aircon', icon: 'fa-bus', color: '#38bdf8' },
             'mini_bus': { name: 'Mini Bus', icon: 'fa-bus-simple', color: '#06b6d4' },
             'lutrampco': { name: 'LUTRAMPCO', icon: 'fa-van-shuttle', color: '#38bdf8' },
             'taxi': { name: 'Taxi', icon: 'fa-taxi', color: '#eab308' },
@@ -233,7 +239,7 @@ body[data-view="saved_trips"],
             'walking': { name: 'Walking', icon: 'fa-person-walking', color: '#22c55e' }
         };
 
-        const parts = String(rawMode).split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+        const parts = String(rawMode).split(',').map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
         if (parts.length === 0) return '';
 
         const first = parts[0];
@@ -952,12 +958,27 @@ body[data-view="saved_trips"],
 
         const modalHtml = `
         <div id="trip-completion-review-modal" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:99998; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; transition:opacity 0.3s ease;">
-            <div style="background:linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); border:none; outline:none; border-radius:24px; padding:28px 22px; width:100%; max-width:380px; box-shadow:0 16px 40px rgba(10, 25, 60, 0.45); text-align:center; transform:scale(0.92) translateY(12px); transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);">
-                <div style="width:60px; height:60px; border-radius:50%; background:rgba(16, 185, 129, 0.15); display:flex; align-items:center; justify-content:center; margin:0 auto 14px auto; box-shadow:none; border:none; outline:none;">
-                    <i class="fa-solid fa-flag-checkered" style="font-size:28px; color:#10b981;"></i>
+            <div style="background:linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); border:none; outline:none; border-radius:24px; padding:22px 20px; width:100%; max-width:380px; box-shadow:0 16px 40px rgba(10, 25, 60, 0.45); text-align:center; transform:scale(0.92) translateY(12px); transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);">
+                <!-- Modal Top Header -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.14); text-align:left;">
+                    <div>
+                        <h4 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
+                            <i class="fa-solid fa-flag-checkered" style="color:#10b981;"></i> Trip Completed!
+                        </h4>
+                        <p style="margin:2px 0 0 0; font-size:11.5px; color:rgba(255,255,255,0.85);">
+                            Review the destinations you visited
+                        </p>
+                    </div>
+                    <button type="button" onclick="window.closeTripCompletionReviewModal()" style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:background 0.2s;">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
                 </div>
-                <h3 style="margin:0 0 4px; color:#fff; font-size:20px; font-weight:900;">Trip Completed!</h3>
-                <p style="font-size:12px; color:rgba(255,255,255,0.85); margin:0 0 18px 0; line-height:1.5;">
+
+                <div style="width:54px; height:54px; border-radius:50%; background:rgba(16, 185, 129, 0.18); display:flex; align-items:center; justify-content:center; margin:0 auto 12px auto; box-shadow:none; border:none; outline:none;">
+                    <i class="fa-solid fa-award" style="font-size:26px; color:#10b981;"></i>
+                </div>
+                <h3 style="margin:0 0 4px; color:#fff; font-size:19px; font-weight:900;">Congratulations!</h3>
+                <p style="font-size:12px; color:rgba(255,255,255,0.85); margin:0 0 16px 0; line-height:1.5;">
                     Share your experience! Review the destinations you visited to help fellow travelers.
                 </p>
                 <div style="text-align:left; max-height:220px; overflow-y:auto; margin-bottom:16px; padding-right:4px;">

@@ -248,13 +248,17 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
     const VEHICLE_CATALOG = [
         { key: 'own_car', name: 'Own Car', icon: 'fa-car', color: '#f59e0b', desc: 'Private automobile', speedKmH: 38 },
-        { key: 'jeepney', name: 'Jeepney', icon: 'fa-van-shuttle', color: '#38bdf8', desc: 'Traditional jeepney', speedKmH: 24 },
+        { key: 'mpuj', name: 'Modern Jeepney (MPUJ)', icon: 'fa-van-shuttle', color: '#10b981', desc: 'Aircon modern utility jeepney', speedKmH: 26 },
+        { key: 'tpuj', name: 'Traditional Jeepney (TPUJ)', icon: 'fa-van-shuttle', color: '#f59e0b', desc: 'Traditional open-air jeepney', speedKmH: 24 },
+        { key: 'pub_aircon', name: 'PUB Aircon Bus', icon: 'fa-bus', color: '#38bdf8', desc: 'Aircon provincial commuter bus', speedKmH: 34 },
+        { key: 'pub_ordinary', name: 'PUB Ordinary Bus', icon: 'fa-bus-simple', color: '#06b6d4', desc: 'Regular provincial commuter bus', speedKmH: 30 },
         { key: 'tricycle', name: 'Tricycle', icon: 'fa-motorcycle', color: '#10b981', desc: 'Local tricycle', speedKmH: 20 },
-        { key: 'bus', name: 'Bus', icon: 'fa-bus', color: '#a855f7', desc: 'Provincial commuter bus', speedKmH: 32 },
-        { key: 'mini_bus', name: 'Mini Bus', icon: 'fa-bus-simple', color: '#06b6d4', desc: 'UV Express / Van', speedKmH: 30 },
-        { key: 'lutrampco', name: 'LUTRAMPCO', icon: 'fa-van-shuttle', color: '#38bdf8', desc: 'Modernized Jeepney', speedKmH: 26 },
         { key: 'taxi', name: 'Taxi', icon: 'fa-taxi', color: '#eab308', desc: 'Metered or chartered taxi', speedKmH: 36 },
+        { key: 'uve', name: 'UV Express / Van', icon: 'fa-van-shuttle', color: '#a855f7', desc: 'UV Express shuttle van', speedKmH: 32 },
         { key: 'motorcycle', name: 'Motorcycle', icon: 'fa-motorcycle', color: '#f97316', desc: 'Motorbike / scooter', speedKmH: 36 },
+        { key: 'jeepney', name: 'Jeepney', icon: 'fa-van-shuttle', color: '#10b981', desc: 'Public Utility Jeepney', speedKmH: 24, hiddenFromModal: true },
+        { key: 'bus', name: 'Bus', icon: 'fa-bus', color: '#38bdf8', desc: 'Provincial bus', speedKmH: 32, hiddenFromModal: true },
+        { key: 'private_bus', name: 'Aircon Bus', icon: 'fa-bus', color: '#38bdf8', desc: 'Aircon bus', speedKmH: 34, hiddenFromModal: true },
         { key: 'walking', name: 'Walking', icon: 'fa-person-walking', color: '#22c55e', desc: 'On-foot navigation', speedKmH: 4.5 }
     ];
 
@@ -297,14 +301,18 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             raw = 'own_car';
         }
 
-        const firstRawKey = raw.split(',')[0].trim().toLowerCase();
-        let found = VEHICLE_CATALOG.find(v => v.key === firstRawKey || v.key === firstRawKey.replace(/[-_ ]/g, '_')) ||
+        const firstRawKey = raw.split(',')[0].trim().toLowerCase().replace(/[- ]/g, '_');
+        let found = VEHICLE_CATALOG.find(v => v.key === firstRawKey) ||
                     VEHICLE_CATALOG.find(v => firstRawKey.includes(v.key)) ||
+                    (firstRawKey.includes('aircon') ? VEHICLE_CATALOG.find(v => v.key === 'pub_aircon') : null) ||
+                    (firstRawKey.includes('ordinary') || firstRawKey.includes('regular') ? VEHICLE_CATALOG.find(v => v.key === 'pub_ordinary') : null) ||
+                    (firstRawKey.includes('mpuj') ? VEHICLE_CATALOG.find(v => v.key === 'mpuj') : null) ||
+                    (firstRawKey.includes('tpuj') ? VEHICLE_CATALOG.find(v => v.key === 'tpuj') : null) ||
                     (firstRawKey.includes('car') ? VEHICLE_CATALOG[0] : null) ||
-                    (firstRawKey.includes('jeep') ? VEHICLE_CATALOG[1] : null) ||
-                    (firstRawKey.includes('tri') ? VEHICLE_CATALOG[2] : null) ||
-                    (firstRawKey.includes('bus') ? VEHICLE_CATALOG[3] : null) ||
-                    (firstRawKey.includes('motor') ? VEHICLE_CATALOG[7] : null) ||
+                    (firstRawKey.includes('jeep') ? VEHICLE_CATALOG.find(v => v.key === 'mpuj') : null) ||
+                    (firstRawKey.includes('tri') ? VEHICLE_CATALOG.find(v => v.key === 'tricycle') : null) ||
+                    (firstRawKey.includes('bus') ? VEHICLE_CATALOG.find(v => v.key === 'pub_aircon') : null) ||
+                    (firstRawKey.includes('motor') ? VEHICLE_CATALOG.find(v => v.key === 'motorcycle') : null) ||
                     VEHICLE_CATALOG[0];
 
         let displayName = found.name;
@@ -354,7 +362,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         if (!modal || !grid) return;
 
         const currentKey = window.currentActiveVehicle?.key || 'own_car';
-        grid.innerHTML = VEHICLE_CATALOG.map(v => {
+        grid.innerHTML = VEHICLE_CATALOG.filter(v => !v.hiddenFromModal).map(v => {
             const isSel = v.key === currentKey;
             return `
                 <div onclick="window.selectTripVehicle('${v.key}')" style="background:${isSel ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.12)'}; border:none !important; outline:none !important; border-radius:16px; padding:12px 14px; cursor:pointer; display:flex; align-items:center; gap:10px; transition:transform 0.15s, background 0.15s; ${isSel ? 'box-shadow:0 4px 14px rgba(0,0,0,0.25);' : ''}">

@@ -63,7 +63,7 @@ class ProfileController extends Controller
         $completedTrips = Cache::remember("profile:trips:{$user->id}", 120, function () use ($user) {
             return Itinerary::where('user_id', $user->id)
                 ->where('status', 'completed')
-                ->with(['items.destination:id,name,photo_url,latitude,longitude,entrance_fee'])
+                ->with(['items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee'])
                 ->orderByDesc('updated_at')
                 ->get()
                 ->map(function ($trip) {
@@ -88,7 +88,12 @@ class ProfileController extends Controller
                                     'id' => $dest->id,
                                     'name' => $dest->name,
                                     'image' => $dest->photo_url,
-                                    'entrance_fee' => $dest->entrance_fee,
+                                    'entrance_fee' => (float) ($dest->entrance_fee ?? 0),
+                                    'adult_fee' => (float) ($dest->adult_fee ?? 0),
+                                    'kids_fee' => (float) ($dest->kids_fee ?? 0),
+                                    'pwd_fee' => (float) ($dest->pwd_fee ?? 0),
+                                    'senior_citizen_fee' => (float) ($dest->senior_citizen_fee ?? 0),
+                                    'environmental_fee' => (float) ($dest->environmental_fee ?? 0),
                                 ] : null,
                             ];
                         }),
