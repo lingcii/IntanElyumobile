@@ -3284,6 +3284,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 const noDraft = uniqueMunis.length === 0;
 
                 const hasMpuj = noDraft || isInterMunicipal || activeLower.some(t => t.includes('mpuj') || t.includes('modern')) || !!window.fareData?.mpuj;
+                const hasTpuj = noDraft || isInterMunicipal || activeLower.some(t => t.includes('tpuj') || t.includes('traditional') || (t.includes('jeep') && !t.includes('modern'))) || !!window.fareData?.tpuj;
                 const hasPubAircon = noDraft || isInterMunicipal || activeLower.some(t => t.includes('aircon') || t.includes('pub_aircon')) || !!window.fareData?.pub_aircon;
                 const hasPubOrdinary = noDraft || isInterMunicipal || activeLower.some(t => t.includes('ordinary') || t.includes('regular') || t.includes('pub_ordinary')) || !!window.fareData?.pub_ordinary;
                 // Tricycle is municipality-specific: only available if all spots are within ONE municipality AND that municipality has an active Tricycle fare matrix in LUPTO
