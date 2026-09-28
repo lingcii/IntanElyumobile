@@ -855,6 +855,12 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     </div>
                 </div>
             </div>
+
+            <!-- Dynamic Boundary Fare Breakdown -->
+            <div id="modal-boundary-breakdown"
+                style="display:none; margin-top:14px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.12); max-height:160px; overflow-y:auto; scrollbar-width:thin;">
+                <!-- Dynamically filled with boundary crossing badges -->
+            </div>
         </div>
 
         <div style="display:flex; gap:12px; margin-top:20px;">
@@ -1958,106 +1964,187 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             const modes = transport.split(',').map(m => m.trim()).filter(Boolean);
             if (modes.length === 0) return 0;
 
-            const pts = [];
-            if (window.myLat && window.myLng) {
-                pts.push({ lat: parseFloat(window.myLat), lng: parseFloat(window.myLng), muni: (draft[0]?.municipality || draft[0]?.city || '').trim() });
-            }
-            draft.forEach(p => {
-                const lat = parseFloat(p.lat || p.latitude);
-                const lng = parseFloat(p.lng || p.longitude);
-                if (!isNaN(lat) && !isNaN(lng)) {
-                    pts.push({ lat, lng, muni: (p.municipality || p.city || '').trim() });
-                }
-            });
-
             const calcHaversine = (lat1, lon1, lat2, lon2) => {
                 const p = 0.017453292519943295;
                 const a = 0.5 - Math.cos((lat2 - lat1) * p) / 2 + Math.cos(lat1 * p) * Math.cos(lat2 * p) * (1 - Math.cos((lon2 - lon1) * p)) / 2;
                 return (12742 * Math.asin(Math.sqrt(a))) * 1.25;
             };
 
+            const pts = [];
+            draft.forEach((p, idx) => {
+                const lat = parseFloat(p.lat || p.latitude);
+                const lng = parseFloat(p.lng || p.longitude);
+                pts.push({
+                    lat: !isNaN(lat) ? lat : null,
+                    lng: !isNaN(lng) ? lng : null,
+                    muni: (p.municipality || p.city || '').trim(),
+                    name: p.name || p.title || ('Spot ' + (idx + 1))
+                });
+            });
+
             const legs = [];
-            let totalDist = 0;
-            for (let i = 0; i < pts.length - 1; i++) {
-                const pA = pts[i];
-                const pB = pts[i + 1];
-                const d = Math.max(0.5, calcHaversine(pA.lat, pA.lng, pB.lat, pB.lng));
-                totalDist += d;
-                legs.push({ distKm: d, muniA: pA.muni || pB.muni || '', muniB: pB.muni || pA.muni || '' });
+            let calculatedDist = 0;
+
+            if (pts.length === 1) {
+                // 1 Spot added: 1 nominal intra-municipal leg
+                const defMuni = pts[0].muni;
+                legs.push({
+                    from: pts[0].name,
+                    to: pts[0].name,
+                    distKm: 2.0,
+                    muniA: defMuni,
+                    muniB: defMuni
+                });
+                calculatedDist = 2.0;
+            } else if (pts.length >= 2) {
+                // 2, 3, 4, 5, or more spots: N - 1 consecutive legs
+                for (let i = 0; i < pts.length - 1; i++) {
+                    const pA = pts[i];
+                    const pB = pts[i + 1];
+                    let d = 2.0;
+                    if (pA.lat !== null && pA.lng !== null && pB.lat !== null && pB.lng !== null) {
+                        d = Math.max(0.5, Math.round(calcHaversine(pA.lat, pA.lng, pB.lat, pB.lng) * 10) / 10);
+                    }
+                    calculatedDist += d;
+                    legs.push({
+                        from: pA.name,
+                        to: pB.name,
+                        distKm: d,
+                        muniA: pA.muni || pB.muni || '',
+                        muniB: pB.muni || pA.muni || ''
+                    });
+                }
             }
 
-            const distKm = Math.max(window._draftDistanceKm || 0, totalDist, 1);
-            if (legs.length === 0) {
-                const defMuni = (draft[0]?.municipality || draft[0]?.city || '').trim();
-                legs.push({ distKm, muniA: defMuni, muniB: defMuni });
+            // If map router gave an accurate total distance and we have multiple legs, scale legs proportionally
+            if (window._draftDistanceKm && window._draftDistanceKm > 0 && calculatedDist > 0 && legs.length > 1) {
+                const scale = window._draftDistanceKm / calculatedDist;
+                legs.forEach(l => {
+                    l.distKm = Math.max(0.5, Math.round(l.distKm * scale * 10) / 10);
+                });
+            } else {
+                window._draftDistanceKm = Math.round(calculatedDist * 10) / 10;
             }
 
+            window._draftBoundaryBreakdown = [];
             let totalCost = 0;
+
             modes.forEach(mode => {
                 const normMode = mode.toLowerCase().replace(/[- ]/g, '_');
-                if (normMode === 'own_car' || normMode === 'car') {
-                    const fuelPrice = parseFloat(document.getElementById('fuel-price')?.value) || window.fuelPrice || 65;
-                    const fuelEffic = parseFloat(document.getElementById('fuel-efficiency')?.value) || 12;
-                    const liters = distKm / fuelEffic;
-                    totalCost += Math.ceil(liters * fuelPrice);
-                } else if (normMode === 'motorcycle') {
-                    const fuelPrice = parseFloat(document.getElementById('fuel-price')?.value) || window.fuelPrice || 65;
-                    const liters = distKm / 35.0;
-                    totalCost += Math.ceil(liters * fuelPrice);
-                } else if (normMode === 'taxi') {
-                    totalCost += Math.max(50, Math.round(40 + (distKm * 13)));
-                } else if (normMode === 'tricycle' || normMode === 'trike') {
-                    let trikeTotal = 0;
-                    legs.forEach(leg => {
-                        const mA = leg.muniA.toLowerCase();
-                        const mB = leg.muniB.toLowerCase();
-                        if (mA && mB && mA !== mB) {
-                            // Boundary-crossing leg: cut distance into two municipal segments
-                            const dA = leg.distKm / 2;
-                            const dB = leg.distKm / 2;
-                            const fareA = window.getFareFromMatrix('tricycle', dA, leg.muniA) ?? Math.max(16, Math.round(16.32 + (Math.max(0, dA - 1.7) * 2.0)));
-                            const fareB = window.getFareFromMatrix('tricycle', dB, leg.muniB) ?? Math.max(16, Math.round(16.32 + (Math.max(0, dB - 1.7) * 2.0)));
-                            trikeTotal += (fareA + fareB);
+                const fuelPrice = parseFloat(document.getElementById('fuel-price')?.value) || window.fuelPrice || 65;
+                const fuelEffic = parseFloat(document.getElementById('fuel-efficiency')?.value) || 12;
+
+                legs.forEach((leg, legIdx) => {
+                    const cleanA = (leg.muniA || '').replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim();
+                    const cleanB = (leg.muniB || '').replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim();
+                    const isBoundaryCrossing = Boolean(cleanA && cleanB && cleanA.toLowerCase() !== cleanB.toLowerCase());
+
+                    const d = leg.distKm;
+                    let priceA = 0;
+                    let estimateB = 0;
+                    let legTotal = 0;
+
+                    if (isBoundaryCrossing) {
+                        const dA = Math.round((d / 2.0) * 100) / 100;
+                        const dB = Math.max(0.1, Math.round((d - dA) * 100) / 100);
+
+                        if (normMode === 'own_car' || normMode === 'car') {
+                            priceA = Math.ceil((dA / fuelEffic) * fuelPrice);
+                            estimateB = Math.ceil((dB / fuelEffic) * fuelPrice);
+                            legTotal = priceA + estimateB;
+                        } else if (normMode === 'motorcycle') {
+                            priceA = Math.ceil((dA / 35.0) * fuelPrice);
+                            estimateB = Math.ceil((dB / 35.0) * fuelPrice);
+                            legTotal = priceA + estimateB;
+                        } else if (normMode === 'taxi') {
+                            const base = (legIdx === 0) ? 40 : 0;
+                            priceA = Math.round(base + (dA * 13));
+                            estimateB = Math.round(dB * 13);
+                            legTotal = priceA + estimateB;
+                        } else if (normMode === 'tricycle' || normMode === 'trike') {
+                            priceA = window.getFareFromMatrix('tricycle', dA, cleanA) ?? Math.max(16, Math.round(16.32 + Math.max(0, dA - 1.7) * 2.0));
+                            estimateB = window.getFareFromMatrix('tricycle', dB, cleanB) ?? Math.max(16, Math.round(16.32 + Math.max(0, dB - 1.7) * 2.0));
+                            legTotal = priceA + estimateB;
                         } else {
-                            const fare = window.getFareFromMatrix('tricycle', leg.distKm, leg.muniA || leg.muniB) ?? Math.max(16, Math.round(16.32 + (Math.max(0, leg.distKm - 1.7) * 2.0)));
-                            trikeTotal += fare;
+                            // Public Transit: MPUJ, TPUJ, PUB Aircon, PUB Ordinary, Bus, Van/UVE
+                            const targetVeh = (normMode === 'private_bus') ? 'pub_aircon' : normMode;
+                            priceA = window.getFareFromMatrix(targetVeh, dA, cleanA);
+                            let fullFare = window.getFareFromMatrix(targetVeh, d, cleanA);
+
+                            if (priceA === null) {
+                                if (normMode === 'mpuj') priceA = Math.max(15, Math.round(15 + Math.max(0, dA - 4) * 2.2));
+                                else if (normMode === 'tpuj') priceA = Math.max(13, Math.round(13 + Math.max(0, dA - 4) * 1.8));
+                                else if (normMode === 'pub_aircon' || normMode === 'private_bus') priceA = Math.max(11, Math.round(10.50 + Math.max(0, dA - 5) * 2.2));
+                                else if (normMode === 'pub_ordinary' || normMode === 'pub_regular') priceA = Math.max(11, Math.round(11 + Math.max(0, dA - 5) * 2.0));
+                                else if (normMode === 'mini_bus' || normMode === 'van' || normMode === 'uve') priceA = Math.max(25, Math.round(25 + Math.max(0, dA - 4) * 2.5));
+                                else priceA = Math.max(15, Math.round(15 + Math.max(0, dA - 4) * 2.0));
+                            }
+                            if (fullFare === null) {
+                                if (normMode === 'mpuj') fullFare = Math.max(15, Math.round(15 + Math.max(0, d - 4) * 2.2));
+                                else if (normMode === 'tpuj') fullFare = Math.max(13, Math.round(13 + Math.max(0, d - 4) * 1.8));
+                                else if (normMode === 'pub_aircon' || normMode === 'private_bus') fullFare = Math.max(11, Math.round(10.50 + Math.max(0, d - 5) * 2.2));
+                                else if (normMode === 'pub_ordinary' || normMode === 'pub_regular') fullFare = Math.max(11, Math.round(11 + Math.max(0, d - 5) * 2.0));
+                                else if (normMode === 'mini_bus' || normMode === 'van' || normMode === 'uve') fullFare = Math.max(25, Math.round(25 + Math.max(0, d - 4) * 2.5));
+                                else fullFare = Math.max(15, Math.round(15 + Math.max(0, d - 4) * 2.0));
+                            }
+
+                            estimateB = Math.max(0, fullFare - priceA);
+                            legTotal = priceA + estimateB;
                         }
+                    } else {
+                        // Single municipal boundary leg
+                        estimateB = 0;
+                        if (normMode === 'own_car' || normMode === 'car') {
+                            priceA = Math.ceil((d / fuelEffic) * fuelPrice);
+                            legTotal = priceA;
+                        } else if (normMode === 'motorcycle') {
+                            priceA = Math.ceil((d / 35.0) * fuelPrice);
+                            legTotal = priceA;
+                        } else if (normMode === 'taxi') {
+                            const base = (legIdx === 0) ? 40 : 0;
+                            priceA = Math.round(base + (d * 13));
+                            legTotal = priceA;
+                        } else if (normMode === 'tricycle' || normMode === 'trike') {
+                            priceA = window.getFareFromMatrix('tricycle', d, cleanA) ?? Math.max(16, Math.round(16.32 + Math.max(0, d - 1.7) * 2.0));
+                            legTotal = priceA;
+                        } else {
+                            const targetVeh = (normMode === 'private_bus') ? 'pub_aircon' : normMode;
+                            priceA = window.getFareFromMatrix(targetVeh, d, cleanA);
+                            if (priceA === null) {
+                                if (normMode === 'mpuj') priceA = Math.max(15, Math.round(15 + Math.max(0, d - 4) * 2.2));
+                                else if (normMode === 'tpuj') priceA = Math.max(13, Math.round(13 + Math.max(0, d - 4) * 1.8));
+                                else if (normMode === 'pub_aircon' || normMode === 'private_bus') priceA = Math.max(11, Math.round(10.50 + Math.max(0, d - 5) * 2.2));
+                                else if (normMode === 'pub_ordinary' || normMode === 'pub_regular') priceA = Math.max(11, Math.round(11 + Math.max(0, d - 5) * 2.0));
+                                else if (normMode === 'mini_bus' || normMode === 'van' || normMode === 'uve') priceA = Math.max(25, Math.round(25 + Math.max(0, d - 4) * 2.5));
+                                else priceA = Math.max(15, Math.round(15 + Math.max(0, d - 4) * 2.0));
+                            }
+                            legTotal = priceA;
+                        }
+                    }
+
+                    totalCost += legTotal;
+
+                    window._draftBoundaryBreakdown.push({
+                        legIndex: legIdx + 1,
+                        from: leg.from,
+                        to: leg.to,
+                        distKm: d,
+                        crossesBoundary: isBoundaryCrossing,
+                        originMuni: cleanA || 'Local',
+                        originPrice: priceA,
+                        nextMuni: cleanB || 'Local',
+                        nextEstimate: estimateB,
+                        legTotal: legTotal,
+                        mode: normMode
                     });
-                    totalCost += Math.round(trikeTotal);
-                } else if (normMode === 'mpuj') {
-                    const dbFare = window.getFareFromMatrix('mpuj', distKm);
-                    if (dbFare !== null) totalCost += Math.round(dbFare);
-                    else totalCost += Math.max(15, Math.round(15 + (Math.max(0, distKm - 4) * 2.2)));
-                } else if (normMode === 'tpuj') {
-                    const dbFare = window.getFareFromMatrix('tpuj', distKm);
-                    if (dbFare !== null) totalCost += Math.round(dbFare);
-                    else totalCost += Math.max(13, Math.round(13 + (Math.max(0, distKm - 4) * 1.8)));
-                } else if (normMode === 'pub_aircon' || normMode === 'private_bus') {
-                    const dbFare = window.getFareFromMatrix('pub_aircon', distKm) ?? window.getFareFromMatrix('bus', distKm);
-                    if (dbFare !== null) totalCost += Math.round(dbFare);
-                    else totalCost += Math.max(11, Math.round(10.50 + (Math.max(0, distKm - 5) * 2.2)));
-                } else if (normMode === 'pub_ordinary' || normMode === 'pub_regular') {
-                    const dbFare = window.getFareFromMatrix('pub_ordinary', distKm) ?? window.getFareFromMatrix('bus', distKm);
-                    if (dbFare !== null) totalCost += Math.round(dbFare);
-                    else totalCost += Math.max(11, Math.round(11 + (Math.max(0, distKm - 5) * 2.0)));
-                } else if (normMode === 'bus') {
-                    const dbFare = window.getFareFromMatrix('bus', distKm);
-                    if (dbFare !== null) totalCost += Math.round(dbFare);
-                    else totalCost += Math.max(15, Math.round(15 + (Math.max(0, distKm - 5) * 2.2)));
-                } else if (normMode === 'jeepney' || normMode === 'lutrampco') {
-                    const dbFare = window.getFareFromMatrix(normMode, distKm) ?? window.getFareFromMatrix('mpuj', distKm);
-                    if (dbFare !== null) totalCost += Math.round(dbFare);
-                    else totalCost += Math.max(13, Math.round(13 + (Math.max(0, distKm - 4) * 1.8)));
-                } else if (normMode === 'mini_bus' || normMode === 'van' || normMode === 'uve') {
-                    const dbFare = window.getFareFromMatrix('uve', distKm) || window.getFareFromMatrix('mini_bus', distKm) || window.getFareFromMatrix('van', distKm);
-                    if (dbFare !== null) totalCost += Math.round(dbFare);
-                    else totalCost += Math.max(25, Math.round(25 + (Math.max(0, distKm - 4) * 2.5)));
-                } else {
-                    const dbFare = window.getFareFromMatrix(mode, distKm);
-                    if (dbFare !== null) totalCost += Math.round(dbFare);
-                    else totalCost += 30;
-                }
+                });
             });
+
+            // Update fuel cost calc in UI if Own Car is active
+            const fuelCalc = document.getElementById('fuel-cost-calc');
+            if (fuelCalc && modes.includes('own_car')) {
+                fuelCalc.textContent = '₱' + totalCost.toFixed(2);
+            }
 
             return totalCost;
         };
@@ -2084,8 +2171,8 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 hint.textContent = `Route: ${distKm.toFixed(1)} km • ~${(distKm / fuelEffic).toFixed(2)} L needed`;
                 hint.style.color = 'rgba(255,255,255,0.5)';
             } else if (hint) {
-                hint.textContent = 'Open the Map first to get an accurate route distance.';
-                hint.style.color = '#FF9500';
+                hint.textContent = 'Route distance calculated dynamically.';
+                hint.style.color = 'rgba(255,255,255,0.5)';
             }
 
             // Sum Entrance Fees & Environmental Fees across all destinations in draft
@@ -2106,6 +2193,67 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             const costEl = document.getElementById('save-estimated-cost');
             costEl.textContent = '₱' + estimatedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            // Render Dynamic Boundary Fare Breakdown in modal
+            const bBreakdownEl = document.getElementById('modal-boundary-breakdown');
+            if (bBreakdownEl) {
+                const breakdown = window._draftBoundaryBreakdown || [];
+                if (breakdown.length > 0) {
+                    bBreakdownEl.style.display = 'block';
+                    let bHtml = `
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <span style="font-size:10px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px;">
+                                <i class="fa-solid fa-signs-post" style="margin-right:4px;"></i> Route & Boundary Fares (${breakdown.length} ${breakdown.length === 1 ? 'Leg' : 'Legs'})
+                            </span>
+                            <span style="font-size:11px; font-weight:700; color:#34d399;">₱${transCost.toFixed(2)}</span>
+                        </div>
+                    `;
+
+                    breakdown.forEach(l => {
+                        const cleanOrigin = (l.originMuni || 'Local').replace(/^(municipality of|city of)\s+/i, '');
+                        const cleanNext = (l.nextMuni || 'Local').replace(/^(municipality of|city of)\s+/i, '');
+
+                        if (l.crossesBoundary) {
+                            bHtml += `
+                                <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(56,189,248,0.22); border-radius:10px; padding:8px 10px; margin-bottom:6px;">
+                                    <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:700; color:#ffffff; margin-bottom:4px;">
+                                        <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:70%;"><i class="fa-solid fa-map-pin" style="color:#38bdf8; font-size:10px; margin-right:4px;"></i>Leg ${l.legIndex}: ${l.from} → ${l.to}</span>
+                                        <span style="color:#94a3b8; font-size:10px;">${l.distKm.toFixed(1)} km</span>
+                                    </div>
+                                    <div style="display:flex; flex-wrap:wrap; gap:6px; font-size:10px; align-items:center;">
+                                        <span style="background:rgba(56,189,248,0.15); color:#7dd3fc; padding:2px 6px; border-radius:6px; font-weight:700;">
+                                            📍 ${cleanOrigin}: ₱${parseFloat(l.originPrice).toFixed(2)}
+                                        </span>
+                                        <span style="background:rgba(251,191,36,0.15); color:#fcd34d; padding:2px 6px; border-radius:6px; font-weight:700;">
+                                            🔄 Next: ${cleanNext} (Est. ₱${parseFloat(l.nextEstimate).toFixed(2)})
+                                        </span>
+                                        <span style="margin-left:auto; color:#ffffff; font-weight:800; font-size:11px;">
+                                            ₱${parseFloat(l.legTotal).toFixed(2)}
+                                        </span>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            bHtml += `
+                                <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:8px 10px; margin-bottom:6px;">
+                                    <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:700; color:#ffffff; margin-bottom:2px;">
+                                        <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:70%;"><i class="fa-solid fa-location-dot" style="color:#34d399; font-size:10px; margin-right:4px;"></i>${breakdown.length === 1 ? 'Local Trip' : 'Leg ' + l.legIndex}: ${l.from} ${l.from !== l.to ? '→ ' + l.to : ''}</span>
+                                        <span style="color:#ffffff; font-weight:800;">₱${parseFloat(l.legTotal).toFixed(2)}</span>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; font-size:10px; color:#94a3b8;">
+                                        <span>Within ${cleanOrigin}</span>
+                                        <span>${l.distKm.toFixed(1)} km</span>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+
+                    bBreakdownEl.innerHTML = bHtml;
+                } else {
+                    bBreakdownEl.style.display = 'none';
+                }
+            }
 
             const budgetInput = document.getElementById('trip-budget').value;
             const budget = parseFloat(budgetInput);
@@ -3020,16 +3168,26 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         window.updateDraftBudget = function (draft) {
             let actCost = 0, foodCost = 0, transCost = 0;
             draft.forEach(item => {
-                actCost += parseFloat(item.entrance_fee) || 50;
+                actCost += parseFloat(item.entrance_fee || item.fee) || 0;
                 foodCost += parseFloat(item.avg_food_cost) || 150;
-                transCost += parseFloat(item.avg_transport_cost) || 30;
             });
+
+            // Calculate dynamic transit cost based on current draft sequence and selected or default transport
+            const curTransport = document.getElementById('trip-transport')?.value || 'jeepney';
+            if (typeof window.computeItineraryTransCost === 'function') {
+                transCost = window.computeItineraryTransCost(draft, curTransport);
+            }
+            if (!transCost || transCost <= 0) {
+                draft.forEach(item => {
+                    transCost += parseFloat(item.avg_transport_cost) || 30;
+                });
+            }
 
             const total = actCost + foodCost + transCost;
             window.setTxt('main-budget-total', '₱' + total.toLocaleString(undefined, { minimumFractionDigits: 2 }));
-            window.setTxt('main-cost-trans', '₱' + transCost);
-            window.setTxt('main-cost-food', '₱' + foodCost);
-            window.setTxt('main-cost-act', '₱' + actCost);
+            window.setTxt('main-cost-trans', '₱' + transCost.toFixed(2));
+            window.setTxt('main-cost-food', '₱' + foodCost.toFixed(2));
+            window.setTxt('main-cost-act', '₱' + actCost.toFixed(2));
 
             window.updateDonutChart('main-budget-donut', transCost, foodCost, actCost);
         };
@@ -3051,8 +3209,8 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 if (vehVal === 'motorcycle' || vehKey === 'motorcycle') return list.some(v => v.includes('motorcycle') || v.includes('motor'));
                 if (vehVal === 'mpuj' || vehKey === 'mpuj') return list.some(v => v.includes('mpuj') || (v.includes('modern') && v.includes('jeep')));
                 if (vehVal === 'tpuj' || vehKey === 'tpuj') return list.some(v => v.includes('tpuj') || v.includes('traditional') || (v.includes('jeep') && !v.includes('modern')));
-                if (vehVal === 'pub_aircon' || vehKey === 'pub_aircon') return list.some(v => v.includes('pub_aircon') || v.includes('aircon'));
-                if (vehVal === 'pub_ordinary' || vehKey === 'pub_regular') return list.some(v => v.includes('pub_regular') || v.includes('ordinary') || v.includes('regular'));
+                if (vehVal === 'pub_aircon' || vehKey === 'pub_aircon') return list.some(v => v.includes('pub_aircon') || v.includes('aircon') || v.includes('bus'));
+                if (vehVal === 'pub_ordinary' || vehKey === 'pub_regular') return list.some(v => v.includes('pub_regular') || v.includes('ordinary') || v.includes('regular') || v.includes('bus'));
                 if (vehVal === 'tricycle' || vehKey === 'tricycle') return list.some(v => v.includes('tricycle') || v.includes('trike'));
                 if (vehVal === 'uve' || vehKey === 'uve') return list.some(v => v.includes('uve') || v.includes('van'));
                 return list.some(v => v.includes(vehKey) || v.includes(vehVal));
@@ -3103,8 +3261,8 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 });
             } else {
                 // Public vehicles: show all standard public vehicles; mark as unavailable if no imported fare guide or site restricts
-                const rawMunis = draft.map(p => (p.municipality || '').trim()).filter(Boolean);
-                const uniqueMunis = [...new Set(rawMunis)];
+                const rawMunis = draft.map(p => (p.municipality || p.city || '').trim()).filter(Boolean);
+                const uniqueMunis = [...new Set(rawMunis.map(m => m.replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim().toLowerCase()))];
 
                 // Inter-municipal trip condition: draft crosses more than 1 municipality
                 const isInterMunicipal = uniqueMunis.length > 1;
@@ -3132,7 +3290,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 const hasTpuj = noDraft || isInterMunicipal || activeLower.some(t => t.includes('tpuj') || t.includes('jeep') || t.includes('traditional')) || !!window.fareData?.tpuj;
                 const hasPubAircon = noDraft || isInterMunicipal || activeLower.some(t => t.includes('aircon') || t.includes('pub_aircon')) || !!window.fareData?.pub_aircon;
                 const hasPubOrdinary = noDraft || isInterMunicipal || activeLower.some(t => t.includes('ordinary') || t.includes('regular') || t.includes('pub_ordinary')) || !!window.fareData?.pub_ordinary;
-                const hasTrike = noDraft || activeLower.some(t => t.includes('tri') || t.includes('pedicab')) || !!window.fareData?.by_municipality?.[muniKey]?.tricycle || !!window.fareData?.tricycle;
+                const hasTrike = true; // Tricycle is universally available across all 20 municipalities in La Union
 
                 optionsList = [
                     { val: 'mpuj', name: 'Modern Jeepney (MPUJ)', icon: 'fa-van-shuttle', available: hasMpuj, key: 'mpuj' },

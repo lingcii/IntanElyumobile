@@ -206,16 +206,29 @@ class ItineraryController extends Controller
         $user = $request->user();
 
         $itinerary = DB::transaction(function () use ($request, $user) {
-            // Rough cost estimation based on entrance fees
-            $spots = TouristSpot::whereIn('id', $request->destinations)->get();
-            $totalFee = $spots->sum('entrance_fee');
+            // Accurate cost estimation using CostEstimationService with boundary-crossing fares
+            $totalEstimatedCost = 0.00;
+            try {
+                $service = new \App\Services\CostEstimationService();
+                $est = $service->estimateItineraryCosts(
+                    $request->destinations,
+                    $request->transport_mode ?? 'jeepney',
+                    null,
+                    null,
+                    $request->trip_date
+                );
+                $totalEstimatedCost = (float) ($est['total_cost'] ?? 0.00);
+            } catch (\Throwable $e) {
+                $spots = TouristSpot::whereIn('id', $request->destinations)->get();
+                $totalEstimatedCost = (float) $spots->sum('entrance_fee');
+            }
 
             $itinerary = Itinerary::create([
                 'user_id'        => $user->id,
                 'title'          => $request->title,
                 'trip_date'      => $request->trip_date,
                 'budget'         => $request->budget,
-                'total_cost'     => $totalFee,
+                'total_cost'     => $totalEstimatedCost,
                 'status'         => 'pending',
                 'route_type'     => $request->route_type,
                 'transport_mode' => $request->transport_mode,
@@ -381,9 +394,22 @@ class ItineraryController extends Controller
         $itinerary->update($updateData);
 
         if ($request->has('destinations') && is_array($request->destinations) && count($request->destinations) > 0) {
-            $spots = TouristSpot::whereIn('id', $request->destinations)->get();
-            $totalFee = $spots->sum('entrance_fee');
-            $itinerary->update(['total_cost' => $totalFee]);
+            $totalEstimatedCost = 0.00;
+            try {
+                $service = new \App\Services\CostEstimationService();
+                $est = $service->estimateItineraryCosts(
+                    $request->destinations,
+                    $itinerary->transport_mode ?? 'jeepney',
+                    null,
+                    null,
+                    $itinerary->trip_date
+                );
+                $totalEstimatedCost = (float) ($est['total_cost'] ?? 0.00);
+            } catch (\Throwable $e) {
+                $spots = TouristSpot::whereIn('id', $request->destinations)->get();
+                $totalEstimatedCost = (float) $spots->sum('entrance_fee');
+            }
+            $itinerary->update(['total_cost' => $totalEstimatedCost]);
 
             $existingItems = $itinerary->items->keyBy('tourist_spot_id');
             // Remove items no longer in destinations

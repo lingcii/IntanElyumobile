@@ -259,34 +259,138 @@ class CostEstimationService
         // Extract primary destination municipality (default to San Juan)
         $primaryMuni = $spots->first()?->municipality?->name ?? 'San Juan';
 
-        // 2. Fetch coordinates in itinerary order
+        // 2. Fetch coordinates in itinerary order and build sequential legs
         $orderedSpots = collect($destinationIds)->map(function ($id) use ($spots) {
             return $spots->firstWhere('id', $id);
         })->filter()->values();
 
-        $distanceKm = 0.0;
-        if ($orderedSpots->count() > 1) {
-            $distanceKm = $this->calculateRouteDistance($orderedSpots);
-        }
+        $legs = $this->calculateRouteLegs($orderedSpots);
+        $totalDistanceKm = (float) collect($legs)->sum('distance_km');
 
-        // 3. Compute transport costs
+        // 3. Compute transport costs leg-by-leg with municipal boundary awareness
         $transitFares = 0.00;
         $fuelCost = 0.00;
-        
+        $legBreakdowns = [];
+        $boundaryCrossingsCount = 0;
+
         $modes = array_filter(explode(',', $transportModeString));
-        foreach ($modes as $mode) {
+        if (empty($modes)) {
+            $modes = ['jeepney'];
+        }
+
+        foreach ($modes as $modeIndex => $mode) {
             $mode = trim($mode);
             $norm = strtolower($mode);
-            if ($norm === 'own_car' || $norm === 'car') {
-                $fuelCost += $this->estimateFuelCost($distanceKm, 'Private Car', $customFuelPrice, $customFuelEfficiency);
-            } elseif ($norm === 'motorcycle') {
-                $fuelCost += $this->estimateFuelCost($distanceKm, 'Motorcycle', $customFuelPrice, 35.00);
-            } elseif ($norm === 'taxi') {
-                $transitFares += round(40.00 + ($distanceKm * 13.00), 2);
-            } elseif ($norm === 'private_bus') {
-                $transitFares += $this->estimateTransitFare($distanceKm, 'pub_aircon', $primaryMuni);
-            } else {
-                $transitFares += $this->estimateTransitFare($distanceKm, $mode, $primaryMuni);
+            $isPrivate = in_array($norm, ['own_car', 'car', 'motorcycle']);
+            
+            foreach ($legs as $legIdx => $leg) {
+                $isFirstLeg = ($legIdx === 0 && $modeIndex === 0);
+                $crosses = (bool) ($leg['crosses_boundary'] ?? false);
+                if ($crosses && $modeIndex === 0) {
+                    $boundaryCrossingsCount++;
+                }
+
+                $distKm = (float) ($leg['distance_km'] ?? 1.0);
+                $muniA = $leg['origin_muni'] ?? $primaryMuni;
+                $muniB = $leg['dest_muni'] ?? $primaryMuni;
+
+                $priceA = 0.00;
+                $estimateB = 0.00;
+                $legFare = 0.00;
+
+                if ($crosses) {
+                    $distA = round($distKm / 2.0, 2);
+                    $distB = round(max(0.1, $distKm - $distA), 2);
+
+                    if ($norm === 'own_car' || $norm === 'car') {
+                        $costA = $this->estimateFuelCost($distA, 'Private Car', $customFuelPrice, $customFuelEfficiency);
+                        $costB = $this->estimateFuelCost($distB, 'Private Car', $customFuelPrice, $customFuelEfficiency);
+                        $priceA = round($costA, 2);
+                        $estimateB = round($costB, 2);
+                        $legFare = round($priceA + $estimateB, 2);
+                        $fuelCost += $legFare;
+                    } elseif ($norm === 'motorcycle') {
+                        $costA = $this->estimateFuelCost($distA, 'Motorcycle', $customFuelPrice, 35.00);
+                        $costB = $this->estimateFuelCost($distB, 'Motorcycle', $customFuelPrice, 35.00);
+                        $priceA = round($costA, 2);
+                        $estimateB = round($costB, 2);
+                        $legFare = round($priceA + $estimateB, 2);
+                        $fuelCost += $legFare;
+                    } elseif ($norm === 'taxi') {
+                        $base = $isFirstLeg ? 40.00 : 0.00;
+                        $priceA = round($base + ($distA * 13.00), 2);
+                        $estimateB = round($distB * 13.00, 2);
+                        $legFare = round($priceA + $estimateB, 2);
+                        $transitFares += $legFare;
+                    } elseif ($norm === 'tricycle' || $norm === 'trike') {
+                        // Tricycle boundary transfer: local matrix A for segment A + local matrix B for segment B
+                        $fareA = $this->estimateTransitFare($distA, 'tricycle', $muniA);
+                        $fareB = $this->estimateTransitFare($distB, 'tricycle', $muniB);
+                        $priceA = round($fareA, 2);
+                        $estimateB = round($fareB, 2);
+                        $legFare = round($priceA + $estimateB, 2);
+                        $transitFares += $legFare;
+                    } else {
+                        // Inter-municipal Public Transit (MPUJ, TPUJ, PUB Aircon, PUB Ordinary, Bus, Van)
+                        // Shows price in origin boundary A, and the incremental remaining estimate in boundary B
+                        $targetMode = ($norm === 'private_bus') ? 'pub_aircon' : $mode;
+                        $fareA = $this->estimateTransitFare($distA, $targetMode, $muniA);
+                        $totalLegTransit = $this->estimateTransitFare($distKm, $targetMode, $muniA);
+                        $priceA = round($fareA, 2);
+                        $estimateB = max(0.00, round($totalLegTransit - $priceA, 2));
+                        $legFare = round($priceA + $estimateB, 2);
+                        $transitFares += $legFare;
+                    }
+                } else {
+                    // Single municipal boundary leg
+                    if ($norm === 'own_car' || $norm === 'car') {
+                        $cost = $this->estimateFuelCost($distKm, 'Private Car', $customFuelPrice, $customFuelEfficiency);
+                        $priceA = round($cost, 2);
+                        $estimateB = 0.00;
+                        $legFare = $priceA;
+                        $fuelCost += $legFare;
+                    } elseif ($norm === 'motorcycle') {
+                        $cost = $this->estimateFuelCost($distKm, 'Motorcycle', $customFuelPrice, 35.00);
+                        $priceA = round($cost, 2);
+                        $estimateB = 0.00;
+                        $legFare = $priceA;
+                        $fuelCost += $legFare;
+                    } elseif ($norm === 'taxi') {
+                        $base = $isFirstLeg ? 40.00 : 0.00;
+                        $priceA = round($base + ($distKm * 13.00), 2);
+                        $estimateB = 0.00;
+                        $legFare = $priceA;
+                        $transitFares += $legFare;
+                    } elseif ($norm === 'tricycle' || $norm === 'trike') {
+                        $priceA = round($this->estimateTransitFare($distKm, 'tricycle', $muniA), 2);
+                        $estimateB = 0.00;
+                        $legFare = $priceA;
+                        $transitFares += $legFare;
+                    } else {
+                        $targetMode = ($norm === 'private_bus') ? 'pub_aircon' : $mode;
+                        $priceA = round($this->estimateTransitFare($distKm, $targetMode, $muniA), 2);
+                        $estimateB = 0.00;
+                        $legFare = $priceA;
+                        $transitFares += $legFare;
+                    }
+                }
+
+                $legBreakdowns[] = [
+                    'leg_index'        => $leg['leg_index'],
+                    'from_spot'        => $leg['from_spot'],
+                    'to_spot'          => $leg['to_spot'],
+                    'from_spot_id'     => $leg['from_spot_id'],
+                    'to_spot_id'       => $leg['to_spot_id'],
+                    'distance_km'      => $distKm,
+                    'crosses_boundary' => $crosses,
+                    'vehicle_mode'     => $mode,
+                    'is_private'       => $isPrivate,
+                    'origin_boundary'  => $muniA,
+                    'origin_price'     => $priceA,
+                    'next_boundary'    => $muniB,
+                    'next_estimate'    => $estimateB,
+                    'leg_total'        => $legFare,
+                ];
             }
         }
 
@@ -303,19 +407,111 @@ class CostEstimationService
             : "Standard Regular Season Pricing.";
 
         return [
-            'entrance_fees'      => round($entranceFees, 2),
-            'environmental_fees' => round($environmentalFees, 2),
-            'site_fees'          => round($siteFeesTotal, 2),
-            'transit_fares'      => round($transitFaresSurged, 2),
-            'base_transit_fares' => round($transitFares, 2),
-            'fuel_cost'          => round($fuelCost, 2),
-            'subtotal_cost'      => round($subtotal, 2),
-            'total_cost'         => round($totalCost, 2),
-            'distance_km'        => round($distanceKm, 2),
-            'is_peak_season'     => $isPeak,
-            'peak_multiplier'    => $peakMultiplier,
-            'peak_season_note'   => $seasonNote,
+            'entrance_fees'            => round($entranceFees, 2),
+            'environmental_fees'       => round($environmentalFees, 2),
+            'site_fees'                => round($siteFeesTotal, 2),
+            'transit_fares'            => round($transitFaresSurged, 2),
+            'base_transit_fares'       => round($transitFares, 2),
+            'fuel_cost'                => round($fuelCost, 2),
+            'subtotal_cost'            => round($subtotal, 2),
+            'total_cost'               => round($totalCost, 2),
+            'distance_km'              => round($totalDistanceKm, 2),
+            'is_peak_season'           => $isPeak,
+            'peak_multiplier'          => $peakMultiplier,
+            'peak_season_note'         => $seasonNote,
+            'legs'                     => $legBreakdowns,
+            'boundary_crossings_count' => $boundaryCrossingsCount,
         ];
+    }
+
+    /**
+     * Build sequential route legs with municipal boundaries and OSRM/Haversine leg distances.
+     */
+    public function calculateRouteLegs($orderedSpots): array
+    {
+        $count = $orderedSpots->count();
+        if ($count === 0) {
+            return [];
+        }
+
+        if ($count === 1) {
+            $spot = $orderedSpots->first();
+            $muni = $spot->municipality?->name ?? 'San Juan';
+            return [
+                [
+                    'leg_index'        => 1,
+                    'from_spot'        => $spot->name,
+                    'to_spot'          => $spot->name,
+                    'from_spot_id'     => $spot->id,
+                    'to_spot_id'       => $spot->id,
+                    'distance_km'      => 2.00,
+                    'origin_muni'      => $muni,
+                    'dest_muni'        => $muni,
+                    'crosses_boundary' => false,
+                ]
+            ];
+        }
+
+        // Multiple spots: N-1 legs
+        $coords = $orderedSpots->map(function ($spot) {
+            return "{$spot->longitude},{$spot->latitude}";
+        })->implode(';');
+
+        $osrmLegs = [];
+        try {
+            $response = Http::timeout(3)->get("https://router.project-osrm.org/route/v1/driving/{$coords}", [
+                'overview'   => 'false',
+                'geometries' => 'geojson'
+            ]);
+
+            if ($response->successful() && isset($response->json()['routes'][0]['legs'])) {
+                $osrmLegs = $response->json()['routes'][0]['legs'];
+            }
+        } catch (\Throwable $e) {
+            Log::warning("OSRM API failed in calculateRouteLegs, using Haversine: " . $e->getMessage());
+        }
+
+        $legs = [];
+        for ($i = 0; $i < $count - 1; $i++) {
+            $spotA = $orderedSpots[$i];
+            $spotB = $orderedSpots[$i + 1];
+
+            $distKm = 0.0;
+            if (isset($osrmLegs[$i]['distance'])) {
+                $distKm = round(((float) $osrmLegs[$i]['distance']) / 1000.0, 2);
+            } else {
+                $rawDist = $this->haversine(
+                    (float) $spotA->latitude,
+                    (float) $spotA->longitude,
+                    (float) $spotB->latitude,
+                    (float) $spotB->longitude
+                );
+                // 1.25 factor for realistic road curves
+                $distKm = max(0.5, round(($rawDist / 1000.0) * 1.25, 2));
+            }
+
+            $muniA = $spotA->municipality?->name ?? 'San Juan';
+            $muniB = $spotB->municipality?->name ?? 'San Juan';
+
+            // Clean municipality names for comparison
+            $cleanA = trim(preg_replace('/^(municipality of|city of)\s+/i', '', $muniA));
+            $cleanB = trim(preg_replace('/^(municipality of|city of)\s+/i', '', $muniB));
+            $crosses = (strcasecmp($cleanA, $cleanB) !== 0);
+
+            $legs[] = [
+                'leg_index'        => $i + 1,
+                'from_spot'        => $spotA->name,
+                'to_spot'          => $spotB->name,
+                'from_spot_id'     => $spotA->id,
+                'to_spot_id'       => $spotB->id,
+                'distance_km'      => $distKm,
+                'origin_muni'      => $muniA,
+                'dest_muni'        => $muniB,
+                'crosses_boundary' => $crosses,
+            ];
+        }
+
+        return $legs;
     }
 
     /**
