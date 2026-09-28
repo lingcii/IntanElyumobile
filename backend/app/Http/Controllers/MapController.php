@@ -17,7 +17,7 @@ class MapController extends Controller
      */
     public function publicMapData(): JsonResponse
     {
-        $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots:v4', 30, function () {
+        $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots:v4', 900, function () {
             $spotPublicVehicles = [];
             $spotPrivateVehicles = [];
             $spotAllVehicles = [];
@@ -149,7 +149,8 @@ class MapController extends Controller
                 })->values()->toArray();  // toArray() stores a plain array in cache — safe to serialize
         });
 
-        return response()->json(['destinations' => $spots]);
+        return response()->json(['destinations' => $spots])
+            ->header('Cache-Control', 'public, max-age=600, stale-while-revalidate=1800');
     }
 
     /**
@@ -158,7 +159,7 @@ class MapController extends Controller
      */
     public function publicMunicipalities(): JsonResponse
     {
-        $municipalities = \Illuminate\Support\Facades\Cache::remember('map:public:municipalities', 300, function () {
+        $municipalities = \Illuminate\Support\Facades\Cache::remember('map:public:municipalities', 3600, function () {
             return Municipality::withCount(['touristSpots' => function ($q) {
                 $q->activeForTourists();
             }])
@@ -174,7 +175,8 @@ class MapController extends Controller
             })->values()->toArray();
         });
 
-        return response()->json(['municipalities' => $municipalities]);
+        return response()->json(['municipalities' => $municipalities])
+            ->header('Cache-Control', 'public, max-age=3600, stale-while-revalidate=7200');
     }
 
     /**
@@ -185,7 +187,7 @@ class MapController extends Controller
     {
         $cacheKey = 'map:public:fares:v5';
 
-        $fares = \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function () {
+        $fares = \Illuminate\Support\Facades\Cache::remember($cacheKey, 7200, function () {
             $allActiveGuides = FareGuide::with(['matrices' => function ($q) {
                 $q->orderBy('distance_km', 'asc');
             }])
@@ -356,7 +358,7 @@ class MapController extends Controller
             ];
         });
 
-        $fuelPrice = \Illuminate\Support\Facades\Cache::remember('system:fuel_price', 300, function () {
+        $fuelPrice = \Illuminate\Support\Facades\Cache::remember('system:fuel_price', 3600, function () {
             return \Illuminate\Support\Facades\DB::table('system_settings')
                 ->where('key', 'fuel_price')
                 ->value('value') ?? '65.00';
@@ -369,7 +371,7 @@ class MapController extends Controller
             'vehicle_types'                   => $activeFareVehicleTypes,
             'active_vehicles_by_municipality' => $fares['active_vehicles_by_municipality'] ?? [],
             'fuel_price'                      => (float) $fuelPrice
-        ]);
+        ])->header('Cache-Control', 'public, max-age=600, stale-while-revalidate=1800');
     }
 
     /**

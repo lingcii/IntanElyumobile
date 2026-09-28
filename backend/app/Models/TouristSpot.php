@@ -140,5 +140,20 @@ class TouristSpot extends Model
               ->orWhereNull('status');
         });
     }
+
+    protected static function booted()
+    {
+        static::saved(function () {
+            \Illuminate\Support\Facades\Cache::forget('map:public:spots:v4');
+            \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+            \Illuminate\Support\Facades\Cache::forget('map:public:municipalities');
+        });
+
+        static::deleted(function () {
+            \Illuminate\Support\Facades\Cache::forget('map:public:spots:v4');
+            \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+            \Illuminate\Support\Facades\Cache::forget('map:public:municipalities');
+        });
+    }
 }
 

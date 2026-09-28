@@ -819,14 +819,38 @@ if (is_dir($imgDir)) {
 
             const regionDataPromise = fetch('assets/la_union_municipalities.json').then(r => r.json()).catch(e => console.error("Region fetch error:", e));
 
-            // Fetch fare rates and vehicle data from Railway DB
-            const faresPromise = fetch(_backendBase + '/api/public/fares', {
-                headers: { 'Accept': 'application/json' }
-            }).then(r => r.json()).then(d => {
-                window.fareData = d.fares || {};
-                window.vehicleData = d.vehicles || [];
-                window.fuelPrice = d.fuel_price || 65.0;
-            }).catch(e => console.error("Fares fetch error:", e));
+            // Fetch fare rates and vehicle data with SWR localStorage caching (eliminates Railway hits)
+            const FARES_CACHE_KEY = 'public_fare_data';
+            const FARES_CACHE_TTL = 3600000; // 1 hr
+            let cachedFares = null;
+            try {
+                const rawF = localStorage.getItem(FARES_CACHE_KEY);
+                if (rawF) {
+                    const parsedF = (typeof window.safeJsonParse === 'function') ? window.safeJsonParse(rawF, null) : JSON.parse(rawF);
+                    if (parsedF && parsedF.data) {
+                        cachedFares = parsedF;
+                        window.fareData = parsedF.data.fares || {};
+                        window.vehicleData = parsedF.data.vehicles || [];
+                        window.fuelPrice = parsedF.data.fuel_price || 65.0;
+                    }
+                }
+            } catch (e) {}
+
+            const shouldRevalidateFares = !cachedFares || !cachedFares.timestamp || (Date.now() - cachedFares.timestamp > FARES_CACHE_TTL);
+            if (shouldRevalidateFares) {
+                fetch(_backendBase + '/api/public/fares', {
+                    headers: { 'Accept': 'application/json' }
+                }).then(r => r.json()).then(d => {
+                    if (d && d.fares) {
+                        window.fareData = d.fares || {};
+                        window.vehicleData = d.vehicles || [];
+                        window.fuelPrice = d.fuel_price || 65.0;
+                        try {
+                            localStorage.setItem(FARES_CACHE_KEY, JSON.stringify({ data: d, timestamp: Date.now() }));
+                        } catch (e) {}
+                    }
+                }).catch(e => console.error("Fares fetch error:", e));
+            }
 
             const style = {
                 "version": 8,
@@ -4499,11 +4523,15 @@ if (is_dir($imgDir)) {
 
         setTimeout(window.initMap, 50);
 
-        // Auto-refresh: poll for new spots cleanly (throttled & visibility-aware)
+        // On-demand & throttled spot refresh (Eliminates continuous 60s background Railway polling)
         if (window._mapSpotsCheckInterval) {
             clearInterval(window._mapSpotsCheckInterval);
             window._mapSpotsCheckInterval = null;
         }
+
+        let _lastSpotsCheckTime = Date.now();
+        const MIN_SPOTS_REFRESH_INTERVAL = 900000; // 15 minutes minimum between checks
+
         async function checkForNewSpots() {
             if (!window.mapInstance || document.visibilityState !== 'visible' || document.body.getAttribute('data-view') !== 'map') return;
             try {
@@ -4511,7 +4539,7 @@ if (is_dir($imgDir)) {
                     headers: { 'Accept': 'application/json' }
                 });
                 const text = await res.text();
-                const data = window.safeJsonParse(text, null);
+                const data = (typeof window.safeJsonParse === 'function') ? window.safeJsonParse(text, null) : JSON.parse(text);
                 if (!data || !data.destinations) return;
                 const newIds = data.destinations.map(d => String(d.id)).sort().join(',');
                 const oldIds = (window.allMapLocations || []).map(d => String(d.id)).sort().join(',');
@@ -4523,8 +4551,23 @@ if (is_dir($imgDir)) {
                     const newCatEl = Array.from(document.querySelectorAll('.category-pill')).find(el => el.innerText === prevCat);
                     window.filterCategory(prevCat, newCatEl || document.querySelector('.category-pill'));
                 }
-            } catch (e) { console.error('Auto-refresh error:', e); }
+            } catch (e) { console.error('Map spots refresh error:', e); }
         }
-        window._mapSpotsCheckInterval = setInterval(checkForNewSpots, 60000); // Poll every 60s instead of 10s to prevent mobile lag
+
+        window.refreshMapSpots = function (force = false) {
+            const now = Date.now();
+            if (!force && (now - _lastSpotsCheckTime < MIN_SPOTS_REFRESH_INTERVAL)) {
+                return;
+            }
+            _lastSpotsCheckTime = now;
+            checkForNewSpots();
+        };
+
+        // Check only when tourist returns to the map tab after being away >= 15 minutes
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && document.body.getAttribute('data-view') === 'map') {
+                window.refreshMapSpots(false);
+            }
+        });
     })();
 </script>

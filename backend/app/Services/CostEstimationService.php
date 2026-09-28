@@ -479,18 +479,22 @@ class CostEstimationService
                 return "{$spot->longitude},{$spot->latitude}";
             })->implode(';');
 
-            try {
-                $response = Http::timeout(3)->get("https://router.project-osrm.org/route/v1/driving/{$coords}", [
-                    'overview'   => 'false',
-                    'geometries' => 'geojson'
-                ]);
+            $cacheKey = 'osrm_legs_' . md5($coords);
+            $osrmLegs = \Illuminate\Support\Facades\Cache::remember($cacheKey, 86400, function () use ($coords) {
+                try {
+                    $response = Http::timeout(3)->get("https://router.project-osrm.org/route/v1/driving/{$coords}", [
+                        'overview'   => 'false',
+                        'geometries' => 'geojson'
+                    ]);
 
-                if ($response->successful() && isset($response->json()['routes'][0]['legs'])) {
-                    $osrmLegs = $response->json()['routes'][0]['legs'];
+                    if ($response->successful() && isset($response->json()['routes'][0]['legs'])) {
+                        return $response->json()['routes'][0]['legs'];
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning("OSRM API failed in calculateRouteLegs, using Haversine: " . $e->getMessage());
                 }
-            } catch (\Throwable $e) {
-                Log::warning("OSRM API failed in calculateRouteLegs, using Haversine: " . $e->getMessage());
-            }
+                return [];
+            });
         }
 
         $legs = [];
@@ -548,6 +552,12 @@ class CostEstimationService
             return "{$spot->longitude},{$spot->latitude}";
         })->implode(';');
 
+        $cacheKey = 'osrm_dist_' . md5($coords);
+        $cachedDist = \Illuminate\Support\Facades\Cache::get($cacheKey);
+        if ($cachedDist !== null) {
+            return (float) $cachedDist;
+        }
+
         try {
             // OSRM Public Driving Router API
             $response = Http::timeout(3)->get("https://router.project-osrm.org/route/v1/driving/{$coords}", [
@@ -556,7 +566,9 @@ class CostEstimationService
             ]);
 
             if ($response->successful() && isset($response->json()['routes'][0]['distance'])) {
-                return (float) ($response->json()['routes'][0]['distance'] / 1000.0); // meters to km
+                $distKm = (float) ($response->json()['routes'][0]['distance'] / 1000.0); // meters to km
+                \Illuminate\Support\Facades\Cache::put($cacheKey, $distKm, 86400); // 24 hrs
+                return $distKm;
             }
         } catch (\Exception $e) {
             Log::warning("OSRM API failed, falling back to Haversine distance chain: " . $e->getMessage());

@@ -1101,15 +1101,45 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             });
         };
 
-        // Fetch fare rates and vehicle data from Railway DB
-        fetch(backendUrl + '/api/public/fares', {
-            headers: { 'Accept': 'application/json' }
-        }).then(r => r.json()).then(d => {
-            window.fareData = d.fares || {};
-            window.vehicleData = d.vehicles || [];
-            window.vehicleTypes = d.vehicle_types || [];
-            window.fuelPrice = d.fuel_price || 65.0;
-        }).catch(e => console.error("Fares fetch error:", e));
+        // SWR Caching for Fare Rates & Vehicle Types (Eliminates redundant Railway hits)
+        const FARES_CACHE_KEY = 'public_fare_data';
+        const FARES_CACHE_TTL = 3600000; // 1 hour TTL
+        let cachedFarePayload = null;
+        try {
+            const rawFares = localStorage.getItem(FARES_CACHE_KEY);
+            if (rawFares) {
+                const parsed = (typeof window.safeJsonParse === 'function') ? window.safeJsonParse(rawFares, null) : JSON.parse(rawFares);
+                if (parsed && parsed.data) {
+                    cachedFarePayload = parsed;
+                    window.fareData = parsed.data.fares || {};
+                    window.vehicleData = parsed.data.vehicles || [];
+                    window.vehicleTypes = parsed.data.vehicle_types || [];
+                    window.fuelPrice = parsed.data.fuel_price || 65.0;
+                }
+            }
+        } catch (e) {}
+
+        const now = Date.now();
+        const shouldFetchFreshFares = !cachedFarePayload || !cachedFarePayload.timestamp || (now - cachedFarePayload.timestamp > FARES_CACHE_TTL);
+
+        if (shouldFetchFreshFares) {
+            fetch(backendUrl + '/api/public/fares', {
+                headers: { 'Accept': 'application/json' }
+            }).then(r => r.json()).then(d => {
+                if (d && d.fares) {
+                    window.fareData = d.fares || {};
+                    window.vehicleData = d.vehicles || [];
+                    window.vehicleTypes = d.vehicle_types || [];
+                    window.fuelPrice = d.fuel_price || 65.0;
+                    try {
+                        localStorage.setItem(FARES_CACHE_KEY, JSON.stringify({ data: d, timestamp: Date.now() }));
+                    } catch (e) {}
+                    if (typeof window.recalculateCosts === 'function') {
+                        window.recalculateCosts();
+                    }
+                }
+            }).catch(e => console.error("Fares fetch error:", e));
+        }
 
         // Preload map spot metadata to guarantee vehicle availability can always be resolved
         window._cachedMapSpots = {};
