@@ -891,12 +891,6 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     </div>
                 </div>
             </div>
-
-            <!-- Dynamic Boundary Fare Breakdown -->
-            <div id="modal-boundary-breakdown"
-                style="display:none; margin-top:14px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.12); max-height:160px; overflow-y:auto; scrollbar-width:thin;">
-                <!-- Dynamically filled with boundary crossing badges -->
-            </div>
         </div>
 
         <div style="display:flex; gap:12px; margin-top:20px;">
@@ -2225,78 +2219,6 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             const costEl = document.getElementById('save-estimated-cost');
             costEl.textContent = '₱' + estimatedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-            // Render Dynamic Boundary Fare Breakdown in modal
-            const bBreakdownEl = document.getElementById('modal-boundary-breakdown');
-            if (bBreakdownEl) {
-                if (isNoVeh) {
-                    bBreakdownEl.style.display = 'block';
-                    bBreakdownEl.innerHTML = `
-                        <div style="background:rgba(255,255,255,0.04); border:1px dashed rgba(248,113,113,0.35); border-radius:10px; padding:10px 12px; display:flex; align-items:center; justify-content:space-between; color:#ffffff; font-size:11px; font-weight:700;">
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <i class="fa-solid fa-ban" style="color:#f87171; font-size:13px;"></i>
-                                <span style="color:#fca5a5;">No Vehicle Selected</span>
-                            </div>
-                            <span style="color:#94a3b8; font-size:10px;">Transit: ₱0.00</span>
-                        </div>
-                    `;
-                } else {
-                    const breakdown = window._draftBoundaryBreakdown || [];
-                    if (breakdown.length > 0) {
-                        let bHtml = `
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                                <span style="font-size:10px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px;">
-                                    <i class="fa-solid fa-signs-post" style="margin-right:4px;"></i> Route & Boundary Fares (${breakdown.length} ${breakdown.length === 1 ? 'Leg' : 'Legs'})
-                                </span>
-                                <span style="font-size:11px; font-weight:700; color:#34d399;">₱${transCost.toFixed(2)}</span>
-                            </div>
-                        `;
-
-                    breakdown.forEach(l => {
-                        const cleanOrigin = (l.originMuni || 'Local').replace(/^(municipality of|city of)\s+/i, '');
-                        const cleanNext = (l.nextMuni || 'Local').replace(/^(municipality of|city of)\s+/i, '');
-
-                        if (l.crossesBoundary) {
-                            bHtml += `
-                                <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(56,189,248,0.22); border-radius:10px; padding:8px 10px; margin-bottom:6px;">
-                                    <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:700; color:#ffffff; margin-bottom:4px;">
-                                        <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:70%;"><i class="fa-solid fa-map-pin" style="color:#38bdf8; font-size:10px; margin-right:4px;"></i>Leg ${l.legIndex}: ${l.from} → ${l.to}</span>
-                                        <span style="color:#94a3b8; font-size:10px;">${l.distKm.toFixed(1)} km</span>
-                                    </div>
-                                    <div style="display:flex; flex-wrap:wrap; gap:6px; font-size:10px; align-items:center;">
-                                        <span style="background:rgba(56,189,248,0.15); color:#7dd3fc; padding:2px 6px; border-radius:6px; font-weight:700;">
-                                            📍 ${cleanOrigin}: ₱${parseFloat(l.originPrice).toFixed(2)}
-                                        </span>
-                                        <span style="background:rgba(251,191,36,0.15); color:#fcd34d; padding:2px 6px; border-radius:6px; font-weight:700;">
-                                            🔄 Next: ${cleanNext} (Est. ₱${parseFloat(l.nextEstimate).toFixed(2)})
-                                        </span>
-                                        <span style="margin-left:auto; color:#ffffff; font-weight:800; font-size:11px;">
-                                            ₱${parseFloat(l.legTotal).toFixed(2)}
-                                        </span>
-                                    </div>
-                                </div>
-                            `;
-                        } else {
-                            bHtml += `
-                                <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:8px 10px; margin-bottom:6px;">
-                                    <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:700; color:#ffffff; margin-bottom:2px;">
-                                        <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:70%;"><i class="fa-solid fa-location-dot" style="color:#34d399; font-size:10px; margin-right:4px;"></i>${breakdown.length === 1 ? 'Local Trip' : 'Leg ' + l.legIndex}: ${l.from} ${l.from !== l.to ? '→ ' + l.to : ''}</span>
-                                        <span style="color:#ffffff; font-weight:800;">₱${parseFloat(l.legTotal).toFixed(2)}</span>
-                                    </div>
-                                    <div style="display:flex; justify-content:space-between; font-size:10px; color:#94a3b8;">
-                                        <span>Within ${cleanOrigin}</span>
-                                        <span>${l.distKm.toFixed(1)} km</span>
-                                    </div>
-                                </div>
-                            `;
-                        }
-                    });
-
-                    bBreakdownEl.innerHTML = bHtml;
-                } else {
-                    bBreakdownEl.style.display = 'none';
-                }
-            }
-
             const budgetInput = document.getElementById('trip-budget').value;
             const budget = parseFloat(budgetInput);
             const remainingRow = document.getElementById('save-budget-remaining-row');
@@ -3289,15 +3211,16 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     { val: 'motorcycle', name: 'Motorcycle', icon: 'fa-motorcycle', key: 'motorcycle' }
                 ];
 
+                const constrainedPrivateSpots = draft.filter(p => {
+                    const info = resolveSpotVehicleInfo(p);
+                    return info.has_available_vehicles && Array.isArray(info.accessible_vehicles) && info.accessible_vehicles.length > 0;
+                });
+
                 optionsList = privDefs.map(opt => {
                     let avail = true;
-                    if (draft.length > 0) {
-                        for (const p of draft) {
+                    if (constrainedPrivateSpots.length > 0) {
+                        for (const p of constrainedPrivateSpots) {
                             const info = resolveSpotVehicleInfo(p);
-                            if (info.has_available_vehicles === false || info.accessible_vehicles.length === 0) {
-                                avail = false;
-                                break;
-                            }
                             if (!isVehAllowed(opt.key, opt.val, info.accessible_vehicles)) {
                                 avail = false;
                                 break;
@@ -3351,21 +3274,26 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     optionsList.push({ val: 'uve', name: 'UV Express / Van', icon: 'fa-shuttle-van', available: true, key: 'uve' });
                 }
 
-                // Filter / disable options if any spot in draft restricts accessible vehicles
-                if (draft.length > 0) {
+                // Filter / disable options only based on spots in draft that actually define accessible vehicles
+                const constrainedPublicSpots = draft.filter(p => {
+                    const info = resolveSpotVehicleInfo(p);
+                    return info.has_available_vehicles && Array.isArray(info.accessible_vehicles) && info.accessible_vehicles.length > 0;
+                });
+
+                if (constrainedPublicSpots.length > 0) {
                     optionsList = optionsList.map(opt => {
                         let avail = opt.available;
-                        for (const p of draft) {
+                        let matchesAll = true;
+                        let matchesAny = false;
+                        for (const p of constrainedPublicSpots) {
                             const info = resolveSpotVehicleInfo(p);
-                            if (info.has_available_vehicles === false || info.accessible_vehicles.length === 0) {
-                                avail = false;
-                                break;
-                            }
-                            if (!isVehAllowed(opt.key, opt.val, info.accessible_vehicles)) {
-                                avail = false;
-                                break;
+                            if (isVehAllowed(opt.key, opt.val, info.accessible_vehicles)) {
+                                matchesAny = true;
+                            } else {
+                                matchesAll = false;
                             }
                         }
+                        avail = avail && (matchesAll || matchesAny);
                         return { val: opt.val, name: opt.name, icon: opt.icon, available: avail };
                     });
                 }
