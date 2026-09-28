@@ -1516,6 +1516,9 @@ if (is_dir($imgDir)) {
                                                     <span><i class="fa-regular fa-calendar" style="margin-right:4px; color:#ffffff;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No Date'}</span>
                                                     ${trip.transport_mode ? (() => {
                                                         const rawT = String(trip.transport_mode).split(',')[0].trim().toLowerCase().replace(/[- ]/g, '_');
+                                                        if (rawT.includes('no_vehicle') || rawT.includes('no vehicle')) {
+                                                            return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid fa-ban" style="margin-right:4px; color:#f87171;"></i>No Vehicle Selected</span>`;
+                                                        }
                                                         const tMap = {
                                                             'own_car': 'Own Car',
                                                             'mpuj': 'MPUJ',

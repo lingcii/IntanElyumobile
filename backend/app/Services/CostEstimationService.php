@@ -267,7 +267,35 @@ class CostEstimationService
         $legs = $this->calculateRouteLegs($orderedSpots);
         $totalDistanceKm = (float) collect($legs)->sum('distance_km');
 
-        // 3. Compute transport costs leg-by-leg with municipal boundary awareness
+        // 3. If No Vehicle Selected or empty transport mode, zero out transit fares and fuel
+        $isNoVehicle = empty($transportModeString)
+            || stripos($transportModeString, 'no_vehicle') !== false
+            || stripos($transportModeString, 'no vehicle') !== false;
+
+        if ($isNoVehicle) {
+            $subtotalCost = $siteFeesTotal;
+            $peakMultiplier = $customPeakMultiplier ?? $this->getPeakMultiplier($travelDate);
+            $totalCost = round($subtotalCost * $peakMultiplier, 2);
+
+            return [
+                'entrance_fees'      => round($entranceFees, 2),
+                'environmental_fees' => round($environmentalFees, 2),
+                'transit_fares'      => 0.00,
+                'fuel_cost'          => 0.00,
+                'subtotal_cost'      => round($subtotalCost, 2),
+                'total_cost'         => $totalCost,
+                'distance_km'        => round($totalDistanceKm, 2),
+                'is_peak_season'     => $this->isPeakSeason($travelDate),
+                'peak_multiplier'    => $peakMultiplier,
+                'peak_season_note'   => $this->isPeakSeason($travelDate) ? 'Peak Season Dynamic Rate (1.25x)' : 'Standard Regular Season Pricing',
+                'boundary_crossings' => 0,
+                'legs'               => $legs,
+                'leg_breakdowns'     => [],
+                'transport_mode'     => 'No Vehicle Selected',
+            ];
+        }
+
+        // 4. Compute transport costs leg-by-leg with municipal boundary awareness
         $transitFares = 0.00;
         $fuelCost = 0.00;
         $legBreakdowns = [];

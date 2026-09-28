@@ -738,6 +738,18 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         </div>
 
         <script>
+            window.selectNoVehicleMode = function (el) {
+                document.querySelectorAll('.transport-option').forEach(opt => opt.classList.remove('active'));
+                if (el) el.classList.add('active');
+                document.getElementById('trip-transport').value = '';
+                const fuelPanel = document.getElementById('own-car-fuel-panel');
+                if (fuelPanel) {
+                    fuelPanel.style.maxHeight = '0';
+                    fuelPanel.style.opacity = '0';
+                }
+                if (window.calculateModalBudget) window.calculateModalBudget();
+            };
+
             window.selectTransportMode = function (el) {
                 if (el.getAttribute('data-available') === '0' || el.classList.contains('disabled-transport')) {
                     const vehName = el.querySelector('span')?.textContent;
@@ -748,39 +760,63 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     return;
                 }
                 const val = el.getAttribute('data-val');
+                if (val === 'no_vehicle') {
+                    window.selectNoVehicleMode(el);
+                    return;
+                }
+
+                // Deactivate any no-vehicle card
+                document.querySelectorAll('.transport-option[data-val="no_vehicle"]').forEach(opt => opt.classList.remove('active'));
+
                 const privateKeys = ['own_car', 'taxi', 'motorcycle', 'van'];
                 const isPrivate = privateKeys.includes(val);
 
                 if (isPrivate) {
-                    // Private: single-select only
+                    // Private: single-select with deselect toggle
+                    const wasActive = el.classList.contains('active');
                     document.querySelectorAll('.transport-option').forEach(opt => {
                         const oVal = opt.getAttribute('data-val');
                         if (privateKeys.includes(oVal)) {
                             opt.classList.remove('active');
                         }
                     });
-                    el.classList.add('active');
-                    document.getElementById('trip-transport').value = val;
+                    if (!wasActive) {
+                        el.classList.add('active');
+                        document.getElementById('trip-transport').value = val;
+                    } else {
+                        // Deselected -> fall back to No Vehicle Selected
+                        document.getElementById('trip-transport').value = '';
+                        const noVehCard = document.querySelector('.transport-option[data-val="no_vehicle"]');
+                        if (noVehCard) noVehCard.classList.add('active');
+                    }
                 } else {
                     // Public: multi-select allowed
                     el.classList.toggle('active');
                     const activePublic = [];
                     document.querySelectorAll('.transport-option.active').forEach(opt => {
                         const oVal = opt.getAttribute('data-val');
-                        if (!privateKeys.includes(oVal) && opt.getAttribute('data-available') !== '0') {
+                        if (!privateKeys.includes(oVal) && oVal !== 'no_vehicle' && opt.getAttribute('data-available') !== '0') {
                             activePublic.push(oVal);
                         }
                     });
-                    document.getElementById('trip-transport').value = activePublic.join(',');
+                    if (activePublic.length > 0) {
+                        document.getElementById('trip-transport').value = activePublic.join(',');
+                    } else {
+                        // All deselected -> fall back to No Vehicle Selected
+                        document.getElementById('trip-transport').value = '';
+                        const noVehCard = document.querySelector('.transport-option[data-val="no_vehicle"]');
+                        if (noVehCard) noVehCard.classList.add('active');
+                    }
                 }
 
                 // Show/Hide Fuel details for Own Car
                 const fuelPanel = document.getElementById('own-car-fuel-panel');
                 if (fuelPanel) {
-                    if (val === 'own_car' && el.classList.contains('active')) {
+                    const isOwnCarActive = document.querySelector('.transport-option[data-val="own_car"]')?.classList.contains('active');
+                    if (isOwnCarActive) {
                         fuelPanel.style.maxHeight = '200px';
                         fuelPanel.style.opacity = '1';
-                    } else if (isPrivate) {
+                    } else {
                         fuelPanel.style.maxHeight = '0';
                         fuelPanel.style.opacity = '0';
                     }
@@ -2155,14 +2191,9 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             const transport = document.getElementById('trip-transport').value;
             const detailsDiv = document.getElementById('save-budget-details');
+            const isNoVeh = !transport || transport.toLowerCase().includes('no_vehicle') || transport.toLowerCase().includes('no vehicle');
 
-            if (!transport) {
-                detailsDiv.style.display = 'none';
-                detailsDiv.classList.remove('animate-smooth-reveal');
-                return;
-            }
-
-            const transCost = window.computeItineraryTransCost(draft, transport);
+            const transCost = isNoVeh ? 0 : window.computeItineraryTransCost(draft, transport);
 
             const distKm = window._draftDistanceKm || 0;
             const hint = document.getElementById('fuel-distance-hint');
@@ -2197,17 +2228,28 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             // Render Dynamic Boundary Fare Breakdown in modal
             const bBreakdownEl = document.getElementById('modal-boundary-breakdown');
             if (bBreakdownEl) {
-                const breakdown = window._draftBoundaryBreakdown || [];
-                if (breakdown.length > 0) {
+                if (isNoVeh) {
                     bBreakdownEl.style.display = 'block';
-                    let bHtml = `
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                            <span style="font-size:10px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px;">
-                                <i class="fa-solid fa-signs-post" style="margin-right:4px;"></i> Route & Boundary Fares (${breakdown.length} ${breakdown.length === 1 ? 'Leg' : 'Legs'})
-                            </span>
-                            <span style="font-size:11px; font-weight:700; color:#34d399;">₱${transCost.toFixed(2)}</span>
+                    bBreakdownEl.innerHTML = `
+                        <div style="background:rgba(255,255,255,0.04); border:1px dashed rgba(248,113,113,0.35); border-radius:10px; padding:10px 12px; display:flex; align-items:center; justify-content:space-between; color:#ffffff; font-size:11px; font-weight:700;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-ban" style="color:#f87171; font-size:13px;"></i>
+                                <span style="color:#fca5a5;">No Vehicle Selected</span>
+                            </div>
+                            <span style="color:#94a3b8; font-size:10px;">Transit: ₱0.00</span>
                         </div>
                     `;
+                } else {
+                    const breakdown = window._draftBoundaryBreakdown || [];
+                    if (breakdown.length > 0) {
+                        let bHtml = `
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <span style="font-size:10px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px;">
+                                    <i class="fa-solid fa-signs-post" style="margin-right:4px;"></i> Route & Boundary Fares (${breakdown.length} ${breakdown.length === 1 ? 'Leg' : 'Legs'})
+                                </span>
+                                <span style="font-size:11px; font-weight:700; color:#34d399;">₱${transCost.toFixed(2)}</span>
+                            </div>
+                        `;
 
                     breakdown.forEach(l => {
                         const cleanOrigin = (l.originMuni || 'Local').replace(/^(municipality of|city of)\s+/i, '');
@@ -2597,7 +2639,8 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 }
                 if (savedTransport) {
                     const transEl = document.getElementById('trip-transport');
-                    if (transEl) transEl.value = savedTransport;
+                    const isNoVeh = savedTransport.toLowerCase().includes('no_vehicle') || savedTransport.toLowerCase().includes('no vehicle');
+                    if (transEl) transEl.value = isNoVeh ? '' : savedTransport;
                 }
             } else {
                 if (modalTitleEl) {
@@ -2630,8 +2673,10 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             window.setTransportType(currentTransType, false);
 
             // Manage active vehicle cards in the slider (only select available options)
-            const activeVehicles = existingTransport ? existingTransport.split(',').filter(Boolean) : [...new Set(draft.flatMap(p => p.selected_vehicles || []).filter(Boolean))];
-            if (activeVehicles.length > 0) {
+            const isNoVehSaved = !existingTransport || existingTransport.toLowerCase().includes('no_vehicle') || existingTransport.toLowerCase().includes('no vehicle');
+            const activeVehicles = (!isNoVehSaved && existingTransport) ? existingTransport.split(',').filter(Boolean) : [];
+
+            if (!isNoVehSaved && activeVehicles.length > 0) {
                 document.querySelectorAll('.transport-option').forEach(opt => {
                     if (activeVehicles.includes(opt.dataset.val) && !opt.classList.contains('disabled-transport')) {
                         opt.classList.add('active');
@@ -2641,19 +2686,17 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 });
                 const validActive = [];
                 document.querySelectorAll('.transport-option.active').forEach(opt => {
-                    if (opt.getAttribute('data-available') !== '0') {
+                    if (opt.getAttribute('data-available') !== '0' && opt.dataset.val !== 'no_vehicle') {
                         validActive.push(opt.dataset.val);
                     }
                 });
                 document.getElementById('trip-transport').value = validActive.join(',');
             } else {
-                const defaultOpt = document.querySelector('.transport-option:not(.disabled-transport)');
-                if (defaultOpt && defaultOpt.getAttribute('data-available') !== '0') {
-                    defaultOpt.classList.add('active');
-                    document.getElementById('trip-transport').value = defaultOpt.dataset.val;
-                } else {
-                    document.getElementById('trip-transport').value = '';
-                }
+                // If NO vehicle selected, activate the No Vehicle option and clear trip-transport
+                document.querySelectorAll('.transport-option').forEach(opt => opt.classList.remove('active'));
+                const noVehOpt = document.querySelector('.transport-option[data-val="no_vehicle"]');
+                if (noVehOpt) noVehOpt.classList.add('active');
+                document.getElementById('trip-transport').value = '';
             }
 
             // Initialize calendar to current month
@@ -2693,7 +2736,8 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             if (draft.length === 0) return showToast("Your itinerary is empty!");
 
             const transport = document.getElementById('trip-transport').value;
-            const effectiveTransport = transport || 'own_car';
+            const isNoVeh = !transport || !transport.trim() || transport.toLowerCase().includes('no_vehicle') || transport.toLowerCase().includes('no vehicle');
+            const effectiveTransport = isNoVeh ? 'No Vehicle Selected' : transport.trim();
 
             const btn = document.getElementById('btn-submit-trip');
             const editingId = sessionStorage.getItem('editing_itinerary_id');
@@ -3172,15 +3216,18 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 foodCost += parseFloat(item.avg_food_cost) || 150;
             });
 
-            // Calculate dynamic transit cost based on current draft sequence and selected or default transport
-            const curTransport = document.getElementById('trip-transport')?.value || 'jeepney';
-            if (typeof window.computeItineraryTransCost === 'function') {
+            // Calculate dynamic transit cost based on current draft sequence and selected transport
+            const curTransport = document.getElementById('trip-transport')?.value || '';
+            const isNoVeh = !curTransport || curTransport.toLowerCase().includes('no_vehicle') || curTransport.toLowerCase().includes('no vehicle');
+
+            if (!isNoVeh && typeof window.computeItineraryTransCost === 'function') {
                 transCost = window.computeItineraryTransCost(draft, curTransport);
-            }
-            if (!transCost || transCost <= 0) {
+            } else if (!isNoVeh) {
                 draft.forEach(item => {
                     transCost += parseFloat(item.avg_transport_cost) || 30;
                 });
+            } else {
+                transCost = 0;
             }
 
             const total = actCost + foodCost + transCost;
@@ -3340,6 +3387,14 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 return bAvail - aAvail;
             });
 
+            // Add No Vehicle as the first, explicit choice
+            unique.unshift({
+                val: 'no_vehicle',
+                name: 'No Vehicle',
+                icon: 'fa-ban',
+                available: true
+            });
+
             let currentSelected = (document.getElementById('trip-transport').value || '').split(',').filter(Boolean);
             currentSelected = currentSelected.map(v => {
                 if (v === 'jeepney') return 'mpuj';
@@ -3347,10 +3402,17 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 return v;
             });
 
+            const isNoVehCurrent = currentSelected.length === 0 || currentSelected.some(v => v.includes('no_vehicle') || v.includes('no vehicle'));
+
             // Clean trip-transport to drop any vehicle that is now unavailable
             const availKeys = unique.filter(o => o.available !== false).map(o => o.val);
-            const validSelected = currentSelected.filter(v => availKeys.includes(v));
-            if (validSelected.length !== currentSelected.length) {
+            const validSelected = isNoVehCurrent 
+                ? ['no_vehicle'] 
+                : currentSelected.filter(v => availKeys.includes(v) && v !== 'no_vehicle');
+
+            if (isNoVehCurrent) {
+                document.getElementById('trip-transport').value = '';
+            } else if (validSelected.length !== currentSelected.length) {
                 document.getElementById('trip-transport').value = validSelected.join(',');
             }
 

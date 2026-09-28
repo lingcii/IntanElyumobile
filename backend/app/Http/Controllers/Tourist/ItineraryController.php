@@ -206,13 +206,19 @@ class ItineraryController extends Controller
         $user = $request->user();
 
         $itinerary = DB::transaction(function () use ($request, $user) {
+            $rawTransport = trim((string)($request->transport_mode ?? ''));
+            $isNoVehicle = empty($rawTransport) 
+                || stripos($rawTransport, 'no_vehicle') !== false 
+                || stripos($rawTransport, 'no vehicle') !== false;
+            $savedTransportMode = $isNoVehicle ? 'No Vehicle Selected' : $rawTransport;
+
             // Accurate cost estimation using CostEstimationService with boundary-crossing fares
             $totalEstimatedCost = 0.00;
             try {
                 $service = new \App\Services\CostEstimationService();
                 $est = $service->estimateItineraryCosts(
                     $request->destinations,
-                    $request->transport_mode ?? 'jeepney',
+                    $savedTransportMode,
                     null,
                     null,
                     $request->trip_date
@@ -220,7 +226,7 @@ class ItineraryController extends Controller
                 $totalEstimatedCost = (float) ($est['total_cost'] ?? 0.00);
             } catch (\Throwable $e) {
                 $spots = TouristSpot::whereIn('id', $request->destinations)->get();
-                $totalEstimatedCost = (float) $spots->sum('entrance_fee');
+                $totalEstimatedCost = (float) ($spots->sum('entrance_fee') + $spots->sum('environmental_fee'));
             }
 
             $itinerary = Itinerary::create([
@@ -231,7 +237,7 @@ class ItineraryController extends Controller
                 'total_cost'     => $totalEstimatedCost,
                 'status'         => 'pending',
                 'route_type'     => $request->route_type,
-                'transport_mode' => $request->transport_mode,
+                'transport_mode' => $savedTransportMode,
             ]);
 
             // Create itinerary items preserving order
@@ -391,6 +397,11 @@ class ItineraryController extends Controller
         if (isset($updateData['budget']) && $updateData['budget'] === '') {
             $updateData['budget'] = null;
         }
+        if (array_key_exists('transport_mode', $updateData)) {
+            $rawT = trim((string)($updateData['transport_mode'] ?? ''));
+            $isNoVeh = empty($rawT) || stripos($rawT, 'no_vehicle') !== false || stripos($rawT, 'no vehicle') !== false;
+            $updateData['transport_mode'] = $isNoVeh ? 'No Vehicle Selected' : $rawT;
+        }
         $itinerary->update($updateData);
 
         if ($request->has('destinations') && is_array($request->destinations) && count($request->destinations) > 0) {
@@ -399,7 +410,7 @@ class ItineraryController extends Controller
                 $service = new \App\Services\CostEstimationService();
                 $est = $service->estimateItineraryCosts(
                     $request->destinations,
-                    $itinerary->transport_mode ?? 'jeepney',
+                    $itinerary->transport_mode ?? 'No Vehicle Selected',
                     null,
                     null,
                     $itinerary->trip_date
@@ -407,7 +418,7 @@ class ItineraryController extends Controller
                 $totalEstimatedCost = (float) ($est['total_cost'] ?? 0.00);
             } catch (\Throwable $e) {
                 $spots = TouristSpot::whereIn('id', $request->destinations)->get();
-                $totalEstimatedCost = (float) $spots->sum('entrance_fee');
+                $totalEstimatedCost = (float) ($spots->sum('entrance_fee') + $spots->sum('environmental_fee'));
             }
             $itinerary->update(['total_cost' => $totalEstimatedCost]);
 

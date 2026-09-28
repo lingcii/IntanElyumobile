@@ -278,8 +278,15 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
         }
 
-        if (!raw) {
-            raw = 'own_car';
+        if (!raw || raw.toLowerCase().includes('no_vehicle') || raw.toLowerCase().includes('no vehicle')) {
+            return {
+                key: 'no_vehicle',
+                name: 'No Vehicle Selected',
+                icon: 'fa-ban',
+                color: '#f87171',
+                desc: 'No vehicle selected for this trip',
+                speedKmH: 25
+            };
         }
 
         const firstRawKey = raw.split(',')[0].trim().toLowerCase().replace(/[- ]/g, '_');

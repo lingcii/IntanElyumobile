@@ -219,7 +219,9 @@ body[data-view="saved_trips"],
     };
 
     function getSavedTripTransportBadge(rawMode) {
-        if (!rawMode) return '';
+        if (!rawMode || String(rawMode).toLowerCase().includes('no_vehicle') || String(rawMode).toLowerCase().includes('no vehicle')) {
+            return `&bull; <span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-ban" style="font-size:11px; color:#f87171;"></i>No Vehicle Selected</span>`;
+        }
         const catalog = {
             'own_car': { name: 'Own Car', icon: 'fa-car', color: '#f59e0b' },
             'mpuj': { name: 'MPUJ', icon: 'fa-van-shuttle', color: '#10b981' },
