@@ -439,8 +439,8 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
         <!-- Save Itinerary Action -->
         <button class="btn-primary" id="btn-save-itinerary"
-            style="display:none; width:100%; padding:16px; border-radius:20px; font-weight:900; font-size:16px; margin-top:4px; margin-bottom:0; border: none !important; outline: none !important; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; color:#ffffff !important; box-shadow: none !important;"
-            onclick="openSaveModal()">
+            style="display:none; width:100%; padding:16px; border-radius:20px; font-weight:900; font-size:16px; margin-top:4px; margin-bottom:0; border: none !important; outline: none !important; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; color:#ffffff !important; box-shadow: none !important; cursor:pointer;"
+            onclick="window.openSaveModal(event)">
             <i class="fa-solid fa-cloud-arrow-up" style="margin-right:8px;"></i> Save Draft Plan
         </button>
     </div>
@@ -1989,6 +1989,15 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             _donutAnimFrame = requestAnimationFrame(step);
         };
 
+        window.getSpotMuniName = function (p) {
+            if (!p) return '';
+            if (typeof p.municipality === 'string') return p.municipality.trim();
+            if (p.municipality && typeof p.municipality.name === 'string') return p.municipality.name.trim();
+            if (typeof p.city === 'string') return p.city.trim();
+            if (p.city && typeof p.city.name === 'string') return p.city.name.trim();
+            return '';
+        };
+
         window.computeItineraryTransCost = function (draft, transport) {
             if (!draft || draft.length === 0 || !transport) return 0;
             const modes = transport.split(',').map(m => m.trim()).filter(Boolean);
@@ -2007,7 +2016,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 pts.push({
                     lat: !isNaN(lat) ? lat : null,
                     lng: !isNaN(lng) ? lng : null,
-                    muni: (p.municipality || p.city || '').trim(),
+                    muni: window.getSpotMuniName(p),
                     name: p.name || p.title || ('Spot ' + (idx + 1))
                 });
             });
@@ -2563,123 +2572,144 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             window.renderItinerary();
         };
 
-        window.openSaveModal = function () {
-            const draft = window.getEffectiveDraft();
+        window.openSaveModal = function (e) {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            try {
+                const draft = window.getEffectiveDraft ? window.getEffectiveDraft() : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
 
-            // Check if in edit mode
-            const editingId = sessionStorage.getItem('editing_itinerary_id');
-            const modalTitleEl = document.getElementById('save-trip-modal-title');
-            const submitBtn = document.getElementById('btn-submit-trip');
+                // Check if in edit mode
+                const editingId = sessionStorage.getItem('editing_itinerary_id');
+                const modalTitleEl = document.getElementById('save-trip-modal-title');
+                const submitBtn = document.getElementById('btn-submit-trip');
 
-            if (editingId) {
-                if (modalTitleEl) {
-                    modalTitleEl.innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:#38bdf8; font-size:18px;"></i> Edit Your Trip';
-                }
-                if (submitBtn) {
-                    submitBtn.textContent = 'Update Trip';
-                }
-                const savedTitle = sessionStorage.getItem('editing_trip_title');
-                const savedDate = sessionStorage.getItem('editing_trip_date');
-                const savedBudget = sessionStorage.getItem('editing_trip_budget');
-                const savedTransport = sessionStorage.getItem('editing_trip_transport');
-
-                const titleInput = document.getElementById('trip-title');
-                if (titleInput && savedTitle !== null && savedTitle !== undefined) {
-                    titleInput.value = savedTitle;
-                }
-                const dateInput = document.getElementById('trip-date');
-                if (dateInput) {
-                    dateInput.value = savedDate || '';
-                    const display = document.getElementById('trip-date-display');
-                    if (display) {
-                        display.value = savedDate ? new Date(savedDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+                if (editingId) {
+                    if (modalTitleEl) {
+                        modalTitleEl.innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:#38bdf8; font-size:18px;"></i> Edit Your Trip';
                     }
-                    const clearLink = document.getElementById('calendar-clear-link');
-                    if (clearLink) clearLink.style.display = savedDate ? 'block' : 'none';
+                    if (submitBtn) {
+                        submitBtn.textContent = 'Update Trip';
+                    }
+                    const savedTitle = sessionStorage.getItem('editing_trip_title');
+                    const savedDate = sessionStorage.getItem('editing_trip_date');
+                    const savedBudget = sessionStorage.getItem('editing_trip_budget');
+                    const savedTransport = sessionStorage.getItem('editing_trip_transport');
+
+                    const titleInput = document.getElementById('trip-title');
+                    if (titleInput && savedTitle !== null && savedTitle !== undefined) {
+                        titleInput.value = savedTitle;
+                    }
+                    const dateInput = document.getElementById('trip-date');
+                    if (dateInput) {
+                        dateInput.value = savedDate || '';
+                        const display = document.getElementById('custom-date-display') || document.getElementById('trip-date-display');
+                        if (display) {
+                            const formatted = savedDate ? new Date(savedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : 'Select trip date';
+                            if ('value' in display) display.value = formatted;
+                            display.textContent = formatted;
+                        }
+                        const clearLink = document.getElementById('calendar-clear-link');
+                        if (clearLink) clearLink.style.display = savedDate ? 'inline' : 'none';
+                    }
+                    const budgetInput = document.getElementById('trip-budget');
+                    if (budgetInput) {
+                        budgetInput.value = (savedBudget !== null && savedBudget !== undefined && savedBudget !== '') ? savedBudget : '';
+                    }
+                    if (savedTransport) {
+                        const transEl = document.getElementById('trip-transport');
+                        const isNoVeh = savedTransport.toLowerCase().includes('no_vehicle') || savedTransport.toLowerCase().includes('no vehicle');
+                        if (transEl) transEl.value = isNoVeh ? '' : savedTransport;
+                    }
+                } else {
+                    if (modalTitleEl) {
+                        modalTitleEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8; font-size:18px;"></i> Save Your Trip';
+                    }
+                    if (submitBtn) {
+                        submitBtn.textContent = 'Save Trip';
+                    }
                 }
-                const budgetInput = document.getElementById('trip-budget');
-                if (budgetInput) {
-                    budgetInput.value = (savedBudget !== null && savedBudget !== undefined && savedBudget !== '') ? savedBudget : '';
+
+                // Populate dynamic fuel price from Railway DB
+                const fuelInput = document.getElementById('fuel-price');
+                if (fuelInput && window.fuelPrice) {
+                    fuelInput.value = window.fuelPrice;
                 }
-                if (savedTransport) {
+
+                // Auto-detect transport type from existing trip-transport or draft
+                let existingTransport = document.getElementById('trip-transport')?.value || '';
+                let currentTransType = 'public';
+                if (existingTransport) {
+                    const parts = existingTransport.split(',').filter(Boolean);
+                    const privateSet = ['own_car', 'taxi', 'van', 'motorcycle'];
+                    if (parts.some(p => privateSet.includes(p))) {
+                        currentTransType = 'private';
+                    }
+                } else if (Array.isArray(draft)) {
+                    const veh = draft.find(p => p && p.transport_type);
+                    currentTransType = veh ? veh.transport_type : 'public';
+                }
+                if (typeof window.setTransportType === 'function') {
+                    window.setTransportType(currentTransType, false);
+                }
+
+                // Manage active vehicle cards in the slider (only select available options)
+                const isNoVehSaved = !existingTransport || existingTransport.toLowerCase().includes('no_vehicle') || existingTransport.toLowerCase().includes('no vehicle');
+                const activeVehicles = (!isNoVehSaved && existingTransport) ? existingTransport.split(',').filter(Boolean) : [];
+
+                if (!isNoVehSaved && activeVehicles.length > 0) {
+                    document.querySelectorAll('.transport-option').forEach(opt => {
+                        if (activeVehicles.includes(opt.dataset.val) && !opt.classList.contains('disabled-transport')) {
+                            opt.classList.add('active');
+                        } else {
+                            opt.classList.remove('active');
+                        }
+                    });
+                    const validActive = [];
+                    document.querySelectorAll('.transport-option.active').forEach(opt => {
+                        if (opt.getAttribute('data-available') !== '0' && opt.dataset.val !== 'no_vehicle') {
+                            validActive.push(opt.dataset.val);
+                        }
+                    });
                     const transEl = document.getElementById('trip-transport');
-                    const isNoVeh = savedTransport.toLowerCase().includes('no_vehicle') || savedTransport.toLowerCase().includes('no vehicle');
-                    if (transEl) transEl.value = isNoVeh ? '' : savedTransport;
-                }
-            } else {
-                if (modalTitleEl) {
-                    modalTitleEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8; font-size:18px;"></i> Save Your Trip';
-                }
-                if (submitBtn) {
-                    submitBtn.textContent = 'Save Trip';
-                }
-            }
-
-            // Populate dynamic fuel price from Railway DB
-            const fuelInput = document.getElementById('fuel-price');
-            if (fuelInput && window.fuelPrice) {
-                fuelInput.value = window.fuelPrice;
-            }
-
-            // Auto-detect transport type from existing trip-transport or draft
-            let existingTransport = document.getElementById('trip-transport').value;
-            let currentTransType = 'public';
-            if (existingTransport) {
-                const parts = existingTransport.split(',').filter(Boolean);
-                const privateSet = ['own_car', 'taxi', 'van', 'motorcycle'];
-                if (parts.some(p => privateSet.includes(p))) {
-                    currentTransType = 'private';
-                }
-            } else {
-                const veh = draft.find(p => p.transport_type);
-                currentTransType = veh ? veh.transport_type : 'public';
-            }
-            window.setTransportType(currentTransType, false);
-
-            // Manage active vehicle cards in the slider (only select available options)
-            const isNoVehSaved = !existingTransport || existingTransport.toLowerCase().includes('no_vehicle') || existingTransport.toLowerCase().includes('no vehicle');
-            const activeVehicles = (!isNoVehSaved && existingTransport) ? existingTransport.split(',').filter(Boolean) : [];
-
-            if (!isNoVehSaved && activeVehicles.length > 0) {
-                document.querySelectorAll('.transport-option').forEach(opt => {
-                    if (activeVehicles.includes(opt.dataset.val) && !opt.classList.contains('disabled-transport')) {
-                        opt.classList.add('active');
-                    } else {
-                        opt.classList.remove('active');
+                    if (transEl) transEl.value = validActive.join(',');
+                    if (validActive.length === 0) {
+                        const noVehOpt = document.querySelector('.transport-option[data-val="no_vehicle"]');
+                        if (noVehOpt) noVehOpt.classList.add('active');
+                        if (transEl) transEl.value = '';
                     }
-                });
-                const validActive = [];
-                document.querySelectorAll('.transport-option.active').forEach(opt => {
-                    if (opt.getAttribute('data-available') !== '0' && opt.dataset.val !== 'no_vehicle') {
-                        validActive.push(opt.dataset.val);
-                    }
-                });
-                document.getElementById('trip-transport').value = validActive.join(',');
-                if (validActive.length === 0) {
+                } else {
+                    // If NO vehicle selected, activate the No Vehicle option and clear trip-transport
+                    document.querySelectorAll('.transport-option').forEach(opt => opt.classList.remove('active'));
                     const noVehOpt = document.querySelector('.transport-option[data-val="no_vehicle"]');
                     if (noVehOpt) noVehOpt.classList.add('active');
-                    document.getElementById('trip-transport').value = '';
+                    const transEl = document.getElementById('trip-transport');
+                    if (transEl) transEl.value = '';
                 }
-            } else {
-                // If NO vehicle selected, activate the No Vehicle option and clear trip-transport
-                document.querySelectorAll('.transport-option').forEach(opt => opt.classList.remove('active'));
-                const noVehOpt = document.querySelector('.transport-option[data-val="no_vehicle"]');
-                if (noVehOpt) noVehOpt.classList.add('active');
-                document.getElementById('trip-transport').value = '';
+
+                // Initialize calendar to current month
+                const today = new Date();
+                if (window.calendarState) {
+                    window.calendarState.currentYear = today.getFullYear();
+                    window.calendarState.currentMonth = today.getMonth();
+                }
+                if (typeof window.renderCalendarGrid === 'function') {
+                    window.renderCalendarGrid();
+                }
+
+                const modal = document.getElementById('save-trip-modal');
+                if (modal) modal.style.display = 'flex';
+
+                if (typeof window.calculateModalBudget === 'function') {
+                    window.calculateModalBudget();
+                }
+
+                // Hide bottom nav while modal is open
+                const bottomNav = document.getElementById('bottom-navigation');
+                if (bottomNav) bottomNav.classList.add('nav-hidden');
+            } catch (err) {
+                console.error("Error in openSaveModal:", err);
+                const modal = document.getElementById('save-trip-modal');
+                if (modal) modal.style.display = 'flex';
             }
-
-            // Initialize calendar to current month
-            const today = new Date();
-            window.calendarState.currentYear = today.getFullYear();
-            window.calendarState.currentMonth = today.getMonth();
-            window.renderCalendarGrid();
-
-            document.getElementById('save-trip-modal').style.display = 'flex';
-            window.calculateModalBudget();
-
-            // Hide bottom nav while modal is open
-            const bottomNav = document.getElementById('bottom-navigation');
-            if (bottomNav) bottomNav.classList.add('nav-hidden');
         };
 
         window.closeSaveModal = function () {
@@ -3280,7 +3310,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 });
             } else {
                 // Public vehicles: show all standard public vehicles; mark as unavailable if no imported fare guide or site restricts
-                const rawMunis = draft.map(p => (p.municipality || p.city || '').trim()).filter(Boolean);
+                const rawMunis = draft.map(p => (typeof window.getSpotMuniName === 'function' ? window.getSpotMuniName(p) : ((typeof p.municipality === 'string' ? p.municipality : p.municipality?.name) || ''))).filter(Boolean);
                 const uniqueMunis = [...new Set(rawMunis.map(m => m.replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim().toLowerCase()))];
 
                 // Inter-municipal trip condition: draft crosses more than 1 municipality
@@ -3470,6 +3500,15 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             if (window.calculateModalBudget) window.calculateModalBudget();
         };
+
+        // Attach direct click listener to Save Draft Plan button
+        const fabBtn = document.getElementById('btn-save-itinerary');
+        if (fabBtn) {
+            fabBtn.addEventListener('click', function (e) {
+                if (e) e.preventDefault();
+                window.openSaveModal(e);
+            });
+        }
 
         // Initial render on load
         if (window.renderItinerary) {

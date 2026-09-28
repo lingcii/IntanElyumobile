@@ -1107,12 +1107,15 @@ body[data-view="saved_trips"],
                     ? i.destination.private_vehicles
                     : (Array.isArray(mapSpot.private_vehicles) ? mapSpot.private_vehicles : (i.destination.private_vehicles || []));
 
+                const rawMuni = i.destination.municipality || mapSpot.municipality || '';
+                const muniName = (typeof rawMuni === 'string') ? rawMuni : (rawMuni?.name || '');
+
                 return {
                     ...i.destination,
                     lat: i.destination.latitude || mapSpot.lat,
                     lng: i.destination.longitude || mapSpot.lng,
                     photo_url: i.destination.image || i.destination.photo_url || mapSpot.photo_url || '',
-                    municipality: i.destination.municipality || mapSpot.municipality || '',
+                    municipality: muniName,
                     accessible_vehicles: accVeh,
                     public_vehicles: pubVeh,
                     private_vehicles: privVeh,
