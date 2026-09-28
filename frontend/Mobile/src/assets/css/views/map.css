@@ -683,15 +683,15 @@ body.map-search-active .btn-classification-wrapper,
     justify-content: center !important;
     font-size: 15px !important;
     flex-shrink: 0 !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
     border: none !important;
     outline: none !important;
     background: #ffffff !important;
-    color: #0284c7 !important;
+    color: #1e3a8a !important;
 }
 
 .quick-stat-icon i {
-    color: #0284c7 !important;
+    color: #1e3a8a !important;
     font-size: 15px !important;
 }
 
@@ -700,7 +700,7 @@ body.map-search-active .btn-classification-wrapper,
 .quick-stat-icon.amber,
 .quick-stat-icon.purple {
     background: #ffffff !important;
-    color: #0284c7 !important;
+    color: #1e3a8a !important;
     border: none !important;
 }
 
@@ -708,7 +708,7 @@ body.map-search-active .btn-classification-wrapper,
 .quick-stat-icon.emerald i,
 .quick-stat-icon.amber i,
 .quick-stat-icon.purple i {
-    color: #0284c7 !important;
+    color: #1e3a8a !important;
 }
 
 .dest-fee-icon-box {
@@ -716,19 +716,19 @@ body.map-search-active .btn-classification-wrapper,
     height: 36px !important;
     border-radius: 10px !important;
     background: #ffffff !important;
-    color: #0284c7 !important;
+    color: #1e3a8a !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     font-size: 15px !important;
     flex-shrink: 0 !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
     border: none !important;
     outline: none !important;
 }
 
 .dest-fee-icon-box i {
-    color: #0284c7 !important;
+    color: #1e3a8a !important;
     font-size: 15px !important;
 }
 
@@ -1941,220 +1941,234 @@ body[data-view="map"] .btn-locate-me {
 
 /* Quick Stat Cards */
 #place-details-sheet .quick-stat-card {
-    background: #f8fafc !important;
-    border: 1px solid #e2e8f0 !important;
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 16px !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
+    transition: transform 0.18s ease !important;
 }
 
-#place-details-sheet .quick-stat-card:hover {
-    background: #f1f5f9 !important;
+#place-details-sheet .quick-stat-card:hover,
+#place-details-sheet .quick-stat-card:active {
+    transform: translateY(-2px) !important;
 }
 
 #place-details-sheet .quick-stat-label {
-    color: #64748b !important;
+    color: rgba(255, 255, 255, 0.82) !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
     opacity: 1 !important;
 }
 
 #place-details-sheet .quick-stat-value {
-    color: #0f172a !important;
+    color: #ffffff !important;
+    font-size: 12.5px !important;
+    font-weight: 800 !important;
 }
 
-#place-details-sheet .quick-stat-icon {
+#place-details-sheet .quick-stat-icon,
+#place-details-sheet .dest-fee-icon-box,
+#place-details-sheet .dest-section-icon,
+#place-details-sheet .dest-amenities-icon-circle {
     background: #ffffff !important;
-    color: #0284c7 !important;
-    border: 1px solid #e2e8f0 !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
+    color: #1e3a8a !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
 }
 
-#place-details-sheet .quick-stat-icon i {
-    color: #0284c7 !important;
+#place-details-sheet .quick-stat-icon i,
+#place-details-sheet .dest-fee-icon-box i,
+#place-details-sheet .dest-section-icon i,
+#place-details-sheet .dest-amenities-icon-circle i {
+    color: #1e3a8a !important;
+}
+
+/* Blue Card Containers (Matching Notifications Modal Gradient & Glow) */
+#place-details-sheet .dest-fees-card,
+#place-details-sheet .dest-vehicles-card,
+#place-details-sheet .dest-info-card,
+#place-details-sheet #sheet-tour-guide-card,
+#place-details-sheet #sheet-24h-card,
+#place-details-sheet #sheet-maint-card {
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
+    border: none !important;
+    outline: none !important;
 }
 
 /* Destination Info Card & About Section */
 #place-details-sheet .dest-info-card {
-    background: #f8fafc !important;
-    border: 1px solid #e2e8f0 !important;
     border-radius: 18px !important;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04) !important;
 }
 
 #place-details-sheet .dest-section-title {
-    color: #0f172a !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
 }
 
 #place-details-sheet .dest-desc-text {
-    color: #334155 !important;
-}
-
-#place-details-sheet .dest-section-icon {
-    background: #ffffff !important;
-    color: #0284c7 !important;
-    border: 1px solid #e2e8f0 !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
-}
-
-#place-details-sheet .dest-section-icon i {
-    color: #0284c7 !important;
+    color: rgba(255, 255, 255, 0.92) !important;
+    line-height: 1.55 !important;
 }
 
 #place-details-sheet .dest-toggle-btn {
-    background: #f0f9ff !important;
-    border: 1px solid #bae6fd !important;
-    color: #0284c7 !important;
+    background: rgba(255, 255, 255, 0.18) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    color: #ffffff !important;
     border-radius: 12px !important;
 }
 
 #place-details-sheet .dest-toggle-btn:hover {
-    background: #e0f2fe !important;
+    background: rgba(255, 255, 255, 0.26) !important;
 }
 
 /* Route Guide */
 #place-details-sheet .dest-guide-box {
-    background: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
     border-radius: 14px !important;
     padding: 12px 14px !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    box-shadow: none !important;
 }
 
 #place-details-sheet .dest-guide-title {
-    color: #0284c7 !important;
+    color: #00f2fe !important;
+    font-weight: 800 !important;
 }
 
 #place-details-sheet .dest-guide-text {
-    color: #334155 !important;
+    color: rgba(255, 255, 255, 0.92) !important;
 }
 
 /* Nearby Amenities Box */
 #place-details-sheet .dest-amenities-box {
-    background: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
     border-radius: 16px !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
-}
-
-#place-details-sheet .dest-amenities-icon-circle {
-    background: #ffffff !important;
-    color: #0284c7 !important;
-    border: 1px solid #e2e8f0 !important;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08) !important;
-}
-
-#place-details-sheet .dest-amenities-icon-circle i {
-    color: #0284c7 !important;
+    box-shadow: none !important;
 }
 
 #place-details-sheet .dest-amenities-count-badge {
-    background: #e0f2fe !important;
-    color: #0284c7 !important;
-    border: 1px solid #bae6fd !important;
+    background: rgba(0, 242, 254, 0.22) !important;
+    color: #00f2fe !important;
+    border: none !important;
 }
 
 #place-details-sheet .sheet-amenity-row {
-    background: #f8fafc !important;
-    border: 1px solid #e2e8f0 !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    border-radius: 12px !important;
 }
 
 #place-details-sheet .sheet-amenity-row:hover,
 #place-details-sheet .sheet-amenity-row:active {
-    background: #f1f5f9 !important;
+    background: rgba(255, 255, 255, 0.16) !important;
 }
 
 #place-details-sheet .sheet-amenity-icon-circle {
     background: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
-    color: #0284c7 !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+    border: none !important;
+    outline: none !important;
+    color: #1e3a8a !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
 }
 
 #place-details-sheet .sheet-amenity-icon-circle i {
-    color: #0284c7 !important;
+    color: #1e3a8a !important;
 }
 
 #place-details-sheet .sheet-amenity-name {
-    color: #0f172a !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
 }
 
 #place-details-sheet .sheet-amenity-type {
-    color: #64748b !important;
+    color: rgba(255, 255, 255, 0.75) !important;
 }
 
 #place-details-sheet .sheet-amenity-distance-badge {
-    background: #f1f5f9 !important;
-    border: 1px solid #e2e8f0 !important;
-    color: #0f172a !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: none !important;
+    color: #ffffff !important;
     box-shadow: none !important;
 }
 
 #place-details-sheet .dest-amenities-toggle-btn {
-    background: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
-    color: #334155 !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    color: #ffffff !important;
+    border-radius: 12px !important;
 }
 
 #place-details-sheet .dest-amenities-toggle-btn:hover {
-    background: #f8fafc !important;
+    background: rgba(255, 255, 255, 0.22) !important;
 }
 
 /* Support Box */
 #place-details-sheet .dest-support-box {
-    background: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
     border-radius: 16px !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    box-shadow: none !important;
 }
 
 #place-details-sheet .dest-support-badge {
-    background: #e2e8f0 !important;
-    color: #475569 !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+    border: none !important;
 }
 
 #place-details-sheet .dest-contact-row {
-    border-bottom: 1px dashed #e2e8f0 !important;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.18) !important;
 }
 
 #place-details-sheet .dest-contact-label {
-    color: #64748b !important;
+    color: rgba(255, 255, 255, 0.85) !important;
 }
 
 #place-details-sheet .dest-contact-label i {
-    color: #0284c7 !important;
+    color: #00f2fe !important;
 }
 
 #place-details-sheet .dest-contact-val {
-    color: #0f172a !important;
+    color: #ffffff !important;
 }
 
 #place-details-sheet .dest-contact-val a {
-    color: #0284c7 !important;
+    color: #00f2fe !important;
 }
 
 #place-details-sheet .dest-contact-val.emergency a {
-    color: #dc2626 !important;
+    color: #f87171 !important;
 }
 
 /* Action Buttons */
 #place-details-sheet .btn-add-itinerary-premium {
-    background: #1e3a8a !important;
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
     color: #ffffff !important;
-    box-shadow: 0 4px 14px rgba(30, 58, 138, 0.28) !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.35) !important;
 }
 
 #place-details-sheet .btn-sheet-fav {
-    background: #f8fafc !important;
+    background: #ffffff !important;
     border: 1.5px solid #cbd5e1 !important;
-    color: #64748b !important;
+    color: #1e3a8a !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
 }
 
 #place-details-sheet .btn-sheet-fav:hover {
-    background: #f1f5f9 !important;
+    background: #f8fafc !important;
     color: #ef4444 !important;
 }
 
 #place-details-sheet .btn-sheet-secondary {
-    background: #f1f5f9 !important;
-    border: 1px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
     color: #1e3a8a !important;
 }
+
 
