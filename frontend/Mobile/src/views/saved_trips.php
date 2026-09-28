@@ -1116,7 +1116,7 @@ body[data-view="saved_trips"],
                     accessible_vehicles: accVeh,
                     public_vehicles: pubVeh,
                     private_vehicles: privVeh,
-                    has_available_vehicles: hasVeh,
+                    has_available_vehicles: Boolean(hasVeh) && Array.isArray(accVeh) && accVeh.length > 0,
                     itinerary_item_id: i.id
                 };
             }

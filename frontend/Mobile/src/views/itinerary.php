@@ -2655,6 +2655,11 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     }
                 });
                 document.getElementById('trip-transport').value = validActive.join(',');
+                if (validActive.length === 0) {
+                    const noVehOpt = document.querySelector('.transport-option[data-val="no_vehicle"]');
+                    if (noVehOpt) noVehOpt.classList.add('active');
+                    document.getElementById('trip-transport').value = '';
+                }
             } else {
                 // If NO vehicle selected, activate the No Vehicle option and clear trip-transport
                 document.querySelectorAll('.transport-option').forEach(opt => opt.classList.remove('active'));
@@ -3211,9 +3216,9 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             const draft = window.getEffectiveDraft ? window.getEffectiveDraft() : [];
 
             // Helper to determine if a vehicle type is allowed for a spot's accessible vehicles
-            // If no vehicles are added to a site, it defaults to Available so users can choose freely
+            // If no vehicles are added to a site, motorized vehicles are restricted/unavailable
             const isVehAllowed = (vehKey, vehVal, accVehicles) => {
-                if (!Array.isArray(accVehicles) || accVehicles.length === 0) return true;
+                if (!Array.isArray(accVehicles) || accVehicles.length === 0) return false;
                 const list = accVehicles.map(v => String(v).toLowerCase().trim());
                 if (vehVal === 'own_car' || vehKey === 'car') return list.some(v => v.includes('car'));
                 if (vehVal === 'taxi' || vehKey === 'taxi') return list.some(v => v.includes('taxi'));
@@ -3254,16 +3259,17 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     { val: 'motorcycle', name: 'Motorcycle', icon: 'fa-motorcycle', key: 'motorcycle' }
                 ];
 
-                const constrainedPrivateSpots = draft.filter(p => {
-                    const info = resolveSpotVehicleInfo(p);
-                    return info.has_available_vehicles && Array.isArray(info.accessible_vehicles) && info.accessible_vehicles.length > 0;
-                });
-
                 optionsList = privDefs.map(opt => {
                     let avail = true;
-                    if (constrainedPrivateSpots.length > 0) {
-                        for (const p of constrainedPrivateSpots) {
+                    if (draft.length > 0) {
+                        for (const p of draft) {
                             const info = resolveSpotVehicleInfo(p);
+                            // If this spot has NO added vehicles, motorized vehicles are restricted (Unavailable)
+                            if (!info.has_available_vehicles) {
+                                avail = false;
+                                break;
+                            }
+                            // Spot has added vehicles: check if this vehicle is among the allowed vehicles
                             if (!isVehAllowed(opt.key, opt.val, info.accessible_vehicles)) {
                                 avail = false;
                                 break;
@@ -3317,26 +3323,23 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     optionsList.push({ val: 'uve', name: 'UV Express / Van', icon: 'fa-shuttle-van', available: true, key: 'uve' });
                 }
 
-                // Filter / disable options only based on spots in draft that actually define accessible vehicles
-                const constrainedPublicSpots = draft.filter(p => {
-                    const info = resolveSpotVehicleInfo(p);
-                    return info.has_available_vehicles && Array.isArray(info.accessible_vehicles) && info.accessible_vehicles.length > 0;
-                });
-
-                if (constrainedPublicSpots.length > 0) {
+                // If draft has destinations, evaluate against spot vehicle permissions
+                if (draft.length > 0) {
                     optionsList = optionsList.map(opt => {
                         let avail = opt.available;
-                        let matchesAll = true;
-                        let matchesAny = false;
-                        for (const p of constrainedPublicSpots) {
+                        for (const p of draft) {
                             const info = resolveSpotVehicleInfo(p);
-                            if (isVehAllowed(opt.key, opt.val, info.accessible_vehicles)) {
-                                matchesAny = true;
-                            } else {
-                                matchesAll = false;
+                            // If this spot has NO added vehicles, motorized transit is restricted (Unavailable)
+                            if (!info.has_available_vehicles) {
+                                avail = false;
+                                break;
+                            }
+                            // Spot has added vehicles: check if this vehicle is allowed
+                            if (!isVehAllowed(opt.key, opt.val, info.accessible_vehicles)) {
+                                avail = false;
+                                break;
                             }
                         }
-                        avail = avail && (matchesAll || matchesAny);
                         return { val: opt.val, name: opt.name, icon: opt.icon, available: avail };
                     });
                 }
