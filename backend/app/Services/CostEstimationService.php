@@ -504,50 +504,7 @@ class CostEstimationService
         return $legs;
     }
 
-    /**
-     * Call OSRM API to get precise routing distance, with Haversine fallback.
-     */
-    private function calculateRouteDistance($spots): float
-    {
-        $coords = $spots->map(function ($spot) {
-            return "{$spot->longitude},{$spot->latitude}";
-        })->implode(';');
 
-        $cacheKey = 'osrm_dist_' . md5($coords);
-        $cachedDist = \Illuminate\Support\Facades\Cache::get($cacheKey);
-        if ($cachedDist !== null) {
-            return (float) $cachedDist;
-        }
-
-        try {
-            // OSRM Public Driving Router API
-            $response = Http::timeout(3)->get("https://router.project-osrm.org/route/v1/driving/{$coords}", [
-                'overview' => 'false',
-                'geometries' => 'geojson'
-            ]);
-
-            if ($response->successful() && isset($response->json()['routes'][0]['distance'])) {
-                $distKm = (float) ($response->json()['routes'][0]['distance'] / 1000.0); // meters to km
-                \Illuminate\Support\Facades\Cache::put($cacheKey, $distKm, 86400); // 24 hrs
-                return $distKm;
-            }
-        } catch (\Exception $e) {
-            Log::warning("OSRM API failed, falling back to Haversine distance chain: " . $e->getMessage());
-        }
-
-        // Fallback: Haversine distance summation between sequence points
-        $totalDistance = 0.0;
-        for ($i = 0; $i < count($spots) - 1; $i++) {
-            $totalDistance += $this->haversine(
-                (float) $spots[$i]->latitude,
-                (float) $spots[$i]->longitude,
-                (float) $spots[$i+1]->latitude,
-                (float) $spots[$i+1]->longitude
-            );
-        }
-
-        return $totalDistance / 1000.0; // meters to km
-    }
 
     /**
      * Haversine formula helper.

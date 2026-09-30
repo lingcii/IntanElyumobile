@@ -321,6 +321,18 @@ try {
         border: 1px solid rgba(0, 242, 254, 0.45) !important;
     }
 
+    .leg-option-card.disabled-leg-option {
+        opacity: 0.45 !important;
+        cursor: not-allowed !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px dashed rgba(239, 68, 68, 0.35) !important;
+    }
+
+    .leg-option-card.disabled-leg-option:hover {
+        background: rgba(255, 255, 255, 0.05) !important;
+        transform: none !important;
+    }
+
     .leg-option-icon {
         width: 36px;
         height: 36px;
@@ -735,191 +747,33 @@ try {
             </div>
         </div>
 
-        <label style="font-size:13px; color:#ffffff; margin-bottom:8px; display:block; font-weight:700;">Transport
-            Type</label>
-        <div id="transport-toggle-track"
-            style="position:relative; display:grid; grid-template-columns:1fr 1fr; margin-bottom:16px; background:rgba(0,0,0,0.25); padding:4px; border-radius:14px; border:none !important; outline:none !important; box-shadow:none !important; user-select:none; height:44px; box-sizing:border-box; contain:layout style paint; -webkit-tap-highlight-color:transparent;">
-            <!-- Smooth Sliding Pill Indicator with zero-twitch 3D transform -->
-            <div id="transport-toggle-pill"
-                style="position:absolute; top:4px; bottom:4px; left:4px; width:calc(50% - 4px); background:#ffffff; border-radius:10px; will-change:transform; transform:translate3d(0,0,0); -webkit-transform:translate3d(0,0,0); transition:transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important; pointer-events:none; z-index:1; border:none !important; outline:none !important; box-shadow:none !important; -webkit-backface-visibility:hidden; backface-visibility:hidden;">
+        <!-- Point-to-Point Route & Transit Summary Card -->
+        <input type="hidden" id="trip-transport" value="smart_hybrid">
+        <div id="save-p2p-transit-summary"
+            style="background:rgba(255,255,255,0.08); border-radius:16px; padding:14px 16px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; border:1px solid rgba(255,255,255,0.08);">
+            <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+                <div style="width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="fa-solid fa-route" style="color:#ffffff; font-size:16px;"></i>
+                </div>
+                <div style="min-width:0;">
+                    <div style="font-size:10px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:2px;">Transit Mode</div>
+                    <div id="save-p2p-transit-label" style="font-size:13px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Point-to-Point Transit</div>
+                    <div id="save-p2p-legs-count" style="font-size:11px; color:rgba(255,255,255,0.75); margin-top:1px;">Configured from draft timeline</div>
+                </div>
             </div>
-            <button type="button" class="btn-transport-toggle active" id="btn-trans-public"
-                onclick="window.setTransportType('public', true)"
-                style="position:relative; z-index:2; height:36px; line-height:36px; padding:0; border-radius:10px; border:none !important; outline:none !important; background:transparent !important; font-size:13px; font-weight:800 !important; color:#1e3a8a; transition:color 0.2s ease; cursor:pointer; box-shadow:none !important; text-align:center; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; touch-action:manipulation; user-select:none;">Public</button>
-            <button type="button" class="btn-transport-toggle" id="btn-trans-private"
-                onclick="window.setTransportType('private', true)"
-                style="position:relative; z-index:2; height:36px; line-height:36px; padding:0; border-radius:10px; border:none !important; outline:none !important; background:transparent !important; font-size:13px; font-weight:800 !important; color:rgba(255,255,255,0.85); transition:color 0.2s ease; cursor:pointer; box-shadow:none !important; text-align:center; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; touch-action:manipulation; user-select:none;">Private</button>
-        </div>
-
-        <div id="transport-slider-wrapper" style="display:block; margin-bottom:16px;">
-            <label id="mode-transport-label"
-                style="font-size:13px; font-weight:700; color:#ffffff; margin-bottom:8px; display:block;">Mode of
-                Transport</label>
-
-            <style>
-                #transport-slider::-webkit-scrollbar {
-                    display: none;
-                }
-
-                .transport-option {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    min-width: 90px;
-                    padding: 14px 10px;
-                    border-radius: 16px;
-                    background: #ffffff !important;
-                    border: none !important;
-                    outline: none !important;
-                    box-shadow: none !important;
-                    cursor: pointer;
-                    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-                    color: #1e293b !important;
-                    flex-shrink: 0;
-                    box-sizing: border-box;
-                    user-select: none;
-                    -webkit-tap-highlight-color: transparent;
-                }
-
-                .transport-option i {
-                    font-size: 22px;
-                    margin-bottom: 8px;
-                    color: #1e3a8a !important;
-                    transition: color 0.25s ease;
-                }
-
-                .transport-option span {
-                    font-size: 11px;
-                    font-weight: 800;
-                    text-align: center;
-                    color: #1e293b !important;
-                    white-space: nowrap;
-                    transition: color 0.25s ease;
-                }
-
-                .transport-option.active {
-                    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
-                    border: none !important;
-                    outline: none !important;
-                    box-shadow: none !important;
-                }
-
-                .transport-option.active i {
-                    color: #ffffff !important;
-                }
-
-                .transport-option.active span {
-                    color: #ffffff !important;
-                    font-weight: 800 !important;
-                }
-
-                .transport-option.disabled-transport {
-                    opacity: 0.45 !important;
-                    background: rgba(255, 255, 255, 0.65) !important;
-                    border: none !important;
-                    outline: none !important;
-                    box-shadow: none !important;
-                    cursor: not-allowed !important;
-                }
-
-                .transport-option.disabled-transport i {
-                    color: #94a3b8 !important;
-                }
-
-                .transport-option.disabled-transport span {
-                    color: #94a3b8 !important;
-                }
-
-                .trans-badge-unavailable {
-                    font-size: 8.5px;
-                    font-weight: 800;
-                    text-transform: uppercase;
-                    letter-spacing: 0.4px;
-                    padding: 2px 6px;
-                    border-radius: 6px;
-                    margin-top: 5px;
-                    background: rgba(239, 68, 68, 0.14);
-                    color: #ef4444;
-                    border: none !important;
-                    outline: none !important;
-                    display: inline-block;
-                }
-            </style>
-
-            <input type="hidden" id="trip-transport" value="">
-            <div id="transport-slider"
-                style="display:flex; overflow-x:auto; gap:12px; padding-bottom:8px; margin-bottom:16px; scrollbar-width:none; -ms-overflow-style:none;">
-                <!-- Populated dynamically based on draft destination municipality and active fare matrices -->
+            <div style="text-align:right; flex-shrink:0;">
+                <div style="font-size:10px; color:rgba(255,255,255,0.65); font-weight:700; text-transform:uppercase;">Transit Total</div>
+                <div id="save-p2p-transit-cost" style="font-size:16px; font-weight:800; color:#00f2fe; margin-top:2px;">₱0.00</div>
             </div>
         </div>
 
         <script>
-            window.selectNoVehicleMode = function (el) {
-                document.querySelectorAll('.transport-option').forEach(opt => opt.classList.remove('active'));
-                if (el) el.classList.add('active');
-                document.getElementById('trip-transport').value = '';
+            // Backward compatibility stubs
+            window.selectNoVehicleMode = function () {
+                document.getElementById('trip-transport').value = 'no_vehicle';
                 if (window.calculateModalBudget) window.calculateModalBudget();
             };
-
-            window.selectTransportMode = function (el) {
-                if (el.getAttribute('data-available') === '0' || el.classList.contains('disabled-transport')) {
-                    const vehName = el.querySelector('span')?.textContent;
-                    const msg = vehName ? `${vehName} is not available.` : 'This vehicle is not available.';
-                    if (typeof showToast === 'function') {
-                        showToast(msg);
-                    }
-                    return;
-                }
-                const val = el.getAttribute('data-val');
-                if (val === 'no_vehicle') {
-                    window.selectNoVehicleMode(el);
-                    return;
-                }
-
-                // Deactivate any no-vehicle card
-                document.querySelectorAll('.transport-option[data-val="no_vehicle"]').forEach(opt => opt.classList.remove('active'));
-
-                const privateKeys = ['own_car', 'taxi', 'motorcycle', 'van'];
-                const isPrivate = privateKeys.includes(val);
-
-                if (isPrivate) {
-                    // Private: single-select with deselect toggle
-                    const wasActive = el.classList.contains('active');
-                    document.querySelectorAll('.transport-option').forEach(opt => {
-                        const oVal = opt.getAttribute('data-val');
-                        if (privateKeys.includes(oVal)) {
-                            opt.classList.remove('active');
-                        }
-                    });
-                    if (!wasActive) {
-                        el.classList.add('active');
-                        document.getElementById('trip-transport').value = val;
-                    } else {
-                        // Deselected -> fall back to No Vehicle Selected
-                        document.getElementById('trip-transport').value = '';
-                        const noVehCard = document.querySelector('.transport-option[data-val="no_vehicle"]');
-                        if (noVehCard) noVehCard.classList.add('active');
-                    }
-                } else {
-                    // Public: multi-select allowed
-                    el.classList.toggle('active');
-                    const activePublic = [];
-                    document.querySelectorAll('.transport-option.active').forEach(opt => {
-                        const oVal = opt.getAttribute('data-val');
-                        if (!privateKeys.includes(oVal) && oVal !== 'no_vehicle' && opt.getAttribute('data-available') !== '0') {
-                            activePublic.push(oVal);
-                        }
-                    });
-                    if (activePublic.length > 0) {
-                        document.getElementById('trip-transport').value = activePublic.join(',');
-                    } else {
-                        // All deselected -> fall back to No Vehicle Selected
-                        document.getElementById('trip-transport').value = '';
-                        const noVehCard = document.querySelector('.transport-option[data-val="no_vehicle"]');
-                        if (noVehCard) noVehCard.classList.add('active');
-                    }
-                }
+            window.selectTransportMode = function () {
                 if (window.calculateModalBudget) window.calculateModalBudget();
             };
         </script>
@@ -1077,33 +931,11 @@ try {
             }
         }
 
-        // Helper to calculate distance and estimated driving travel time
+        // Helper to calculate distance and estimated driving travel time from user GPS to destination
         window.getDistanceAndETA = function (destLat, destLng) {
             const curLat = window.myLat || window.currentGPSLat;
             const curLng = window.myLng || window.currentGPSLng;
-            if (!curLat || !curLng || !destLat || !destLng) return null;
-
-            const lat1 = parseFloat(curLat);
-            const lon1 = parseFloat(curLng);
-            const lat2 = parseFloat(destLat);
-            const lon2 = parseFloat(destLng);
-            if (isNaN(lat1) || isNaN(lon1) || isNaN(lat2) || isNaN(lon2)) return null;
-
-            const p = 0.017453292519943295;
-            const c = Math.cos;
-            const a = 0.5 - c((lat2 - lat1) * p) / 2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2;
-            const distKm = 12742 * Math.asin(Math.sqrt(a));
-
-            // Average realistic province speed ~30 km/h with traffic
-            let durationMin = Math.round((distKm / 30) * 60);
-            if (durationMin < 1) durationMin = 1;
-
-            return {
-                distanceKm: distKm,
-                distanceText: distKm < 1 ? Math.round(distKm * 1000) + ' m' : distKm.toFixed(1) + ' km',
-                durationMin: durationMin,
-                durationText: durationMin >= 60 ? `${Math.floor(durationMin / 60)}h ${durationMin % 60}m` : `${durationMin} mins`
-            };
+            return window.calculateLegETA(curLat, curLng, destLat, destLng);
         };
 
         // Helper to calculate travel distance and time between two consecutive itinerary stops
@@ -1248,33 +1080,7 @@ try {
             }).catch(e => console.error("Fares fetch error:", e));
         }
 
-        // Preload map spot metadata to guarantee vehicle availability can always be resolved
-        window._cachedMapSpots = {};
-        try {
-            const rawMap = localStorage.getItem('public_map_data');
-            if (rawMap) {
-                const parsed = (typeof window.safeJsonParse === 'function') ? window.safeJsonParse(rawMap, null) : JSON.parse(rawMap);
-                const list = (parsed && parsed.data && parsed.data.destinations) ? parsed.data.destinations : (parsed && parsed.destinations ? parsed.destinations : []);
-                if (Array.isArray(list)) {
-                    list.forEach(s => { if (s && s.id) window._cachedMapSpots[String(s.id)] = s; });
-                }
-            }
-        } catch (e) { }
 
-        if (Object.keys(window._cachedMapSpots).length === 0) {
-            fetch(backendUrl + '/api/public/map', { headers: { 'Accept': 'application/json' } })
-                .then(r => r.json())
-                .then(fresh => {
-                    if (fresh && fresh.destinations && Array.isArray(fresh.destinations)) {
-                        fresh.destinations.forEach(s => { if (s && s.id) window._cachedMapSpots[String(s.id)] = s; });
-                        // Re-render vehicle options if transport modal is active
-                        if (typeof window.renderRailwayVehicleOptions === 'function') {
-                            const curType = document.getElementById('btn-trans-private')?.classList.contains('active') ? 'private' : 'public';
-                            window.renderRailwayVehicleOptions(curType);
-                        }
-                    }
-                }).catch(() => { });
-        }
 
         window.getFareFromMatrix = function (vehicleType, distanceKm, municipality = null) {
             if (!window.fareData) return null;
@@ -1656,11 +1462,39 @@ try {
                 subEl.innerHTML = `<strong>Leg ${legIdx + 1}:</strong> ${fromName} &rarr; ${toName} &bull; ${distKm.toFixed(1)} km`;
             }
 
+            // Enrich destination spot metadata from public_map_data if cached in localStorage
+            try {
+                const rawMap = localStorage.getItem('public_map_data');
+                if (rawMap) {
+                    const parsedMap = (typeof window.safeJsonParse === 'function') ? window.safeJsonParse(rawMap, null) : JSON.parse(rawMap);
+                    const spotsArr = (parsedMap && parsedMap.data && parsedMap.data.destinations) ? parsedMap.data.destinations : (parsedMap && parsedMap.destinations ? parsedMap.destinations : []);
+                    if (Array.isArray(spotsArr)) {
+                        const spotId = String(toSpot.id || toSpot.tourist_spot_id || '');
+                        const mapSpot = spotsArr.find(s => s && String(s.id) === spotId);
+                        if (mapSpot) {
+                            if (toSpot.accessible_by_private_vehicle === undefined && mapSpot.accessible_by_private_vehicle !== undefined) {
+                                toSpot.accessible_by_private_vehicle = mapSpot.accessible_by_private_vehicle;
+                            }
+                            if ((!toSpot.accessible_vehicles || toSpot.accessible_vehicles.length === 0) && Array.isArray(mapSpot.accessible_vehicles) && mapSpot.accessible_vehicles.length > 0) {
+                                toSpot.accessible_vehicles = mapSpot.accessible_vehicles;
+                            }
+                            if (toSpot.is_maintenance === undefined && mapSpot.is_maintenance !== undefined) {
+                                toSpot.is_maintenance = mapSpot.is_maintenance;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {}
+
             const isNonDrivable = Boolean(toSpot && (toSpot.accessible_by_private_vehicle === 0 || toSpot.accessible_by_private_vehicle === false || toSpot.accessible_by_private_vehicle === '0'));
+            const isSiteUnderMaintenance = Boolean(toSpot && (toSpot.is_maintenance === 1 || toSpot.is_maintenance === true || toSpot.is_maintenance === '1'));
             const warnEl = document.getElementById('leg-modal-warning');
             const warnTxtEl = document.getElementById('leg-modal-warning-text');
             if (warnEl && warnTxtEl) {
-                if (isNonDrivable) {
+                if (isSiteUnderMaintenance) {
+                    warnEl.style.display = 'flex';
+                    warnTxtEl.textContent = `${toName} is currently under maintenance or temporarily closed. Vehicle transit is restricted.`;
+                } else if (isNonDrivable) {
                     warnEl.style.display = 'flex';
                     warnTxtEl.textContent = `${toName} is inaccessible by private vehicles. If choosing Own Car, plan to park at the trailhead and hike or ride a local tricycle.`;
                 } else {
@@ -1771,32 +1605,103 @@ try {
                 }
             ];
 
+            // Check vehicle accessibility for this destination spot
+            const spotAccVeh = (toSpot && Array.isArray(toSpot.accessible_vehicles) && toSpot.accessible_vehicles.length > 0)
+                ? toSpot.accessible_vehicles.map(v => String(v).toLowerCase().trim())
+                : null;
+
+            let availableCount = 0;
+            const evaluatedCandidates = candidates.map(opt => {
+                let isAvail = true;
+                let unavailReason = '';
+
+                // 1. Site maintenance check - site is closed or transit restricted
+                if (isSiteUnderMaintenance && opt.mode !== 'walking') {
+                    isAvail = false;
+                    unavailReason = 'Destination currently under maintenance / closed';
+                }
+
+                // 2. Destination road accessibility constraint for private vehicles (e.g. Tangadan Falls)
+                if (isAvail && (opt.mode === 'own_car' || opt.mode === 'car') && isNonDrivable) {
+                    isAvail = false;
+                    unavailReason = 'Inaccessible by private car (Trailhead parking only)';
+                }
+
+                // 3. Specific vehicles allowed for this spot in DB
+                if (isAvail && spotAccVeh && spotAccVeh.length > 0) {
+                    const normMode = opt.mode.toLowerCase();
+                    const matchesSpot = spotAccVeh.some(v => {
+                        if (normMode === 'own_car' || normMode === 'car') return v.includes('car');
+                        if (normMode === 'motorcycle') return v.includes('motorcycle') || v.includes('motor');
+                        if (normMode === 'tricycle' || normMode === 'trike') return v.includes('tricycle') || v.includes('trike');
+                        if (normMode === 'mpuj') return v.includes('mpuj') || (v.includes('modern') && v.includes('jeep'));
+                        if (normMode === 'tpuj') return v.includes('tpuj') || v.includes('traditional') || (v.includes('jeep') && !v.includes('modern'));
+                        if (normMode.includes('bus')) return v.includes('bus') || v.includes('pub');
+                        if (normMode === 'uve' || normMode === 'van') return v.includes('uve') || v.includes('van');
+                        if (normMode === 'walking' || normMode === 'walk') return true;
+                        return v.includes(normMode);
+                    });
+
+                    if (!matchesSpot) {
+                        isAvail = false;
+                        unavailReason = 'Not permitted on this site\'s access road';
+                    }
+                }
+
+                // 4. Operational range constraints
+                if (isAvail && (opt.mode === 'tricycle' || opt.mode === 'trike') && distKm > 10) {
+                    isAvail = false;
+                    unavailReason = 'Exceeds tricycle service range (> 10 km)';
+                }
+
+                if (isAvail && (opt.mode === 'walking' || opt.mode === 'walk') && distKm > 3.0) {
+                    isAvail = false;
+                    unavailReason = 'Distance too far for walking (> 3 km)';
+                }
+
+                if (isAvail) availableCount++;
+                return { ...opt, isAvail, unavailReason };
+            });
+
             let listHtml = '';
-            candidates.forEach(opt => {
-                const isActive = (opt.mode === activeMode);
+            if (availableCount === 0) {
+                listHtml += `
+                <div style="background:rgba(239,68,68,0.18); border:1px solid rgba(239,68,68,0.35); border-radius:14px; padding:12px 14px; margin-bottom:12px; display:flex; align-items:center; gap:10px; color:#fca5a5; font-size:12px; font-weight:700;">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size:18px; color:#ef4444; flex-shrink:0;"></i>
+                    <span>No transit vehicles are currently available for this destination. The site may be under maintenance or road-restricted.</span>
+                </div>`;
+            }
+
+            evaluatedCandidates.forEach(opt => {
+                const isActive = (opt.mode === activeMode) && opt.isAvail;
                 const costStr = (opt.cost > 0) ? `₱${opt.cost.toFixed(2)}` : '₱0';
                 const costColor = (opt.cost > 0) ? '#38bdf8' : '#34d399';
+                const disabledClass = !opt.isAvail ? 'disabled-leg-option' : '';
+                const clickHandler = opt.isAvail
+                    ? `onclick="window.selectLegVehicle(${legIdx}, '${opt.mode}', ${opt.cost}, ${distKm})"`
+                    : `onclick="if(typeof showToast==='function') showToast('Unavailable: ${opt.unavailReason.replace(/'/g, "\\'")}');"`;
 
                 listHtml += `
-                <div class="leg-option-card ${isActive ? 'active' : ''}" 
-                     onclick="window.selectLegVehicle(${legIdx}, '${opt.mode}', ${opt.cost}, ${distKm})">
+                <div class="leg-option-card ${isActive ? 'active' : ''} ${disabledClass}" ${clickHandler}>
                     <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:0;">
-                        <div class="leg-option-icon" style="background:${opt.iconBg};">
-                            <i class="fa-solid ${opt.icon}" style="color:${opt.iconColor};"></i>
+                        <div class="leg-option-icon" style="background:${opt.isAvail ? opt.iconBg : 'rgba(255,255,255,0.06)'};">
+                            <i class="fa-solid ${opt.icon}" style="color:${opt.isAvail ? opt.iconColor : '#94a3b8'};"></i>
                         </div>
                         <div style="flex:1; min-width:0;">
-                            <div style="font-weight:800; font-size:13.5px; color:#ffffff; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                            <div style="font-weight:800; font-size:13.5px; color:${opt.isAvail ? '#ffffff' : '#94a3b8'}; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                                 <span>${opt.name}</span>
-                                ${opt.isRecommended ? '<span style="font-size:9px; background:#10b981; color:#fff; padding:1px 6px; border-radius:100px; font-weight:800; letter-spacing:0.3px;">OPTIMAL</span>' : ''}
+                                ${opt.isRecommended && opt.isAvail ? '<span style="font-size:9px; background:#10b981; color:#fff; padding:1px 6px; border-radius:100px; font-weight:800; letter-spacing:0.3px;">OPTIMAL</span>' : ''}
+                                ${!opt.isAvail ? '<span style="font-size:8.5px; background:rgba(239,68,68,0.22); color:#fca5a5; padding:1px 6px; border-radius:100px; font-weight:800; letter-spacing:0.3px;"><i class="fa-solid fa-ban" style="font-size:8px;"></i> UNAVAILABLE</span>' : ''}
                             </div>
-                            <div style="font-size:11px; color:rgba(255,255,255,0.75); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            <div style="font-size:11px; color:rgba(255,255,255,0.7); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                                 ${opt.desc}
                             </div>
+                            ${!opt.isAvail ? `<div style="font-size:10.5px; color:#f87171; font-weight:700; margin-top:3px;"><i class="fa-solid fa-circle-exclamation" style="font-size:9px;"></i> ${opt.unavailReason}</div>` : ''}
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <div style="font-size:14px; font-weight:800; color:${costColor};">
-                            ${costStr}
+                        <div style="font-size:14px; font-weight:800; color:${opt.isAvail ? costColor : '#64748b'};">
+                            ${opt.isAvail ? costStr : '—'}
                         </div>
                         ${isActive ? '<span style="font-size:9.5px; color:#00f2fe; font-weight:700;"><i class="fa-solid fa-check"></i> Selected</span>' : ''}
                     </div>
@@ -2267,17 +2172,27 @@ try {
                             </div>
                             ${nextStopEtaHtml}
                             ${(() => {
+                            const isNonDrivable = (place.accessible_by_private_vehicle === 0 || place.accessible_by_private_vehicle === false || place.accessible_by_private_vehicle === '0');
+                            const isMaint = Boolean(place.is_maintenance === 1 || place.is_maintenance === true || place.is_maintenance === '1');
                             const acc = Array.isArray(place.accessible_vehicles) ? place.accessible_vehicles : [];
+                            if (isMaint) {
+                                return `<div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
+                                        <span style="padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; background:rgba(239,68,68,0.2); color:#fca5a5; border:none !important; outline:none !important; display:inline-flex; align-items:center; gap:4px;">
+                                            <i class="fa-solid fa-triangle-exclamation" style="font-size:9px; color:#ef4444;"></i> Site Under Maintenance
+                                        </span>
+                                    </div>`;
+                            }
+                            if (isNonDrivable) {
+                                return `<div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
+                                        <span style="padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; background:rgba(245,158,11,0.2); color:#fbbf24; border:none !important; outline:none !important; display:inline-flex; align-items:center; gap:4px;">
+                                            <i class="fa-solid fa-triangle-exclamation" style="font-size:9px; color:#fbbf24;"></i> Trailhead Only (Non-Drivable)
+                                        </span>
+                                    </div>`;
+                            }
                             if (acc.length > 0) {
                                 return `<div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
                                         <span style="padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; background:rgba(56,189,248,0.18); color:#7dd3fc; border:none !important; outline:none !important; display:inline-flex; align-items:center; gap:4px;">
                                             <i class="fa-solid fa-van-shuttle" style="font-size:9px; color:#38bdf8;"></i> ${acc.length} Available Vehicle${acc.length > 1 ? 's' : ''}
-                                        </span>
-                                    </div>`;
-                            } else if (place.has_available_vehicles === false || (Array.isArray(place.accessible_vehicles) && place.accessible_vehicles.length === 0)) {
-                                return `<div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
-                                        <span style="padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; background:rgba(239,68,68,0.18); color:#fca5a5; border:none !important; outline:none !important; display:inline-flex; align-items:center; gap:4px;">
-                                            <i class="fa-solid fa-ban" style="font-size:9px; color:#ef4444;"></i> No Available Vehicles
                                         </span>
                                     </div>`;
                             }
@@ -2707,11 +2622,41 @@ try {
                 : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
             if (draft.length === 0) return;
 
-            const transport = document.getElementById('trip-transport').value;
-            const detailsDiv = document.getElementById('save-budget-details');
-            const isNoVeh = !transport || transport.toLowerCase().includes('no_vehicle') || transport.toLowerCase().includes('no vehicle');
+            // Calculate Point-to-Point transit from draft legs
+            const transCost = window.computeItineraryTransCost(draft, 'smart_hybrid');
 
-            const transCost = isNoVeh ? 0 : window.computeItineraryTransCost(draft, transport);
+            // Update P2P summary card in the Save modal
+            const p2pLabelEl = document.getElementById('save-p2p-transit-label');
+            const p2pLegsEl = document.getElementById('save-p2p-legs-count');
+            const p2pCostEl = document.getElementById('save-p2p-transit-cost');
+            const transInput = document.getElementById('trip-transport');
+
+            const legInfos = draft.map((_, i) => (typeof window.getLegTransportInfo === 'function') ? window.getLegTransportInfo(i) : null).filter(Boolean);
+            const distinctModes = [...new Set(legInfos.map(l => (l.mode || l.transport_mode || 'mpuj').toLowerCase().replace(/[- ]/g, '_')))];
+
+            let overallMode = 'smart_hybrid';
+            if (distinctModes.length === 1 && ['own_car', 'car', 'motorcycle', 'walking', 'walk', 'no_vehicle'].includes(distinctModes[0])) {
+                overallMode = distinctModes[0];
+            }
+            if (transInput) transInput.value = overallMode;
+
+            if (p2pCostEl) {
+                p2pCostEl.textContent = '₱' + transCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+            if (p2pLegsEl) {
+                p2pLegsEl.textContent = `${draft.length} Destination${draft.length > 1 ? 's' : ''} • ${draft.length} Leg${draft.length > 1 ? 's' : ''}`;
+            }
+            if (p2pLabelEl) {
+                if (overallMode === 'own_car' || overallMode === 'car') {
+                    p2pLabelEl.textContent = 'Own Car (Private Trip)';
+                } else if (overallMode === 'motorcycle') {
+                    p2pLabelEl.textContent = 'Motorcycle (Private Trip)';
+                } else if (distinctModes.length === 1) {
+                    p2pLabelEl.textContent = `${distinctModes[0].toUpperCase()} Trip`;
+                } else {
+                    p2pLabelEl.textContent = `Point-to-Point (${distinctModes.slice(0, 3).map(m => m.toUpperCase()).join(' + ')})`;
+                }
+            }
 
             // Sum Entrance Fees & Environmental Fees across all destinations in draft
             let feesTotal = 0;
@@ -2724,7 +2669,8 @@ try {
             const estimatedCost = transCost + feesTotal;
 
             // Show the card
-            if (detailsDiv.style.display !== 'block') {
+            const detailsDiv = document.getElementById('save-cost-breakdown');
+            if (detailsDiv && detailsDiv.style.display !== 'block') {
                 detailsDiv.style.display = 'block';
                 detailsDiv.classList.add('animate-smooth-reveal');
             }
@@ -3091,55 +3037,9 @@ try {
                 }
 
 
-                // Auto-detect transport type from existing trip-transport or draft
-                let existingTransport = document.getElementById('trip-transport')?.value || '';
-                let currentTransType = 'public';
-                if (existingTransport) {
-                    const parts = existingTransport.split(',').filter(Boolean);
-                    const privateSet = ['own_car', 'taxi', 'van', 'motorcycle'];
-                    if (parts.some(p => privateSet.includes(p))) {
-                        currentTransType = 'private';
-                    }
-                } else if (Array.isArray(draft)) {
-                    const veh = draft.find(p => p && p.transport_type);
-                    currentTransType = veh ? veh.transport_type : 'public';
-                }
-                if (typeof window.setTransportType === 'function') {
-                    window.setTransportType(currentTransType, false);
-                }
-
-                // Manage active vehicle cards in the slider (only select available options)
-                const isNoVehSaved = !existingTransport || existingTransport.toLowerCase().includes('no_vehicle') || existingTransport.toLowerCase().includes('no vehicle');
-                const activeVehicles = (!isNoVehSaved && existingTransport) ? existingTransport.split(',').filter(Boolean) : [];
-
-                if (!isNoVehSaved && activeVehicles.length > 0) {
-                    document.querySelectorAll('.transport-option').forEach(opt => {
-                        if (activeVehicles.includes(opt.dataset.val) && !opt.classList.contains('disabled-transport')) {
-                            opt.classList.add('active');
-                        } else {
-                            opt.classList.remove('active');
-                        }
-                    });
-                    const validActive = [];
-                    document.querySelectorAll('.transport-option.active').forEach(opt => {
-                        if (opt.getAttribute('data-available') !== '0' && opt.dataset.val !== 'no_vehicle') {
-                            validActive.push(opt.dataset.val);
-                        }
-                    });
-                    const transEl = document.getElementById('trip-transport');
-                    if (transEl) transEl.value = validActive.join(',');
-                    if (validActive.length === 0) {
-                        const noVehOpt = document.querySelector('.transport-option[data-val="no_vehicle"]');
-                        if (noVehOpt) noVehOpt.classList.add('active');
-                        if (transEl) transEl.value = '';
-                    }
-                } else {
-                    // If NO vehicle selected, activate the No Vehicle option and clear trip-transport
-                    document.querySelectorAll('.transport-option').forEach(opt => opt.classList.remove('active'));
-                    const noVehOpt = document.querySelector('.transport-option[data-val="no_vehicle"]');
-                    if (noVehOpt) noVehOpt.classList.add('active');
-                    const transEl = document.getElementById('trip-transport');
-                    if (transEl) transEl.value = '';
+                // Calculate Point-to-Point transit budget and populate summary card
+                if (typeof window.calculateModalBudget === 'function') {
+                    window.calculateModalBudget();
                 }
 
                 // Initialize calendar to current month
