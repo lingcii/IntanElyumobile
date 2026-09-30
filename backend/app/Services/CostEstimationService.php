@@ -178,7 +178,8 @@ class CostEstimationService
         ?float $customFuelPrice = null, 
         ?float $customFuelEfficiency = null,
         ?string $travelDate = null,
-        ?float $customPeakMultiplier = null
+        ?float $customPeakMultiplier = null,
+        ?array $perLegModes = null
     ): array {
         if (empty($destinationIds)) {
             return [
@@ -239,134 +240,136 @@ class CostEstimationService
             ];
         }
 
-        // 4. Compute transport costs leg-by-leg with municipal boundary awareness
+        // 4. Compute transport costs leg-by-leg with Point-to-Point awareness
         $transitFares = 0.00;
         $fuelCost = 0.00;
         $legBreakdowns = [];
         $boundaryCrossingsCount = 0;
 
-        $modes = array_filter(explode(',', $transportModeString));
-        if (empty($modes)) {
-            $modes = ['jeepney'];
-        }
+        $globalNorm = strtolower(trim($transportModeString));
+        $isGlobalOwnCar = in_array($globalNorm, ['own_car', 'car', 'private car']);
+        $isGlobalMotorcycle = in_array($globalNorm, ['motorcycle', 'motor']);
 
-        foreach ($modes as $modeIndex => $mode) {
-            $mode = trim($mode);
-            $norm = strtolower($mode);
-            $isPrivate = in_array($norm, ['own_car', 'car', 'motorcycle']);
-            
-            foreach ($legs as $legIdx => $leg) {
-                $isFirstLeg = ($legIdx === 0 && $modeIndex === 0);
-                $crosses = (bool) ($leg['crosses_boundary'] ?? false);
-                if ($crosses && $modeIndex === 0) {
-                    $boundaryCrossingsCount++;
+        foreach ($legs as $legIdx => $leg) {
+            $crosses = (bool) ($leg['crosses_boundary'] ?? false);
+            if ($crosses) {
+                $boundaryCrossingsCount++;
+            }
+
+            $distKm = (float) ($leg['distance_km'] ?? 1.0);
+            $muniA = $leg['origin_muni'] ?? $primaryMuni;
+            $muniB = $leg['dest_muni'] ?? $primaryMuni;
+
+            // Resolve target spot for accessibility checks
+            $destSpot = $orderedSpots->firstWhere('id', $leg['to_spot_id']);
+            $isSpotPrivateInaccessible = $destSpot && ($destSpot->accessible_by_private_vehicle === 0 || $destSpot->accessible_by_private_vehicle === false);
+
+            // Determine vehicle for this specific leg:
+            // 1) Explicit per-leg override if provided
+            // 2) Global Own Car / Motorcycle if tourist chose private transport for whole trip
+            // 3) Smart Hybrid Transit Auto-Recommendation
+            $legMode = null;
+            if (!empty($perLegModes)) {
+                if (isset($perLegModes[$legIdx])) {
+                    $rawEntry = $perLegModes[$legIdx];
+                    $legMode = is_array($rawEntry) ? ($rawEntry['vehicle'] ?? $rawEntry['transport_mode'] ?? null) : (string)$rawEntry;
+                } elseif (isset($perLegModes[$leg['to_spot_id']])) {
+                    $rawEntry = $perLegModes[$leg['to_spot_id']];
+                    $legMode = is_array($rawEntry) ? ($rawEntry['vehicle'] ?? $rawEntry['transport_mode'] ?? null) : (string)$rawEntry;
                 }
+            }
 
-                $distKm = (float) ($leg['distance_km'] ?? 1.0);
-                $muniA = $leg['origin_muni'] ?? $primaryMuni;
-                $muniB = $leg['dest_muni'] ?? $primaryMuni;
+            if (!$legMode) {
+                if ($isGlobalOwnCar) {
+                    $legMode = 'own_car';
+                } elseif ($isGlobalMotorcycle) {
+                    $legMode = 'motorcycle';
+                } else {
+                    // Smart Transit Auto-Recommender:
+                    // If spot is inaccessible by car (e.g. Tangadan Falls) and within same municipality: Tricycle
+                    // If intra-municipal short trip (<= 3.5km): Tricycle
+                    // If inter-municipal highway or longer trip: Modern Jeepney (MPUJ)
+                    if ($isSpotPrivateInaccessible && !$crosses) {
+                        $legMode = 'tricycle';
+                    } elseif (!$crosses && $distKm <= 3.5) {
+                        $legMode = 'tricycle';
+                    } else {
+                        $legMode = 'mpuj';
+                    }
+                }
+            }
 
-                $priceA = 0.00;
-                $estimateB = 0.00;
+            $normLegMode = strtolower(trim($legMode));
+            $isPrivate = in_array($normLegMode, ['own_car', 'car', 'motorcycle']);
+            $priceA = 0.00;
+            $estimateB = 0.00;
+            $legFare = 0.00;
+            $warningNotice = null;
+
+            if ($normLegMode === 'own_car' || $normLegMode === 'car') {
                 $legFare = 0.00;
-
+                if ($isSpotPrivateInaccessible) {
+                    $warningNotice = '⚠️ Inaccessible by Private Car. Trailhead parking only; prepare to hike or ride local specialized tricycle.';
+                }
+            } elseif ($normLegMode === 'motorcycle') {
+                $legFare = 0.00;
+            } elseif ($normLegMode === 'taxi') {
+                $base = ($legIdx === 0) ? 40.00 : 0.00;
+                $legFare = round($base + ($distKm * 13.00), 2);
+                $transitFares += $legFare;
+            } elseif ($normLegMode === 'tricycle' || $normLegMode === 'trike') {
                 if ($crosses) {
                     $distA = round($distKm / 2.0, 2);
                     $distB = round(max(0.1, $distKm - $distA), 2);
-
-                    if ($norm === 'own_car' || $norm === 'car') {
-                        $costA = $this->estimateFuelCost($distA, 'Private Car', $customFuelPrice, $customFuelEfficiency);
-                        $costB = $this->estimateFuelCost($distB, 'Private Car', $customFuelPrice, $customFuelEfficiency);
-                        $priceA = round($costA, 2);
-                        $estimateB = round($costB, 2);
-                        $legFare = round($priceA + $estimateB, 2);
-                        $fuelCost += $legFare;
-                    } elseif ($norm === 'motorcycle') {
-                        $costA = $this->estimateFuelCost($distA, 'Motorcycle', $customFuelPrice, 35.00);
-                        $costB = $this->estimateFuelCost($distB, 'Motorcycle', $customFuelPrice, 35.00);
-                        $priceA = round($costA, 2);
-                        $estimateB = round($costB, 2);
-                        $legFare = round($priceA + $estimateB, 2);
-                        $fuelCost += $legFare;
-                    } elseif ($norm === 'taxi') {
-                        $base = $isFirstLeg ? 40.00 : 0.00;
-                        $priceA = round($base + ($distA * 13.00), 2);
-                        $estimateB = round($distB * 13.00, 2);
-                        $legFare = round($priceA + $estimateB, 2);
-                        $transitFares += $legFare;
-                    } elseif ($norm === 'tricycle' || $norm === 'trike') {
-                        // Tricycle boundary transfer: local matrix A for segment A + local matrix B for segment B
-                        $fareA = $this->estimateTransitFare($distA, 'tricycle', $muniA);
-                        $fareB = $this->estimateTransitFare($distB, 'tricycle', $muniB);
-                        $priceA = round($fareA, 2);
-                        $estimateB = round($fareB, 2);
-                        $legFare = round($priceA + $estimateB, 2);
-                        $transitFares += $legFare;
-                    } else {
-                        // Inter-municipal Public Transit (MPUJ, TPUJ, PUB Aircon, PUB Ordinary, Bus, Van)
-                        // Shows price in origin boundary A, and the incremental remaining estimate in boundary B
-                        $targetMode = ($norm === 'private_bus') ? 'pub_aircon' : $mode;
-                        $fareA = $this->estimateTransitFare($distA, $targetMode, $muniA);
-                        $totalLegTransit = $this->estimateTransitFare($distKm, $targetMode, $muniA);
-                        $priceA = round($fareA, 2);
-                        $estimateB = max(0.00, round($totalLegTransit - $priceA, 2));
-                        $legFare = round($priceA + $estimateB, 2);
-                        $transitFares += $legFare;
-                    }
+                    $fareA = $this->estimateTransitFare($distA, 'tricycle', $muniA);
+                    $fareB = $this->estimateTransitFare($distB, 'tricycle', $muniB);
+                    $priceA = round($fareA, 2);
+                    $estimateB = round($fareB, 2);
+                    $legFare = round($priceA + $estimateB, 2);
                 } else {
-                    // Single municipal boundary leg
-                    if ($norm === 'own_car' || $norm === 'car') {
-                        $cost = $this->estimateFuelCost($distKm, 'Private Car', $customFuelPrice, $customFuelEfficiency);
-                        $priceA = round($cost, 2);
-                        $estimateB = 0.00;
-                        $legFare = $priceA;
-                        $fuelCost += $legFare;
-                    } elseif ($norm === 'motorcycle') {
-                        $cost = $this->estimateFuelCost($distKm, 'Motorcycle', $customFuelPrice, 35.00);
-                        $priceA = round($cost, 2);
-                        $estimateB = 0.00;
-                        $legFare = $priceA;
-                        $fuelCost += $legFare;
-                    } elseif ($norm === 'taxi') {
-                        $base = $isFirstLeg ? 40.00 : 0.00;
-                        $priceA = round($base + ($distKm * 13.00), 2);
-                        $estimateB = 0.00;
-                        $legFare = $priceA;
-                        $transitFares += $legFare;
-                    } elseif ($norm === 'tricycle' || $norm === 'trike') {
-                        $priceA = round($this->estimateTransitFare($distKm, 'tricycle', $muniA), 2);
-                        $estimateB = 0.00;
-                        $legFare = $priceA;
-                        $transitFares += $legFare;
-                    } else {
-                        $targetMode = ($norm === 'private_bus') ? 'pub_aircon' : $mode;
-                        $priceA = round($this->estimateTransitFare($distKm, $targetMode, $muniA), 2);
-                        $estimateB = 0.00;
-                        $legFare = $priceA;
-                        $transitFares += $legFare;
-                    }
+                    $priceA = round($this->estimateTransitFare($distKm, 'tricycle', $muniA), 2);
+                    $legFare = $priceA;
                 }
-
-                $legBreakdowns[] = [
-                    'leg_index'        => $leg['leg_index'],
-                    'from_spot'        => $leg['from_spot'],
-                    'to_spot'          => $leg['to_spot'],
-                    'from_spot_id'     => $leg['from_spot_id'],
-                    'to_spot_id'       => $leg['to_spot_id'],
-                    'distance_km'      => $distKm,
-                    'crosses_boundary' => $crosses,
-                    'vehicle_mode'     => $mode,
-                    'is_private'       => $isPrivate,
-                    'origin_boundary'  => $muniA,
-                    'origin_price'     => $priceA,
-                    'next_boundary'    => $muniB,
-                    'next_estimate'    => $estimateB,
-                    'leg_total'        => $legFare,
-                ];
+                $transitFares += $legFare;
+            } else {
+                // Public Transit (MPUJ, TPUJ, PUB Aircon, PUB Ordinary, Van)
+                $targetMode = ($normLegMode === 'private_bus') ? 'pub_aircon' : $normLegMode;
+                if ($crosses) {
+                    $distA = round($distKm / 2.0, 2);
+                    $distB = round(max(0.1, $distKm - $distA), 2);
+                    $fareA = $this->estimateTransitFare($distA, $targetMode, $muniA);
+                    $totalLegTransit = $this->estimateTransitFare($distKm, $targetMode, $muniA);
+                    $priceA = round($fareA, 2);
+                    $estimateB = max(0.00, round($totalLegTransit - $priceA, 2));
+                    $legFare = round($priceA + $estimateB, 2);
+                } else {
+                    $priceA = round($this->estimateTransitFare($distKm, $targetMode, $muniA), 2);
+                    $legFare = $priceA;
+                }
+                $transitFares += $legFare;
             }
+
+            $legBreakdowns[] = [
+                'leg_index'                     => $leg['leg_index'],
+                'from_spot'                     => $leg['from_spot'],
+                'to_spot'                       => $leg['to_spot'],
+                'from_spot_id'                  => $leg['from_spot_id'],
+                'to_spot_id'                    => $leg['to_spot_id'],
+                'distance_km'                   => $distKm,
+                'crosses_boundary'              => $crosses,
+                'vehicle_mode'                  => $legMode,
+                'is_private'                    => $isPrivate,
+                'accessible_by_private_vehicle' => !$isSpotPrivateInaccessible,
+                'warning'                       => $warningNotice,
+                'origin_boundary'               => $muniA,
+                'origin_price'                  => $priceA,
+                'next_boundary'                 => $muniB,
+                'next_estimate'                 => $estimateB,
+                'leg_total'                     => $legFare,
+            ];
         }
 
-        // 4. Peak Season Surge Multiplier
+        // 5. Peak Season Surge Multiplier
         $isPeak = $this->isPeakSeason($travelDate);
         $peakMultiplier = $customPeakMultiplier !== null ? (float)$customPeakMultiplier : ($isPeak ? 1.25 : 1.00);
 

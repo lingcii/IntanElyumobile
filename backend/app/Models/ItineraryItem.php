@@ -17,12 +17,17 @@ class ItineraryItem extends Model
         'reviewed_by',
         'reviewed_at',
         'rejection_reason',
+        'transport_mode',
+        'leg_cost',
+        'leg_distance_km',
     ];
 
     protected $casts = [
-        'is_visited'  => 'boolean',
-        'visited_at'   => 'datetime',
-        'reviewed_at' => 'datetime',
+        'is_visited'      => 'boolean',
+        'visited_at'      => 'datetime',
+        'reviewed_at'     => 'datetime',
+        'leg_cost'        => 'decimal:2',
+        'leg_distance_km' => 'decimal:2',
     ];
 
     protected static function booted(): void

@@ -357,7 +357,35 @@ body[data-view="saved_trips"],
                         }
 
                         const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
-                        const sMeta = (typeof window.getRewardPointsForClassification === 'function') ? window.getRewardPointsForClassification(sClass) : { points: 50 };
+                        if (item.transport_mode) {
+                            const rawMode = String(item.transport_mode).toLowerCase().replace(/[- ]/g, '_');
+                            let vIcon = 'fa-van-shuttle';
+                            let vName = item.transport_mode;
+                            if (rawMode === 'own_car' || rawMode === 'car') { vIcon = 'fa-car'; vName = 'Own Car'; }
+                            else if (rawMode === 'motorcycle') { vIcon = 'fa-motorcycle'; vName = 'Motorcycle'; }
+                            else if (rawMode === 'tricycle' || rawMode === 'trike') { vIcon = 'fa-motorcycle'; vName = 'Tricycle'; }
+                            else if (rawMode === 'mpuj') { vIcon = 'fa-van-shuttle'; vName = 'Modern Jeepney'; }
+                            else if (rawMode === 'tpuj') { vIcon = 'fa-van-shuttle'; vName = 'Traditional Jeepney'; }
+                            else if (rawMode.includes('aircon') || rawMode.includes('bus')) { vIcon = 'fa-bus'; vName = 'Aircon Bus'; }
+                            else if (rawMode.includes('ordinary') || rawMode.includes('regular')) { vIcon = 'fa-bus-simple'; vName = 'Ordinary Bus'; }
+                            else if (rawMode === 'walking' || rawMode === 'walk') { vIcon = 'fa-person-walking'; vName = 'Walk / Hike'; }
+                            else if (rawMode === 'smart_hybrid') { vIcon = 'fa-wand-magic-sparkles'; vName = 'Smart Transit'; }
+
+                            const costNum = parseFloat(item.leg_cost || 0);
+                            const costStr = (costNum > 0) ? `&bull; ₱${costNum.toFixed(2)}` : (['own_car', 'motorcycle', 'walking'].includes(rawMode) ? '&bull; ₱0' : '');
+                            const distNum = parseFloat(item.leg_distance_km || 0);
+                            const distStr = (distNum > 0) ? `&bull; ${distNum.toFixed(1)} km` : '';
+
+                            html += `
+                            <div style="display:flex; align-items:center; gap:8px; margin:${index === 0 ? '0 0 10px 18px' : '4px 0 10px 18px'};">
+                                <span style="padding:3px 10px; border-radius:100px; font-size:10.5px; font-weight:700; background:rgba(255,255,255,0.16); color:#e0f2fe; display:inline-flex; align-items:center; gap:5px; border:none !important; outline:none !important;">
+                                    <i class="fa-solid ${vIcon}" style="color:#00f2fe; font-size:10px;"></i>
+                                    <span>${vName}</span>
+                                    ${costStr ? `<span style="color:#38bdf8; font-weight:800;">${costStr}</span>` : ''}
+                                    ${distStr ? `<span style="opacity:0.8; font-size:9.5px;">${distStr}</span>` : ''}
+                                </span>
+                            </div>`;
+                        }
 
                         html += `
                         <div class="timeline-item ${isVisited ? 'completed' : (isPending ? 'pending' : (isNextStop ? 'is-next-stop' : ''))}" style="margin-bottom: 12px;">
@@ -1127,6 +1155,13 @@ body[data-view="saved_trips"],
         }).filter(Boolean);
 
         localStorage.setItem('intan_elyu_draft_itinerary', JSON.stringify(spots));
+
+        const legVehicles = (trip.items || []).map(i => ({
+            transport_mode: i.transport_mode || null,
+            leg_cost: (i.leg_cost !== null && i.leg_cost !== undefined) ? parseFloat(i.leg_cost) : null,
+            leg_distance_km: (i.leg_distance_km !== null && i.leg_distance_km !== undefined) ? parseFloat(i.leg_distance_km) : null
+        }));
+        localStorage.setItem('intan_elyu_draft_leg_vehicles', JSON.stringify(legVehicles));
 
         if (typeof window.navigateTo === 'function') {
             window.navigateTo('itinerary');

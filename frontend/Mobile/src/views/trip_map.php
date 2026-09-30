@@ -471,6 +471,32 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
             const classBadge = dest.classification_status ? `<span style="padding: 3px 8px; border-radius: 100px; font-size: 8px; font-weight: 800; text-transform: uppercase; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; border:none !important; outline:none !important; flex-shrink:0;">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : '';
 
+            let legTransitHtml = '';
+            if (item.transport_mode) {
+                const rawMode = String(item.transport_mode).toLowerCase().replace(/[- ]/g, '_');
+                let vIcon = 'fa-van-shuttle';
+                let vName = item.transport_mode;
+                if (rawMode === 'own_car' || rawMode === 'car') { vIcon = 'fa-car'; vName = 'Own Car'; }
+                else if (rawMode === 'motorcycle') { vIcon = 'fa-motorcycle'; vName = 'Motorcycle'; }
+                else if (rawMode === 'tricycle' || rawMode === 'trike') { vIcon = 'fa-motorcycle'; vName = 'Tricycle'; }
+                else if (rawMode === 'mpuj') { vIcon = 'fa-van-shuttle'; vName = 'Modern Jeepney'; }
+                else if (rawMode === 'tpuj') { vIcon = 'fa-van-shuttle'; vName = 'Traditional Jeepney'; }
+                else if (rawMode.includes('aircon') || rawMode.includes('bus')) { vIcon = 'fa-bus'; vName = 'Aircon Bus'; }
+                else if (rawMode.includes('ordinary') || rawMode.includes('regular')) { vIcon = 'fa-bus-simple'; vName = 'Ordinary Bus'; }
+                else if (rawMode === 'walking' || rawMode === 'walk') { vIcon = 'fa-person-walking'; vName = 'Walk / Hike'; }
+                else if (rawMode === 'smart_hybrid') { vIcon = 'fa-wand-magic-sparkles'; vName = 'Smart Transit'; }
+
+                const cNum = parseFloat(item.leg_cost || 0);
+                const cStr = (cNum > 0) ? `&bull; ₱${cNum.toFixed(2)}` : (['own_car', 'motorcycle', 'walking'].includes(rawMode) ? '&bull; ₱0' : '');
+
+                legTransitHtml = `<div style="display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap;">
+                    <span style="background:rgba(255,255,255,0.18); color:#e0f2fe; padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
+                        <i class="fa-solid ${vIcon}" style="color:#00f2fe; font-size:9px;"></i> ${vName} ${cStr}
+                    </span>
+                    ${(dest && (dest.accessible_by_private_vehicle === 0 || dest.accessible_by_private_vehicle === false || dest.accessible_by_private_vehicle === '0')) ? `<span style="background:rgba(245,158,11,0.22); color:#fef3c7; padding:2px 7px; border-radius:100px; font-size:9px; font-weight:800; display:inline-flex; align-items:center; gap:3px;"><i class="fa-solid fa-triangle-exclamation" style="color:#fbbf24;"></i> Trailhead</span>` : ''}
+                </div>`;
+            }
+
             conveyorHtml += `
             <div id="conveyor-card-${idx}" class="conveyor-card ${isActive ? 'active' : ''}" onclick="window.flyToConveyorSpot(${lng}, ${lat}, ${idx})" style="scroll-snap-align: center; flex: 0 0 calc(100vw - 64px); max-width: 320px; min-width: 250px; box-sizing: border-box; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: none !important; outline: none !important; border-radius: 24px; padding: 16px 18px; box-shadow: none !important; overflow: hidden !important; cursor: pointer; transition: transform 0.25s ease;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px;">
@@ -478,7 +504,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     ${classBadge}
                 </div>
                 <h4 style="margin:0 0 4px 0; font-size:16px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${dest.name}">${dest.name}</h4>
-                <p style="margin:0 0 12px 0; font-size:12px; color:rgba(255,255,255,0.85); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-location-dot" style="color:#67e8f9; margin-right:5px;"></i>${dest.municipality || 'La Union'}</p>
+                <p style="margin:0 0 8px 0; font-size:12px; color:rgba(255,255,255,0.85); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-location-dot" style="color:#67e8f9; margin-right:5px;"></i>${dest.municipality || 'La Union'}</p>
+                ${legTransitHtml}
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; min-width:0;">
                     <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.75); flex-shrink:0;"><i class="fa-solid fa-compass" style="color:#67e8f9;"></i> Tap to view</span>
                     <div style="flex-shrink:0; max-width:68%;">${actionBtnHtml}</div>
@@ -709,6 +736,13 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
         if (markerPoints.length > 0) {
             if (coords.length > 1) {
+                if (activeIndex >= 0 && items[activeIndex] && items[activeIndex].transport_mode) {
+                    const legModeKey = items[activeIndex].transport_mode.toLowerCase().replace(/[- ]/g, '_');
+                    const foundVeh = VEHICLE_CATALOG.find(v => v.key === legModeKey || legModeKey.includes(v.key));
+                    if (foundVeh) {
+                        window.currentActiveVehicle = foundVeh;
+                    }
+                }
                 const activeVehicle = window.currentActiveVehicle || VEHICLE_CATALOG[0];
                 let osrmProfile = activeVehicle.key === 'walking' ? 'walking' : 'driving';
                 let routeColor = '#00f2fe';
