@@ -3054,11 +3054,7 @@ if (is_dir($imgDir)) {
             sheet.closeSheet = closeSheet;
         }
 
-        initDraggableSheet('place-details-sheet', 'place-drag-handle', function () {
-            if (window.clearAmenityMarkers) {
-                window.clearAmenityMarkers();
-            }
-        });
+        initDraggableSheet('place-details-sheet', 'place-drag-handle');
         initDraggableSheet('nearby-sites-sheet', 'nearby-drag-handle');
 
 
@@ -3790,9 +3786,7 @@ if (is_dir($imgDir)) {
                 clearInterval(window.sheetSliderTimer);
                 window.sheetSliderTimer = null;
             }
-            if (window.clearAmenityMarkers) {
-                window.clearAmenityMarkers();
-            }
+
             const vehCard = document.getElementById('sheet-vehicles-card');
             if (vehCard) vehCard.style.display = 'none';
             const attrCard = document.getElementById('sheet-attributes-container');

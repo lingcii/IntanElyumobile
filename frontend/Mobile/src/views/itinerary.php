@@ -344,6 +344,30 @@ try {
         flex-shrink: 0;
     }
 
+    .travel-starter-card {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 18px !important;
+        padding: 14px !important;
+        cursor: pointer !important;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        user-select: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+    }
+
+    .travel-starter-card:hover {
+        background: rgba(255, 255, 255, 0.15) !important;
+        transform: translateY(-1px) !important;
+    }
+
+    .travel-starter-card.active {
+        background: rgba(0, 242, 254, 0.16) !important;
+        border: 1.5px solid rgba(0, 242, 254, 0.55) !important;
+    }
+
     @keyframes slideUpSheet {
         from { transform: translateY(100%); opacity: 0; }
         to { transform: translateY(0); opacity: 1; }
@@ -492,6 +516,24 @@ try {
                 <i class="fa-solid fa-xmark" style="margin-right:4px;"></i> Cancel Edit
             </button>
         </div>
+
+        <!-- Step 1 Primary Travel Mode Card -->
+        <div id="draft-travel-mode-bar" onclick="window.openTravelModeStarterModal()"
+            style="display:flex; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; color:#ffffff; padding:11px 16px; border-radius:16px; margin-bottom:14px; cursor:pointer; border:none !important; outline:none !important; box-shadow:none !important; transition:all 0.2s ease;">
+            <div style="display:flex; align-items:center; gap:10px; min-width:0; flex:1;">
+                <div id="draft-travel-mode-icon" style="width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0;">
+                    <i class="fa-solid fa-car" style="color:#00f2fe;"></i>
+                </div>
+                <div style="min-width:0; flex:1;">
+                    <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:rgba(255,255,255,0.8);">Trip Transportation</div>
+                    <div id="draft-travel-mode-label" style="font-size:13.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Own Car (Private Drive)</div>
+                </div>
+            </div>
+            <span style="font-size:11px; font-weight:800; background:rgba(255,255,255,0.22); color:#ffffff; padding:4px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
+                <i class="fa-solid fa-sliders" style="font-size:10px;"></i> Change
+            </span>
+        </div>
+
         <!-- Map Visualization Container -->
         <div id="draft-map-wrapper" style="display:none; margin-top:0; margin-bottom:14px;">
             <!-- Route Type Container with Smooth Sliding Pill -->
@@ -548,10 +590,16 @@ try {
             <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
         </div>
         <h3>No plans yet</h3>
-        <p>Go to the Map and tap <strong>"Add to Itinerary"</strong> on a place to start building your trip!</p>
-        <button class="btn-open-map" onclick="navigateTo('map')">
-            <i class="fa-solid fa-location-dot"></i> Open Map
-        </button>
+        <p>Start your itinerary by selecting which vehicle you will use for transportation, then add your stops!</p>
+        <div style="display:flex; flex-direction:column; gap:10px; width:100%; max-width:280px; margin:14px auto 0;">
+            <button class="btn-primary" onclick="window.openTravelModeStarterModal()"
+                style="width:100%; padding:14px 18px; border-radius:18px; font-weight:800; font-size:14px; border:none !important; outline:none !important; background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color:#ffffff !important; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
+                <i class="fa-solid fa-car-side" style="color:#00f2fe;"></i> Step 1: Select Vehicle
+            </button>
+            <button class="btn-open-map" onclick="navigateTo('map')" style="width:100%; margin:0;">
+                <i class="fa-solid fa-location-dot"></i> Browse Destinations Map
+            </button>
+        </div>
     </div>
 
 
@@ -883,6 +931,104 @@ try {
         <!-- Transport Options List -->
         <div id="leg-modal-options-list" style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:8px; padding-right:2px; -webkit-overflow-scrolling:touch; max-height:55vh;">
             <!-- Rendered dynamically -->
+        </div>
+
+    </div>
+</div>
+
+<!-- Step 1 Vehicle Selection Modal (Bottom Sheet) -->
+<div id="travel-mode-starter-modal" onclick="if(event.target===this) window.closeTravelModeStarterModal()"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6, 11, 25, 0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:100003 !important; justify-content:center; align-items:flex-end; padding:0;">
+    <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; backdrop-filter:blur(24px) !important; -webkit-backdrop-filter:blur(24px) !important; border:none !important; outline:none !important; border-radius:28px 28px 0 0; padding:22px 20px calc(24px + env(safe-area-inset-bottom, 0px)); width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; color:#ffffff; max-height:85vh; display:flex; flex-direction:column; box-sizing:border-box; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
+        
+        <!-- Header -->
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="fa-solid fa-car-side" style="color:#00f2fe; font-size:16px;"></i>
+                </div>
+                <div>
+                    <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Step 1: Choose Your Vehicle</h3>
+                    <div style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">
+                        Select your transportation for this trip
+                    </div>
+                </div>
+            </div>
+            <button type="button" onclick="window.closeTravelModeStarterModal()" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; transition:transform 0.15s ease;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div style="font-size:12px; color:rgba(255,255,255,0.85); line-height:1.45; margin-bottom:14px;">
+            Your vehicle sets accurate route guidance, parking trailhead alerts, and fair pricing estimates across all destinations.
+        </div>
+
+        <!-- Options Container -->
+        <div style="display:flex; flex-direction:column; gap:10px; overflow-y:auto; -webkit-overflow-scrolling:touch; max-height:55vh; padding-right:2px;">
+            
+            <!-- Option 1: Own Car -->
+            <div class="travel-starter-card" data-mode="own_car" onclick="window.selectTripTravelMode('own_car')">
+                <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
+                    <div style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, rgba(0, 242, 254, 0.25), rgba(2, 132, 199, 0.35)); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <i class="fa-solid fa-car" style="color:#00f2fe; font-size:18px;"></i>
+                    </div>
+                    <div style="min-width:0; flex:1;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="font-size:14px; font-weight:800; color:#ffffff;">Own Car / Private Drive</span>
+                            <span class="starter-active-badge" style="display:none; font-size:9.5px; font-weight:800; background:#00f2fe; color:#0f172a; padding:2px 6px; border-radius:6px; text-transform:uppercase;">Selected</span>
+                        </div>
+                        <div style="font-size:11px; color:rgba(255,255,255,0.8); margin-top:2px;">Direct driving to spots. Trailhead alerts for waterfalls.</div>
+                    </div>
+                </div>
+                <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                    <span style="font-size:11px; font-weight:800; color:#4ade80; background:rgba(74, 222, 128, 0.16); padding:4px 8px; border-radius:8px; white-space:nowrap;">₱0 Fare</span>
+                </div>
+            </div>
+
+            <!-- Option 2: Motorcycle -->
+            <div class="travel-starter-card" data-mode="motorcycle" onclick="window.selectTripTravelMode('motorcycle')">
+                <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
+                    <div style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.35)); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <i class="fa-solid fa-motorcycle" style="color:#fbbf24; font-size:18px;"></i>
+                    </div>
+                    <div style="min-width:0; flex:1;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="font-size:14px; font-weight:800; color:#ffffff;">Motorcycle / Scooter</span>
+                            <span class="starter-active-badge" style="display:none; font-size:9.5px; font-weight:800; background:#fbbf24; color:#0f172a; padding:2px 6px; border-radius:6px; text-transform:uppercase;">Selected</span>
+                        </div>
+                        <div style="font-size:11px; color:rgba(255,255,255,0.8); margin-top:2px;">Fast, agile access through coastal & upland scenic routes.</div>
+                    </div>
+                </div>
+                <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                    <span style="font-size:11px; font-weight:800; color:#4ade80; background:rgba(74, 222, 128, 0.16); padding:4px 8px; border-radius:8px; white-space:nowrap;">₱0 Fare</span>
+                </div>
+            </div>
+
+            <!-- Option 3: Public Commute -->
+            <div class="travel-starter-card" data-mode="smart_hybrid" onclick="window.selectTripTravelMode('smart_hybrid')">
+                <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
+                    <div style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(126, 34, 206, 0.35)); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <i class="fa-solid fa-van-shuttle" style="color:#c084fc; font-size:18px;"></i>
+                    </div>
+                    <div style="min-width:0; flex:1;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="font-size:14px; font-weight:800; color:#ffffff;">Public Commute (Jeepney & Tricycle)</span>
+                            <span class="starter-active-badge" style="display:none; font-size:9.5px; font-weight:800; background:#c084fc; color:#0f172a; padding:2px 6px; border-radius:6px; text-transform:uppercase;">Selected</span>
+                        </div>
+                        <div style="font-size:11px; color:rgba(255,255,255,0.8); margin-top:2px;">Smart hybrid P2P routing using official LTFRB fare matrix.</div>
+                    </div>
+                </div>
+                <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                    <span style="font-size:11px; font-weight:800; color:#38bdf8; background:rgba(56, 189, 248, 0.16); padding:4px 8px; border-radius:8px; white-space:nowrap;">LTFRB Matrix</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div style="margin-top:14px; text-align:center;">
+            <span style="font-size:11px; color:rgba(255,255,255,0.7); font-style:italic;">
+                <i class="fa-solid fa-circle-info" style="margin-right:4px;"></i> You can also customize individual legs anytime.
+            </span>
         </div>
 
     </div>
@@ -1754,6 +1900,93 @@ try {
             }
         };
 
+        window.updateDraftTravelModeBar = function () {
+            const bar = document.getElementById('draft-travel-mode-bar');
+            if (!bar) return;
+            const mode = localStorage.getItem('intan_elyu_draft_trip_transport') || 'own_car';
+            const iconEl = document.getElementById('draft-travel-mode-icon');
+            const labelEl = document.getElementById('draft-travel-mode-label');
+
+            if (mode === 'motorcycle') {
+                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-motorcycle" style="color:#fbbf24;"></i>';
+                if (labelEl) labelEl.textContent = 'Motorcycle (Private Ride)';
+            } else if (mode === 'smart_hybrid' || mode === 'public') {
+                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-van-shuttle" style="color:#c084fc;"></i>';
+                if (labelEl) labelEl.textContent = 'Public Commute (Jeepney & Tricycle)';
+            } else {
+                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-car" style="color:#00f2fe;"></i>';
+                if (labelEl) labelEl.textContent = 'Own Car (Private Drive)';
+            }
+        };
+
+        window.openTravelModeStarterModal = function () {
+            const modal = document.getElementById('travel-mode-starter-modal');
+            if (!modal) return;
+            const currentMode = localStorage.getItem('intan_elyu_draft_trip_transport') || 'own_car';
+
+            const cards = modal.querySelectorAll('.travel-starter-card');
+            cards.forEach(card => {
+                const mode = card.getAttribute('data-mode');
+                const badge = card.querySelector('.starter-active-badge');
+                if (mode === currentMode) {
+                    card.classList.add('active');
+                    if (badge) badge.style.display = 'inline-block';
+                } else {
+                    card.classList.remove('active');
+                    if (badge) badge.style.display = 'none';
+                }
+            });
+
+            modal.style.display = 'flex';
+            const bottomNav = document.getElementById('bottom-navigation');
+            if (bottomNav) bottomNav.classList.add('nav-hidden');
+        };
+
+        window.closeTravelModeStarterModal = function () {
+            const modal = document.getElementById('travel-mode-starter-modal');
+            if (!modal) return;
+            modal.style.display = 'none';
+            const bottomNav = document.getElementById('bottom-navigation');
+            if (bottomNav) bottomNav.classList.remove('nav-hidden');
+        };
+
+        window.selectTripTravelMode = function (mode) {
+            localStorage.setItem('intan_elyu_draft_trip_transport', mode);
+            // Clear leg overrides so whole itinerary follows the newly selected vehicle
+            localStorage.removeItem('intan_elyu_draft_leg_vehicles');
+
+            const transInput = document.getElementById('trip-transport');
+            if (transInput) transInput.value = mode;
+
+            window.updateDraftTravelModeBar();
+            window.closeTravelModeStarterModal();
+
+            if (typeof window.renderItinerary === 'function') {
+                window.renderItinerary(true);
+            }
+            if (typeof window.calculateModalBudget === 'function') {
+                window.calculateModalBudget();
+            }
+
+            const modeLabels = {
+                'own_car': 'Own Car',
+                'motorcycle': 'Motorcycle',
+                'smart_hybrid': 'Public Transit'
+            };
+            const chosenName = modeLabels[mode] || mode;
+
+            const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+            if (draft.length === 0) {
+                if (typeof showToast === 'function') {
+                    showToast(`Vehicle set: ${chosenName}! Now add spots from the Map.`);
+                }
+            } else {
+                if (typeof showToast === 'function') {
+                    showToast(`Transportation set: ${chosenName}`);
+                }
+            }
+        };
+
         window.currentRouteType = window.currentRouteType || 'recommended';
 
         window.animateTimelineSwap = function (renderFn) {
@@ -1971,6 +2204,20 @@ try {
                 fab.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:8px;"></i> Save Draft Plan';
             }
             if (mapWrapper) mapWrapper.style.display = 'block';
+
+            if (typeof window.updateDraftTravelModeBar === 'function') {
+                window.updateDraftTravelModeBar();
+            }
+
+            // Step 1: If tourist has items in draft but hasn't picked a vehicle yet, prompt once
+            if (rawDraft.length > 0 && !localStorage.getItem('intan_elyu_draft_trip_transport') && !sessionStorage.getItem('editing_itinerary_id') && !sessionStorage.getItem('intan_elyu_starter_prompted')) {
+                sessionStorage.setItem('intan_elyu_starter_prompted', 'true');
+                setTimeout(() => {
+                    if (typeof window.openTravelModeStarterModal === 'function') {
+                        window.openTravelModeStarterModal();
+                    }
+                }, 400);
+            }
 
             // Sync active class on route toggle buttons
             const recBtn = document.getElementById('btn-route-rec');
