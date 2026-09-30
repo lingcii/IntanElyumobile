@@ -1677,13 +1677,13 @@ if (is_dir($imgDir)) {
                                     placeSheet.snapToPeek();
                                 }
 
-                                // 2. Fly map directly to the amenity location
+                                // 2. Smoothly center map to the amenity location (snappy and calm, no heavy swoop)
                                 if (window.mapInstance && !isNaN(amLat) && !isNaN(amLng)) {
-                                    window.mapInstance.flyTo({
+                                    window.mapInstance.easeTo({
                                         center: [amLng, amLat],
-                                        zoom: 17,
-                                        offset: [0, -60],
-                                        duration: 750,
+                                        zoom: 16,
+                                        offset: [0, -90],
+                                        duration: 350,
                                         essential: true
                                     });
                                 }
@@ -1711,7 +1711,7 @@ if (is_dir($imgDir)) {
                                     am._markerContainer = c;
                                 }
 
-                                // 4. Highlight this specific amenity marker with pulse
+                                // 4. Highlight this specific amenity marker cleanly
                                 document.querySelectorAll('.elyu-amenity-marker.is-expanded').forEach(el => {
                                     el.classList.remove('is-expanded');
                                     el.classList.remove('amenity-targeted');
@@ -1719,9 +1719,6 @@ if (is_dir($imgDir)) {
                                 if (am._markerContainer) {
                                     am._markerContainer.classList.add('is-expanded');
                                     am._markerContainer.classList.add('amenity-targeted');
-                                    setTimeout(() => {
-                                        if (am._markerContainer) am._markerContainer.classList.remove('amenity-targeted');
-                                    }, 2200);
                                 }
                             });
 
@@ -2952,7 +2949,8 @@ if (is_dir($imgDir)) {
             function getPeekY() {
                 const h = sheet.offsetHeight;
                 const royalHeader = sheet.querySelector('.dest-sheet-royal-header') || sheet.querySelector('.nearby-royal-header');
-                const peekHeight = royalHeader ? Math.max(90, royalHeader.offsetHeight) : 120;
+                const headerHeight = royalHeader ? Math.max(85, royalHeader.offsetHeight) : 95;
+                const peekHeight = headerHeight + NAV_BAR_HEIGHT;
                 return Math.max(0, h - peekHeight);
             }
 
@@ -2968,20 +2966,48 @@ if (is_dir($imgDir)) {
                 currentY = finalY;
             }
 
+            function restoreNav() {
+                document.body.classList.remove('sheet-open');
+                const bNav = document.getElementById('bottom-navigation');
+                const mNav = document.getElementById('magic-nav');
+                if (bNav) {
+                    bNav.classList.remove('keyboard-hidden', 'nav-hidden');
+                    bNav.style.setProperty('z-index', '3000', 'important');
+                    bNav.style.setProperty('opacity', '1', 'important');
+                    bNav.style.setProperty('visibility', 'visible', 'important');
+                }
+                if (mNav) {
+                    mNav.classList.remove('keyboard-hidden');
+                    mNav.style.setProperty('z-index', '3000', 'important');
+                    mNav.style.setProperty('opacity', '1', 'important');
+                    mNav.style.setProperty('visibility', 'visible', 'important');
+                    mNav.style.setProperty('pointer-events', 'auto', 'important');
+                    mNav.style.setProperty('transform', 'translateX(-50%)', 'important');
+                }
+            }
+
             function snapToPeek() {
                 isOpen = true;
                 sheet.style.display = 'block';
                 sheet.classList.add('active');
-                document.body.classList.remove('sheet-open');
+                restoreNav();
                 const peekY = getPeekY();
-                sheet.style.transition = 'transform 0.42s cubic-bezier(0.16, 1, 0.3, 1)';
+                sheet.style.transition = 'transform 0.32s cubic-bezier(0.16, 1, 0.3, 1)';
                 applyY(peekY);
-                setTimeout(() => { if (!isDragging) sheet.style.transition = ''; }, 450);
+                setTimeout(() => { if (!isDragging) sheet.style.transition = ''; }, 350);
             }
 
             function openSheet(animate) {
                 isOpen = true;
                 sheet.style.display = 'block';
+                document.body.classList.add('sheet-open');
+                const mNav = document.getElementById('magic-nav');
+                if (mNav) {
+                    mNav.style.removeProperty('opacity');
+                    mNav.style.removeProperty('visibility');
+                    mNav.style.removeProperty('pointer-events');
+                    mNav.style.removeProperty('transform');
+                }
                 if (animate) {
                     sheet.style.transition = 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease';
                     sheet.style.transform = 'translateY(calc(100% + 120px))';
@@ -2996,13 +3022,19 @@ if (is_dir($imgDir)) {
                     sheet.classList.add('active');
                     applyY(0);
                 }
-                document.body.classList.add('sheet-open');
                 setTimeout(() => { if (!isDragging) sheet.style.transition = ''; }, 500);
             }
 
             function closeSheet() {
                 isOpen = false;
-                document.body.classList.remove('sheet-open');
+                restoreNav();
+                const mNav = document.getElementById('magic-nav');
+                if (mNav) {
+                    mNav.style.removeProperty('opacity');
+                    mNav.style.removeProperty('visibility');
+                    mNav.style.removeProperty('pointer-events');
+                    mNav.style.removeProperty('transform');
+                }
                 sheet.style.transition = 'transform 0.38s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease';
                 sheet.style.transform = 'translateY(calc(100% + 120px))';
                 sheet.classList.remove('active');
@@ -3047,6 +3079,7 @@ if (is_dir($imgDir)) {
                     if (initialY < 50 && peekY > 20) {
                         // Start from OPEN -> snap to PEEK
                         applyY(peekY);
+                        restoreNav();
                     } else {
                         // Already at PEEK or dragging down aggressively -> CLOSE
                         closeSheet();
@@ -3054,12 +3087,29 @@ if (is_dir($imgDir)) {
                 } else if (delta < -30) {
                     // User dragged UP
                     applyY(0); // Snap to OPEN
+                    document.body.classList.add('sheet-open');
+                    const mNav = document.getElementById('magic-nav');
+                    if (mNav) {
+                        mNav.style.removeProperty('opacity');
+                        mNav.style.removeProperty('visibility');
+                        mNav.style.removeProperty('pointer-events');
+                        mNav.style.removeProperty('transform');
+                    }
                 } else {
                     // Drag distance too short, snap back to nearest state
                     if (peekY > 0 && Math.abs(currentY - peekY) < Math.abs(currentY - 0)) {
                         applyY(peekY);
+                        restoreNav();
                     } else {
                         applyY(0);
+                        document.body.classList.add('sheet-open');
+                        const mNav = document.getElementById('magic-nav');
+                        if (mNav) {
+                            mNav.style.removeProperty('opacity');
+                            mNav.style.removeProperty('visibility');
+                            mNav.style.removeProperty('pointer-events');
+                            mNav.style.removeProperty('transform');
+                        }
                     }
                 }
 
@@ -3900,8 +3950,20 @@ if (is_dir($imgDir)) {
             document.body.classList.remove('sheet-open');
             const bNav = document.getElementById('bottom-navigation');
             const mNav = document.getElementById('magic-nav');
-            if (bNav) bNav.classList.remove('keyboard-hidden');
-            if (mNav) mNav.classList.remove('keyboard-hidden');
+            if (bNav) {
+                bNav.classList.remove('keyboard-hidden', 'nav-hidden');
+                bNav.style.setProperty('z-index', '3000', 'important');
+                bNav.style.setProperty('opacity', '1', 'important');
+                bNav.style.setProperty('visibility', 'visible', 'important');
+            }
+            if (mNav) {
+                mNav.classList.remove('keyboard-hidden');
+                mNav.style.setProperty('z-index', '3000', 'important');
+                mNav.style.setProperty('opacity', '1', 'important');
+                mNav.style.setProperty('visibility', 'visible', 'important');
+                mNav.style.setProperty('pointer-events', 'auto', 'important');
+                mNav.style.setProperty('transform', 'translateX(-50%)', 'important');
+            }
             if (window.sheetSliderTimer) {
                 clearInterval(window.sheetSliderTimer);
                 window.sheetSliderTimer = null;

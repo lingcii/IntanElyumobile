@@ -1638,16 +1638,10 @@ body[data-view="map"] .btn-locate-me {
     border-top-color: #ffffff;
 }
 
-/* Targeted amenity animation when tapped from tourist site details */
-@keyframes amenityTargetPulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.18); box-shadow: 0 0 0 6px rgba(0, 242, 254, 0.4), 0 8px 24px rgba(0, 242, 254, 0.35); }
-    100% { transform: scale(1); }
-}
-
+/* Targeted amenity styling when selected from tourist site details (subtle, no excessive bouncing) */
 .elyu-amenity-marker.amenity-targeted .amenity-marker-bubble {
-    animation: amenityTargetPulse 0.55s ease 3 alternate;
     border-color: #00f2fe !important;
+    box-shadow: 0 4px 14px rgba(0, 242, 254, 0.35) !important;
 }
 
 /* Hide amenity markers cleanly via opacity when zoomed out without any transform movement */
