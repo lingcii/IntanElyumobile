@@ -361,7 +361,7 @@ if ($isAjax) {
             width: 100% !important;
             height: 0 !important;
             overflow: visible !important;
-            z-index: 3000 !important;
+            z-index: 99999 !important;
             pointer-events: none !important;
             margin: 0 !important;
             padding: 0 !important;

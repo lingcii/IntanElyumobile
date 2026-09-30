@@ -1711,14 +1711,14 @@ if (is_dir($imgDir)) {
                                     am._markerContainer = c;
                                 }
 
-                                // 4. Highlight this specific amenity marker cleanly
+                                // 4. Expand this specific amenity marker without glowing effect
                                 document.querySelectorAll('.elyu-amenity-marker.is-expanded').forEach(el => {
                                     el.classList.remove('is-expanded');
                                     el.classList.remove('amenity-targeted');
                                 });
                                 if (am._markerContainer) {
                                     am._markerContainer.classList.add('is-expanded');
-                                    am._markerContainer.classList.add('amenity-targeted');
+                                    am._markerContainer.classList.remove('amenity-targeted');
                                 }
                             });
 
@@ -2950,7 +2950,9 @@ if (is_dir($imgDir)) {
                 const h = sheet.offsetHeight;
                 const royalHeader = sheet.querySelector('.dest-sheet-royal-header') || sheet.querySelector('.nearby-royal-header');
                 const headerHeight = royalHeader ? Math.max(85, royalHeader.offsetHeight) : 95;
-                const peekHeight = headerHeight + NAV_BAR_HEIGHT;
+                // Generous clearance (116px) ensures floating magic nav (84px) + active circle bubble (14px) + comfortable gap (18px) are completely clear
+                const navClearance = 116;
+                const peekHeight = headerHeight + navClearance;
                 return Math.max(0, h - peekHeight);
             }
 
@@ -2972,13 +2974,14 @@ if (is_dir($imgDir)) {
                 const mNav = document.getElementById('magic-nav');
                 if (bNav) {
                     bNav.classList.remove('keyboard-hidden', 'nav-hidden');
-                    bNav.style.setProperty('z-index', '3000', 'important');
+                    bNav.style.setProperty('z-index', '99999', 'important');
                     bNav.style.setProperty('opacity', '1', 'important');
                     bNav.style.setProperty('visibility', 'visible', 'important');
+                    bNav.style.setProperty('pointer-events', 'none', 'important');
                 }
                 if (mNav) {
                     mNav.classList.remove('keyboard-hidden');
-                    mNav.style.setProperty('z-index', '3000', 'important');
+                    mNav.style.setProperty('z-index', '99999', 'important');
                     mNav.style.setProperty('opacity', '1', 'important');
                     mNav.style.setProperty('visibility', 'visible', 'important');
                     mNav.style.setProperty('pointer-events', 'auto', 'important');
@@ -2990,6 +2993,7 @@ if (is_dir($imgDir)) {
                 isOpen = true;
                 sheet.style.display = 'block';
                 sheet.classList.add('active');
+                sheet.classList.add('sheet-peeked');
                 restoreNav();
                 const peekY = getPeekY();
                 sheet.style.transition = 'transform 0.32s cubic-bezier(0.16, 1, 0.3, 1)';
@@ -3000,6 +3004,7 @@ if (is_dir($imgDir)) {
             function openSheet(animate) {
                 isOpen = true;
                 sheet.style.display = 'block';
+                sheet.classList.remove('sheet-peeked');
                 document.body.classList.add('sheet-open');
                 const mNav = document.getElementById('magic-nav');
                 if (mNav) {
@@ -3027,6 +3032,7 @@ if (is_dir($imgDir)) {
 
             function closeSheet() {
                 isOpen = false;
+                sheet.classList.remove('sheet-peeked');
                 restoreNav();
                 const mNav = document.getElementById('magic-nav');
                 if (mNav) {
@@ -3078,6 +3084,7 @@ if (is_dir($imgDir)) {
                     // User dragged DOWN
                     if (initialY < 50 && peekY > 20) {
                         // Start from OPEN -> snap to PEEK
+                        sheet.classList.add('sheet-peeked');
                         applyY(peekY);
                         restoreNav();
                     } else {
@@ -3086,6 +3093,7 @@ if (is_dir($imgDir)) {
                     }
                 } else if (delta < -30) {
                     // User dragged UP
+                    sheet.classList.remove('sheet-peeked');
                     applyY(0); // Snap to OPEN
                     document.body.classList.add('sheet-open');
                     const mNav = document.getElementById('magic-nav');
@@ -3098,9 +3106,11 @@ if (is_dir($imgDir)) {
                 } else {
                     // Drag distance too short, snap back to nearest state
                     if (peekY > 0 && Math.abs(currentY - peekY) < Math.abs(currentY - 0)) {
+                        sheet.classList.add('sheet-peeked');
                         applyY(peekY);
                         restoreNav();
                     } else {
+                        sheet.classList.remove('sheet-peeked');
                         applyY(0);
                         document.body.classList.add('sheet-open');
                         const mNav = document.getElementById('magic-nav');
@@ -3948,17 +3958,19 @@ if (is_dir($imgDir)) {
 
         window.closeSheet = function () {
             document.body.classList.remove('sheet-open');
+            const placeSheet = document.getElementById('place-details-sheet');
+            if (placeSheet) placeSheet.classList.remove('sheet-peeked');
             const bNav = document.getElementById('bottom-navigation');
             const mNav = document.getElementById('magic-nav');
             if (bNav) {
                 bNav.classList.remove('keyboard-hidden', 'nav-hidden');
-                bNav.style.setProperty('z-index', '3000', 'important');
+                bNav.style.setProperty('z-index', '99999', 'important');
                 bNav.style.setProperty('opacity', '1', 'important');
                 bNav.style.setProperty('visibility', 'visible', 'important');
             }
             if (mNav) {
                 mNav.classList.remove('keyboard-hidden');
-                mNav.style.setProperty('z-index', '3000', 'important');
+                mNav.style.setProperty('z-index', '99999', 'important');
                 mNav.style.setProperty('opacity', '1', 'important');
                 mNav.style.setProperty('visibility', 'visible', 'important');
                 mNav.style.setProperty('pointer-events', 'auto', 'important');
@@ -3973,9 +3985,10 @@ if (is_dir($imgDir)) {
             if (vehCard) vehCard.style.display = 'none';
             const attrCard = document.getElementById('sheet-attributes-container');
             if (attrCard) attrCard.style.display = 'none';
-            const placeSheet = document.getElementById('place-details-sheet');
-            if (placeSheet.closeSheet) placeSheet.closeSheet();
-            else placeSheet.classList.remove('active');
+            if (placeSheet) {
+                if (placeSheet.closeSheet) placeSheet.closeSheet();
+                else placeSheet.classList.remove('active');
+            }
         };
 
         window.showAddConfirm = function (destName) {
