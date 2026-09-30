@@ -701,12 +701,13 @@ if (is_dir($imgDir)) {
             <!-- Action Buttons -->
             <div class="sheet-btn-row" style="display:flex; gap:10px; align-items:center; margin-top:14px;">
                 <button id="btn-add-itinerary" onclick="window.addToItinerary()" class="btn-add-itinerary-premium"
-                    style="flex:1; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; color:#ffffff !important; box-shadow:0 4px 14px rgba(32,63,141,0.35) !important;">
+                    style="flex:1; height:48px; min-height:48px; border-radius:16px; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; color:#ffffff !important; box-shadow:0 4px 14px rgba(32,63,141,0.35) !important; font-weight:800; font-size:14px; border:none !important; outline:none !important; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:all 0.2s ease;">
                     <i class="fa-solid fa-calendar-plus"></i> Add to Trip
                 </button>
                 <button id="sheet-fav-btn" onclick="window.toggleMapFavorite(this)" class="btn-sheet-fav"
-                    aria-label="Save to favorites" style="flex-shrink:0; background:#f1f5f9; border:1.5px solid #cbd5e1; color:#1e3a8a;">
-                    <i class="fa-solid fa-heart"></i>
+                    aria-label="Save to favorites" title="Save to favorites"
+                    style="width:48px; height:48px; min-width:48px; border-radius:16px; background:#ffffff !important; border:1.5px solid #e2e8f0 !important; box-shadow:0 2px 8px rgba(15,23,42,0.08) !important; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1); outline:none !important; -webkit-tap-highlight-color:transparent;">
+                    <i class="fa-regular fa-heart" style="color:#ef4444 !important; font-size:20px;"></i>
                 </button>
             </div>
 
@@ -1665,20 +1666,29 @@ if (is_dir($imgDir)) {
                                 </div>
                             `;
 
-                            // Tapping an amenity in the sheet focuses and expands it on the map
+                            // Tapping an amenity in the sheet drags down the sheet and focuses the amenity on map
                             row.addEventListener('click', () => {
                                 const amLat = parseFloat(am.lat);
                                 const amLng = parseFloat(am.lng);
+
+                                // 1. Drag down the tourist site details sheet into peek state so map & amenity are fully shown
+                                const placeSheet = document.getElementById('place-details-sheet');
+                                if (placeSheet && typeof placeSheet.snapToPeek === 'function') {
+                                    placeSheet.snapToPeek();
+                                }
+
+                                // 2. Fly map directly to the amenity location
                                 if (window.mapInstance && !isNaN(amLat) && !isNaN(amLng)) {
                                     window.mapInstance.flyTo({
                                         center: [amLng, amLat],
-                                        zoom: 16.5,
-                                        duration: 700,
+                                        zoom: 17,
+                                        offset: [0, -60],
+                                        duration: 750,
                                         essential: true
                                     });
                                 }
 
-                                // If marker is not yet mounted on map (beyond top 15), mount it on-demand!
+                                // 3. If marker is not yet mounted on map (beyond top 15), mount it on-demand!
                                 if (!am._markerContainer && window.mapInstance && !isNaN(amLat) && !isNaN(amLng)) {
                                     const c = document.createElement('div');
                                     c.className = 'elyu-amenity-marker is-expanded';
@@ -1701,9 +1711,17 @@ if (is_dir($imgDir)) {
                                     am._markerContainer = c;
                                 }
 
-                                document.querySelectorAll('.elyu-amenity-marker.is-expanded').forEach(el => el.classList.remove('is-expanded'));
+                                // 4. Highlight this specific amenity marker with pulse
+                                document.querySelectorAll('.elyu-amenity-marker.is-expanded').forEach(el => {
+                                    el.classList.remove('is-expanded');
+                                    el.classList.remove('amenity-targeted');
+                                });
                                 if (am._markerContainer) {
                                     am._markerContainer.classList.add('is-expanded');
+                                    am._markerContainer.classList.add('amenity-targeted');
+                                    setTimeout(() => {
+                                        if (am._markerContainer) am._markerContainer.classList.remove('amenity-targeted');
+                                    }, 2200);
                                 }
                             });
 
@@ -2933,7 +2951,8 @@ if (is_dir($imgDir)) {
 
             function getPeekY() {
                 const h = sheet.offsetHeight;
-                const peekHeight = 160; // Show about 160px (handle + title + route buttons)
+                const royalHeader = sheet.querySelector('.dest-sheet-royal-header') || sheet.querySelector('.nearby-royal-header');
+                const peekHeight = royalHeader ? Math.max(90, royalHeader.offsetHeight) : 120;
                 return Math.max(0, h - peekHeight);
             }
 
@@ -2947,6 +2966,17 @@ if (is_dir($imgDir)) {
                 }
                 sheet.style.transform = 'translateY(' + finalY + 'px)';
                 currentY = finalY;
+            }
+
+            function snapToPeek() {
+                isOpen = true;
+                sheet.style.display = 'block';
+                sheet.classList.add('active');
+                document.body.classList.remove('sheet-open');
+                const peekY = getPeekY();
+                sheet.style.transition = 'transform 0.42s cubic-bezier(0.16, 1, 0.3, 1)';
+                applyY(peekY);
+                setTimeout(() => { if (!isDragging) sheet.style.transition = ''; }, 450);
             }
 
             function openSheet(animate) {
@@ -3050,6 +3080,18 @@ if (is_dir($imgDir)) {
                 }
             });
 
+            // Tapping header while sheet is peeked smoothly expands it back up!
+            const headerFrame = sheet.querySelector('.dest-sheet-royal-header') || handle;
+            if (headerFrame) {
+                headerFrame.addEventListener('click', (e) => {
+                    if (e.target.closest('.dest-sheet-close-btn')) return;
+                    if (currentY > 60) {
+                        openSheet(false);
+                    }
+                });
+            }
+
+            sheet.snapToPeek = snapToPeek;
             sheet.openSheet = openSheet;
             sheet.closeSheet = closeSheet;
         }
@@ -3072,15 +3114,17 @@ if (is_dir($imgDir)) {
             const favBtn = document.getElementById('sheet-fav-btn');
             if (!favBtn) return;
             if (isSaved) {
-                favBtn.style.color = '#ff3b30';
-                favBtn.style.background = 'rgba(255, 59, 48, 0.15)';
-                favBtn.style.borderColor = 'rgba(255, 59, 48, 0.35)';
-                favBtn.innerHTML = '<i class="fa-solid fa-heart" style="color:#ff3b30;"></i>';
+                favBtn.style.setProperty('background', 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)', 'important');
+                favBtn.style.setProperty('border', '1.5px solid #f87171', 'important');
+                favBtn.style.setProperty('box-shadow', '0 4px 12px rgba(239, 68, 68, 0.25)', 'important');
+                favBtn.innerHTML = '<i class="fa-solid fa-heart" style="color:#dc2626 !important; font-size:20px; transform:scale(1.08); transition:transform 0.2s;"></i>';
+                favBtn.title = 'Saved to favorites';
             } else {
-                favBtn.style.color = 'rgba(255, 255, 255, 0.4)';
-                favBtn.style.background = 'rgba(255, 255, 255, 0.07)';
-                favBtn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                favBtn.innerHTML = '<i class="fa-solid fa-heart" style="color:rgba(255,255,255,0.4);"></i>';
+                favBtn.style.setProperty('background', '#ffffff', 'important');
+                favBtn.style.setProperty('border', '1.5px solid #e2e8f0', 'important');
+                favBtn.style.setProperty('box-shadow', '0 2px 8px rgba(15, 23, 42, 0.08)', 'important');
+                favBtn.innerHTML = '<i class="fa-regular fa-heart" style="color:#ef4444 !important; font-size:20px;"></i>';
+                favBtn.title = 'Save to favorites';
             }
         };
 
@@ -3239,36 +3283,112 @@ if (is_dir($imgDir)) {
                 }
             }
 
+            // ── Operational State: Open vs Closed vs Maintenance ──
+            if (!window.checkSiteOperationalState) {
+                window.checkSiteOperationalState = function (loc) {
+                    if (!loc) return { isMaint: false, isClosed: false, label: 'Open' };
+
+                    const isMaint = Boolean(
+                        loc.is_maintenance == 1 ||
+                        loc.is_maintenance === true ||
+                        loc.is_maintenance === '1' ||
+                        (loc.status && String(loc.status).toLowerCase().includes('maint'))
+                    );
+                    if (isMaint) {
+                        return { isMaint: true, isClosed: true, label: 'Unavailable' };
+                    }
+
+                    const statusStr = loc.status ? String(loc.status).toLowerCase().trim() : '';
+                    if (statusStr === 'closed' || statusStr === 'inactive') {
+                        return { isMaint: false, isClosed: true, label: 'Closed' };
+                    }
+
+                    const isOpen24 = Boolean(
+                        loc.is_open_24_hours == 1 ||
+                        loc.is_open_24_hours === true ||
+                        loc.is_open_24_hours === '1'
+                    );
+                    if (isOpen24) {
+                        return { isMaint: false, isClosed: false, label: 'Open 24/7' };
+                    }
+
+                    if (loc.opening_time && loc.closing_time) {
+                        const now = new Date();
+                        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+                        const openParts = String(loc.opening_time).split(':');
+                        const closeParts = String(loc.closing_time).split(':');
+                        const openMinutes = parseInt(openParts[0], 10) * 60 + parseInt(openParts[1], 10);
+                        const closeMinutes = parseInt(closeParts[0], 10) * 60 + parseInt(closeParts[1], 10);
+
+                        let isClosedNow = false;
+                        if (!isNaN(openMinutes) && !isNaN(closeMinutes) && openMinutes !== closeMinutes) {
+                            if (openMinutes < closeMinutes) {
+                                isClosedNow = (currentMinutes < openMinutes || currentMinutes >= closeMinutes);
+                            } else {
+                                isClosedNow = (currentMinutes < openMinutes && currentMinutes >= closeMinutes);
+                            }
+                        }
+
+                        if (isClosedNow) {
+                            return { isMaint: false, isClosed: true, label: 'Closed' };
+                        }
+                    }
+
+                    return { isMaint: false, isClosed: false, label: 'Open Now' };
+                };
+            }
+
+            const opState = window.checkSiteOperationalState(locationData);
+
             // Open/Closed badge with pulse indicator
             const openBadge = document.getElementById('sheet-open-badge');
             if (openBadge) {
-                if (locationData.is_maintenance) {
-                    openBadge.style.display = 'inline-flex';
+                openBadge.style.display = 'inline-flex';
+                if (opState.isMaint) {
                     openBadge.className = 'sheet-open-pill status-maint';
-                    openBadge.innerHTML = '<span class="pulse-dot dot-amber"></span>Maintenance';
-                } else if (locationData.is_open_24_hours) {
-                    openBadge.style.display = 'inline-flex';
-                    openBadge.className = 'sheet-open-pill status-open';
-                    openBadge.innerHTML = '<span class="pulse-dot dot-green"></span>Open Now';
-                } else if (locationData.opening_time && locationData.closing_time) {
-                    const now = new Date();
-                    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-                    const openParts = locationData.opening_time.split(':');
-                    const closeParts = locationData.closing_time.split(':');
-                    const openMinutes = parseInt(openParts[0]) * 60 + parseInt(openParts[1]);
-                    const closeMinutes = parseInt(closeParts[0]) * 60 + parseInt(closeParts[1]);
-
-                    if (currentMinutes >= openMinutes && currentMinutes < closeMinutes) {
-                        openBadge.style.display = 'inline-flex';
-                        openBadge.className = 'sheet-open-pill status-open';
-                        openBadge.innerHTML = '<span class="pulse-dot dot-green"></span>Open Now';
-                    } else {
-                        openBadge.style.display = 'inline-flex';
-                        openBadge.className = 'sheet-open-pill status-closed';
-                        openBadge.innerHTML = '<span class="pulse-dot dot-red"></span>Closed';
-                    }
+                    openBadge.innerHTML = '<span class="pulse-dot dot-amber"></span>Unavailable';
+                } else if (opState.isClosed) {
+                    openBadge.className = 'sheet-open-pill status-closed';
+                    openBadge.innerHTML = '<span class="pulse-dot dot-red"></span>Closed';
                 } else {
-                    openBadge.style.display = 'none';
+                    openBadge.className = 'sheet-open-pill status-open';
+                    openBadge.innerHTML = `<span class="pulse-dot dot-green"></span>${opState.label}`;
+                }
+            }
+
+            // Action Button: Add to Trip (Disabled & shows Closed/Unavailable if not open)
+            const addItinBtn = document.getElementById('btn-add-itinerary');
+            if (addItinBtn) {
+                if (opState.isMaint) {
+                    addItinBtn.disabled = true;
+                    addItinBtn.style.setProperty('pointer-events', 'none', 'important');
+                    addItinBtn.style.setProperty('cursor', 'not-allowed', 'important');
+                    addItinBtn.style.setProperty('background', '#64748b', 'important');
+                    addItinBtn.style.setProperty('color', '#ffffff', 'important');
+                    addItinBtn.style.setProperty('opacity', '0.65', 'important');
+                    addItinBtn.style.setProperty('box-shadow', 'none', 'important');
+                    addItinBtn.innerHTML = '<i class="fa-solid fa-wrench" style="margin-right:6px;"></i> Unavailable';
+                    addItinBtn.title = 'Site is currently unavailable due to maintenance';
+                } else if (opState.isClosed) {
+                    addItinBtn.disabled = true;
+                    addItinBtn.style.setProperty('pointer-events', 'none', 'important');
+                    addItinBtn.style.setProperty('cursor', 'not-allowed', 'important');
+                    addItinBtn.style.setProperty('background', '#64748b', 'important');
+                    addItinBtn.style.setProperty('color', '#ffffff', 'important');
+                    addItinBtn.style.setProperty('opacity', '0.65', 'important');
+                    addItinBtn.style.setProperty('box-shadow', 'none', 'important');
+                    addItinBtn.innerHTML = '<i class="fa-solid fa-lock" style="margin-right:6px;"></i> Closed';
+                    addItinBtn.title = 'Site is currently closed';
+                } else {
+                    addItinBtn.disabled = false;
+                    addItinBtn.style.removeProperty('pointer-events');
+                    addItinBtn.style.setProperty('cursor', 'pointer', 'important');
+                    addItinBtn.style.setProperty('background', 'linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%)', 'important');
+                    addItinBtn.style.setProperty('color', '#ffffff', 'important');
+                    addItinBtn.style.setProperty('opacity', '1', 'important');
+                    addItinBtn.style.setProperty('box-shadow', '0 4px 14px rgba(32,63,141,0.35)', 'important');
+                    addItinBtn.innerHTML = '<i class="fa-solid fa-calendar-plus" style="margin-right:6px;"></i> Add to Trip';
+                    addItinBtn.title = 'Add to Itinerary';
                 }
             }
 
@@ -4166,6 +4286,19 @@ if (is_dir($imgDir)) {
         window.addToItinerary = function () {
             if (!window.currentDestinationForRoute) return;
             const dest = window.currentDestinationForRoute;
+
+            const opState = (typeof window.checkSiteOperationalState === 'function')
+                ? window.checkSiteOperationalState(dest)
+                : { isMaint: false, isClosed: false };
+
+            if (opState.isMaint) {
+                if (typeof showToast === 'function') showToast('Cannot add: This site is currently unavailable (under maintenance).', 'warning');
+                return;
+            }
+            if (opState.isClosed) {
+                if (typeof showToast === 'function') showToast('Cannot add: This site is currently closed.', 'warning');
+                return;
+            }
 
             // Save to localStorage draft
             let draft = [];
