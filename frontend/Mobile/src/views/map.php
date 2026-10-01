@@ -3416,36 +3416,28 @@ if (is_dir($imgDir)) {
                 }
             }
 
-            // Action Button: Add to Trip (Disabled & shows Closed/Unavailable if not open)
+            // Action Button: Add to Trip (Always enabled so tourists can plan future visits or plan at night)
             const addItinBtn = document.getElementById('btn-add-itinerary');
             if (addItinBtn) {
-                if (opState.isMaint) {
-                    addItinBtn.disabled = true;
-                    addItinBtn.style.setProperty('pointer-events', 'none', 'important');
-                    addItinBtn.style.setProperty('cursor', 'not-allowed', 'important');
-                    addItinBtn.style.setProperty('background', '#64748b', 'important');
-                    addItinBtn.style.setProperty('color', '#ffffff', 'important');
-                    addItinBtn.style.setProperty('opacity', '0.65', 'important');
-                    addItinBtn.style.setProperty('box-shadow', 'none', 'important');
-                    addItinBtn.innerHTML = '<i class="fa-solid fa-wrench" style="margin-right:6px;"></i> Unavailable';
-                    addItinBtn.title = 'Site is currently unavailable due to maintenance';
-                } else if (opState.isClosed) {
-                    addItinBtn.disabled = true;
-                    addItinBtn.style.setProperty('pointer-events', 'none', 'important');
-                    addItinBtn.style.setProperty('cursor', 'not-allowed', 'important');
-                    addItinBtn.style.setProperty('background', '#64748b', 'important');
-                    addItinBtn.style.setProperty('color', '#ffffff', 'important');
-                    addItinBtn.style.setProperty('opacity', '0.65', 'important');
-                    addItinBtn.style.setProperty('box-shadow', 'none', 'important');
-                    addItinBtn.innerHTML = '<i class="fa-solid fa-lock" style="margin-right:6px;"></i> Closed';
-                    addItinBtn.title = 'Site is currently closed';
+                let isAlreadyInDraft = false;
+                try {
+                    const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary')) || [];
+                    isAlreadyInDraft = draft.some(item => String(item.id) === String(locationData.id));
+                } catch (e) { }
+
+                addItinBtn.disabled = false;
+                addItinBtn.style.removeProperty('pointer-events');
+                addItinBtn.style.setProperty('cursor', 'pointer', 'important');
+                addItinBtn.style.setProperty('color', '#ffffff', 'important');
+                addItinBtn.style.setProperty('opacity', '1', 'important');
+
+                if (isAlreadyInDraft) {
+                    addItinBtn.style.setProperty('background', 'linear-gradient(135deg, #059669 0%, #10b981 100%)', 'important');
+                    addItinBtn.style.setProperty('box-shadow', '0 4px 14px rgba(16,185,129,0.35)', 'important');
+                    addItinBtn.innerHTML = '<i class="fa-solid fa-check" style="margin-right:6px;"></i> In Trip';
+                    addItinBtn.title = 'Already added to itinerary draft';
                 } else {
-                    addItinBtn.disabled = false;
-                    addItinBtn.style.removeProperty('pointer-events');
-                    addItinBtn.style.setProperty('cursor', 'pointer', 'important');
                     addItinBtn.style.setProperty('background', 'linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%)', 'important');
-                    addItinBtn.style.setProperty('color', '#ffffff', 'important');
-                    addItinBtn.style.setProperty('opacity', '1', 'important');
                     addItinBtn.style.setProperty('box-shadow', '0 4px 14px rgba(32,63,141,0.35)', 'important');
                     addItinBtn.innerHTML = '<i class="fa-solid fa-calendar-plus" style="margin-right:6px;"></i> Add to Trip';
                     addItinBtn.title = 'Add to Itinerary';
@@ -4366,15 +4358,6 @@ if (is_dir($imgDir)) {
                 ? window.checkSiteOperationalState(dest)
                 : { isMaint: false, isClosed: false };
 
-            if (opState.isMaint) {
-                if (typeof showToast === 'function') showToast('Cannot add: This site is currently unavailable (under maintenance).', 'warning');
-                return;
-            }
-            if (opState.isClosed) {
-                if (typeof showToast === 'function') showToast('Cannot add: This site is currently closed.', 'warning');
-                return;
-            }
-
             // Save to localStorage draft
             let draft = [];
             try {
@@ -4387,7 +4370,15 @@ if (is_dir($imgDir)) {
                 localStorage.setItem('intan_elyu_draft_itinerary', JSON.stringify(draft));
                 // Show "Added to Itinerary!" modal
                 const confirmName = document.getElementById('itin-add-confirm-name');
-                if (confirmName) confirmName.textContent = dest.name;
+                if (confirmName) {
+                    let noteHtml = '';
+                    if (opState.isMaint) {
+                        noteHtml = `<div style="margin-top:10px; padding:6px 12px; border-radius:10px; font-size:12px; background:rgba(239,68,68,0.22); color:#fee2e2; border:1px solid rgba(239,68,68,0.35); text-align:left; line-height:1.4;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:4px; color:#fca5a5;"></i> <strong>Notice:</strong> Currently under maintenance. Please check opening dates before visiting.</div>`;
+                    } else if (opState.isClosed) {
+                        noteHtml = `<div style="margin-top:10px; padding:6px 12px; border-radius:10px; font-size:12px; background:rgba(245,158,11,0.22); color:#fef3c7; border:1px solid rgba(245,158,11,0.35); text-align:left; line-height:1.4;"><i class="fa-solid fa-clock" style="margin-right:4px; color:#fde68a;"></i> <strong>Notice:</strong> Closed right now. Make sure to visit during its regular operating hours.</div>`;
+                    }
+                    confirmName.innerHTML = `<span style="font-weight:700; color:#ffffff;">${dest.name}</span>${noteHtml}`;
+                }
                 const titleEl = document.querySelector('#itin-add-confirm h3');
                 const iconWrap = document.getElementById('itin-add-confirm-icon-wrap') || document.querySelector('#itin-add-confirm div > div');
                 const btnView = document.querySelector('#itin-add-confirm button[onclick*="viewItinerary"]');
@@ -4397,10 +4388,25 @@ if (is_dir($imgDir)) {
                     iconWrap.style.cssText = 'width:68px; height:68px; border-radius:50%; background:linear-gradient(135deg, #34d399 0%, #10b981 100%); border:3px solid rgba(255,255,255,0.4) !important; box-shadow:none !important; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;';
                 }
                 if (btnView) btnView.style.display = '';
+
+                // Also update the bottom sheet button state if still in view
+                const addItinBtn = document.getElementById('btn-add-itinerary');
+                if (addItinBtn) {
+                    addItinBtn.style.setProperty('background', 'linear-gradient(135deg, #059669 0%, #10b981 100%)', 'important');
+                    addItinBtn.style.setProperty('box-shadow', '0 4px 14px rgba(16,185,129,0.35)', 'important');
+                    addItinBtn.innerHTML = '<i class="fa-solid fa-check" style="margin-right:6px;"></i> In Trip';
+                }
+
+                // Friendly advisory toast
+                if (opState.isMaint) {
+                    if (typeof showToast === 'function') showToast('Added to trip! (Site currently under maintenance)', 'info');
+                } else if (opState.isClosed) {
+                    if (typeof showToast === 'function') showToast('Added to trip! (Site currently closed now)', 'info');
+                }
             } else {
                 // Show "Already in Itinerary" modal
                 const confirmName = document.getElementById('itin-add-confirm-name');
-                if (confirmName) confirmName.textContent = dest.name + ' is already added to itinerary.';
+                if (confirmName) confirmName.textContent = dest.name + ' is already in your itinerary draft.';
                 const titleEl = document.querySelector('#itin-add-confirm h3');
                 const iconWrap = document.getElementById('itin-add-confirm-icon-wrap') || document.querySelector('#itin-add-confirm div > div');
                 const btnView = document.querySelector('#itin-add-confirm button[onclick*="viewItinerary"]');
