@@ -63,15 +63,30 @@ class ItineraryController extends Controller
         $imageUrl = $dest ? $dest->photo_url : null;
         $destId = $dest ? $dest->id : null;
 
-        $pubList = ($destId && isset($spotPublicVehicles[$destId]))
-            ? array_values(array_unique($spotPublicVehicles[$destId]))
-            : [];
-        $privList = ($destId && isset($spotPrivateVehicles[$destId]))
-            ? array_values(array_unique($spotPrivateVehicles[$destId]))
-            : [];
-        $allList = ($destId && isset($spotAllVehicles[$destId]))
-            ? array_values(array_unique($spotAllVehicles[$destId]))
-            : [];
+        $hasExplicit = ($destId && isset($spotAllVehicles[$destId]) && !empty($spotAllVehicles[$destId]));
+        $isDrivable = (bool) ($dest?->accessible_by_private_vehicle ?? 1);
+
+        if ($hasExplicit) {
+            $pubList = isset($spotPublicVehicles[$destId])
+                ? array_values(array_unique($spotPublicVehicles[$destId]))
+                : [];
+            $privList = isset($spotPrivateVehicles[$destId])
+                ? array_values(array_unique($spotPrivateVehicles[$destId]))
+                : [];
+            $allList = isset($spotAllVehicles[$destId])
+                ? array_values(array_unique($spotAllVehicles[$destId]))
+                : [];
+        } else {
+            if ($isDrivable) {
+                $privList = ['Car', 'Motorcycle', 'Van', 'Tricycle'];
+                $pubList = ['MPUJ', 'TPUJ', 'Tricycle', 'PUB_Regular', 'PUB_Aircon', 'UVE', 'TAXI'];
+                $allList = ['Car', 'Motorcycle', 'Van', 'MPUJ', 'TPUJ', 'Tricycle', 'PUB_Regular', 'PUB_Aircon', 'UVE', 'TAXI'];
+            } else {
+                $privList = ['Motorcycle', 'Tricycle'];
+                $pubList = ['Tricycle', 'Motorcycle'];
+                $allList = ['Tricycle', 'Motorcycle'];
+            }
+        }
 
         return [
             'id'               => $item->id,

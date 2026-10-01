@@ -17,7 +17,7 @@ class MapController extends Controller
      */
     public function publicMapData(): JsonResponse
     {
-        $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots:v6', 900, function () {
+        $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots:v8', 900, function () {
             $spotPublicVehicles = [];
             $spotPrivateVehicles = [];
             $spotAllVehicles = [];
@@ -89,15 +89,31 @@ class MapController extends Controller
                         }
                     }
 
-                    $pubList = isset($spotPublicVehicles[$spot->id])
-                        ? array_values(array_unique($spotPublicVehicles[$spot->id]))
-                        : [];
-                    $privList = isset($spotPrivateVehicles[$spot->id])
-                        ? array_values(array_unique($spotPrivateVehicles[$spot->id]))
-                        : [];
-                    $allList = isset($spotAllVehicles[$spot->id])
-                        ? array_values(array_unique($spotAllVehicles[$spot->id]))
-                        : [];
+                    $hasExplicit = isset($spotAllVehicles[$spot->id]) && !empty($spotAllVehicles[$spot->id]);
+                    $isDrivable = (bool) ($spot->accessible_by_private_vehicle ?? 1);
+
+                    if ($hasExplicit) {
+                        $pubList = isset($spotPublicVehicles[$spot->id])
+                            ? array_values(array_unique($spotPublicVehicles[$spot->id]))
+                            : [];
+                        $privList = isset($spotPrivateVehicles[$spot->id])
+                            ? array_values(array_unique($spotPrivateVehicles[$spot->id]))
+                            : [];
+                        $allList = isset($spotAllVehicles[$spot->id])
+                            ? array_values(array_unique($spotAllVehicles[$spot->id]))
+                            : [];
+                    } else {
+                        // Standard default vehicle access for spots without custom database assignments
+                        if ($isDrivable) {
+                            $privList = ['Car', 'Motorcycle', 'Van', 'Tricycle'];
+                            $pubList = ['MPUJ', 'TPUJ', 'Tricycle', 'PUB_Regular', 'PUB_Aircon', 'UVE', 'TAXI'];
+                            $allList = ['Car', 'Motorcycle', 'Van', 'MPUJ', 'TPUJ', 'Tricycle', 'PUB_Regular', 'PUB_Aircon', 'UVE', 'TAXI'];
+                        } else {
+                            $privList = ['Motorcycle', 'Tricycle'];
+                            $pubList = ['Tricycle', 'Motorcycle'];
+                            $allList = ['Tricycle', 'Motorcycle'];
+                        }
+                    }
 
                     $feeTypes = $spot->fee_types;
                     if (is_string($feeTypes)) {

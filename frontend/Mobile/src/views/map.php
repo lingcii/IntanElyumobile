@@ -4083,8 +4083,19 @@ if (is_dir($imgDir)) {
             let cardsHtml = '';
 
             // Group into Public & Private categories for clarity
-            const publicAvailable = allVehicles.filter(v => pubVehicles.includes(v) || (!privVehicles.includes(v) && ['MPUJ', 'TPUJ', 'PUB_Aircon', 'PUB_Regular', 'TAXI', 'UVE'].includes(v)));
-            const privateAvailable = allVehicles.filter(v => privVehicles.includes(v) || (!pubVehicles.includes(v) && ['Car', 'Motorcycle', 'Van'].includes(v)));
+            const isPubMatch = (name) => {
+                const s = String(name || '').toLowerCase();
+                return pubVehicles.some(p => p.toLowerCase() === s) ||
+                    ['mpuj', 'tpuj', 'pub_aircon', 'pub_regular', 'pub', 'taxi', 'uve', 'tricycle', 'trike', 'jeepney'].some(k => s.includes(k));
+            };
+            const isPrivMatch = (name) => {
+                const s = String(name || '').toLowerCase();
+                return privVehicles.some(p => p.toLowerCase() === s) ||
+                    ['car', 'motorcycle', 'motor', 'van', 'tricycle', 'trike'].some(k => s.includes(k));
+            };
+
+            const publicAvailable = allVehicles.filter(v => isPubMatch(v));
+            const privateAvailable = allVehicles.filter(v => isPrivMatch(v));
 
             const renderCard = (vehName, isPub) => {
                 const est = window.getFareBoundaryEstimate(vehName, distKm, dest.municipality, !isPub);
