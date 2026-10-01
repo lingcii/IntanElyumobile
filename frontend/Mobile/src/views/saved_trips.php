@@ -238,6 +238,8 @@ body[data-view="saved_trips"],
             'lutrampco': { name: 'LUTRAMPCO', icon: 'fa-van-shuttle', color: '#38bdf8' },
             'taxi': { name: 'Taxi', icon: 'fa-taxi', color: '#eab308' },
             'motorcycle': { name: 'Motorcycle', icon: 'fa-motorcycle', color: '#f97316' },
+            'mixed': { name: 'Custom / Mixed', icon: 'fa-route', color: '#c084fc' },
+            'smart_hybrid': { name: 'Custom / Mixed', icon: 'fa-route', color: '#c084fc' },
             'walking': { name: 'Walking', icon: 'fa-person-walking', color: '#22c55e' }
         };
 
@@ -369,7 +371,7 @@ body[data-view="saved_trips"],
                             else if (rawMode.includes('aircon') || rawMode.includes('bus')) { vIcon = 'fa-bus'; vName = 'Aircon Bus'; }
                             else if (rawMode.includes('ordinary') || rawMode.includes('regular')) { vIcon = 'fa-bus-simple'; vName = 'Ordinary Bus'; }
                             else if (rawMode === 'walking' || rawMode === 'walk') { vIcon = 'fa-person-walking'; vName = 'Walk / Hike'; }
-                            else if (rawMode === 'smart_hybrid') { vIcon = 'fa-wand-magic-sparkles'; vName = 'Smart Transit'; }
+                            else if (rawMode === 'smart_hybrid' || rawMode === 'mixed') { vIcon = 'fa-route'; vName = 'Custom / Mixed'; }
 
                             const costNum = parseFloat(item.leg_cost || 0);
                             const costStr = (costNum > 0) ? `&bull; ₱${costNum.toFixed(2)}` : (['own_car', 'motorcycle', 'walking'].includes(rawMode) ? '&bull; ₱0' : '');

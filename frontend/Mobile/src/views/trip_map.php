@@ -236,7 +236,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         { key: 'tricycle', name: 'Tricycle', icon: 'fa-motorcycle', color: '#10b981', desc: 'Local tricycle', speedKmH: 20 },
         { key: 'taxi', name: 'Taxi', icon: 'fa-taxi', color: '#eab308', desc: 'Metered or chartered taxi', speedKmH: 36 },
         { key: 'uve', name: 'UV Express / Van', icon: 'fa-van-shuttle', color: '#a855f7', desc: 'UV Express shuttle van', speedKmH: 32 },
-        { key: 'motorcycle', name: 'Motorcycle', icon: 'fa-motorcycle', color: '#f97316', desc: 'Motorbike / scooter', speedKmH: 36 },
+        { key: 'motorcycle', name: 'Motorcycle', icon: 'fa-motorcycle', color: '#f97316', desc: 'Motorcycle', speedKmH: 36 },
         { key: 'jeepney', name: 'Jeepney', icon: 'fa-van-shuttle', color: '#10b981', desc: 'Public Utility Jeepney', speedKmH: 24, hiddenFromModal: true },
         { key: 'bus', name: 'Bus', icon: 'fa-bus', color: '#38bdf8', desc: 'Provincial bus', speedKmH: 32, hiddenFromModal: true },
         { key: 'private_bus', name: 'Aircon Bus', icon: 'fa-bus', color: '#38bdf8', desc: 'Aircon bus', speedKmH: 34, hiddenFromModal: true },
@@ -484,7 +484,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 else if (rawMode.includes('aircon') || rawMode.includes('bus')) { vIcon = 'fa-bus'; vName = 'Aircon Bus'; }
                 else if (rawMode.includes('ordinary') || rawMode.includes('regular')) { vIcon = 'fa-bus-simple'; vName = 'Ordinary Bus'; }
                 else if (rawMode === 'walking' || rawMode === 'walk') { vIcon = 'fa-person-walking'; vName = 'Walk / Hike'; }
-                else if (rawMode === 'smart_hybrid') { vIcon = 'fa-wand-magic-sparkles'; vName = 'Smart Transit'; }
+                else if (rawMode === 'smart_hybrid' || rawMode === 'mixed') { vIcon = 'fa-route'; vName = 'Custom / Mixed'; }
 
                 const cNum = parseFloat(item.leg_cost || 0);
                 const cStr = (cNum > 0) ? `&bull; ₱${cNum.toFixed(2)}` : (['own_car', 'motorcycle', 'walking'].includes(rawMode) ? '&bull; ₱0' : '');
