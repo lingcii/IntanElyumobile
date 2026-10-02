@@ -1515,10 +1515,14 @@ if (is_dir($imgDir)) {
                                                     <span style="color:rgba(255,255,255,0.4);">&bull;</span>
                                                     <span><i class="fa-regular fa-calendar" style="margin-right:4px; color:#ffffff;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No Date'}</span>
                                                     ${trip.transport_mode ? (() => {
-                                                        const rawT = String(trip.transport_mode).split(',')[0].trim().toLowerCase().replace(/[- ]/g, '_');
-                                                        if (rawT.includes('no_vehicle') || rawT.includes('no vehicle')) {
+                                                        const parts = String(trip.transport_mode).split(/[,+]|\band\b/i).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+                                                        if (parts.length === 0 || parts[0].includes('no_vehicle') || parts[0].includes('no vehicle')) {
                                                             return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid fa-ban" style="margin-right:4px; color:#f87171;"></i>No Vehicle Selected</span>`;
                                                         }
+                                                        if (parts.length > 1) {
+                                                            return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid fa-route" style="margin-right:4px; color:#38bdf8;"></i>${parts.length} Vehicles</span>`;
+                                                        }
+                                                        const rawT = parts[0];
                                                         const tMap = {
                                                             'own_car': 'Own Car',
                                                             'mpuj': 'MPUJ',

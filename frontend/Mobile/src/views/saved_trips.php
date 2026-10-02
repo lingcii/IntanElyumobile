@@ -218,47 +218,67 @@ body[data-view="saved_trips"],
         );
     };
 
-    function getSavedTripTransportBadge(rawMode) {
-        if (!rawMode || String(rawMode).toLowerCase().includes('no_vehicle') || String(rawMode).toLowerCase().includes('no vehicle')) {
-            return `&bull; <span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-ban" style="font-size:11px; color:#f87171;"></i>No Vehicle Selected</span>`;
-        }
-        const catalog = {
-            'own_car': { name: 'Own Car', icon: 'fa-car', color: '#f59e0b' },
-            'mpuj': { name: 'MPUJ', icon: 'fa-van-shuttle', color: '#10b981' },
-            'tpuj': { name: 'TPUJ', icon: 'fa-van-shuttle', color: '#f59e0b' },
-            'pub_aircon': { name: 'PUB Aircon', icon: 'fa-bus', color: '#38bdf8' },
-            'pub_ordinary': { name: 'PUB Ordinary', icon: 'fa-bus-simple', color: '#06b6d4' },
-            'pub_regular': { name: 'PUB Regular', icon: 'fa-bus-simple', color: '#06b6d4' },
-            'uve': { name: 'UV Express', icon: 'fa-van-shuttle', color: '#a855f7' },
-            'jeepney': { name: 'Jeepney', icon: 'fa-van-shuttle', color: '#38bdf8' },
-            'tricycle': { name: 'Tricycle', icon: 'fa-motorcycle', color: '#10b981' },
-            'bus': { name: 'Bus', icon: 'fa-bus', color: '#a855f7' },
-            'private_bus': { name: 'PUB Aircon', icon: 'fa-bus', color: '#38bdf8' },
-            'mini_bus': { name: 'Mini Bus', icon: 'fa-bus-simple', color: '#06b6d4' },
-            'lutrampco': { name: 'LUTRAMPCO', icon: 'fa-van-shuttle', color: '#38bdf8' },
-            'taxi': { name: 'Taxi', icon: 'fa-taxi', color: '#eab308' },
-            'motorcycle': { name: 'Motorcycle', icon: 'fa-motorcycle', color: '#f97316' },
-            'mixed': { name: 'Custom / Mixed', icon: 'fa-route', color: '#c084fc' },
-            'smart_hybrid': { name: 'Custom / Mixed', icon: 'fa-route', color: '#c084fc' },
-            'walking': { name: 'Walking', icon: 'fa-person-walking', color: '#22c55e' }
-        };
+    const VEHICLE_CATALOG = {
+        'own_car': { name: 'Own Car', icon: 'fa-car', color: '#f59e0b' },
+        'motorcycle': { name: 'Motorcycle', icon: 'fa-motorcycle', color: '#f97316' },
+        'van': { name: 'Van', icon: 'fa-van-shuttle', color: '#a855f7' },
+        'mpuj': { name: 'Modern Jeepney', icon: 'fa-bus-simple', color: '#10b981' },
+        'tpuj': { name: 'Traditional Jeepney', icon: 'fa-van-shuttle', color: '#f59e0b' },
+        'jeepney': { name: 'Jeepney', icon: 'fa-van-shuttle', color: '#38bdf8' },
+        'tricycle': { name: 'Tricycle', icon: 'fa-motorcycle', color: '#10b981' },
+        'pub_regular': { name: 'Ordinary Bus', icon: 'fa-bus-simple', color: '#06b6d4' },
+        'pub_ordinary': { name: 'Ordinary Bus', icon: 'fa-bus-simple', color: '#06b6d4' },
+        'pub_aircon': { name: 'Aircon Bus', icon: 'fa-bus', color: '#38bdf8' },
+        'bus': { name: 'Bus', icon: 'fa-bus', color: '#38bdf8' },
+        'private_bus': { name: 'Aircon Bus', icon: 'fa-bus', color: '#38bdf8' },
+        'mini_bus': { name: 'Mini Bus', icon: 'fa-bus-simple', color: '#06b6d4' },
+        'lutrampco': { name: 'Modern Jeepney', icon: 'fa-bus-simple', color: '#38bdf8' },
+        'uve': { name: 'UV Express', icon: 'fa-van-shuttle', color: '#a855f7' },
+        'taxi': { name: 'Taxi', icon: 'fa-taxi', color: '#eab308' },
+        'walking': { name: 'Walk / Hike', icon: 'fa-person-walking', color: '#22c55e' }
+    };
 
-        const parts = String(rawMode).split(',').map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
-        if (parts.length === 0) return '';
+    function parseVehicleModes(str) {
+        if (!str) return [];
+        if (Array.isArray(str)) return str.map(s => String(s).trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+        return String(str)
+            .split(/[,+]|\band\b/i)
+            .map(s => s.trim().toLowerCase().replace(/^[-_\s]+|[-_\s]+$/g, '').replace(/[- ]+/g, '_').replace(/_+/g, '_'))
+            .filter(Boolean);
+    }
 
-        const first = parts[0];
-        const info = catalog[first] || {
-            name: first.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    function getVehicleInfo(key) {
+        const norm = String(key || '').toLowerCase().trim().replace(/[- ]/g, '_');
+        if (VEHICLE_CATALOG[norm]) return VEHICLE_CATALOG[norm];
+        if (norm === 'car') return VEHICLE_CATALOG['own_car'];
+        if (norm === 'trike') return VEHICLE_CATALOG['tricycle'];
+        if (norm.includes('aircon') || norm.includes('pub_aircon')) return VEHICLE_CATALOG['pub_aircon'];
+        if (norm.includes('ordinary') || norm.includes('regular')) return VEHICLE_CATALOG['pub_regular'];
+        if (norm.includes('bus')) return VEHICLE_CATALOG['pub_aircon'];
+        if (norm.includes('mpuj') || norm.includes('modern')) return VEHICLE_CATALOG['mpuj'];
+        if (norm.includes('tpuj') || norm.includes('traditional')) return VEHICLE_CATALOG['tpuj'];
+        if (norm.includes('motor')) return VEHICLE_CATALOG['motorcycle'];
+        return {
+            name: norm.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
             icon: 'fa-car',
             color: '#38bdf8'
         };
+    }
 
-        let label = info.name;
-        if (parts.length > 1) {
-            label += ` +${parts.length - 1}`;
+    function getSavedTripTransportBadge(rawMode) {
+        if (!rawMode || String(rawMode).toLowerCase().includes('no_vehicle') || String(rawMode).toLowerCase().includes('no vehicle')) {
+            return `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-ban" style="font-size:11px; color:#f87171;"></i>No Vehicle Selected</span>`;
         }
 
-        return `&bull; <span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid ${info.icon}" style="font-size:11px; color:${info.color};"></i>${label}</span>`;
+        const parts = parseVehicleModes(rawMode);
+        if (parts.length === 0) return '';
+
+        if (parts.length > 1) {
+            return `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-route" style="font-size:11px; color:#38bdf8;"></i>${parts.length} Vehicles</span>`;
+        }
+
+        const info = getVehicleInfo(parts[0]);
+        return `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid ${info.icon}" style="font-size:11px; color:${info.color};"></i>${info.name}</span>`;
     }
 
     function renderSavedTrips(itineraries) {
@@ -333,11 +353,11 @@ body[data-view="saved_trips"],
                             <i class="fa-solid fa-pen-to-square"></i> Edit
                         </button>
                     </div>
-                    <p style="font-size: 13px; color: #ffffff; opacity: 0.95; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                        <span><i class="fa-regular fa-calendar" style="color: #ffffff; margin-right: 4px;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}</span> 
+                    <div style="font-size: 12.5px; color: #ffffff; opacity: 0.95; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span style="display:inline-flex; align-items:center; gap:5px; font-weight:700;"><i class="fa-regular fa-calendar" style="color: #ffffff;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}</span> 
                         ${transportBadge}
-                        ${trip.budget ? '&bull; <span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-coins" style="font-size:10px; color:#fbbf24;"></i>Budget: ₱' + parseFloat(trip.budget).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + budgetIndicator + '</span>' : ''}
-                    </p>
+                        ${trip.budget ? `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-coins" style="font-size:10px; color:#fbbf24;"></i>Budget: ₱${parseFloat(trip.budget).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}${budgetIndicator}</span>` : ''}
+                    </div>
                     <div class="timeline-collapsible" id="timeline-${trip.id}">
                         <div class="timeline-inner">
                             <div class="timeline">`;
@@ -366,21 +386,21 @@ body[data-view="saved_trips"],
 
                         const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
                         if (item.transport_mode) {
-                            const rawMode = String(item.transport_mode).toLowerCase().replace(/[- ]/g, '_');
-                            let vIcon = 'fa-van-shuttle';
+                            const legModes = parseVehicleModes(item.transport_mode);
+                            let vIcon = 'fa-route';
                             let vName = item.transport_mode;
-                            if (rawMode === 'own_car' || rawMode === 'car') { vIcon = 'fa-car'; vName = 'Own Car'; }
-                            else if (rawMode === 'motorcycle') { vIcon = 'fa-motorcycle'; vName = 'Motorcycle'; }
-                            else if (rawMode === 'tricycle' || rawMode === 'trike') { vIcon = 'fa-motorcycle'; vName = 'Tricycle'; }
-                            else if (rawMode === 'mpuj') { vIcon = 'fa-van-shuttle'; vName = 'Modern Jeepney'; }
-                            else if (rawMode === 'tpuj') { vIcon = 'fa-van-shuttle'; vName = 'Traditional Jeepney'; }
-                            else if (rawMode.includes('aircon') || rawMode.includes('bus')) { vIcon = 'fa-bus'; vName = 'Aircon Bus'; }
-                            else if (rawMode.includes('ordinary') || rawMode.includes('regular')) { vIcon = 'fa-bus-simple'; vName = 'Ordinary Bus'; }
-                            else if (rawMode === 'walking' || rawMode === 'walk') { vIcon = 'fa-person-walking'; vName = 'Walk / Hike'; }
-                            else if (rawMode === 'smart_hybrid' || rawMode === 'mixed') { vIcon = 'fa-route'; vName = 'Custom / Mixed'; }
+
+                            if (legModes.length > 1) {
+                                vIcon = 'fa-route';
+                                vName = `${legModes.length} Vehicles`;
+                            } else if (legModes.length === 1) {
+                                const info = getVehicleInfo(legModes[0]);
+                                vIcon = info.icon;
+                                vName = info.name;
+                            }
 
                             const costNum = parseFloat(item.leg_cost || 0);
-                            const costStr = (costNum > 0) ? `&bull; ₱${costNum.toFixed(2)}` : (['own_car', 'motorcycle', 'walking'].includes(rawMode) ? '&bull; ₱0' : '');
+                            const costStr = (costNum > 0) ? `&bull; ₱${costNum.toFixed(2)}` : (legModes.length === 1 && ['own_car', 'motorcycle', 'walking'].includes(legModes[0]) ? '&bull; ₱0' : '');
                             const distNum = parseFloat(item.leg_distance_km || 0);
                             const distStr = (distNum > 0) ? `&bull; ${distNum.toFixed(1)} km` : '';
 

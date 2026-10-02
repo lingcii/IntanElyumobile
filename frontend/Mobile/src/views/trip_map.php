@@ -289,7 +289,18 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             };
         }
 
-        const firstRawKey = raw.split(',')[0].trim().toLowerCase().replace(/[- ]/g, '_');
+        const parts = raw.split(/[,+]|\band\b/i).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+        if (parts.length > 1) {
+            return {
+                key: 'mixed',
+                name: `${parts.length} Vehicles`,
+                icon: 'fa-route',
+                color: '#38bdf8',
+                desc: `${parts.length} vehicles selected`,
+                speedKmH: 30
+            };
+        }
+        const firstRawKey = parts[0] || 'own_car';
         let found = VEHICLE_CATALOG.find(v => v.key === firstRawKey) ||
                     VEHICLE_CATALOG.find(v => firstRawKey.includes(v.key)) ||
                     (firstRawKey.includes('aircon') ? VEHICLE_CATALOG.find(v => v.key === 'pub_aircon') : null) ||
@@ -304,14 +315,6 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     VEHICLE_CATALOG[0];
 
         let displayName = found.name;
-        if (raw.includes(',')) {
-            const parts = raw.split(',').map(s => s.trim().toLowerCase());
-            const mapped = parts.map(p => {
-                const m = VEHICLE_CATALOG.find(v => v.key === p || p.includes(v.key));
-                return m ? m.name : p;
-            });
-            displayName = mapped.join(' & ');
-        }
 
         return {
             key: found.key,
@@ -473,21 +476,34 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
             let legTransitHtml = '';
             if (item.transport_mode) {
-                const rawMode = String(item.transport_mode).toLowerCase().replace(/[- ]/g, '_');
+                const legParts = String(item.transport_mode).split(/[,+]|\band\b/i).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
                 let vIcon = 'fa-van-shuttle';
                 let vName = item.transport_mode;
-                if (rawMode === 'own_car' || rawMode === 'car') { vIcon = 'fa-car'; vName = 'Own Car'; }
-                else if (rawMode === 'motorcycle') { vIcon = 'fa-motorcycle'; vName = 'Motorcycle'; }
-                else if (rawMode === 'tricycle' || rawMode === 'trike') { vIcon = 'fa-motorcycle'; vName = 'Tricycle'; }
-                else if (rawMode === 'mpuj') { vIcon = 'fa-van-shuttle'; vName = 'Modern Jeepney'; }
-                else if (rawMode === 'tpuj') { vIcon = 'fa-van-shuttle'; vName = 'Traditional Jeepney'; }
-                else if (rawMode.includes('aircon') || rawMode.includes('bus')) { vIcon = 'fa-bus'; vName = 'Aircon Bus'; }
-                else if (rawMode.includes('ordinary') || rawMode.includes('regular')) { vIcon = 'fa-bus-simple'; vName = 'Ordinary Bus'; }
-                else if (rawMode === 'walking' || rawMode === 'walk') { vIcon = 'fa-person-walking'; vName = 'Walk / Hike'; }
-                else if (rawMode === 'smart_hybrid' || rawMode === 'mixed') { vIcon = 'fa-route'; vName = 'Custom / Mixed'; }
+                
+                if (legParts.length > 1) {
+                    vIcon = 'fa-route';
+                    vName = `${legParts.length} Vehicles`;
+                } else if (legParts.length === 1) {
+                    const single = legParts[0];
+                    if (single === 'own_car' || single === 'car') { vIcon = 'fa-car'; vName = 'Own Car'; }
+                    else if (single === 'motorcycle') { vIcon = 'fa-motorcycle'; vName = 'Motorcycle'; }
+                    else if (single === 'tricycle' || single === 'trike') { vIcon = 'fa-motorcycle'; vName = 'Tricycle'; }
+                    else if (single === 'mpuj') { vIcon = 'fa-bus-simple'; vName = 'Modern Jeepney'; }
+                    else if (single === 'tpuj') { vIcon = 'fa-van-shuttle'; vName = 'Traditional Jeepney'; }
+                    else if (single === 'pub_aircon' || single.includes('aircon')) { vIcon = 'fa-bus'; vName = 'Aircon Bus'; }
+                    else if (single === 'pub_regular' || single === 'pub_ordinary' || single.includes('ordinary') || single.includes('regular')) { vIcon = 'fa-bus-simple'; vName = 'Ordinary Bus'; }
+                    else if (single === 'uve') { vIcon = 'fa-van-shuttle'; vName = 'UV Express'; }
+                    else if (single === 'van') { vIcon = 'fa-van-shuttle'; vName = 'Van'; }
+                    else if (single === 'taxi') { vIcon = 'fa-taxi'; vName = 'Taxi'; }
+                    else if (single === 'bus' || single === 'private_bus') { vIcon = 'fa-bus'; vName = 'Bus'; }
+                    else if (single === 'walking' || single === 'walk') { vIcon = 'fa-person-walking'; vName = 'Walk / Hike'; }
+                    else {
+                        vName = single.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    }
+                }
 
                 const cNum = parseFloat(item.leg_cost || 0);
-                const cStr = (cNum > 0) ? `&bull; ₱${cNum.toFixed(2)}` : (['own_car', 'motorcycle', 'walking'].includes(rawMode) ? '&bull; ₱0' : '');
+                const cStr = (cNum > 0) ? `&bull; ₱${cNum.toFixed(2)}` : (legParts.length === 1 && ['own_car', 'motorcycle', 'walking'].includes(legParts[0]) ? '&bull; ₱0' : '');
 
                 legTransitHtml = `<div style="display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap;">
                     <span style="background:rgba(255,255,255,0.18); color:#e0f2fe; padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
