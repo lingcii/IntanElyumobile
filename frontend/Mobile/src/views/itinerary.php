@@ -126,11 +126,15 @@ try {
         margin-top: 14px !important;
         margin-bottom: 36px !important;
         box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 8px -1px rgba(15, 23, 42, 0.03) !important;
-        display: flex !important;
+        display: flex;
         flex-direction: column !important;
         box-sizing: border-box !important;
         position: relative !important;
         width: 100% !important;
+    }
+
+    .draft-plan-card-wrapper.is-hidden {
+        display: none !important;
     }
 
     .draft-plan-card-wrapper .itinerary-stops-container {
@@ -619,7 +623,7 @@ try {
     </div>
 
     <!-- Big Container from Recommended to Save Draft Plan -->
-    <div id="draft-plan-card-wrapper" class="draft-plan-card-wrapper stagger-2" style="display:none;">
+    <div id="draft-plan-card-wrapper" class="draft-plan-card-wrapper stagger-2 is-hidden" style="display:none;">
         <!-- Active Editing Trip Banner -->
         <div id="editing-plan-banner"
             style="display:none; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color:#ffffff; padding:10px 16px; border-radius:14px; margin-bottom:14px; font-size:12.5px; font-weight:700; border:none !important; outline:none !important; box-shadow:none !important; cursor:pointer;"
@@ -3090,7 +3094,6 @@ try {
                 chosenName = `${selected.length} Vehicles (${selected.map(m => shortNames[m] || m).join(', ')})`;
             }
 
-            const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
             if (draft.length === 0) {
                 if (typeof showToast === 'function') {
                     showToast(`Vehicles set: ${chosenName}! Now add spots from the Map.`);
@@ -3288,7 +3291,10 @@ try {
             document.getElementById('itinerary-count').innerText = rawDraft.length;
 
             if (rawDraft.length === 0) {
-                if (draftPlanCard) draftPlanCard.style.setProperty('display', 'none', 'important');
+                if (draftPlanCard) {
+                    draftPlanCard.classList.add('is-hidden');
+                    draftPlanCard.style.setProperty('display', 'none', 'important');
+                }
                 const pageTitleEl = document.getElementById('itinerary-page-title');
                 const editBannerEl = document.getElementById('editing-plan-banner');
                 if (editBannerEl) editBannerEl.style.setProperty('display', 'none', 'important');
@@ -3311,7 +3317,10 @@ try {
 
             emptyState.style.setProperty('display', 'none', 'important');
             emptyState.classList.add('is-hidden');
-            if (draftPlanCard) draftPlanCard.style.setProperty('display', 'flex', 'important');
+            if (draftPlanCard) {
+                draftPlanCard.classList.remove('is-hidden');
+                draftPlanCard.style.setProperty('display', 'flex', 'important');
+            }
             fab.style.setProperty('display', 'flex', 'important');
             const isEditingPlan = Boolean(sessionStorage.getItem('editing_itinerary_id'));
             const pageTitleEl = document.getElementById('itinerary-page-title');
