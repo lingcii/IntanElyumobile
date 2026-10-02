@@ -196,12 +196,17 @@ class CostEstimationService
         }
 
         // 1. Calculate entrance fees & environmental fees of all spots and identify municipalities
+        // NOTE: Spots under maintenance are closed/restricted and do NOT charge entrance or environmental fees.
+        // Spots that are simply closed by operating hours (e.g. 6am - 5pm outside operating hours) STILL get their site fees.
         $spots = TouristSpot::with('municipality')->whereIn('id', $destinationIds)->get();
         $entranceFees = (float) $spots->reduce(function ($carry, $s) {
+            if ($s->is_maintenance) {
+                return $carry;
+            }
             $fee = ($s->adult_fee > 0) ? (float)$s->adult_fee : (float)($s->entrance_fee ?? 0);
             return $carry + $fee;
         }, 0.0);
-        $environmentalFees = (float) $spots->sum('environmental_fee');
+        $environmentalFees = (float) $spots->filter(fn($s) => !$s->is_maintenance)->sum('environmental_fee');
         $siteFeesTotal = $entranceFees + $environmentalFees;
 
         // Extract primary destination municipality (default to San Juan)
@@ -266,6 +271,7 @@ class CostEstimationService
             // Resolve target spot for accessibility checks
             $destSpot = $orderedSpots->firstWhere('id', $leg['to_spot_id']);
             $isSpotPrivateInaccessible = $destSpot && ($destSpot->accessible_by_private_vehicle === 0 || $destSpot->accessible_by_private_vehicle === false);
+            $isSpotUnderMaintenance = $destSpot && ($destSpot->is_maintenance == 1 || $destSpot->is_maintenance === true);
 
             // Determine vehicle for this specific leg:
             // 1) Explicit per-leg override if provided
@@ -312,6 +318,10 @@ class CostEstimationService
             }
 
             $normLegMode = strtolower(trim($legMode));
+            if ($isSpotUnderMaintenance) {
+                $normLegMode = 'suspended';
+                $clientLegCost = 0.00;
+            }
             $isPrivate = in_array($normLegMode, ['own_car', 'car', 'motorcycle']);
             $priceA = 0.00;
             $estimateB = 0.00;

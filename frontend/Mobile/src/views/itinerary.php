@@ -2088,6 +2088,34 @@ try {
             return { allowed: true, reason: '' };
         };
 
+        window.isSpotUnderMaintenance = function (spot) {
+            if (!spot) return false;
+            try {
+                const spotId = String(spot.id || spot.tourist_spot_id || '');
+                if (spotId && spot.is_maintenance === undefined) {
+                    if (window._cachedMapSpots && window._cachedMapSpots[spotId]) {
+                        spot.is_maintenance = window._cachedMapSpots[spotId].is_maintenance;
+                    } else {
+                        const rawMap = localStorage.getItem('public_map_data');
+                        if (rawMap) {
+                            const parsed = JSON.parse(rawMap);
+                            const list = parsed?.destinations || parsed?.data?.destinations || [];
+                            const mapSpot = list.find(s => String(s?.id) === spotId);
+                            if (mapSpot && mapSpot.is_maintenance !== undefined) {
+                                spot.is_maintenance = mapSpot.is_maintenance;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {}
+            return Boolean(
+                spot.is_maintenance === 1 || 
+                spot.is_maintenance === true || 
+                spot.is_maintenance === '1' ||
+                (spot.status && String(spot.status).toLowerCase().includes('maint'))
+            );
+        };
+
         window.getLegTransportInfo = function (legIdx) {
             const draft = (typeof window.getEffectiveDraft === 'function')
                 ? window.getEffectiveDraft()
@@ -2126,27 +2154,7 @@ try {
                 }
             }
 
-            // Sync and check if destination site is under maintenance / closed
-            try {
-                const spotId = String(toSpot.id || toSpot.tourist_spot_id || '');
-                if (spotId && toSpot.is_maintenance === undefined) {
-                    if (window._cachedMapSpots && window._cachedMapSpots[spotId]) {
-                        toSpot.is_maintenance = window._cachedMapSpots[spotId].is_maintenance;
-                    } else {
-                        const rawMap = localStorage.getItem('public_map_data');
-                        if (rawMap) {
-                            const parsed = JSON.parse(rawMap);
-                            const list = parsed?.destinations || parsed?.data?.destinations || [];
-                            const mapSpot = list.find(s => String(s?.id) === spotId);
-                            if (mapSpot && mapSpot.is_maintenance !== undefined) {
-                                toSpot.is_maintenance = mapSpot.is_maintenance;
-                            }
-                        }
-                    }
-                }
-            } catch (e) {}
-
-            const isSiteUnderMaintenance = Boolean(toSpot && (toSpot.is_maintenance === 1 || toSpot.is_maintenance === true || toSpot.is_maintenance === '1'));
+            const isSiteUnderMaintenance = window.isSpotUnderMaintenance(toSpot);
             if (isSiteUnderMaintenance) {
                 return {
                     mode: 'suspended',
@@ -4170,8 +4178,13 @@ try {
             }
 
             // Sum Entrance Fees & Environmental Fees across all destinations in draft
+            // NOTE: Sites under maintenance are closed/restricted and do NOT charge entrance or environmental fees (₱0.00).
+            // Sites that are simply Closed by operating hours (e.g. 6am - 5pm outside operating hours) STILL get their site fees, option fees, and category.
             let feesTotal = 0;
             draft.forEach(p => {
+                if (typeof window.isSpotUnderMaintenance === 'function' && window.isSpotUnderMaintenance(p)) {
+                    return; // Exclude Under Maintenance
+                }
                 const adultFee = parseFloat(p.adult_fee || p.adultFee || 0);
                 const generalEntrance = parseFloat(p.entrance_fee || p.entranceFee || p.fee || 0);
                 const entrance = adultFee > 0 ? adultFee : generalEntrance;
@@ -5130,7 +5143,12 @@ try {
         window.updateDraftBudget = function (draft) {
             if (!draft) draft = (typeof window.getEffectiveDraft === 'function') ? window.getEffectiveDraft() : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
             let actCost = 0, foodCost = 0, transCost = 0;
+            // NOTE: Sites under maintenance are closed/restricted and do NOT charge entrance, activity or food fees (₱0.00).
+            // Sites that are simply Closed by operating hours (e.g. 6am - 5pm outside operating hours) STILL get their site fees, option fees, and category.
             draft.forEach(item => {
+                if (typeof window.isSpotUnderMaintenance === 'function' && window.isSpotUnderMaintenance(item)) {
+                    return; // Exclude Under Maintenance
+                }
                 const adult = parseFloat(item.adult_fee || item.adultFee || 0);
                 const gen = parseFloat(item.entrance_fee || item.fee || 0);
                 actCost += (adult > 0 ? adult : gen);
