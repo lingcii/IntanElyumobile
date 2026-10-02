@@ -520,14 +520,17 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
 .swipe-content .time-label {
     font-size: 11px !important;
     font-weight: 800 !important;
-    color: #ffffff !important;
-    background: rgba(255, 255, 255, 0.18) !important;
+    color: #1e3a8a !important;
+    background: #ffffff !important;
     border: none !important;
     outline: none !important;
-    padding: 4px 10px !important;
+    padding: 4px 11px !important;
     border-radius: 100px !important;
     letter-spacing: 0.4px !important;
     text-transform: uppercase !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
+    display: inline-flex !important;
+    align-items: center !important;
 }
 
 .swipe-content .place-name {
@@ -862,18 +865,24 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
 
 /* Next Stop ETA / Distance Chip */
 .next-stop-distance-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(255, 255, 255, 0.16) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    background: #ffffff !important;
     border: none !important;
     outline: none !important;
-    border-radius: 100px;
-    padding: 4px 12px;
-    font-size: 11px;
-    font-weight: 700;
-    color: #ffffff !important;
-    margin-top: 8px;
+    border-radius: 100px !important;
+    padding: 5px 13px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #1e3a8a !important;
+    margin-top: 8px !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
+}
+
+.next-stop-distance-chip i {
+    color: #0284c7 !important;
+    font-size: 11px !important;
 }
 
 /* Leaflet Custom Marker Radar Pulse */
@@ -986,4 +995,53 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
 
 .starting-point-pulse {
     display: none !important;
+}
+
+/* Trip Transportation Modal Option Cards */
+.travel-starter-card {
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    border-radius: 14px !important;
+    padding: 12px 14px !important;
+    cursor: pointer !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    user-select: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    border: 2px solid transparent !important;
+    box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28) !important;
+    color: #ffffff !important;
+    position: relative !important;
+}
+
+.travel-starter-card:hover {
+    background: linear-gradient(135deg, #254b9f 0%, #315ea9 50%, #3c75be 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(32, 63, 141, 0.38) !important;
+}
+
+.travel-starter-card.active {
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    border: 2px solid #00f2fe !important;
+    box-shadow: 0 4px 16px rgba(0, 242, 254, 0.35) !important;
+}
+
+.travel-starter-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    background: #ffffff !important;
+    color: #1e3a8a !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
+}
+
+.travel-starter-icon i {
+    color: #1e3a8a !important;
+    font-size: 14px;
 }

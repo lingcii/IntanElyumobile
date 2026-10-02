@@ -245,6 +245,48 @@ try {
         transition: transform 0.3s ease !important;
     }
 
+    .swipe-content .time-label {
+        font-size: 11px !important;
+        font-weight: 800 !important;
+        color: #1e3a8a !important;
+        background: #ffffff !important;
+        border: none !important;
+        outline: none !important;
+        padding: 4px 11px !important;
+        border-radius: 100px !important;
+        letter-spacing: 0.4px !important;
+        text-transform: uppercase !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
+        display: inline-flex !important;
+        align-items: center !important;
+    }
+
+    .next-stop-distance-chip {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 7px !important;
+        background: #ffffff !important;
+        border: none !important;
+        outline: none !important;
+        border-radius: 100px !important;
+        padding: 5px 13px !important;
+        font-size: 11px !important;
+        font-weight: 700 !important;
+        color: #1e3a8a !important;
+        margin-top: 8px !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
+    }
+
+    .next-stop-distance-chip i {
+        color: #0284c7 !important;
+        font-size: 11px !important;
+    }
+
+    .next-stop-distance-chip span {
+        color: #1e3a8a !important;
+        font-weight: 700 !important;
+    }
+
     .stops-leg-chip,
     .p2p-leg-chip {
         background: #ffffff !important;
@@ -370,10 +412,9 @@ try {
     }
 
     .travel-starter-card {
-        background: rgba(255, 255, 255, 0.08) !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
-        border-radius: 18px !important;
-        padding: 14px !important;
+        background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; /* Notification Card Gradient */
+        border-radius: 14px !important;
+        padding: 12px 14px !important;
         cursor: pointer !important;
         transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
         display: flex !important;
@@ -381,16 +422,41 @@ try {
         justify-content: space-between !important;
         user-select: none !important;
         -webkit-tap-highlight-color: transparent !important;
+        border: 2px solid transparent !important;
+        box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28) !important;
+        color: #ffffff !important;
+        position: relative !important;
     }
 
     .travel-starter-card:hover {
-        background: rgba(255, 255, 255, 0.15) !important;
-        transform: translateY(-1px) !important;
+        background: linear-gradient(135deg, #254b9f 0%, #315ea9 50%, #3c75be 100%) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 16px rgba(32, 63, 141, 0.38) !important;
     }
 
     .travel-starter-card.active {
-        background: rgba(0, 242, 254, 0.16) !important;
-        border: 1.5px solid rgba(0, 242, 254, 0.55) !important;
+        background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+        border: 2px solid #00f2fe !important;
+        box-shadow: 0 4px 16px rgba(0, 242, 254, 0.35) !important;
+    }
+
+    .travel-starter-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        flex-shrink: 0;
+        background: #ffffff !important;
+        color: #1e3a8a !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
+    }
+
+    .travel-starter-icon i {
+        color: #1e3a8a !important;
+        font-size: 14px;
     }
 
     @keyframes slideUpSheet {
@@ -619,7 +685,7 @@ try {
         <div style="display:flex; flex-direction:column; gap:10px; width:100%; max-width:280px; margin:14px auto 0;">
             <button class="btn-primary" onclick="window.openTravelModeStarterModal()"
                 style="width:100%; padding:14px 18px; border-radius:18px; font-weight:800; font-size:14px; border:none !important; outline:none !important; background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color:#ffffff !important; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
-                <i class="fa-solid fa-car-side" style="color:#00f2fe;"></i> Step 1: Select Vehicle
+                <i class="fa-solid fa-car-side" style="color:#00f2fe;"></i> Select Vehicle
             </button>
             <button class="btn-open-map" onclick="navigateTo('map')" style="width:100%; margin:0;">
                 <i class="fa-solid fa-location-dot"></i> Browse Destinations Map
@@ -993,201 +1059,301 @@ try {
     </div>
 </div>
 
-<!-- Step 1 Vehicle Selection Modal (Bottom Sheet) -->
+<!-- Vehicle Selection Modal (Bottom Sheet - Matched to Leg Transport Modal) -->
 <div id="travel-mode-starter-modal" onclick="if(event.target===this) window.closeTravelModeStarterModal()"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6, 11, 25, 0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:100003 !important; justify-content:center; align-items:flex-end; padding:0;">
-    <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; backdrop-filter:blur(24px) !important; -webkit-backdrop-filter:blur(24px) !important; border:none !important; outline:none !important; border-radius:28px 28px 0 0; padding:22px 20px calc(24px + env(safe-area-inset-bottom, 0px)); width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; color:#ffffff; max-height:85vh; display:flex; flex-direction:column; box-sizing:border-box; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
+    <div style="background:#ffffff !important; border-radius:28px 28px 0 0; width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; max-height:88vh; display:flex; flex-direction:column; box-sizing:border-box; overflow:hidden; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
         
-        <!-- Header -->
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <div style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
-                    <i class="fa-solid fa-car-side" style="color:#1e3a8a !important; font-size:16px;"></i>
-                </div>
-                <div>
-                    <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Step 1: Choose Your Vehicle</h3>
-                    <div style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">
-                        Select your transportation for this trip
+        <!-- Header (Matched to Notifications / Leg Transport Header Banner) -->
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 18px 14px 18px; color:#ffffff; flex-shrink:0; border:none !important; outline:none !important;">
+            <div style="width:36px; height:4px; background:rgba(255,255,255,0.35); border-radius:99px; margin:0 auto 12px auto;"></div>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                        <i class="fa-solid fa-car-side" style="color:#1e3a8a !important; font-size:15px;"></i>
+                    </div>
+                    <div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Choose Your Vehicle</h3>
+                        </div>
+                        <div style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">
+                            Select your primary transportation for this trip
+                        </div>
                     </div>
                 </div>
+                <button type="button" onclick="window.closeTravelModeStarterModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink:0; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; font-size:14px;"></i>
+                </button>
             </div>
-            <button type="button" onclick="window.closeTravelModeStarterModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink:0; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; font-size:13px;"></i>
-            </button>
         </div>
 
-        <div style="font-size:12px; color:rgba(255,255,255,0.85); line-height:1.45; margin-bottom:14px;">
-            Your vehicle sets accurate route guidance, parking trailhead alerts, and fair pricing estimates across all destinations.
-        </div>
-
-        <!-- Options Container -->
-        <div style="display:flex; flex-direction:column; gap:10px; overflow-y:auto; -webkit-overflow-scrolling:touch; max-height:55vh; padding-right:2px;">
+        <!-- Body Below Header (Pure White Background) -->
+        <div style="background:#ffffff !important; color:#1e293b; padding:16px 18px 12px 18px; flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;">
             
-            <!-- Option 1: Own Car -->
-            <div class="travel-starter-card" data-mode="own_car" onclick="window.selectTripTravelMode('own_car')">
-                <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
-                    <div style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, rgba(0, 242, 254, 0.25), rgba(2, 132, 199, 0.35)); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                        <i class="fa-solid fa-car" style="color:#00f2fe; font-size:18px;"></i>
-                    </div>
-                    <div style="min-width:0; flex:1;">
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <span style="font-size:14px; font-weight:800; color:#ffffff;">Own Car</span>
-                            <span class="starter-active-badge" style="display:none; font-size:9.5px; font-weight:800; background:#00f2fe; color:#0f172a; padding:2px 6px; border-radius:6px; text-transform:uppercase;">Selected</span>
-                        </div>
-                        <div style="font-size:11px; color:rgba(255,255,255,0.8); margin-top:2px;">Direct personal driving. Free transit cost.</div>
-                    </div>
-                </div>
+            <!-- Information Bar -->
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; background:#f8fafc; padding:10px 12px; border-radius:12px; border:1px solid #e2e8f0; font-size:11.5px; color:#475569; line-height:1.4;">
+                <span style="display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-circle-info" style="color:#0284c7; font-size:13px; flex-shrink:0;"></i>
+                    <span>Your vehicle sets accurate route guidance, trailhead alerts, and fair pricing estimates across all destinations.</span>
+                </span>
             </div>
 
-            <!-- Option 2: Motorcycle -->
-            <div class="travel-starter-card" data-mode="motorcycle" onclick="window.selectTripTravelMode('motorcycle')">
-                <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
-                    <div style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.35)); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                        <i class="fa-solid fa-motorcycle" style="color:#fbbf24; font-size:18px;"></i>
-                    </div>
-                    <div style="min-width:0; flex:1;">
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <span style="font-size:14px; font-weight:800; color:#ffffff;">Motorcycle</span>
-                            <span class="starter-active-badge" style="display:none; font-size:9.5px; font-weight:800; background:#fbbf24; color:#0f172a; padding:2px 6px; border-radius:6px; text-transform:uppercase;">Selected</span>
+            <!-- Transport Options List (Royal Blue Notification Cards) -->
+            <div style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:9px; padding-right:2px; -webkit-overflow-scrolling:touch; max-height:48vh; margin-bottom:4px;">
+                
+                <!-- Category 1: Private Vehicles -->
+                <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:#1e3a8a; letter-spacing:0.6px; margin:4px 0 2px 2px; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-car" style="font-size:11px; color:#1e3a8a;"></i> Private Vehicles
+                </div>
+
+                <!-- Option 1: Own Car -->
+                <div class="travel-starter-card" data-mode="own_car" onclick="window.selectTripTravelMode('own_car')">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div class="starter-radio-box" style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:11px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-radio-check" style="color:#1e3a8a !important; display:none;"></i>
                         </div>
-                        <div style="font-size:11px; color:rgba(255,255,255,0.8); margin-top:2px;">Fast, agile access through coastal & upland scenic routes.</div>
+                        <div class="travel-starter-icon">
+                            <i class="fa-solid fa-car"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Own Car</div>
+                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                Direct personal driving &bull; Free transit cost
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
+                        </span>
                     </div>
                 </div>
+
+                <!-- Option 2: Motorcycle -->
+                <div class="travel-starter-card" data-mode="motorcycle" onclick="window.selectTripTravelMode('motorcycle')">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div class="starter-radio-box" style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:11px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-radio-check" style="color:#1e3a8a !important; display:none;"></i>
+                        </div>
+                        <div class="travel-starter-icon">
+                            <i class="fa-solid fa-motorcycle"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Motorcycle</div>
+                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                Fast, agile access through coastal & scenic routes
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Option 3: Van -->
+                <div class="travel-starter-card" data-mode="van" onclick="window.selectTripTravelMode('van')">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div class="starter-radio-box" style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:11px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-radio-check" style="color:#1e3a8a !important; display:none;"></i>
+                        </div>
+                        <div class="travel-starter-icon">
+                            <i class="fa-solid fa-van-shuttle"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Van</div>
+                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                Family & group private ride &bull; Spacious luggage
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Category 2: Public Transit & Hired -->
+                <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:#1e3a8a; letter-spacing:0.6px; margin:12px 0 2px 2px; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-bus" style="font-size:11px; color:#1e3a8a;"></i> Public Transit & Hired
+                </div>
+
+                <!-- Option 4: Modern Jeepney (MPUJ) -->
+                <div class="travel-starter-card" data-mode="mpuj" onclick="window.selectTripTravelMode('mpuj')">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div class="starter-radio-box" style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:11px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-radio-check" style="color:#1e3a8a !important; display:none;"></i>
+                        </div>
+                        <div class="travel-starter-icon">
+                            <i class="fa-solid fa-bus-simple"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Modern Jeepney (MPUJ)</div>
+                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                Air-conditioned modern highway commuter transit
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Option 5: Traditional Jeepney (TPUJ) -->
+                <div class="travel-starter-card" data-mode="tpuj" onclick="window.selectTripTravelMode('tpuj')">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div class="starter-radio-box" style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:11px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-radio-check" style="color:#1e3a8a !important; display:none;"></i>
+                        </div>
+                        <div class="travel-starter-icon">
+                            <i class="fa-solid fa-van-shuttle"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Traditional Jeepney (TPUJ)</div>
+                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                Classic open-air commuter jeepney between towns
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Option 6: Tricycle -->
+                <div class="travel-starter-card" data-mode="tricycle" onclick="window.selectTripTravelMode('tricycle')">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div class="starter-radio-box" style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:11px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-radio-check" style="color:#1e3a8a !important; display:none;"></i>
+                        </div>
+                        <div class="travel-starter-icon">
+                            <i class="fa-solid fa-motorcycle"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Tricycle</div>
+                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                Local door-to-door trips & beach drop-offs
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Option 7: Taxi -->
+                <div class="travel-starter-card" data-mode="taxi" onclick="window.selectTripTravelMode('taxi')">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div class="starter-radio-box" style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:11px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-radio-check" style="color:#1e3a8a !important; display:none;"></i>
+                        </div>
+                        <div class="travel-starter-icon">
+                            <i class="fa-solid fa-taxi"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Taxi</div>
+                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                Direct metered air-conditioned taxi ride
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Option 8: UV Express (UVE) -->
+                <div class="travel-starter-card" data-mode="uve" onclick="window.selectTripTravelMode('uve')">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div class="starter-radio-box" style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:11px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-radio-check" style="color:#1e3a8a !important; display:none;"></i>
+                        </div>
+                        <div class="travel-starter-icon">
+                            <i class="fa-solid fa-van-shuttle"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">UV Express (UVE)</div>
+                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                Express inter-town passenger van service
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Option 9: PUB Regular Bus -->
+                <div class="travel-starter-card" data-mode="pub_regular" onclick="window.selectTripTravelMode('pub_regular')">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div class="starter-radio-box" style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:11px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-radio-check" style="color:#1e3a8a !important; display:none;"></i>
+                        </div>
+                        <div class="travel-starter-icon">
+                            <i class="fa-solid fa-bus"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">PUB Regular (Ordinary Bus)</div>
+                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                Provincial highway regular passenger bus
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Option 10: PUB Aircon Bus -->
+                <div class="travel-starter-card" data-mode="pub_aircon" onclick="window.selectTripTravelMode('pub_aircon')">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div class="starter-radio-box" style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:11px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-radio-check" style="color:#1e3a8a !important; display:none;"></i>
+                        </div>
+                        <div class="travel-starter-icon">
+                            <i class="fa-solid fa-bus"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">PUB Aircon (Aircon Bus)</div>
+                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                Air-conditioned coach bus for long-distance comfort
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
+                        </span>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- Option 3: Van -->
-            <div class="travel-starter-card" data-mode="van" onclick="window.selectTripTravelMode('van')">
-                <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
-                    <div style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(126, 34, 206, 0.35)); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                        <i class="fa-solid fa-van-shuttle" style="color:#c084fc; font-size:18px;"></i>
-                    </div>
-                    <div style="min-width:0; flex:1;">
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <span style="font-size:14px; font-weight:800; color:#ffffff;">Van</span>
-                            <span class="starter-active-badge" style="display:none; font-size:9.5px; font-weight:800; background:#c084fc; color:#0f172a; padding:2px 6px; border-radius:6px; text-transform:uppercase;">Selected</span>
-                        </div>
-                        <div style="font-size:11px; color:rgba(255,255,255,0.8); margin-top:2px;">Family & group private ride. Spacious luggage capacity.</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Option 4: Modern Jeepney (MPUJ) -->
-            <div class="travel-starter-card" data-mode="mpuj" onclick="window.selectTripTravelMode('mpuj')">
-                <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
-                    <div style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.35)); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                        <i class="fa-solid fa-bus-simple" style="color:#34d399; font-size:18px;"></i>
-                    </div>
-                    <div style="min-width:0; flex:1;">
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <span style="font-size:14px; font-weight:800; color:#ffffff;">Modern Jeepney (MPUJ)</span>
-                            <span class="starter-active-badge" style="display:none; font-size:9.5px; font-weight:800; background:#34d399; color:#0f172a; padding:2px 6px; border-radius:6px; text-transform:uppercase;">Selected</span>
-                        </div>
-                        <div style="font-size:11px; color:rgba(255,255,255,0.8); margin-top:2px;">Modern air-conditioned public commuter transit along highway routes.</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Option 5: Traditional Jeepney (TPUJ) -->
-            <div class="travel-starter-card" data-mode="tpuj" onclick="window.selectTripTravelMode('tpuj')">
-                <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
-                    <div style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, rgba(5, 150, 105, 0.25), rgba(4, 120, 87, 0.35)); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                        <i class="fa-solid fa-van-shuttle" style="color:#10b981; font-size:18px;"></i>
-                    </div>
-                    <div style="min-width:0; flex:1;">
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <span style="font-size:14px; font-weight:800; color:#ffffff;">Traditional Jeepney (TPUJ)</span>
-                            <span class="starter-active-badge" style="display:none; font-size:9.5px; font-weight:800; background:#10b981; color:#0f172a; padding:2px 6px; border-radius:6px; text-transform:uppercase;">Selected</span>
-                        </div>
-                        <div style="font-size:11px; color:rgba(255,255,255,0.8); margin-top:2px;">Classic open-air commuter jeepneys connecting town centers.</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Option 6: Tricycle -->
-            <div class="travel-starter-card" data-mode="tricycle" onclick="window.selectTripTravelMode('tricycle')">
-                <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
-                    <div style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(14, 116, 144, 0.35)); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                        <i class="fa-solid fa-motorcycle" style="color:#22d3ee; font-size:18px;"></i>
-                    </div>
-                    <div style="min-width:0; flex:1;">
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <span style="font-size:14px; font-weight:800; color:#ffffff;">Tricycle</span>
-                            <span class="starter-active-badge" style="display:none; font-size:9.5px; font-weight:800; background:#22d3ee; color:#0f172a; padding:2px 6px; border-radius:6px; text-transform:uppercase;">Selected</span>
-                        </div>
-                        <div style="font-size:11px; color:rgba(255,255,255,0.8); margin-top:2px;">Local door-to-door trips within municipalities and beach spots.</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Option 7: PUB Regular Bus -->
-            <div class="travel-starter-card" data-mode="pub_regular" onclick="window.selectTripTravelMode('pub_regular')">
-                <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
-                    <div style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, rgba(234, 88, 12, 0.25), rgba(194, 65, 12, 0.35)); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                        <i class="fa-solid fa-bus" style="color:#fb923c; font-size:18px;"></i>
-                    </div>
-                    <div style="min-width:0; flex:1;">
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <span style="font-size:14px; font-weight:800; color:#ffffff;">PUB Regular (Ordinary Bus)</span>
-                            <span class="starter-active-badge" style="display:none; font-size:9.5px; font-weight:800; background:#fb923c; color:#0f172a; padding:2px 6px; border-radius:6px; text-transform:uppercase;">Selected</span>
-                        </div>
-                        <div style="font-size:11px; color:rgba(255,255,255,0.8); margin-top:2px;">Provincial ordinary bus services across La Union highway corridor.</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Option 8: PUB Aircon Bus -->
-            <div class="travel-starter-card" data-mode="pub_aircon" onclick="window.selectTripTravelMode('pub_aircon')">
-                <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
-                    <div style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(185, 28, 28, 0.35)); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                        <i class="fa-solid fa-bus" style="color:#f87171; font-size:18px;"></i>
-                    </div>
-                    <div style="min-width:0; flex:1;">
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <span style="font-size:14px; font-weight:800; color:#ffffff;">PUB Aircon (Aircon Bus)</span>
-                            <span class="starter-active-badge" style="display:none; font-size:9.5px; font-weight:800; background:#f87171; color:#0f172a; padding:2px 6px; border-radius:6px; text-transform:uppercase;">Selected</span>
-                        </div>
-                        <div style="font-size:11px; color:rgba(255,255,255,0.8); margin-top:2px;">Air-conditioned coach bus travel for long-distance comfort.</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Option 9: UV Express (UVE) -->
-            <div class="travel-starter-card" data-mode="uve" onclick="window.selectTripTravelMode('uve')">
-                <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
-                    <div style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, rgba(147, 51, 234, 0.25), rgba(107, 33, 168, 0.35)); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                        <i class="fa-solid fa-van-shuttle" style="color:#a855f7; font-size:18px;"></i>
-                    </div>
-                    <div style="min-width:0; flex:1;">
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <span style="font-size:14px; font-weight:800; color:#ffffff;">UV Express (UVE)</span>
-                            <span class="starter-active-badge" style="display:none; font-size:9.5px; font-weight:800; background:#a855f7; color:#0f172a; padding:2px 6px; border-radius:6px; text-transform:uppercase;">Selected</span>
-                        </div>
-                        <div style="font-size:11px; color:rgba(255,255,255,0.8); margin-top:2px;">Point-to-point express commuter vans between main towns.</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Option 10: Taxi -->
-            <div class="travel-starter-card" data-mode="taxi" onclick="window.selectTripTravelMode('taxi')">
-                <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
-                    <div style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, rgba(234, 179, 8, 0.25), rgba(161, 98, 7, 0.35)); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                        <i class="fa-solid fa-taxi" style="color:#facc15; font-size:18px;"></i>
-                    </div>
-                    <div style="min-width:0; flex:1;">
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <span style="font-size:14px; font-weight:800; color:#ffffff;">Taxi</span>
-                            <span class="starter-active-badge" style="display:none; font-size:9.5px; font-weight:800; background:#facc15; color:#0f172a; padding:2px 6px; border-radius:6px; text-transform:uppercase;">Selected</span>
-                        </div>
-                        <div style="font-size:11px; color:rgba(255,255,255,0.8); margin-top:2px;">Direct metered air-conditioned taxi ride.</div>
-                    </div>
-                </div>
-            </div>
         </div>
 
-        <div style="margin-top:14px; text-align:center;">
-            <span style="font-size:11px; color:rgba(255,255,255,0.7); font-style:italic;">
-                <i class="fa-solid fa-circle-info" style="margin-right:4px;"></i> You can also customize individual legs anytime.
-            </span>
+        <!-- Locked Bottom Footer Banner (Matched to Notifications / Leg Transport Footer Banner) -->
+        <div style="flex-shrink:0; padding:12px 18px calc(14px + env(safe-area-inset-bottom, 0px)) 18px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); display:flex; align-items:center; justify-content:space-between; gap:12px; border:none !important; outline:none !important;">
+            <div>
+                <div style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.5px;">Trip Travel Mode</div>
+                <div id="starter-modal-current-mode-label" style="font-size:16px; font-weight:900; color:#00f2fe; letter-spacing:-0.2px;">Own Car</div>
+            </div>
+            <button type="button" onclick="window.closeTravelModeStarterModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; cursor:pointer; padding:9px 18px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; display:inline-flex; align-items:center; gap:7px; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Done
+            </button>
         </div>
 
     </div>
@@ -2028,11 +2194,6 @@ try {
             const fromName = (legIdx === 0) ? 'Your Location' : fromSpot.name;
             const toName = toSpot.name;
 
-            const subEl = document.getElementById('leg-modal-subtitle');
-            if (subEl) {
-                subEl.innerHTML = `<strong>Leg ${legIdx + 1}:</strong> ${fromName} &rarr; ${toName} &bull; ${distKm.toFixed(1)} km`;
-            }
-
             // Enrich destination spot metadata from public_map_data if cached in localStorage
             try {
                 const rawMap = localStorage.getItem('public_map_data');
@@ -2059,6 +2220,13 @@ try {
 
             const isNonDrivable = Boolean(toSpot && (toSpot.accessible_by_private_vehicle === 0 || toSpot.accessible_by_private_vehicle === false || toSpot.accessible_by_private_vehicle === '0'));
             const isSiteUnderMaintenance = Boolean(toSpot && (toSpot.is_maintenance === 1 || toSpot.is_maintenance === true || toSpot.is_maintenance === '1'));
+
+            const subEl = document.getElementById('leg-modal-subtitle');
+            if (subEl) {
+                subEl.innerHTML = isSiteUnderMaintenance
+                    ? `<strong>Leg ${legIdx + 1}:</strong> ${fromName} &rarr; ${toName}`
+                    : `<strong>Leg ${legIdx + 1}:</strong> ${fromName} &rarr; ${toName} &bull; ${distKm.toFixed(1)} km`;
+            }
             const warnEl = document.getElementById('leg-modal-warning');
             const warnTxtEl = document.getElementById('leg-modal-warning-text');
             if (warnEl && warnTxtEl) {
@@ -2247,14 +2415,6 @@ try {
             const availCount = (availableCount !== undefined) 
                 ? availableCount 
                 : (window.currentLegEvaluatedCandidates || []).filter(c => c.isAvail).length;
-
-            if (availCount === 0) {
-                listHtml += `
-                <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:14px; padding:12px 14px; margin-bottom:12px; display:flex; align-items:center; gap:10px; color:#b91c1c; font-size:12px; font-weight:700;">
-                    <i class="fa-solid fa-triangle-exclamation" style="font-size:18px; color:#ef4444; flex-shrink:0;"></i>
-                    <span>No transit vehicles are currently permitted for this destination. The site is under maintenance.</span>
-                </div>`;
-            }
 
             const selectedModes = window.currentLegModalSelectedModes || [];
 
@@ -2522,18 +2682,54 @@ try {
             if (!modal) return;
             const currentMode = localStorage.getItem('intan_elyu_draft_trip_transport') || 'own_car';
 
+            const modeLabels = {
+                'own_car': 'Own Car',
+                'car': 'Own Car',
+                'motorcycle': 'Motorcycle',
+                'van': 'Van',
+                'mpuj': 'Modern Jeepney (MPUJ)',
+                'tpuj': 'Traditional Jeepney (TPUJ)',
+                'jeepney': 'Jeepney',
+                'tricycle': 'Tricycle',
+                'pub_regular': 'PUB Regular (Ordinary Bus)',
+                'pub_aircon': 'PUB Aircon (Aircon Bus)',
+                'uve': 'UV Express (UVE)',
+                'taxi': 'Taxi'
+            };
+
             const cards = modal.querySelectorAll('.travel-starter-card');
             cards.forEach(card => {
                 const mode = card.getAttribute('data-mode');
                 const badge = card.querySelector('.starter-active-badge');
-                if (mode === currentMode) {
+                const radioCheck = card.querySelector('.starter-radio-check');
+                const radioBox = card.querySelector('.starter-radio-box');
+                const isSelected = (mode === currentMode) || 
+                    (currentMode === 'car' && mode === 'own_car') ||
+                    (currentMode === 'motor' && mode === 'motorcycle');
+
+                if (isSelected) {
                     card.classList.add('active');
                     if (badge) badge.style.display = 'inline-block';
+                    if (radioCheck) radioCheck.style.display = 'inline-block';
+                    if (radioBox) {
+                        radioBox.style.background = '#00f2fe';
+                        radioBox.style.borderColor = '#00f2fe';
+                    }
                 } else {
                     card.classList.remove('active');
                     if (badge) badge.style.display = 'none';
+                    if (radioCheck) radioCheck.style.display = 'none';
+                    if (radioBox) {
+                        radioBox.style.background = 'rgba(255,255,255,0.1)';
+                        radioBox.style.borderColor = 'rgba(255,255,255,0.65)';
+                    }
                 }
             });
+
+            const labelEl = document.getElementById('starter-modal-current-mode-label');
+            if (labelEl) {
+                labelEl.textContent = modeLabels[currentMode] || currentMode;
+            }
 
             modal.style.display = 'flex';
             const bottomNav = document.getElementById('bottom-navigation');
@@ -2581,6 +2777,11 @@ try {
                 'taxi': 'Taxi'
             };
             const chosenName = modeLabels[mode] || mode;
+
+            const labelEl = document.getElementById('starter-modal-current-mode-label');
+            if (labelEl) {
+                labelEl.textContent = chosenName;
+            }
 
             const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
             if (draft.length === 0) {
@@ -2890,7 +3091,7 @@ try {
                         <i class="fa-solid ${leg0Info.icon}" style="color:${leg0IconColor}; font-size:11px;"></i>
                         <span style="${leg0NameStyle}">${leg0Info.name}</span>
                         ${fareBadge}
-                        <span style="${leg0Info.is_maintenance ? 'color:rgba(255,255,255,0.9);' : 'color:#64748b;'} font-size:10.5px;">&bull; ${startDistText}</span>
+                        ${leg0Info.is_maintenance ? '' : `<span style="color:#64748b; font-size:10.5px;">&bull; ${startDistText}</span>`}
                         ${warningBadge}
                         <i class="fa-solid fa-chevron-right leg-action-edit" style="${leg0Info.is_maintenance ? 'color:#ffffff;' : ''}"></i>
                     </div>
@@ -2933,23 +3134,27 @@ try {
                     let nextStopBadge = '';
                     let nextStopEtaHtml = '';
 
+                    const isMaint = Boolean(place.is_maintenance === 1 || place.is_maintenance === true || place.is_maintenance === '1');
+
                     if (isNextStop) {
                         nextStopBadge = `<span class="badge-next-stop" style="border:none !important; outline:none !important; box-shadow:none !important;"><i class="fa-solid fa-location-dot"></i> NEXT STOP</span>`;
-                        const lat = place.lat || place.latitude;
-                        const lng = place.lng || place.longitude;
-                        const eta = window.getDistanceAndETA(lat, lng);
-                        if (eta) {
-                            nextStopEtaHtml = `
-                        <div class="next-stop-distance-chip" id="itinerary-next-eta" style="border:none !important; outline:none !important; box-shadow:none !important;">
-                            <i class="fa-solid fa-route" style="color:#00f2fe;"></i> 
-                            <span>${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>
-                        </div>`;
-                        } else {
-                            nextStopEtaHtml = `
-                        <div class="next-stop-distance-chip" id="itinerary-next-eta" style="border:none !important; outline:none !important; box-shadow:none !important;">
-                            <i class="fa-solid fa-location-arrow" style="color:#00f2fe;"></i> 
-                            <span>First destination on your itinerary route</span>
-                        </div>`;
+                        if (!isMaint) {
+                            const lat = place.lat || place.latitude;
+                            const lng = place.lng || place.longitude;
+                            const eta = window.getDistanceAndETA(lat, lng);
+                            if (eta) {
+                                nextStopEtaHtml = `
+                            <div class="next-stop-distance-chip" id="itinerary-next-eta" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; border-radius:100px !important; padding:5px 13px !important; font-size:11px !important; font-weight:700 !important; display:inline-flex !important; align-items:center !important; gap:7px !important; margin-top:8px !important; box-shadow:0 2px 6px rgba(0,0,0,0.12) !important;">
+                                <i class="fa-solid fa-route" style="color:#0284c7 !important; font-size:11px;"></i> 
+                                <span style="color:#1e3a8a !important; font-weight:700; font-size:11px;">${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>
+                            </div>`;
+                            } else {
+                                nextStopEtaHtml = `
+                            <div class="next-stop-distance-chip" id="itinerary-next-eta" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; border-radius:100px !important; padding:5px 13px !important; font-size:11px !important; font-weight:700 !important; display:inline-flex !important; align-items:center !important; gap:7px !important; margin-top:8px !important; box-shadow:0 2px 6px rgba(0,0,0,0.12) !important;">
+                                <i class="fa-solid fa-location-arrow" style="color:#0284c7 !important; font-size:11px;"></i> 
+                                <span style="color:#1e3a8a !important; font-weight:700; font-size:11px;">First destination on your itinerary route</span>
+                            </div>`;
+                            }
                         }
                     }
 
@@ -2990,7 +3195,7 @@ try {
                                     <i class="fa-solid ${legInfo.icon}" style="color:${legIconColor}; font-size:11px;"></i>
                                     <span style="${legNameStyle}">${legInfo.name}</span>
                                     ${fareBadge}
-                                    <span style="${legInfo.is_maintenance ? 'color:rgba(255,255,255,0.9);' : 'color:#64748b;'} font-size:10.5px;">&bull; ${legDistText}</span>
+                                    ${legInfo.is_maintenance ? '' : `<span style="color:#64748b; font-size:10.5px;">&bull; ${legDistText}</span>`}
                                     ${warningBadge}
                                     <i class="fa-solid fa-chevron-right leg-action-edit" style="${legInfo.is_maintenance ? 'color:#ffffff;' : ''}"></i>
                                 </div>
@@ -3012,7 +3217,7 @@ try {
                         <div class="swipe-content" style="position:relative; z-index:2; transition:transform 0.2s ease; border-radius:20px !important; padding:16px 18px; border:none !important; outline:none !important; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; box-shadow:none !important;">
                             <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;">
                                 <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                                    <span class="time-label" style="border:none !important; outline:none !important; box-shadow:none !important;">Stop ${index + 1} &bull; Approx ${timeStr}</span>
+                                    <span class="time-label" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; padding:4px 11px !important; border-radius:100px !important; font-size:11px !important; font-weight:800 !important; letter-spacing:0.4px !important; text-transform:uppercase !important; box-shadow:0 2px 6px rgba(0,0,0,0.12) !important; display:inline-flex !important; align-items:center !important;">Stop ${index + 1} &bull; Approx ${timeStr}</span>
                                     ${nextStopBadge}
                                 </div>
                                 <div style="display:flex; align-items:center; gap:6px;">
@@ -3329,12 +3534,19 @@ try {
             const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
             if (draft.length > 0) {
                 const nextPlace = draft[0];
-                const pLat = nextPlace.lat || nextPlace.latitude;
-                const pLng = nextPlace.lng || nextPlace.longitude;
-                const eta = window.getDistanceAndETA(pLat, pLng);
+                const isMaint = Boolean(nextPlace.is_maintenance === 1 || nextPlace.is_maintenance === true || nextPlace.is_maintenance === '1');
                 const nextEtaEl = document.getElementById('itinerary-next-eta');
-                if (nextEtaEl && eta) {
-                    nextEtaEl.innerHTML = `<i class="fa-solid fa-route" style="color:#38bdf8;"></i> <span>${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>`;
+                if (nextEtaEl) {
+                    if (isMaint) {
+                        nextEtaEl.remove();
+                    } else {
+                        const pLat = nextPlace.lat || nextPlace.latitude;
+                        const pLng = nextPlace.lng || nextPlace.longitude;
+                        const eta = window.getDistanceAndETA(pLat, pLng);
+                        if (eta) {
+                            nextEtaEl.innerHTML = `<i class="fa-solid fa-route" style="color:#0284c7 !important; font-size:11px;"></i> <span style="color:#1e3a8a !important; font-weight:700; font-size:11px;">${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>`;
+                        }
+                    }
                 }
             }
 
