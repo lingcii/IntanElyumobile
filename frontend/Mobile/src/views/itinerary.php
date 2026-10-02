@@ -4141,22 +4141,33 @@ try {
             let donutPct = 100;
 
             if (estimatedCost > budget) {
-                // RED: Cost exceeds budget! (Only Red is Exceeded)
+                // Shortfall: Cost exceeds budget
                 const shortfall = estimatedCost - budget;
                 const formattedShortfall = '₱' + shortfall.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 const coveragePct = (estimatedCost > 0) ? Math.max(0, Math.min(99, Math.round((budget / estimatedCost) * 100))) : 0;
                 donutPct = coveragePct;
-                fillColor = '#ef4444';
-                remainingColor = '#ef4444';
-                remainingLabelHtml = '<i class="fa-solid fa-circle-xmark" style="margin-right:4px;"></i> Exceeded';
-                remainingValueText = '-' + formattedShortfall;
-                activeTier = 'red';
+
+                if (coveragePct >= 80) {
+                    // YELLOW: 80% - 99% covered (Nearing estimated cost, close to target!)
+                    fillColor = '#f59e0b';
+                    remainingColor = '#f59e0b';
+                    remainingLabelHtml = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:4px;"></i> Nearing';
+                    remainingValueText = '-' + formattedShortfall;
+                    activeTier = 'orange';
+                } else {
+                    // RED: Under 80% covered (Cost exceeds budget significantly!)
+                    fillColor = '#ef4444';
+                    remainingColor = '#ef4444';
+                    remainingLabelHtml = '<i class="fa-solid fa-circle-xmark" style="margin-right:4px;"></i> Exceeded';
+                    remainingValueText = '-' + formattedShortfall;
+                    activeTier = 'red';
+                }
             } else {
                 // Budget meets or exceeds estimated cost (100% met!)
                 donutPct = 100;
                 const spentPct = (budget > 0) ? (estimatedCost / budget) * 100 : 0;
 
-                if (remaining === 0 || spentPct >= 100) {
+                if (remaining === 0) {
                     // Exact match: 100% budget used, MET!
                     fillColor = '#10b981';
                     remainingColor = '#10b981';
@@ -4164,7 +4175,7 @@ try {
                     remainingValueText = '₱0.00';
                     activeTier = 'green';
                 } else if (spentPct >= 80) {
-                    // YELLOW: 80% - 99% of budget used (nearing limit, but STILL REMAINING!)
+                    // YELLOW: 80% - 99% of budget consumed (caution: nearing budget limit, but still has remaining balance!)
                     fillColor = '#f59e0b';
                     remainingColor = '#f59e0b';
                     remainingLabelHtml = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:4px;"></i> Remaining';
