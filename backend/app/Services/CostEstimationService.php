@@ -306,7 +306,54 @@ class CostEstimationService
             $legFare = 0.00;
             $warningNotice = null;
 
-            if ($normLegMode === 'own_car' || $normLegMode === 'car') {
+            // Multi-modal transit support (e.g. "MPUJ + Tricycle", "Bus + Tricycle")
+            if (str_contains($normLegMode, '+') || str_contains($normLegMode, ',')) {
+                $subModes = array_values(array_filter(array_map('trim', preg_split('/[\+,]/', $normLegMode))));
+                $legFare = 0.00;
+                $allPrivate = true;
+                foreach ($subModes as $sm) {
+                    $sNorm = strtolower(trim($sm));
+                    $isSubPriv = in_array($sNorm, ['own_car', 'car', 'motorcycle']);
+                    if (!$isSubPriv) {
+                        $allPrivate = false;
+                    }
+                    if ($sNorm === 'own_car' || $sNorm === 'car' || $sNorm === 'motorcycle') {
+                        // 0 fare for personal vehicles
+                    } elseif ($sNorm === 'taxi') {
+                        $base = ($legIdx === 0) ? 40.00 : 0.00;
+                        $legFare += round($base + ($distKm * 13.00), 2);
+                    } elseif ($sNorm === 'tricycle' || $sNorm === 'trike') {
+                        if ($crosses) {
+                            $distA = round($distKm / 2.0, 2);
+                            $distB = round(max(0.1, $distKm - $distA), 2);
+                            $fareA = $this->estimateTransitFare($distA, 'tricycle', $muniA);
+                            $fareB = $this->estimateTransitFare($distB, 'tricycle', $muniB);
+                            $legFare += round($fareA + $fareB, 2);
+                        } else {
+                            $legFare += round($this->estimateTransitFare($distKm, 'tricycle', $muniA), 2);
+                        }
+                    } else {
+                        $targetMode = ($sNorm === 'private_bus') ? 'pub_aircon' : $sNorm;
+                        if ($crosses) {
+                            $distA = round($distKm / 2.0, 2);
+                            $distB = round(max(0.1, $distKm - $distA), 2);
+                            $fareA = $this->estimateTransitFare($distA, $targetMode, $muniA);
+                            $totalLegTransit = $this->estimateTransitFare($distKm, $targetMode, $muniA);
+                            $pA = round($fareA, 2);
+                            $eB = max(0.00, round($totalLegTransit - $pA, 2));
+                            $legFare += round($pA + $eB, 2);
+                        } else {
+                            $legFare += round($this->estimateTransitFare($distKm, $targetMode, $muniA), 2);
+                        }
+                    }
+                }
+                $isPrivate = $allPrivate;
+                $priceA = $legFare;
+                $transitFares += $legFare;
+            } elseif ($normLegMode === 'suspended') {
+                $legFare = 0.00;
+                $warningNotice = '⚠️ Destination is under maintenance or temporarily closed.';
+            } elseif ($normLegMode === 'own_car' || $normLegMode === 'car') {
                 $legFare = 0.00;
                 if ($isSpotPrivateInaccessible) {
                     $warningNotice = '⚠️ Inaccessible by Private Car. Trailhead parking only; prepare to hike or ride local specialized tricycle.';

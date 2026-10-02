@@ -300,37 +300,52 @@ try {
         gap: 4px !important;
     }
 
+    .p2p-leg-chip.leg-maintenance {
+        background: #fef2f2 !important;
+        border: 1px solid #fecaca !important;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.12) !important;
+    }
+
     .leg-option-card {
-        background: rgba(255, 255, 255, 0.12) !important;
+        background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%) !important; /* Royal Blue */
         border-radius: 16px !important;
-        padding: 12px 14px !important;
+        padding: 13px 15px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: space-between !important;
         cursor: pointer !important;
-        transition: all 0.18s ease !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        border: 2px solid transparent !important;
+        box-shadow: 0 4px 14px rgba(30, 64, 175, 0.2) !important;
+        color: #ffffff !important;
+        position: relative !important;
+        user-select: none !important;
     }
 
     .leg-option-card:hover {
-        background: rgba(255, 255, 255, 0.2) !important;
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 18px rgba(30, 64, 175, 0.32) !important;
     }
 
     .leg-option-card.active {
-        background: rgba(0, 242, 254, 0.18) !important;
-        border: 1px solid rgba(0, 242, 254, 0.45) !important;
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+        border: 2px solid #60a5fa !important;
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4) !important;
     }
 
     .leg-option-card.disabled-leg-option {
-        opacity: 0.45 !important;
+        opacity: 0.5 !important;
         cursor: not-allowed !important;
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px dashed rgba(239, 68, 68, 0.35) !important;
+        background: #475569 !important;
+        border: 1.5px dashed #94a3b8 !important;
+        box-shadow: none !important;
     }
 
     .leg-option-card.disabled-leg-option:hover {
-        background: rgba(255, 255, 255, 0.05) !important;
+        background: #475569 !important;
         transform: none !important;
+        box-shadow: none !important;
     }
 
     .leg-option-icon {
@@ -900,37 +915,69 @@ try {
 <!-- Point-to-Point Leg Transport Selection Modal (Bottom Sheet) -->
 <div id="leg-transport-modal"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6, 11, 25, 0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:100003 !important; justify-content:center; align-items:flex-end; padding:0;">
-    <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; backdrop-filter:blur(24px) !important; -webkit-backdrop-filter:blur(24px) !important; border:none !important; outline:none !important; border-radius:28px 28px 0 0; padding:22px 20px calc(24px + env(safe-area-inset-bottom, 0px)); width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; color:#ffffff; max-height:85vh; display:flex; flex-direction:column; box-sizing:border-box; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
+    <div style="background:#ffffff !important; border-radius:28px 28px 0 0; width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; max-height:88vh; display:flex; flex-direction:column; box-sizing:border-box; overflow:hidden; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
         
         <!-- Header -->
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <div style="width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                    <i class="fa-solid fa-route" style="color:#00f2fe; font-size:16px;"></i>
-                </div>
-                <div>
-                    <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Choose Leg Transport</h3>
-                    <div id="leg-modal-subtitle" style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">
-                        Leg Route Details
+        <div style="background:linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%) !important; padding:18px 20px 16px 20px; color:#ffffff; flex-shrink:0;">
+            <div style="width:40px; height:4px; background:rgba(255,255,255,0.4); border-radius:99px; margin:0 auto 12px auto;"></div>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+                        <i class="fa-solid fa-route" style="color:#67e8f9; font-size:16px;"></i>
+                    </div>
+                    <div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Choose Leg Transports</h3>
+                            <span style="font-size:9.5px; font-weight:800; background:rgba(255,255,255,0.22); color:#ffffff; padding:2px 7px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">Multi-Select</span>
+                        </div>
+                        <div id="leg-modal-subtitle" style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">
+                            Leg Route Details
+                        </div>
                     </div>
                 </div>
-            </div>
-            <button type="button" onclick="window.closeLegTransportModal()" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; transition:transform 0.15s ease;">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-
-        <!-- Warning Notice if destination is inaccessible by private car -->
-        <div id="leg-modal-warning" style="display:none; background:rgba(245, 158, 11, 0.18); border:1px solid rgba(245, 158, 11, 0.35); border-radius:14px; padding:10px 12px; margin-bottom:12px; display:flex; gap:10px; align-items:flex-start;">
-            <i class="fa-solid fa-triangle-exclamation" style="color:#fcd34d; font-size:14px; margin-top:2px; flex-shrink:0;"></i>
-            <div style="font-size:11.5px; color:#fef3c7; line-height:1.4;">
-                <strong>Restricted Access:</strong> <span id="leg-modal-warning-text">This spot is not accessible by private car. Park at Trailhead and hike or take a local tricycle.</span>
+                <button type="button" onclick="window.closeLegTransportModal()" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:transform 0.15s ease;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
         </div>
 
-        <!-- Transport Options List -->
-        <div id="leg-modal-options-list" style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:8px; padding-right:2px; -webkit-overflow-scrolling:touch; max-height:55vh;">
-            <!-- Rendered dynamically -->
+        <!-- Body Below Header (Pure White Background) -->
+        <div style="background:#ffffff !important; color:#1e293b; padding:16px 18px calc(20px + env(safe-area-inset-bottom, 0px)); flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;">
+            
+            <!-- Multi-Select Selection Info Bar -->
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; background:#f8fafc; padding:8px 12px; border-radius:12px; border:1px solid #e2e8f0;">
+                <span style="font-size:12px; font-weight:700; color:#475569; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-check-double" style="color:#2563eb; font-size:13px;"></i> Select multiple vehicles if needed:
+                </span>
+                <span id="leg-modal-selection-count" style="font-size:11px; font-weight:800; background:#eff6ff; color:#1d4ed8; padding:3px 10px; border-radius:100px; border:1px solid #bfdbfe;">
+                    1 Selected
+                </span>
+            </div>
+
+            <!-- Warning Notice if destination is inaccessible by private car -->
+            <div id="leg-modal-warning" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:14px; padding:10px 12px; margin-bottom:12px; display:flex; gap:10px; align-items:flex-start;">
+                <i class="fa-solid fa-triangle-exclamation" style="color:#d97706; font-size:14px; margin-top:2px; flex-shrink:0;"></i>
+                <div style="font-size:11.5px; color:#92400e; line-height:1.4;">
+                    <strong>Restricted Access:</strong> <span id="leg-modal-warning-text">This spot is not accessible by private car. Park at Trailhead and hike or take a local tricycle.</span>
+                </div>
+            </div>
+
+            <!-- Transport Options List (Royal Blue Cards Rendered Inside) -->
+            <div id="leg-modal-options-list" style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:9px; padding-right:2px; -webkit-overflow-scrolling:touch; max-height:48vh; margin-bottom:12px;">
+                <!-- Rendered dynamically -->
+            </div>
+
+            <!-- Bottom Confirm Action Footer -->
+            <div style="margin-top:auto; padding-top:12px; border-top:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; gap:12px; background:#ffffff;">
+                <div>
+                    <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">Estimated Leg Fare</div>
+                    <div id="leg-modal-total-fare" style="font-size:18px; font-weight:900; color:#1e40af;">₱0.00</div>
+                </div>
+                <button type="button" id="btn-apply-leg-transport" onclick="window.applyLegVehicleSelection()" style="background:linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important; color:#ffffff !important; border:none !important; outline:none !important; border-radius:14px; padding:12px 22px; font-size:13.5px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(30, 64, 175, 0.35); transition:all 0.15s ease;">
+                    <i class="fa-solid fa-check"></i> Apply Selection
+                </button>
+            </div>
+
         </div>
 
     </div>
@@ -1417,6 +1464,14 @@ try {
         // ---- Point-to-Point (P2P) Smart Transit & Single-Leg Fare Calculator ----
         window.calculateSingleLegCost = function (mode, distKm, muniA, muniB) {
             if (!mode) return 0;
+            if (typeof mode === 'string' && (mode.includes('+') || mode.includes(','))) {
+                const subParts = mode.split(/[\+,]/).map(s => s.trim()).filter(Boolean);
+                let subSum = 0;
+                subParts.forEach(p => {
+                    subSum += window.calculateSingleLegCost(p, distKm, muniA, muniB);
+                });
+                return Math.round(subSum * 100) / 100;
+            }
             const norm = mode.toLowerCase().replace(/[- ]/g, '_');
             if (['own_car', 'car', 'motorcycle', 'walking', 'walk', 'no_vehicle'].includes(norm)) {
                 return 0;
@@ -1785,48 +1840,116 @@ try {
                 }
             }
 
+            // Sync and check if destination site is under maintenance / closed
+            try {
+                const spotId = String(toSpot.id || toSpot.tourist_spot_id || '');
+                if (spotId && toSpot.is_maintenance === undefined) {
+                    if (window._cachedMapSpots && window._cachedMapSpots[spotId]) {
+                        toSpot.is_maintenance = window._cachedMapSpots[spotId].is_maintenance;
+                    } else {
+                        const rawMap = localStorage.getItem('public_map_data');
+                        if (rawMap) {
+                            const parsed = JSON.parse(rawMap);
+                            const list = parsed?.destinations || parsed?.data?.destinations || [];
+                            const mapSpot = list.find(s => String(s?.id) === spotId);
+                            if (mapSpot && mapSpot.is_maintenance !== undefined) {
+                                toSpot.is_maintenance = mapSpot.is_maintenance;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {}
+
+            const isSiteUnderMaintenance = Boolean(toSpot && (toSpot.is_maintenance === 1 || toSpot.is_maintenance === true || toSpot.is_maintenance === '1'));
+            if (isSiteUnderMaintenance) {
+                return {
+                    mode: 'suspended',
+                    transport_mode: 'suspended',
+                    transport_modes: [],
+                    name: 'Site Under Maintenance',
+                    icon: 'fa-triangle-exclamation',
+                    cost: 0,
+                    leg_cost: 0,
+                    distance_km: distKm,
+                    warning: 'Destination temporarily closed / under maintenance',
+                    is_inaccessible: true,
+                    is_non_drivable: true,
+                    is_maintenance: true,
+                    is_custom: false
+                };
+            }
+
             let overrides = [];
             try {
                 overrides = JSON.parse(localStorage.getItem('intan_elyu_draft_leg_vehicles') || '[]');
             } catch (e) { overrides = []; }
 
             const override = Array.isArray(overrides) ? overrides[legIdx] : null;
-            if (override && override.transport_mode) {
-                const mode = override.transport_mode;
+            if (override && (override.transport_mode || override.transport_modes)) {
+                let modes = [];
+                if (Array.isArray(override.transport_modes) && override.transport_modes.length > 0) {
+                    modes = override.transport_modes.map(m => m.toLowerCase().replace(/[- ]/g, '_'));
+                } else if (override.transport_mode) {
+                    modes = override.transport_mode.toString().split(/[\+,]/).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+                }
+
+                if (modes.length === 0) modes = ['own_car'];
+
                 const cost = (override.leg_cost !== null && override.leg_cost !== undefined)
                     ? parseFloat(override.leg_cost)
-                    : window.calculateSingleLegCost(mode, distKm, muniA, muniB);
+                    : window.calculateSingleLegCost(modes.join(' + '), distKm, muniA, muniB);
 
+                const getSingleVehDetails = (norm) => {
+                    if (norm === 'own_car' || norm === 'car') return { name: 'Own Car', icon: 'fa-car' };
+                    if (norm === 'motorcycle') return { name: 'Motorcycle', icon: 'fa-motorcycle' };
+                    if (norm === 'van') return { name: 'Van', icon: 'fa-van-shuttle' };
+                    if (norm === 'mpuj') return { name: 'MPUJ (Modern Jeepney)', icon: 'fa-bus-simple' };
+                    if (norm === 'tpuj') return { name: 'TPUJ (Traditional Jeepney)', icon: 'fa-van-shuttle' };
+                    if (norm === 'jeepney') return { name: 'Jeepney', icon: 'fa-van-shuttle' };
+                    if (norm === 'tricycle' || norm === 'trike') return { name: 'Tricycle', icon: 'fa-motorcycle' };
+                    if (norm === 'pub_regular' || norm === 'pub_ordinary') return { name: 'PUB Regular (Bus)', icon: 'fa-bus' };
+                    if (norm === 'pub_aircon') return { name: 'PUB Aircon (Bus)', icon: 'fa-bus' };
+                    if (norm.includes('bus')) return { name: 'Bus', icon: 'fa-bus' };
+                    if (norm === 'uve') return { name: 'UV Express (UVE)', icon: 'fa-van-shuttle' };
+                    if (norm === 'taxi') return { name: 'Taxi', icon: 'fa-taxi' };
+                    if (norm === 'walking' || norm === 'walk') return { name: 'Walk / Hike', icon: 'fa-person-walking' };
+                    return { name: norm.replace(/_/g, ' ').toUpperCase(), icon: 'fa-car' };
+                };
+
+                let name = '';
                 let icon = 'fa-car';
-                let name = 'Own Car';
-                const norm = mode.toLowerCase().replace(/[- ]/g, '_');
-                if (norm === 'own_car' || norm === 'car') { icon = 'fa-car'; name = 'Own Car'; }
-                else if (norm === 'motorcycle') { icon = 'fa-motorcycle'; name = 'Motorcycle'; }
-                else if (norm === 'van') { icon = 'fa-van-shuttle'; name = 'Van'; }
-                else if (norm === 'mpuj') { icon = 'fa-bus-simple'; name = 'MPUJ (Modern Jeepney)'; }
-                else if (norm === 'tpuj') { icon = 'fa-van-shuttle'; name = 'TPUJ (Traditional Jeepney)'; }
-                else if (norm === 'jeepney') { icon = 'fa-van-shuttle'; name = 'Jeepney'; }
-                else if (norm === 'tricycle' || norm === 'trike') { icon = 'fa-motorcycle'; name = 'Tricycle'; }
-                else if (norm === 'pub_regular' || norm === 'pub_ordinary') { icon = 'fa-bus'; name = 'PUB Regular (Bus)'; }
-                else if (norm === 'pub_aircon') { icon = 'fa-bus'; name = 'PUB Aircon (Bus)'; }
-                else if (norm.includes('bus')) { icon = 'fa-bus'; name = 'Bus'; }
-                else if (norm === 'uve') { icon = 'fa-van-shuttle'; name = 'UV Express (UVE)'; }
-                else if (norm === 'taxi') { icon = 'fa-taxi'; name = 'Taxi'; }
-                else if (norm === 'walking' || norm === 'walk') { icon = 'fa-person-walking'; name = 'Walk / Hike'; }
+                if (modes.length === 1) {
+                    const d = getSingleVehDetails(modes[0]);
+                    name = d.name;
+                    icon = d.icon;
+                } else {
+                    const names = modes.map(m => getSingleVehDetails(m).name);
+                    name = names.join(' + ');
+                    icon = 'fa-shuffle';
+                }
 
                 const isNonDrivable = Boolean(toSpot && (toSpot.accessible_by_private_vehicle === 0 || toSpot.accessible_by_private_vehicle === false || toSpot.accessible_by_private_vehicle === '0'));
-                const check = window.isVehicleAllowedForSpot(mode, toSpot);
+                let hasInaccessible = false;
+                let warningReason = null;
+                modes.forEach(m => {
+                    const check = window.isVehicleAllowedForSpot(m, toSpot);
+                    if (!check.allowed) {
+                        hasInaccessible = true;
+                        warningReason = check.reason;
+                    }
+                });
 
                 return {
-                    mode: mode,
-                    transport_mode: mode,
+                    mode: modes.join(' + '),
+                    transport_mode: modes.join(' + '),
+                    transport_modes: modes,
                     name: name,
                     icon: icon,
                     cost: cost,
                     leg_cost: cost,
                     distance_km: distKm,
-                    warning: check.allowed ? (isNonDrivable && norm === 'own_car' ? 'Trailhead drop-off only' : null) : check.reason,
-                    is_inaccessible: !check.allowed,
+                    warning: !hasInaccessible ? (isNonDrivable && modes.includes('own_car') ? 'Trailhead drop-off only' : null) : warningReason,
+                    is_inaccessible: hasInaccessible,
                     is_non_drivable: isNonDrivable,
                     is_custom: true
                 };
@@ -1839,6 +1962,7 @@ try {
             return {
                 ...resolved,
                 transport_mode: resolved.mode,
+                transport_modes: [resolved.mode],
                 leg_cost: resolved.cost,
                 distance_km: distKm,
                 warning: check.allowed ? resolved.warning : check.reason,
@@ -1847,6 +1971,13 @@ try {
                 is_custom: false
             };
         };
+
+        window.currentLegModalIdx = null;
+        window.currentLegModalDistKm = 2.0;
+        window.currentLegModalMuniA = '';
+        window.currentLegModalMuniB = '';
+        window.currentLegModalSelectedModes = [];
+        window.currentLegEvaluatedCandidates = [];
 
         window.openLegTransportModal = function (legIdx) {
             const draft = (typeof window.getEffectiveDraft === 'function')
@@ -1878,6 +2009,11 @@ try {
                     if (eta && eta.distanceKm) distKm = eta.distanceKm;
                 }
             }
+
+            window.currentLegModalIdx = legIdx;
+            window.currentLegModalDistKm = distKm;
+            window.currentLegModalMuniA = muniA;
+            window.currentLegModalMuniB = muniB;
 
             const fromName = (legIdx === 0) ? 'Your Location' : fromSpot.name;
             const toName = toSpot.name;
@@ -1927,9 +2063,6 @@ try {
                 }
             }
 
-            const curLegInfo = window.getLegTransportInfo(legIdx);
-            const activeMode = curLegInfo.mode || curLegInfo.transport_mode || 'own_car';
-
             const cleanA = muniA.replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim();
             const cleanB = muniB.replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim();
             const isCross = Boolean(cleanA && cleanB && cleanA.toLowerCase() !== cleanB.toLowerCase());
@@ -1944,8 +2077,6 @@ try {
                     name: 'Own Car',
                     desc: isNonDrivable ? 'Trailhead drop-off point only' : 'Direct personal car driving',
                     icon: 'fa-car',
-                    iconBg: 'rgba(0, 242, 254, 0.22)',
-                    iconColor: '#00f2fe',
                     cost: 0,
                     isRecommended: false,
                     category: 'Private'
@@ -1955,8 +2086,6 @@ try {
                     name: 'Motorcycle',
                     desc: 'Fast two-wheeler personal ride',
                     icon: 'fa-motorcycle',
-                    iconBg: 'rgba(245, 158, 11, 0.22)',
-                    iconColor: '#fbbf24',
                     cost: 0,
                     isRecommended: false,
                     category: 'Private'
@@ -1966,8 +2095,6 @@ try {
                     name: 'Van',
                     desc: isNonDrivable ? 'Trailhead drop-off point only' : 'Family & group private vehicle',
                     icon: 'fa-van-shuttle',
-                    iconBg: 'rgba(168, 85, 247, 0.22)',
-                    iconColor: '#c084fc',
                     cost: 0,
                     isRecommended: false,
                     category: 'Private'
@@ -1978,8 +2105,6 @@ try {
                     name: 'MPUJ (Modern Jeepney)',
                     desc: 'Air-conditioned modern commuter jeepney',
                     icon: 'fa-bus-simple',
-                    iconBg: 'rgba(16, 185, 129, 0.22)',
-                    iconColor: '#34d399',
                     cost: window.calculateSingleLegCost('mpuj', distKm, muniA, muniB),
                     isRecommended: mpujOptimal,
                     category: 'Public'
@@ -1989,8 +2114,6 @@ try {
                     name: 'TPUJ (Traditional Jeepney)',
                     desc: 'Classic open-air commuter jeepney',
                     icon: 'fa-van-shuttle',
-                    iconBg: 'rgba(5, 150, 105, 0.22)',
-                    iconColor: '#10b981',
                     cost: window.calculateSingleLegCost('tpuj', distKm, muniA, muniB),
                     isRecommended: false,
                     category: 'Public'
@@ -2000,8 +2123,6 @@ try {
                     name: 'Tricycle',
                     desc: (!isCross ? 'Direct point-to-point drop-off' : 'Local town & beach transit'),
                     icon: 'fa-motorcycle',
-                    iconBg: 'rgba(34, 211, 238, 0.22)',
-                    iconColor: '#22d3ee',
                     cost: window.calculateSingleLegCost('tricycle', distKm, muniA, muniB),
                     isRecommended: trikeOptimal,
                     category: 'Public'
@@ -2011,8 +2132,6 @@ try {
                     name: 'PUB Regular (Ordinary Bus)',
                     desc: 'Provincial highway regular passenger bus',
                     icon: 'fa-bus',
-                    iconBg: 'rgba(234, 88, 12, 0.22)',
-                    iconColor: '#fb923c',
                     cost: window.calculateSingleLegCost('pub_regular', distKm, muniA, muniB),
                     isRecommended: false,
                     category: 'Public'
@@ -2022,8 +2141,6 @@ try {
                     name: 'PUB Aircon (Aircon Bus)',
                     desc: 'Provincial air-conditioned coach bus',
                     icon: 'fa-bus',
-                    iconBg: 'rgba(239, 68, 68, 0.22)',
-                    iconColor: '#f87171',
                     cost: window.calculateSingleLegCost('pub_aircon', distKm, muniA, muniB),
                     isRecommended: false,
                     category: 'Public'
@@ -2033,8 +2150,6 @@ try {
                     name: 'UV Express (UVE)',
                     desc: 'Express inter-town shuttle service',
                     icon: 'fa-van-shuttle',
-                    iconBg: 'rgba(147, 51, 234, 0.22)',
-                    iconColor: '#a855f7',
                     cost: window.calculateSingleLegCost('uve', distKm, muniA, muniB),
                     isRecommended: false,
                     category: 'Public'
@@ -2044,8 +2159,6 @@ try {
                     name: 'Taxi',
                     desc: 'Direct metered air-conditioned taxi',
                     icon: 'fa-taxi',
-                    iconBg: 'rgba(234, 179, 8, 0.22)',
-                    iconColor: '#facc15',
                     cost: window.calculateSingleLegCost('taxi', distKm, muniA, muniB),
                     isRecommended: false,
                     category: 'Public'
@@ -2053,7 +2166,7 @@ try {
             ];
 
             let availableCount = 0;
-            const evaluatedCandidates = candidates.map(opt => {
+            window.currentLegEvaluatedCandidates = candidates.map(opt => {
                 let isAvail = true;
                 let unavailReason = '';
 
@@ -2082,80 +2195,32 @@ try {
                 return { ...opt, isAvail, unavailReason };
             });
 
-            let listHtml = '';
-            if (availableCount === 0) {
-                listHtml += `
-                <div style="background:rgba(239,68,68,0.18); border:1px solid rgba(239,68,68,0.35); border-radius:14px; padding:12px 14px; margin-bottom:12px; display:flex; align-items:center; gap:10px; color:#fca5a5; font-size:12px; font-weight:700;">
-                    <i class="fa-solid fa-triangle-exclamation" style="font-size:18px; color:#ef4444; flex-shrink:0;"></i>
-                    <span>No transit vehicles are currently permitted for this destination. The site may be road-restricted or under maintenance.</span>
-                </div>`;
+            // Initialize multi-selection from existing saved overrides or leg info
+            let overrides = [];
+            try {
+                overrides = JSON.parse(localStorage.getItem('intan_elyu_draft_leg_vehicles') || '[]');
+            } catch (e) { overrides = []; }
+            const override = Array.isArray(overrides) ? overrides[legIdx] : null;
+
+            let initialModes = [];
+            if (isSiteUnderMaintenance) {
+                initialModes = [];
+            } else if (override && Array.isArray(override.transport_modes) && override.transport_modes.length > 0) {
+                initialModes = override.transport_modes.map(m => m.toLowerCase().replace(/[- ]/g, '_'));
+            } else if (override && override.transport_mode) {
+                initialModes = override.transport_mode.toString().split(/[\+,]/).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+            } else {
+                const curLegInfo = window.getLegTransportInfo(legIdx);
+                const curM = curLegInfo.transport_mode || curLegInfo.mode || 'own_car';
+                if (curM !== 'suspended') {
+                    initialModes = curM.toString().split(/[\+,]/).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+                }
             }
 
-            let prevCat = '';
-            evaluatedCandidates.forEach(opt => {
-                if (opt.category && opt.category !== prevCat) {
-                    prevCat = opt.category;
-                    const catColor = prevCat === 'Private' ? '#a5f3fc' : '#fed7aa';
-                    const catIcon = prevCat === 'Private' ? 'fa-car' : 'fa-bus';
-                    listHtml += `
-                    <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:${catColor}; letter-spacing:0.6px; margin:8px 0 2px 4px; display:flex; align-items:center; gap:5px;">
-                        <i class="fa-solid ${catIcon}" style="font-size:10px;"></i> ${prevCat} Transport
-                    </div>`;
-                }
+            if (!isSiteUnderMaintenance && initialModes.length === 0) initialModes = ['own_car'];
+            window.currentLegModalSelectedModes = initialModes;
 
-                const normActive = (activeMode || 'own_car').toLowerCase().replace(/[- ]/g, '_');
-                const isActive = (
-                    (opt.mode === normActive) ||
-                    (normActive === 'car' && opt.mode === 'own_car') ||
-                    (normActive === 'own_car' && opt.mode === 'own_car') ||
-                    (normActive === 'motorcycle' && opt.mode === 'motorcycle') ||
-                    (normActive === 'van' && opt.mode === 'van') ||
-                    (normActive === 'mpuj' && opt.mode === 'mpuj') ||
-                    (normActive === 'tpuj' && opt.mode === 'tpuj') ||
-                    (normActive === 'jeepney' && (opt.mode === 'mpuj' || opt.mode === 'tpuj')) ||
-                    (normActive === 'tricycle' && opt.mode === 'tricycle') ||
-                    ((normActive === 'pub_regular' || normActive === 'pub_ordinary') && opt.mode === 'pub_regular') ||
-                    (normActive === 'pub_aircon' && opt.mode === 'pub_aircon') ||
-                    ((normActive === 'bus' || normActive === 'pub') && (opt.mode === 'pub_aircon' || opt.mode === 'pub_regular')) ||
-                    (normActive === 'uve' && opt.mode === 'uve') ||
-                    (normActive === 'taxi' && opt.mode === 'taxi')
-                ) && opt.isAvail;
-                const costStr = (opt.cost > 0) ? `₱${opt.cost.toFixed(2)}` : '₱0';
-                const costColor = (opt.cost > 0) ? '#38bdf8' : '#34d399';
-                const disabledClass = !opt.isAvail ? 'disabled-leg-option' : '';
-                const clickHandler = opt.isAvail
-                    ? `onclick="window.selectLegVehicle(${legIdx}, '${opt.mode}', ${opt.cost}, ${distKm})"`
-                    : `onclick="if(typeof showToast==='function') showToast('Unavailable: ${opt.unavailReason.replace(/'/g, "\\'")}');"`;
-
-                listHtml += `
-                <div class="leg-option-card ${isActive ? 'active' : ''} ${disabledClass}" ${clickHandler} style="${!opt.isAvail ? 'opacity:0.45; cursor:not-allowed;' : ''}">
-                    <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:0;">
-                        <div class="leg-option-icon" style="background:${opt.isAvail ? opt.iconBg : 'rgba(255,255,255,0.06)'};">
-                            <i class="fa-solid ${opt.icon}" style="color:${opt.isAvail ? opt.iconColor : '#94a3b8'};"></i>
-                        </div>
-                        <div style="flex:1; min-width:0;">
-                            <div style="font-weight:800; font-size:13.5px; color:${opt.isAvail ? '#ffffff' : '#94a3b8'}; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                                <span>${opt.name}</span>
-                                ${opt.isRecommended && opt.isAvail ? '<span style="font-size:9px; background:#10b981; color:#fff; padding:1px 6px; border-radius:100px; font-weight:800; letter-spacing:0.3px;">OPTIMAL</span>' : ''}
-                                ${!opt.isAvail ? '<span style="font-size:8.5px; background:rgba(239,68,68,0.22); color:#fca5a5; padding:1px 6px; border-radius:100px; font-weight:800; letter-spacing:0.3px;"><i class="fa-solid fa-ban" style="font-size:8px;"></i> UNAVAILABLE</span>' : ''}
-                            </div>
-                            <div style="font-size:11px; color:rgba(255,255,255,0.7); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                ${opt.desc}
-                            </div>
-                            ${!opt.isAvail ? `<div style="font-size:10.5px; color:#f87171; font-weight:700; margin-top:3px;"><i class="fa-solid fa-circle-exclamation" style="font-size:9px;"></i> ${opt.unavailReason}</div>` : ''}
-                        </div>
-                    </div>
-                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <div style="font-size:14px; font-weight:800; color:${opt.isAvail ? costColor : '#64748b'};">
-                            ${opt.isAvail ? costStr : '—'}
-                        </div>
-                        ${isActive ? '<span style="font-size:9.5px; color:#00f2fe; font-weight:700;"><i class="fa-solid fa-check"></i> Selected</span>' : ''}
-                    </div>
-                </div>`;
-            });
-
-            const listEl = document.getElementById('leg-modal-options-list');
-            if (listEl) listEl.innerHTML = listHtml;
+            window.renderLegModalList(availableCount);
 
             const modal = document.getElementById('leg-transport-modal');
             if (modal) modal.style.display = 'flex';
@@ -2164,24 +2229,207 @@ try {
             if (bottomNav) bottomNav.classList.add('nav-hidden');
         };
 
-        window.closeLegTransportModal = function () {
-            const modal = document.getElementById('leg-transport-modal');
-            if (modal) modal.style.display = 'none';
+        window.renderLegModalList = function (availableCount) {
+            const listEl = document.getElementById('leg-modal-options-list');
+            if (!listEl) return;
 
-            const bottomNav = document.getElementById('bottom-navigation');
-            if (bottomNav) bottomNav.classList.remove('nav-hidden');
+            let listHtml = '';
+            const availCount = (availableCount !== undefined) 
+                ? availableCount 
+                : (window.currentLegEvaluatedCandidates || []).filter(c => c.isAvail).length;
+
+            if (availCount === 0) {
+                listHtml += `
+                <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:14px; padding:12px 14px; margin-bottom:12px; display:flex; align-items:center; gap:10px; color:#b91c1c; font-size:12px; font-weight:700;">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size:18px; color:#ef4444; flex-shrink:0;"></i>
+                    <span>No transit vehicles are currently permitted for this destination. The site is under maintenance.</span>
+                </div>`;
+            }
+
+            const selectedModes = window.currentLegModalSelectedModes || [];
+
+            let prevCat = '';
+            (window.currentLegEvaluatedCandidates || []).forEach(opt => {
+                if (opt.category && opt.category !== prevCat) {
+                    prevCat = opt.category;
+                    const catIcon = prevCat === 'Private' ? 'fa-car' : 'fa-bus';
+                    listHtml += `
+                    <div style="font-size:11.5px; font-weight:800; text-transform:uppercase; color:#1e40af; letter-spacing:0.6px; margin:10px 0 4px 4px; display:flex; align-items:center; gap:6px;">
+                        <i class="fa-solid ${catIcon}" style="font-size:11px; color:#2563eb;"></i> ${prevCat} Transport
+                    </div>`;
+                }
+
+                const optNorm = opt.mode.toLowerCase().replace(/[- ]/g, '_');
+                const isSelected = selectedModes.some(m => {
+                    const normM = m.toLowerCase().replace(/[- ]/g, '_');
+                    return (
+                        (optNorm === normM) ||
+                        (normM === 'car' && optNorm === 'own_car') ||
+                        (normM === 'own_car' && optNorm === 'own_car') ||
+                        (normM === 'motor' && optNorm === 'motorcycle') ||
+                        (normM === 'jeepney' && (optNorm === 'mpuj' || optNorm === 'tpuj')) ||
+                        (normM === 'trike' && optNorm === 'tricycle') ||
+                        (normM === 'pub_ordinary' && optNorm === 'pub_regular') ||
+                        (normM === 'bus' && (optNorm === 'pub_aircon' || optNorm === 'pub_regular'))
+                    );
+                }) && opt.isAvail;
+
+                const costStr = (opt.cost > 0) ? `₱${opt.cost.toFixed(2)}` : '₱0';
+                const costColor = (opt.cost > 0) ? '#67e8f9' : '#34d399';
+                const disabledClass = !opt.isAvail ? 'disabled-leg-option' : '';
+                const clickHandler = opt.isAvail
+                    ? `onclick="window.toggleLegCandidateMode('${opt.mode}')"`
+                    : `onclick="if(typeof showToast==='function') showToast('Unavailable: ${opt.unavailReason.replace(/'/g, "\\'")}');"`;
+
+                listHtml += `
+                <div class="leg-option-card ${isSelected ? 'active' : ''} ${disabledClass}" ${clickHandler} style="${!opt.isAvail ? 'opacity:0.45; cursor:not-allowed;' : ''}">
+                    <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:0;">
+                        <!-- Multi-select checkbox -->
+                        <div style="width:22px; height:22px; border-radius:6px; border:2px solid ${isSelected ? '#60a5fa' : 'rgba(255,255,255,0.7)'}; background:${isSelected ? '#60a5fa' : 'rgba(255,255,255,0.1)'}; display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            ${isSelected ? '<i class="fa-solid fa-check"></i>' : ''}
+                        </div>
+
+                        <div class="leg-option-icon" style="background:rgba(255,255,255,0.18); color:#ffffff;">
+                            <i class="fa-solid ${opt.icon}"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                <span>${opt.name}</span>
+                                ${opt.isRecommended && opt.isAvail ? '<span style="font-size:9px; background:#10b981; color:#ffffff; padding:1px 6px; border-radius:100px; font-weight:800; letter-spacing:0.3px;">OPTIMAL</span>' : ''}
+                                ${!opt.isAvail ? '<span style="font-size:8.5px; background:rgba(239,68,68,0.3); color:#fca5a5; padding:1px 6px; border-radius:100px; font-weight:800; letter-spacing:0.3px;"><i class="fa-solid fa-ban" style="font-size:8px;"></i> UNAVAILABLE</span>' : ''}
+                            </div>
+                            <div style="font-size:11px; color:#bfdbfe; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                ${opt.desc}
+                            </div>
+                            ${!opt.isAvail ? `<div style="font-size:10.5px; color:#fca5a5; font-weight:700; margin-top:3px;"><i class="fa-solid fa-circle-exclamation" style="font-size:9px;"></i> ${opt.unavailReason}</div>` : ''}
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <div style="font-size:14px; font-weight:900; color:${opt.isAvail ? costColor : '#94a3b8'};">
+                            ${opt.isAvail ? costStr : '—'}
+                        </div>
+                        ${isSelected ? '<span style="font-size:9.5px; color:#67e8f9; font-weight:700;"><i class="fa-solid fa-check"></i> Selected</span>' : ''}
+                    </div>
+                </div>`;
+            });
+
+            listEl.innerHTML = listHtml;
+
+            // Update Selection Count Pill
+            const countEl = document.getElementById('leg-modal-selection-count');
+            if (countEl) {
+                if (availCount === 0) {
+                    countEl.textContent = 'Suspended';
+                    countEl.style.background = '#fef2f2';
+                    countEl.style.color = '#b91c1c';
+                    countEl.style.borderColor = '#fecaca';
+                } else {
+                    const count = selectedModes.length;
+                    countEl.textContent = `${count} Selected`;
+                    countEl.style.background = '#eff6ff';
+                    countEl.style.color = '#1d4ed8';
+                    countEl.style.borderColor = '#bfdbfe';
+                }
+            }
+
+            // Calculate & Update Total Fare for the Leg
+            let totalLegFare = 0;
+            selectedModes.forEach(m => {
+                totalLegFare += window.calculateSingleLegCost(m, window.currentLegModalDistKm, window.currentLegModalMuniA, window.currentLegModalMuniB);
+            });
+            const fareEl = document.getElementById('leg-modal-total-fare');
+            if (fareEl) {
+                fareEl.textContent = (totalLegFare > 0) ? `₱${totalLegFare.toFixed(2)}` : '₱0.00';
+            }
+
+            const btnApply = document.getElementById('btn-apply-leg-transport');
+            if (btnApply) {
+                if (availCount === 0) {
+                    btnApply.disabled = true;
+                    btnApply.style.opacity = '0.45';
+                    btnApply.style.cursor = 'not-allowed';
+                    btnApply.innerHTML = `<i class="fa-solid fa-ban"></i> Transit Suspended`;
+                } else {
+                    btnApply.disabled = false;
+                    btnApply.style.opacity = '1';
+                    btnApply.style.cursor = 'pointer';
+                    btnApply.innerHTML = `<i class="fa-solid fa-check"></i> Apply Selection (${selectedModes.length})`;
+                }
+            }
         };
 
-        window.selectLegVehicle = function (legIdx, mode, cost, distKm) {
+        window.toggleLegCandidateMode = function (mode) {
+            const opt = (window.currentLegEvaluatedCandidates || []).find(c => c.mode === mode);
+            if (opt && !opt.isAvail) {
+                if (typeof showToast === 'function') {
+                    showToast('Unavailable: ' + (opt.unavailReason || 'Not permitted for this destination'));
+                }
+                return;
+            }
+
+            const norm = mode.toLowerCase().replace(/[- ]/g, '_');
+            let list = window.currentLegModalSelectedModes || [];
+
+            const idx = list.findIndex(m => m.toLowerCase().replace(/[- ]/g, '_') === norm);
+            if (idx > -1) {
+                if (list.length === 1) {
+                    if (typeof showToast === 'function') {
+                        showToast('Please keep at least one transport mode selected.');
+                    }
+                    return;
+                }
+                list.splice(idx, 1);
+            } else {
+                list.push(mode);
+            }
+
+            window.currentLegModalSelectedModes = list;
+            window.renderLegModalList();
+        };
+
+        window.applyLegVehicleSelection = function () {
+            const legIdx = window.currentLegModalIdx;
+            if (legIdx === null || legIdx === undefined) return;
+
+            const draft = (typeof window.getEffectiveDraft === 'function')
+                ? window.getEffectiveDraft()
+                : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+            const toSpot = draft[legIdx];
+            const isSiteUnderMaintenance = Boolean(toSpot && (toSpot.is_maintenance === 1 || toSpot.is_maintenance === true || toSpot.is_maintenance === '1'));
+            if (isSiteUnderMaintenance) {
+                if (typeof showToast === 'function') {
+                    showToast('Transit cannot be configured while the destination is under maintenance.');
+                }
+                return;
+            }
+
+            const selectedModes = window.currentLegModalSelectedModes || [];
+            if (selectedModes.length === 0) {
+                if (typeof showToast === 'function') showToast('Please select at least one transport mode.');
+                return;
+            }
+
             let overrides = [];
             try {
                 overrides = JSON.parse(localStorage.getItem('intan_elyu_draft_leg_vehicles') || '[]');
             } catch (e) { overrides = []; }
 
+            let totalCost = 0;
+            selectedModes.forEach(m => {
+                totalCost += window.calculateSingleLegCost(m, window.currentLegModalDistKm, window.currentLegModalMuniA, window.currentLegModalMuniB);
+            });
+
+            const displayNames = selectedModes.map(m => {
+                const opt = (window.currentLegEvaluatedCandidates || []).find(c => c.mode === m);
+                return opt ? opt.name : m.replace(/_/g, ' ').toUpperCase();
+            });
+
             overrides[legIdx] = {
-                transport_mode: mode,
-                leg_cost: parseFloat(cost) || 0,
-                leg_distance_km: parseFloat(distKm) || 0,
+                transport_mode: selectedModes.join(' + '),
+                transport_modes: selectedModes,
+                leg_cost: parseFloat(totalCost) || 0,
+                leg_distance_km: parseFloat(window.currentLegModalDistKm) || 0,
+                display_name: displayNames.join(' + '),
                 is_custom: true
             };
 
@@ -2195,9 +2443,23 @@ try {
                 window.calculateModalBudget();
             }
             if (typeof showToast === 'function') {
-                const modeLabel = mode.replace(/_/g, ' ').toUpperCase();
-                showToast(`Leg ${legIdx + 1} transit set to ${modeLabel}`);
+                showToast(`Leg ${legIdx + 1} transit set to ${displayNames.join(' + ')}`);
             }
+        };
+
+        window.closeLegTransportModal = function () {
+            const modal = document.getElementById('leg-transport-modal');
+            if (modal) modal.style.display = 'none';
+
+            const bottomNav = document.getElementById('bottom-navigation');
+            if (bottomNav) bottomNav.classList.remove('nav-hidden');
+        };
+
+        window.selectLegVehicle = function (legIdx, mode, cost, distKm) {
+            window.currentLegModalIdx = legIdx;
+            window.currentLegModalDistKm = distKm;
+            window.currentLegModalSelectedModes = [mode];
+            window.applyLegVehicleSelection();
         };
 
         window.updateDraftTravelModeBar = function () {
@@ -2593,25 +2855,33 @@ try {
                     : { mode: 'own_car', name: 'Own Car', icon: 'fa-car', cost: 0 };
 
                 const startDistText = startEta ? `${startEta.distanceText} &bull; ~${startEta.durationText}` : 'Start Leg';
-                const fareBadge = (leg0Info.cost > 0)
-                    ? `<span class="leg-fare-tag">₱${leg0Info.cost.toFixed(2)}</span>`
-                    : `<span class="leg-fare-tag" style="color:#059669; background:rgba(16,185,129,0.1);">₱0</span>`;
+                const fareBadge = leg0Info.is_maintenance
+                    ? `<span class="leg-fare-tag" style="background:#fee2e2 !important; color:#dc2626 !important; font-weight:800;">Suspended</span>`
+                    : ((leg0Info.cost > 0)
+                        ? `<span class="leg-fare-tag">₱${leg0Info.cost.toFixed(2)}</span>`
+                        : `<span class="leg-fare-tag" style="color:#059669; background:rgba(16,185,129,0.1);">₱0</span>`);
 
-                const warningBadge = leg0Info.is_inaccessible
-                    ? `<span class="p2p-leg-warning-tag" style="background:rgba(239,68,68,0.22); color:#fca5a5; border:1px solid rgba(239,68,68,0.35);" title="${leg0Info.warning}"><i class="fa-solid fa-triangle-exclamation"></i> Inaccessible</span>`
-                    : (leg0Info.warning ? `<span class="p2p-leg-warning-tag" title="${leg0Info.warning}"><i class="fa-solid fa-triangle-exclamation"></i> Trailhead</span>` : '');
+                const warningBadge = leg0Info.is_maintenance
+                    ? `<span class="p2p-leg-warning-tag" style="background:#fee2e2 !important; color:#dc2626 !important; border:1px solid #fca5a5 !important;"><i class="fa-solid fa-triangle-exclamation"></i> Closed</span>`
+                    : (leg0Info.is_inaccessible
+                        ? `<span class="p2p-leg-warning-tag" style="background:rgba(239,68,68,0.22); color:#fca5a5; border:1px solid rgba(239,68,68,0.35);" title="${leg0Info.warning}"><i class="fa-solid fa-triangle-exclamation"></i> Inaccessible</span>`
+                        : (leg0Info.warning ? `<span class="p2p-leg-warning-tag" title="${leg0Info.warning}"><i class="fa-solid fa-triangle-exclamation"></i> Trailhead</span>` : ''));
+
+                const leg0ChipClass = leg0Info.is_maintenance ? 'p2p-leg-chip leg-maintenance' : 'p2p-leg-chip';
+                const leg0IconColor = leg0Info.is_maintenance ? '#ef4444' : '#0284c7';
+                const leg0NameStyle = leg0Info.is_maintenance ? 'color:#b91c1c; font-weight:800;' : '';
 
                 startingLegHtml = `
             <div class="stops-swap-divider starting-leg-divider">
                 <div class="stops-swap-line"></div>
                 <div class="stops-leg-wrapper" style="display:flex; align-items:center; gap:8px; z-index:3;">
-                    <div class="p2p-leg-chip" onclick="window.openLegTransportModal(0)" title="Tap to choose transit for this leg">
-                        <i class="fa-solid ${leg0Info.icon}" style="color:#0284c7; font-size:11px;"></i>
-                        <span>${leg0Info.name}</span>
+                    <div class="${leg0ChipClass}" onclick="window.openLegTransportModal(0)" title="${leg0Info.is_maintenance ? 'Destination is under maintenance' : 'Tap to choose transit for this leg'}">
+                        <i class="fa-solid ${leg0Info.icon}" style="color:${leg0IconColor}; font-size:11px;"></i>
+                        <span style="${leg0NameStyle}">${leg0Info.name}</span>
                         ${fareBadge}
                         <span style="color:#64748b; font-size:10.5px;">&bull; ${startDistText}</span>
                         ${warningBadge}
-                        <i class="fa-solid fa-chevron-right leg-action-edit"></i>
+                        <i class="fa-solid fa-chevron-right leg-action-edit" style="${leg0Info.is_maintenance ? 'color:#ef4444;' : ''}"></i>
                     </div>
                     <div class="starting-leg-icon-pill" title="Start of Itinerary Route">
                         <i class="fa-solid fa-arrow-down"></i>
@@ -2685,25 +2955,33 @@ try {
                             : { mode: 'mpuj', name: 'Modern Jeepney', icon: 'fa-van-shuttle', cost: 0 };
 
                         const legDistText = legEta ? `${legEta.distanceText} &bull; ~${legEta.durationText}` : 'Leg Route';
-                        const fareBadge = (legInfo.cost > 0)
-                            ? `<span class="leg-fare-tag">₱${legInfo.cost.toFixed(2)}</span>`
-                            : `<span class="leg-fare-tag" style="color:#059669; background:rgba(16,185,129,0.1);">₱0</span>`;
+                        const fareBadge = legInfo.is_maintenance
+                            ? `<span class="leg-fare-tag" style="background:#fee2e2 !important; color:#dc2626 !important; font-weight:800;">Suspended</span>`
+                            : ((legInfo.cost > 0)
+                                ? `<span class="leg-fare-tag">₱${legInfo.cost.toFixed(2)}</span>`
+                                : `<span class="leg-fare-tag" style="color:#059669; background:rgba(16,185,129,0.1);">₱0</span>`);
 
-                        const warningBadge = legInfo.is_inaccessible
-                            ? `<span class="p2p-leg-warning-tag" style="background:rgba(239,68,68,0.22); color:#fca5a5; border:1px solid rgba(239,68,68,0.35);" title="${legInfo.warning}"><i class="fa-solid fa-triangle-exclamation"></i> Inaccessible</span>`
-                            : (legInfo.warning ? `<span class="p2p-leg-warning-tag" title="${legInfo.warning}"><i class="fa-solid fa-triangle-exclamation"></i> Trailhead</span>` : '');
+                        const warningBadge = legInfo.is_maintenance
+                            ? `<span class="p2p-leg-warning-tag" style="background:#fee2e2 !important; color:#dc2626 !important; border:1px solid #fca5a5 !important;"><i class="fa-solid fa-triangle-exclamation"></i> Closed</span>`
+                            : (legInfo.is_inaccessible
+                                ? `<span class="p2p-leg-warning-tag" style="background:rgba(239,68,68,0.22); color:#fca5a5; border:1px solid rgba(239,68,68,0.35);" title="${legInfo.warning}"><i class="fa-solid fa-triangle-exclamation"></i> Inaccessible</span>`
+                                : (legInfo.warning ? `<span class="p2p-leg-warning-tag" title="${legInfo.warning}"><i class="fa-solid fa-triangle-exclamation"></i> Trailhead</span>` : ''));
+
+                        const legChipClass = legInfo.is_maintenance ? 'p2p-leg-chip leg-maintenance' : 'p2p-leg-chip';
+                        const legIconColor = legInfo.is_maintenance ? '#ef4444' : '#0284c7';
+                        const legNameStyle = legInfo.is_maintenance ? 'color:#b91c1c; font-weight:800;' : '';
 
                         html += `
                         <div class="stops-swap-divider">
                             <div class="stops-swap-line"></div>
                             <div class="stops-leg-wrapper" style="display:flex; align-items:center; gap:8px; z-index:3;">
-                                <div class="p2p-leg-chip" onclick="window.openLegTransportModal(${index})" title="Tap to choose transit for this leg">
-                                    <i class="fa-solid ${legInfo.icon}" style="color:#0284c7; font-size:11px;"></i>
-                                    <span>${legInfo.name}</span>
+                                <div class="${legChipClass}" onclick="window.openLegTransportModal(${index})" title="${legInfo.is_maintenance ? 'Destination is under maintenance' : 'Tap to choose transit for this leg'}">
+                                    <i class="fa-solid ${legInfo.icon}" style="color:${legIconColor}; font-size:11px;"></i>
+                                    <span style="${legNameStyle}">${legInfo.name}</span>
                                     ${fareBadge}
                                     <span style="color:#64748b; font-size:10.5px;">&bull; ${legDistText}</span>
                                     ${warningBadge}
-                                    <i class="fa-solid fa-chevron-right leg-action-edit"></i>
+                                    <i class="fa-solid fa-chevron-right leg-action-edit" style="${legInfo.is_maintenance ? 'color:#ef4444;' : ''}"></i>
                                 </div>
                                 <button type="button" class="btn-swap-pill" onclick="event.stopPropagation(); window.swapDraftStops(${index - 1}, ${index});" title="Swap Stop ${index} and Stop ${index + 1}" aria-label="Swap order">
                                     <i class="fa-solid fa-arrows-up-down"></i>
@@ -4270,8 +4548,8 @@ try {
                         badgeHtml: hasNonDrivableSpot ? '<span style="padding:1px 6px; border-radius:100px; font-size:8px; font-weight:800; background:rgba(245,158,11,0.25); color:#fbbf24;">Trailhead</span>' : ''
                     },
                     { val: 'motorcycle', name: 'Motorcycle', icon: 'fa-motorcycle', key: 'motorcycle', available: true },
-                    { val: 'taxi', name: 'Taxi', icon: 'fa-taxi', key: 'taxi', available: true },
-                    { val: 'van', name: 'Van', icon: 'fa-shuttle-van', key: 'van', available: true }
+                    { val: 'van', name: 'Van', icon: 'fa-shuttle-van', key: 'van', available: true },
+                    { val: 'tricycle', name: 'Tricycle', icon: 'fa-motorcycle', key: 'tricycle', available: true }
                 ];
             } else {
                 const rawMunis = draft.map(p => (typeof window.getSpotMuniName === 'function' ? window.getSpotMuniName(p) : ((typeof p.municipality === 'string' ? p.municipality : p.municipality?.name) || ''))).filter(Boolean);
@@ -4291,7 +4569,8 @@ try {
                         key: 'tricycle',
                         badgeHtml: isInterMunicipal ? '<span style="padding:1px 6px; border-radius:100px; font-size:8px; font-weight:800; background:rgba(56,189,248,0.25); color:#7dd3fc;">Local Legs</span>' : ''
                     },
-                    { val: 'uve', name: 'UV Express / Van', icon: 'fa-shuttle-van', available: true, key: 'uve' }
+                    { val: 'uve', name: 'UV Express / Van', icon: 'fa-shuttle-van', available: true, key: 'uve' },
+                    { val: 'taxi', name: 'Taxi', icon: 'fa-taxi', available: true, key: 'taxi' }
                 ];
             }
 

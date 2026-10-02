@@ -34,7 +34,7 @@ if (is_dir($imgDir)) {
         const normType = rawType.replace(/[- ]/g, '_');
         
         // Private vehicles (Personal / Own vehicle - No Fare Required)
-        if (normType === 'own_car' || normType === 'car' || normType === 'sedan' || normType === 'suv' || normType === 'private_car') {
+        if (normType === 'own_car' || normType === 'car' || normType === 'private_car') {
             return {
                 fare: 0,
                 discountedFare: 0,
@@ -742,34 +742,42 @@ if (is_dir($imgDir)) {
 <!-- Spot Available Vehicles & Boundary Fares Modal -->
 <div id="spot-vehicles-modal" onclick="if(event.target===this)window.closeSpotVehiclesModal()"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:999999; align-items:flex-end; justify-content:center; background:rgba(6,11,25,0.78); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); box-sizing:border-box;">
-    <div style="background:linear-gradient(145deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-radius:28px 28px 0 0; padding:22px 20px calc(24px + env(safe-area-inset-bottom)); width:100%; max-width:540px; max-height:84vh; overflow-y:auto; box-shadow:0 -10px 40px rgba(0,0,0,0.5); text-align:left; box-sizing:border-box;">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <div style="width:38px; height:38px; border-radius:12px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#0284c7 !important; font-size:18px; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
-                    <i class="fa-solid fa-van-shuttle" style="color:#0284c7 !important;"></i>
+    <div style="background:#ffffff !important; border-radius:28px 28px 0 0; width:100%; max-width:540px; max-height:86vh; display:flex; flex-direction:column; box-shadow:0 -10px 40px rgba(0,0,0,0.5); text-align:left; box-sizing:border-box; overflow:hidden;">
+        
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%) !important; padding:18px 20px 16px 20px; color:#ffffff; flex-shrink:0;">
+            <div style="width:40px; height:4px; background:rgba(255,255,255,0.4); border-radius:99px; margin:0 auto 12px auto;"></div>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:18px; box-shadow:0 2px 6px rgba(0,0,0,0.18); flex-shrink:0;">
+                        <i class="fa-solid fa-van-shuttle" style="color:#67e8f9 !important;"></i>
+                    </div>
+                    <div>
+                        <h4 id="spot-veh-modal-title" style="margin:0; font-size:17px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Available Vehicles & Fares</h4>
+                        <span id="spot-veh-modal-subtitle" style="font-size:11.5px; font-weight:600; color:rgba(255,255,255,0.85);">--</span>
+                    </div>
                 </div>
-                <div>
-                    <h4 id="spot-veh-modal-title" style="margin:0; font-size:17px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Available Vehicles & Fares</h4>
-                    <span id="spot-veh-modal-subtitle" style="font-size:11.5px; font-weight:600; color:rgba(255,255,255,0.78);">--</span>
-                </div>
+                <button type="button" onclick="window.closeSpotVehiclesModal()" style="width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,0.18); border:none; color:#ffffff; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:transform 0.15s ease;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
-            <button type="button" onclick="window.closeSpotVehiclesModal()" style="width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.18); border:none; color:#ffffff; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
         </div>
 
-        <!-- Distance & Boundary Step Info Banner -->
-        <div id="spot-veh-modal-dist-banner" style="background:rgba(255,255,255,0.12); border-radius:14px; padding:10px 14px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between;">
-            <div style="display:flex; align-items:center; gap:8px;">
-                <i class="fa-solid fa-location-crosshairs" style="color:#38bdf8; font-size:14px;"></i>
-                <span id="spot-veh-modal-dist-text" style="font-size:12.5px; font-weight:700; color:#ffffff;">Calculating distance...</span>
+        <!-- Body Below Header (Pure White Background) -->
+        <div style="background:#ffffff !important; color:#1e293b; padding:16px 20px calc(24px + env(safe-area-inset-bottom)); flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;">
+            <!-- Distance & Boundary Step Info Banner -->
+            <div id="spot-veh-modal-dist-banner" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:10px 14px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-location-crosshairs" style="color:#2563eb; font-size:14px;"></i>
+                    <span id="spot-veh-modal-dist-text" style="font-size:12.5px; font-weight:700; color:#1e293b;">Calculating distance...</span>
+                </div>
+                <span style="font-size:10px; font-weight:800; text-transform:uppercase; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; padding:3px 8px; border-radius:100px;">Fare Matrix</span>
             </div>
-            <span style="font-size:10px; font-weight:800; text-transform:uppercase; background:rgba(56,189,248,0.22); color:#7dd3fc; padding:3px 8px; border-radius:100px;">Fare Matrix</span>
-        </div>
 
-        <!-- Vehicles Grid / List -->
-        <div id="spot-veh-modal-list" style="display:flex; flex-direction:column; gap:10px;">
-            <!-- Populated dynamically via JS -->
+            <!-- Vehicles Grid / List (Royal Blue Cards) -->
+            <div id="spot-veh-modal-list" style="display:flex; flex-direction:column; gap:10px;">
+                <!-- Populated dynamically via JS -->
+            </div>
         </div>
     </div>
 </div>
@@ -4070,7 +4078,7 @@ if (is_dir($imgDir)) {
 
             const getVehIcon = (name) => {
                 const n = (name || '').toLowerCase();
-                if (n.includes('car') || n.includes('sedan') || n.includes('suv')) return 'fa-car';
+                if (n.includes('car')) return 'fa-car';
                 if (n.includes('motorcycle') || n.includes('motor') || n.includes('scooter') || n.includes('bike')) return 'fa-motorcycle';
                 if (n.includes('van') || n.includes('uve')) return 'fa-van-shuttle';
                 if (n.includes('pub') || n.includes('bus')) return 'fa-bus';
@@ -4083,19 +4091,33 @@ if (is_dir($imgDir)) {
             let cardsHtml = '';
 
             // Group into Public & Private categories for clarity
-            const isPubMatch = (name) => {
-                const s = String(name || '').toLowerCase();
-                return pubVehicles.some(p => p.toLowerCase() === s) ||
-                    ['mpuj', 'tpuj', 'pub_aircon', 'pub_regular', 'pub', 'taxi', 'uve', 'tricycle', 'trike', 'jeepney'].some(k => s.includes(k));
-            };
+            // Private Vehicles: Car, Motorcycle, Van, Tricycle (Personal)
             const isPrivMatch = (name) => {
-                const s = String(name || '').toLowerCase();
-                return privVehicles.some(p => p.toLowerCase() === s) ||
-                    ['car', 'motorcycle', 'motor', 'van', 'tricycle', 'trike'].some(k => s.includes(k));
+                const s = String(name || '').toLowerCase().trim();
+                if (s.includes('taxi') || s.includes('puj') || s.includes('pub') || s.includes('jeep') || s.includes('bus') || s.includes('uve')) {
+                    return false;
+                }
+                return privVehicles.some(p => p.toLowerCase().trim() === s) ||
+                    ['car', 'motorcycle', 'motor', 'van', 'tricycle', 'trike'].some(k => s === k || s.includes(k));
             };
 
-            const publicAvailable = allVehicles.filter(v => isPubMatch(v));
-            const privateAvailable = allVehicles.filter(v => isPrivMatch(v));
+            // Public Transport: Modern/Traditional Jeepneys, Buses, UV Express, Taxi
+            const isPubMatch = (name) => {
+                const s = String(name || '').toLowerCase().trim();
+                return pubVehicles.some(p => p.toLowerCase().trim() === s) ||
+                    ['mpuj', 'tpuj', 'pub_aircon', 'pub_regular', 'pub', 'taxi', 'uve', 'jeepney'].some(k => s === k || s.includes(k));
+            };
+
+            let privateAvailable = [];
+            let publicAvailable = [];
+
+            if (privVehicles.length > 0 || pubVehicles.length > 0) {
+                privateAvailable = privVehicles.filter(v => isPrivMatch(v));
+                publicAvailable = pubVehicles.filter(v => isPubMatch(v));
+            } else {
+                privateAvailable = allVehicles.filter(v => isPrivMatch(v));
+                publicAvailable = allVehicles.filter(v => isPubMatch(v) && !privateAvailable.includes(v));
+            }
 
             const renderCard = (vehName, isPub) => {
                 const est = window.getFareBoundaryEstimate(vehName, distKm, dest.municipality, !isPub);
@@ -4105,21 +4127,21 @@ if (is_dir($imgDir)) {
                 const baseText = (est && !est.isPrivate && est.baseFare > 0) ? `Base: ₱${est.baseFare.toFixed(2)}` : '';
 
                 return `
-                <div style="background:rgba(255,255,255,0.1); border-radius:16px; padding:12px 14px; border:none !important; outline:none !important; box-shadow:0 2px 8px rgba(0,0,0,0.12);">
+                <div style="background:linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%) !important; border-radius:16px; padding:13px 15px; border:none !important; outline:none !important; box-shadow:0 4px 14px rgba(30, 64, 175, 0.22); color:#ffffff !important;">
                     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                        <div style="display:flex; align-items:center; gap:9px;">
-                            <div style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#0284c7 !important; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
-                                <i class="fa-solid ${getVehIcon(vehName)}" style="color:#0284c7 !important;"></i>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div style="width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,0.18) !important; display:flex; align-items:center; justify-content:center; color:#ffffff !important; font-size:15px; flex-shrink:0;">
+                                <i class="fa-solid ${getVehIcon(vehName)}" style="color:#ffffff !important;"></i>
                             </div>
                             <div>
-                                <div style="font-size:13.5px; font-weight:800; color:#ffffff;">${vehName}</div>
-                                <div style="font-size:10.5px; font-weight:700; color:${isPub ? '#fed7aa' : '#a5f3fc'}; text-transform:uppercase; letter-spacing:0.4px;">
+                                <div style="font-size:14px; font-weight:800; color:#ffffff;">${vehName}</div>
+                                <div style="font-size:10.5px; font-weight:700; color:#bfdbfe; text-transform:uppercase; letter-spacing:0.4px;">
                                     ${isPub ? 'Public Transport' : 'Private Access'}
                                 </div>
                             </div>
                         </div>
                         <div style="text-align:right;">
-                            <div style="font-size:15.5px; font-weight:900; color:${est?.isPrivate ? '#34d399' : '#ffffff'}; letter-spacing:-0.2px;">${fareDisplay}</div>
+                            <div style="font-size:15.5px; font-weight:900; color:${est?.isPrivate ? '#34d399' : '#67e8f9'}; letter-spacing:-0.2px;">${fareDisplay}</div>
                             ${discDisplay ? `
                                 <div style="font-size:10px; font-weight:800; color:#34d399; margin-top:1px;">
                                     <i class="fa-solid fa-tags" style="font-size:8.5px;"></i> ${discDisplay}
@@ -4129,28 +4151,28 @@ if (is_dir($imgDir)) {
                             ` : '')}
                         </div>
                     </div>
-                    <div style="background:rgba(0,0,0,0.18); border-radius:10px; padding:7px 11px; font-size:11px; color:#e2e8f0; display:flex; align-items:center; justify-content:space-between; gap:6px;">
+                    <div style="background:rgba(0,0,0,0.2); border-radius:10px; padding:7px 11px; font-size:11px; color:#e2e8f0; display:flex; align-items:center; justify-content:space-between; gap:6px;">
                         <span style="display:flex; align-items:center; gap:5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                            <i class="fa-solid ${est?.isPrivate ? 'fa-route' : 'fa-chart-line'}" style="color:#38bdf8; font-size:10px; flex-shrink:0;"></i>
+                            <i class="fa-solid ${est?.isPrivate ? 'fa-route' : 'fa-chart-line'}" style="color:#67e8f9; font-size:10px; flex-shrink:0;"></i>
                             <span style="font-size:10.5px; font-weight:600;">${boundaryText}</span>
                         </span>
-                        ${baseText ? `<span style="font-weight:800; color:#7dd3fc; font-size:10.5px; flex-shrink:0;">${baseText}</span>` : ''}
+                        ${baseText ? `<span style="font-weight:800; color:#93c5fd; font-size:10.5px; flex-shrink:0;">${baseText}</span>` : ''}
                     </div>
                 </div>`;
             };
 
             if (publicAvailable.length > 0) {
                 cardsHtml += `
-                <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:#fed7aa; letter-spacing:0.6px; margin:4px 0 2px 2px; display:flex; align-items:center; gap:5px;">
-                    <i class="fa-solid fa-bus" style="font-size:10px;"></i> Public Vehicles (${publicAvailable.length})
+                <div style="font-size:11.5px; font-weight:800; text-transform:uppercase; color:#1e40af; letter-spacing:0.6px; margin:6px 0 2px 2px; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-bus" style="font-size:11px; color:#2563eb;"></i> Public Vehicles (${publicAvailable.length})
                 </div>`;
                 publicAvailable.forEach(v => { cardsHtml += renderCard(v, true); });
             }
 
             if (privateAvailable.length > 0) {
                 cardsHtml += `
-                <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:#a5f3fc; letter-spacing:0.6px; margin:8px 0 2px 2px; display:flex; align-items:center; gap:5px;">
-                    <i class="fa-solid fa-car" style="font-size:10px;"></i> Private Vehicles (${privateAvailable.length})
+                <div style="font-size:11.5px; font-weight:800; text-transform:uppercase; color:#1e40af; letter-spacing:0.6px; margin:10px 0 2px 2px; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-car" style="font-size:11px; color:#2563eb;"></i> Private Vehicles (${privateAvailable.length})
                 </div>`;
                 privateAvailable.forEach(v => { cardsHtml += renderCard(v, false); });
             }
