@@ -974,23 +974,6 @@ try {
                     </div>
                 </div>
             </div>
-
-            <!-- Color-Coded Budget Readability Legend -->
-            <div id="save-budget-legend"
-                style="display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.08); font-size:10px; font-weight:700;">
-                <div id="legend-pill-green" style="display:flex; align-items:center; gap:4px; color:#10b981; transition:all 0.25s ease; opacity:0.6;">
-                    <span style="width:6px; height:6px; border-radius:50%; background:#10b981; display:inline-block; box-shadow:0 0 6px rgba(16,185,129,0.6);"></span>
-                    <span>Within (&lt;80%)</span>
-                </div>
-                <div id="legend-pill-orange" style="display:flex; align-items:center; gap:4px; color:#f59e0b; transition:all 0.25s ease; opacity:0.6;">
-                    <span style="width:6px; height:6px; border-radius:50%; background:#f59e0b; display:inline-block; box-shadow:0 0 6px rgba(245,158,11,0.6);"></span>
-                    <span>Nearing (80-100%)</span>
-                </div>
-                <div id="legend-pill-red" style="display:flex; align-items:center; gap:4px; color:#ef4444; transition:all 0.25s ease; opacity:0.6;">
-                    <span style="width:6px; height:6px; border-radius:50%; background:#ef4444; display:inline-block; box-shadow:0 0 6px rgba(239,68,68,0.6);"></span>
-                    <span>Over (&gt;100%)</span>
-                </div>
-            </div>
         </div>
 
         <div style="display:flex; gap:12px; margin-top:20px;">
@@ -1851,7 +1834,14 @@ try {
             const isNonDrivable = Boolean(toSpot && (toSpot.accessible_by_private_vehicle === 0 || toSpot.accessible_by_private_vehicle === false || toSpot.accessible_by_private_vehicle === '0'));
 
             // Multi-modal global transport support (e.g. "own_car + tricycle", "own_car + motorcycle")
-            const subModes = window.parseCompositeTransportModes(globalMode);
+            const allSubModes = window.parseCompositeTransportModes(globalMode);
+            // Filter global vehicles to only those accessible for this specific leg destination
+            const availSubModes = allSubModes.filter(m => {
+                const chk = window.isVehicleAllowedForSpot(m, toSpot);
+                return chk && chk.allowed;
+            });
+            const subModes = (availSubModes.length > 0) ? availSubModes : allSubModes;
+
             if (subModes.length > 1) {
                 const cost = window.calculateSingleLegCost(subModes.join(' + '), d, muniA, muniB);
                 const dispName = `${subModes.length} Vehicles`;
@@ -2127,7 +2117,7 @@ try {
             }
 
             if (!matched) {
-                return { allowed: false, reason: 'Not in this site\'s accessible vehicles (DB restricted)' };
+                return { allowed: false, reason: 'Not accessible for this destination' };
             }
             return { allowed: true, reason: '' };
         };
@@ -2226,6 +2216,12 @@ try {
             if (override && (override.transport_mode || override.transport_modes)) {
                 let modes = window.parseCompositeTransportModes(override.transport_modes || override.transport_mode);
                 if (modes.length === 0) modes = ['own_car'];
+
+                // Filter out any vehicles not accessible for this spot so the leg decreases
+                const availModes = modes.filter(m => window.isVehicleAllowedForSpot(m, toSpot).allowed);
+                if (availModes.length > 0 && availModes.length < modes.length) {
+                    modes = availModes;
+                }
 
                 const cost = (override.leg_cost !== null && override.leg_cost !== undefined)
                     ? parseFloat(override.leg_cost)
@@ -2554,6 +2550,14 @@ try {
 
             if (!isSiteUnderMaintenance && initialModes.length === 0) {
                 initialModes = window.getNormalizedTripModes();
+            }
+
+            // Ensure inaccessible vehicles for this spot are not pre-selected in the modal (decreased in leg)
+            if (!isSiteUnderMaintenance) {
+                const allowedInitial = initialModes.filter(m => window.isVehicleAllowedForSpot(m, toSpot).allowed);
+                if (allowedInitial.length > 0) {
+                    initialModes = allowedInitial;
+                }
             }
             window.currentLegModalSelectedModes = initialModes;
 
@@ -4019,43 +4023,9 @@ try {
 
             const legInfos = draft.map((_, i) => (typeof window.getLegTransportInfo === 'function') ? window.getLegTransportInfo(i) : null).filter(Boolean);
 
-            // Extract the actual individual transport modes used across all valid legs
-            const activeModes = [];
-            legInfos.forEach(l => {
-                if (!l || l.is_maintenance) return;
-                const modes = window.parseCompositeTransportModes(l.transport_modes || l.transport_mode || l.mode);
-                modes.forEach(m => {
-                    if (m && !activeModes.includes(m)) {
-                        activeModes.push(m);
-                    }
-                });
-            });
-
-            // Full 2-way sync: increase if vehicle added in legs, decrease if unselected across all legs
             let tripModes = (typeof window.getNormalizedTripModes === 'function')
                 ? window.getNormalizedTripModes()
                 : [currentGlobalTransport || 'own_car'];
-
-            if (activeModes.length > 0) {
-                let mergedModes = [...tripModes];
-                activeModes.forEach(m => {
-                    if (m && !mergedModes.includes(m)) mergedModes.push(m);
-                });
-                mergedModes = mergedModes.filter(m => activeModes.includes(m));
-                if (mergedModes.length === 0) mergedModes = ['own_car'];
-
-                const curKey = tripModes.join(' + ');
-                const newKey = mergedModes.join(' + ');
-                if (curKey !== newKey) {
-                    tripModes = mergedModes;
-                    const newComp = (tripModes.length === 1) ? tripModes[0] : tripModes.join(' + ');
-                    localStorage.setItem('intan_elyu_draft_trip_transport', newComp);
-                    localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(tripModes));
-                    if (typeof window.updateDraftTravelModeBar === 'function') {
-                        window.updateDraftTravelModeBar();
-                    }
-                }
-            }
 
             const compositeTripTransport = (tripModes.length === 1) ? tripModes[0] : tripModes.join(' + ');
             if (transInput) transInput.value = compositeTripTransport;
@@ -4165,30 +4135,30 @@ try {
             const absRemaining = Math.abs(remaining);
             const formattedRemaining = '₱' + absRemaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-            let fillColor = '#10b981'; // Green: Within Budget (<80%)
-            let remainingLabelHtml = '<i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Within Budget';
+            let fillColor = '#10b981'; // Green: (<80%)
+            let remainingLabelHtml = '<i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Remaining Budget';
             let remainingValueText = '+' + formattedRemaining + ' left';
             let remainingColor = '#10b981';
             let activeTier = 'green';
 
             if (estimatedCost > budget) {
-                // RED: Over budget (> 100%)
+                // RED: (> 100%)
                 fillColor = '#ef4444';
-                remainingLabelHtml = '<i class="fa-solid fa-circle-xmark" style="margin-right:4px;"></i> Over Budget';
+                remainingLabelHtml = '<i class="fa-solid fa-circle-xmark" style="margin-right:4px;"></i> Budget Exceeded';
                 remainingValueText = '-' + formattedRemaining;
                 remainingColor = '#ef4444';
                 activeTier = 'red';
             } else if (spentPct >= 80) {
-                // ORANGE: Nearing the limit (80% - 100%)
+                // ORANGE: (80% - 100%)
                 fillColor = '#f59e0b';
-                remainingLabelHtml = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:4px;"></i> Nearing Limit';
+                remainingLabelHtml = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:4px;"></i> Remaining Budget';
                 remainingValueText = (remaining === 0 ? '₱0.00 left' : '+' + formattedRemaining + ' left');
                 remainingColor = '#f59e0b';
                 activeTier = 'orange';
             } else {
-                // GREEN: Within budget (< 80%)
+                // GREEN: (< 80%)
                 fillColor = '#10b981';
-                remainingLabelHtml = '<i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Within Budget';
+                remainingLabelHtml = '<i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Remaining Budget';
                 remainingValueText = '+' + formattedRemaining + ' left';
                 remainingColor = '#10b981';
                 activeTier = 'green';
