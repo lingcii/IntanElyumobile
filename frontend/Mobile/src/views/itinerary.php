@@ -1699,10 +1699,8 @@ try {
         window.getVehicleDisplayName = function (modeKey) {
             if (!modeKey) return 'Own Car';
             const subModes = window.parseCompositeTransportModes(modeKey);
-            if (subModes.length === 2) {
-                return `${window.getVehicleShortName(subModes[0])} + ${window.getVehicleShortName(subModes[1])}`;
-            } else if (subModes.length > 2) {
-                return `${subModes.length} Vehicles (${subModes.map(m => window.getVehicleShortName(m)).join(', ')})`;
+            if (subModes.length > 1) {
+                return `${subModes.length} Vehicles`;
             }
 
             const norm = (subModes.length === 1) ? subModes[0] : window.normalizeVehicleKey(modeKey);
@@ -1725,9 +1723,7 @@ try {
         window.getVehicleShortName = function (modeKey) {
             if (!modeKey) return 'Own Car';
             const subModes = window.parseCompositeTransportModes(modeKey);
-            if (subModes.length === 2) {
-                return `${window.getVehicleShortName(subModes[0])} + ${window.getVehicleShortName(subModes[1])}`;
-            } else if (subModes.length > 2) {
+            if (subModes.length > 1) {
                 return `${subModes.length} Vehicles`;
             }
 
@@ -1858,9 +1854,7 @@ try {
             const subModes = window.parseCompositeTransportModes(globalMode);
             if (subModes.length > 1) {
                 const cost = window.calculateSingleLegCost(subModes.join(' + '), d, muniA, muniB);
-                const dispName = (subModes.length === 2)
-                    ? `${window.getVehicleShortName(subModes[0])} + ${window.getVehicleShortName(subModes[1])}`
-                    : `${subModes.length} Vehicles Selected`;
+                const dispName = `${subModes.length} Vehicles`;
 
                 let warningNotice = null;
                 if (isNonDrivable) {
@@ -2242,11 +2236,8 @@ try {
                 if (modes.length === 1) {
                     name = window.getVehicleDisplayName(modes[0]);
                     icon = (modes[0] === 'motorcycle' || modes[0] === 'tricycle') ? 'fa-motorcycle' : (modes[0].includes('bus') ? 'fa-bus' : 'fa-car');
-                } else if (modes.length === 2) {
-                    name = `${window.getVehicleShortName(modes[0])} + ${window.getVehicleShortName(modes[1])}`;
-                    icon = 'fa-shuffle';
                 } else {
-                    name = `${modes.length} Vehicles Selected`;
+                    name = `${modes.length} Vehicles`;
                     icon = 'fa-shuffle';
                 }
 
@@ -2762,13 +2753,8 @@ try {
             let displayName = '';
             if (selectedModes.length === 1) {
                 displayName = displayNames[0];
-            } else if (selectedModes.length === 2) {
-                const s1 = window.getVehicleShortName(selectedModes[0]);
-                const s2 = window.getVehicleShortName(selectedModes[1]);
-                const combo = `${s1} + ${s2}`;
-                displayName = (combo.length <= 26) ? combo : '2 Vehicles Selected';
             } else {
-                displayName = `${selectedModes.length} Vehicles Selected`;
+                displayName = `${selectedModes.length} Vehicles`;
             }
 
             overrides[legIdx] = {
@@ -2782,6 +2768,37 @@ try {
             };
 
             localStorage.setItem('intan_elyu_draft_leg_vehicles', JSON.stringify(overrides));
+
+            // If a vehicle was unselected across all legs transports, decrease Trip Transportation as well
+            const curTripModes = (typeof window.getNormalizedTripModes === 'function')
+                ? window.getNormalizedTripModes()
+                : [];
+            if (curTripModes.length > 1 && draft.length > 0) {
+                const usedInAnyLeg = new Set();
+                draft.forEach((item, i) => {
+                    if (item && typeof window.isSpotUnderMaintenance === 'function' && window.isSpotUnderMaintenance(item)) return;
+                    let legModes = [];
+                    if (i === legIdx) {
+                        legModes = selectedModes;
+                    } else if (overrides[i] && (overrides[i].transport_modes || overrides[i].transport_mode)) {
+                        legModes = window.parseCompositeTransportModes(overrides[i].transport_modes || overrides[i].transport_mode);
+                    } else {
+                        legModes = curTripModes;
+                    }
+                    legModes.forEach(m => usedInAnyLeg.add(m));
+                });
+
+                const remainingTripModes = curTripModes.filter(m => usedInAnyLeg.has(m));
+                if (remainingTripModes.length > 0 && remainingTripModes.length < curTripModes.length) {
+                    const newComposite = (remainingTripModes.length === 1) ? remainingTripModes[0] : remainingTripModes.join(' + ');
+                    localStorage.setItem('intan_elyu_draft_trip_transport', newComposite);
+                    localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(remainingTripModes));
+
+                    const transInput = document.getElementById('trip-transport');
+                    if (transInput) transInput.value = newComposite;
+                }
+            }
+
             window.closeLegTransportModal();
 
             if (typeof window.renderItinerary === 'function') {
@@ -2797,8 +2814,7 @@ try {
                 window.updateDraftTravelModeBar();
             }
             if (typeof showToast === 'function') {
-                const toastLabel = (selectedModes.length > 2) ? `${selectedModes.length} vehicles` : displayName;
-                showToast(`Leg ${legIdx + 1} transit set to ${toastLabel}`);
+                showToast(`Leg ${legIdx + 1} transit set to ${displayName}`);
             }
         };
 
@@ -2863,15 +2879,9 @@ try {
                 const mode = tripModes[0];
                 if (iconEl) iconEl.innerHTML = window.getVehicleIconHtml(mode);
                 if (labelEl) labelEl.textContent = window.getVehicleDisplayName(mode);
-            } else if (tripModes.length === 2) {
-                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-shuffle" style="color:#00f2fe;"></i>';
-                const s1 = window.getVehicleShortName(tripModes[0]);
-                const s2 = window.getVehicleShortName(tripModes[1]);
-                if (labelEl) labelEl.textContent = `${s1} + ${s2}`;
             } else {
                 if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-route" style="color:#00f2fe;"></i>';
-                const names = tripModes.map(m => window.getVehicleShortName(m)).join(', ');
-                if (labelEl) labelEl.textContent = `${tripModes.length} Vehicles (${names})`;
+                if (labelEl) labelEl.textContent = `${tripModes.length} Vehicles`;
             }
         };
 
@@ -2944,13 +2954,8 @@ try {
             if (labelEl) {
                 if (selected.length === 1) {
                     labelEl.textContent = window.getVehicleDisplayName(selected[0]);
-                } else if (selected.length === 2) {
-                    const s1 = window.getVehicleShortName(selected[0]);
-                    const s2 = window.getVehicleShortName(selected[1]);
-                    labelEl.textContent = `${s1} + ${s2}`;
                 } else {
-                    const names = selected.map(m => window.getVehicleShortName(m)).join(', ');
-                    labelEl.textContent = `${selected.length} Vehicles (${names})`;
+                    labelEl.textContent = `${selected.length} Vehicles`;
                 }
             }
 
@@ -3019,9 +3024,7 @@ try {
 
             const chosenName = (selected.length === 1)
                 ? window.getVehicleDisplayName(selected[0])
-                : (selected.length === 2)
-                    ? `${window.getVehicleShortName(selected[0])} + ${window.getVehicleShortName(selected[1])}`
-                    : `${selected.length} Vehicles (${selected.map(m => window.getVehicleShortName(m)).join(', ')})`;
+                : `${selected.length} Vehicles`;
 
             if (draft.length === 0) {
                 if (typeof showToast === 'function') {
@@ -4009,11 +4012,23 @@ try {
                 });
             });
 
-            // Preserve the user-selected trip transportation in transInput (#trip-transport).
-            // Do NOT let per-leg selections overwrite or add up into the trip transportation!
-            const tripModes = (typeof window.getNormalizedTripModes === 'function')
+            // If any trip vehicle was unselected in all legs transports, decrease trip transportation
+            let tripModes = (typeof window.getNormalizedTripModes === 'function')
                 ? window.getNormalizedTripModes()
                 : [currentGlobalTransport || 'own_car'];
+
+            if (tripModes.length > 1 && activeModes.length > 0) {
+                const remaining = tripModes.filter(m => activeModes.includes(m));
+                if (remaining.length > 0 && remaining.length < tripModes.length) {
+                    tripModes = remaining;
+                    const newComp = (remaining.length === 1) ? remaining[0] : remaining.join(' + ');
+                    localStorage.setItem('intan_elyu_draft_trip_transport', newComp);
+                    localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(remaining));
+                    if (typeof window.updateDraftTravelModeBar === 'function') {
+                        window.updateDraftTravelModeBar();
+                    }
+                }
+            }
 
             const compositeTripTransport = (tripModes.length === 1) ? tripModes[0] : tripModes.join(' + ');
             if (transInput) transInput.value = compositeTripTransport;
@@ -4030,13 +4045,8 @@ try {
                     p2pLabelEl.textContent = (typeof window.getVehicleDisplayName === 'function')
                         ? window.getVehicleDisplayName(tripModes[0])
                         : tripModes[0].replace(/_/g, ' ').toUpperCase();
-                } else if (tripModes.length === 2) {
-                    const n1 = (typeof window.getVehicleShortName === 'function') ? window.getVehicleShortName(tripModes[0]) : tripModes[0];
-                    const n2 = (typeof window.getVehicleShortName === 'function') ? window.getVehicleShortName(tripModes[1]) : tripModes[1];
-                    p2pLabelEl.textContent = `${n1} + ${n2}`;
                 } else {
-                    const names = tripModes.map(m => (typeof window.getVehicleShortName === 'function') ? window.getVehicleShortName(m) : m).join(', ');
-                    p2pLabelEl.textContent = `${tripModes.length} Vehicles (${names})`;
+                    p2pLabelEl.textContent = `${tripModes.length} Vehicles`;
                 }
             }
 
