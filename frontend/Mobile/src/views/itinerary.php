@@ -2769,11 +2769,23 @@ try {
 
             localStorage.setItem('intan_elyu_draft_leg_vehicles', JSON.stringify(overrides));
 
-            // If a vehicle was unselected across all legs transports, decrease Trip Transportation as well
+            // ---- FULL 2-WAY SYNC BETWEEN LEG TRANSPORT AND TRIP TRANSPORTATION ----
+            // 1. If a vehicle is added in the leg, increase it in Trip Transportation too.
+            // 2. If a vehicle is unselected across all legs, decrease it in Trip Transportation too.
             const curTripModes = (typeof window.getNormalizedTripModes === 'function')
                 ? window.getNormalizedTripModes()
-                : [];
-            if (curTripModes.length > 1 && draft.length > 0) {
+                : ['own_car'];
+
+            let updatedTripModes = [...curTripModes];
+            // Step 1: Add newly selected vehicles from this leg (increase)
+            selectedModes.forEach(m => {
+                if (m && !updatedTripModes.includes(m)) {
+                    updatedTripModes.push(m);
+                }
+            });
+
+            // Step 2: Remove vehicles not active in any leg (decrease)
+            if (draft.length > 0) {
                 const usedInAnyLeg = new Set();
                 draft.forEach((item, i) => {
                     if (item && typeof window.isSpotUnderMaintenance === 'function' && window.isSpotUnderMaintenance(item)) return;
@@ -2783,20 +2795,27 @@ try {
                     } else if (overrides[i] && (overrides[i].transport_modes || overrides[i].transport_mode)) {
                         legModes = window.parseCompositeTransportModes(overrides[i].transport_modes || overrides[i].transport_mode);
                     } else {
-                        legModes = curTripModes;
+                        legModes = updatedTripModes;
                     }
                     legModes.forEach(m => usedInAnyLeg.add(m));
                 });
 
-                const remainingTripModes = curTripModes.filter(m => usedInAnyLeg.has(m));
-                if (remainingTripModes.length > 0 && remainingTripModes.length < curTripModes.length) {
-                    const newComposite = (remainingTripModes.length === 1) ? remainingTripModes[0] : remainingTripModes.join(' + ');
-                    localStorage.setItem('intan_elyu_draft_trip_transport', newComposite);
-                    localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(remainingTripModes));
+                updatedTripModes = updatedTripModes.filter(m => usedInAnyLeg.has(m));
+            }
 
-                    const transInput = document.getElementById('trip-transport');
-                    if (transInput) transInput.value = newComposite;
-                }
+            if (updatedTripModes.length === 0) {
+                updatedTripModes = selectedModes.length > 0 ? selectedModes : ['own_car'];
+            }
+
+            const curKey = curTripModes.join(' + ');
+            const newKey = updatedTripModes.join(' + ');
+            if (curKey !== newKey) {
+                const newComposite = (updatedTripModes.length === 1) ? updatedTripModes[0] : updatedTripModes.join(' + ');
+                localStorage.setItem('intan_elyu_draft_trip_transport', newComposite);
+                localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(updatedTripModes));
+
+                const transInput = document.getElementById('trip-transport');
+                if (transInput) transInput.value = newComposite;
             }
 
             window.closeLegTransportModal();
@@ -4012,18 +4031,26 @@ try {
                 });
             });
 
-            // If any trip vehicle was unselected in all legs transports, decrease trip transportation
+            // Full 2-way sync: increase if vehicle added in legs, decrease if unselected across all legs
             let tripModes = (typeof window.getNormalizedTripModes === 'function')
                 ? window.getNormalizedTripModes()
                 : [currentGlobalTransport || 'own_car'];
 
-            if (tripModes.length > 1 && activeModes.length > 0) {
-                const remaining = tripModes.filter(m => activeModes.includes(m));
-                if (remaining.length > 0 && remaining.length < tripModes.length) {
-                    tripModes = remaining;
-                    const newComp = (remaining.length === 1) ? remaining[0] : remaining.join(' + ');
+            if (activeModes.length > 0) {
+                let mergedModes = [...tripModes];
+                activeModes.forEach(m => {
+                    if (m && !mergedModes.includes(m)) mergedModes.push(m);
+                });
+                mergedModes = mergedModes.filter(m => activeModes.includes(m));
+                if (mergedModes.length === 0) mergedModes = ['own_car'];
+
+                const curKey = tripModes.join(' + ');
+                const newKey = mergedModes.join(' + ');
+                if (curKey !== newKey) {
+                    tripModes = mergedModes;
+                    const newComp = (tripModes.length === 1) ? tripModes[0] : tripModes.join(' + ');
                     localStorage.setItem('intan_elyu_draft_trip_transport', newComp);
-                    localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(remaining));
+                    localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(tripModes));
                     if (typeof window.updateDraftTravelModeBar === 'function') {
                         window.updateDraftTravelModeBar();
                     }
