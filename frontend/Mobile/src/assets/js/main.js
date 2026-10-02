@@ -327,6 +327,20 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 }
                 if (viewName !== 'map' && window.mapInstance) {
                     try {
+                        if (window.mountedMarkersMap) {
+                            window.mountedMarkersMap.forEach(m => {
+                                try { m.remove(); } catch (e) {}
+                            });
+                            window.mountedMarkersMap.clear();
+                        }
+                        if (window.userMarker) {
+                            try { window.userMarker.remove(); } catch (e) {}
+                            window.userMarker = null;
+                        }
+                        if (window._mapGpsHandler) {
+                            document.removeEventListener('gpsUpdated', window._mapGpsHandler);
+                            window._mapGpsHandler = null;
+                        }
                         window.mapInstance.remove();
                     } catch (e) {}
                     window.mapInstance = null;

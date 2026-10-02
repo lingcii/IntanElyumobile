@@ -369,11 +369,17 @@ try {
         outline: none !important;
         box-shadow: 0 3px 10px rgba(239, 68, 68, 0.3) !important;
         color: #ffffff !important;
+        cursor: not-allowed !important;
     }
 
     .p2p-leg-chip.leg-maintenance:hover {
         background: #dc2626 !important;
-        box-shadow: 0 4px 14px rgba(220, 38, 38, 0.38) !important;
+        transform: none !important;
+        box-shadow: 0 3px 10px rgba(239, 68, 68, 0.3) !important;
+    }
+
+    .p2p-leg-chip.leg-maintenance:active {
+        transform: none !important;
     }
 
     .leg-option-card {
@@ -458,7 +464,7 @@ try {
     .travel-starter-card.active {
         background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
         border: 2px solid #ffffff !important;
-        box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28) !important;
+        box-shadow: 0 4px 14px rgba(32, 63, 141, 0.42) !important;
     }
 
     .travel-starter-icon {
@@ -955,7 +961,7 @@ try {
                         style="position:absolute; left:0; top:0; border-radius:50%; width:60px; height:60px; transform:scaleX(-1);">
                     </div>
                     <span id="modal-donut-pct"
-                        style="position:relative; font-size:10px; font-weight:800; color:white; white-space:nowrap;">100%</span>
+                        style="position:relative; font-size:10px; font-weight:800; color:white; white-space:nowrap; text-shadow:0 1px 4px rgba(0,0,0,0.5);">100%</span>
                 </div>
                 <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
                     <div style="display:flex; justify-content:space-between; align-items:baseline;">
@@ -970,6 +976,23 @@ try {
                             id="save-budget-remaining-label">Remaining</span>
                         <span style="font-size:13px; font-weight:700;" id="save-budget-remaining-val">—</span>
                     </div>
+                </div>
+            </div>
+
+            <!-- Color-Coded Budget Readability Legend -->
+            <div id="save-budget-legend"
+                style="display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.08); font-size:10px; font-weight:700;">
+                <div id="legend-pill-green" style="display:flex; align-items:center; gap:4px; color:#10b981; transition:all 0.25s ease; opacity:0.6;">
+                    <span style="width:6px; height:6px; border-radius:50%; background:#10b981; display:inline-block; box-shadow:0 0 6px rgba(16,185,129,0.6);"></span>
+                    <span>Within (&lt;80%)</span>
+                </div>
+                <div id="legend-pill-orange" style="display:flex; align-items:center; gap:4px; color:#f59e0b; transition:all 0.25s ease; opacity:0.6;">
+                    <span style="width:6px; height:6px; border-radius:50%; background:#f59e0b; display:inline-block; box-shadow:0 0 6px rgba(245,158,11,0.6);"></span>
+                    <span>Nearing (80-100%)</span>
+                </div>
+                <div id="legend-pill-red" style="display:flex; align-items:center; gap:4px; color:#ef4444; transition:all 0.25s ease; opacity:0.6;">
+                    <span style="width:6px; height:6px; border-radius:50%; background:#ef4444; display:inline-block; box-shadow:0 0 6px rgba(239,68,68,0.6);"></span>
+                    <span>Over (&gt;100%)</span>
                 </div>
             </div>
         </div>
@@ -1096,9 +1119,10 @@ try {
                     <div>
                         <div style="display:flex; align-items:center; gap:6px;">
                             <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Choose Your Vehicle</h3>
+                            <span style="font-size:9.5px; font-weight:800; background:rgba(255, 255, 255, 0.2); color:#ffffff; padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">Multi-Select</span>
                         </div>
                         <div style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">
-                            Select your primary transportation for this trip
+                            Select one or more vehicles for your trip
                         </div>
                     </div>
                 </div>
@@ -1111,11 +1135,21 @@ try {
         <!-- Body Below Header (Pure White Background) -->
         <div style="background:#ffffff !important; color:#1e293b; padding:16px 18px 12px 18px; flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;">
             
+            <!-- Multi-Select Selection Info Bar -->
+            <div id="starter-modal-selection-bar" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; background:#f8fafc; padding:8px 12px; border-radius:12px; border:1px solid #e2e8f0;">
+                <span style="font-size:12px; font-weight:700; color:#1e3a8a; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-check-double" style="color:#1e3a8a; font-size:12px;"></i> Select multiple vehicles if needed:
+                </span>
+                <span id="starter-modal-selection-count" style="font-size:10.5px; font-weight:800; background:rgba(30, 58, 138, 0.08); color:#1e3a8a; padding:3px 10px; border-radius:100px;">
+                    1 Selected
+                </span>
+            </div>
+
             <!-- Information Bar -->
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; background:#f8fafc; padding:10px 12px; border-radius:12px; border:1px solid #e2e8f0; font-size:11.5px; color:#475569; line-height:1.4;">
                 <span style="display:flex; align-items:center; gap:8px;">
                     <i class="fa-solid fa-circle-info" style="color:#0284c7; font-size:13px; flex-shrink:0;"></i>
-                    <span>Your vehicle sets accurate route guidance, trailhead alerts, and fair pricing estimates across all destinations.</span>
+                    <span>Select multiple vehicles for connecting routes (e.g. Car + Tricycle for trailhead access or Bus + Jeepney).</span>
                 </span>
             </div>
 
@@ -1128,10 +1162,10 @@ try {
                 </div>
 
                 <!-- Option 1: Own Car -->
-                <div class="travel-starter-card" data-mode="own_car" onclick="window.selectTripTravelMode('own_car')">
+                <div class="travel-starter-card" data-mode="own_car" onclick="window.toggleStarterVehicleMode('own_car')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-radio-box" style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:11px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-radio-check" style="color:#1e3a8a !important; display:none;"></i>
+                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
                         </div>
                         <div class="travel-starter-icon">
                             <i class="fa-solid fa-car"></i>
@@ -1151,10 +1185,10 @@ try {
                 </div>
 
                 <!-- Option 2: Motorcycle -->
-                <div class="travel-starter-card" data-mode="motorcycle" onclick="window.selectTripTravelMode('motorcycle')">
+                <div class="travel-starter-card" data-mode="motorcycle" onclick="window.toggleStarterVehicleMode('motorcycle')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-radio-box" style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:11px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-radio-check" style="color:#1e3a8a !important; display:none;"></i>
+                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
                         </div>
                         <div class="travel-starter-icon">
                             <i class="fa-solid fa-motorcycle"></i>
@@ -1174,10 +1208,10 @@ try {
                 </div>
 
                 <!-- Option 3: Van -->
-                <div class="travel-starter-card" data-mode="van" onclick="window.selectTripTravelMode('van')">
+                <div class="travel-starter-card" data-mode="van" onclick="window.toggleStarterVehicleMode('van')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-radio-box" style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:11px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-radio-check" style="color:#1e3a8a !important; display:none;"></i>
+                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
                         </div>
                         <div class="travel-starter-icon">
                             <i class="fa-solid fa-van-shuttle"></i>
@@ -1202,10 +1236,10 @@ try {
                 </div>
 
                 <!-- Option 4: Modern Jeepney (MPUJ) -->
-                <div class="travel-starter-card" data-mode="mpuj" onclick="window.selectTripTravelMode('mpuj')">
+                <div class="travel-starter-card" data-mode="mpuj" onclick="window.toggleStarterVehicleMode('mpuj')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-radio-box" style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:11px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-radio-check" style="color:#1e3a8a !important; display:none;"></i>
+                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
                         </div>
                         <div class="travel-starter-icon">
                             <i class="fa-solid fa-bus-simple"></i>
@@ -1225,10 +1259,10 @@ try {
                 </div>
 
                 <!-- Option 5: Traditional Jeepney (TPUJ) -->
-                <div class="travel-starter-card" data-mode="tpuj" onclick="window.selectTripTravelMode('tpuj')">
+                <div class="travel-starter-card" data-mode="tpuj" onclick="window.toggleStarterVehicleMode('tpuj')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-radio-box" style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:11px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-radio-check" style="color:#1e3a8a !important; display:none;"></i>
+                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
                         </div>
                         <div class="travel-starter-icon">
                             <i class="fa-solid fa-van-shuttle"></i>
@@ -1248,10 +1282,10 @@ try {
                 </div>
 
                 <!-- Option 6: Tricycle -->
-                <div class="travel-starter-card" data-mode="tricycle" onclick="window.selectTripTravelMode('tricycle')">
+                <div class="travel-starter-card" data-mode="tricycle" onclick="window.toggleStarterVehicleMode('tricycle')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-radio-box" style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:11px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-radio-check" style="color:#1e3a8a !important; display:none;"></i>
+                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
                         </div>
                         <div class="travel-starter-icon">
                             <i class="fa-solid fa-motorcycle"></i>
@@ -1271,10 +1305,10 @@ try {
                 </div>
 
                 <!-- Option 7: Taxi -->
-                <div class="travel-starter-card" data-mode="taxi" onclick="window.selectTripTravelMode('taxi')">
+                <div class="travel-starter-card" data-mode="taxi" onclick="window.toggleStarterVehicleMode('taxi')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-radio-box" style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:11px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-radio-check" style="color:#1e3a8a !important; display:none;"></i>
+                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
                         </div>
                         <div class="travel-starter-icon">
                             <i class="fa-solid fa-taxi"></i>
@@ -1294,10 +1328,10 @@ try {
                 </div>
 
                 <!-- Option 8: UV Express (UVE) -->
-                <div class="travel-starter-card" data-mode="uve" onclick="window.selectTripTravelMode('uve')">
+                <div class="travel-starter-card" data-mode="uve" onclick="window.toggleStarterVehicleMode('uve')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-radio-box" style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:11px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-radio-check" style="color:#1e3a8a !important; display:none;"></i>
+                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
                         </div>
                         <div class="travel-starter-icon">
                             <i class="fa-solid fa-van-shuttle"></i>
@@ -1317,10 +1351,10 @@ try {
                 </div>
 
                 <!-- Option 9: PUB Regular Bus -->
-                <div class="travel-starter-card" data-mode="pub_regular" onclick="window.selectTripTravelMode('pub_regular')">
+                <div class="travel-starter-card" data-mode="pub_regular" onclick="window.toggleStarterVehicleMode('pub_regular')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-radio-box" style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:11px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-radio-check" style="color:#1e3a8a !important; display:none;"></i>
+                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
                         </div>
                         <div class="travel-starter-icon">
                             <i class="fa-solid fa-bus"></i>
@@ -1340,10 +1374,10 @@ try {
                 </div>
 
                 <!-- Option 10: PUB Aircon Bus -->
-                <div class="travel-starter-card" data-mode="pub_aircon" onclick="window.selectTripTravelMode('pub_aircon')">
+                <div class="travel-starter-card" data-mode="pub_aircon" onclick="window.toggleStarterVehicleMode('pub_aircon')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-radio-box" style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:11px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-radio-check" style="color:#1e3a8a !important; display:none;"></i>
+                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
                         </div>
                         <div class="travel-starter-icon">
                             <i class="fa-solid fa-bus"></i>
@@ -1368,12 +1402,12 @@ try {
 
         <!-- Locked Bottom Footer Banner (Matched to Notifications / Leg Transport Footer Banner) -->
         <div style="flex-shrink:0; padding:12px 18px calc(14px + env(safe-area-inset-bottom, 0px)) 18px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); display:flex; align-items:center; justify-content:space-between; gap:12px; border:none !important; outline:none !important;">
-            <div>
+            <div style="min-width:0; flex:1;">
                 <div style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.5px;">Trip Travel Mode</div>
-                <div id="starter-modal-current-mode-label" style="font-size:16px; font-weight:900; color:#ffffff; letter-spacing:-0.2px;">Own Car</div>
+                <div id="starter-modal-current-mode-label" style="font-size:15px; font-weight:900; color:#ffffff; letter-spacing:-0.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Own Car</div>
             </div>
-            <button type="button" onclick="window.closeTravelModeStarterModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; cursor:pointer; padding:9px 18px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; display:inline-flex; align-items:center; gap:7px; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Done
+            <button type="button" id="btn-apply-starter-transport" onclick="window.applyStarterVehicleSelection()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; cursor:pointer; padding:9px 18px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; display:inline-flex; align-items:center; gap:7px; transition:transform 0.15s ease; flex-shrink:0;" onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Apply Selection
             </button>
         </div>
 
@@ -1747,6 +1781,46 @@ try {
             const isNonDrivable = Boolean(toSpot && (toSpot.accessible_by_private_vehicle === 0 || toSpot.accessible_by_private_vehicle === false || toSpot.accessible_by_private_vehicle === '0'));
             const normGlobal = (globalMode || '').toLowerCase().replace(/[- ]/g, '_');
 
+            // Multi-modal global transport support (e.g. "own_car + tricycle", "mpuj + tricycle")
+            if (normGlobal.includes('+') || normGlobal.includes(',')) {
+                const subModes = normGlobal.split(/[\+,]/).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+                if (subModes.length > 1) {
+                    const shortNames = {
+                        'own_car': 'Own Car', 'car': 'Own Car', 'motorcycle': 'Motorcycle',
+                        'van': 'Van', 'mpuj': 'MPUJ', 'tpuj': 'TPUJ', 'jeepney': 'Jeepney',
+                        'tricycle': 'Tricycle', 'pub_regular': 'Regular Bus', 'pub_aircon': 'Aircon Bus',
+                        'uve': 'UV Express', 'taxi': 'Taxi'
+                    };
+                    const cost = window.calculateSingleLegCost(subModes.join(' + '), d, muniA, muniB);
+                    const dispName = (subModes.length === 2)
+                        ? `${shortNames[subModes[0]] || subModes[0]} + ${shortNames[subModes[1]] || subModes[1]}`
+                        : `${subModes.length} Vehicles Selected`;
+
+                    let warningNotice = null;
+                    if (isNonDrivable) {
+                        const canTricycleOrMotor = subModes.some(m => ['tricycle', 'trike', 'motorcycle', 'motor', 'walking', 'walk'].includes(m));
+                        if (canTricycleOrMotor && subModes.some(m => ['own_car', 'car', 'van'].includes(m))) {
+                            warningNotice = 'Park car at trailhead; proceed via local tricycle/motorcycle.';
+                        } else if (!canTricycleOrMotor) {
+                            warningNotice = 'Not accessible by selected vehicles (trailhead drop-off only).';
+                        }
+                    }
+
+                    return {
+                        mode: subModes.join(' + '),
+                        transport_mode: subModes.join(' + '),
+                        transport_modes: subModes,
+                        name: dispName,
+                        full_names: subModes.map(m => shortNames[m] || m).join(', '),
+                        icon: 'fa-shuffle',
+                        cost: cost,
+                        leg_cost: cost,
+                        warning: warningNotice,
+                        is_non_drivable: isNonDrivable
+                    };
+                }
+            }
+
             // 1. If global is Own Car
             if (normGlobal === 'own_car' || normGlobal === 'car') {
                 if (isNonDrivable) {
@@ -1952,6 +2026,17 @@ try {
             if (!spot) return { allowed: true, reason: '' };
             const norm = (mode || '').toLowerCase().replace(/[- ]/g, '_');
             const isNonDrivable = Boolean(spot.accessible_by_private_vehicle === 0 || spot.accessible_by_private_vehicle === false || spot.accessible_by_private_vehicle === '0');
+
+            if (norm.includes('+') || norm.includes(',')) {
+                const subModes = norm.split(/[\+,]/).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+                const checks = subModes.map(m => window.isVehicleAllowedForSpot(m, spot));
+                const anyAllowed = checks.some(c => c.allowed);
+                if (anyAllowed) {
+                    return { allowed: true, reason: '' };
+                } else {
+                    return checks[0] || { allowed: false, reason: 'Destination inaccessible by selected vehicles' };
+                }
+            }
             
             if ((norm === 'own_car' || norm === 'car') && isNonDrivable) {
                 return { allowed: false, reason: 'Destination inaccessible by car (trailhead drop-off only)' };
@@ -2237,7 +2322,7 @@ try {
                             if ((!toSpot.accessible_vehicles || toSpot.accessible_vehicles.length === 0) && Array.isArray(mapSpot.accessible_vehicles) && mapSpot.accessible_vehicles.length > 0) {
                                 toSpot.accessible_vehicles = mapSpot.accessible_vehicles;
                             }
-                            if (toSpot.is_maintenance === undefined && mapSpot.is_maintenance !== undefined) {
+                            if (mapSpot.is_maintenance !== undefined) {
                                 toSpot.is_maintenance = mapSpot.is_maintenance;
                             }
                         }
@@ -2246,8 +2331,21 @@ try {
             } catch (e) {}
 
             const isNonDrivable = Boolean(toSpot && (toSpot.accessible_by_private_vehicle === 0 || toSpot.accessible_by_private_vehicle === false || toSpot.accessible_by_private_vehicle === '0'));
-            const isSiteUnderMaintenance = Boolean(toSpot && (toSpot.is_maintenance === 1 || toSpot.is_maintenance === true || toSpot.is_maintenance === '1'));
+            const isSiteUnderMaintenance = Boolean(
+                (toSpot && (toSpot.is_maintenance === 1 || toSpot.is_maintenance === true || toSpot.is_maintenance === '1')) ||
+                (typeof window.getLegTransportInfo === 'function' && window.getLegTransportInfo(legIdx).is_maintenance)
+            );
             window.currentLegIsSiteUnderMaintenance = isSiteUnderMaintenance;
+
+            // If the destination site is under maintenance, DO NOT show the Choose Leg Transport opensheet modal!
+            if (isSiteUnderMaintenance) {
+                const modal = document.getElementById('leg-transport-modal');
+                if (modal) modal.style.display = 'none';
+                if (typeof showToast === 'function') {
+                    showToast(`${toName || 'This site'} is currently under maintenance or temporarily closed. Vehicle transit is restricted.`);
+                }
+                return;
+            }
 
             const subEl = document.getElementById('leg-modal-subtitle');
             if (subEl) {
@@ -2674,6 +2772,12 @@ try {
             if (typeof window.calculateModalBudget === 'function') {
                 window.calculateModalBudget();
             }
+            if (typeof window.updateDraftBudget === 'function') {
+                window.updateDraftBudget(draft);
+            }
+            if (typeof window.updateDraftTravelModeBar === 'function') {
+                window.updateDraftTravelModeBar();
+            }
             if (typeof showToast === 'function') {
                 const toastLabel = (selectedModes.length > 2) ? `${selectedModes.length} vehicles` : displayName;
                 showToast(`Leg ${legIdx + 1} transit set to ${toastLabel}`);
@@ -2698,55 +2802,143 @@ try {
         window.updateDraftTravelModeBar = function () {
             const bar = document.getElementById('draft-travel-mode-bar');
             if (!bar) return;
-            const mode = localStorage.getItem('intan_elyu_draft_trip_transport') || 'own_car';
             const iconEl = document.getElementById('draft-travel-mode-icon');
             const labelEl = document.getElementById('draft-travel-mode-label');
 
-            const norm = (mode || '').toLowerCase().replace(/[- ]/g, '_');
-            if (norm === 'motorcycle') {
-                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-motorcycle" style="color:#fbbf24;"></i>';
-                if (labelEl) labelEl.textContent = 'Motorcycle';
-            } else if (norm === 'van') {
-                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-van-shuttle" style="color:#c084fc;"></i>';
-                if (labelEl) labelEl.textContent = 'Van';
-            } else if (norm === 'mpuj') {
-                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-bus-simple" style="color:#34d399;"></i>';
-                if (labelEl) labelEl.textContent = 'MPUJ (Modern Jeepney)';
-            } else if (norm === 'tpuj') {
-                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-van-shuttle" style="color:#10b981;"></i>';
-                if (labelEl) labelEl.textContent = 'TPUJ (Traditional Jeepney)';
-            } else if (norm === 'jeepney') {
-                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-van-shuttle" style="color:#34d399;"></i>';
-                if (labelEl) labelEl.textContent = 'Jeepney';
-            } else if (norm === 'tricycle' || norm === 'trike') {
-                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-motorcycle" style="color:#22d3ee;"></i>';
-                if (labelEl) labelEl.textContent = 'Tricycle';
-            } else if (norm === 'pub_regular' || norm === 'pub_ordinary') {
-                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-bus" style="color:#fb923c;"></i>';
-                if (labelEl) labelEl.textContent = 'PUB Regular (Bus)';
-            } else if (norm === 'pub_aircon' || norm === 'bus') {
-                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-bus" style="color:#f87171;"></i>';
-                if (labelEl) labelEl.textContent = 'PUB Aircon (Bus)';
-            } else if (norm === 'uve') {
-                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-van-shuttle" style="color:#a855f7;"></i>';
-                if (labelEl) labelEl.textContent = 'UV Express (UVE)';
-            } else if (norm === 'taxi') {
-                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-taxi" style="color:#facc15;"></i>';
-                if (labelEl) labelEl.textContent = 'Taxi';
+            const shortNames = {
+                'own_car': 'Own Car', 'car': 'Own Car', 'motorcycle': 'Motorcycle', 'motor': 'Motorcycle',
+                'van': 'Van', 'mpuj': 'MPUJ', 'tpuj': 'TPUJ', 'jeepney': 'Jeepney',
+                'tricycle': 'Tricycle', 'trike': 'Tricycle', 'pub_regular': 'Regular Bus', 'pub_aircon': 'Aircon Bus',
+                'uve': 'UV Express', 'taxi': 'Taxi', 'walking': 'Walk / Hike', 'no_vehicle': 'No Vehicle'
+            };
+
+            const draft = (typeof window.getEffectiveDraft === 'function')
+                ? window.getEffectiveDraft()
+                : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+
+            let activeModes = [];
+            if (draft && draft.length > 0 && typeof window.getLegTransportInfo === 'function') {
+                draft.forEach((_, i) => {
+                    const l = window.getLegTransportInfo(i);
+                    if (!l || l.is_maintenance) return;
+                    let mList = [];
+                    if (Array.isArray(l.transport_modes) && l.transport_modes.length > 0) {
+                        mList = l.transport_modes;
+                    } else if (l.transport_mode || l.mode) {
+                        mList = String(l.transport_mode || l.mode).split(/[\+,]/);
+                    }
+                    mList.forEach(m => {
+                        const normM = String(m).trim().toLowerCase().replace(/[- ]/g, '_');
+                        if (normM && !activeModes.includes(normM)) activeModes.push(normM);
+                    });
+                });
+            }
+
+            if (activeModes.length === 0) {
+                const rawGlobal = localStorage.getItem('intan_elyu_draft_trip_transport') || 'own_car';
+                activeModes = rawGlobal.split(/[\+,]/).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+            }
+
+            if (activeModes.length === 1) {
+                const norm = activeModes[0];
+                if (norm === 'motorcycle') {
+                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-motorcycle" style="color:#fbbf24;"></i>';
+                    if (labelEl) labelEl.textContent = 'Motorcycle';
+                } else if (norm === 'van') {
+                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-van-shuttle" style="color:#c084fc;"></i>';
+                    if (labelEl) labelEl.textContent = 'Van';
+                } else if (norm === 'mpuj') {
+                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-bus-simple" style="color:#34d399;"></i>';
+                    if (labelEl) labelEl.textContent = 'MPUJ (Modern Jeepney)';
+                } else if (norm === 'tpuj') {
+                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-van-shuttle" style="color:#10b981;"></i>';
+                    if (labelEl) labelEl.textContent = 'TPUJ (Traditional Jeepney)';
+                } else if (norm === 'jeepney') {
+                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-van-shuttle" style="color:#34d399;"></i>';
+                    if (labelEl) labelEl.textContent = 'Jeepney';
+                } else if (norm === 'tricycle' || norm === 'trike') {
+                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-motorcycle" style="color:#22d3ee;"></i>';
+                    if (labelEl) labelEl.textContent = 'Tricycle';
+                } else if (norm === 'pub_regular' || norm === 'pub_ordinary') {
+                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-bus" style="color:#fb923c;"></i>';
+                    if (labelEl) labelEl.textContent = 'PUB Regular (Bus)';
+                } else if (norm === 'pub_aircon' || norm === 'bus') {
+                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-bus" style="color:#f87171;"></i>';
+                    if (labelEl) labelEl.textContent = 'PUB Aircon (Bus)';
+                } else if (norm === 'uve') {
+                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-van-shuttle" style="color:#a855f7;"></i>';
+                    if (labelEl) labelEl.textContent = 'UV Express (UVE)';
+                } else if (norm === 'taxi') {
+                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-taxi" style="color:#facc15;"></i>';
+                    if (labelEl) labelEl.textContent = 'Taxi';
+                } else {
+                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-car" style="color:#ffffff;"></i>';
+                    if (labelEl) labelEl.textContent = 'Own Car';
+                }
+            } else if (activeModes.length === 2) {
+                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-route" style="color:#00f2fe;"></i>';
+                const s1 = shortNames[activeModes[0]] || activeModes[0];
+                const s2 = shortNames[activeModes[1]] || activeModes[1];
+                if (labelEl) labelEl.textContent = `${s1} + ${s2}`;
+            } else if (activeModes.length > 2) {
+                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-route" style="color:#00f2fe;"></i>';
+                if (labelEl) labelEl.textContent = `${activeModes.length} Vehicles (${activeModes.map(m => shortNames[m] || m).join(', ')})`;
             } else {
                 if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-car" style="color:#ffffff;"></i>';
                 if (labelEl) labelEl.textContent = 'Own Car';
             }
         };
 
+        window.starterModalSelectedModes = [];
+
         window.openTravelModeStarterModal = function () {
             const modal = document.getElementById('travel-mode-starter-modal');
             if (!modal) return;
             const currentMode = localStorage.getItem('intan_elyu_draft_trip_transport') || 'own_car';
 
+            let initialModes = [];
+            try {
+                const rawArr = localStorage.getItem('intan_elyu_draft_trip_transports');
+                if (rawArr) {
+                    const parsed = JSON.parse(rawArr);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        initialModes = parsed.map(m => m.toLowerCase().replace(/[- ]/g, '_'));
+                    }
+                }
+            } catch (e) {}
+
+            if (initialModes.length === 0) {
+                if (currentMode.includes('+') || currentMode.includes(',')) {
+                    initialModes = currentMode.split(/[\+,]/).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+                } else {
+                    initialModes = [currentMode.toLowerCase().replace(/[- ]/g, '_')];
+                }
+            }
+
+            initialModes = initialModes.map(m => {
+                if (m === 'car') return 'own_car';
+                if (m === 'motor') return 'motorcycle';
+                return m;
+            });
+
+            if (initialModes.length === 0) initialModes = ['own_car'];
+
+            window.starterModalSelectedModes = initialModes;
+            window.renderStarterModalCards();
+
+            modal.style.display = 'flex';
+            const bottomNav = document.getElementById('bottom-navigation');
+            if (bottomNav) bottomNav.classList.add('nav-hidden');
+        };
+
+        window.renderStarterModalCards = function () {
+            const modal = document.getElementById('travel-mode-starter-modal');
+            if (!modal) return;
+
+            const selected = window.starterModalSelectedModes || ['own_car'];
+
             const modeLabels = {
                 'own_car': 'Own Car',
-                'car': 'Own Car',
                 'motorcycle': 'Motorcycle',
                 'van': 'Van',
                 'mpuj': 'Modern Jeepney (MPUJ)',
@@ -2759,60 +2951,111 @@ try {
                 'taxi': 'Taxi'
             };
 
+            const shortNames = {
+                'own_car': 'Own Car',
+                'motorcycle': 'Motorcycle',
+                'van': 'Van',
+                'mpuj': 'MPUJ',
+                'tpuj': 'TPUJ',
+                'jeepney': 'Jeepney',
+                'tricycle': 'Tricycle',
+                'pub_regular': 'Regular Bus',
+                'pub_aircon': 'Aircon Bus',
+                'uve': 'UV Express',
+                'taxi': 'Taxi'
+            };
+
             const cards = modal.querySelectorAll('.travel-starter-card');
             cards.forEach(card => {
-                const mode = card.getAttribute('data-mode');
+                const mode = (card.getAttribute('data-mode') || '').toLowerCase().replace(/[- ]/g, '_');
                 const badge = card.querySelector('.starter-active-badge');
-                const radioCheck = card.querySelector('.starter-radio-check');
-                const radioBox = card.querySelector('.starter-radio-box');
-                const isSelected = (mode === currentMode) || 
-                    (currentMode === 'car' && mode === 'own_car') ||
-                    (currentMode === 'motor' && mode === 'motorcycle');
+                const checkIcon = card.querySelector('.starter-check-icon');
+                const checkBox = card.querySelector('.starter-check-box');
+                const isSelected = selected.some(m => {
+                    const normM = m.toLowerCase().replace(/[- ]/g, '_');
+                    return (normM === mode) || (normM === 'car' && mode === 'own_car') || (normM === 'motor' && mode === 'motorcycle');
+                });
 
                 if (isSelected) {
                     card.classList.add('active');
                     if (badge) badge.style.display = 'inline-block';
-                    if (radioCheck) radioCheck.style.display = 'inline-block';
-                    if (radioBox) {
-                        radioBox.style.background = '#ffffff';
-                        radioBox.style.borderColor = '#ffffff';
+                    if (checkIcon) checkIcon.style.display = 'inline-block';
+                    if (checkBox) {
+                        checkBox.style.background = '#ffffff';
+                        checkBox.style.borderColor = '#ffffff';
                     }
                 } else {
                     card.classList.remove('active');
                     if (badge) badge.style.display = 'none';
-                    if (radioCheck) radioCheck.style.display = 'none';
-                    if (radioBox) {
-                        radioBox.style.background = 'rgba(255,255,255,0.1)';
-                        radioBox.style.borderColor = 'rgba(255,255,255,0.65)';
+                    if (checkIcon) checkIcon.style.display = 'none';
+                    if (checkBox) {
+                        checkBox.style.background = 'rgba(255,255,255,0.1)';
+                        checkBox.style.borderColor = 'rgba(255,255,255,0.65)';
                     }
                 }
             });
 
-            const labelEl = document.getElementById('starter-modal-current-mode-label');
-            if (labelEl) {
-                labelEl.textContent = modeLabels[currentMode] || currentMode;
+            // Update selection count badge
+            const countEl = document.getElementById('starter-modal-selection-count');
+            if (countEl) {
+                countEl.textContent = `${selected.length} Selected`;
             }
 
-            modal.style.display = 'flex';
-            const bottomNav = document.getElementById('bottom-navigation');
-            if (bottomNav) bottomNav.classList.add('nav-hidden');
+            // Update footer label
+            const labelEl = document.getElementById('starter-modal-current-mode-label');
+            if (labelEl) {
+                if (selected.length === 1) {
+                    labelEl.textContent = modeLabels[selected[0]] || selected[0];
+                } else if (selected.length === 2) {
+                    const s1 = shortNames[selected[0]] || selected[0];
+                    const s2 = shortNames[selected[1]] || selected[1];
+                    labelEl.textContent = `${s1} + ${s2}`;
+                } else {
+                    labelEl.textContent = `${selected.length} Vehicles Selected`;
+                }
+            }
+
+            // Update Apply button
+            const btn = document.getElementById('btn-apply-starter-transport');
+            if (btn) {
+                btn.innerHTML = `<i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Apply Selection (${selected.length})`;
+            }
         };
 
-        window.closeTravelModeStarterModal = function () {
-            const modal = document.getElementById('travel-mode-starter-modal');
-            if (!modal) return;
-            modal.style.display = 'none';
-            const bottomNav = document.getElementById('bottom-navigation');
-            if (bottomNav) bottomNav.classList.remove('nav-hidden');
+        window.toggleStarterVehicleMode = function (mode) {
+            const norm = (mode || '').toLowerCase().replace(/[- ]/g, '_');
+            let list = window.starterModalSelectedModes || [];
+
+            const idx = list.findIndex(m => m.toLowerCase().replace(/[- ]/g, '_') === norm);
+            if (idx > -1) {
+                if (list.length === 1) {
+                    if (typeof showToast === 'function') {
+                        showToast('Please keep at least one vehicle selected.');
+                    }
+                    return;
+                }
+                list.splice(idx, 1);
+            } else {
+                list.push(norm);
+            }
+
+            window.starterModalSelectedModes = list;
+            window.renderStarterModalCards();
         };
 
-        window.selectTripTravelMode = function (mode) {
-            localStorage.setItem('intan_elyu_draft_trip_transport', mode);
-            // Clear leg overrides so whole itinerary follows the newly selected vehicle
-            localStorage.removeItem('intan_elyu_draft_leg_vehicles');
+        window.applyStarterVehicleSelection = function () {
+            const selected = window.starterModalSelectedModes || [];
+            if (selected.length === 0) {
+                if (typeof showToast === 'function') showToast('Please select at least one vehicle.');
+                return;
+            }
+
+            const compositeMode = (selected.length === 1) ? selected[0] : selected.join(' + ');
+            localStorage.setItem('intan_elyu_draft_trip_transport', compositeMode);
+            localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(selected));
 
             const transInput = document.getElementById('trip-transport');
-            if (transInput) transInput.value = mode;
+            if (transInput) transInput.value = compositeMode;
 
             window.updateDraftTravelModeBar();
             window.closeTravelModeStarterModal();
@@ -2824,37 +3067,52 @@ try {
                 window.calculateModalBudget();
             }
 
-            const modeLabels = {
-                'own_car': 'Own Car',
-                'car': 'Own Car',
-                'motorcycle': 'Motorcycle',
-                'van': 'Van',
-                'mpuj': 'MPUJ (Modern Jeepney)',
-                'tpuj': 'TPUJ (Traditional Jeepney)',
-                'jeepney': 'Jeepney',
-                'tricycle': 'Tricycle',
-                'pub_regular': 'PUB Regular (Bus)',
-                'pub_aircon': 'PUB Aircon (Bus)',
-                'uve': 'UV Express (UVE)',
-                'taxi': 'Taxi'
-            };
-            const chosenName = modeLabels[mode] || mode;
+            const draft = (typeof window.getEffectiveDraft === 'function')
+                ? window.getEffectiveDraft()
+                : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+            if (typeof window.updateDraftBudget === 'function') {
+                window.updateDraftBudget(draft);
+            }
 
-            const labelEl = document.getElementById('starter-modal-current-mode-label');
-            if (labelEl) {
-                labelEl.textContent = chosenName;
+            const shortNames = {
+                'own_car': 'Own Car', 'motorcycle': 'Motorcycle', 'van': 'Van',
+                'mpuj': 'Modern Jeepney', 'tpuj': 'Traditional Jeepney', 'jeepney': 'Jeepney',
+                'tricycle': 'Tricycle', 'pub_regular': 'Regular Bus', 'pub_aircon': 'Aircon Bus',
+                'uve': 'UV Express', 'taxi': 'Taxi'
+            };
+
+            let chosenName = '';
+            if (selected.length === 1) {
+                chosenName = shortNames[selected[0]] || selected[0];
+            } else if (selected.length === 2) {
+                chosenName = `${shortNames[selected[0]] || selected[0]} + ${shortNames[selected[1]] || selected[1]}`;
+            } else {
+                chosenName = `${selected.length} Vehicles (${selected.map(m => shortNames[m] || m).join(', ')})`;
             }
 
             const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
             if (draft.length === 0) {
                 if (typeof showToast === 'function') {
-                    showToast(`Vehicle set: ${chosenName}! Now add spots from the Map.`);
+                    showToast(`Vehicles set: ${chosenName}! Now add spots from the Map.`);
                 }
             } else {
                 if (typeof showToast === 'function') {
                     showToast(`Transportation set: ${chosenName}`);
                 }
             }
+        };
+
+        window.closeTravelModeStarterModal = function () {
+            const modal = document.getElementById('travel-mode-starter-modal');
+            if (!modal) return;
+            modal.style.display = 'none';
+            const bottomNav = document.getElementById('bottom-navigation');
+            if (bottomNav) bottomNav.classList.remove('nav-hidden');
+        };
+
+        window.selectTripTravelMode = function (mode) {
+            window.starterModalSelectedModes = [mode];
+            window.applyStarterVehicleSelection();
         };
 
         window.currentRouteType = window.currentRouteType || 'recommended';
@@ -3144,18 +3402,25 @@ try {
                 const leg0ChipClass = leg0Info.is_maintenance ? 'p2p-leg-chip leg-maintenance' : 'p2p-leg-chip';
                 const leg0IconColor = leg0Info.is_maintenance ? '#ffffff' : '#0284c7';
                 const leg0NameStyle = leg0Info.is_maintenance ? 'color:#ffffff; font-weight:800;' : '';
+                const leg0DestName = (draft[0] && draft[0].name) ? draft[0].name.replace(/'/g, "\\'") : 'Destination';
+                const leg0ClickAction = leg0Info.is_maintenance
+                    ? `if(typeof showToast==='function') showToast('${leg0DestName} is currently under maintenance or temporarily closed. Vehicle transit is restricted.');`
+                    : `window.openLegTransportModal(0)`;
+                const leg0TrailingIcon = leg0Info.is_maintenance
+                    ? `<i class="fa-solid fa-ban" style="color:#ffffff; font-size:10px; margin-left:2px; flex-shrink:0;"></i>`
+                    : `<i class="fa-solid fa-chevron-right leg-action-edit" flex-shrink:0;"></i>`;
 
                 startingLegHtml = `
             <div class="stops-swap-divider starting-leg-divider">
                 <div class="stops-swap-line"></div>
                 <div class="stops-leg-wrapper" style="display:flex; align-items:center; gap:8px; z-index:3;">
-                    <div class="${leg0ChipClass}" onclick="window.openLegTransportModal(0)" title="${leg0Info.is_maintenance ? 'Destination is under maintenance' : 'Selected: ' + (leg0Info.full_names || leg0Info.name)}">
+                    <div class="${leg0ChipClass}" onclick="${leg0ClickAction}" title="${leg0Info.is_maintenance ? 'Destination is under maintenance. Transport options are disabled.' : 'Selected: ' + (leg0Info.full_names || leg0Info.name)}">
                         <i class="fa-solid ${leg0Info.icon}" style="color:${leg0IconColor}; font-size:11px; flex-shrink:0;"></i>
                         <span class="leg-chip-name" style="${leg0NameStyle}">${leg0Info.name}</span>
                         ${fareBadge}
                         ${leg0Info.is_maintenance ? '' : `<span class="leg-dist-text">&bull; ${startDistText}</span>`}
                         ${warningBadge}
-                        <i class="fa-solid fa-chevron-right leg-action-edit" style="${leg0Info.is_maintenance ? 'color:#ffffff;' : ''} flex-shrink:0;"></i>
+                        ${leg0TrailingIcon}
                     </div>
                     <div class="starting-leg-icon-pill" title="Start of Itinerary Route">
                         <i class="fa-solid fa-arrow-down"></i>
@@ -3248,18 +3513,25 @@ try {
                         const legChipClass = legInfo.is_maintenance ? 'p2p-leg-chip leg-maintenance' : 'p2p-leg-chip';
                         const legIconColor = legInfo.is_maintenance ? '#ffffff' : '#0284c7';
                         const legNameStyle = legInfo.is_maintenance ? 'color:#ffffff; font-weight:800;' : '';
+                        const legDestName = (place && place.name) ? place.name.replace(/'/g, "\\'") : 'Destination';
+                        const legClickAction = legInfo.is_maintenance
+                            ? `if(typeof showToast==='function') showToast('${legDestName} is currently under maintenance or temporarily closed. Vehicle transit is restricted.');`
+                            : `window.openLegTransportModal(${index})`;
+                        const legTrailingIcon = legInfo.is_maintenance
+                            ? `<i class="fa-solid fa-ban" style="color:#ffffff; font-size:10px; margin-left:2px; flex-shrink:0;"></i>`
+                            : `<i class="fa-solid fa-chevron-right leg-action-edit" flex-shrink:0;"></i>`;
 
                         html += `
                         <div class="stops-swap-divider">
                             <div class="stops-swap-line"></div>
                             <div class="stops-leg-wrapper" style="display:flex; align-items:center; gap:8px; z-index:3;">
-                                <div class="${legChipClass}" onclick="window.openLegTransportModal(${index})" title="${legInfo.is_maintenance ? 'Destination is under maintenance' : 'Selected: ' + (legInfo.full_names || legInfo.name)}">
+                                <div class="${legChipClass}" onclick="${legClickAction}" title="${legInfo.is_maintenance ? 'Destination is under maintenance. Transport options are disabled.' : 'Selected: ' + (legInfo.full_names || legInfo.name)}">
                                     <i class="fa-solid ${legInfo.icon}" style="color:${legIconColor}; font-size:11px; flex-shrink:0;"></i>
                                     <span class="leg-chip-name" style="${legNameStyle}">${legInfo.name}</span>
                                     ${fareBadge}
                                     ${legInfo.is_maintenance ? '' : `<span class="leg-dist-text">&bull; ${legDistText}</span>`}
                                     ${warningBadge}
-                                    <i class="fa-solid fa-chevron-right leg-action-edit" style="${legInfo.is_maintenance ? 'color:#ffffff;' : ''} flex-shrink:0;"></i>
+                                    ${legTrailingIcon}
                                 </div>
                                 <button type="button" class="btn-swap-pill" onclick="event.stopPropagation(); window.swapDraftStops(${index - 1}, ${index});" title="Swap Stop ${index} and Stop ${index + 1}" aria-label="Swap order">
                                     <i class="fa-solid fa-arrows-up-down"></i>
@@ -3344,6 +3616,10 @@ try {
 
             timeline.innerHTML = html;
             setupDragAndDrop(draft);
+
+            if (typeof window.updateDraftBudget === 'function') {
+                window.updateDraftBudget(draft);
+            }
 
             if (!skipMap) {
                 window._renderTimeout = setTimeout(() => {
@@ -3678,13 +3954,13 @@ try {
         let _donutAnimFrame = null;
         let _currentDonutPct = 0;
 
-        function animateDonut(targetPct, color) {
+        function animateDonut(targetPct, color, customLabel) {
             if (_donutAnimFrame) cancelAnimationFrame(_donutAnimFrame);
             const donutEl = document.getElementById('modal-budget-donut');
             const pctEl = document.getElementById('modal-donut-pct');
             const startPct = _currentDonutPct;
             const startTime = performance.now();
-            const duration = 700; // ms
+            const duration = 650; // ms
 
             function step(now) {
                 const elapsed = now - startTime;
@@ -3695,15 +3971,24 @@ try {
                 _currentDonutPct = pct;
 
                 if (donutEl) {
+                    const fillPct = Math.min(Math.max(pct, 0), 100);
                     donutEl.style.background = `conic-gradient(
-                    ${color} 0% ${pct}%,
-                    rgba(255,255,255,0.08) ${pct}% 100%
+                    ${color} 0% ${fillPct}%,
+                    rgba(255,255,255,0.08) ${fillPct}% 100%
                 )`;
                     donutEl.style.mask = 'radial-gradient(transparent 50%, black 51%)';
                     donutEl.style.webkitMask = 'radial-gradient(transparent 50%, black 51%)';
                 }
                 if (pctEl) {
-                    pctEl.textContent = Math.round(pct) + '%';
+                    if (customLabel !== undefined && customLabel !== null) {
+                        pctEl.textContent = customLabel;
+                    } else if (pct > 999) {
+                        pctEl.textContent = '>999%';
+                    } else if (targetPct > 0 && targetPct < 1 && pct < 1) {
+                        pctEl.textContent = '<1%';
+                    } else {
+                        pctEl.textContent = Math.round(pct) + '%';
+                    }
                     pctEl.style.color = color;
                 }
 
@@ -3725,7 +4010,14 @@ try {
 
         window.computeItineraryTransCost = function (draft, transport) {
             if (!draft || draft.length === 0) return 0;
-            const isNoVeh = !transport || transport.toLowerCase().includes('no_vehicle') || transport.toLowerCase().includes('no vehicle');
+
+            let overrides = [];
+            try {
+                overrides = JSON.parse(localStorage.getItem('intan_elyu_draft_leg_vehicles') || '[]');
+            } catch (e) { overrides = []; }
+            const hasOverrides = Array.isArray(overrides) && overrides.some(o => o && (o.transport_mode || o.transport_modes));
+
+            const isNoVeh = !hasOverrides && (!transport || transport.toLowerCase().includes('no_vehicle') || transport.toLowerCase().includes('no vehicle'));
             if (isNoVeh) {
                 window._draftBoundaryBreakdown = [];
                 return 0;
@@ -3739,7 +4031,9 @@ try {
                     ? window.getLegTransportInfo(idx)
                     : { mode: 'own_car', cost: 0, distance_km: 2.0 };
 
-                const legCost = parseFloat(legInfo.cost || legInfo.leg_cost || 0);
+                const legCost = (legInfo && !legInfo.is_maintenance)
+                    ? parseFloat(legInfo.cost || legInfo.leg_cost || 0)
+                    : 0;
                 totalTransit += legCost;
 
                 const fromName = (idx === 0) ? 'Your Location' : draft[idx - 1].name;
@@ -3778,13 +4072,32 @@ try {
             const transInput = document.getElementById('trip-transport');
 
             const legInfos = draft.map((_, i) => (typeof window.getLegTransportInfo === 'function') ? window.getLegTransportInfo(i) : null).filter(Boolean);
-            const distinctModes = [...new Set(legInfos.map(l => (l.mode || l.transport_mode || 'mpuj').toLowerCase().replace(/[- ]/g, '_')))];
 
-            let overallMode = currentGlobalTransport;
-            if (distinctModes.length === 1) {
-                overallMode = distinctModes[0];
-            } else if (distinctModes.length > 1 && !['own_car', 'motorcycle'].includes(currentGlobalTransport)) {
-                overallMode = 'mixed';
+            // Extract the actual individual transport modes used across all valid legs
+            const activeModes = [];
+            legInfos.forEach(l => {
+                if (!l || l.is_maintenance) return;
+                let rawList = [];
+                if (Array.isArray(l.transport_modes) && l.transport_modes.length > 0) {
+                    rawList = l.transport_modes;
+                } else if (l.transport_mode || l.mode) {
+                    rawList = String(l.transport_mode || l.mode).split(/[\+,]/);
+                }
+                rawList.forEach(m => {
+                    const normM = String(m).trim().toLowerCase().replace(/[- ]/g, '_');
+                    if (normM && !activeModes.includes(normM)) {
+                        activeModes.push(normM);
+                    }
+                });
+            });
+
+            let overallMode = '';
+            if (activeModes.length === 1) {
+                overallMode = activeModes[0];
+            } else if (activeModes.length > 1) {
+                overallMode = activeModes.join(' + ');
+            } else {
+                overallMode = currentGlobalTransport || 'own_car';
             }
             if (transInput) transInput.value = overallMode;
 
@@ -3795,54 +4108,64 @@ try {
                 p2pLegsEl.textContent = `${draft.length} Destination${draft.length > 1 ? 's' : ''} • ${draft.length} Leg${draft.length > 1 ? 's' : ''}`;
             }
 
-            // Clean Transport Mode label - NO (VEHICLE TYPE) parentheses!
+            const shortNames = {
+                'own_car': 'Own Car', 'car': 'Own Car', 'motorcycle': 'Motorcycle', 'motor': 'Motorcycle',
+                'van': 'Van', 'mpuj': 'MPUJ', 'tpuj': 'TPUJ', 'jeepney': 'Jeepney',
+                'tricycle': 'Tricycle', 'trike': 'Tricycle', 'pub_regular': 'Regular Bus', 'pub_aircon': 'Aircon Bus',
+                'uve': 'UV Express', 'taxi': 'Taxi', 'walking': 'Walk / Hike', 'no_vehicle': 'No Vehicle'
+            };
+
+            const fullNames = {
+                'own_car': 'Own Car', 'car': 'Own Car', 'motorcycle': 'Motorcycle',
+                'van': 'Van', 'mpuj': 'Modern Jeepney (MPUJ)', 'tpuj': 'Traditional Jeepney (TPUJ)', 'jeepney': 'Jeepney',
+                'tricycle': 'Tricycle', 'pub_regular': 'PUB Regular (Bus)', 'pub_aircon': 'PUB Aircon (Bus)',
+                'uve': 'UV Express (UVE)', 'taxi': 'Taxi', 'walking': 'Walk / Hike', 'no_vehicle': 'No Vehicle'
+            };
+
             if (p2pLabelEl) {
-                const modeNameMap = {
-                    'own_car': 'Own Car',
-                    'car': 'Own Car',
-                    'motorcycle': 'Motorcycle',
-                    'van': 'Van',
-                    'mpuj': 'MPUJ (Modern Jeepney)',
-                    'tpuj': 'TPUJ (Traditional Jeepney)',
-                    'jeepney': 'Jeepney',
-                    'tricycle': 'Tricycle',
-                    'pub_regular': 'PUB Regular (Bus)',
-                    'pub_aircon': 'PUB Aircon (Bus)',
-                    'uve': 'UV Express (UVE)',
-                    'taxi': 'Taxi',
-                    'mixed': 'Custom / Mixed',
-                    'walking': 'Walking',
-                    'no_vehicle': 'No Vehicle'
-                };
-                if (overallMode && modeNameMap[overallMode]) {
-                    p2pLabelEl.textContent = modeNameMap[overallMode];
-                } else if (distinctModes.length === 1 && modeNameMap[distinctModes[0]]) {
-                    p2pLabelEl.textContent = modeNameMap[distinctModes[0]];
-                } else if (distinctModes.length > 1) {
-                    p2pLabelEl.textContent = 'Custom / Mixed';
+                if (activeModes.length === 1) {
+                    p2pLabelEl.textContent = fullNames[activeModes[0]] || shortNames[activeModes[0]] || activeModes[0].replace(/_/g, ' ').toUpperCase();
+                } else if (activeModes.length === 2) {
+                    const n1 = shortNames[activeModes[0]] || activeModes[0];
+                    const n2 = shortNames[activeModes[1]] || activeModes[1];
+                    p2pLabelEl.textContent = `${n1} + ${n2}`;
+                } else if (activeModes.length > 2) {
+                    p2pLabelEl.textContent = `${activeModes.length} Vehicles (${activeModes.map(m => shortNames[m] || m).join(', ')})`;
                 } else {
-                    p2pLabelEl.textContent = 'Own Car';
+                    const normGlobal = (currentGlobalTransport || 'own_car').toLowerCase().replace(/[- ]/g, '_');
+                    p2pLabelEl.textContent = fullNames[normGlobal] || shortNames[normGlobal] || 'Own Car';
                 }
             }
 
             // Sync icon in Save modal
             if (p2pIconEl) {
                 let iconClass = 'fa-car';
-                const normOverall = (overallMode || '').toLowerCase().replace(/[- ]/g, '_');
-                if (normOverall === 'motorcycle') iconClass = 'fa-motorcycle';
-                else if (normOverall === 'tricycle') iconClass = 'fa-motorcycle';
-                else if (normOverall === 'jeepney' || normOverall === 'mpuj' || normOverall === 'tpuj') iconClass = 'fa-van-shuttle';
-                else if (normOverall === 'van' || normOverall === 'uve') iconClass = 'fa-van-shuttle';
-                else if (normOverall === 'pub_regular' || normOverall === 'pub_aircon' || normOverall.includes('bus')) iconClass = 'fa-bus';
-                else if (normOverall === 'taxi') iconClass = 'fa-taxi';
-                else if (normOverall === 'mixed') iconClass = 'fa-route';
+                if (activeModes.length === 1) {
+                    const m = activeModes[0];
+                    if (m === 'motorcycle' || m === 'tricycle' || m === 'trike') iconClass = 'fa-motorcycle';
+                    else if (m === 'jeepney' || m === 'mpuj' || m === 'tpuj' || m === 'van' || m === 'uve') iconClass = 'fa-van-shuttle';
+                    else if (m.includes('bus')) iconClass = 'fa-bus';
+                    else if (m === 'taxi') iconClass = 'fa-taxi';
+                    else if (m === 'walking') iconClass = 'fa-person-walking';
+                } else if (activeModes.length > 1) {
+                    iconClass = 'fa-route';
+                } else {
+                    const normGlobal = (currentGlobalTransport || 'own_car').toLowerCase().replace(/[- ]/g, '_');
+                    if (normGlobal === 'motorcycle' || normGlobal === 'tricycle' || normGlobal === 'trike') iconClass = 'fa-motorcycle';
+                    else if (normGlobal === 'jeepney' || normGlobal === 'mpuj' || normGlobal === 'tpuj' || normGlobal === 'van' || normGlobal === 'uve') iconClass = 'fa-van-shuttle';
+                    else if (normGlobal.includes('bus')) iconClass = 'fa-bus';
+                    else if (normGlobal === 'taxi') iconClass = 'fa-taxi';
+                    else if (normGlobal.includes('+') || normGlobal.includes(',')) iconClass = 'fa-route';
+                }
                 p2pIconEl.innerHTML = `<i class="fa-solid ${iconClass}" style="color:#ffffff; font-size:16px;"></i>`;
             }
 
             // Sum Entrance Fees & Environmental Fees across all destinations in draft
             let feesTotal = 0;
             draft.forEach(p => {
-                const entrance = parseFloat(p.entrance_fee || p.entranceFee || p.fee || 0);
+                const adultFee = parseFloat(p.adult_fee || p.adultFee || 0);
+                const generalEntrance = parseFloat(p.entrance_fee || p.entranceFee || p.fee || 0);
+                const entrance = adultFee > 0 ? adultFee : generalEntrance;
                 const env = parseFloat(p.environmental_fee || p.environmentalFee || p.envFee || 0);
                 feesTotal += (isNaN(entrance) ? 0 : entrance) + (isNaN(env) ? 0 : env);
             });
@@ -3866,6 +4189,24 @@ try {
             const remainingLabel = document.getElementById('save-budget-remaining-label');
             const remainingVal = document.getElementById('save-budget-remaining-val');
             const donutWrapper = document.getElementById('modal-donut-wrapper');
+            const pillGreen = document.getElementById('legend-pill-green');
+            const pillOrange = document.getElementById('legend-pill-orange');
+            const pillRed = document.getElementById('legend-pill-red');
+
+            const setLegendStatus = (activeTier) => {
+                if (!pillGreen || !pillOrange || !pillRed) return;
+                pillGreen.style.opacity = (activeTier === 'green') ? '1' : '0.45';
+                pillGreen.style.transform = (activeTier === 'green') ? 'scale(1.05)' : 'scale(1)';
+                pillGreen.style.fontWeight = (activeTier === 'green') ? '800' : '600';
+
+                pillOrange.style.opacity = (activeTier === 'orange') ? '1' : '0.45';
+                pillOrange.style.transform = (activeTier === 'orange') ? 'scale(1.05)' : 'scale(1)';
+                pillOrange.style.fontWeight = (activeTier === 'orange') ? '800' : '600';
+
+                pillRed.style.opacity = (activeTier === 'red') ? '1' : '0.45';
+                pillRed.style.transform = (activeTier === 'red') ? 'scale(1.05)' : 'scale(1)';
+                pillRed.style.fontWeight = (activeTier === 'red') ? '800' : '600';
+            };
 
             // Donut automatically shows when the modal is open
             if (donutWrapper) {
@@ -3876,40 +4217,62 @@ try {
             }
 
             if (!budgetInput || isNaN(budget) || budget <= 0) {
-                // No budget entered yet — show 100% estimated cost donut ring automatically onshow
-                animateDonut(100, '#00f2fe');
+                // No budget entered yet — show 100% cyan ring outline and reset remaining row
+                animateDonut(100, '#00f2fe', '100%');
                 if (remainingRow) remainingRow.style.display = 'none';
+                if (pillGreen) { pillGreen.style.opacity = '0.6'; pillGreen.style.transform = 'scale(1)'; pillGreen.style.fontWeight = '700'; }
+                if (pillOrange) { pillOrange.style.opacity = '0.6'; pillOrange.style.transform = 'scale(1)'; pillOrange.style.fontWeight = '700'; }
+                if (pillRed) { pillRed.style.opacity = '0.6'; pillRed.style.transform = 'scale(1)'; pillRed.style.fontWeight = '700'; }
                 return;
             }
 
-            const percentage = (estimatedCost > 0) ? Math.min((budget / estimatedCost) * 100, 100) : 100;
+            // Standard Budget Consumption Percentage: (Total Estimated Cost / User Budget) * 100
+            const spentPct = (budget > 0) ? (estimatedCost / budget) * 100 : 0;
             const remaining = budget - estimatedCost;
+            const absRemaining = Math.abs(remaining);
+            const formattedRemaining = '₱' + absRemaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-            let fillColor = '#FF3B30'; // Red — budget covers little
-            let remainingLabelText = 'Need more budget';
-            let remainingLabelColor = '#FF3B30';
+            let fillColor = '#10b981'; // Green: Within Budget (<80%)
+            let remainingLabelHtml = '<i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Within Budget';
+            let remainingValueText = '+' + formattedRemaining + ' left';
+            let remainingColor = '#10b981';
+            let activeTier = 'green';
 
-            if (percentage >= 100) {
-                fillColor = '#34C759';
-                remainingLabelText = "You're good to go!";
-                remainingLabelColor = '#34C759';
-            } else if (percentage >= 80) {
-                fillColor = '#FF9500';
-                remainingLabelText = 'Almost there';
-                remainingLabelColor = '#FF9500';
+            if (estimatedCost > budget) {
+                // RED: Over budget (> 100%)
+                fillColor = '#ef4444';
+                remainingLabelHtml = '<i class="fa-solid fa-circle-xmark" style="margin-right:4px;"></i> Over Budget';
+                remainingValueText = '-' + formattedRemaining;
+                remainingColor = '#ef4444';
+                activeTier = 'red';
+            } else if (spentPct >= 80) {
+                // ORANGE: Nearing the limit (80% - 100%)
+                fillColor = '#f59e0b';
+                remainingLabelHtml = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:4px;"></i> Nearing Limit';
+                remainingValueText = (remaining === 0 ? '₱0.00 left' : '+' + formattedRemaining + ' left');
+                remainingColor = '#f59e0b';
+                activeTier = 'orange';
+            } else {
+                // GREEN: Within budget (< 80%)
+                fillColor = '#10b981';
+                remainingLabelHtml = '<i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Within Budget';
+                remainingValueText = '+' + formattedRemaining + ' left';
+                remainingColor = '#10b981';
+                activeTier = 'green';
             }
 
-            // Animate donut fill smoothly
-            animateDonut(percentage, fillColor);
+            setLegendStatus(activeTier);
+
+            // Animate donut fill smoothly with color-coded status
+            animateDonut(spentPct, fillColor);
 
             // Update remaining row
             if (remainingRow) {
                 remainingRow.style.display = 'flex';
-                remainingLabel.textContent = remainingLabelText;
-                remainingLabel.style.color = remainingLabelColor;
-                remainingVal.style.color = remainingLabelColor;
-                const absRemaining = Math.abs(remaining);
-                remainingVal.textContent = (remaining < 0 ? '-' : '') + '₱' + absRemaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                remainingLabel.innerHTML = remainingLabelHtml;
+                remainingLabel.style.color = remainingColor;
+                remainingVal.style.color = remainingColor;
+                remainingVal.textContent = remainingValueText;
             }
         };
 
@@ -4096,6 +4459,12 @@ try {
             if (budgetInput) budgetInput.value = '';
             const remainingRow = document.getElementById('save-budget-remaining-row');
             if (remainingRow) remainingRow.style.display = 'none';
+            const pillGreen = document.getElementById('legend-pill-green');
+            const pillOrange = document.getElementById('legend-pill-orange');
+            const pillRed = document.getElementById('legend-pill-red');
+            if (pillGreen) { pillGreen.style.opacity = '0.6'; pillGreen.style.transform = 'scale(1)'; pillGreen.style.fontWeight = '700'; }
+            if (pillOrange) { pillOrange.style.opacity = '0.6'; pillOrange.style.transform = 'scale(1)'; pillOrange.style.fontWeight = '700'; }
+            if (pillRed) { pillRed.style.opacity = '0.6'; pillRed.style.transform = 'scale(1)'; pillRed.style.fontWeight = '700'; }
             if (_donutAnimFrame) { cancelAnimationFrame(_donutAnimFrame); _donutAnimFrame = null; }
             _currentDonutPct = 0;
             document.querySelectorAll('.transport-option').forEach(opt => opt.classList.remove('active'));
@@ -4290,6 +4659,8 @@ try {
                         ? window.getLegTransportInfo(idx)
                         : { mode: effectiveTransport, cost: 0, distance_km: 0 };
                     return {
+                        leg_index: idx + 1,
+                        to_spot_id: parseInt(place.id || place.tourist_spot_id || 0),
                         transport_mode: legInfo.mode || legInfo.transport_mode || effectiveTransport,
                         leg_cost: parseFloat(legInfo.cost || legInfo.leg_cost || 0),
                         leg_distance_km: parseFloat(legInfo.distance_km || 0)
@@ -4748,24 +5119,24 @@ try {
         };
 
         window.updateDraftBudget = function (draft) {
+            if (!draft) draft = (typeof window.getEffectiveDraft === 'function') ? window.getEffectiveDraft() : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
             let actCost = 0, foodCost = 0, transCost = 0;
             draft.forEach(item => {
-                actCost += parseFloat(item.entrance_fee || item.fee) || 0;
+                const adult = parseFloat(item.adult_fee || item.adultFee || 0);
+                const gen = parseFloat(item.entrance_fee || item.fee || 0);
+                actCost += (adult > 0 ? adult : gen);
                 foodCost += parseFloat(item.avg_food_cost) || 150;
             });
 
             // Calculate dynamic transit cost based on current draft sequence and selected transport
-            const curTransport = document.getElementById('trip-transport')?.value || '';
-            const isNoVeh = !curTransport || curTransport.toLowerCase().includes('no_vehicle') || curTransport.toLowerCase().includes('no vehicle');
+            const curTransport = localStorage.getItem('intan_elyu_draft_trip_transport') || document.getElementById('trip-transport')?.value || 'own_car';
 
-            if (!isNoVeh && typeof window.computeItineraryTransCost === 'function') {
+            if (typeof window.computeItineraryTransCost === 'function') {
                 transCost = window.computeItineraryTransCost(draft, curTransport);
-            } else if (!isNoVeh) {
-                draft.forEach(item => {
-                    transCost += parseFloat(item.avg_transport_cost) || 30;
-                });
             } else {
-                transCost = 0;
+                draft.forEach(item => {
+                    transCost += parseFloat(item.avg_transport_cost) || 0;
+                });
             }
 
             const total = actCost + foodCost + transCost;

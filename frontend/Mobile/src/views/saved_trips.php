@@ -303,11 +303,17 @@ body[data-view="saved_trips"],
                 const budget = parseFloat(trip.budget);
                 const pct = cost / budget;
                 
-                let color = '#34C759'; // Green (Safe)
-                if (pct >= 1.0) color = '#FF3B30'; // Red (Over/Warning)
-                else if (pct >= 0.8) color = '#FF9500'; // Orange (Near)
+                let color = '#10b981'; // Green (Within budget < 80%)
+                let statusTitle = `Within Budget: ₱${cost.toFixed(2)} / ₱${budget.toFixed(2)}`;
+                if (cost > budget) {
+                    color = '#ef4444'; // Red (Over budget > 100%)
+                    statusTitle = `Over Budget by ₱${(cost - budget).toFixed(2)}`;
+                } else if (pct >= 0.8) {
+                    color = '#f59e0b'; // Orange (Nearing limit 80-100%)
+                    statusTitle = `Nearing Budget Limit: ₱${cost.toFixed(2)} / ₱${budget.toFixed(2)}`;
+                }
                 
-                budgetIndicator = `<span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${color}; margin-left:6px; border:none; outline:none;" title="Estimated Cost: ₱${cost.toFixed(2)}"></span>`;
+                budgetIndicator = `<span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${color}; margin-left:6px; border:none; outline:none; box-shadow:0 0 6px ${color}80;" title="${statusTitle}"></span>`;
             }
 
             const transportBadge = getSavedTripTransportBadge(trip.transport_mode);

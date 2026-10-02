@@ -797,9 +797,28 @@ if (is_dir($imgDir)) {
             window.mapInstance = null;
         }
 
+        if (window.mountedMarkersMap) {
+            try {
+                window.mountedMarkersMap.forEach(m => {
+                    try { m.remove(); } catch (e) {}
+                });
+            } catch (e) {}
+            window.mountedMarkersMap.clear();
+        }
+        window.mountedMarkersMap = new Map();
+
+        if (window.userMarker) {
+            try { window.userMarker.remove(); } catch (e) {}
+            window.userMarker = null;
+        }
+
+        if (window._mapGpsHandler) {
+            document.removeEventListener('gpsUpdated', window._mapGpsHandler);
+            window._mapGpsHandler = null;
+        }
+
         window.allMapLocations = window.allMapLocations || [];
         window.currentDestinationForRoute = null;
-        window.userMarker = null;
         window.mapMarkers = [];
 
         window.initMap = async function () {
@@ -1285,13 +1304,19 @@ if (is_dir($imgDir)) {
 
                         window.zonesLoaded = true;
                     }
-                } catch (zoneErr) { console.error('Zone render error:', zoneErr); }
+                } catch (zoneErr) {
+                    console.error('Zone render error:', zoneErr);
+                }
                 // ── END TOURIST ZONES ────────────────────────────────────────────
-
             });
 
             setupEventListeners();
             window.mapInstance.on('moveend', () => {
+                if (typeof window.updateVisibleMarkers === 'function') {
+                    window.updateVisibleMarkers();
+                }
+            });
+            window.mapInstance.on('zoomend', () => {
                 if (typeof window.updateVisibleMarkers === 'function') {
                     window.updateVisibleMarkers();
                 }
@@ -1314,10 +1339,15 @@ if (is_dir($imgDir)) {
             if (_viewportUpdateRaf) cancelAnimationFrame(_viewportUpdateRaf);
 
             _viewportUpdateRaf = requestAnimationFrame(() => {
-                const locations = window.currentFilteredLocations || [];
+                const locations = (window.currentFilteredLocations && window.currentFilteredLocations.length > 0)
+                    ? window.currentFilteredLocations
+                    : (window.allMapLocations || []);
+
                 if (!locations.length) {
                     if (window.mountedMarkersMap) {
-                        window.mountedMarkersMap.forEach(m => m.remove());
+                        window.mountedMarkersMap.forEach(m => {
+                            try { m.remove(); } catch (e) {}
+                        });
                         window.mountedMarkersMap.clear();
                     }
                     window.mapMarkers = [];
@@ -1325,116 +1355,129 @@ if (is_dir($imgDir)) {
                 }
 
                 const bounds = window.mapInstance.getBounds();
+                const zoom = window.mapInstance.getZoom();
 
-                // 1. Viewport Culling with 25% spatial padding
-                const lngBuffer = (bounds.getEast() - bounds.getWest()) * 0.25;
-                const latBuffer = (bounds.getNorth() - bounds.getSouth()) * 0.25;
+                // Keep a generous spatial buffer (at least 0.30 deg ~ 32 km when zoomed in)
+                // so tourist attractions around the traveler NEVER disappear when zooming into user location!
+                const minBufferDeg = (zoom >= 11) ? 0.30 : 0.08;
+                const lngBuffer = Math.max((bounds.getEast() - bounds.getWest()) * 1.5, minBufferDeg);
+                const latBuffer = Math.max((bounds.getNorth() - bounds.getSouth()) * 1.5, minBufferDeg);
                 const minLng = bounds.getWest() - lngBuffer;
                 const maxLng = bounds.getEast() + lngBuffer;
                 const minLat = bounds.getSouth() - latBuffer;
                 const maxLat = bounds.getNorth() + latBuffer;
 
                 const desiredKeys = new Set();
+                const mapContainer = window.mapInstance.getContainer ? window.mapInstance.getContainer() : null;
 
                 // ── DIRECT INDIVIDUAL TOURIST SITES MARKERS (ALL ZOOM LEVELS) ──
-                    for (let i = 0; i < locations.length; i++) {
-                        const loc = locations[i];
-                        const locLat = parseFloat(loc.lat || loc.latitude);
-                        const locLng = parseFloat(loc.lng || loc.longitude);
-                        if (isNaN(locLat) || isNaN(locLng)) continue;
+                for (let i = 0; i < locations.length; i++) {
+                    const loc = locations[i];
+                    const locLat = parseFloat(loc.lat || loc.latitude);
+                    const locLng = parseFloat(loc.lng || loc.longitude);
+                    if (isNaN(locLat) || isNaN(locLng)) continue;
 
-                        if (locLng >= minLng && locLng <= maxLng && locLat >= minLat && locLat <= maxLat) {
-                            const markerKey = 'spot_' + (loc.id || (locLat + '_' + locLng));
-                            desiredKeys.add(markerKey);
+                    if (locLng >= minLng && locLng <= maxLng && locLat >= minLat && locLat <= maxLat) {
+                        const markerKey = 'spot_' + (loc.id || (locLat + '_' + locLng));
+                        desiredKeys.add(markerKey);
 
-                            if (!window.mountedMarkersMap.has(markerKey)) {
-                                const cat = (loc.category || 'Other').toLowerCase();
-                                let iconClass = 'fa-location-dot';
+                        // Ensure marker is physically mounted in the CURRENT active map instance
+                        const existingMarker = window.mountedMarkersMap.get(markerKey);
+                        const isMountedInCurrentMap = existingMarker && existingMarker.getElement && mapContainer && mapContainer.contains(existingMarker.getElement());
 
-                                if (cat.includes('beach') || cat.includes('surf') || cat.includes('coastal') || cat.includes('island')) {
-                                    iconClass = 'fa-umbrella-beach';
-                                } else if (cat.includes('nature') || cat.includes('park') || cat.includes('agro-forestry') || cat.includes('tree') || cat.includes('mangrove') || cat.includes('lagoon')) {
-                                    iconClass = 'fa-tree';
-                                } else if (cat.includes('water') || cat.includes('fall') || cat.includes('river') || cat.includes('lake') || cat.includes('spring') || cat.includes('dam')) {
-                                    iconClass = 'fa-water';
-                                } else if (cat.includes('mountain') || cat.includes('hiking') || cat.includes('trail') || cat.includes('peak') || cat.includes('view')) {
-                                    iconClass = 'fa-mountain';
-                                } else if (cat.includes('cultural') || cat.includes('heritage') || cat.includes('historical') || cat.includes('museum')) {
-                                    iconClass = 'fa-landmark';
-                                } else if (cat.includes('monument')) {
-                                    iconClass = 'fa-monument';
-                                } else if (cat.includes('landmark')) {
-                                    iconClass = 'fa-archway';
-                                } else if (cat.includes('religio') || cat.includes('church') || cat.includes('shrine') || cat.includes('parish')) {
-                                    iconClass = 'fa-place-of-worship';
-                                } else if (cat.includes('food') || cat.includes('dining') || cat.includes('restaurant') || cat.includes('cafe')) {
-                                    iconClass = 'fa-utensils';
-                                } else if (cat.includes('art') || cat.includes('craft') || cat.includes('weaving') || cat.includes('pottery')) {
-                                    iconClass = 'fa-palette';
-                                } else if (cat.includes('farm') || cat.includes('agro') || cat.includes('plant')) {
-                                    iconClass = 'fa-tractor';
-                                } else if (cat.includes('cave')) {
-                                    iconClass = 'fa-dungeon';
-                                } else if (cat.includes('recreation') || cat.includes('resort')) {
-                                    iconClass = 'fa-person-swimming';
-                                }
-
-                                const status = (loc.classification_status || 'EXIST').toUpperCase().trim();
-                                let catColor = '#0284c7';
-                                let statusLabel = 'Existing';
-                                if (status === 'EMERGE' || status === 'EMERGING') {
-                                    catColor = '#ef4444';
-                                    statusLabel = 'Emerging';
-                                } else if (status === 'POTENTIAL') {
-                                    catColor = '#10b981';
-                                    statusLabel = 'Potential';
-                                }
-
-                                const container = document.createElement('div');
-                                container.className = 'elyu-custom-marker';
-                                container.style.cssText = 'cursor:pointer; display:flex; flex-direction:column; align-items:center; user-select:none; will-change:transform; transform:translate3d(0,0,0); backface-visibility:hidden; z-index:10;';
-
-                                const innerWrap = document.createElement('div');
-                                innerWrap.className = 'spot-inner-wrapper';
-                                const staggerDelay = Math.min((i % 15) * 0.025, 0.35);
-                                innerWrap.style.animationDelay = `${staggerDelay}s`;
-
-                                const pin = document.createElement('div');
-                                pin.className = 'elyu-pin-bubble';
-                                pin.style.cssText = `width:34px; height:34px; border-radius:50%; background:#ffffff; border:2.5px solid ${catColor}; display:flex; align-items:center; justify-content:center; color:${catColor}; box-shadow:0 4px 10px rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.12);`;
-                                pin.innerHTML = `<i class="fa-solid ${iconClass}" style="font-size:13.5px; color:${catColor};"></i>`;
-
-                                innerWrap.appendChild(pin);
-                                container.appendChild(innerWrap);
-
-                                container.addEventListener('click', (e) => {
-                                    e.stopPropagation();
-                                    if (window.activePopup) window.activePopup.remove();
-                                    window.openSheet(loc);
-                                });
-
-                                container.addEventListener('mouseenter', () => {
-                                    pin.style.transform = 'scale(1.2)';
-                                    container.style.zIndex = '100';
-                                });
-                                container.addEventListener('mouseleave', () => {
-                                    pin.style.transform = 'scale(1)';
-                                    container.style.zIndex = '10';
-                                });
-
-                                const marker = new maplibregl.Marker({ element: container, anchor: 'center' })
-                                    .setLngLat([locLng, locLat])
-                                    .addTo(window.mapInstance);
-
-                                window.mountedMarkersMap.set(markerKey, marker);
+                        if (!isMountedInCurrentMap) {
+                            if (existingMarker) {
+                                try { existingMarker.remove(); } catch (e) {}
+                                window.mountedMarkersMap.delete(markerKey);
                             }
+
+                            const cat = (loc.category || 'Other').toLowerCase();
+                            let iconClass = 'fa-location-dot';
+
+                            if (cat.includes('beach') || cat.includes('surf') || cat.includes('coastal') || cat.includes('island')) {
+                                iconClass = 'fa-umbrella-beach';
+                            } else if (cat.includes('nature') || cat.includes('park') || cat.includes('agro-forestry') || cat.includes('tree') || cat.includes('mangrove') || cat.includes('lagoon')) {
+                                iconClass = 'fa-tree';
+                            } else if (cat.includes('water') || cat.includes('fall') || cat.includes('river') || cat.includes('lake') || cat.includes('spring') || cat.includes('dam')) {
+                                iconClass = 'fa-water';
+                            } else if (cat.includes('mountain') || cat.includes('hiking') || cat.includes('trail') || cat.includes('peak') || cat.includes('view')) {
+                                iconClass = 'fa-mountain';
+                            } else if (cat.includes('cultural') || cat.includes('heritage') || cat.includes('historical') || cat.includes('museum')) {
+                                iconClass = 'fa-landmark';
+                            } else if (cat.includes('monument')) {
+                                iconClass = 'fa-monument';
+                            } else if (cat.includes('landmark')) {
+                                iconClass = 'fa-archway';
+                            } else if (cat.includes('religio') || cat.includes('church') || cat.includes('shrine') || cat.includes('parish')) {
+                                iconClass = 'fa-place-of-worship';
+                            } else if (cat.includes('food') || cat.includes('dining') || cat.includes('restaurant') || cat.includes('cafe')) {
+                                iconClass = 'fa-utensils';
+                            } else if (cat.includes('art') || cat.includes('craft') || cat.includes('weaving') || cat.includes('pottery')) {
+                                iconClass = 'fa-palette';
+                            } else if (cat.includes('farm') || cat.includes('agro') || cat.includes('plant')) {
+                                iconClass = 'fa-tractor';
+                            } else if (cat.includes('cave')) {
+                                iconClass = 'fa-dungeon';
+                            } else if (cat.includes('recreation') || cat.includes('resort')) {
+                                iconClass = 'fa-person-swimming';
+                            }
+
+                            const status = (loc.classification_status || 'EXIST').toUpperCase().trim();
+                            let catColor = '#0284c7';
+                            let statusLabel = 'Existing';
+                            if (status === 'EMERGE' || status === 'EMERGING') {
+                                catColor = '#ef4444';
+                                statusLabel = 'Emerging';
+                            } else if (status === 'POTENTIAL') {
+                                catColor = '#10b981';
+                                statusLabel = 'Potential';
+                            }
+
+                            const container = document.createElement('div');
+                            container.className = 'elyu-custom-marker';
+                            container.style.cssText = 'cursor:pointer; display:flex; flex-direction:column; align-items:center; user-select:none; will-change:transform; transform:translate3d(0,0,0); backface-visibility:hidden; z-index:10;';
+
+                            const innerWrap = document.createElement('div');
+                            innerWrap.className = 'spot-inner-wrapper';
+                            const staggerDelay = Math.min((i % 15) * 0.025, 0.35);
+                            innerWrap.style.animationDelay = `${staggerDelay}s`;
+
+                            const pin = document.createElement('div');
+                            pin.className = 'elyu-pin-bubble';
+                            pin.style.cssText = `width:34px; height:34px; border-radius:50%; background:#ffffff; border:2.5px solid ${catColor}; display:flex; align-items:center; justify-content:center; color:${catColor}; box-shadow:0 4px 10px rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.12);`;
+                            pin.innerHTML = `<i class="fa-solid ${iconClass}" style="font-size:13.5px; color:${catColor};"></i>`;
+
+                            innerWrap.appendChild(pin);
+                            container.appendChild(innerWrap);
+
+                            container.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                if (window.activePopup) window.activePopup.remove();
+                                window.openSheet(loc);
+                            });
+
+                            container.addEventListener('mouseenter', () => {
+                                pin.style.transform = 'scale(1.2)';
+                                container.style.zIndex = '100';
+                            });
+                            container.addEventListener('mouseleave', () => {
+                                pin.style.transform = 'scale(1)';
+                                container.style.zIndex = '10';
+                            });
+
+                            const marker = new maplibregl.Marker({ element: container, anchor: 'center' })
+                                .setLngLat([locLng, locLat])
+                                .addTo(window.mapInstance);
+
+                            window.mountedMarkersMap.set(markerKey, marker);
                         }
                     }
+                }
 
                 // ── RECONCILE: REMOVE MARKERS NO LONGER DESIRED ──
                 for (const [key, marker] of window.mountedMarkersMap.entries()) {
                     if (!desiredKeys.has(key)) {
-                        marker.remove();
+                        try { marker.remove(); } catch (e) {}
                         window.mountedMarkersMap.delete(key);
                     }
                 }
@@ -2280,11 +2323,23 @@ if (is_dir($imgDir)) {
                             window.mapInstance.flyTo({ center: [parseFloat(lng), parseFloat(lat)], zoom: 15, duration: 1200 });
 
                             // Ensure user marker is updated
-                            if (window.userMarker) {
+                            const mapContainer = window.mapInstance ? window.mapInstance.getContainer() : null;
+                            const isMounted = window.userMarker && window.userMarker.getElement && mapContainer && mapContainer.contains(window.userMarker.getElement());
+                            if (isMounted) {
                                 window.userMarker.setLngLat([lng, lat]);
                             } else {
+                                if (window.userMarker) {
+                                    try { window.userMarker.remove(); } catch(err) {}
+                                    window.userMarker = null;
+                                }
                                 const el = document.createElement('div');
-                                el.innerHTML = `<div style="background:#007AFF; width:20px; height:20px; border-radius:50%; border:3px solid white; box-shadow:0 0 0 5px rgba(0,122,255,0.3);"></div>`;
+                                el.className = 'user-gps-tracking-marker';
+                                el.innerHTML = `
+                                <div style="position:relative; width:24px; height:24px; display:flex; align-items:center; justify-content:center;">
+                                    <div style="position:absolute; width:40px; height:40px; border-radius:50%; background:rgba(56,189,248,0.38); animation:pulse 2s infinite ease-out; pointer-events:none;"></div>
+                                    <div style="position:relative; background:#0284c7; width:20px; height:20px; border-radius:50%; border:2.5px solid #ffffff; box-shadow:0 2px 8px rgba(2,132,199,0.6); z-index:2;"></div>
+                                </div>
+                                `;
                                 window.userMarker = new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).addTo(window.mapInstance);
                             }
 
@@ -2309,15 +2364,24 @@ if (is_dir($imgDir)) {
             }
 
             // Real-time GPS Tracker Hook with Proximity Auto-Pop Trigger
+            if (window._mapGpsHandler) {
+                document.removeEventListener('gpsUpdated', window._mapGpsHandler);
+            }
             let _hasAutoCenteredGPS = false;
-            document.addEventListener('gpsUpdated', function (e) {
-                const lat = e.detail.lat;
-                const lng = e.detail.lng;
-                const isRealGps = (e.detail.source === 'gps' || window.currentGPSSource === 'gps');
+            window._mapGpsHandler = function (e) {
+                const lat = e.detail && e.detail.lat;
+                const lng = e.detail && e.detail.lng;
+                const isRealGps = e.detail && (e.detail.source === 'gps' || window.currentGPSSource === 'gps');
+                const mapContainer = window.mapInstance ? window.mapInstance.getContainer() : null;
                 if (window.mapInstance && lat && lng) {
-                    if (window.userMarker) {
+                    const isMountedInCurrentMap = window.userMarker && window.userMarker.getElement && mapContainer && mapContainer.contains(window.userMarker.getElement());
+                    if (isMountedInCurrentMap) {
                         window.userMarker.setLngLat([lng, lat]);
                     } else {
+                        if (window.userMarker) {
+                            try { window.userMarker.remove(); } catch (err) {}
+                            window.userMarker = null;
+                        }
                         const el = document.createElement('div');
                         el.className = 'user-gps-tracking-marker';
                         el.innerHTML = `
@@ -2340,7 +2404,8 @@ if (is_dir($imgDir)) {
 
                     updateNearbyBadge(lat, lng);
                 }
-            });
+            };
+            document.addEventListener('gpsUpdated', window._mapGpsHandler);
 
             // ── Nearby Tourist Sites Logic ──
             function getDistanceKm(lat1, lon1, lat2, lon2) {

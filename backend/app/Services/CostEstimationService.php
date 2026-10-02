@@ -197,7 +197,10 @@ class CostEstimationService
 
         // 1. Calculate entrance fees & environmental fees of all spots and identify municipalities
         $spots = TouristSpot::with('municipality')->whereIn('id', $destinationIds)->get();
-        $entranceFees = (float) $spots->sum('entrance_fee');
+        $entranceFees = (float) $spots->reduce(function ($carry, $s) {
+            $fee = ($s->adult_fee > 0) ? (float)$s->adult_fee : (float)($s->entrance_fee ?? 0);
+            return $carry + $fee;
+        }, 0.0);
         $environmentalFees = (float) $spots->sum('environmental_fee');
         $siteFeesTotal = $entranceFees + $environmentalFees;
 
@@ -269,18 +272,27 @@ class CostEstimationService
             // 2) Global Own Car / Motorcycle if tourist chose private transport for whole trip
             // 3) Smart Hybrid Transit Auto-Recommendation
             $legMode = null;
+            $clientLegCost = null;
             if (!empty($perLegModes)) {
                 if (isset($perLegModes[$legIdx])) {
                     $rawEntry = $perLegModes[$legIdx];
                     $legMode = is_array($rawEntry) ? ($rawEntry['vehicle'] ?? $rawEntry['transport_mode'] ?? null) : (string)$rawEntry;
+                    if (is_array($rawEntry) && (isset($rawEntry['leg_cost']) || isset($rawEntry['cost']))) {
+                        $clientLegCost = (float)($rawEntry['leg_cost'] ?? $rawEntry['cost'] ?? 0.0);
+                    }
                 } elseif (isset($perLegModes[$leg['to_spot_id']])) {
                     $rawEntry = $perLegModes[$leg['to_spot_id']];
                     $legMode = is_array($rawEntry) ? ($rawEntry['vehicle'] ?? $rawEntry['transport_mode'] ?? null) : (string)$rawEntry;
+                    if (is_array($rawEntry) && (isset($rawEntry['leg_cost']) || isset($rawEntry['cost']))) {
+                        $clientLegCost = (float)($rawEntry['leg_cost'] ?? $rawEntry['cost'] ?? 0.0);
+                    }
                 }
             }
 
             if (!$legMode) {
-                if ($isGlobalOwnCar) {
+                if (str_contains($globalNorm, '+') || str_contains($globalNorm, ',')) {
+                    $legMode = $transportModeString;
+                } elseif ($isGlobalOwnCar) {
                     $legMode = 'own_car';
                 } elseif ($isGlobalMotorcycle) {
                     $legMode = 'motorcycle';
@@ -306,8 +318,11 @@ class CostEstimationService
             $legFare = 0.00;
             $warningNotice = null;
 
-            // Multi-modal transit support (e.g. "MPUJ + Tricycle", "Bus + Tricycle")
-            if (str_contains($normLegMode, '+') || str_contains($normLegMode, ',')) {
+            if ($clientLegCost !== null && $clientLegCost >= 0 && !$isPrivate && $normLegMode !== 'suspended') {
+                $legFare = round($clientLegCost, 2);
+                $transitFares += $legFare;
+                $priceA = $legFare;
+            } elseif (str_contains($normLegMode, '+') || str_contains($normLegMode, ',')) {
                 $subModes = array_values(array_filter(array_map('trim', preg_split('/[\+,]/', $normLegMode))));
                 $legFare = 0.00;
                 $allPrivate = true;
@@ -462,9 +477,9 @@ class CostEstimationService
             return [
                 [
                     'leg_index'        => 1,
-                    'from_spot'        => $spot->name,
+                    'from_spot'        => 'Starting Point',
                     'to_spot'          => $spot->name,
-                    'from_spot_id'     => $spot->id,
+                    'from_spot_id'     => null,
                     'to_spot_id'       => $spot->id,
                     'distance_km'      => 2.00,
                     'origin_muni'      => $muni,
@@ -474,7 +489,7 @@ class CostEstimationService
             ];
         }
 
-        // Multiple spots: N-1 legs
+        // Multiple spots: Starting leg + intermediate N-1 legs (total N legs)
         $allValid = $orderedSpots->every(function ($spot) {
             $lat = (float) $spot->latitude;
             $lng = (float) $spot->longitude;
@@ -505,7 +520,23 @@ class CostEstimationService
             });
         }
 
-        $legs = [];
+        $firstSpot = $orderedSpots->first();
+        $firstMuni = $firstSpot->municipality?->name ?? 'San Juan';
+
+        $legs = [
+            [
+                'leg_index'        => 1,
+                'from_spot'        => 'Starting Point',
+                'to_spot'          => $firstSpot->name,
+                'from_spot_id'     => null,
+                'to_spot_id'       => $firstSpot->id,
+                'distance_km'      => 2.00,
+                'origin_muni'      => $firstMuni,
+                'dest_muni'        => $firstMuni,
+                'crosses_boundary' => false,
+            ]
+        ];
+
         for ($i = 0; $i < $count - 1; $i++) {
             $spotA = $orderedSpots[$i];
             $spotB = $orderedSpots[$i + 1];
@@ -536,7 +567,7 @@ class CostEstimationService
             $crosses = (strcasecmp($cleanA, $cleanB) !== 0);
 
             $legs[] = [
-                'leg_index'        => $i + 1,
+                'leg_index'        => $i + 2,
                 'from_spot'        => $spotA->name,
                 'to_spot'          => $spotB->name,
                 'from_spot_id'     => $spotA->id,

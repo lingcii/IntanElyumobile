@@ -564,7 +564,7 @@ body[data-view="user_manual"]::-webkit-scrollbar,
             <div class="step-num">3</div>
             <div class="step-content">
                 <div class="step-title">Calculate Budget &amp; Save Trip</div>
-                <div class="step-desc">Set your travel budget to view the automated budget pie chart. Tap <strong>Save Trip</strong> to store under <strong>My Saved Trips</strong>.</div>
+                <div class="step-desc">Set your travel budget to view the automated color-coded budget pie chart (Green for within budget, Orange for nearing limit, and Red for over budget). Tap <strong>Save Trip</strong> to store under <strong>My Saved Trips</strong>.</div>
             </div>
         </div>
     </div>

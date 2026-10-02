@@ -281,7 +281,7 @@ class ItineraryController extends Controller
                     if (is_array($legTransports[$idx])) {
                         $legMode = $legTransports[$idx]['vehicle'] ?? $legTransports[$idx]['transport_mode'] ?? null;
                         $legCost = (float)($legTransports[$idx]['cost'] ?? $legTransports[$idx]['leg_cost'] ?? 0.00);
-                        $legDist = isset($legTransports[$idx]['distance_km']) ? (float)$legTransports[$idx]['distance_km'] : null;
+                        $legDist = isset($legTransports[$idx]['distance_km']) ? (float)$legTransports[$idx]['distance_km'] : (isset($legTransports[$idx]['leg_distance_km']) ? (float)$legTransports[$idx]['leg_distance_km'] : null);
                     } else {
                         $legMode = (string)$legTransports[$idx];
                     }
@@ -506,7 +506,7 @@ class ItineraryController extends Controller
                     if (is_array($legTransports[$idx])) {
                         $legMode = $legTransports[$idx]['vehicle'] ?? $legTransports[$idx]['transport_mode'] ?? null;
                         $legCost = (float)($legTransports[$idx]['cost'] ?? $legTransports[$idx]['leg_cost'] ?? 0.00);
-                        $legDist = isset($legTransports[$idx]['distance_km']) ? (float)$legTransports[$idx]['distance_km'] : null;
+                        $legDist = isset($legTransports[$idx]['distance_km']) ? (float)$legTransports[$idx]['distance_km'] : (isset($legTransports[$idx]['leg_distance_km']) ? (float)$legTransports[$idx]['leg_distance_km'] : null);
                     } else {
                         $legMode = (string)$legTransports[$idx];
                     }
