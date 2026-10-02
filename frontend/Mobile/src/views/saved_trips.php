@@ -321,16 +321,23 @@ body[data-view="saved_trips"],
             if (trip.budget && trip.budget > 0) {
                 const cost = parseFloat(trip.total_cost || 0);
                 const budget = parseFloat(trip.budget);
-                const pct = cost / budget;
                 
-                let color = '#10b981'; // Green (Within budget < 80%)
+                let color = '#10b981'; // Green
                 let statusTitle = `Within Budget: ₱${cost.toFixed(2)} / ₱${budget.toFixed(2)}`;
+
                 if (cost > budget) {
-                    color = '#ef4444'; // Red (Over budget > 100%)
-                    statusTitle = `Over Budget by ₱${(cost - budget).toFixed(2)}`;
-                } else if (pct >= 0.8) {
-                    color = '#f59e0b'; // Orange (Nearing limit 80-100%)
-                    statusTitle = `Nearing Budget Limit: ₱${cost.toFixed(2)} / ₱${budget.toFixed(2)}`;
+                    const coverage = (cost > 0) ? (budget / cost) : 0;
+                    if (coverage >= 0.8) {
+                        color = '#f59e0b'; // Yellow (Nearing target: 80% to 99% covered)
+                        statusTitle = `Nearing Budget: ₱${budget.toFixed(2)} / ₱${cost.toFixed(2)}`;
+                    } else {
+                        color = '#ef4444'; // Red (Over budget > 100%)
+                        statusTitle = `Over Budget by ₱${(cost - budget).toFixed(2)}`;
+                    }
+                } else {
+                    // Budget meets or exceeds cost: GREEN!
+                    color = '#10b981';
+                    statusTitle = `Within Budget: ₱${cost.toFixed(2)} / ₱${budget.toFixed(2)}`;
                 }
                 
                 budgetIndicator = `<span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${color}; margin-left:6px; border:none; outline:none; box-shadow:0 0 6px ${color}80;" title="${statusTitle}"></span>`;

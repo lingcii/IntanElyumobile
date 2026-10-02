@@ -635,8 +635,8 @@ try {
         <div id="draft-travel-mode-bar" onclick="window.openTravelModeStarterModal()"
             style="display:flex; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; color:#ffffff; padding:11px 16px; border-radius:16px; margin-bottom:14px; cursor:pointer; border:none !important; outline:none !important; box-shadow:none !important; transition:all 0.2s ease;">
             <div style="display:flex; align-items:center; gap:10px; min-width:0; flex:1;">
-                <div id="draft-travel-mode-icon" style="width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0;">
-                    <i class="fa-solid fa-car" style="color:#00f2fe;"></i>
+                <div id="draft-travel-mode-icon" style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+                    <i class="fa-solid fa-car" style="color:#1e3a8a !important;"></i>
                 </div>
                 <div style="min-width:0; flex:1;">
                     <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:rgba(255,255,255,0.8);">Trip Transportation</div>
@@ -914,8 +914,8 @@ try {
         <div id="save-p2p-transit-summary"
             style="background:rgba(255,255,255,0.08); border-radius:16px; padding:14px 16px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; border:1px solid rgba(255,255,255,0.08);">
             <div style="display:flex; align-items:center; gap:12px; min-width:0;">
-                <div id="save-p2p-transit-icon" style="width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                    <i class="fa-solid fa-car" style="color:#ffffff; font-size:16px;"></i>
+                <div id="save-p2p-transit-icon" style="width:40px; height:40px; border-radius:12px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+                    <i class="fa-solid fa-car" style="color:#1e3a8a !important; font-size:16px;"></i>
                 </div>
                 <div style="min-width:0;">
                     <div style="font-size:10px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:2px;">Transport Mode</div>
@@ -2898,10 +2898,13 @@ try {
 
             if (tripModes.length === 1) {
                 const mode = tripModes[0];
-                if (iconEl) iconEl.innerHTML = window.getVehicleIconHtml(mode);
+                if (iconEl) {
+                    let html = window.getVehicleIconHtml(mode);
+                    iconEl.innerHTML = html.replace(/color:[^;"]+/g, 'color:#1e3a8a !important');
+                }
                 if (labelEl) labelEl.textContent = window.getVehicleDisplayName(mode);
             } else {
-                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-route" style="color:#00f2fe;"></i>';
+                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-route" style="color:#1e3a8a !important;"></i>';
                 if (labelEl) labelEl.textContent = `${tripModes.length} Vehicles`;
             }
         };
@@ -4049,12 +4052,14 @@ try {
 
             // Sync icon in Save modal
             if (p2pIconEl) {
+                p2pIconEl.style.background = '#ffffff';
                 if (tripModes.length === 1 && typeof window.getVehicleIconHtml === 'function') {
-                    p2pIconEl.innerHTML = window.getVehicleIconHtml(tripModes[0]);
+                    let iconHtml = window.getVehicleIconHtml(tripModes[0]);
+                    p2pIconEl.innerHTML = iconHtml.replace(/color:[^;"]+/g, 'color:#1e3a8a !important');
                 } else if (tripModes.length > 1) {
-                    p2pIconEl.innerHTML = '<i class="fa-solid fa-route" style="color:#ffffff; font-size:16px;"></i>';
+                    p2pIconEl.innerHTML = '<i class="fa-solid fa-route" style="color:#1e3a8a !important; font-size:16px;"></i>';
                 } else {
-                    p2pIconEl.innerHTML = '<i class="fa-solid fa-car" style="color:#ffffff; font-size:16px;"></i>';
+                    p2pIconEl.innerHTML = '<i class="fa-solid fa-car" style="color:#1e3a8a !important; font-size:16px;"></i>';
                 }
             }
 
@@ -4163,32 +4168,15 @@ try {
                     activeTier = 'red';
                 }
             } else {
-                // Budget meets or exceeds estimated cost (100% met!)
+                // Budget meets or exceeds estimated cost (100% MET!)
                 donutPct = 100;
-                const spentPct = (budget > 0) ? (estimatedCost / budget) * 100 : 0;
-
-                if (remaining === 0) {
-                    // Exact match: 100% budget used, MET!
-                    fillColor = '#10b981';
-                    remainingColor = '#10b981';
-                    remainingLabelHtml = '<i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> MET!';
-                    remainingValueText = '₱0.00';
-                    activeTier = 'green';
-                } else if (spentPct >= 80) {
-                    // YELLOW: 80% - 99% of budget consumed (caution: nearing budget limit, but still has remaining balance!)
-                    fillColor = '#f59e0b';
-                    remainingColor = '#f59e0b';
-                    remainingLabelHtml = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:4px;"></i> Remaining';
-                    remainingValueText = '+' + formattedRemaining;
-                    activeTier = 'orange';
-                } else {
-                    // GREEN: Under 80% of budget used (safe, plenty of budget remaining!)
-                    fillColor = '#10b981';
-                    remainingColor = '#10b981';
-                    remainingLabelHtml = '<i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Remaining';
-                    remainingValueText = '+' + formattedRemaining;
-                    activeTier = 'green';
-                }
+                fillColor = '#10b981';
+                remainingColor = '#10b981';
+                remainingLabelHtml = (remaining === 0)
+                    ? '<i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> MET!'
+                    : '<i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Remaining';
+                remainingValueText = (remaining === 0) ? '₱0.00' : '+' + formattedRemaining;
+                activeTier = 'green';
             }
 
             setLegendStatus(activeTier);
