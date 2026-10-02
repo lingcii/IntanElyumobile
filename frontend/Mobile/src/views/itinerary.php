@@ -949,28 +949,26 @@ try {
         </div>
 
         <div id="save-budget-details"
-            style="display:block; background:rgba(255,255,255,0.05); border:none !important; outline:none !important; padding:16px; border-radius:12px; margin-bottom:24px; box-shadow:none !important;">
-            <div style="display:flex; align-items:center; gap:16px;">
+            style="display:block; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12) !important; outline:none !important; padding:14px 16px; border-radius:16px; margin-bottom:20px; box-shadow:0 4px 16px rgba(0,0,0,0.15) !important;">
+            <div style="display:flex; align-items:center; gap:14px;">
                 <div id="modal-donut-wrapper"
-                    style="position:relative; flex-shrink:0; width:60px; margin-right:16px; height:60px; overflow:hidden; display:flex; align-items:center; justify-content:center; opacity:1; transform:scale(1); transition: width 0.45s cubic-bezier(0.34,1.56,0.64,1), margin-right 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease, transform 0.45s cubic-bezier(0.34,1.56,0.64,1);">
+                    style="position:relative; flex-shrink:0; width:58px; height:58px; overflow:hidden; display:flex; align-items:center; justify-content:center; opacity:1; transform:scale(1); transition: width 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease, transform 0.45s cubic-bezier(0.34,1.56,0.64,1);">
                     <div class="donut-chart" id="modal-budget-donut"
-                        style="position:absolute; left:0; top:0; border-radius:50%; width:60px; height:60px; transform:scaleX(-1);">
+                        style="position:absolute; left:0; top:0; border-radius:50%; width:58px; height:58px; transform:scaleX(-1);">
                     </div>
                     <span id="modal-donut-pct"
-                        style="position:relative; font-size:10px; font-weight:800; color:white; white-space:nowrap; text-shadow:0 1px 4px rgba(0,0,0,0.5);">100%</span>
+                        style="position:relative; font-size:12px; font-weight:900; color:#ffffff; white-space:nowrap; text-shadow:0 1px 4px rgba(0,0,0,0.6);">100%</span>
                 </div>
-                <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
-                    <div style="display:flex; justify-content:space-between; align-items:baseline;">
-                        <span style="font-size:11px; color:white; font-weight:600; text-transform:uppercase;">Estimated
-                            Cost</span>
-                        <h4 style="margin:0; font-size:16px; color:white; font-weight:800;" id="save-estimated-cost">
-                            ₱0.00</h4>
+                <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:10px; color:rgba(255,255,255,0.7); font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Estimated Cost</span>
+                        <h4 style="margin:0; font-size:15px; color:#ffffff; font-weight:900;" id="save-estimated-cost">₱0.00</h4>
                     </div>
                     <div id="save-budget-remaining-row"
-                        style="display:none; justify-content:space-between; align-items:baseline;">
-                        <span style="font-size:11px; font-weight:600; text-transform:uppercase;"
+                        style="display:none; justify-content:space-between; align-items:center; padding-top:6px; border-top:1px solid rgba(255,255,255,0.08);">
+                        <span style="font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.3px; white-space:nowrap;"
                             id="save-budget-remaining-label">Remaining</span>
-                        <span style="font-size:13px; font-weight:700;" id="save-budget-remaining-val">—</span>
+                        <span style="font-size:13.5px; font-weight:900; white-space:nowrap;" id="save-budget-remaining-val">—</span>
                     </div>
                 </div>
             </div>
@@ -3926,8 +3924,8 @@ try {
                     ${color} 0% ${fillPct}%,
                     rgba(255,255,255,0.08) ${fillPct}% 100%
                 )`;
-                    donutEl.style.mask = 'radial-gradient(transparent 50%, black 51%)';
-                    donutEl.style.webkitMask = 'radial-gradient(transparent 50%, black 51%)';
+                    donutEl.style.mask = 'radial-gradient(transparent 58%, black 59%)';
+                    donutEl.style.webkitMask = 'radial-gradient(transparent 58%, black 59%)';
                 }
                 if (pctEl) {
                     if (customLabel !== undefined && customLabel !== null) {
@@ -3939,7 +3937,7 @@ try {
                     } else {
                         pctEl.textContent = Math.round(pct) + '%';
                     }
-                    pctEl.style.color = color;
+                    pctEl.style.color = '#ffffff';
                 }
 
                 if (progress < 1) {
@@ -4113,8 +4111,8 @@ try {
 
             // Donut automatically shows when the modal is open
             if (donutWrapper) {
-                donutWrapper.style.width = '60px';
-                donutWrapper.style.marginRight = '16px';
+                donutWrapper.style.width = '58px';
+                donutWrapper.style.marginRight = '0';
                 donutWrapper.style.opacity = '1';
                 donutWrapper.style.transform = 'scale(1)';
             }
@@ -4129,45 +4127,50 @@ try {
                 return;
             }
 
-            // Standard Budget Consumption Percentage: (Total Estimated Cost / User Budget) * 100
-            const spentPct = (budget > 0) ? (estimatedCost / budget) * 100 : 0;
             const remaining = budget - estimatedCost;
             const absRemaining = Math.abs(remaining);
             const formattedRemaining = '₱' + absRemaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-            let fillColor = '#10b981'; // Green: (<80%)
-            let remainingLabelHtml = '<i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Remaining Budget';
-            let remainingValueText = '+' + formattedRemaining + ' left';
+            let fillColor = '#10b981';
             let remainingColor = '#10b981';
+            let remainingLabelHtml = '<i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Remaining';
+            let remainingValueText = (remaining === 0) ? '₱0.00' : '+' + formattedRemaining;
             let activeTier = 'green';
+            let donutPct = 100;
 
-            if (estimatedCost > budget) {
-                // RED: (> 100%)
-                fillColor = '#ef4444';
-                remainingLabelHtml = '<i class="fa-solid fa-circle-xmark" style="margin-right:4px;"></i> Budget Exceeded';
-                remainingValueText = '-' + formattedRemaining;
-                remainingColor = '#ef4444';
-                activeTier = 'red';
-            } else if (spentPct >= 80) {
-                // ORANGE: (80% - 100%)
-                fillColor = '#f59e0b';
-                remainingLabelHtml = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:4px;"></i> Remaining Budget';
-                remainingValueText = (remaining === 0 ? '₱0.00 left' : '+' + formattedRemaining + ' left');
-                remainingColor = '#f59e0b';
-                activeTier = 'orange';
-            } else {
-                // GREEN: (< 80%)
+            if (budget >= estimatedCost) {
+                // When budget meets or exceeds estimated cost, it is 100% covered!
+                donutPct = 100;
                 fillColor = '#10b981';
-                remainingLabelHtml = '<i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Remaining Budget';
-                remainingValueText = '+' + formattedRemaining + ' left';
                 remainingColor = '#10b981';
+                remainingLabelHtml = '<i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Remaining';
+                remainingValueText = (remaining === 0) ? '₱0.00' : '+' + formattedRemaining;
                 activeTier = 'green';
+            } else {
+                // Budget is less than estimated cost (insufficient funds)
+                const coveragePct = (estimatedCost > 0) ? Math.max(0, Math.min(99, Math.round((budget / estimatedCost) * 100))) : 0;
+                donutPct = coveragePct;
+                const shortfall = estimatedCost - budget;
+                const formattedShortfall = '₱' + shortfall.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                remainingValueText = '-' + formattedShortfall;
+
+                if (coveragePct >= 80) {
+                    fillColor = '#f59e0b';
+                    remainingColor = '#f59e0b';
+                    remainingLabelHtml = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:4px;"></i> Exceeded';
+                    activeTier = 'orange';
+                } else {
+                    fillColor = '#ef4444';
+                    remainingColor = '#ef4444';
+                    remainingLabelHtml = '<i class="fa-solid fa-circle-xmark" style="margin-right:4px;"></i> Exceeded';
+                    activeTier = 'red';
+                }
             }
 
             setLegendStatus(activeTier);
 
             // Animate donut fill smoothly with color-coded status
-            animateDonut(spentPct, fillColor);
+            animateDonut(donutPct, fillColor);
 
             // Update remaining row
             if (remainingRow) {
