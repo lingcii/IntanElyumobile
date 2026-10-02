@@ -301,62 +301,72 @@ try {
     }
 
     .p2p-leg-chip.leg-maintenance {
-        background: #fef2f2 !important;
-        border: 1px solid #fecaca !important;
-        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.12) !important;
+        background: #ef4444 !important;
+        border: none !important;
+        outline: none !important;
+        box-shadow: 0 3px 10px rgba(239, 68, 68, 0.3) !important;
+        color: #ffffff !important;
+    }
+
+    .p2p-leg-chip.leg-maintenance:hover {
+        background: #dc2626 !important;
+        box-shadow: 0 4px 14px rgba(220, 38, 38, 0.38) !important;
     }
 
     .leg-option-card {
-        background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%) !important; /* Royal Blue */
-        border-radius: 16px !important;
-        padding: 13px 15px !important;
+        background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; /* Notification Card Gradient */
+        border-radius: 14px !important;
+        padding: 12px 14px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: space-between !important;
         cursor: pointer !important;
         transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
         border: 2px solid transparent !important;
-        box-shadow: 0 4px 14px rgba(30, 64, 175, 0.2) !important;
+        box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28) !important;
         color: #ffffff !important;
         position: relative !important;
         user-select: none !important;
     }
 
     .leg-option-card:hover {
-        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+        background: linear-gradient(135deg, #254b9f 0%, #315ea9 50%, #3c75be 100%) !important;
         transform: translateY(-2px) !important;
-        box-shadow: 0 6px 18px rgba(30, 64, 175, 0.32) !important;
+        box-shadow: 0 6px 16px rgba(32, 63, 141, 0.38) !important;
     }
 
     .leg-option-card.active {
-        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
-        border: 2px solid #60a5fa !important;
-        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4) !important;
+        background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+        border: 2px solid #00f2fe !important;
+        box-shadow: 0 4px 16px rgba(0, 242, 254, 0.35) !important;
     }
 
     .leg-option-card.disabled-leg-option {
-        opacity: 0.5 !important;
+        opacity: 0.45 !important;
         cursor: not-allowed !important;
-        background: #475569 !important;
-        border: 1.5px dashed #94a3b8 !important;
+        background: #334155 !important;
+        border: 1.5px dashed #64748b !important;
         box-shadow: none !important;
     }
 
     .leg-option-card.disabled-leg-option:hover {
-        background: #475569 !important;
+        background: #334155 !important;
         transform: none !important;
         box-shadow: none !important;
     }
 
     .leg-option-icon {
-        width: 36px;
-        height: 36px;
+        width: 34px;
+        height: 34px;
         border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 15px;
+        font-size: 14px;
         flex-shrink: 0;
+        background: #ffffff !important;
+        color: #1e3a8a !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
     }
 
     .travel-starter-card {
@@ -917,39 +927,39 @@ try {
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6, 11, 25, 0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:100003 !important; justify-content:center; align-items:flex-end; padding:0;">
     <div style="background:#ffffff !important; border-radius:28px 28px 0 0; width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; max-height:88vh; display:flex; flex-direction:column; box-sizing:border-box; overflow:hidden; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
         
-        <!-- Header -->
-        <div style="background:linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%) !important; padding:18px 20px 16px 20px; color:#ffffff; flex-shrink:0;">
-            <div style="width:40px; height:4px; background:rgba(255,255,255,0.4); border-radius:99px; margin:0 auto 12px auto;"></div>
+        <!-- Header (Matched to Notifications Header Banner) -->
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 18px 14px 18px; color:#ffffff; flex-shrink:0; border:none !important; outline:none !important;">
+            <div style="width:36px; height:4px; background:rgba(255,255,255,0.35); border-radius:99px; margin:0 auto 12px auto;"></div>
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <div style="width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.15);">
-                        <i class="fa-solid fa-route" style="color:#67e8f9; font-size:16px;"></i>
+                    <div style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                        <i class="fa-solid fa-route" style="color:#1e3a8a !important; font-size:15px;"></i>
                     </div>
                     <div>
                         <div style="display:flex; align-items:center; gap:6px;">
                             <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Choose Leg Transports</h3>
-                            <span style="font-size:9.5px; font-weight:800; background:rgba(255,255,255,0.22); color:#ffffff; padding:2px 7px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">Multi-Select</span>
+                            <span style="font-size:9.5px; font-weight:800; background:rgba(0, 242, 254, 0.18); color:#00f2fe; padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">Multi-Select</span>
                         </div>
                         <div id="leg-modal-subtitle" style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">
                             Leg Route Details
                         </div>
                     </div>
                 </div>
-                <button type="button" onclick="window.closeLegTransportModal()" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:transform 0.15s ease;">
-                    <i class="fa-solid fa-xmark"></i>
+                <button type="button" onclick="window.closeLegTransportModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink:0; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; font-size:14px;"></i>
                 </button>
             </div>
         </div>
 
         <!-- Body Below Header (Pure White Background) -->
-        <div style="background:#ffffff !important; color:#1e293b; padding:16px 18px calc(20px + env(safe-area-inset-bottom, 0px)); flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;">
+        <div style="background:#ffffff !important; color:#1e293b; padding:16px 18px 12px 18px; flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;">
             
             <!-- Multi-Select Selection Info Bar -->
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; background:#f8fafc; padding:8px 12px; border-radius:12px; border:1px solid #e2e8f0;">
-                <span style="font-size:12px; font-weight:700; color:#475569; display:flex; align-items:center; gap:6px;">
-                    <i class="fa-solid fa-check-double" style="color:#2563eb; font-size:13px;"></i> Select multiple vehicles if needed:
+                <span style="font-size:12px; font-weight:700; color:#1e3a8a; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-check-double" style="color:#1e3a8a; font-size:12px;"></i> Select multiple vehicles if needed:
                 </span>
-                <span id="leg-modal-selection-count" style="font-size:11px; font-weight:800; background:#eff6ff; color:#1d4ed8; padding:3px 10px; border-radius:100px; border:1px solid #bfdbfe;">
+                <span id="leg-modal-selection-count" style="font-size:10.5px; font-weight:800; background:rgba(0, 242, 254, 0.18); color:#0284c7; padding:3px 10px; border-radius:100px;">
                     1 Selected
                 </span>
             </div>
@@ -962,22 +972,22 @@ try {
                 </div>
             </div>
 
-            <!-- Transport Options List (Royal Blue Cards Rendered Inside) -->
-            <div id="leg-modal-options-list" style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:9px; padding-right:2px; -webkit-overflow-scrolling:touch; max-height:48vh; margin-bottom:12px;">
+            <!-- Transport Options List (Royal Blue Notification Cards) -->
+            <div id="leg-modal-options-list" style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:9px; padding-right:2px; -webkit-overflow-scrolling:touch; max-height:48vh; margin-bottom:4px;">
                 <!-- Rendered dynamically -->
             </div>
 
-            <!-- Bottom Confirm Action Footer -->
-            <div style="margin-top:auto; padding-top:12px; border-top:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; gap:12px; background:#ffffff;">
-                <div>
-                    <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">Estimated Leg Fare</div>
-                    <div id="leg-modal-total-fare" style="font-size:18px; font-weight:900; color:#1e40af;">₱0.00</div>
-                </div>
-                <button type="button" id="btn-apply-leg-transport" onclick="window.applyLegVehicleSelection()" style="background:linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important; color:#ffffff !important; border:none !important; outline:none !important; border-radius:14px; padding:12px 22px; font-size:13.5px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(30, 64, 175, 0.35); transition:all 0.15s ease;">
-                    <i class="fa-solid fa-check"></i> Apply Selection
-                </button>
-            </div>
+        </div>
 
+        <!-- Locked Bottom Footer Banner (Matched to Notifications Footer Banner) -->
+        <div style="flex-shrink:0; padding:12px 18px calc(14px + env(safe-area-inset-bottom, 0px)) 18px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); display:flex; align-items:center; justify-content:space-between; gap:12px; border:none !important; outline:none !important;">
+            <div>
+                <div style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.5px;">Estimated Leg Fare</div>
+                <div id="leg-modal-total-fare" style="font-size:18px; font-weight:900; color:#00f2fe; letter-spacing:-0.2px;">₱0.00</div>
+            </div>
+            <button type="button" id="btn-apply-leg-transport" onclick="window.applyLegVehicleSelection()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; cursor:pointer; padding:9px 18px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; display:inline-flex; align-items:center; gap:7px; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Apply Selection
+            </button>
         </div>
 
     </div>
@@ -986,13 +996,13 @@ try {
 <!-- Step 1 Vehicle Selection Modal (Bottom Sheet) -->
 <div id="travel-mode-starter-modal" onclick="if(event.target===this) window.closeTravelModeStarterModal()"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6, 11, 25, 0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:100003 !important; justify-content:center; align-items:flex-end; padding:0;">
-    <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; backdrop-filter:blur(24px) !important; -webkit-backdrop-filter:blur(24px) !important; border:none !important; outline:none !important; border-radius:28px 28px 0 0; padding:22px 20px calc(24px + env(safe-area-inset-bottom, 0px)); width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; color:#ffffff; max-height:85vh; display:flex; flex-direction:column; box-sizing:border-box; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
+    <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; backdrop-filter:blur(24px) !important; -webkit-backdrop-filter:blur(24px) !important; border:none !important; outline:none !important; border-radius:28px 28px 0 0; padding:22px 20px calc(24px + env(safe-area-inset-bottom, 0px)); width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; color:#ffffff; max-height:85vh; display:flex; flex-direction:column; box-sizing:border-box; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
         
         <!-- Header -->
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
             <div style="display:flex; align-items:center; gap:10px;">
-                <div style="width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                    <i class="fa-solid fa-car-side" style="color:#00f2fe; font-size:16px;"></i>
+                <div style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                    <i class="fa-solid fa-car-side" style="color:#1e3a8a !important; font-size:16px;"></i>
                 </div>
                 <div>
                     <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Step 1: Choose Your Vehicle</h3>
@@ -1001,8 +1011,8 @@ try {
                     </div>
                 </div>
             </div>
-            <button type="button" onclick="window.closeTravelModeStarterModal()" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; transition:transform 0.15s ease;">
-                <i class="fa-solid fa-xmark"></i>
+            <button type="button" onclick="window.closeTravelModeStarterModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink:0; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; font-size:13px;"></i>
             </button>
         </div>
 
@@ -2254,8 +2264,8 @@ try {
                     prevCat = opt.category;
                     const catIcon = prevCat === 'Private' ? 'fa-car' : 'fa-bus';
                     listHtml += `
-                    <div style="font-size:11.5px; font-weight:800; text-transform:uppercase; color:#1e40af; letter-spacing:0.6px; margin:10px 0 4px 4px; display:flex; align-items:center; gap:6px;">
-                        <i class="fa-solid ${catIcon}" style="font-size:11px; color:#2563eb;"></i> ${prevCat} Transport
+                    <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:#1e3a8a; letter-spacing:0.6px; margin:8px 0 3px 2px; display:flex; align-items:center; gap:6px;">
+                        <i class="fa-solid ${catIcon}" style="font-size:11px; color:#1e3a8a;"></i> ${prevCat} Transport
                     </div>`;
                 }
 
@@ -2275,7 +2285,7 @@ try {
                 }) && opt.isAvail;
 
                 const costStr = (opt.cost > 0) ? `₱${opt.cost.toFixed(2)}` : '₱0';
-                const costColor = (opt.cost > 0) ? '#67e8f9' : '#34d399';
+                const costColor = '#00f2fe';
                 const disabledClass = !opt.isAvail ? 'disabled-leg-option' : '';
                 const clickHandler = opt.isAvail
                     ? `onclick="window.toggleLegCandidateMode('${opt.mode}')"`
@@ -2283,32 +2293,32 @@ try {
 
                 listHtml += `
                 <div class="leg-option-card ${isSelected ? 'active' : ''} ${disabledClass}" ${clickHandler} style="${!opt.isAvail ? 'opacity:0.45; cursor:not-allowed;' : ''}">
-                    <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:0;">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
                         <!-- Multi-select checkbox -->
-                        <div style="width:22px; height:22px; border-radius:6px; border:2px solid ${isSelected ? '#60a5fa' : 'rgba(255,255,255,0.7)'}; background:${isSelected ? '#60a5fa' : 'rgba(255,255,255,0.1)'}; display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            ${isSelected ? '<i class="fa-solid fa-check"></i>' : ''}
+                        <div style="width:22px; height:22px; border-radius:6px; border:2px solid ${isSelected ? '#00f2fe' : 'rgba(255,255,255,0.65)'}; background:${isSelected ? '#00f2fe' : 'rgba(255,255,255,0.1)'}; display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            ${isSelected ? '<i class="fa-solid fa-check" style="color:#1e3a8a !important;"></i>' : ''}
                         </div>
 
-                        <div class="leg-option-icon" style="background:rgba(255,255,255,0.18); color:#ffffff;">
+                        <div class="leg-option-icon">
                             <i class="fa-solid ${opt.icon}"></i>
                         </div>
                         <div style="flex:1; min-width:0;">
                             <div style="font-weight:800; font-size:13.5px; color:#ffffff; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                                 <span>${opt.name}</span>
-                                ${opt.isRecommended && opt.isAvail ? '<span style="font-size:9px; background:#10b981; color:#ffffff; padding:1px 6px; border-radius:100px; font-weight:800; letter-spacing:0.3px;">OPTIMAL</span>' : ''}
-                                ${!opt.isAvail ? '<span style="font-size:8.5px; background:rgba(239,68,68,0.3); color:#fca5a5; padding:1px 6px; border-radius:100px; font-weight:800; letter-spacing:0.3px;"><i class="fa-solid fa-ban" style="font-size:8px;"></i> UNAVAILABLE</span>' : ''}
+                                ${opt.isRecommended && opt.isAvail ? '<span style="font-size:9px; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:1px 7px; border-radius:100px; font-weight:800; letter-spacing:0.3px;">OPTIMAL</span>' : ''}
+                                ${!opt.isAvail ? '<span style="font-size:8.5px; background:rgba(239,68,68,0.25); color:#fca5a5; padding:1px 6px; border-radius:100px; font-weight:800; letter-spacing:0.3px;"><i class="fa-solid fa-ban" style="font-size:8px;"></i> UNAVAILABLE</span>' : ''}
                             </div>
-                            <div style="font-size:11px; color:#bfdbfe; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                                 ${opt.desc}
                             </div>
                             ${!opt.isAvail ? `<div style="font-size:10.5px; color:#fca5a5; font-weight:700; margin-top:3px;"><i class="fa-solid fa-circle-exclamation" style="font-size:9px;"></i> ${opt.unavailReason}</div>` : ''}
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <div style="font-size:14px; font-weight:900; color:${opt.isAvail ? costColor : '#94a3b8'};">
+                        <div style="font-size:14.5px; font-weight:900; color:${opt.isAvail ? costColor : '#94a3b8'}; letter-spacing:-0.2px;">
                             ${opt.isAvail ? costStr : '—'}
                         </div>
-                        ${isSelected ? '<span style="font-size:9.5px; color:#67e8f9; font-weight:700;"><i class="fa-solid fa-check"></i> Selected</span>' : ''}
+                        ${isSelected ? '<span style="font-size:9.5px; color:#00f2fe; font-weight:800;"><i class="fa-solid fa-check"></i> Selected</span>' : ''}
                     </div>
                 </div>`;
             });
@@ -2319,16 +2329,17 @@ try {
             const countEl = document.getElementById('leg-modal-selection-count');
             if (countEl) {
                 if (availCount === 0) {
-                    countEl.textContent = 'Suspended';
-                    countEl.style.background = '#fef2f2';
-                    countEl.style.color = '#b91c1c';
-                    countEl.style.borderColor = '#fecaca';
+                    countEl.textContent = 'Site Under Maintenance';
+                    countEl.style.background = '#ef4444';
+                    countEl.style.color = '#ffffff';
+                    countEl.style.border = 'none';
+                    countEl.style.outline = 'none';
                 } else {
                     const count = selectedModes.length;
                     countEl.textContent = `${count} Selected`;
-                    countEl.style.background = '#eff6ff';
-                    countEl.style.color = '#1d4ed8';
-                    countEl.style.borderColor = '#bfdbfe';
+                    countEl.style.background = 'rgba(0, 242, 254, 0.18)';
+                    countEl.style.color = '#0284c7';
+                    countEl.style.borderColor = 'transparent';
                 }
             }
 
@@ -2348,7 +2359,7 @@ try {
                     btnApply.disabled = true;
                     btnApply.style.opacity = '0.45';
                     btnApply.style.cursor = 'not-allowed';
-                    btnApply.innerHTML = `<i class="fa-solid fa-ban"></i> Transit Suspended`;
+                    btnApply.innerHTML = `<i class="fa-solid fa-ban"></i> Site Under Maintenance`;
                 } else {
                     btnApply.disabled = false;
                     btnApply.style.opacity = '1';
@@ -2856,20 +2867,20 @@ try {
 
                 const startDistText = startEta ? `${startEta.distanceText} &bull; ~${startEta.durationText}` : 'Start Leg';
                 const fareBadge = leg0Info.is_maintenance
-                    ? `<span class="leg-fare-tag" style="background:#fee2e2 !important; color:#dc2626 !important; font-weight:800;">Suspended</span>`
+                    ? ''
                     : ((leg0Info.cost > 0)
                         ? `<span class="leg-fare-tag">₱${leg0Info.cost.toFixed(2)}</span>`
                         : `<span class="leg-fare-tag" style="color:#059669; background:rgba(16,185,129,0.1);">₱0</span>`);
 
                 const warningBadge = leg0Info.is_maintenance
-                    ? `<span class="p2p-leg-warning-tag" style="background:#fee2e2 !important; color:#dc2626 !important; border:1px solid #fca5a5 !important;"><i class="fa-solid fa-triangle-exclamation"></i> Closed</span>`
+                    ? `<span class="p2p-leg-warning-tag" style="background:rgba(255,255,255,0.22) !important; color:#ffffff !important; border:none !important; outline:none !important;"><i class="fa-solid fa-triangle-exclamation" style="color:#ffffff;"></i> Closed</span>`
                     : (leg0Info.is_inaccessible
                         ? `<span class="p2p-leg-warning-tag" style="background:rgba(239,68,68,0.22); color:#fca5a5; border:1px solid rgba(239,68,68,0.35);" title="${leg0Info.warning}"><i class="fa-solid fa-triangle-exclamation"></i> Inaccessible</span>`
                         : (leg0Info.warning ? `<span class="p2p-leg-warning-tag" title="${leg0Info.warning}"><i class="fa-solid fa-triangle-exclamation"></i> Trailhead</span>` : ''));
 
                 const leg0ChipClass = leg0Info.is_maintenance ? 'p2p-leg-chip leg-maintenance' : 'p2p-leg-chip';
-                const leg0IconColor = leg0Info.is_maintenance ? '#ef4444' : '#0284c7';
-                const leg0NameStyle = leg0Info.is_maintenance ? 'color:#b91c1c; font-weight:800;' : '';
+                const leg0IconColor = leg0Info.is_maintenance ? '#ffffff' : '#0284c7';
+                const leg0NameStyle = leg0Info.is_maintenance ? 'color:#ffffff; font-weight:800;' : '';
 
                 startingLegHtml = `
             <div class="stops-swap-divider starting-leg-divider">
@@ -2879,9 +2890,9 @@ try {
                         <i class="fa-solid ${leg0Info.icon}" style="color:${leg0IconColor}; font-size:11px;"></i>
                         <span style="${leg0NameStyle}">${leg0Info.name}</span>
                         ${fareBadge}
-                        <span style="color:#64748b; font-size:10.5px;">&bull; ${startDistText}</span>
+                        <span style="${leg0Info.is_maintenance ? 'color:rgba(255,255,255,0.9);' : 'color:#64748b;'} font-size:10.5px;">&bull; ${startDistText}</span>
                         ${warningBadge}
-                        <i class="fa-solid fa-chevron-right leg-action-edit" style="${leg0Info.is_maintenance ? 'color:#ef4444;' : ''}"></i>
+                        <i class="fa-solid fa-chevron-right leg-action-edit" style="${leg0Info.is_maintenance ? 'color:#ffffff;' : ''}"></i>
                     </div>
                     <div class="starting-leg-icon-pill" title="Start of Itinerary Route">
                         <i class="fa-solid fa-arrow-down"></i>
@@ -2956,20 +2967,20 @@ try {
 
                         const legDistText = legEta ? `${legEta.distanceText} &bull; ~${legEta.durationText}` : 'Leg Route';
                         const fareBadge = legInfo.is_maintenance
-                            ? `<span class="leg-fare-tag" style="background:#fee2e2 !important; color:#dc2626 !important; font-weight:800;">Suspended</span>`
+                            ? ''
                             : ((legInfo.cost > 0)
                                 ? `<span class="leg-fare-tag">₱${legInfo.cost.toFixed(2)}</span>`
                                 : `<span class="leg-fare-tag" style="color:#059669; background:rgba(16,185,129,0.1);">₱0</span>`);
 
                         const warningBadge = legInfo.is_maintenance
-                            ? `<span class="p2p-leg-warning-tag" style="background:#fee2e2 !important; color:#dc2626 !important; border:1px solid #fca5a5 !important;"><i class="fa-solid fa-triangle-exclamation"></i> Closed</span>`
+                            ? `<span class="p2p-leg-warning-tag" style="background:rgba(255,255,255,0.22) !important; color:#ffffff !important; border:none !important; outline:none !important;"><i class="fa-solid fa-triangle-exclamation" style="color:#ffffff;"></i> Closed</span>`
                             : (legInfo.is_inaccessible
                                 ? `<span class="p2p-leg-warning-tag" style="background:rgba(239,68,68,0.22); color:#fca5a5; border:1px solid rgba(239,68,68,0.35);" title="${legInfo.warning}"><i class="fa-solid fa-triangle-exclamation"></i> Inaccessible</span>`
                                 : (legInfo.warning ? `<span class="p2p-leg-warning-tag" title="${legInfo.warning}"><i class="fa-solid fa-triangle-exclamation"></i> Trailhead</span>` : ''));
 
                         const legChipClass = legInfo.is_maintenance ? 'p2p-leg-chip leg-maintenance' : 'p2p-leg-chip';
-                        const legIconColor = legInfo.is_maintenance ? '#ef4444' : '#0284c7';
-                        const legNameStyle = legInfo.is_maintenance ? 'color:#b91c1c; font-weight:800;' : '';
+                        const legIconColor = legInfo.is_maintenance ? '#ffffff' : '#0284c7';
+                        const legNameStyle = legInfo.is_maintenance ? 'color:#ffffff; font-weight:800;' : '';
 
                         html += `
                         <div class="stops-swap-divider">
@@ -2979,9 +2990,9 @@ try {
                                     <i class="fa-solid ${legInfo.icon}" style="color:${legIconColor}; font-size:11px;"></i>
                                     <span style="${legNameStyle}">${legInfo.name}</span>
                                     ${fareBadge}
-                                    <span style="color:#64748b; font-size:10.5px;">&bull; ${legDistText}</span>
+                                    <span style="${legInfo.is_maintenance ? 'color:rgba(255,255,255,0.9);' : 'color:#64748b;'} font-size:10.5px;">&bull; ${legDistText}</span>
                                     ${warningBadge}
-                                    <i class="fa-solid fa-chevron-right leg-action-edit" style="${legInfo.is_maintenance ? 'color:#ef4444;' : ''}"></i>
+                                    <i class="fa-solid fa-chevron-right leg-action-edit" style="${legInfo.is_maintenance ? 'color:#ffffff;' : ''}"></i>
                                 </div>
                                 <button type="button" class="btn-swap-pill" onclick="event.stopPropagation(); window.swapDraftStops(${index - 1}, ${index});" title="Swap Stop ${index} and Stop ${index + 1}" aria-label="Swap order">
                                     <i class="fa-solid fa-arrows-up-down"></i>
@@ -3036,8 +3047,8 @@ try {
                             const acc = Array.isArray(place.accessible_vehicles) ? place.accessible_vehicles : [];
                             if (isMaint) {
                                 return `<div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
-                                        <span style="padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; background:rgba(239,68,68,0.2); color:#fca5a5; border:none !important; outline:none !important; display:inline-flex; align-items:center; gap:4px;">
-                                            <i class="fa-solid fa-triangle-exclamation" style="font-size:9px; color:#ef4444;"></i> Site Under Maintenance
+                                        <span style="padding:3px 9px; border-radius:100px; font-size:10px; font-weight:800; background:#ef4444 !important; color:#ffffff !important; border:none !important; outline:none !important; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 6px rgba(239, 68, 68, 0.3);">
+                                            <i class="fa-solid fa-triangle-exclamation" style="font-size:9.5px; color:#ffffff;"></i> Site Under Maintenance
                                         </span>
                                     </div>`;
                             }
