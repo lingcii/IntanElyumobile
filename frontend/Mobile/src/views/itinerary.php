@@ -1658,19 +1658,127 @@ try {
             return parseFloat(match.regular_fare);
         };
 
+        // ---- Unified Vehicle Normalization & Display Name Engine ----
+        window.normalizeVehicleKey = function (m) {
+            if (!m) return '';
+            let s = String(m).trim().toLowerCase();
+            // Strip leading and trailing underscores, hyphens, and spaces
+            s = s.replace(/^[-_\s]+|[-_\s]+$/g, '');
+            // Collapse internal spaces, hyphens, and multiple underscores into a single underscore
+            s = s.replace(/[- ]+/g, '_').replace(/_+/g, '_');
+
+            if (s === 'car') return 'own_car';
+            if (s === 'motor') return 'motorcycle';
+            if (s === 'pub_ordinary') return 'pub_regular';
+            if (s === 'bus') return 'pub_aircon';
+            if (s === 'trike') return 'tricycle';
+            if (s.startsWith('pub_aircon')) return 'pub_aircon';
+            if (s.startsWith('pub_reg')) return 'pub_regular';
+            if (s.startsWith('own_car')) return 'own_car';
+            return s;
+        };
+
+        window.parseCompositeTransportModes = function (str) {
+            if (!str) return [];
+            if (Array.isArray(str)) {
+                return str.map(s => window.normalizeVehicleKey(s)).filter(Boolean);
+            }
+            // CRITICAL: Split by '+' or ',' FIRST, so whitespace around '+' is NOT converted into underscores!
+            const parts = String(str).split(/[\+,]/);
+            const validModes = ['own_car', 'motorcycle', 'van', 'mpuj', 'tpuj', 'tricycle', 'pub_regular', 'pub_aircon', 'uve', 'taxi'];
+            const res = [];
+            parts.forEach(p => {
+                const norm = window.normalizeVehicleKey(p);
+                if (norm && validModes.includes(norm) && !res.includes(norm)) {
+                    res.push(norm);
+                }
+            });
+            return res;
+        };
+
+        window.getVehicleDisplayName = function (modeKey) {
+            if (!modeKey) return 'Own Car';
+            const subModes = window.parseCompositeTransportModes(modeKey);
+            if (subModes.length === 2) {
+                return `${window.getVehicleShortName(subModes[0])} + ${window.getVehicleShortName(subModes[1])}`;
+            } else if (subModes.length > 2) {
+                return `${subModes.length} Vehicles (${subModes.map(m => window.getVehicleShortName(m)).join(', ')})`;
+            }
+
+            const norm = (subModes.length === 1) ? subModes[0] : window.normalizeVehicleKey(modeKey);
+            const map = {
+                'own_car': 'Own Car',
+                'motorcycle': 'Motorcycle',
+                'van': 'Van',
+                'mpuj': 'Modern Jeepney (MPUJ)',
+                'tpuj': 'Traditional Jeepney (TPUJ)',
+                'jeepney': 'Traditional Jeepney (TPUJ)',
+                'tricycle': 'Tricycle',
+                'pub_regular': 'PUB Regular (Ordinary Bus)',
+                'pub_aircon': 'PUB Aircon (Aircon Bus)',
+                'uve': 'UV Express (UVE)',
+                'taxi': 'Taxi'
+            };
+            return map[norm] || norm.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        };
+
+        window.getVehicleShortName = function (modeKey) {
+            if (!modeKey) return 'Own Car';
+            const subModes = window.parseCompositeTransportModes(modeKey);
+            if (subModes.length === 2) {
+                return `${window.getVehicleShortName(subModes[0])} + ${window.getVehicleShortName(subModes[1])}`;
+            } else if (subModes.length > 2) {
+                return `${subModes.length} Vehicles`;
+            }
+
+            const norm = (subModes.length === 1) ? subModes[0] : window.normalizeVehicleKey(modeKey);
+            const map = {
+                'own_car': 'Own Car',
+                'motorcycle': 'Motorcycle',
+                'van': 'Van',
+                'mpuj': 'Modern Jeepney',
+                'tpuj': 'Traditional Jeepney',
+                'jeepney': 'Jeepney',
+                'tricycle': 'Tricycle',
+                'pub_regular': 'Regular Bus',
+                'pub_aircon': 'Aircon Bus',
+                'uve': 'UV Express',
+                'taxi': 'Taxi'
+            };
+            return map[norm] || norm.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        };
+
+        window.getVehicleIconHtml = function (modeKey) {
+            const subModes = window.parseCompositeTransportModes(modeKey);
+            if (subModes.length > 1) {
+                return '<i class="fa-solid fa-shuffle" style="color:#00f2fe;"></i>';
+            }
+            const norm = (subModes.length === 1) ? subModes[0] : window.normalizeVehicleKey(modeKey || 'own_car');
+            if (norm === 'motorcycle') return '<i class="fa-solid fa-motorcycle" style="color:#fbbf24;"></i>';
+            if (norm === 'van') return '<i class="fa-solid fa-van-shuttle" style="color:#c084fc;"></i>';
+            if (norm === 'mpuj') return '<i class="fa-solid fa-bus-simple" style="color:#34d399;"></i>';
+            if (norm === 'tpuj' || norm === 'jeepney') return '<i class="fa-solid fa-van-shuttle" style="color:#10b981;"></i>';
+            if (norm === 'tricycle') return '<i class="fa-solid fa-motorcycle" style="color:#22d3ee;"></i>';
+            if (norm === 'pub_regular') return '<i class="fa-solid fa-bus" style="color:#fb923c;"></i>';
+            if (norm === 'pub_aircon') return '<i class="fa-solid fa-bus" style="color:#f87171;"></i>';
+            if (norm === 'uve') return '<i class="fa-solid fa-van-shuttle" style="color:#a855f7;"></i>';
+            if (norm === 'taxi') return '<i class="fa-solid fa-taxi" style="color:#facc15;"></i>';
+            return '<i class="fa-solid fa-car" style="color:#00f2fe;"></i>';
+        };
+
         // ---- Point-to-Point (P2P) Fare Calculator ----
         window.calculateSingleLegCost = function (mode, distKm, muniA, muniB) {
             if (!mode) return 0;
-            if (typeof mode === 'string' && (mode.includes('+') || mode.includes(','))) {
-                const subParts = mode.split(/[\+,]/).map(s => s.trim()).filter(Boolean);
+            const subParts = window.parseCompositeTransportModes(mode);
+            if (subParts.length > 1) {
                 let subSum = 0;
                 subParts.forEach(p => {
                     subSum += window.calculateSingleLegCost(p, distKm, muniA, muniB);
                 });
                 return Math.round(subSum * 100) / 100;
             }
-            const norm = mode.toLowerCase().replace(/[- ]/g, '_');
-            if (['own_car', 'car', 'motorcycle', 'walking', 'walk', 'no_vehicle'].includes(norm)) {
+            const norm = (subParts.length === 1) ? subParts[0] : window.normalizeVehicleKey(mode);
+            if (['own_car', 'motorcycle', 'walking', 'walk', 'no_vehicle'].includes(norm)) {
                 return 0;
             }
             const cleanA = (muniA || '').replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim();
@@ -1745,67 +1853,52 @@ try {
             const isCross = Boolean(cleanA && cleanB && cleanA !== cleanB);
 
             const isNonDrivable = Boolean(toSpot && (toSpot.accessible_by_private_vehicle === 0 || toSpot.accessible_by_private_vehicle === false || toSpot.accessible_by_private_vehicle === '0'));
-            const normGlobal = (globalMode || '').toLowerCase().replace(/[- ]/g, '_');
 
-            // Multi-modal global transport support (e.g. "own_car + tricycle", "mpuj + tricycle")
-            if (normGlobal.includes('+') || normGlobal.includes(',')) {
-                const subModes = normGlobal.split(/[\+,]/).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
-                if (subModes.length > 1) {
-                    const shortNames = {
-                        'own_car': 'Own Car', 'car': 'Own Car', 'motorcycle': 'Motorcycle',
-                        'van': 'Van', 'mpuj': 'MPUJ', 'tpuj': 'TPUJ', 'jeepney': 'Jeepney',
-                        'tricycle': 'Tricycle', 'pub_regular': 'Regular Bus', 'pub_aircon': 'Aircon Bus',
-                        'uve': 'UV Express', 'taxi': 'Taxi'
-                    };
-                    const cost = window.calculateSingleLegCost(subModes.join(' + '), d, muniA, muniB);
-                    const dispName = (subModes.length === 2)
-                        ? `${shortNames[subModes[0]] || subModes[0]} + ${shortNames[subModes[1]] || subModes[1]}`
-                        : `${subModes.length} Vehicles Selected`;
+            // Multi-modal global transport support (e.g. "own_car + tricycle", "own_car + motorcycle")
+            const subModes = window.parseCompositeTransportModes(globalMode);
+            if (subModes.length > 1) {
+                const cost = window.calculateSingleLegCost(subModes.join(' + '), d, muniA, muniB);
+                const dispName = (subModes.length === 2)
+                    ? `${window.getVehicleShortName(subModes[0])} + ${window.getVehicleShortName(subModes[1])}`
+                    : `${subModes.length} Vehicles Selected`;
 
-                    let warningNotice = null;
-                    if (isNonDrivable) {
-                        const canTricycleOrMotor = subModes.some(m => ['tricycle', 'trike', 'motorcycle', 'motor', 'walking', 'walk'].includes(m));
-                        if (canTricycleOrMotor && subModes.some(m => ['own_car', 'car', 'van'].includes(m))) {
-                            warningNotice = 'Park car at trailhead; proceed via local tricycle/motorcycle.';
-                        } else if (!canTricycleOrMotor) {
-                            warningNotice = 'Not accessible by selected vehicles (trailhead drop-off only).';
-                        }
+                let warningNotice = null;
+                if (isNonDrivable) {
+                    const canTricycleOrMotor = subModes.some(m => ['tricycle', 'motorcycle'].includes(m));
+                    if (canTricycleOrMotor && subModes.some(m => ['own_car', 'van'].includes(m))) {
+                        warningNotice = 'Park car at trailhead; proceed via local tricycle/motorcycle.';
+                    } else if (!canTricycleOrMotor) {
+                        warningNotice = 'Not accessible by selected vehicles (trailhead drop-off only).';
                     }
-
-                    return {
-                        mode: subModes.join(' + '),
-                        transport_mode: subModes.join(' + '),
-                        transport_modes: subModes,
-                        name: dispName,
-                        full_names: subModes.map(m => shortNames[m] || m).join(', '),
-                        icon: 'fa-shuffle',
-                        cost: cost,
-                        leg_cost: cost,
-                        warning: warningNotice,
-                        is_non_drivable: isNonDrivable
-                    };
                 }
+
+                return {
+                    mode: subModes.join(' + '),
+                    transport_mode: subModes.join(' + '),
+                    transport_modes: subModes,
+                    name: dispName,
+                    full_names: subModes.map(m => window.getVehicleDisplayName(m)).join(', '),
+                    icon: 'fa-shuffle',
+                    cost: cost,
+                    leg_cost: cost,
+                    warning: warningNotice,
+                    is_non_drivable: isNonDrivable
+                };
             }
 
+            const normGlobal = (subModes.length === 1) ? subModes[0] : window.normalizeVehicleKey(globalMode || 'own_car');
+
             // 1. If global is Own Car
-            if (normGlobal === 'own_car' || normGlobal === 'car') {
-                if (isNonDrivable) {
-                    return {
-                        mode: 'own_car',
-                        name: 'Own Car',
-                        icon: 'fa-car',
-                        cost: 0,
-                        warning: 'Not accessible by private car. Park at Trailhead & hike or ride local trike.',
-                        is_non_drivable: true
-                    };
-                }
+            if (normGlobal === 'own_car') {
                 return {
                     mode: 'own_car',
+                    transport_mode: 'own_car',
+                    transport_modes: ['own_car'],
                     name: 'Own Car',
                     icon: 'fa-car',
                     cost: 0,
-                    warning: null,
-                    is_non_drivable: false
+                    warning: isNonDrivable ? 'Not accessible by private car. Park at Trailhead & hike or ride local trike.' : null,
+                    is_non_drivable: isNonDrivable
                 };
             }
 
@@ -1813,6 +1906,8 @@ try {
             if (normGlobal === 'motorcycle') {
                 return {
                     mode: 'motorcycle',
+                    transport_mode: 'motorcycle',
+                    transport_modes: ['motorcycle'],
                     name: 'Motorcycle',
                     icon: 'fa-motorcycle',
                     cost: 0,
@@ -1823,23 +1918,15 @@ try {
 
             // 3. If global is Van
             if (normGlobal === 'van') {
-                if (isNonDrivable) {
-                    return {
-                        mode: 'van',
-                        name: 'Van',
-                        icon: 'fa-van-shuttle',
-                        cost: 0,
-                        warning: 'Not accessible by private van. Park at Trailhead & hike or ride local trike.',
-                        is_non_drivable: true
-                    };
-                }
                 return {
                     mode: 'van',
+                    transport_mode: 'van',
+                    transport_modes: ['van'],
                     name: 'Van',
                     icon: 'fa-van-shuttle',
                     cost: 0,
-                    warning: null,
-                    is_non_drivable: false
+                    warning: isNonDrivable ? 'Not accessible by private van. Park at Trailhead & hike or ride local trike.' : null,
+                    is_non_drivable: isNonDrivable
                 };
             }
 
@@ -1848,7 +1935,9 @@ try {
                 const cost = window.calculateSingleLegCost('mpuj', d, muniA, muniB);
                 return {
                     mode: 'mpuj',
-                    name: 'MPUJ (Modern Jeepney)',
+                    transport_mode: 'mpuj',
+                    transport_modes: ['mpuj'],
+                    name: 'Modern Jeepney (MPUJ)',
                     icon: 'fa-bus-simple',
                     cost: cost,
                     warning: isNonDrivable ? 'Requires hike/local ride from highway drop-off.' : null,
@@ -1857,11 +1946,13 @@ try {
             }
 
             // 5. If global is Traditional Jeepney (TPUJ)
-            if (normGlobal === 'tpuj') {
+            if (normGlobal === 'tpuj' || normGlobal === 'jeepney') {
                 const cost = window.calculateSingleLegCost('tpuj', d, muniA, muniB);
                 return {
                     mode: 'tpuj',
-                    name: 'TPUJ (Traditional Jeepney)',
+                    transport_mode: 'tpuj',
+                    transport_modes: ['tpuj'],
+                    name: 'Traditional Jeepney (TPUJ)',
                     icon: 'fa-van-shuttle',
                     cost: cost,
                     warning: isNonDrivable ? 'Requires hike/local ride from highway drop-off.' : null,
@@ -1869,24 +1960,13 @@ try {
                 };
             }
 
-            // 6. If global is Jeepney (generic)
-            if (normGlobal === 'jeepney') {
-                const cost = window.calculateSingleLegCost('mpuj', d, muniA, muniB);
-                return {
-                    mode: 'jeepney',
-                    name: 'Jeepney',
-                    icon: 'fa-van-shuttle',
-                    cost: cost,
-                    warning: isNonDrivable ? 'Requires hike/local ride from highway drop-off.' : null,
-                    is_non_drivable: isNonDrivable
-                };
-            }
-
-            // 7. If global is Tricycle
-            if (normGlobal === 'tricycle' || normGlobal === 'trike') {
+            // 6. If global is Tricycle
+            if (normGlobal === 'tricycle') {
                 const cost = window.calculateSingleLegCost('tricycle', d, muniA, muniB);
                 return {
                     mode: 'tricycle',
+                    transport_mode: 'tricycle',
+                    transport_modes: ['tricycle'],
                     name: 'Tricycle',
                     icon: 'fa-motorcycle',
                     cost: cost,
@@ -1895,11 +1975,13 @@ try {
                 };
             }
 
-            // 8. If global is PUB Regular (Ordinary Bus)
-            if (normGlobal === 'pub_regular' || normGlobal === 'pub_ordinary') {
+            // 7. If global is PUB Regular (Ordinary Bus)
+            if (normGlobal === 'pub_regular') {
                 const cost = window.calculateSingleLegCost('pub_regular', d, muniA, muniB);
                 return {
                     mode: 'pub_regular',
+                    transport_mode: 'pub_regular',
+                    transport_modes: ['pub_regular'],
                     name: 'PUB Regular (Ordinary Bus)',
                     icon: 'fa-bus',
                     cost: cost,
@@ -1908,11 +1990,13 @@ try {
                 };
             }
 
-            // 9. If global is PUB Aircon (Aircon Bus)
-            if (normGlobal === 'pub_aircon' || normGlobal === 'bus') {
+            // 8. If global is PUB Aircon (Aircon Bus)
+            if (normGlobal === 'pub_aircon') {
                 const cost = window.calculateSingleLegCost('pub_aircon', d, muniA, muniB);
                 return {
                     mode: 'pub_aircon',
+                    transport_mode: 'pub_aircon',
+                    transport_modes: ['pub_aircon'],
                     name: 'PUB Aircon (Aircon Bus)',
                     icon: 'fa-bus',
                     cost: cost,
@@ -1921,11 +2005,13 @@ try {
                 };
             }
 
-            // 10. If global is UV Express (UVE)
+            // 9. If global is UV Express (UVE)
             if (normGlobal === 'uve') {
                 const cost = window.calculateSingleLegCost('uve', d, muniA, muniB);
                 return {
                     mode: 'uve',
+                    transport_mode: 'uve',
+                    transport_modes: ['uve'],
                     name: 'UV Express (UVE)',
                     icon: 'fa-van-shuttle',
                     cost: cost,
@@ -1934,11 +2020,13 @@ try {
                 };
             }
 
-            // 11. If global is Taxi
+            // 10. If global is Taxi
             if (normGlobal === 'taxi') {
                 const cost = window.calculateSingleLegCost('taxi', d, muniA, muniB);
                 return {
                     mode: 'taxi',
+                    transport_mode: 'taxi',
+                    transport_modes: ['taxi'],
                     name: 'Taxi',
                     icon: 'fa-taxi',
                     cost: cost,
@@ -1950,6 +2038,8 @@ try {
             // Default fallback: Own Car
             return {
                 mode: 'own_car',
+                transport_mode: 'own_car',
+                transport_modes: ['own_car'],
                 name: 'Own Car',
                 icon: 'fa-car',
                 cost: 0,
@@ -1990,11 +2080,8 @@ try {
 
         window.isVehicleAllowedForSpot = function (mode, spot) {
             if (!spot) return { allowed: true, reason: '' };
-            const norm = (mode || '').toLowerCase().replace(/[- ]/g, '_');
-            const isNonDrivable = Boolean(spot.accessible_by_private_vehicle === 0 || spot.accessible_by_private_vehicle === false || spot.accessible_by_private_vehicle === '0');
-
-            if (norm.includes('+') || norm.includes(',')) {
-                const subModes = norm.split(/[\+,]/).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+            const subModes = window.parseCompositeTransportModes(mode);
+            if (subModes.length > 1) {
                 const checks = subModes.map(m => window.isVehicleAllowedForSpot(m, spot));
                 const anyAllowed = checks.some(c => c.allowed);
                 if (anyAllowed) {
@@ -2004,7 +2091,10 @@ try {
                 }
             }
             
-            if ((norm === 'own_car' || norm === 'car') && isNonDrivable) {
+            const norm = (subModes.length === 1) ? subModes[0] : window.normalizeVehicleKey(mode);
+            const isNonDrivable = Boolean(spot.accessible_by_private_vehicle === 0 || spot.accessible_by_private_vehicle === false || spot.accessible_by_private_vehicle === '0');
+
+            if (norm === 'own_car' && isNonDrivable) {
                 return { allowed: false, reason: 'Destination inaccessible by car (trailhead drop-off only)' };
             }
             if (norm === 'van' && isNonDrivable) {
@@ -2018,7 +2108,7 @@ try {
 
             const accList = rawList.map(v => String(v).toLowerCase().trim());
             let matched = false;
-            if (norm === 'own_car' || norm === 'car') {
+            if (norm === 'own_car') {
                 matched = accList.some(v => v.includes('car'));
             } else if (norm === 'motorcycle') {
                 matched = accList.some(v => v.includes('motorcycle') || v.includes('motor'));
@@ -2026,13 +2116,11 @@ try {
                 matched = accList.some(v => v.includes('van'));
             } else if (norm === 'mpuj') {
                 matched = accList.some(v => v.includes('mpuj') || v.includes('modern') || v.includes('jeep'));
-            } else if (norm === 'tpuj') {
+            } else if (norm === 'tpuj' || norm === 'jeepney') {
                 matched = accList.some(v => v.includes('tpuj') || v.includes('traditional') || v.includes('jeep'));
-            } else if (norm === 'jeepney') {
-                matched = accList.some(v => v.includes('jeep') || v.includes('mpuj') || v.includes('tpuj') || v.includes('puj'));
-            } else if (norm === 'tricycle' || norm === 'trike') {
+            } else if (norm === 'tricycle') {
                 matched = accList.some(v => v.includes('tricycle') || v.includes('trike'));
-            } else if (norm === 'pub_regular' || norm === 'pub_ordinary') {
+            } else if (norm === 'pub_regular') {
                 matched = accList.some(v => v.includes('pub_regular') || v.includes('regular') || v.includes('ordinary') || (v.includes('pub') && !v.includes('aircon')) || v.includes('bus'));
             } else if (norm === 'pub_aircon') {
                 matched = accList.some(v => v.includes('pub_aircon') || v.includes('aircon') || v.includes('bus'));
@@ -2142,47 +2230,20 @@ try {
 
             const override = Array.isArray(overrides) ? overrides[legIdx] : null;
             if (override && (override.transport_mode || override.transport_modes)) {
-                let modes = [];
-                if (Array.isArray(override.transport_modes) && override.transport_modes.length > 0) {
-                    modes = override.transport_modes.map(m => m.toLowerCase().replace(/[- ]/g, '_'));
-                } else if (override.transport_mode) {
-                    modes = override.transport_mode.toString().split(/[\+,]/).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
-                }
-
+                let modes = window.parseCompositeTransportModes(override.transport_modes || override.transport_mode);
                 if (modes.length === 0) modes = ['own_car'];
 
                 const cost = (override.leg_cost !== null && override.leg_cost !== undefined)
                     ? parseFloat(override.leg_cost)
                     : window.calculateSingleLegCost(modes.join(' + '), distKm, muniA, muniB);
 
-                const getSingleVehDetails = (norm) => {
-                    if (norm === 'own_car' || norm === 'car') return { name: 'Own Car', short: 'Own Car', icon: 'fa-car' };
-                    if (norm === 'motorcycle') return { name: 'Motorcycle', short: 'Motorcycle', icon: 'fa-motorcycle' };
-                    if (norm === 'van') return { name: 'Van', short: 'Van', icon: 'fa-van-shuttle' };
-                    if (norm === 'mpuj') return { name: 'MPUJ (Modern Jeepney)', short: 'MPUJ', icon: 'fa-bus-simple' };
-                    if (norm === 'tpuj') return { name: 'TPUJ (Traditional Jeepney)', short: 'TPUJ', icon: 'fa-van-shuttle' };
-                    if (norm === 'jeepney') return { name: 'Jeepney', short: 'Jeepney', icon: 'fa-van-shuttle' };
-                    if (norm === 'tricycle' || norm === 'trike') return { name: 'Tricycle', short: 'Tricycle', icon: 'fa-motorcycle' };
-                    if (norm === 'pub_regular' || norm === 'pub_ordinary') return { name: 'PUB Regular (Bus)', short: 'Regular Bus', icon: 'fa-bus' };
-                    if (norm === 'pub_aircon') return { name: 'PUB Aircon (Bus)', short: 'Aircon Bus', icon: 'fa-bus' };
-                    if (norm.includes('bus')) return { name: 'Bus', short: 'Bus', icon: 'fa-bus' };
-                    if (norm === 'uve') return { name: 'UV Express (UVE)', short: 'UV Express', icon: 'fa-van-shuttle' };
-                    if (norm === 'taxi') return { name: 'Taxi', short: 'Taxi', icon: 'fa-taxi' };
-                    if (norm === 'walking' || norm === 'walk') return { name: 'Walk / Hike', short: 'Walk', icon: 'fa-person-walking' };
-                    return { name: norm.replace(/_/g, ' ').toUpperCase(), short: norm.replace(/_/g, ' ').toUpperCase(), icon: 'fa-car' };
-                };
-
                 let name = '';
                 let icon = 'fa-car';
                 if (modes.length === 1) {
-                    const d = getSingleVehDetails(modes[0]);
-                    name = d.name;
-                    icon = d.icon;
+                    name = window.getVehicleDisplayName(modes[0]);
+                    icon = (modes[0] === 'motorcycle' || modes[0] === 'tricycle') ? 'fa-motorcycle' : (modes[0].includes('bus') ? 'fa-bus' : 'fa-car');
                 } else if (modes.length === 2) {
-                    const d1 = getSingleVehDetails(modes[0]);
-                    const d2 = getSingleVehDetails(modes[1]);
-                    const combo = `${d1.short} + ${d2.short}`;
-                    name = (combo.length <= 22) ? combo : '2 Vehicles Selected';
+                    name = `${window.getVehicleShortName(modes[0])} + ${window.getVehicleShortName(modes[1])}`;
                     icon = 'fa-shuffle';
                 } else {
                     name = `${modes.length} Vehicles Selected`;
@@ -2205,7 +2266,7 @@ try {
                     transport_mode: modes.join(' + '),
                     transport_modes: modes,
                     name: name,
-                    full_names: modes.map(m => getSingleVehDetails(m).name).join(', '),
+                    full_names: modes.map(m => window.getVehicleDisplayName(m)).join(', '),
                     icon: icon,
                     cost: cost,
                     leg_cost: cost,
@@ -2224,7 +2285,9 @@ try {
             return {
                 ...resolved,
                 transport_mode: resolved.mode,
-                transport_modes: [resolved.mode],
+                transport_modes: (Array.isArray(resolved.transport_modes) && resolved.transport_modes.length > 0)
+                    ? resolved.transport_modes
+                    : window.parseCompositeTransportModes(resolved.mode),
                 leg_cost: resolved.cost,
                 distance_km: distKm,
                 warning: check.allowed ? resolved.warning : check.reason,
@@ -2484,18 +2547,23 @@ try {
             if (isSiteUnderMaintenance) {
                 initialModes = [];
             } else if (override && Array.isArray(override.transport_modes) && override.transport_modes.length > 0) {
-                initialModes = override.transport_modes.map(m => m.toLowerCase().replace(/[- ]/g, '_'));
+                initialModes = window.parseCompositeTransportModes(override.transport_modes);
             } else if (override && override.transport_mode) {
-                initialModes = override.transport_mode.toString().split(/[\+,]/).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+                initialModes = window.parseCompositeTransportModes(override.transport_mode);
             } else {
                 const curLegInfo = window.getLegTransportInfo(legIdx);
-                const curM = curLegInfo.transport_mode || curLegInfo.mode || 'own_car';
-                if (curM !== 'suspended') {
-                    initialModes = curM.toString().split(/[\+,]/).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+                if (curLegInfo && Array.isArray(curLegInfo.transport_modes) && curLegInfo.transport_modes.length > 0) {
+                    initialModes = window.parseCompositeTransportModes(curLegInfo.transport_modes);
+                } else if (curLegInfo && curLegInfo.transport_mode && curLegInfo.transport_mode !== 'suspended') {
+                    initialModes = window.parseCompositeTransportModes(curLegInfo.transport_mode);
+                } else {
+                    initialModes = window.getNormalizedTripModes();
                 }
             }
 
-            if (!isSiteUnderMaintenance && initialModes.length === 0) initialModes = ['own_car'];
+            if (!isSiteUnderMaintenance && initialModes.length === 0) {
+                initialModes = window.getNormalizedTripModes();
+            }
             window.currentLegModalSelectedModes = initialModes;
 
             window.renderLegModalList(availableCount);
@@ -2529,19 +2597,9 @@ try {
                     </div>`;
                 }
 
-                const optNorm = opt.mode.toLowerCase().replace(/[- ]/g, '_');
+                const optNorm = window.normalizeVehicleKey(opt.mode);
                 const isSelected = selectedModes.some(m => {
-                    const normM = m.toLowerCase().replace(/[- ]/g, '_');
-                    return (
-                        (optNorm === normM) ||
-                        (normM === 'car' && optNorm === 'own_car') ||
-                        (normM === 'own_car' && optNorm === 'own_car') ||
-                        (normM === 'motor' && optNorm === 'motorcycle') ||
-                        (normM === 'jeepney' && (optNorm === 'mpuj' || optNorm === 'tpuj')) ||
-                        (normM === 'trike' && optNorm === 'tricycle') ||
-                        (normM === 'pub_ordinary' && optNorm === 'pub_regular') ||
-                        (normM === 'bus' && (optNorm === 'pub_aircon' || optNorm === 'pub_regular'))
-                    );
+                    return window.normalizeVehicleKey(m) === optNorm;
                 }) && opt.isAvail;
 
                 const costStr = (opt.cost > 0) ? `₱${opt.cost.toFixed(2)}` : '₱0';
@@ -2647,10 +2705,10 @@ try {
                 return;
             }
 
-            const norm = mode.toLowerCase().replace(/[- ]/g, '_');
-            let list = window.currentLegModalSelectedModes || [];
+            const norm = window.normalizeVehicleKey(mode);
+            let list = (window.currentLegModalSelectedModes || []).map(m => window.normalizeVehicleKey(m)).filter(Boolean);
 
-            const idx = list.findIndex(m => m.toLowerCase().replace(/[- ]/g, '_') === norm);
+            const idx = list.indexOf(norm);
             if (idx > -1) {
                 if (list.length === 1) {
                     if (typeof showToast === 'function') {
@@ -2660,7 +2718,7 @@ try {
                 }
                 list.splice(idx, 1);
             } else {
-                list.push(mode);
+                list.push(norm);
             }
 
             window.currentLegModalSelectedModes = list;
@@ -2683,7 +2741,7 @@ try {
                 return;
             }
 
-            const selectedModes = window.currentLegModalSelectedModes || [];
+            const selectedModes = window.parseCompositeTransportModes(window.currentLegModalSelectedModes || []);
             if (selectedModes.length === 0) {
                 if (typeof showToast === 'function') showToast('Please select at least one transport mode.');
                 return;
@@ -2699,27 +2757,16 @@ try {
                 totalCost += window.calculateSingleLegCost(m, window.currentLegModalDistKm, window.currentLegModalMuniA, window.currentLegModalMuniB);
             });
 
-            const displayNames = selectedModes.map(m => {
-                const opt = (window.currentLegEvaluatedCandidates || []).find(c => c.mode === m);
-                return opt ? opt.name : m.replace(/_/g, ' ').toUpperCase();
-            });
+            const displayNames = selectedModes.map(m => window.getVehicleDisplayName(m));
 
             let displayName = '';
             if (selectedModes.length === 1) {
                 displayName = displayNames[0];
             } else if (selectedModes.length === 2) {
-                const getShort = (m) => {
-                    if (m === 'own_car' || m === 'car') return 'Own Car';
-                    if (m === 'mpuj') return 'MPUJ';
-                    if (m === 'tpuj') return 'TPUJ';
-                    if (m === 'pub_regular') return 'Regular Bus';
-                    if (m === 'pub_aircon') return 'Aircon Bus';
-                    if (m === 'uve') return 'UV Express';
-                    const opt = (window.currentLegEvaluatedCandidates || []).find(c => c.mode === m);
-                    return opt ? opt.name : m;
-                };
-                const combo = `${getShort(selectedModes[0])} + ${getShort(selectedModes[1])}`;
-                displayName = (combo.length <= 22) ? combo : '2 Vehicles Selected';
+                const s1 = window.getVehicleShortName(selectedModes[0]);
+                const s2 = window.getVehicleShortName(selectedModes[1]);
+                const combo = `${s1} + ${s2}`;
+                displayName = (combo.length <= 26) ? combo : '2 Vehicles Selected';
             } else {
                 displayName = `${selectedModes.length} Vehicles Selected`;
             }
@@ -2766,107 +2813,42 @@ try {
         window.selectLegVehicle = function (legIdx, mode, cost, distKm) {
             window.currentLegModalIdx = legIdx;
             window.currentLegModalDistKm = distKm;
-            window.currentLegModalSelectedModes = [mode];
+            window.currentLegModalSelectedModes = window.parseCompositeTransportModes(mode);
             window.applyLegVehicleSelection();
         };
 
-        window.getVehicleDisplayName = function(modeKey) {
-            if (!modeKey) return 'Own Car';
-            const norm = String(modeKey).trim().toLowerCase().replace(/[- ]/g, '_');
-            const map = {
-                'own_car': 'Own Car',
-                'car': 'Own Car',
-                'motorcycle': 'Motorcycle',
-                'motor': 'Motorcycle',
-                'van': 'Van',
-                'mpuj': 'Modern Jeepney (MPUJ)',
-                'tpuj': 'Traditional Jeepney (TPUJ)',
-                'jeepney': 'Traditional Jeepney (TPUJ)',
-                'tricycle': 'Tricycle',
-                'trike': 'Tricycle',
-                'pub_regular': 'PUB Regular (Ordinary Bus)',
-                'pub_ordinary': 'PUB Regular (Ordinary Bus)',
-                'pub_aircon': 'PUB Aircon (Aircon Bus)',
-                'bus': 'PUB Aircon (Aircon Bus)',
-                'uve': 'UV Express (UVE)',
-                'taxi': 'Taxi'
-            };
-            return map[norm] || norm.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-        };
-
-        window.getVehicleShortName = function(modeKey) {
-            if (!modeKey) return 'Own Car';
-            const norm = String(modeKey).trim().toLowerCase().replace(/[- ]/g, '_');
-            const map = {
-                'own_car': 'Own Car',
-                'car': 'Own Car',
-                'motorcycle': 'Motorcycle',
-                'motor': 'Motorcycle',
-                'van': 'Van',
-                'mpuj': 'Modern Jeepney',
-                'tpuj': 'Traditional Jeepney',
-                'jeepney': 'Jeepney',
-                'tricycle': 'Tricycle',
-                'trike': 'Tricycle',
-                'pub_regular': 'Regular Bus',
-                'pub_ordinary': 'Regular Bus',
-                'pub_aircon': 'Aircon Bus',
-                'bus': 'Aircon Bus',
-                'uve': 'UV Express',
-                'taxi': 'Taxi'
-            };
-            return map[norm] || norm.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-        };
-
-        window.getVehicleIconHtml = function(modeKey) {
-            const norm = String(modeKey || 'own_car').trim().toLowerCase().replace(/[- ]/g, '_');
-            if (norm === 'motorcycle' || norm === 'motor') return '<i class="fa-solid fa-motorcycle" style="color:#fbbf24;"></i>';
-            if (norm === 'van') return '<i class="fa-solid fa-van-shuttle" style="color:#c084fc;"></i>';
-            if (norm === 'mpuj') return '<i class="fa-solid fa-bus-simple" style="color:#34d399;"></i>';
-            if (norm === 'tpuj' || norm === 'jeepney') return '<i class="fa-solid fa-van-shuttle" style="color:#10b981;"></i>';
-            if (norm === 'tricycle' || norm === 'trike') return '<i class="fa-solid fa-motorcycle" style="color:#22d3ee;"></i>';
-            if (norm === 'pub_regular' || norm === 'pub_ordinary') return '<i class="fa-solid fa-bus" style="color:#fb923c;"></i>';
-            if (norm === 'pub_aircon' || norm === 'bus') return '<i class="fa-solid fa-bus" style="color:#f87171;"></i>';
-            if (norm === 'uve') return '<i class="fa-solid fa-van-shuttle" style="color:#a855f7;"></i>';
-            if (norm === 'taxi') return '<i class="fa-solid fa-taxi" style="color:#facc15;"></i>';
-            return '<i class="fa-solid fa-car" style="color:#00f2fe;"></i>';
-        };
-
-        window.getNormalizedTripModes = function() {
+        window.getNormalizedTripModes = function () {
             let modes = [];
             try {
                 const rawArr = localStorage.getItem('intan_elyu_draft_trip_transports');
                 if (rawArr) {
                     const parsed = JSON.parse(rawArr);
                     if (Array.isArray(parsed) && parsed.length > 0) {
-                        modes = parsed;
+                        modes = window.parseCompositeTransportModes(parsed);
                     }
                 }
             } catch (e) {}
 
             if (modes.length === 0) {
                 const raw = localStorage.getItem('intan_elyu_draft_trip_transport') || 'own_car';
-                modes = String(raw).split(/[\+,]/);
+                modes = window.parseCompositeTransportModes(raw);
             }
 
-            const validModes = ['own_car', 'motorcycle', 'van', 'mpuj', 'tpuj', 'tricycle', 'pub_regular', 'pub_aircon', 'uve', 'taxi'];
-            const cleaned = [];
-            modes.forEach(m => {
-                let norm = String(m || '').trim().toLowerCase().replace(/[- ]/g, '_');
-                if (norm === 'car') norm = 'own_car';
-                if (norm === 'motor') norm = 'motorcycle';
-                if (norm === 'pub_ordinary') norm = 'pub_regular';
-                if (norm === 'bus') norm = 'pub_aircon';
-                if (norm === 'trike') norm = 'tricycle';
-                if (norm.startsWith('pub_aircon')) norm = 'pub_aircon';
-                if (norm.startsWith('pub_reg')) norm = 'pub_regular';
-                if (norm.startsWith('own_car')) norm = 'own_car';
-                if (validModes.includes(norm) && !cleaned.includes(norm)) {
-                    cleaned.push(norm);
-                }
-            });
+            if (modes.length === 0) {
+                modes = ['own_car'];
+            }
 
-            return cleaned.length > 0 ? cleaned : ['own_car'];
+            // Auto-heal legacy or corrupted localStorage entries (e.g. "own_car_ + _motorcycle" or missing array)
+            try {
+                const cleanComposite = (modes.length === 1) ? modes[0] : modes.join(' + ');
+                const storedRaw = localStorage.getItem('intan_elyu_draft_trip_transport');
+                if (storedRaw !== cleanComposite) {
+                    localStorage.setItem('intan_elyu_draft_trip_transport', cleanComposite);
+                    localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(modes));
+                }
+            } catch (e) {}
+
+            return modes;
         };
 
         window.updateDraftTravelModeBar = function () {
@@ -2919,26 +2901,15 @@ try {
             const modal = document.getElementById('travel-mode-starter-modal');
             if (!modal) return;
 
-            const selected = window.starterModalSelectedModes || ['own_car'];
+            const selected = (window.starterModalSelectedModes || ['own_car']).map(m => window.normalizeVehicleKey(m));
 
             const cards = modal.querySelectorAll('.travel-starter-card');
             cards.forEach(card => {
-                const mode = (card.getAttribute('data-mode') || '').toLowerCase().replace(/[- ]/g, '_');
+                const mode = window.normalizeVehicleKey(card.getAttribute('data-mode') || '');
                 const badge = card.querySelector('.starter-active-badge');
                 const checkIcon = card.querySelector('.starter-check-icon');
                 const checkBox = card.querySelector('.starter-check-box');
-                const isSelected = selected.some(m => {
-                    let normM = String(m || '').trim().toLowerCase().replace(/[- ]/g, '_');
-                    if (normM === 'car') normM = 'own_car';
-                    if (normM === 'motor') normM = 'motorcycle';
-                    if (normM === 'pub_ordinary') normM = 'pub_regular';
-                    if (normM === 'bus') normM = 'pub_aircon';
-                    if (normM === 'trike') normM = 'tricycle';
-                    if (normM.startsWith('pub_aircon')) normM = 'pub_aircon';
-                    if (normM.startsWith('pub_reg')) normM = 'pub_regular';
-                    if (normM.startsWith('own_car')) normM = 'own_car';
-                    return normM === mode;
-                });
+                const isSelected = selected.includes(mode);
 
                 if (isSelected) {
                     card.classList.add('active');
@@ -2991,10 +2962,10 @@ try {
         };
 
         window.toggleStarterVehicleMode = function (mode) {
-            const norm = (mode || '').toLowerCase().replace(/[- ]/g, '_');
-            let list = window.starterModalSelectedModes || [];
+            const norm = window.normalizeVehicleKey(mode);
+            let list = (window.starterModalSelectedModes || []).map(m => window.normalizeVehicleKey(m)).filter(Boolean);
 
-            const idx = list.findIndex(m => m.toLowerCase().replace(/[- ]/g, '_') === norm);
+            const idx = list.indexOf(norm);
             if (idx > -1) {
                 if (list.length === 1) {
                     if (typeof showToast === 'function') {
@@ -3012,31 +2983,16 @@ try {
         };
 
         window.applyStarterVehicleSelection = function () {
-            const selected = window.starterModalSelectedModes || [];
+            const selected = window.parseCompositeTransportModes(window.starterModalSelectedModes || []);
             if (selected.length === 0) {
                 if (typeof showToast === 'function') showToast('Please select at least one vehicle.');
                 return;
             }
 
-            const validModes = ['own_car', 'motorcycle', 'van', 'mpuj', 'tpuj', 'tricycle', 'pub_regular', 'pub_aircon', 'uve', 'taxi'];
-            const cleaned = selected.map(m => {
-                let norm = String(m || '').trim().toLowerCase().replace(/[- ]/g, '_');
-                if (norm === 'car') return 'own_car';
-                if (norm === 'motor') return 'motorcycle';
-                if (norm === 'pub_ordinary') return 'pub_regular';
-                if (norm === 'bus') return 'pub_aircon';
-                if (norm === 'trike') return 'tricycle';
-                if (norm.startsWith('pub_aircon')) return 'pub_aircon';
-                if (norm.startsWith('pub_reg')) return 'pub_regular';
-                if (norm.startsWith('own_car')) return 'own_car';
-                return norm;
-            }).filter(m => validModes.includes(m));
-
-            const finalSelected = cleaned.length > 0 ? cleaned : ['own_car'];
-            const compositeMode = (finalSelected.length === 1) ? finalSelected[0] : finalSelected.join(' + ');
+            const compositeMode = (selected.length === 1) ? selected[0] : selected.join(' + ');
 
             localStorage.setItem('intan_elyu_draft_trip_transport', compositeMode);
-            localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(finalSelected));
+            localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(selected));
 
             // Reset per-leg overrides so the whole itinerary cleanly inherits the newly chosen trip vehicle(s)
             localStorage.removeItem('intan_elyu_draft_leg_vehicles');
@@ -3061,11 +3017,11 @@ try {
                 window.updateDraftBudget(draft);
             }
 
-            const chosenName = (finalSelected.length === 1)
-                ? window.getVehicleDisplayName(finalSelected[0])
-                : (finalSelected.length === 2)
-                    ? `${window.getVehicleShortName(finalSelected[0])} + ${window.getVehicleShortName(finalSelected[1])}`
-                    : `${finalSelected.length} Vehicles (${finalSelected.map(m => window.getVehicleShortName(m)).join(', ')})`;
+            const chosenName = (selected.length === 1)
+                ? window.getVehicleDisplayName(selected[0])
+                : (selected.length === 2)
+                    ? `${window.getVehicleShortName(selected[0])} + ${window.getVehicleShortName(selected[1])}`
+                    : `${selected.length} Vehicles (${selected.map(m => window.getVehicleShortName(m)).join(', ')})`;
 
             if (draft.length === 0) {
                 if (typeof showToast === 'function') {
@@ -4045,16 +4001,10 @@ try {
             const activeModes = [];
             legInfos.forEach(l => {
                 if (!l || l.is_maintenance) return;
-                let rawList = [];
-                if (Array.isArray(l.transport_modes) && l.transport_modes.length > 0) {
-                    rawList = l.transport_modes;
-                } else if (l.transport_mode || l.mode) {
-                    rawList = String(l.transport_mode || l.mode).split(/[\+,]/);
-                }
-                rawList.forEach(m => {
-                    const normM = String(m).trim().toLowerCase().replace(/[- ]/g, '_');
-                    if (normM && !activeModes.includes(normM)) {
-                        activeModes.push(normM);
+                const modes = window.parseCompositeTransportModes(l.transport_modes || l.transport_mode || l.mode);
+                modes.forEach(m => {
+                    if (m && !activeModes.includes(m)) {
+                        activeModes.push(m);
                     }
                 });
             });
