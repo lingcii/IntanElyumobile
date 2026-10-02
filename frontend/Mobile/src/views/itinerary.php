@@ -326,7 +326,7 @@ try {
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
-        max-width: 140px !important;
+        max-width: 180px !important;
         display: inline-block !important;
         vertical-align: middle !important;
     }
@@ -356,15 +356,7 @@ try {
     }
 
     .p2p-leg-warning-tag {
-        background: rgba(245, 158, 11, 0.18) !important;
-        color: #b45309 !important;
-        font-size: 9.5px !important;
-        font-weight: 800 !important;
-        padding: 2px 7px !important;
-        border-radius: 100px !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        gap: 4px !important;
+        display: none !important;
     }
 
     .p2p-leg-chip.leg-maintenance {
@@ -1100,7 +1092,7 @@ try {
                 <div id="leg-modal-total-fare" style="font-size:18px; font-weight:900; color:#ffffff; letter-spacing:-0.2px;">₱0.00</div>
             </div>
             <button type="button" id="btn-apply-leg-transport" onclick="window.applyLegVehicleSelection()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; cursor:pointer; padding:9px 18px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; display:inline-flex; align-items:center; gap:7px; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Apply Selection
+                <i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Done
             </button>
         </div>
 
@@ -1176,9 +1168,6 @@ try {
                         </div>
                         <div style="flex:1; min-width:0;">
                             <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Own Car</div>
-                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                Direct personal driving &bull; Free transit cost
-                            </div>
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
@@ -1199,9 +1188,6 @@ try {
                         </div>
                         <div style="flex:1; min-width:0;">
                             <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Motorcycle</div>
-                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                Fast, agile access through coastal & scenic routes
-                            </div>
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
@@ -1222,9 +1208,6 @@ try {
                         </div>
                         <div style="flex:1; min-width:0;">
                             <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Van</div>
-                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                Family & group private ride &bull; Spacious luggage
-                            </div>
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
@@ -1250,9 +1233,6 @@ try {
                         </div>
                         <div style="flex:1; min-width:0;">
                             <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Modern Jeepney (MPUJ)</div>
-                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                Air-conditioned modern highway commuter transit
-                            </div>
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
@@ -1273,9 +1253,6 @@ try {
                         </div>
                         <div style="flex:1; min-width:0;">
                             <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Traditional Jeepney (TPUJ)</div>
-                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                Classic open-air commuter jeepney between towns
-                            </div>
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
@@ -1296,9 +1273,6 @@ try {
                         </div>
                         <div style="flex:1; min-width:0;">
                             <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Tricycle</div>
-                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                Local door-to-door trips & beach drop-offs
-                            </div>
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
@@ -1319,9 +1293,6 @@ try {
                         </div>
                         <div style="flex:1; min-width:0;">
                             <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Taxi</div>
-                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                Direct metered air-conditioned taxi ride
-                            </div>
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
@@ -1342,9 +1313,6 @@ try {
                         </div>
                         <div style="flex:1; min-width:0;">
                             <div style="font-weight:800; font-size:13.5px; color:#ffffff;">UV Express (UVE)</div>
-                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                Express inter-town passenger van service
-                            </div>
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
@@ -1365,9 +1333,6 @@ try {
                         </div>
                         <div style="flex:1; min-width:0;">
                             <div style="font-weight:800; font-size:13.5px; color:#ffffff;">PUB Regular (Ordinary Bus)</div>
-                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                Provincial highway regular passenger bus
-                            </div>
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
@@ -1388,9 +1353,6 @@ try {
                         </div>
                         <div style="flex:1; min-width:0;">
                             <div style="font-weight:800; font-size:13.5px; color:#ffffff;">PUB Aircon (Aircon Bus)</div>
-                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                Air-conditioned coach bus for long-distance comfort
-                            </div>
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
@@ -1411,7 +1373,7 @@ try {
                 <div id="starter-modal-current-mode-label" style="font-size:15px; font-weight:900; color:#ffffff; letter-spacing:-0.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Own Car</div>
             </div>
             <button type="button" id="btn-apply-starter-transport" onclick="window.applyStarterVehicleSelection()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; cursor:pointer; padding:9px 18px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; display:inline-flex; align-items:center; gap:7px; transition:transform 0.15s ease; flex-shrink:0;" onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Apply Selection
+                <i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Done
             </button>
         </div>
 
@@ -1696,7 +1658,7 @@ try {
             return parseFloat(match.regular_fare);
         };
 
-        // ---- Point-to-Point (P2P) Smart Transit & Single-Leg Fare Calculator ----
+        // ---- Point-to-Point (P2P) Fare Calculator ----
         window.calculateSingleLegCost = function (mode, distKm, muniA, muniB) {
             if (!mode) return 0;
             if (typeof mode === 'string' && (mode.includes('+') || mode.includes(','))) {
@@ -2125,7 +2087,7 @@ try {
                 return { mode: 'own_car', transport_mode: 'own_car', name: 'Own Car', icon: 'fa-car', cost: 0, leg_cost: 0, distance_km: 0 };
             }
 
-            const curGlobalTransport = document.getElementById('trip-transport')?.value || localStorage.getItem('intan_elyu_draft_trip_transport') || '';
+            const curGlobalTransport = localStorage.getItem('intan_elyu_draft_trip_transport') || document.getElementById('trip-transport')?.value || 'own_car';
 
             let fromSpot = null;
             let toSpot = draft[legIdx];
@@ -2606,9 +2568,6 @@ try {
                                 ${opt.isRecommended && opt.isAvail ? '<span style="font-size:9px; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:1px 7px; border-radius:100px; font-weight:800; letter-spacing:0.3px;">OPTIMAL</span>' : ''}
                                 ${!opt.isAvail ? '<span style="font-size:8.5px; background:rgba(239,68,68,0.25); color:#fca5a5; padding:1px 6px; border-radius:100px; font-weight:800; letter-spacing:0.3px;"><i class="fa-solid fa-ban" style="font-size:8px;"></i> UNAVAILABLE</span>' : ''}
                             </div>
-                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                ${opt.desc}
-                            </div>
                             ${!opt.isAvail ? `<div style="font-size:10.5px; color:#fca5a5; font-weight:700; margin-top:3px;"><i class="fa-solid fa-circle-exclamation" style="font-size:9px;"></i> ${opt.unavailReason}</div>` : ''}
                         </div>
                     </div>
@@ -2674,7 +2633,7 @@ try {
                     btnApply.style.cursor = 'pointer';
                     btnApply.style.width = 'auto';
                     btnApply.style.justifyContent = 'flex-start';
-                    btnApply.innerHTML = `<i class="fa-solid fa-check"></i> Apply Selection (${selectedModes.length})`;
+                    btnApply.innerHTML = `<i class="fa-solid fa-check"></i> Done (${selectedModes.length})`;
                 }
             }
         };
@@ -2811,93 +2770,126 @@ try {
             window.applyLegVehicleSelection();
         };
 
+        window.getVehicleDisplayName = function(modeKey) {
+            if (!modeKey) return 'Own Car';
+            const norm = String(modeKey).trim().toLowerCase().replace(/[- ]/g, '_');
+            const map = {
+                'own_car': 'Own Car',
+                'car': 'Own Car',
+                'motorcycle': 'Motorcycle',
+                'motor': 'Motorcycle',
+                'van': 'Van',
+                'mpuj': 'Modern Jeepney (MPUJ)',
+                'tpuj': 'Traditional Jeepney (TPUJ)',
+                'jeepney': 'Traditional Jeepney (TPUJ)',
+                'tricycle': 'Tricycle',
+                'trike': 'Tricycle',
+                'pub_regular': 'PUB Regular (Ordinary Bus)',
+                'pub_ordinary': 'PUB Regular (Ordinary Bus)',
+                'pub_aircon': 'PUB Aircon (Aircon Bus)',
+                'bus': 'PUB Aircon (Aircon Bus)',
+                'uve': 'UV Express (UVE)',
+                'taxi': 'Taxi'
+            };
+            return map[norm] || norm.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        };
+
+        window.getVehicleShortName = function(modeKey) {
+            if (!modeKey) return 'Own Car';
+            const norm = String(modeKey).trim().toLowerCase().replace(/[- ]/g, '_');
+            const map = {
+                'own_car': 'Own Car',
+                'car': 'Own Car',
+                'motorcycle': 'Motorcycle',
+                'motor': 'Motorcycle',
+                'van': 'Van',
+                'mpuj': 'Modern Jeepney',
+                'tpuj': 'Traditional Jeepney',
+                'jeepney': 'Jeepney',
+                'tricycle': 'Tricycle',
+                'trike': 'Tricycle',
+                'pub_regular': 'Regular Bus',
+                'pub_ordinary': 'Regular Bus',
+                'pub_aircon': 'Aircon Bus',
+                'bus': 'Aircon Bus',
+                'uve': 'UV Express',
+                'taxi': 'Taxi'
+            };
+            return map[norm] || norm.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        };
+
+        window.getVehicleIconHtml = function(modeKey) {
+            const norm = String(modeKey || 'own_car').trim().toLowerCase().replace(/[- ]/g, '_');
+            if (norm === 'motorcycle' || norm === 'motor') return '<i class="fa-solid fa-motorcycle" style="color:#fbbf24;"></i>';
+            if (norm === 'van') return '<i class="fa-solid fa-van-shuttle" style="color:#c084fc;"></i>';
+            if (norm === 'mpuj') return '<i class="fa-solid fa-bus-simple" style="color:#34d399;"></i>';
+            if (norm === 'tpuj' || norm === 'jeepney') return '<i class="fa-solid fa-van-shuttle" style="color:#10b981;"></i>';
+            if (norm === 'tricycle' || norm === 'trike') return '<i class="fa-solid fa-motorcycle" style="color:#22d3ee;"></i>';
+            if (norm === 'pub_regular' || norm === 'pub_ordinary') return '<i class="fa-solid fa-bus" style="color:#fb923c;"></i>';
+            if (norm === 'pub_aircon' || norm === 'bus') return '<i class="fa-solid fa-bus" style="color:#f87171;"></i>';
+            if (norm === 'uve') return '<i class="fa-solid fa-van-shuttle" style="color:#a855f7;"></i>';
+            if (norm === 'taxi') return '<i class="fa-solid fa-taxi" style="color:#facc15;"></i>';
+            return '<i class="fa-solid fa-car" style="color:#00f2fe;"></i>';
+        };
+
+        window.getNormalizedTripModes = function() {
+            let modes = [];
+            try {
+                const rawArr = localStorage.getItem('intan_elyu_draft_trip_transports');
+                if (rawArr) {
+                    const parsed = JSON.parse(rawArr);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        modes = parsed;
+                    }
+                }
+            } catch (e) {}
+
+            if (modes.length === 0) {
+                const raw = localStorage.getItem('intan_elyu_draft_trip_transport') || 'own_car';
+                modes = String(raw).split(/[\+,]/);
+            }
+
+            const validModes = ['own_car', 'motorcycle', 'van', 'mpuj', 'tpuj', 'tricycle', 'pub_regular', 'pub_aircon', 'uve', 'taxi'];
+            const cleaned = [];
+            modes.forEach(m => {
+                let norm = String(m || '').trim().toLowerCase().replace(/[- ]/g, '_');
+                if (norm === 'car') norm = 'own_car';
+                if (norm === 'motor') norm = 'motorcycle';
+                if (norm === 'pub_ordinary') norm = 'pub_regular';
+                if (norm === 'bus') norm = 'pub_aircon';
+                if (norm === 'trike') norm = 'tricycle';
+                if (norm.startsWith('pub_aircon')) norm = 'pub_aircon';
+                if (norm.startsWith('pub_reg')) norm = 'pub_regular';
+                if (norm.startsWith('own_car')) norm = 'own_car';
+                if (validModes.includes(norm) && !cleaned.includes(norm)) {
+                    cleaned.push(norm);
+                }
+            });
+
+            return cleaned.length > 0 ? cleaned : ['own_car'];
+        };
+
         window.updateDraftTravelModeBar = function () {
             const bar = document.getElementById('draft-travel-mode-bar');
             if (!bar) return;
             const iconEl = document.getElementById('draft-travel-mode-icon');
             const labelEl = document.getElementById('draft-travel-mode-label');
 
-            const shortNames = {
-                'own_car': 'Own Car', 'car': 'Own Car', 'motorcycle': 'Motorcycle', 'motor': 'Motorcycle',
-                'van': 'Van', 'mpuj': 'MPUJ', 'tpuj': 'TPUJ', 'jeepney': 'Jeepney',
-                'tricycle': 'Tricycle', 'trike': 'Tricycle', 'pub_regular': 'Regular Bus', 'pub_aircon': 'Aircon Bus',
-                'uve': 'UV Express', 'taxi': 'Taxi', 'walking': 'Walk / Hike', 'no_vehicle': 'No Vehicle'
-            };
+            const tripModes = window.getNormalizedTripModes();
 
-            const draft = (typeof window.getEffectiveDraft === 'function')
-                ? window.getEffectiveDraft()
-                : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
-
-            let activeModes = [];
-            if (draft && draft.length > 0 && typeof window.getLegTransportInfo === 'function') {
-                draft.forEach((_, i) => {
-                    const l = window.getLegTransportInfo(i);
-                    if (!l || l.is_maintenance) return;
-                    let mList = [];
-                    if (Array.isArray(l.transport_modes) && l.transport_modes.length > 0) {
-                        mList = l.transport_modes;
-                    } else if (l.transport_mode || l.mode) {
-                        mList = String(l.transport_mode || l.mode).split(/[\+,]/);
-                    }
-                    mList.forEach(m => {
-                        const normM = String(m).trim().toLowerCase().replace(/[- ]/g, '_');
-                        if (normM && !activeModes.includes(normM)) activeModes.push(normM);
-                    });
-                });
-            }
-
-            if (activeModes.length === 0) {
-                const rawGlobal = localStorage.getItem('intan_elyu_draft_trip_transport') || 'own_car';
-                activeModes = rawGlobal.split(/[\+,]/).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
-            }
-
-            if (activeModes.length === 1) {
-                const norm = activeModes[0];
-                if (norm === 'motorcycle') {
-                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-motorcycle" style="color:#fbbf24;"></i>';
-                    if (labelEl) labelEl.textContent = 'Motorcycle';
-                } else if (norm === 'van') {
-                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-van-shuttle" style="color:#c084fc;"></i>';
-                    if (labelEl) labelEl.textContent = 'Van';
-                } else if (norm === 'mpuj') {
-                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-bus-simple" style="color:#34d399;"></i>';
-                    if (labelEl) labelEl.textContent = 'MPUJ (Modern Jeepney)';
-                } else if (norm === 'tpuj') {
-                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-van-shuttle" style="color:#10b981;"></i>';
-                    if (labelEl) labelEl.textContent = 'TPUJ (Traditional Jeepney)';
-                } else if (norm === 'jeepney') {
-                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-van-shuttle" style="color:#34d399;"></i>';
-                    if (labelEl) labelEl.textContent = 'Jeepney';
-                } else if (norm === 'tricycle' || norm === 'trike') {
-                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-motorcycle" style="color:#22d3ee;"></i>';
-                    if (labelEl) labelEl.textContent = 'Tricycle';
-                } else if (norm === 'pub_regular' || norm === 'pub_ordinary') {
-                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-bus" style="color:#fb923c;"></i>';
-                    if (labelEl) labelEl.textContent = 'PUB Regular (Bus)';
-                } else if (norm === 'pub_aircon' || norm === 'bus') {
-                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-bus" style="color:#f87171;"></i>';
-                    if (labelEl) labelEl.textContent = 'PUB Aircon (Bus)';
-                } else if (norm === 'uve') {
-                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-van-shuttle" style="color:#a855f7;"></i>';
-                    if (labelEl) labelEl.textContent = 'UV Express (UVE)';
-                } else if (norm === 'taxi') {
-                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-taxi" style="color:#facc15;"></i>';
-                    if (labelEl) labelEl.textContent = 'Taxi';
-                } else {
-                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-car" style="color:#ffffff;"></i>';
-                    if (labelEl) labelEl.textContent = 'Own Car';
-                }
-            } else if (activeModes.length === 2) {
-                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-route" style="color:#00f2fe;"></i>';
-                const s1 = shortNames[activeModes[0]] || activeModes[0];
-                const s2 = shortNames[activeModes[1]] || activeModes[1];
+            if (tripModes.length === 1) {
+                const mode = tripModes[0];
+                if (iconEl) iconEl.innerHTML = window.getVehicleIconHtml(mode);
+                if (labelEl) labelEl.textContent = window.getVehicleDisplayName(mode);
+            } else if (tripModes.length === 2) {
+                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-shuffle" style="color:#00f2fe;"></i>';
+                const s1 = window.getVehicleShortName(tripModes[0]);
+                const s2 = window.getVehicleShortName(tripModes[1]);
                 if (labelEl) labelEl.textContent = `${s1} + ${s2}`;
-            } else if (activeModes.length > 2) {
-                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-route" style="color:#00f2fe;"></i>';
-                if (labelEl) labelEl.textContent = `${activeModes.length} Vehicles (${activeModes.map(m => shortNames[m] || m).join(', ')})`;
             } else {
-                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-car" style="color:#ffffff;"></i>';
-                if (labelEl) labelEl.textContent = 'Own Car';
+                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-route" style="color:#00f2fe;"></i>';
+                const names = tripModes.map(m => window.getVehicleShortName(m)).join(', ');
+                if (labelEl) labelEl.textContent = `${tripModes.length} Vehicles (${names})`;
             }
         };
 
@@ -2906,41 +2898,21 @@ try {
         window.openTravelModeStarterModal = function () {
             const modal = document.getElementById('travel-mode-starter-modal');
             if (!modal) return;
-            const currentMode = localStorage.getItem('intan_elyu_draft_trip_transport') || 'own_car';
 
-            let initialModes = [];
-            try {
-                const rawArr = localStorage.getItem('intan_elyu_draft_trip_transports');
-                if (rawArr) {
-                    const parsed = JSON.parse(rawArr);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                        initialModes = parsed.map(m => m.toLowerCase().replace(/[- ]/g, '_'));
-                    }
-                }
-            } catch (e) {}
-
-            if (initialModes.length === 0) {
-                if (currentMode.includes('+') || currentMode.includes(',')) {
-                    initialModes = currentMode.split(/[\+,]/).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
-                } else {
-                    initialModes = [currentMode.toLowerCase().replace(/[- ]/g, '_')];
-                }
-            }
-
-            initialModes = initialModes.map(m => {
-                if (m === 'car') return 'own_car';
-                if (m === 'motor') return 'motorcycle';
-                return m;
-            });
-
-            if (initialModes.length === 0) initialModes = ['own_car'];
-
-            window.starterModalSelectedModes = initialModes;
+            const initialModes = window.getNormalizedTripModes();
+            window.starterModalSelectedModes = [...initialModes];
             window.renderStarterModalCards();
 
             modal.style.display = 'flex';
             const bottomNav = document.getElementById('bottom-navigation');
             if (bottomNav) bottomNav.classList.add('nav-hidden');
+
+            setTimeout(() => {
+                const firstSelected = modal.querySelector('.travel-starter-card.active');
+                if (firstSelected) {
+                    firstSelected.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }, 60);
         };
 
         window.renderStarterModalCards = function () {
@@ -2949,34 +2921,6 @@ try {
 
             const selected = window.starterModalSelectedModes || ['own_car'];
 
-            const modeLabels = {
-                'own_car': 'Own Car',
-                'motorcycle': 'Motorcycle',
-                'van': 'Van',
-                'mpuj': 'Modern Jeepney (MPUJ)',
-                'tpuj': 'Traditional Jeepney (TPUJ)',
-                'jeepney': 'Jeepney',
-                'tricycle': 'Tricycle',
-                'pub_regular': 'PUB Regular (Ordinary Bus)',
-                'pub_aircon': 'PUB Aircon (Aircon Bus)',
-                'uve': 'UV Express (UVE)',
-                'taxi': 'Taxi'
-            };
-
-            const shortNames = {
-                'own_car': 'Own Car',
-                'motorcycle': 'Motorcycle',
-                'van': 'Van',
-                'mpuj': 'MPUJ',
-                'tpuj': 'TPUJ',
-                'jeepney': 'Jeepney',
-                'tricycle': 'Tricycle',
-                'pub_regular': 'Regular Bus',
-                'pub_aircon': 'Aircon Bus',
-                'uve': 'UV Express',
-                'taxi': 'Taxi'
-            };
-
             const cards = modal.querySelectorAll('.travel-starter-card');
             cards.forEach(card => {
                 const mode = (card.getAttribute('data-mode') || '').toLowerCase().replace(/[- ]/g, '_');
@@ -2984,14 +2928,25 @@ try {
                 const checkIcon = card.querySelector('.starter-check-icon');
                 const checkBox = card.querySelector('.starter-check-box');
                 const isSelected = selected.some(m => {
-                    const normM = m.toLowerCase().replace(/[- ]/g, '_');
-                    return (normM === mode) || (normM === 'car' && mode === 'own_car') || (normM === 'motor' && mode === 'motorcycle');
+                    let normM = String(m || '').trim().toLowerCase().replace(/[- ]/g, '_');
+                    if (normM === 'car') normM = 'own_car';
+                    if (normM === 'motor') normM = 'motorcycle';
+                    if (normM === 'pub_ordinary') normM = 'pub_regular';
+                    if (normM === 'bus') normM = 'pub_aircon';
+                    if (normM === 'trike') normM = 'tricycle';
+                    if (normM.startsWith('pub_aircon')) normM = 'pub_aircon';
+                    if (normM.startsWith('pub_reg')) normM = 'pub_regular';
+                    if (normM.startsWith('own_car')) normM = 'own_car';
+                    return normM === mode;
                 });
 
                 if (isSelected) {
                     card.classList.add('active');
                     if (badge) badge.style.display = 'inline-block';
-                    if (checkIcon) checkIcon.style.display = 'inline-block';
+                    if (checkIcon) {
+                        checkIcon.style.display = 'inline-block';
+                        checkIcon.style.color = '#1e3a8a';
+                    }
                     if (checkBox) {
                         checkBox.style.background = '#ffffff';
                         checkBox.style.borderColor = '#ffffff';
@@ -3013,24 +2968,25 @@ try {
                 countEl.textContent = `${selected.length} Selected`;
             }
 
-            // Update footer label
+            // Update footer label with proper display names
             const labelEl = document.getElementById('starter-modal-current-mode-label');
             if (labelEl) {
                 if (selected.length === 1) {
-                    labelEl.textContent = modeLabels[selected[0]] || selected[0];
+                    labelEl.textContent = window.getVehicleDisplayName(selected[0]);
                 } else if (selected.length === 2) {
-                    const s1 = shortNames[selected[0]] || selected[0];
-                    const s2 = shortNames[selected[1]] || selected[1];
+                    const s1 = window.getVehicleShortName(selected[0]);
+                    const s2 = window.getVehicleShortName(selected[1]);
                     labelEl.textContent = `${s1} + ${s2}`;
                 } else {
-                    labelEl.textContent = `${selected.length} Vehicles Selected`;
+                    const names = selected.map(m => window.getVehicleShortName(m)).join(', ');
+                    labelEl.textContent = `${selected.length} Vehicles (${names})`;
                 }
             }
 
-            // Update Apply button
+            // Update Done button with prominent checkmark icon
             const btn = document.getElementById('btn-apply-starter-transport');
             if (btn) {
-                btn.innerHTML = `<i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Apply Selection (${selected.length})`;
+                btn.innerHTML = `<i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Done (${selected.length})`;
             }
         };
 
@@ -3062,9 +3018,28 @@ try {
                 return;
             }
 
-            const compositeMode = (selected.length === 1) ? selected[0] : selected.join(' + ');
+            const validModes = ['own_car', 'motorcycle', 'van', 'mpuj', 'tpuj', 'tricycle', 'pub_regular', 'pub_aircon', 'uve', 'taxi'];
+            const cleaned = selected.map(m => {
+                let norm = String(m || '').trim().toLowerCase().replace(/[- ]/g, '_');
+                if (norm === 'car') return 'own_car';
+                if (norm === 'motor') return 'motorcycle';
+                if (norm === 'pub_ordinary') return 'pub_regular';
+                if (norm === 'bus') return 'pub_aircon';
+                if (norm === 'trike') return 'tricycle';
+                if (norm.startsWith('pub_aircon')) return 'pub_aircon';
+                if (norm.startsWith('pub_reg')) return 'pub_regular';
+                if (norm.startsWith('own_car')) return 'own_car';
+                return norm;
+            }).filter(m => validModes.includes(m));
+
+            const finalSelected = cleaned.length > 0 ? cleaned : ['own_car'];
+            const compositeMode = (finalSelected.length === 1) ? finalSelected[0] : finalSelected.join(' + ');
+
             localStorage.setItem('intan_elyu_draft_trip_transport', compositeMode);
-            localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(selected));
+            localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(finalSelected));
+
+            // Reset per-leg overrides so the whole itinerary cleanly inherits the newly chosen trip vehicle(s)
+            localStorage.removeItem('intan_elyu_draft_leg_vehicles');
 
             const transInput = document.getElementById('trip-transport');
             if (transInput) transInput.value = compositeMode;
@@ -3086,21 +3061,11 @@ try {
                 window.updateDraftBudget(draft);
             }
 
-            const shortNames = {
-                'own_car': 'Own Car', 'motorcycle': 'Motorcycle', 'van': 'Van',
-                'mpuj': 'Modern Jeepney', 'tpuj': 'Traditional Jeepney', 'jeepney': 'Jeepney',
-                'tricycle': 'Tricycle', 'pub_regular': 'Regular Bus', 'pub_aircon': 'Aircon Bus',
-                'uve': 'UV Express', 'taxi': 'Taxi'
-            };
-
-            let chosenName = '';
-            if (selected.length === 1) {
-                chosenName = shortNames[selected[0]] || selected[0];
-            } else if (selected.length === 2) {
-                chosenName = `${shortNames[selected[0]] || selected[0]} + ${shortNames[selected[1]] || selected[1]}`;
-            } else {
-                chosenName = `${selected.length} Vehicles (${selected.map(m => shortNames[m] || m).join(', ')})`;
-            }
+            const chosenName = (finalSelected.length === 1)
+                ? window.getVehicleDisplayName(finalSelected[0])
+                : (finalSelected.length === 2)
+                    ? `${window.getVehicleShortName(finalSelected[0])} + ${window.getVehicleShortName(finalSelected[1])}`
+                    : `${finalSelected.length} Vehicles (${finalSelected.map(m => window.getVehicleShortName(m)).join(', ')})`;
 
             if (draft.length === 0) {
                 if (typeof showToast === 'function') {
@@ -3108,7 +3073,7 @@ try {
                 }
             } else {
                 if (typeof showToast === 'function') {
-                    showToast(`Transportation set: ${chosenName}`);
+                    showToast(`Trip transportation set to ${chosenName}`);
                 }
             }
         };
@@ -3410,12 +3375,6 @@ try {
                         ? `<span class="leg-fare-tag">₱${leg0Info.cost.toFixed(2)}</span>`
                         : `<span class="leg-fare-tag" style="color:#059669; background:rgba(16,185,129,0.1);">₱0</span>`);
 
-                const warningBadge = leg0Info.is_maintenance
-                    ? `<span class="p2p-leg-warning-tag" style="background:rgba(255,255,255,0.22) !important; color:#ffffff !important; border:none !important; outline:none !important;"><i class="fa-solid fa-triangle-exclamation" style="color:#ffffff;"></i> Closed</span>`
-                    : (leg0Info.is_inaccessible
-                        ? `<span class="p2p-leg-warning-tag" style="background:rgba(239,68,68,0.22); color:#fca5a5; border:1px solid rgba(239,68,68,0.35);" title="${leg0Info.warning}"><i class="fa-solid fa-triangle-exclamation"></i> Inaccessible</span>`
-                        : (leg0Info.warning ? `<span class="p2p-leg-warning-tag" title="${leg0Info.warning}"><i class="fa-solid fa-triangle-exclamation"></i> Trailhead</span>` : ''));
-
                 const leg0ChipClass = leg0Info.is_maintenance ? 'p2p-leg-chip leg-maintenance' : 'p2p-leg-chip';
                 const leg0IconColor = leg0Info.is_maintenance ? '#ffffff' : '#0284c7';
                 const leg0NameStyle = leg0Info.is_maintenance ? 'color:#ffffff; font-weight:800;' : '';
@@ -3436,7 +3395,6 @@ try {
                         <span class="leg-chip-name" style="${leg0NameStyle}">${leg0Info.name}</span>
                         ${fareBadge}
                         ${leg0Info.is_maintenance ? '' : `<span class="leg-dist-text">&bull; ${startDistText}</span>`}
-                        ${warningBadge}
                         ${leg0TrailingIcon}
                     </div>
                     <div class="starting-leg-icon-pill" title="Start of Itinerary Route">
@@ -3521,12 +3479,6 @@ try {
                                 ? `<span class="leg-fare-tag">₱${legInfo.cost.toFixed(2)}</span>`
                                 : `<span class="leg-fare-tag" style="color:#059669; background:rgba(16,185,129,0.1);">₱0</span>`);
 
-                        const warningBadge = legInfo.is_maintenance
-                            ? `<span class="p2p-leg-warning-tag" style="background:rgba(255,255,255,0.22) !important; color:#ffffff !important; border:none !important; outline:none !important;"><i class="fa-solid fa-triangle-exclamation" style="color:#ffffff;"></i> Closed</span>`
-                            : (legInfo.is_inaccessible
-                                ? `<span class="p2p-leg-warning-tag" style="background:rgba(239,68,68,0.22); color:#fca5a5; border:1px solid rgba(239,68,68,0.35);" title="${legInfo.warning}"><i class="fa-solid fa-triangle-exclamation"></i> Inaccessible</span>`
-                                : (legInfo.warning ? `<span class="p2p-leg-warning-tag" title="${legInfo.warning}"><i class="fa-solid fa-triangle-exclamation"></i> Trailhead</span>` : ''));
-
                         const legChipClass = legInfo.is_maintenance ? 'p2p-leg-chip leg-maintenance' : 'p2p-leg-chip';
                         const legIconColor = legInfo.is_maintenance ? '#ffffff' : '#0284c7';
                         const legNameStyle = legInfo.is_maintenance ? 'color:#ffffff; font-weight:800;' : '';
@@ -3547,7 +3499,6 @@ try {
                                     <span class="leg-chip-name" style="${legNameStyle}">${legInfo.name}</span>
                                     ${fareBadge}
                                     ${legInfo.is_maintenance ? '' : `<span class="leg-dist-text">&bull; ${legDistText}</span>`}
-                                    ${warningBadge}
                                     ${legTrailingIcon}
                                 </div>
                                 <button type="button" class="btn-swap-pill" onclick="event.stopPropagation(); window.swapDraftStops(${index - 1}, ${index});" title="Swap Stop ${index} and Stop ${index + 1}" aria-label="Swap order">
@@ -4108,15 +4059,14 @@ try {
                 });
             });
 
-            let overallMode = '';
-            if (activeModes.length === 1) {
-                overallMode = activeModes[0];
-            } else if (activeModes.length > 1) {
-                overallMode = activeModes.join(' + ');
-            } else {
-                overallMode = currentGlobalTransport || 'own_car';
-            }
-            if (transInput) transInput.value = overallMode;
+            // Preserve the user-selected trip transportation in transInput (#trip-transport).
+            // Do NOT let per-leg selections overwrite or add up into the trip transportation!
+            const tripModes = (typeof window.getNormalizedTripModes === 'function')
+                ? window.getNormalizedTripModes()
+                : [currentGlobalTransport || 'own_car'];
+
+            const compositeTripTransport = (tripModes.length === 1) ? tripModes[0] : tripModes.join(' + ');
+            if (transInput) transInput.value = compositeTripTransport;
 
             if (p2pCostEl) {
                 p2pCostEl.textContent = '₱' + transCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -4125,56 +4075,30 @@ try {
                 p2pLegsEl.textContent = `${draft.length} Destination${draft.length > 1 ? 's' : ''} • ${draft.length} Leg${draft.length > 1 ? 's' : ''}`;
             }
 
-            const shortNames = {
-                'own_car': 'Own Car', 'car': 'Own Car', 'motorcycle': 'Motorcycle', 'motor': 'Motorcycle',
-                'van': 'Van', 'mpuj': 'MPUJ', 'tpuj': 'TPUJ', 'jeepney': 'Jeepney',
-                'tricycle': 'Tricycle', 'trike': 'Tricycle', 'pub_regular': 'Regular Bus', 'pub_aircon': 'Aircon Bus',
-                'uve': 'UV Express', 'taxi': 'Taxi', 'walking': 'Walk / Hike', 'no_vehicle': 'No Vehicle'
-            };
-
-            const fullNames = {
-                'own_car': 'Own Car', 'car': 'Own Car', 'motorcycle': 'Motorcycle',
-                'van': 'Van', 'mpuj': 'Modern Jeepney (MPUJ)', 'tpuj': 'Traditional Jeepney (TPUJ)', 'jeepney': 'Jeepney',
-                'tricycle': 'Tricycle', 'pub_regular': 'PUB Regular (Bus)', 'pub_aircon': 'PUB Aircon (Bus)',
-                'uve': 'UV Express (UVE)', 'taxi': 'Taxi', 'walking': 'Walk / Hike', 'no_vehicle': 'No Vehicle'
-            };
-
             if (p2pLabelEl) {
-                if (activeModes.length === 1) {
-                    p2pLabelEl.textContent = fullNames[activeModes[0]] || shortNames[activeModes[0]] || activeModes[0].replace(/_/g, ' ').toUpperCase();
-                } else if (activeModes.length === 2) {
-                    const n1 = shortNames[activeModes[0]] || activeModes[0];
-                    const n2 = shortNames[activeModes[1]] || activeModes[1];
+                if (tripModes.length === 1) {
+                    p2pLabelEl.textContent = (typeof window.getVehicleDisplayName === 'function')
+                        ? window.getVehicleDisplayName(tripModes[0])
+                        : tripModes[0].replace(/_/g, ' ').toUpperCase();
+                } else if (tripModes.length === 2) {
+                    const n1 = (typeof window.getVehicleShortName === 'function') ? window.getVehicleShortName(tripModes[0]) : tripModes[0];
+                    const n2 = (typeof window.getVehicleShortName === 'function') ? window.getVehicleShortName(tripModes[1]) : tripModes[1];
                     p2pLabelEl.textContent = `${n1} + ${n2}`;
-                } else if (activeModes.length > 2) {
-                    p2pLabelEl.textContent = `${activeModes.length} Vehicles (${activeModes.map(m => shortNames[m] || m).join(', ')})`;
                 } else {
-                    const normGlobal = (currentGlobalTransport || 'own_car').toLowerCase().replace(/[- ]/g, '_');
-                    p2pLabelEl.textContent = fullNames[normGlobal] || shortNames[normGlobal] || 'Own Car';
+                    const names = tripModes.map(m => (typeof window.getVehicleShortName === 'function') ? window.getVehicleShortName(m) : m).join(', ');
+                    p2pLabelEl.textContent = `${tripModes.length} Vehicles (${names})`;
                 }
             }
 
             // Sync icon in Save modal
             if (p2pIconEl) {
-                let iconClass = 'fa-car';
-                if (activeModes.length === 1) {
-                    const m = activeModes[0];
-                    if (m === 'motorcycle' || m === 'tricycle' || m === 'trike') iconClass = 'fa-motorcycle';
-                    else if (m === 'jeepney' || m === 'mpuj' || m === 'tpuj' || m === 'van' || m === 'uve') iconClass = 'fa-van-shuttle';
-                    else if (m.includes('bus')) iconClass = 'fa-bus';
-                    else if (m === 'taxi') iconClass = 'fa-taxi';
-                    else if (m === 'walking') iconClass = 'fa-person-walking';
-                } else if (activeModes.length > 1) {
-                    iconClass = 'fa-route';
+                if (tripModes.length === 1 && typeof window.getVehicleIconHtml === 'function') {
+                    p2pIconEl.innerHTML = window.getVehicleIconHtml(tripModes[0]);
+                } else if (tripModes.length > 1) {
+                    p2pIconEl.innerHTML = '<i class="fa-solid fa-route" style="color:#ffffff; font-size:16px;"></i>';
                 } else {
-                    const normGlobal = (currentGlobalTransport || 'own_car').toLowerCase().replace(/[- ]/g, '_');
-                    if (normGlobal === 'motorcycle' || normGlobal === 'tricycle' || normGlobal === 'trike') iconClass = 'fa-motorcycle';
-                    else if (normGlobal === 'jeepney' || normGlobal === 'mpuj' || normGlobal === 'tpuj' || normGlobal === 'van' || normGlobal === 'uve') iconClass = 'fa-van-shuttle';
-                    else if (normGlobal.includes('bus')) iconClass = 'fa-bus';
-                    else if (normGlobal === 'taxi') iconClass = 'fa-taxi';
-                    else if (normGlobal.includes('+') || normGlobal.includes(',')) iconClass = 'fa-route';
+                    p2pIconEl.innerHTML = '<i class="fa-solid fa-car" style="color:#ffffff; font-size:16px;"></i>';
                 }
-                p2pIconEl.innerHTML = `<i class="fa-solid ${iconClass}" style="color:#ffffff; font-size:16px;"></i>`;
             }
 
             // Sum Entrance Fees & Environmental Fees across all destinations in draft

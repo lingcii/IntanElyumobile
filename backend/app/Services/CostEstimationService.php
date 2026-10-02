@@ -275,8 +275,7 @@ class CostEstimationService
 
             // Determine vehicle for this specific leg:
             // 1) Explicit per-leg override if provided
-            // 2) Global Own Car / Motorcycle if tourist chose private transport for whole trip
-            // 3) Smart Hybrid Transit Auto-Recommendation
+            // 2) User-selected global trip transport mode (No hybrid transit auto-override)
             $legMode = null;
             $clientLegCost = null;
             if (!empty($perLegModes)) {
@@ -296,24 +295,10 @@ class CostEstimationService
             }
 
             if (!$legMode) {
-                if (str_contains($globalNorm, '+') || str_contains($globalNorm, ',')) {
+                if (!empty($globalNorm) && $globalNorm !== 'no_vehicle') {
                     $legMode = $transportModeString;
-                } elseif ($isGlobalOwnCar) {
-                    $legMode = 'own_car';
-                } elseif ($isGlobalMotorcycle) {
-                    $legMode = 'motorcycle';
                 } else {
-                    // Smart Transit Auto-Recommender:
-                    // If spot is inaccessible by car (e.g. Tangadan Falls) and within same municipality: Tricycle
-                    // If intra-municipal short trip (<= 3.5km): Tricycle
-                    // If inter-municipal highway or longer trip: Modern Jeepney (MPUJ)
-                    if ($isSpotPrivateInaccessible && !$crosses) {
-                        $legMode = 'tricycle';
-                    } elseif (!$crosses && $distKm <= 3.5) {
-                        $legMode = 'tricycle';
-                    } else {
-                        $legMode = 'mpuj';
-                    }
+                    $legMode = 'own_car';
                 }
             }
 
