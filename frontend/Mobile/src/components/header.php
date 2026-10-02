@@ -161,9 +161,8 @@
     </div>
 </div>
 
-<!-- Sidebar Menu Drawer -->
-<div id="sidebar-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 99990; transition: opacity 0.3s ease;" onclick="toggleSidebar()"></div>
-<div id="sidebar-menu" style="position: fixed; top: 0; left: -280px; width: 260px; bottom: 0; background: #ffffff; z-index: 99991; transition: left 0.32s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; box-shadow: 10px 0 35px rgba(0,0,0,0.12); border: none !important; border-right: none !important; outline: none !important; overflow: hidden;">
+<div id="sidebar-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 100002 !important; transition: opacity 0.3s ease;" onclick="toggleSidebar()"></div>
+<div id="sidebar-menu" style="position: fixed; top: 0; left: -280px; width: 260px; bottom: 0; background: #ffffff; z-index: 100003 !important; transition: left 0.32s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; box-shadow: 10px 0 35px rgba(0,0,0,0.12); border: none !important; border-right: none !important; outline: none !important; overflow: hidden;">
     
     <!-- User Profile Header Banner -->
     <div style="padding: max(calc(env(safe-area-inset-top, 0px) + 16px), 20px) 16px 14px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%); margin-top: 0; position: relative; flex-shrink: 0;">
@@ -274,6 +273,7 @@
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar-menu');
         const overlay = document.getElementById('sidebar-overlay');
+        const bottomNav = document.getElementById('bottom-navigation');
         if (sidebar && overlay) {
             const isClosed = sidebar.style.left === '-280px' || !sidebar.style.left || sidebar.style.left === '' || sidebar.style.left.startsWith('-');
             if (isClosed) {
@@ -281,9 +281,11 @@
                 sidebar.style.left = '0px';
                 overlay.style.display = 'block';
                 overlay.style.opacity = '1';
+                if (bottomNav) bottomNav.classList.add('nav-hidden');
             } else {
                 sidebar.style.left = '-280px';
                 overlay.style.opacity = '0';
+                if (bottomNav) bottomNav.classList.remove('nav-hidden');
                 setTimeout(() => { overlay.style.display = 'none'; }, 300);
             }
         }
@@ -296,9 +298,13 @@
     }
 
     function logoutUser() {
-        localStorage.removeItem('intan_elyu_token');
-        localStorage.removeItem('auth_user');
-        window.location.href = '?view=auth';
+        if (typeof handleLogout === 'function') {
+            handleLogout();
+        } else {
+            localStorage.removeItem('intan_elyu_token');
+            localStorage.removeItem('auth_user');
+            window.location.href = '?view=auth';
+        }
     }
 
     function toggleNotifications() {
