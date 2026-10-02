@@ -957,7 +957,7 @@ try {
                         style="position:absolute; left:0; top:0; border-radius:50%; width:58px; height:58px; transform:scaleX(-1);">
                     </div>
                     <span id="modal-donut-pct"
-                        style="position:relative; font-size:12px; font-weight:900; color:#ffffff; white-space:nowrap; text-shadow:0 1px 4px rgba(0,0,0,0.6);">100%</span>
+                        style="position:relative; font-size:12px; font-weight:900; color:#ffffff; white-space:nowrap; text-shadow:0 1px 4px rgba(0,0,0,0.6);">MET!</span>
                 </div>
                 <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -3930,6 +3930,8 @@ try {
                 if (pctEl) {
                     if (customLabel !== undefined && customLabel !== null) {
                         pctEl.textContent = customLabel;
+                    } else if (Math.round(pct) === 100 || targetPct === 100) {
+                        pctEl.textContent = 'MET!';
                     } else if (pct > 999) {
                         pctEl.textContent = '>999%';
                     } else if (targetPct > 0 && targetPct < 1 && pct < 1) {
@@ -4118,8 +4120,8 @@ try {
             }
 
             if (!budgetInput || isNaN(budget) || budget <= 0) {
-                // No budget entered yet — show 100% cyan ring outline and reset remaining row
-                animateDonut(100, '#00f2fe', '100%');
+                // No budget entered yet — show cyan ring outline with dash
+                animateDonut(100, '#00f2fe', '—');
                 if (remainingRow) remainingRow.style.display = 'none';
                 if (pillGreen) { pillGreen.style.opacity = '0.6'; pillGreen.style.transform = 'scale(1)'; pillGreen.style.fontWeight = '700'; }
                 if (pillOrange) { pillOrange.style.opacity = '0.6'; pillOrange.style.transform = 'scale(1)'; pillOrange.style.fontWeight = '700'; }
@@ -4154,12 +4156,19 @@ try {
                 donutPct = 100;
                 const spentPct = (budget > 0) ? (estimatedCost / budget) * 100 : 0;
 
-                if (spentPct >= 80) {
-                    // YELLOW: 80% - 100% of budget used (nearing limit, but STILL REMAINING!)
+                if (remaining === 0 || spentPct >= 100) {
+                    // Exact match: 100% budget used, MET!
+                    fillColor = '#10b981';
+                    remainingColor = '#10b981';
+                    remainingLabelHtml = '<i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> MET!';
+                    remainingValueText = '₱0.00';
+                    activeTier = 'green';
+                } else if (spentPct >= 80) {
+                    // YELLOW: 80% - 99% of budget used (nearing limit, but STILL REMAINING!)
                     fillColor = '#f59e0b';
                     remainingColor = '#f59e0b';
                     remainingLabelHtml = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:4px;"></i> Remaining';
-                    remainingValueText = (remaining === 0) ? '₱0.00' : '+' + formattedRemaining;
+                    remainingValueText = '+' + formattedRemaining;
                     activeTier = 'orange';
                 } else {
                     // GREEN: Under 80% of budget used (safe, plenty of budget remaining!)
@@ -4173,8 +4182,8 @@ try {
 
             setLegendStatus(activeTier);
 
-            // Animate donut fill smoothly with color-coded status
-            animateDonut(donutPct, fillColor);
+            // Animate donut fill smoothly with color-coded status (if 100% make it MET!)
+            animateDonut(donutPct, fillColor, (donutPct === 100 ? 'MET!' : undefined));
 
             // Update remaining row
             if (remainingRow) {
