@@ -303,6 +303,9 @@ try {
         outline: none !important;
         user-select: none;
         cursor: pointer;
+        white-space: nowrap !important;
+        max-width: calc(100vw - 84px) !important;
+        box-sizing: border-box !important;
         transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease !important;
     }
 
@@ -315,6 +318,15 @@ try {
         transform: scale(0.96) !important;
     }
 
+    .p2p-leg-chip .leg-chip-name {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: 140px !important;
+        display: inline-block !important;
+        vertical-align: middle !important;
+    }
+
     .p2p-leg-chip .leg-fare-tag {
         background: rgba(30, 58, 138, 0.08);
         color: #1e3a8a;
@@ -322,6 +334,15 @@ try {
         font-size: 10px;
         padding: 2px 8px;
         border-radius: 99px;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+    }
+
+    .p2p-leg-chip .leg-dist-text {
+        color: #64748b;
+        font-size: 10.5px;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
     }
 
     .p2p-leg-chip .leg-action-edit {
@@ -379,8 +400,8 @@ try {
 
     .leg-option-card.active {
         background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
-        border: 2px solid #00f2fe !important;
-        box-shadow: 0 4px 16px rgba(0, 242, 254, 0.35) !important;
+        border: 2px solid #ffffff !important;
+        box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28) !important;
     }
 
     .leg-option-card.disabled-leg-option {
@@ -436,8 +457,8 @@ try {
 
     .travel-starter-card.active {
         background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
-        border: 2px solid #00f2fe !important;
-        box-shadow: 0 4px 16px rgba(0, 242, 254, 0.35) !important;
+        border: 2px solid #ffffff !important;
+        box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28) !important;
     }
 
     .travel-starter-icon {
@@ -1004,7 +1025,7 @@ try {
                     <div>
                         <div style="display:flex; align-items:center; gap:6px;">
                             <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Choose Leg Transports</h3>
-                            <span style="font-size:9.5px; font-weight:800; background:rgba(0, 242, 254, 0.18); color:#00f2fe; padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">Multi-Select</span>
+                            <span style="font-size:9.5px; font-weight:800; background:rgba(255, 255, 255, 0.2); color:#ffffff; padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">Multi-Select</span>
                         </div>
                         <div id="leg-modal-subtitle" style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">
                             Leg Route Details
@@ -1021,11 +1042,11 @@ try {
         <div style="background:#ffffff !important; color:#1e293b; padding:16px 18px 12px 18px; flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;">
             
             <!-- Multi-Select Selection Info Bar -->
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; background:#f8fafc; padding:8px 12px; border-radius:12px; border:1px solid #e2e8f0;">
+            <div id="leg-modal-selection-bar" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; background:#f8fafc; padding:8px 12px; border-radius:12px; border:1px solid #e2e8f0;">
                 <span style="font-size:12px; font-weight:700; color:#1e3a8a; display:flex; align-items:center; gap:6px;">
                     <i class="fa-solid fa-check-double" style="color:#1e3a8a; font-size:12px;"></i> Select multiple vehicles if needed:
                 </span>
-                <span id="leg-modal-selection-count" style="font-size:10.5px; font-weight:800; background:rgba(0, 242, 254, 0.18); color:#0284c7; padding:3px 10px; border-radius:100px;">
+                <span id="leg-modal-selection-count" style="font-size:10.5px; font-weight:800; background:rgba(30, 58, 138, 0.08); color:#1e3a8a; padding:3px 10px; border-radius:100px;">
                     1 Selected
                 </span>
             </div>
@@ -1047,9 +1068,9 @@ try {
 
         <!-- Locked Bottom Footer Banner (Matched to Notifications Footer Banner) -->
         <div style="flex-shrink:0; padding:12px 18px calc(14px + env(safe-area-inset-bottom, 0px)) 18px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); display:flex; align-items:center; justify-content:space-between; gap:12px; border:none !important; outline:none !important;">
-            <div>
+            <div id="leg-modal-fare-container">
                 <div style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.5px;">Estimated Leg Fare</div>
-                <div id="leg-modal-total-fare" style="font-size:18px; font-weight:900; color:#00f2fe; letter-spacing:-0.2px;">₱0.00</div>
+                <div id="leg-modal-total-fare" style="font-size:18px; font-weight:900; color:#ffffff; letter-spacing:-0.2px;">₱0.00</div>
             </div>
             <button type="button" id="btn-apply-leg-transport" onclick="window.applyLegVehicleSelection()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; cursor:pointer; padding:9px 18px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; display:inline-flex; align-items:center; gap:7px; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
                 <i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Apply Selection
@@ -1123,7 +1144,7 @@ try {
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
                             <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
                         </span>
                     </div>
@@ -1146,7 +1167,7 @@ try {
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
                             <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
                         </span>
                     </div>
@@ -1169,7 +1190,7 @@ try {
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
                             <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
                         </span>
                     </div>
@@ -1197,7 +1218,7 @@ try {
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
                             <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
                         </span>
                     </div>
@@ -1220,7 +1241,7 @@ try {
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
                             <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
                         </span>
                     </div>
@@ -1243,7 +1264,7 @@ try {
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
                             <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
                         </span>
                     </div>
@@ -1266,7 +1287,7 @@ try {
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
                             <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
                         </span>
                     </div>
@@ -1289,7 +1310,7 @@ try {
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
                             <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
                         </span>
                     </div>
@@ -1312,7 +1333,7 @@ try {
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
                             <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
                         </span>
                     </div>
@@ -1335,7 +1356,7 @@ try {
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
                             <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
                         </span>
                     </div>
@@ -1349,7 +1370,7 @@ try {
         <div style="flex-shrink:0; padding:12px 18px calc(14px + env(safe-area-inset-bottom, 0px)) 18px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); display:flex; align-items:center; justify-content:space-between; gap:12px; border:none !important; outline:none !important;">
             <div>
                 <div style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.5px;">Trip Travel Mode</div>
-                <div id="starter-modal-current-mode-label" style="font-size:16px; font-weight:900; color:#00f2fe; letter-spacing:-0.2px;">Own Car</div>
+                <div id="starter-modal-current-mode-label" style="font-size:16px; font-weight:900; color:#ffffff; letter-spacing:-0.2px;">Own Car</div>
             </div>
             <button type="button" onclick="window.closeTravelModeStarterModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; cursor:pointer; padding:9px 18px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; display:inline-flex; align-items:center; gap:7px; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
                 <i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Done
@@ -2076,20 +2097,20 @@ try {
                     : window.calculateSingleLegCost(modes.join(' + '), distKm, muniA, muniB);
 
                 const getSingleVehDetails = (norm) => {
-                    if (norm === 'own_car' || norm === 'car') return { name: 'Own Car', icon: 'fa-car' };
-                    if (norm === 'motorcycle') return { name: 'Motorcycle', icon: 'fa-motorcycle' };
-                    if (norm === 'van') return { name: 'Van', icon: 'fa-van-shuttle' };
-                    if (norm === 'mpuj') return { name: 'MPUJ (Modern Jeepney)', icon: 'fa-bus-simple' };
-                    if (norm === 'tpuj') return { name: 'TPUJ (Traditional Jeepney)', icon: 'fa-van-shuttle' };
-                    if (norm === 'jeepney') return { name: 'Jeepney', icon: 'fa-van-shuttle' };
-                    if (norm === 'tricycle' || norm === 'trike') return { name: 'Tricycle', icon: 'fa-motorcycle' };
-                    if (norm === 'pub_regular' || norm === 'pub_ordinary') return { name: 'PUB Regular (Bus)', icon: 'fa-bus' };
-                    if (norm === 'pub_aircon') return { name: 'PUB Aircon (Bus)', icon: 'fa-bus' };
-                    if (norm.includes('bus')) return { name: 'Bus', icon: 'fa-bus' };
-                    if (norm === 'uve') return { name: 'UV Express (UVE)', icon: 'fa-van-shuttle' };
-                    if (norm === 'taxi') return { name: 'Taxi', icon: 'fa-taxi' };
-                    if (norm === 'walking' || norm === 'walk') return { name: 'Walk / Hike', icon: 'fa-person-walking' };
-                    return { name: norm.replace(/_/g, ' ').toUpperCase(), icon: 'fa-car' };
+                    if (norm === 'own_car' || norm === 'car') return { name: 'Own Car', short: 'Own Car', icon: 'fa-car' };
+                    if (norm === 'motorcycle') return { name: 'Motorcycle', short: 'Motorcycle', icon: 'fa-motorcycle' };
+                    if (norm === 'van') return { name: 'Van', short: 'Van', icon: 'fa-van-shuttle' };
+                    if (norm === 'mpuj') return { name: 'MPUJ (Modern Jeepney)', short: 'MPUJ', icon: 'fa-bus-simple' };
+                    if (norm === 'tpuj') return { name: 'TPUJ (Traditional Jeepney)', short: 'TPUJ', icon: 'fa-van-shuttle' };
+                    if (norm === 'jeepney') return { name: 'Jeepney', short: 'Jeepney', icon: 'fa-van-shuttle' };
+                    if (norm === 'tricycle' || norm === 'trike') return { name: 'Tricycle', short: 'Tricycle', icon: 'fa-motorcycle' };
+                    if (norm === 'pub_regular' || norm === 'pub_ordinary') return { name: 'PUB Regular (Bus)', short: 'Regular Bus', icon: 'fa-bus' };
+                    if (norm === 'pub_aircon') return { name: 'PUB Aircon (Bus)', short: 'Aircon Bus', icon: 'fa-bus' };
+                    if (norm.includes('bus')) return { name: 'Bus', short: 'Bus', icon: 'fa-bus' };
+                    if (norm === 'uve') return { name: 'UV Express (UVE)', short: 'UV Express', icon: 'fa-van-shuttle' };
+                    if (norm === 'taxi') return { name: 'Taxi', short: 'Taxi', icon: 'fa-taxi' };
+                    if (norm === 'walking' || norm === 'walk') return { name: 'Walk / Hike', short: 'Walk', icon: 'fa-person-walking' };
+                    return { name: norm.replace(/_/g, ' ').toUpperCase(), short: norm.replace(/_/g, ' ').toUpperCase(), icon: 'fa-car' };
                 };
 
                 let name = '';
@@ -2098,9 +2119,14 @@ try {
                     const d = getSingleVehDetails(modes[0]);
                     name = d.name;
                     icon = d.icon;
+                } else if (modes.length === 2) {
+                    const d1 = getSingleVehDetails(modes[0]);
+                    const d2 = getSingleVehDetails(modes[1]);
+                    const combo = `${d1.short} + ${d2.short}`;
+                    name = (combo.length <= 22) ? combo : '2 Vehicles Selected';
+                    icon = 'fa-shuffle';
                 } else {
-                    const names = modes.map(m => getSingleVehDetails(m).name);
-                    name = names.join(' + ');
+                    name = `${modes.length} Vehicles Selected`;
                     icon = 'fa-shuffle';
                 }
 
@@ -2120,6 +2146,7 @@ try {
                     transport_mode: modes.join(' + '),
                     transport_modes: modes,
                     name: name,
+                    full_names: modes.map(m => getSingleVehDetails(m).name).join(', '),
                     icon: icon,
                     cost: cost,
                     leg_cost: cost,
@@ -2220,6 +2247,7 @@ try {
 
             const isNonDrivable = Boolean(toSpot && (toSpot.accessible_by_private_vehicle === 0 || toSpot.accessible_by_private_vehicle === false || toSpot.accessible_by_private_vehicle === '0'));
             const isSiteUnderMaintenance = Boolean(toSpot && (toSpot.is_maintenance === 1 || toSpot.is_maintenance === true || toSpot.is_maintenance === '1'));
+            window.currentLegIsSiteUnderMaintenance = isSiteUnderMaintenance;
 
             const subEl = document.getElementById('leg-modal-subtitle');
             if (subEl) {
@@ -2445,7 +2473,7 @@ try {
                 }) && opt.isAvail;
 
                 const costStr = (opt.cost > 0) ? `₱${opt.cost.toFixed(2)}` : '₱0';
-                const costColor = '#00f2fe';
+                const costColor = '#ffffff';
                 const disabledClass = !opt.isAvail ? 'disabled-leg-option' : '';
                 const clickHandler = opt.isAvail
                     ? `onclick="window.toggleLegCandidateMode('${opt.mode}')"`
@@ -2455,7 +2483,7 @@ try {
                 <div class="leg-option-card ${isSelected ? 'active' : ''} ${disabledClass}" ${clickHandler} style="${!opt.isAvail ? 'opacity:0.45; cursor:not-allowed;' : ''}">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
                         <!-- Multi-select checkbox -->
-                        <div style="width:22px; height:22px; border-radius:6px; border:2px solid ${isSelected ? '#00f2fe' : 'rgba(255,255,255,0.65)'}; background:${isSelected ? '#00f2fe' : 'rgba(255,255,255,0.1)'}; display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                        <div style="width:22px; height:22px; border-radius:6px; border:2px solid ${isSelected ? '#ffffff' : 'rgba(255,255,255,0.65)'}; background:${isSelected ? '#ffffff' : 'rgba(255,255,255,0.1)'}; display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
                             ${isSelected ? '<i class="fa-solid fa-check" style="color:#1e3a8a !important;"></i>' : ''}
                         </div>
 
@@ -2465,7 +2493,7 @@ try {
                         <div style="flex:1; min-width:0;">
                             <div style="font-weight:800; font-size:13.5px; color:#ffffff; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                                 <span>${opt.name}</span>
-                                ${opt.isRecommended && opt.isAvail ? '<span style="font-size:9px; background:rgba(0, 242, 254, 0.22); color:#00f2fe; padding:1px 7px; border-radius:100px; font-weight:800; letter-spacing:0.3px;">OPTIMAL</span>' : ''}
+                                ${opt.isRecommended && opt.isAvail ? '<span style="font-size:9px; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:1px 7px; border-radius:100px; font-weight:800; letter-spacing:0.3px;">OPTIMAL</span>' : ''}
                                 ${!opt.isAvail ? '<span style="font-size:8.5px; background:rgba(239,68,68,0.25); color:#fca5a5; padding:1px 6px; border-radius:100px; font-weight:800; letter-spacing:0.3px;"><i class="fa-solid fa-ban" style="font-size:8px;"></i> UNAVAILABLE</span>' : ''}
                             </div>
                             <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
@@ -2478,36 +2506,44 @@ try {
                         <div style="font-size:14.5px; font-weight:900; color:${opt.isAvail ? costColor : '#94a3b8'}; letter-spacing:-0.2px;">
                             ${opt.isAvail ? costStr : '—'}
                         </div>
-                        ${isSelected ? '<span style="font-size:9.5px; color:#00f2fe; font-weight:800;"><i class="fa-solid fa-check"></i> Selected</span>' : ''}
+                        ${isSelected ? '<span style="font-size:9.5px; color:#ffffff; font-weight:800;"><i class="fa-solid fa-check"></i> Selected</span>' : ''}
                     </div>
                 </div>`;
             });
 
             listEl.innerHTML = listHtml;
 
+            const isSiteMaint = Boolean(window.currentLegIsSiteUnderMaintenance || availCount === 0);
+
+            // Toggle selection info bar: remove "select multiple vehicles if needed: Site Under Maintenance"
+            const selBar = document.getElementById('leg-modal-selection-bar');
+            if (selBar) {
+                selBar.style.display = isSiteMaint ? 'none' : 'flex';
+            }
+
             // Update Selection Count Pill
             const countEl = document.getElementById('leg-modal-selection-count');
             if (countEl) {
-                if (availCount === 0) {
-                    countEl.textContent = 'Site Under Maintenance';
-                    countEl.style.background = '#ef4444';
-                    countEl.style.color = '#ffffff';
-                    countEl.style.border = 'none';
-                    countEl.style.outline = 'none';
-                } else {
-                    const count = selectedModes.length;
-                    countEl.textContent = `${count} Selected`;
-                    countEl.style.background = 'rgba(0, 242, 254, 0.18)';
-                    countEl.style.color = '#0284c7';
-                    countEl.style.borderColor = 'transparent';
-                }
+                const count = selectedModes.length;
+                countEl.textContent = `${count} Selected`;
+                countEl.style.background = 'rgba(30, 58, 138, 0.08)';
+                countEl.style.color = '#1e3a8a';
+                countEl.style.borderColor = 'transparent';
+            }
+
+            // Toggle estimated leg fare container: remove the estimated leg fare if Site Under Maintenance
+            const fareContainer = document.getElementById('leg-modal-fare-container');
+            if (fareContainer) {
+                fareContainer.style.display = isSiteMaint ? 'none' : 'block';
             }
 
             // Calculate & Update Total Fare for the Leg
             let totalLegFare = 0;
-            selectedModes.forEach(m => {
-                totalLegFare += window.calculateSingleLegCost(m, window.currentLegModalDistKm, window.currentLegModalMuniA, window.currentLegModalMuniB);
-            });
+            if (!isSiteMaint) {
+                selectedModes.forEach(m => {
+                    totalLegFare += window.calculateSingleLegCost(m, window.currentLegModalDistKm, window.currentLegModalMuniA, window.currentLegModalMuniB);
+                });
+            }
             const fareEl = document.getElementById('leg-modal-total-fare');
             if (fareEl) {
                 fareEl.textContent = (totalLegFare > 0) ? `₱${totalLegFare.toFixed(2)}` : '₱0.00';
@@ -2515,15 +2551,19 @@ try {
 
             const btnApply = document.getElementById('btn-apply-leg-transport');
             if (btnApply) {
-                if (availCount === 0) {
+                if (isSiteMaint) {
                     btnApply.disabled = true;
-                    btnApply.style.opacity = '0.45';
+                    btnApply.style.opacity = '0.7';
                     btnApply.style.cursor = 'not-allowed';
+                    btnApply.style.width = '100%';
+                    btnApply.style.justifyContent = 'center';
                     btnApply.innerHTML = `<i class="fa-solid fa-ban"></i> Site Under Maintenance`;
                 } else {
                     btnApply.disabled = false;
                     btnApply.style.opacity = '1';
                     btnApply.style.cursor = 'pointer';
+                    btnApply.style.width = 'auto';
+                    btnApply.style.justifyContent = 'flex-start';
                     btnApply.innerHTML = `<i class="fa-solid fa-check"></i> Apply Selection (${selectedModes.length})`;
                 }
             }
@@ -2595,12 +2635,33 @@ try {
                 return opt ? opt.name : m.replace(/_/g, ' ').toUpperCase();
             });
 
+            let displayName = '';
+            if (selectedModes.length === 1) {
+                displayName = displayNames[0];
+            } else if (selectedModes.length === 2) {
+                const getShort = (m) => {
+                    if (m === 'own_car' || m === 'car') return 'Own Car';
+                    if (m === 'mpuj') return 'MPUJ';
+                    if (m === 'tpuj') return 'TPUJ';
+                    if (m === 'pub_regular') return 'Regular Bus';
+                    if (m === 'pub_aircon') return 'Aircon Bus';
+                    if (m === 'uve') return 'UV Express';
+                    const opt = (window.currentLegEvaluatedCandidates || []).find(c => c.mode === m);
+                    return opt ? opt.name : m;
+                };
+                const combo = `${getShort(selectedModes[0])} + ${getShort(selectedModes[1])}`;
+                displayName = (combo.length <= 22) ? combo : '2 Vehicles Selected';
+            } else {
+                displayName = `${selectedModes.length} Vehicles Selected`;
+            }
+
             overrides[legIdx] = {
                 transport_mode: selectedModes.join(' + '),
                 transport_modes: selectedModes,
                 leg_cost: parseFloat(totalCost) || 0,
                 leg_distance_km: parseFloat(window.currentLegModalDistKm) || 0,
-                display_name: displayNames.join(' + '),
+                display_name: displayName,
+                full_names: displayNames.join(', '),
                 is_custom: true
             };
 
@@ -2614,7 +2675,8 @@ try {
                 window.calculateModalBudget();
             }
             if (typeof showToast === 'function') {
-                showToast(`Leg ${legIdx + 1} transit set to ${displayNames.join(' + ')}`);
+                const toastLabel = (selectedModes.length > 2) ? `${selectedModes.length} vehicles` : displayName;
+                showToast(`Leg ${legIdx + 1} transit set to ${toastLabel}`);
             }
         };
 
@@ -2672,7 +2734,7 @@ try {
                 if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-taxi" style="color:#facc15;"></i>';
                 if (labelEl) labelEl.textContent = 'Taxi';
             } else {
-                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-car" style="color:#00f2fe;"></i>';
+                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-car" style="color:#ffffff;"></i>';
                 if (labelEl) labelEl.textContent = 'Own Car';
             }
         };
@@ -2712,8 +2774,8 @@ try {
                     if (badge) badge.style.display = 'inline-block';
                     if (radioCheck) radioCheck.style.display = 'inline-block';
                     if (radioBox) {
-                        radioBox.style.background = '#00f2fe';
-                        radioBox.style.borderColor = '#00f2fe';
+                        radioBox.style.background = '#ffffff';
+                        radioBox.style.borderColor = '#ffffff';
                     }
                 } else {
                     card.classList.remove('active');
@@ -3087,13 +3149,13 @@ try {
             <div class="stops-swap-divider starting-leg-divider">
                 <div class="stops-swap-line"></div>
                 <div class="stops-leg-wrapper" style="display:flex; align-items:center; gap:8px; z-index:3;">
-                    <div class="${leg0ChipClass}" onclick="window.openLegTransportModal(0)" title="${leg0Info.is_maintenance ? 'Destination is under maintenance' : 'Tap to choose transit for this leg'}">
-                        <i class="fa-solid ${leg0Info.icon}" style="color:${leg0IconColor}; font-size:11px;"></i>
-                        <span style="${leg0NameStyle}">${leg0Info.name}</span>
+                    <div class="${leg0ChipClass}" onclick="window.openLegTransportModal(0)" title="${leg0Info.is_maintenance ? 'Destination is under maintenance' : 'Selected: ' + (leg0Info.full_names || leg0Info.name)}">
+                        <i class="fa-solid ${leg0Info.icon}" style="color:${leg0IconColor}; font-size:11px; flex-shrink:0;"></i>
+                        <span class="leg-chip-name" style="${leg0NameStyle}">${leg0Info.name}</span>
                         ${fareBadge}
-                        ${leg0Info.is_maintenance ? '' : `<span style="color:#64748b; font-size:10.5px;">&bull; ${startDistText}</span>`}
+                        ${leg0Info.is_maintenance ? '' : `<span class="leg-dist-text">&bull; ${startDistText}</span>`}
                         ${warningBadge}
-                        <i class="fa-solid fa-chevron-right leg-action-edit" style="${leg0Info.is_maintenance ? 'color:#ffffff;' : ''}"></i>
+                        <i class="fa-solid fa-chevron-right leg-action-edit" style="${leg0Info.is_maintenance ? 'color:#ffffff;' : ''} flex-shrink:0;"></i>
                     </div>
                     <div class="starting-leg-icon-pill" title="Start of Itinerary Route">
                         <i class="fa-solid fa-arrow-down"></i>
@@ -3191,13 +3253,13 @@ try {
                         <div class="stops-swap-divider">
                             <div class="stops-swap-line"></div>
                             <div class="stops-leg-wrapper" style="display:flex; align-items:center; gap:8px; z-index:3;">
-                                <div class="${legChipClass}" onclick="window.openLegTransportModal(${index})" title="${legInfo.is_maintenance ? 'Destination is under maintenance' : 'Tap to choose transit for this leg'}">
-                                    <i class="fa-solid ${legInfo.icon}" style="color:${legIconColor}; font-size:11px;"></i>
-                                    <span style="${legNameStyle}">${legInfo.name}</span>
+                                <div class="${legChipClass}" onclick="window.openLegTransportModal(${index})" title="${legInfo.is_maintenance ? 'Destination is under maintenance' : 'Selected: ' + (legInfo.full_names || legInfo.name)}">
+                                    <i class="fa-solid ${legInfo.icon}" style="color:${legIconColor}; font-size:11px; flex-shrink:0;"></i>
+                                    <span class="leg-chip-name" style="${legNameStyle}">${legInfo.name}</span>
                                     ${fareBadge}
-                                    ${legInfo.is_maintenance ? '' : `<span style="color:#64748b; font-size:10.5px;">&bull; ${legDistText}</span>`}
+                                    ${legInfo.is_maintenance ? '' : `<span class="leg-dist-text">&bull; ${legDistText}</span>`}
                                     ${warningBadge}
-                                    <i class="fa-solid fa-chevron-right leg-action-edit" style="${legInfo.is_maintenance ? 'color:#ffffff;' : ''}"></i>
+                                    <i class="fa-solid fa-chevron-right leg-action-edit" style="${legInfo.is_maintenance ? 'color:#ffffff;' : ''} flex-shrink:0;"></i>
                                 </div>
                                 <button type="button" class="btn-swap-pill" onclick="event.stopPropagation(); window.swapDraftStops(${index - 1}, ${index});" title="Swap Stop ${index} and Stop ${index + 1}" aria-label="Swap order">
                                     <i class="fa-solid fa-arrows-up-down"></i>

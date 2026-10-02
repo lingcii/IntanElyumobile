@@ -1023,8 +1023,8 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
 
 .travel-starter-card.active {
     background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
-    border: 2px solid #00f2fe !important;
-    box-shadow: 0 4px 16px rgba(0, 242, 254, 0.35) !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28) !important;
 }
 
 .travel-starter-icon {
