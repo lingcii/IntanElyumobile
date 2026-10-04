@@ -135,7 +135,7 @@ $backRoute = 'dashboard';
 }
 </style>
 
-<div id="voucher-modal" style="display:none; position:fixed; inset:0; z-index:10000; background:rgba(15,23,42,0.68); align-items:center; justify-content:center; padding:18px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); opacity:0; transition:opacity 0.3s ease;">
+<div id="voucher-modal" onclick="if (event.target === this) closeVoucherModal();" style="display:none; position:fixed; inset:0; z-index:10000; background:rgba(15,23,42,0.68); align-items:center; justify-content:center; padding:18px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); opacity:0; transition:opacity 0.3s ease;">
     <div class="voucher-card-anim" style="background: #ffffff !important; border: none !important; outline:none !important; border-radius:24px; padding:0 !important; width:100%; max-width:375px; max-height:86vh; display:flex; flex-direction:column; overflow:hidden; box-shadow: 0 16px 40px rgba(10, 25, 60, 0.4) !important; text-align:center; position:relative; box-sizing:border-box; transform:scale(0.88) translateY(20px); opacity:0; transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;">
         
         <!-- Modal Top Header Banner (Royal Blue) -->
@@ -230,18 +230,10 @@ $backRoute = 'dashboard';
         </div>
 
         <!-- Locked Bottom Footer Banner (Royal Blue) -->
-        <div style="background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; flex-shrink: 0; padding: 14px 18px; border-top: none !important; display: flex; flex-direction: column; gap: 8px; border: none !important; outline: none !important;">
+        <div id="modal-footer-banner" style="background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; flex-shrink: 0; padding: 14px 18px; border-top: none !important; display: flex; flex-direction: column; gap: 8px; border: none !important; outline: none !important;">
             <button id="modal-redeem-btn" onclick="handleModalRedeem()" style="width: 100%; padding: 12px; border: none !important; outline: none !important; border-radius: 12px; background: #ffffff !important; color: #1e3a8a !important; font-size: 13.5px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                 <i class="fa-solid fa-gift" style="color: #1e3a8a !important;"></i> <span id="modal-redeem-btn-label">Redeem for 100 Points</span>
             </button>
-            <div style="display: flex; gap: 8px;">
-                <button onclick="navigateTo('map'); closeVoucherModal();" style="flex: 1; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.25) !important; outline: none !important; border-radius: 10px; background: rgba(255, 255, 255, 0.14) !important; color: #ffffff !important; font-size: 11.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'">
-                    <i class="fa-solid fa-map-location-dot" style="color: #38bdf8;"></i> View on Map
-                </button>
-                <button onclick="closeVoucherModal()" style="flex: 1; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.25) !important; outline: none !important; border-radius: 10px; background: rgba(255, 255, 255, 0.14) !important; color: #ffffff !important; font-size: 11.5px; font-weight: 800; cursor: pointer; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'">
-                    Close
-                </button>
-            </div>
         </div>
     </div>
 </div>
@@ -743,6 +735,7 @@ function openVoucherModal(id) {
     const claimedBox = document.getElementById('modal-claimed-box');
     const redeemBtn = document.getElementById('modal-redeem-btn');
     const redeemLabel = document.getElementById('modal-redeem-btn-label');
+    const footerBanner = document.getElementById('modal-footer-banner');
 
     if (isAlreadyClaimed) {
         if (claimedBox) {
@@ -756,8 +749,10 @@ function openVoucherModal(id) {
             }
         }
         if (redeemBtn) redeemBtn.style.display = 'none';
+        if (footerBanner) footerBanner.style.display = 'none';
     } else {
         if (claimedBox) claimedBox.style.display = 'none';
+        if (footerBanner) footerBanner.style.display = 'flex';
         if (redeemBtn) {
             redeemBtn.style.display = 'flex';
             if (isExpired) {
@@ -927,6 +922,8 @@ async function handleModalRedeem() {
                 }
             }
             if (btn) btn.style.display = 'none';
+            const footerBanner = document.getElementById('modal-footer-banner');
+            if (footerBanner) footerBanner.style.display = 'none';
 
             renderDiscounts();
             fetchUserPointsAndRedemptions();
