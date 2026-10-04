@@ -1805,8 +1805,8 @@ if (is_dir($imgDir)) {
             const combined = `${c} ${n} ${d} ${m}`;
 
             // 1. Direct match or inclusion
-            if (c === t || c.includes(t) || t.includes(c)) return true;
-            if (` ${c} `.includes(` ${t} `)) return true;
+            if (c && (c === t || c.includes(t) || (c.length >= 3 && t.includes(c)))) return true;
+            if (c && ` ${c} `.includes(` ${t} `)) return true;
 
             // 2. Beach, Coastal & Surfing
             if (t.includes('beach') || t.includes('surf') || t.includes('coastal') || t.includes('island')) {
@@ -1881,6 +1881,12 @@ if (is_dir($imgDir)) {
             // 13. Cave
             if (t.includes('cave')) {
                 return c.includes('cave') || n.includes('cave');
+            }
+
+            // 14. Nightlife
+            if (t === 'nightlife' || t.includes('nightlife')) {
+                return c.includes('nightlife') || combined.includes('nightlife') || 
+                       /\b(nightclub|night club|pub|pubs|disco|discotheque|restobar|resto-bar|sports bar|comedy bar|karaoke bar|lounge bar)\b/i.test(combined);
             }
 
             return false;

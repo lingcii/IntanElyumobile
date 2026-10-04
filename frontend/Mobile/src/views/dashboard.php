@@ -370,8 +370,8 @@ if (is_dir($imgDir)) {
             const t = targetCat.toLowerCase().trim();
 
             // Direct or token match
-            if (c === t || c.includes(t) || t.includes(c)) return true;
-            if (` ${c} `.includes(` ${t} `)) return true;
+            if (c && (c === t || c.includes(t) || (c.length >= 3 && t.includes(c)))) return true;
+            if (c && ` ${c} `.includes(` ${t} `)) return true;
 
             // Beach, Coastal & Surfing
             if (t.includes('beach') || t.includes('surf') || t.includes('coastal') || t.includes('island')) {
@@ -428,10 +428,15 @@ if (is_dir($imgDir)) {
                        combined.includes('mushroom') || combined.includes('fishery') || combined.includes('agri');
             }
 
-            // Nightlife & Recreation
-            if (t.includes('nightlife') || t.includes('bar') || t.includes('resort') || t.includes('recreation')) {
-                return combined.includes('nightlife') || combined.includes('bar') || combined.includes('resort') || 
-                       combined.includes('shopping') || combined.includes('festival') || combined.includes('club') || combined.includes('recreation');
+            // Nightlife (Strict matching for authentic nightlife spots only)
+            if (t === 'nightlife' || t.includes('nightlife')) {
+                return c.includes('nightlife') || combined.includes('nightlife') || 
+                       /\b(nightclub|night club|pub|pubs|disco|discotheque|restobar|resto-bar|sports bar|comedy bar|karaoke bar|lounge bar)\b/i.test(combined);
+            }
+
+            // Recreation & Resorts (Separated from Nightlife so resorts & recreation do not pollute nightlife)
+            if (t.includes('resort') || t.includes('recreation')) {
+                return c.includes('resort') || c.includes('recreation') || combined.includes('resort') || combined.includes('recreation');
             }
 
             return false;
@@ -493,7 +498,7 @@ if (is_dir($imgDir)) {
                 trendingContainer.innerHTML = list.map(renderFavCard).join('');
                 window.initLoopingFocusCarousel('trending-container');
             } else {
-                renderEmpty(trendingContainer, 'No trending sites in this category.');
+                renderEmpty(trendingContainer, cat === 'Nightlife' ? 'No Nightlife Tourist Sites Yet' : 'No trending sites in this category.');
             }
         }
 
@@ -529,7 +534,7 @@ if (is_dir($imgDir)) {
                     recContainer.classList.remove('is-empty');
                     recContainer.innerHTML = list.map(dest => window.buildRecommendedItem(dest)).join('');
                 } else {
-                    renderEmpty(recContainer, 'No recommended sites in this category.');
+                    renderEmpty(recContainer, cat === 'Nightlife' ? 'No Nightlife Tourist Sites Yet' : 'No recommended sites in this category.');
                 }
             }
         }
@@ -574,7 +579,7 @@ if (is_dir($imgDir)) {
                     }).join('');
                     window.initLoopingFocusCarousel('near-me-container');
                 } else if (cat !== 'All') {
-                    renderEmpty(nearContainer, 'No nearby sites found in this category.');
+                    renderEmpty(nearContainer, cat === 'Nightlife' ? 'No Nightlife Sites Nearby' : 'No nearby sites found in this category.');
                 }
             }
         }

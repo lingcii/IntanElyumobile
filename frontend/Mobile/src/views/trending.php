@@ -412,8 +412,8 @@ body[data-view="trending"] .mobile-header,
             const combined = `${c} ${n} ${m}`;
             const t = targetCat.toLowerCase().trim();
 
-            if (c === t || c.includes(t) || t.includes(c)) return true;
-            if (` ${c} `.includes(` ${t} `)) return true;
+            if (c && (c === t || c.includes(t) || (c.length >= 3 && t.includes(c)))) return true;
+            if (c && ` ${c} `.includes(` ${t} `)) return true;
 
             // Beach, Coastal & Surfing
             if (t.includes('beach') || t.includes('surf') || t.includes('coastal') || t.includes('island')) {
@@ -470,10 +470,15 @@ body[data-view="trending"] .mobile-header,
                        combined.includes('mushroom') || combined.includes('fishery') || combined.includes('agri');
             }
 
-            // Nightlife & Recreation
-            if (t.includes('nightlife') || t.includes('bar') || t.includes('resort') || t.includes('recreation')) {
-                return combined.includes('nightlife') || combined.includes('bar') || combined.includes('resort') || 
-                       combined.includes('shopping') || combined.includes('festival') || combined.includes('club') || combined.includes('recreation');
+            // Nightlife (Strict matching for authentic nightlife spots only)
+            if (t === 'nightlife' || t.includes('nightlife')) {
+                return c.includes('nightlife') || combined.includes('nightlife') || 
+                       /\b(nightclub|night club|pub|pubs|disco|discotheque|restobar|resto-bar|sports bar|comedy bar|karaoke bar|lounge bar)\b/i.test(combined);
+            }
+
+            // Recreation & Resorts (Separated from Nightlife so resorts & recreation do not pollute nightlife)
+            if (t.includes('resort') || t.includes('recreation')) {
+                return c.includes('resort') || c.includes('recreation') || combined.includes('resort') || combined.includes('recreation');
             }
 
             return false;
