@@ -707,11 +707,11 @@ try {
         <p>Start your itinerary by selecting which vehicle you will use for transportation, then add your stops!</p>
         <div style="display:flex; flex-direction:column; gap:10px; width:100%; max-width:280px; margin:14px auto 0;">
             <button class="btn-primary" onclick="window.openTravelModeStarterModal()"
-                style="width:100%; padding:14px 18px; border-radius:18px; font-weight:800; font-size:14px; border:none !important; outline:none !important; background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color:#ffffff !important; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
-                <i class="fa-solid fa-car-side" style="color:#00f2fe;"></i> Select Vehicle
+                style="width:100%; padding:14px 18px; border-radius:18px; font-weight:800; font-size:14px; border:none !important; outline:none !important; background:#ffffff !important; color:#1e3a8a !important; box-shadow:0 4px 14px rgba(0, 0, 0, 0.15) !important; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
+                <i class="fa-solid fa-car-side" style="color:#1e3a8a !important;"></i> Select Vehicle
             </button>
-            <button class="btn-open-map" onclick="navigateTo('map')" style="width:100%; margin:0;">
-                <i class="fa-solid fa-location-dot"></i> Browse Destinations Map
+            <button class="btn-open-map" onclick="navigateTo('map')" style="width:100%; margin:0; justify-content:center;">
+                <i class="fa-solid fa-location-dot"></i> Browse Map
             </button>
         </div>
     </div>
@@ -1198,9 +1198,9 @@ try {
                     </div>
                 </div>
 
-                <!-- Category 2: Public Transit & Hired -->
+                <!-- Category 2: Public Vehicles -->
                 <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:#1e3a8a; letter-spacing:0.6px; margin:12px 0 2px 2px; display:flex; align-items:center; gap:6px;">
-                    <i class="fa-solid fa-bus" style="font-size:11px; color:#1e3a8a;"></i> Public Transit & Hired
+                    <i class="fa-solid fa-bus" style="font-size:11px; color:#1e3a8a;"></i> Public Vehicles
                 </div>
 
                 <!-- Option 4: Modern Jeepney (MPUJ) -->

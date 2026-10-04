@@ -8,18 +8,14 @@ $backRoute = 'dashboard';
 
 <div class="merch-page-container has-header animate-fade-in" style="padding-left: 16px; padding-right: 16px; padding-bottom: 50px; background: #ffffff !important; min-height: 100vh; box-sizing: border-box;">
     <!-- Hero Section -->
-    <div class="merch-hero" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%) !important; border: none !important; outline: none !important; border-radius: 24px; padding: 22px 20px; text-align: center; margin-top: 14px; margin-bottom: 18px; box-shadow: 0 8px 24px rgba(30, 58, 138, 0.25) !important; color: #ffffff !important;">
-        <div style="width: 52px; height: 52px; border-radius: 16px; background: #ffffff !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #1e3a8a !important; margin: 0 auto 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);">
-            <i class="fa-solid fa-tags" style="color: #1e3a8a !important;"></i>
-        </div>
-        <h2 style="margin: 0 0 6px; font-size: 19px; font-weight: 900; letter-spacing: -0.3px; color: #ffffff;">Local Rewards & Vouchers</h2>
-        <p style="margin: 0 0 14px; font-size: 13px; color: rgba(255, 255, 255, 0.92); line-height: 1.45; max-width: 320px; margin-left: auto; margin-right: auto; font-weight: 500;">
-            Redeem your <strong style="color: #ffffff; font-weight: 800;">Explorer Points</strong> for exclusive discounts from accredited LUPTO merchants across La Union!
+    <div class="merch-hero" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 24px; padding: 20px 18px; text-align: center; margin-top: 14px; margin-bottom: 18px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; color: #ffffff !important;">
+        <p style="margin: 0 0 12px; font-size: 13.5px; color: rgba(255, 255, 255, 0.95); line-height: 1.45; max-width: 320px; margin-left: auto; margin-right: auto; font-weight: 600;">
+            Redeem your <strong style="color: #ffffff; font-weight: 800;">Explorer Points</strong> for exclusive discounts!
         </p>
         <div style="display:inline-flex; align-items:center; gap:8px; background:#ffffff !important; border:none !important; outline:none !important; padding:7px 18px; border-radius:100px; box-shadow: 0 2px 10px rgba(0,0,0,0.12);">
             <i class="fa-solid fa-coins" style="color:#f59e0b; font-size:14px;"></i>
             <span style="font-size:12px; color:#475569; font-weight:700;">Your Balance:</span>
-            <strong id="discount-user-pts" style="color:#1e3a8a; font-size:14px; font-weight:900;">-- Points</strong>
+            <strong id="discount-user-pts" style="color:#203f8d; font-size:14px; font-weight:900;">-- Points</strong>
         </div>
     </div>
 
@@ -82,11 +78,11 @@ $backRoute = 'dashboard';
     transform: scale(0.95);
 }
 .discount-cat-btn.active {
-    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%) !important;
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
     color: #ffffff !important;
     border: none !important;
     outline: none !important;
-    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.28) !important;
+    box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28) !important;
 }
 
 .muni-pill {
@@ -102,14 +98,14 @@ $backRoute = 'dashboard';
     transition: all 0.2s ease;
 }
 .muni-pill.active {
-    background: #1e3a8a;
-    border-color: #1e3a8a;
-    color: #ffffff;
-    box-shadow: 0 2px 8px rgba(30, 58, 138, 0.22);
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    border-color: transparent !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(32, 63, 141, 0.25) !important;
 }
 
 .voucher-card {
-    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%) !important;
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
     border: none !important;
     outline: none !important;
     border-radius: 22px;
@@ -117,7 +113,7 @@ $backRoute = 'dashboard';
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    box-shadow: 0 6px 18px rgba(30, 58, 138, 0.22) !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
     color: #ffffff !important;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     position: relative;
@@ -140,7 +136,7 @@ $backRoute = 'dashboard';
 </style>
 
 <div id="voucher-modal" style="display:none; position:fixed; inset:0; z-index:10000; background:rgba(15,23,42,0.68); align-items:center; justify-content:center; padding:18px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); opacity:0; transition:opacity 0.3s ease;">
-    <div class="voucher-card-anim" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%) !important; border: none !important; outline:none !important; border-radius:26px; padding:22px 20px; width:100%; max-width:370px; max-height:90vh; overflow-y:auto; box-shadow: 0 10px 30px rgba(10, 25, 60, 0.4) !important; text-align:center; position:relative; box-sizing:border-box; transform:scale(0.88) translateY(20px); opacity:0; transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease; color: #ffffff !important; scrollbar-width: none;">
+    <div class="voucher-card-anim" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline:none !important; border-radius:26px; padding:22px 20px; width:100%; max-width:370px; max-height:90vh; overflow-y:auto; box-shadow: 0 10px 30px rgba(10, 25, 60, 0.4) !important; text-align:center; position:relative; box-sizing:border-box; transform:scale(0.88) translateY(20px); opacity:0; transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease; color: #ffffff !important; scrollbar-width: none;">
         
         <!-- Modal Top Header -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.16); text-align:left;">
@@ -149,7 +145,7 @@ $backRoute = 'dashboard';
                     <i class="fa-solid fa-ticket" style="color:#38bdf8;"></i> Voucher Details
                 </h4>
                 <p style="margin:2px 0 0 0; font-size:11.5px; color:rgba(255,255,255,0.85);">
-                    Official LUPTO Accredited Reward
+                    Exclusive Partner Reward
                 </p>
             </div>
             <button onclick="closeVoucherModal()" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; border-radius:50%; width:32px; height:32px; color:#ffffff !important; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;">
@@ -158,8 +154,8 @@ $backRoute = 'dashboard';
         </div>
 
         <!-- Big Logo Icon -->
-        <div id="modal-icon-wrap" style="width:68px; height:68px; border-radius:20px; background:#ffffff; border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; font-size:28px; color:#1e3a8a; margin:0 auto 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.18);">
-            <i class="fa-solid fa-ticket" style="color:#1e3a8a !important;"></i>
+        <div id="modal-icon-wrap" style="width:68px; height:68px; border-radius:20px; background:#ffffff; border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; font-size:28px; color:#203f8d; margin:0 auto 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.18);">
+            <i class="fa-solid fa-ticket" style="color:#203f8d !important;"></i>
         </div>
 
         <span id="modal-category" style="font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:#38bdf8; display:block; margin-bottom:4px;">Food & Dining</span>
@@ -196,50 +192,50 @@ $backRoute = 'dashboard';
         </div>
 
         <!-- Description Box -->
-        <div style="background:rgba(0,0,0,0.16); border-radius:14px; padding:12px 14px; margin-bottom:12px; text-align:left;">
+        <div style="background:#193375 !important; border-radius:14px; padding:12px 14px; margin-bottom:12px; text-align:left;">
             <div style="font-size:10.5px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
                 Description & Privileges
             </div>
-            <p id="modal-description" style="margin:0; font-size:12px; color:rgba(255,255,255,0.95); line-height:1.45;"></p>
+            <p id="modal-description" style="margin:0; font-size:12px; color:#ffffff; line-height:1.45;"></p>
         </div>
 
         <!-- Terms and Conditions Box -->
-        <div id="modal-terms-box" style="display:none; background:rgba(0,0,0,0.18); border-radius:14px; padding:12px 14px; margin-bottom:12px; text-align:left;">
+        <div id="modal-terms-box" style="display:none; background:#193375 !important; border-radius:14px; padding:12px 14px; margin-bottom:12px; text-align:left;">
             <div style="font-size:10.5px; font-weight:800; color:#cbd5e1; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; display:flex; align-items:center; gap:5px;">
                 <i class="fa-solid fa-file-contract" style="color:#38bdf8;"></i> Terms & Conditions
             </div>
-            <p id="modal-terms-text" style="margin:0; font-size:11px; color:rgba(255,255,255,0.85); line-height:1.4; white-space:pre-line;"></p>
+            <p id="modal-terms-text" style="margin:0; font-size:11px; color:#e2e8f0; line-height:1.4; white-space:pre-line;"></p>
         </div>
 
         <!-- QR Code & Voucher Code Box (Shown when Claimed) -->
-        <div id="modal-claimed-box" style="display:none; background:rgba(0,0,0,0.22); border-radius:18px; padding:16px; margin-bottom:14px; text-align:center;">
+        <div id="modal-claimed-box" style="display:none; background:#193375 !important; border-radius:18px; padding:16px; margin-bottom:14px; text-align:center;">
             <!-- QR Code container -->
             <div style="background:#ffffff; border-radius:14px; padding:10px; width:150px; height:150px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,0.2);">
                 <img id="modal-qr-img" src="" alt="Voucher QR Code" style="width:100%; height:100%; object-fit:contain;" onerror="this.style.display='none'">
             </div>
             
             <div style="margin-bottom:8px;">
-                <span style="display:block; font-size:10px; color:rgba(255,255,255,0.75); text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">Your Unique Claim Code</span>
+                <span style="display:block; font-size:10px; color:#cbd5e1; text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">Your Unique Claim Code</span>
                 <span id="modal-code" style="font-size:20px; font-weight:900; color:#38bdf8; letter-spacing:1.5px; word-break:break-all;">ELYU-PROMO</span>
             </div>
 
-            <button id="btn-copy-voucher" onclick="copyVoucherCode()" style="background:#ffffff !important; border:none !important; color:#1e3a8a !important; padding:9px 18px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(0,0,0,0.18);">
-                <i class="fa-solid fa-copy" id="copy-btn-icon" style="color:#1e3a8a !important;"></i> <span id="copy-btn-label">Copy Voucher Code</span>
+            <button id="btn-copy-voucher" onclick="copyVoucherCode()" style="background:#ffffff !important; border:none !important; color:#203f8d !important; padding:9px 18px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(0,0,0,0.18);">
+                <i class="fa-solid fa-copy" id="copy-btn-icon" style="color:#203f8d !important;"></i> <span id="copy-btn-label">Copy Voucher Code</span>
             </button>
-            <p style="margin:10px 0 0 0; font-size:11px; color:rgba(255,255,255,0.85); line-height:1.35;">
+            <p style="margin:10px 0 0 0; font-size:11px; color:#e2e8f0; line-height:1.35;">
                 Present this QR code or alphanumeric code directly to staff at checkout.
             </p>
         </div>
 
         <div id="modal-action-row" style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
-            <button id="modal-redeem-btn" onclick="handleModalRedeem()" style="width:100%; padding:13px; border:none !important; outline:none !important; border-radius:14px; background:#ffffff !important; color:#1e3a8a !important; font-size:13.5px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 14px rgba(0,0,0,0.2) !important;">
-                <i class="fa-solid fa-gift" style="color:#1e3a8a !important;"></i> <span id="modal-redeem-btn-label">Redeem for 100 Points</span>
+            <button id="modal-redeem-btn" onclick="handleModalRedeem()" style="width:100%; padding:13px; border:none !important; outline:none !important; border-radius:14px; background:#ffffff !important; color:#203f8d !important; font-size:13.5px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 14px rgba(0,0,0,0.2) !important;">
+                <i class="fa-solid fa-gift" style="color:#203f8d !important;"></i> <span id="modal-redeem-btn-label">Redeem for 100 Points</span>
             </button>
             <div style="display:flex; gap:8px;">
-                <button onclick="navigateTo('map'); closeVoucherModal();" style="flex:1; padding:10px; border:none !important; outline:none !important; border-radius:12px; background:rgba(255,255,255,0.18); color:#ffffff; font-size:11.5px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
-                    <i class="fa-solid fa-map-location-dot" style="color:#38bdf8;"></i> View on Map
+                <button onclick="navigateTo('map'); closeVoucherModal();" style="flex:1; padding:10px; border:none !important; outline:none !important; border-radius:12px; background:#ffffff !important; color:#203f8d !important; font-size:11.5px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 6px rgba(0,0,0,0.12);">
+                    <i class="fa-solid fa-map-location-dot" style="color:#203f8d;"></i> View on Map
                 </button>
-                <button onclick="closeVoucherModal()" style="flex:1; padding:10px; border:none !important; outline:none !important; border-radius:12px; background:rgba(255,255,255,0.18); color:#ffffff; font-size:11.5px; font-weight:800; cursor:pointer;">
+                <button onclick="closeVoucherModal()" style="flex:1; padding:10px; border:none !important; outline:none !important; border-radius:12px; background:#193375 !important; color:#ffffff !important; font-size:11.5px; font-weight:800; cursor:pointer;">
                     Close
                 </button>
             </div>
@@ -565,13 +561,13 @@ function renderDiscounts() {
     if (filtered.length === 0) {
         let msg = 'No vouchers match your current filters.';
         if (activeCategory === 'Claimed') {
-            msg = 'You have not claimed any vouchers yet. Redeem vouchers using your Points to store them here!';
+            msg = 'You have not claimed any vouchers yet. Redeem your Points to store vouchers here!';
         } else if (activeCategory === 'Upcoming') {
             msg = 'No upcoming promotions scheduled right now. Check back soon for new discounts!';
         } else if (searchQuery) {
             msg = `No vouchers found matching "${searchQuery}". Try a different keyword or town.`;
         }
-        grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #ffffff; padding: 36px 20px; font-size: 13px; font-weight:700; background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%); border-radius: 20px; box-shadow: 0 4px 14px rgba(30, 58, 138, 0.25);">${msg}</div>`;
+        grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #ffffff; padding: 36px 20px; font-size: 13px; font-weight:700; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); border-radius: 20px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28);">${msg}</div>`;
         return;
     }
 
@@ -593,26 +589,26 @@ function renderDiscounts() {
             `;
         } else if (isCardExpired) {
             actionBtnHtml = `
-                <button disabled style="background: rgba(255, 255, 255, 0.2) !important; border: none !important; color: rgba(255, 255, 255, 0.6) !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: not-allowed;">
+                <button disabled style="background: #64748b !important; border: none !important; color: #ffffff !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: not-allowed;">
                     <i class="fa-solid fa-lock" style="margin-right:4px;"></i> Expired
                 </button>
             `;
         } else if (isOutOfStock) {
             actionBtnHtml = `
-                <button disabled style="background: rgba(239, 68, 68, 0.28) !important; border: none !important; color: #fca5a5 !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: not-allowed;">
+                <button disabled style="background: #dc2626 !important; border: none !important; color: #ffffff !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: not-allowed;">
                     Fully Claimed
                 </button>
             `;
         } else if (isCardUpcoming) {
             actionBtnHtml = `
-                <button onclick="openVoucherModal('${v.id}')" style="background: rgba(255, 255, 255, 0.22) !important; border: 1px solid rgba(255,255,255,0.4) !important; color: #ffffff !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: pointer;">
+                <button onclick="openVoucherModal('${v.id}')" style="background: #0284c7 !important; border: none !important; color: #ffffff !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: pointer;">
                     <i class="fa-regular fa-clock" style="margin-right:4px;"></i> Starts Soon
                 </button>
             `;
         } else {
             actionBtnHtml = `
-                <button onclick="openVoucherModal('${v.id}')" style="background: #ffffff !important; border: none !important; color: #1e3a8a !important; padding: 8px 14px; border-radius: 10px; font-weight: 900; font-size: 12px; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;">
-                    Redeem Voucher
+                <button onclick="openVoucherModal('${v.id}')" style="background: #ffffff !important; border: none !important; color: #203f8d !important; padding: 8px 14px; border-radius: 10px; font-weight: 900; font-size: 12px; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;">
+                    Redeem Points
                 </button>
             `;
         }
@@ -620,12 +616,12 @@ function renderDiscounts() {
         // Badges: ID Needed & Low Stock
         let idBadgeHtml = '';
         if (v.id_needed) {
-            idBadgeHtml = `<span style="font-size: 9.5px; font-weight: 800; background: rgba(239, 68, 68, 0.28); color: #fecaca; padding: 3px 7px; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px;"><i class="fa-solid fa-id-card"></i> ID Required</span>`;
+            idBadgeHtml = `<span style="font-size: 9.5px; font-weight: 800; background: #ef4444 !important; color: #ffffff !important; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px;"><i class="fa-solid fa-id-card"></i> ID Required</span>`;
         }
 
         let stockBadgeHtml = '';
         if (v.remaining_quantity !== null && v.remaining_quantity > 0 && v.remaining_quantity <= 5) {
-            stockBadgeHtml = `<span style="font-size: 9.5px; font-weight: 800; background: rgba(245, 158, 11, 0.3); color: #fef08a; padding: 3px 7px; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px;"><i class="fa-solid fa-fire"></i> Only ${v.remaining_quantity} left</span>`;
+            stockBadgeHtml = `<span style="font-size: 9.5px; font-weight: 800; background: #f59e0b !important; color: #ffffff !important; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px;"><i class="fa-solid fa-fire"></i> Only ${v.remaining_quantity} left</span>`;
         }
 
         html += `
@@ -636,7 +632,7 @@ function renderDiscounts() {
                         <img src="${imgUrl}" alt="${v.title}" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png';">
                     </div>
                     <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                        <span style="font-size: 11px; font-weight: 900; background: #ffffff !important; color: #1e3a8a !important; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; box-shadow: 0 2px 6px rgba(0,0,0,0.12);">${v.badge}</span>
+                        <span style="font-size: 11px; font-weight: 900; background: #ffffff !important; color: #203f8d !important; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; box-shadow: 0 2px 6px rgba(0,0,0,0.12);">${v.badge}</span>
                         ${idBadgeHtml}
                         ${stockBadgeHtml}
                     </div>
