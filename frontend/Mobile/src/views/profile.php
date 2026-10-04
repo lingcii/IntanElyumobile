@@ -427,21 +427,21 @@ $activeTab = 'profile';
                         catalogEl.innerHTML = topVouchers.map((v, idx) => {
                             const ptsCost = parseInt(v.pointsCost || v.required_points || 100);
                             return `
-                            <div onclick="window.showRewardDetailsModal(${idx})" style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid #e2e8f0; padding:12px 14px; border-radius:16px; gap:12px; transition:transform 0.15s ease, box-shadow 0.15s ease; cursor:pointer;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                            <div onclick="window.showRewardDetailsModal(${idx})" style="display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; padding:12px 14px; border-radius:18px; gap:12px; transition:transform 0.15s ease, box-shadow 0.15s ease; cursor:pointer; box-shadow:0 6px 18px rgba(10, 25, 60, 0.22);" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
                                 <div style="display:flex; align-items:center; gap:10px; min-width:0; text-align:left; flex:1;">
-                                    <div style="width:38px; height:38px; border-radius:12px; background:#ffffff; border:1px solid #e2e8f0; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">
+                                    <div style="width:38px; height:38px; border-radius:12px; background:#ffffff; border:none; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
                                         <img src="${v.image || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png'}" alt="${v.title}" style="width:100%; height:100%; object-fit:contain; padding:3px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
                                     </div>
                                     <div style="min-width:0; flex:1;">
                                         <div style="display:flex; align-items:center; gap:6px;">
-                                            <strong style="display:block; font-size:13.5px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.title}</strong>
-                                            <span style="font-size:9.5px; font-weight:800; color:#1e3a8a !important; background:#eff6ff !important; border:1px solid #bfdbfe !important; padding:2px 7px; border-radius:6px; flex-shrink:0; text-transform:uppercase;">${v.badge}</span>
+                                            <strong style="display:block; font-size:13.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.2px;">${v.title}</strong>
+                                            <span style="font-size:9.5px; font-weight:800; color:#1e3a8a !important; background:#ffffff !important; border:none !important; padding:2px 7px; border-radius:6px; flex-shrink:0; text-transform:uppercase; box-shadow:0 1px 4px rgba(0,0,0,0.12);">${v.badge}</span>
                                             ${v.id_needed ? `<span style="font-size:8.5px; font-weight:800; color:#ffffff !important; background:#ef4444 !important; padding:2px 6px; border-radius:4px; flex-shrink:0;"><i class="fa-solid fa-id-card"></i> ID</span>` : ''}
                                         </div>
-                                        <span style="font-size:11.5px; color:#64748b; font-weight:600; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.partner}</span>
+                                        <span style="font-size:11.5px; color:rgba(255, 255, 255, 0.88); font-weight:600; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px;">${v.partner}</span>
                                     </div>
                                 </div>
-                                <button type="button" onclick="event.stopPropagation(); window.showRewardDetailsModal(${idx})" style="background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color:#ffffff !important; border:none !important; outline:none !important; padding:7px 13px; border-radius:10px; font-size:11.5px; font-weight:800; cursor:pointer; flex-shrink:0; box-shadow:0 2px 6px rgba(30,58,138,0.2) !important; white-space:nowrap;">
+                                <button type="button" onclick="event.stopPropagation(); window.showRewardDetailsModal(${idx})" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; padding:7px 14px; border-radius:100px; font-size:11.5px; font-weight:900; cursor:pointer; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.18) !important; white-space:nowrap; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.94)'" onpointerup="this.style.transform='scale(1)'">
                                     ${ptsCost.toLocaleString()} Points
                                 </button>
                             </div>`;
@@ -472,20 +472,20 @@ $activeTab = 'profile';
                         catalogEl.innerHTML = fallbackVouchers.map((v, idx) => {
                             const ptsCost = parseInt(v.pointsCost || v.required_points || 100);
                             return `
-                            <div onclick="window.showRewardDetailsModal(${idx})" style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid #e2e8f0; padding:12px 14px; border-radius:16px; margin-bottom:8px; cursor:pointer; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                            <div onclick="window.showRewardDetailsModal(${idx})" style="display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; padding:12px 14px; border-radius:18px; margin-bottom:8px; cursor:pointer; transition:transform 0.15s ease, box-shadow 0.15s ease; box-shadow:0 6px 18px rgba(10, 25, 60, 0.22);" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                                 <div style="display:flex; align-items:center; gap:10px; min-width:0; text-align:left; flex:1;">
-                                    <div style="width:38px; height:38px; border-radius:12px; background:#ffffff; border:1px solid #e2e8f0; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">
+                                    <div style="width:38px; height:38px; border-radius:12px; background:#ffffff; border:none; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
                                         <img src="${v.image || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png'}" alt="${v.title}" style="width:100%; height:100%; object-fit:contain; padding:3px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
                                     </div>
                                     <div style="min-width:0; flex:1;">
                                         <div style="display:flex; align-items:center; gap:6px;">
-                                            <strong style="display:block; font-size:13.5px; font-weight:800; color:#0f172a;">${v.title}</strong>
-                                            <span style="font-size:9.5px; font-weight:800; color:#1e3a8a !important; background:#eff6ff !important; border:1px solid #bfdbfe !important; padding:2px 7px; border-radius:6px; flex-shrink:0; text-transform:uppercase;">${v.badge}</span>
+                                            <strong style="display:block; font-size:13.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.2px;">${v.title}</strong>
+                                            <span style="font-size:9.5px; font-weight:800; color:#1e3a8a !important; background:#ffffff !important; border:none !important; padding:2px 7px; border-radius:6px; flex-shrink:0; text-transform:uppercase; box-shadow:0 1px 4px rgba(0,0,0,0.12);">${v.badge}</span>
                                         </div>
-                                        <span style="font-size:11.5px; color:#64748b; font-weight:600;">${v.partner}</span>
+                                        <span style="font-size:11.5px; color:rgba(255, 255, 255, 0.88); font-weight:600; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px;">${v.partner}</span>
                                     </div>
                                 </div>
-                                <button type="button" onclick="event.stopPropagation(); window.showRewardDetailsModal(${idx})" style="background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color:#ffffff !important; border:none !important; outline:none !important; padding:7px 13px; border-radius:10px; font-size:11.5px; font-weight:800; cursor:pointer; flex-shrink:0; box-shadow:0 2px 6px rgba(30,58,138,0.2) !important;">
+                                <button type="button" onclick="event.stopPropagation(); window.showRewardDetailsModal(${idx})" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; padding:7px 14px; border-radius:100px; font-size:11.5px; font-weight:900; cursor:pointer; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.18) !important; white-space:nowrap; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.94)'" onpointerup="this.style.transform='scale(1)'">
                                     ${ptsCost.toLocaleString()} Points
                                 </button>
                             </div>`;
