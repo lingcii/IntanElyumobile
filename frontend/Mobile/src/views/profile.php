@@ -121,23 +121,18 @@ $activeTab = 'profile';
     </h3>
     
     <div class="settings-group stagger-3" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 20px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">
-        <a href="javascript:void(0);" class="settings-item" onclick="event.preventDefault(); window.scrollTo(0, 0); navigateTo('edit_profile'); return false;">
-            <div class="settings-icon" style="background: #007AFF;"><i class="fa-solid fa-user-pen"></i></div>
-            <div class="settings-text">Edit Personal Information</div>
-            <i class="fa-solid fa-chevron-right settings-arrow"></i>
-        </a>
         <a href="#" class="settings-item" onclick="navigateTo('settings'); return false;">
-            <div class="settings-icon" style="background: #8e8e93;"><i class="fa-solid fa-gear"></i></div>
+            <div class="settings-icon" style="background: #ffffff !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;"><i class="fa-solid fa-gear" style="color: #1e3a8a !important;"></i></div>
             <div class="settings-text">App Preferences & Settings</div>
             <i class="fa-solid fa-chevron-right settings-arrow"></i>
         </a>
         <a href="#" class="settings-item" onclick="navigateTo('help'); return false;">
-            <div class="settings-icon" style="background: #34C759;"><i class="fa-solid fa-circle-question"></i></div>
+            <div class="settings-icon" style="background: #ffffff !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;"><i class="fa-solid fa-circle-question" style="color: #1e3a8a !important;"></i></div>
             <div class="settings-text">Help & Support Center</div>
             <i class="fa-solid fa-chevron-right settings-arrow"></i>
         </a>
         <a href="#" class="settings-item" onclick="handleLogout(event)">
-            <div class="settings-icon" style="background: #FF3B30;"><i class="fa-solid fa-arrow-right-from-bracket"></i></div>
+            <div class="settings-icon logout" style="background: #FF3B30 !important; box-shadow: 0 2px 8px rgba(255, 59, 48, 0.3) !important;"><i class="fa-solid fa-arrow-right-from-bracket" style="color: #ffffff !important;"></i></div>
             <div class="settings-text" style="color: #FF3B30;">Log Out</div>
         </a>
     </div>

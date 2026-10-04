@@ -205,10 +205,26 @@ body[data-view="profile"] .profile-header {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    color: #ffffff !important;
+    background: #ffffff !important;
+    color: #1e3a8a !important;
     font-size: 16px !important;
     flex-shrink: 0 !important;
-    box-shadow: none !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.settings-icon i {
+    color: #1e3a8a !important;
+    font-size: 16px !important;
+}
+
+.settings-icon.logout {
+    background: #FF3B30 !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(255, 59, 48, 0.3) !important;
+}
+
+.settings-icon.logout i {
+    color: #ffffff !important;
 }
 
 .settings-text {

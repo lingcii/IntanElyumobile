@@ -91,6 +91,17 @@ $backRoute = 'dashboard';
             </div>
         </div>
 
+        <div class="settings-row clickable" onclick="confirmSignOut()">
+            <div class="settings-label-group">
+                <div class="settings-icon-box logout red" style="background: #FF3B30 !important; box-shadow: 0 2px 8px rgba(255, 59, 48, 0.35) !important;"><i class="fa-solid fa-arrow-right-from-bracket" style="color: #ffffff !important;"></i></div> 
+                <div>
+                    <div class="settings-title" style="color: #FF3B30;">Sign Out</div>
+                    <div class="settings-subtitle" style="color: rgba(255, 255, 255, 0.78);">Log out of your tourist account</div>
+                </div>
+            </div>
+            <i class="fa-solid fa-chevron-right" style="color: rgba(255, 255, 255, 0.3); font-size: 12px;"></i>
+        </div>
+
     </div>
 
 
