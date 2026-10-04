@@ -90,11 +90,14 @@ $activeTab = 'profile';
                     View All Deals <i class="fa-solid fa-arrow-right" style="font-size: 9px; color: #1e3a8a;"></i>
                 </a>
             </div>
-            <div id="profile-rewards-catalog" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;">
+            <div id="profile-rewards-catalog" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
                 <div style="text-align: center; padding: 16px; color: #64748b; font-size: 12px; font-weight: 600;">
                     <i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px; color: #1e3a8a;"></i> Loading available rewards...
                 </div>
             </div>
+
+            <!-- Divider Line Above Active Vouchers -->
+            <div style="height: 1px; background: #e2e8f0; margin-bottom: 20px;"></div>
 
             <!-- Active Claimed Vouchers -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -385,20 +388,20 @@ $activeTab = 'profile';
                             const isAct = (v.status || '').toLowerCase() === 'active';
                             
                             html += `
-                            <div style="background: #ffffff !important; border: 1px solid #e2e8f0 !important; outline: none !important; padding: 14px 16px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+                            <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; padding: 14px 16px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; gap: 10px; box-shadow: 0 4px 14px rgba(10, 25, 60, 0.22);">
                                 <div style="text-align: left; flex: 1; min-width: 0;">
-                                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 5px;">
-                                        <i class="fa-solid fa-ticket" style="color: #2563eb; font-size: 13px;"></i>
-                                        <span style="font-size: 13.5px; font-weight: 800; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${voucherTitle}</span>
+                                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                                        <i class="fa-solid fa-ticket" style="color: #00f2fe; font-size: 13px;"></i>
+                                        <span style="font-size: 13.5px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px;">${voucherTitle}</span>
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 8px;">
-                                        <code style="font-size: 12.5px; font-weight: 900; color: #1e3a8a; letter-spacing: 0.5px; background: #eff6ff !important; border: 1px solid #bfdbfe; padding: 3px 8px; border-radius: 8px; font-family: monospace;">${v.voucher_code}</code>
-                                        <button type="button" onclick="navigator.clipboard.writeText('${safeCode}'); if(typeof showToast==='function') showToast('Voucher code copied!');" style="background: #f1f5f9 !important; border: 1px solid #e2e8f0; color: #1e3a8a; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                                            <i class="fa-solid fa-copy"></i>
+                                        <code style="font-size: 12.5px; font-weight: 900; color: #1e3a8a; letter-spacing: 0.5px; background: #ffffff !important; border: none !important; padding: 4px 10px; border-radius: 8px; font-family: monospace; box-shadow: 0 1px 4px rgba(0,0,0,0.12);">${v.voucher_code}</code>
+                                        <button type="button" onclick="navigator.clipboard.writeText('${safeCode}'); if(typeof showToast==='function') showToast('Voucher code copied!');" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a; padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                                            <i class="fa-solid fa-copy" style="color: #1e3a8a;"></i> Copy
                                         </button>
                                     </div>
                                 </div>
-                                <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #ffffff !important; background: ${isAct ? '#10b981' : '#64748b'} !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap;">
+                                <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #ffffff !important; background: ${isAct ? '#10b981' : '#64748b'} !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.18);">
                                     ${v.status || 'Active'}
                                 </span>
                             </div>`;
