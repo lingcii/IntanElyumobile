@@ -2215,10 +2215,12 @@ try {
                 let modes = window.parseCompositeTransportModes(override.transport_modes || override.transport_mode);
                 if (modes.length === 0) modes = ['own_car'];
 
-                // Filter out any vehicles not accessible for this spot so the leg decreases
-                const availModes = modes.filter(m => window.isVehicleAllowedForSpot(m, toSpot).allowed);
-                if (availModes.length > 0 && availModes.length < modes.length) {
-                    modes = availModes;
+                // Filter out any vehicles not accessible for this spot only if not an explicit custom leg selection
+                if (!override.is_custom) {
+                    const availModes = modes.filter(m => window.isVehicleAllowedForSpot(m, toSpot).allowed);
+                    if (availModes.length > 0 && availModes.length < modes.length) {
+                        modes = availModes;
+                    }
                 }
 
                 const cost = (override.leg_cost !== null && override.leg_cost !== undefined)
@@ -2550,8 +2552,8 @@ try {
                 initialModes = window.getNormalizedTripModes();
             }
 
-            // Ensure inaccessible vehicles for this spot are not pre-selected in the modal (decreased in leg)
-            if (!isSiteUnderMaintenance) {
+            // Ensure inaccessible vehicles for this spot are not pre-selected in the modal (unless tourist explicitly chose a custom combination)
+            if (!isSiteUnderMaintenance && (!override || !override.is_custom)) {
                 const allowedInitial = initialModes.filter(m => window.isVehicleAllowedForSpot(m, toSpot).allowed);
                 if (allowedInitial.length > 0) {
                     initialModes = allowedInitial;
@@ -2771,55 +2773,8 @@ try {
 
             localStorage.setItem('intan_elyu_draft_leg_vehicles', JSON.stringify(overrides));
 
-            // ---- FULL 2-WAY SYNC BETWEEN LEG TRANSPORT AND TRIP TRANSPORTATION ----
-            // 1. If a vehicle is added in the leg, increase it in Trip Transportation too.
-            // 2. If a vehicle is unselected across all legs, decrease it in Trip Transportation too.
-            const curTripModes = (typeof window.getNormalizedTripModes === 'function')
-                ? window.getNormalizedTripModes()
-                : ['own_car'];
-
-            let updatedTripModes = [...curTripModes];
-            // Step 1: Add newly selected vehicles from this leg (increase)
-            selectedModes.forEach(m => {
-                if (m && !updatedTripModes.includes(m)) {
-                    updatedTripModes.push(m);
-                }
-            });
-
-            // Step 2: Remove vehicles not active in any leg (decrease)
-            if (draft.length > 0) {
-                const usedInAnyLeg = new Set();
-                draft.forEach((item, i) => {
-                    if (item && typeof window.isSpotUnderMaintenance === 'function' && window.isSpotUnderMaintenance(item)) return;
-                    let legModes = [];
-                    if (i === legIdx) {
-                        legModes = selectedModes;
-                    } else if (overrides[i] && (overrides[i].transport_modes || overrides[i].transport_mode)) {
-                        legModes = window.parseCompositeTransportModes(overrides[i].transport_modes || overrides[i].transport_mode);
-                    } else {
-                        legModes = updatedTripModes;
-                    }
-                    legModes.forEach(m => usedInAnyLeg.add(m));
-                });
-
-                updatedTripModes = updatedTripModes.filter(m => usedInAnyLeg.has(m));
-            }
-
-            if (updatedTripModes.length === 0) {
-                updatedTripModes = selectedModes.length > 0 ? selectedModes : ['own_car'];
-            }
-
-            const curKey = curTripModes.join(' + ');
-            const newKey = updatedTripModes.join(' + ');
-            if (curKey !== newKey) {
-                const newComposite = (updatedTripModes.length === 1) ? updatedTripModes[0] : updatedTripModes.join(' + ');
-                localStorage.setItem('intan_elyu_draft_trip_transport', newComposite);
-                localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(updatedTripModes));
-
-                const transInput = document.getElementById('trip-transport');
-                if (transInput) transInput.value = newComposite;
-            }
-
+            // Leg vehicle configuration is strictly isolated to this leg.
+            // It does NOT overwrite or accumulate into the overall Trip Transportation.
             window.closeLegTransportModal();
 
             if (typeof window.renderItinerary === 'function') {
@@ -3291,7 +3246,20 @@ try {
                     if (editBannerTitleEl) editBannerTitleEl.textContent = savedTitle || 'Saved Trip';
                 }
                 fab.innerHTML = '<i class="fa-solid fa-pen-to-square" style="margin-right:8px;"></i> Update Saved Trip';
+
+                const editingTransport = sessionStorage.getItem('editing_trip_transport');
+                if (editingTransport && !sessionStorage.getItem('editing_transport_initialized')) {
+                    sessionStorage.setItem('editing_transport_initialized', 'true');
+                    localStorage.setItem('intan_elyu_draft_trip_transport', editingTransport);
+                    const modes = (typeof window.parseCompositeTransportModes === 'function')
+                        ? window.parseCompositeTransportModes(editingTransport)
+                        : [editingTransport];
+                    localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(modes.length > 0 ? modes : [editingTransport]));
+                    const transInput = document.getElementById('trip-transport');
+                    if (transInput) transInput.value = editingTransport;
+                }
             } else {
+                sessionStorage.removeItem('editing_transport_initialized');
                 if (pageTitleEl) pageTitleEl.textContent = 'Draft Plan';
                 if (editBannerEl) editBannerEl.style.display = 'none';
                 fab.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:8px;"></i> Save Draft Plan';
@@ -4394,6 +4362,7 @@ try {
             sessionStorage.removeItem('editing_trip_date');
             sessionStorage.removeItem('editing_trip_budget');
             sessionStorage.removeItem('editing_trip_transport');
+            sessionStorage.removeItem('editing_transport_initialized');
         };
 
         window.cancelEditingSavedTrip = function () {
@@ -4428,6 +4397,7 @@ try {
             sessionStorage.removeItem('editing_trip_date');
             sessionStorage.removeItem('editing_trip_budget');
             sessionStorage.removeItem('editing_trip_transport');
+            sessionStorage.removeItem('editing_transport_initialized');
 
             if (typeof showToast === 'function') {
                 showToast(restored ? "Restored your draft itinerary." : "Exited trip edit mode.");

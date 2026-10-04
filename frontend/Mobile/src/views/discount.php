@@ -136,106 +136,109 @@ $backRoute = 'dashboard';
 </style>
 
 <div id="voucher-modal" style="display:none; position:fixed; inset:0; z-index:10000; background:rgba(15,23,42,0.68); align-items:center; justify-content:center; padding:18px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); opacity:0; transition:opacity 0.3s ease;">
-    <div class="voucher-card-anim" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline:none !important; border-radius:26px; padding:22px 20px; width:100%; max-width:370px; max-height:90vh; overflow-y:auto; box-shadow: 0 10px 30px rgba(10, 25, 60, 0.4) !important; text-align:center; position:relative; box-sizing:border-box; transform:scale(0.88) translateY(20px); opacity:0; transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease; color: #ffffff !important; scrollbar-width: none;">
+    <div class="voucher-card-anim" style="background: #ffffff !important; border: none !important; outline:none !important; border-radius:24px; padding:0 !important; width:100%; max-width:375px; max-height:86vh; display:flex; flex-direction:column; overflow:hidden; box-shadow: 0 16px 40px rgba(10, 25, 60, 0.4) !important; text-align:center; position:relative; box-sizing:border-box; transform:scale(0.88) translateY(20px); opacity:0; transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;">
         
-        <!-- Modal Top Header -->
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.16); text-align:left;">
-            <div>
-                <h4 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
-                    <i class="fa-solid fa-ticket" style="color:#38bdf8;"></i> Voucher Details
+        <!-- Modal Top Header Banner (Royal Blue) -->
+        <div style="background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding: 14px 18px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; border: none !important; outline: none !important;">
+            <div style="text-align: left;">
+                <h4 style="margin: 0; font-size: 16px; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 8px; letter-spacing: -0.2px;">
+                    <i class="fa-solid fa-ticket" style="color: #00f2fe; font-size: 15px;"></i> Voucher Details
                 </h4>
-                <p style="margin:2px 0 0 0; font-size:11.5px; color:rgba(255,255,255,0.85);">
+                <p style="margin: 2px 0 0 0; font-size: 11px; color: rgba(255, 255, 255, 0.85); font-weight: 600;">
                     Exclusive Partner Reward
                 </p>
             </div>
-            <button onclick="closeVoucherModal()" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; border-radius:50%; width:32px; height:32px; color:#ffffff !important; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;">
-                <i class="fa-solid fa-xmark" style="color:#ffffff !important;"></i>
+            <button onclick="closeVoucherModal()" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-xmark" style="color: #1e3a8a !important; font-size: 14px;"></i>
             </button>
         </div>
 
-        <!-- Big Logo Icon -->
-        <div id="modal-icon-wrap" style="width:68px; height:68px; border-radius:20px; background:#ffffff; border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; font-size:28px; color:#203f8d; margin:0 auto 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.18);">
-            <i class="fa-solid fa-ticket" style="color:#203f8d !important;"></i>
-        </div>
-
-        <span id="modal-category" style="font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:#38bdf8; display:block; margin-bottom:4px;">Food & Dining</span>
-        <h3 id="modal-title" style="margin:0 0 6px; font-size:18px; font-weight:900; color:#ffffff; line-height:1.25;">15% OFF at El Union Coffee</h3>
-        
-        <p id="modal-partner" style="margin:0 0 4px; font-size:13px; color:#ffffff; font-weight:700;">
-            <i class="fa-solid fa-store" style="color:#38bdf8; margin-right:5px;"></i><span id="modal-partner-name">El Union Coffee</span>
-        </p>
-
-        <p id="modal-location" style="margin:0 0 10px; font-size:12px; color:rgba(255,255,255,0.88); font-weight:600;">
-            <i class="fa-solid fa-location-dot" style="color:#f87171; margin-right:5px;"></i><span id="modal-location-name">San Juan, La Union</span>
-        </p>
-
-        <!-- ID Needed Warning Banner -->
-        <div id="modal-id-notice" style="display:none; background:rgba(239, 68, 68, 0.22); border:1px solid rgba(239, 68, 68, 0.45); border-radius:14px; padding:10px 14px; margin-bottom:12px; text-align:left;">
-            <div style="display:flex; align-items:center; gap:8px; color:#fca5a5; font-size:12px; font-weight:800;">
-                <i class="fa-solid fa-id-card"></i> Valid ID Required Upon Redemption
+        <!-- Middle Body Area (Pure White Background) -->
+        <div class="hide-scrollbar" style="background: #ffffff !important; flex: 1; min-height: 0; overflow-y: auto; padding: 18px 18px 14px 18px; text-align: center; color: #0f172a !important;">
+            <!-- Big Logo Icon -->
+            <div id="modal-icon-wrap" style="width: 68px; height: 68px; border-radius: 20px; background: #ffffff; border: 1.5px solid #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #1e3a8a; margin: 0 auto 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); overflow: hidden;">
+                <i class="fa-solid fa-ticket" style="color: #1e3a8a !important;"></i>
             </div>
-            <p style="margin:3px 0 0 0; font-size:11px; color:rgba(255,255,255,0.92); line-height:1.35;">
-                Please present a valid government, employee, or student ID when claiming at the establishment.
-            </p>
-        </div>
 
-        <!-- Expiry & Stock Badges Row in Modal -->
-        <div style="display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
-            <div id="modal-expiry-badge" style="display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:8px; font-size:11px; font-weight:700; background:rgba(255,255,255,0.18); color:#ffffff; border:none !important;">
-                <i id="modal-expiry-icon" class="fa-regular fa-clock" style="font-size:10px; color:#ffffff;"></i>
-                <span id="modal-expiry-text">Valid until Aug 15, 2026</span>
-            </div>
-            <div id="modal-stock-badge" style="display:none; align-items:center; gap:5px; padding:4px 10px; border-radius:8px; font-size:11px; font-weight:800; background:rgba(245,158,11,0.25); color:#fef08a;">
-                <i class="fa-solid fa-fire" style="font-size:10px;"></i>
-                <span id="modal-stock-text">Limited Quantity</span>
-            </div>
-        </div>
-
-        <!-- Description Box -->
-        <div style="background:#193375 !important; border-radius:14px; padding:12px 14px; margin-bottom:12px; text-align:left;">
-            <div style="font-size:10.5px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
-                Description & Privileges
-            </div>
-            <p id="modal-description" style="margin:0; font-size:12px; color:#ffffff; line-height:1.45;"></p>
-        </div>
-
-        <!-- Terms and Conditions Box -->
-        <div id="modal-terms-box" style="display:none; background:#193375 !important; border-radius:14px; padding:12px 14px; margin-bottom:12px; text-align:left;">
-            <div style="font-size:10.5px; font-weight:800; color:#cbd5e1; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; display:flex; align-items:center; gap:5px;">
-                <i class="fa-solid fa-file-contract" style="color:#38bdf8;"></i> Terms & Conditions
-            </div>
-            <p id="modal-terms-text" style="margin:0; font-size:11px; color:#e2e8f0; line-height:1.4; white-space:pre-line;"></p>
-        </div>
-
-        <!-- QR Code & Voucher Code Box (Shown when Claimed) -->
-        <div id="modal-claimed-box" style="display:none; background:#193375 !important; border-radius:18px; padding:16px; margin-bottom:14px; text-align:center;">
-            <!-- QR Code container -->
-            <div style="background:#ffffff; border-radius:14px; padding:10px; width:150px; height:150px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,0.2);">
-                <img id="modal-qr-img" src="" alt="Voucher QR Code" style="width:100%; height:100%; object-fit:contain;" onerror="this.style.display='none'">
-            </div>
+            <span id="modal-category" style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #0284c7; display: block; margin-bottom: 4px;">Food & Dining</span>
+            <h3 id="modal-title" style="margin: 0 0 6px; font-size: 18px; font-weight: 900; color: #0f172a; line-height: 1.25;">15% OFF at El Union Coffee</h3>
             
-            <div style="margin-bottom:8px;">
-                <span style="display:block; font-size:10px; color:#cbd5e1; text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">Your Unique Claim Code</span>
-                <span id="modal-code" style="font-size:20px; font-weight:900; color:#38bdf8; letter-spacing:1.5px; word-break:break-all;">ELYU-PROMO</span>
+            <p id="modal-partner" style="margin: 0 0 4px; font-size: 13px; color: #1e3a8a; font-weight: 700;">
+                <i class="fa-solid fa-store" style="color: #0284c7; margin-right: 5px;"></i><span id="modal-partner-name">El Union Coffee</span>
+            </p>
+
+            <p id="modal-location" style="margin: 0 0 10px; font-size: 12px; color: #64748b; font-weight: 600;">
+                <i class="fa-solid fa-location-dot" style="color: #ef4444; margin-right: 5px;"></i><span id="modal-location-name">San Juan, La Union</span>
+            </p>
+
+            <!-- ID Needed Warning Banner -->
+            <div id="modal-id-notice" style="display: none; background: #fef2f2; border: 1px solid #fecaca; border-radius: 14px; padding: 10px 14px; margin-bottom: 12px; text-align: left;">
+                <div style="display: flex; align-items: center; gap: 8px; color: #dc2626; font-size: 12px; font-weight: 800;">
+                    <i class="fa-solid fa-id-card"></i> Valid ID Required Upon Redemption
+                </div>
+                <p style="margin: 3px 0 0 0; font-size: 11px; color: #991b1b; line-height: 1.35;">
+                    Please present a valid government, employee, or student ID when claiming at the establishment.
+                </p>
             </div>
 
-            <button id="btn-copy-voucher" onclick="copyVoucherCode()" style="background:#ffffff !important; border:none !important; color:#203f8d !important; padding:9px 18px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(0,0,0,0.18);">
-                <i class="fa-solid fa-copy" id="copy-btn-icon" style="color:#203f8d !important;"></i> <span id="copy-btn-label">Copy Voucher Code</span>
-            </button>
-            <p style="margin:10px 0 0 0; font-size:11px; color:#e2e8f0; line-height:1.35;">
-                Present this QR code or alphanumeric code directly to staff at checkout.
-            </p>
+            <!-- Expiry & Stock Badges Row in Modal -->
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
+                <div id="modal-expiry-badge" style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; background: #eff6ff; color: #1e3a8a; border: 1px solid #bfdbfe;">
+                    <i id="modal-expiry-icon" class="fa-regular fa-clock" style="font-size: 10px; color: #2563eb;"></i>
+                    <span id="modal-expiry-text">Valid until Aug 15, 2026</span>
+                </div>
+                <div id="modal-stock-badge" style="display: none; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; background: #fef3c7; color: #b45309; border: 1px solid #fde68a;">
+                    <i class="fa-solid fa-fire" style="font-size: 10px; color: #d97706;"></i>
+                    <span id="modal-stock-text">Limited Quantity</span>
+                </div>
+            </div>
+
+            <!-- Description Box -->
+            <div style="background: #f8fafc !important; border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; text-align: left;">
+                <div style="font-size: 10.5px; font-weight: 800; color: #1e3a8a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                    Description & Privileges
+                </div>
+                <p id="modal-description" style="margin: 0; font-size: 12.5px; color: #334155; line-height: 1.45;"></p>
+            </div>
+
+            <!-- Terms and Conditions Box -->
+            <div id="modal-terms-box" style="display: none; background: #f8fafc !important; border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; text-align: left;">
+                <div style="font-size: 10.5px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: flex; align-items: center; gap: 5px;">
+                    <i class="fa-solid fa-file-contract" style="color: #2563eb;"></i> Terms & Conditions
+                </div>
+                <p id="modal-terms-text" style="margin: 0; font-size: 11.5px; color: #475569; line-height: 1.4; white-space: pre-line;"></p>
+            </div>
+
+            <!-- QR Code & Voucher Code Box (Shown when Claimed) -->
+            <div id="modal-claimed-box" style="display: none; background: #eff6ff !important; border: 1.5px dashed #bfdbfe; border-radius: 18px; padding: 16px; margin-bottom: 14px; text-align: center;">
+                <div style="background: #ffffff; border-radius: 14px; padding: 10px; width: 150px; height: 150px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
+                    <img id="modal-qr-img" src="" alt="Voucher QR Code" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'">
+                </div>
+                
+                <div style="margin-bottom: 8px;">
+                    <span style="display: block; font-size: 10.5px; color: #64748b; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">Your Unique Claim Code</span>
+                    <span id="modal-code" style="font-size: 20px; font-weight: 900; color: #1e3a8a; letter-spacing: 1.5px; word-break: break-all;">ELYU-PROMO</span>
+                </div>
+
+                <button id="btn-copy-voucher" onclick="copyVoucherCode()" style="background: #ffffff !important; border: 1px solid #bfdbfe !important; color: #1e3a8a !important; padding: 9px 18px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+                    <i class="fa-solid fa-copy" id="copy-btn-icon" style="color: #1e3a8a !important;"></i> <span id="copy-btn-label">Copy Voucher Code</span>
+                </button>
+                <p style="margin: 10px 0 0 0; font-size: 11px; color: #64748b; line-height: 1.35;">
+                    Present this QR code or alphanumeric code directly to staff at checkout.
+                </p>
+            </div>
         </div>
 
-        <div id="modal-action-row" style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
-            <button id="modal-redeem-btn" onclick="handleModalRedeem()" style="width:100%; padding:13px; border:none !important; outline:none !important; border-radius:14px; background:#ffffff !important; color:#203f8d !important; font-size:13.5px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 14px rgba(0,0,0,0.2) !important;">
-                <i class="fa-solid fa-gift" style="color:#203f8d !important;"></i> <span id="modal-redeem-btn-label">Redeem for 100 Points</span>
+        <!-- Locked Bottom Footer Banner (Royal Blue) -->
+        <div style="background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; flex-shrink: 0; padding: 14px 18px; border-top: none !important; display: flex; flex-direction: column; gap: 8px; border: none !important; outline: none !important;">
+            <button id="modal-redeem-btn" onclick="handleModalRedeem()" style="width: 100%; padding: 12px; border: none !important; outline: none !important; border-radius: 12px; background: #ffffff !important; color: #1e3a8a !important; font-size: 13.5px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-gift" style="color: #1e3a8a !important;"></i> <span id="modal-redeem-btn-label">Redeem for 100 Points</span>
             </button>
-            <div style="display:flex; gap:8px;">
-                <button onclick="navigateTo('map'); closeVoucherModal();" style="flex:1; padding:10px; border:none !important; outline:none !important; border-radius:12px; background:#ffffff !important; color:#203f8d !important; font-size:11.5px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 6px rgba(0,0,0,0.12);">
-                    <i class="fa-solid fa-map-location-dot" style="color:#203f8d;"></i> View on Map
+            <div style="display: flex; gap: 8px;">
+                <button onclick="navigateTo('map'); closeVoucherModal();" style="flex: 1; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.25) !important; outline: none !important; border-radius: 10px; background: rgba(255, 255, 255, 0.14) !important; color: #ffffff !important; font-size: 11.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-map-location-dot" style="color: #38bdf8;"></i> View on Map
                 </button>
-                <button onclick="closeVoucherModal()" style="flex:1; padding:10px; border:none !important; outline:none !important; border-radius:12px; background:#193375 !important; color:#ffffff !important; font-size:11.5px; font-weight:800; cursor:pointer;">
+                <button onclick="closeVoucherModal()" style="flex: 1; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.25) !important; outline: none !important; border-radius: 10px; background: rgba(255, 255, 255, 0.14) !important; color: #ffffff !important; font-size: 11.5px; font-weight: 800; cursor: pointer; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'">
                     Close
                 </button>
             </div>

@@ -63,51 +63,52 @@ $activeTab = 'profile';
         </div>
     </div>
     
-    <!-- Points & Rewards -->
-    <h3 class="stagger-3" style="font-size: 16px; font-weight: 800; color: #0f172a !important; margin-bottom: 12px; margin-left: 4px; display: flex; align-items: center; gap: 8px;">
-        <i class="fa-solid fa-coins" style="color: #fbbf24;"></i> Points & Rewards
-    </h3>
-    
-    <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:20px; padding:20px; margin-bottom:24px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);" class="stagger-3">
-        <!-- Display balance -->
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:16px;">
+    <!-- Points & Rewards Card (Styled like Notification Modal: Blue Banner Header, White Body) -->
+    <div class="stagger-3" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 22px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.08);">
+        <!-- Points Header Banner (Royal Blue like Notification Modal) -->
+        <div style="background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%); padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; border: none !important;">
             <div style="text-align: left;">
-                <h4 style="margin:0 0 4px 0; font-size:12px; color:#ffffff; opacity:0.9; text-transform:uppercase; letter-spacing:0.5px;">Available Points Balance</h4>
-                <div style="display:flex; align-items:baseline; gap:6px;">
-                    <span id="profile-points-val" style="font-size:32px; font-weight:800; color:#ffffff; letter-spacing:-1px;">--</span>
-                    <span style="font-size:14px; font-weight:700; color:#ffffff; opacity:0.8;">Points</span>
+                <div style="font-size: 11px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-coins" style="color: #fbbf24;"></i> Available Points Balance
+                </div>
+                <div style="display: flex; align-items: baseline; gap: 6px;">
+                    <span id="profile-points-val" style="font-size: 28px; font-weight: 900; color: #ffffff; letter-spacing: -0.8px;">--</span>
+                    <span style="font-size: 13px; font-weight: 700; color: rgba(255, 255, 255, 0.85);">Points</span>
                 </div>
             </div>
-            <button onclick="navigateTo('puzzles')" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; padding:8px 16px; border-radius:12px; font-weight:800; font-size:12px; cursor:pointer; box-shadow: none !important;">
-                <i class="fa-solid fa-gamepad"></i> Play & Earn
+            <button onclick="navigateTo('puzzles')" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; padding: 8px 16px; border-radius: 100px; font-weight: 800; font-size: 12px; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; display: inline-flex; align-items: center; gap: 6px; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.94)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-gamepad" style="color: #0284c7;"></i> Play & Earn
             </button>
         </div>
 
-        <!-- Catalog list -->
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h5 style="margin:0; font-size:14px; font-weight:800; color:#fff; text-align: left;">Redeem Rewards</h5>
-            <a href="#" onclick="navigateTo('discount'); return false;" style="font-size:11px; font-weight:800; color:#00f2fe; text-decoration:none; display:flex; align-items:center; gap:4px;">
-                View All Deals <i class="fa-solid fa-arrow-right" style="font-size:9px;"></i>
-            </a>
-        </div>
-        <div id="profile-rewards-catalog" style="display:flex; flex-direction:column; gap:10px; margin-bottom:24px;">
-            <div style="text-align:center; padding:12px; color:#ffffff; opacity:0.75; font-size:12px;">
-                <i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Loading available rewards...
+        <!-- Card Body Area (Pure White Background like Notification Modal) -->
+        <div style="padding: 20px 18px; background: #ffffff;">
+            <!-- Catalog list: Redeem Rewards -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h5 style="margin: 0; font-size: 14.5px; font-weight: 800; color: #0f172a; text-align: left;">Redeem Rewards</h5>
+                <a href="#" onclick="navigateTo('discount'); return false;" style="font-size: 11.5px; font-weight: 800; color: #1e3a8a; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+                    View All Deals <i class="fa-solid fa-arrow-right" style="font-size: 9px; color: #1e3a8a;"></i>
+                </a>
             </div>
-        </div>
+            <div id="profile-rewards-catalog" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;">
+                <div style="text-align: center; padding: 16px; color: #64748b; font-size: 12px; font-weight: 600;">
+                    <i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px; color: #1e3a8a;"></i> Loading available rewards...
+                </div>
+            </div>
 
-        <!-- Active Claimed Vouchers -->
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h5 style="margin:0; font-size:14px; font-weight:800; color:#fff; text-align: left;">Active Vouchers</h5>
-            <div style="display:flex; align-items:center; gap:8px;">
-                <span id="active-vouchers-count" style="font-size:11px; font-weight:800; background:#38bdf8 !important; border:none !important; outline:none !important; color:#0b193d !important; padding:3px 10px; border-radius:100px;">0 Active</span>
-                <button id="view-all-vouchers-header-btn" onclick="window.openFullVouchersModal()" style="display:none; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:11px; font-weight:800; cursor:pointer; padding:4px 12px; border-radius:100px; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(0,0,0,0.15); transition:all 0.2s ease;">
-                    View All <i class="fa-solid fa-chevron-right" style="font-size:9px; color:#1e3a8a;"></i>
-                </button>
+            <!-- Active Claimed Vouchers -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h5 style="margin: 0; font-size: 14.5px; font-weight: 800; color: #0f172a; text-align: left;">Active Vouchers</h5>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span id="active-vouchers-count" style="font-size: 11px; font-weight: 800; background: #eff6ff !important; border: 1px solid #bfdbfe !important; color: #1e3a8a !important; padding: 3px 10px; border-radius: 100px;">0 Active</span>
+                    <button id="view-all-vouchers-header-btn" onclick="window.openFullVouchersModal()" style="display: none; background: #f1f5f9 !important; border: 1px solid #e2e8f0 !important; outline: none !important; color: #1e3a8a !important; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 12px; border-radius: 100px; align-items: center; gap: 4px; transition: all 0.2s ease;">
+                        View All <i class="fa-solid fa-chevron-right" style="font-size: 9px; color: #1e3a8a;"></i>
+                    </button>
+                </div>
             </div>
-        </div>
-        <div id="vouchers-list" style="display:flex; flex-direction:column; gap:10px;">
-            <div style="font-size:12px; color:#1e3a8a; font-weight:700; text-align:center; padding:16px; background:#ffffff !important; border:none !important; outline:none !important; border-radius:14px;">No redeemed vouchers yet.</div>
+            <div id="vouchers-list" style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="font-size: 12.5px; color: #64748b; font-weight: 600; text-align: center; padding: 18px; background: #f8fafc !important; border: 1.5px dashed #cbd5e1 !important; border-radius: 14px;">No redeemed vouchers yet.</div>
+            </div>
         </div>
     </div>
     
@@ -253,30 +254,10 @@ $activeTab = 'profile';
                 window.renderProfileUserMeta(u);
 
                 // Bio
-                const elBio = document.getElementById('profile-bio-text');
-                if (elBio) {
-                    if (u.bio) {
-                        elBio.textContent = `"${u.bio}"`;
-                        elBio.style.display = 'block';
-                    } else {
-                        elBio.style.display = 'none';
-                    }
-                }
+                window.renderProfileBio(u.bio);
 
                 // Preferences Chips
-                const elChips = document.getElementById('profile-pref-chips');
-                if (elChips) {
-                    if (u.travel_preferences) {
-                        const prefs = u.travel_preferences.split(',').map(s => s.trim()).filter(Boolean);
-                        elChips.innerHTML = prefs.map(p => `
-                            <span style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; padding:5px 14px; border-radius:100px; font-size:11px; font-weight:700;">${p}</span>
-                        `).join('');
-                        elChips.style.display = 'flex';
-                    } else {
-                        elChips.innerHTML = '';
-                        elChips.style.display = 'none';
-                    }
-                }
+                window.renderProfilePreferences(u.travel_preferences);
 
                 // Avatar
                 if (elImg) {
@@ -404,14 +385,14 @@ $activeTab = 'profile';
                             const isAct = (v.status || '').toLowerCase() === 'active';
                             
                             html += `
-                            <div style="background: #ffffff !important; border: none !important; outline: none !important; padding: 14px 16px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.12);">
+                            <div style="background: #ffffff !important; border: 1px solid #e2e8f0 !important; outline: none !important; padding: 14px 16px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
                                 <div style="text-align: left; flex: 1; min-width: 0;">
                                     <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 5px;">
                                         <i class="fa-solid fa-ticket" style="color: #2563eb; font-size: 13px;"></i>
-                                        <span style="font-size: 13px; font-weight: 800; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${voucherTitle}</span>
+                                        <span style="font-size: 13.5px; font-weight: 800; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${voucherTitle}</span>
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 8px;">
-                                        <code style="font-size: 13px; font-weight: 900; color: #1e3a8a; letter-spacing: 0.5px; background: #eff6ff !important; border: 1px solid #bfdbfe; padding: 3px 8px; border-radius: 8px; font-family: monospace;">${v.voucher_code}</code>
+                                        <code style="font-size: 12.5px; font-weight: 900; color: #1e3a8a; letter-spacing: 0.5px; background: #eff6ff !important; border: 1px solid #bfdbfe; padding: 3px 8px; border-radius: 8px; font-family: monospace;">${v.voucher_code}</code>
                                         <button type="button" onclick="navigator.clipboard.writeText('${safeCode}'); if(typeof showToast==='function') showToast('Voucher code copied!');" style="background: #f1f5f9 !important; border: 1px solid #e2e8f0; color: #1e3a8a; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                                             <i class="fa-solid fa-copy"></i>
                                         </button>
@@ -422,23 +403,12 @@ $activeTab = 'profile';
                                 </span>
                             </div>`;
                         });
-
-                        // View All Active Vouchers button if more than 2
-                        if (d.vouchers.length > 2) {
-                            html += `
-                            <button type="button" onclick="window.openFullVouchersModal()" style="width: 100%; margin-top: 4px; padding: 11px 16px; background: #ffffff !important; color: #1e3a8a !important; border: none !important; outline: none !important; border-radius: 14px; font-size: 12px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
-                                <i class="fa-solid fa-ticket" style="color: #1e3a8a;"></i>
-                                <span>View All Active Vouchers (${d.vouchers.length})</span>
-                                <i class="fa-solid fa-arrow-right" style="font-size: 10px; color: #1e3a8a;"></i>
-                            </button>`;
-                        }
-
                         list.innerHTML = html;
                     } else {
                         window._cachedActiveVouchers = [];
                         if (badge) badge.textContent = '0 Active';
                         if (headerBtn) headerBtn.style.display = 'none';
-                        list.innerHTML = '<div style="font-size:12px; color:#1e3a8a; font-weight:700; text-align:center; padding:16px; background:#ffffff !important; border:none !important; outline:none !important; border-radius:14px;">No redeemed vouchers yet.</div>';
+                        list.innerHTML = '<div style="font-size:12.5px; color:#64748b; font-weight:600; text-align:center; padding:18px; background:#f8fafc !important; border:1.5px dashed #cbd5e1 !important; border-radius:14px;">No redeemed vouchers yet.</div>';
                     }
                 }
             }
@@ -455,23 +425,24 @@ $activeTab = 'profile';
                         const topVouchers = vouchersPayload.data.slice(0, 3);
                         window._profileVouchersList = topVouchers;
                         catalogEl.innerHTML = topVouchers.map((v, idx) => {
+                            const ptsCost = parseInt(v.pointsCost || v.required_points || 100);
                             return `
-                            <div onclick="window.showRewardDetailsModal(${idx})" style="display:flex; justify-content:space-between; align-items:center; background:#112046; border:none !important; outline:none !important; padding:12px 14px; border-radius:16px; gap:12px; transition:transform 0.15s ease; cursor:pointer;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                            <div onclick="window.showRewardDetailsModal(${idx})" style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid #e2e8f0; padding:12px 14px; border-radius:16px; gap:12px; transition:transform 0.15s ease, box-shadow 0.15s ease; cursor:pointer;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
                                 <div style="display:flex; align-items:center; gap:10px; min-width:0; text-align:left; flex:1;">
-                                    <div style="width:36px; height:36px; border-radius:10px; background:#ffffff; border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; box-shadow:none !important;">
+                                    <div style="width:38px; height:38px; border-radius:12px; background:#ffffff; border:1px solid #e2e8f0; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">
                                         <img src="${v.image || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png'}" alt="${v.title}" style="width:100%; height:100%; object-fit:contain; padding:3px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
                                     </div>
                                     <div style="min-width:0; flex:1;">
                                         <div style="display:flex; align-items:center; gap:6px;">
-                                            <strong style="display:block; font-size:13px; font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.title}</strong>
-                                            <span style="font-size:9.5px; font-weight:800; color:#0b193d !important; background:#38bdf8 !important; padding:2px 7px; border-radius:6px; border:none !important; flex-shrink:0; text-transform:uppercase;">${v.badge}</span>
-                                            ${v.id_needed ? `<span style="font-size:8.5px; font-weight:800; color:#ffffff !important; background:#ef4444 !important; padding:2px 6px; border-radius:4px; border:none !important; flex-shrink:0;"><i class="fa-solid fa-id-card"></i> ID</span>` : ''}
+                                            <strong style="display:block; font-size:13.5px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.title}</strong>
+                                            <span style="font-size:9.5px; font-weight:800; color:#1e3a8a !important; background:#eff6ff !important; border:1px solid #bfdbfe !important; padding:2px 7px; border-radius:6px; flex-shrink:0; text-transform:uppercase;">${v.badge}</span>
+                                            ${v.id_needed ? `<span style="font-size:8.5px; font-weight:800; color:#ffffff !important; background:#ef4444 !important; padding:2px 6px; border-radius:4px; flex-shrink:0;"><i class="fa-solid fa-id-card"></i> ID</span>` : ''}
                                         </div>
-                                        <span style="font-size:11px; color:#cbd5e1; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.partner}</span>
+                                        <span style="font-size:11.5px; color:#64748b; font-weight:600; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.partner}</span>
                                     </div>
                                 </div>
-                                <button type="button" onclick="event.stopPropagation(); window.showRewardDetailsModal(${idx})" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; padding:8px 14px; border-radius:10px; font-size:11px; font-weight:900; cursor:pointer; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important; white-space:nowrap;">
-                                    ${v.pointsCost || v.required_points || 100} Points
+                                <button type="button" onclick="event.stopPropagation(); window.showRewardDetailsModal(${idx})" style="background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color:#ffffff !important; border:none !important; outline:none !important; padding:7px 13px; border-radius:10px; font-size:11.5px; font-weight:800; cursor:pointer; flex-shrink:0; box-shadow:0 2px 6px rgba(30,58,138,0.2) !important; white-space:nowrap;">
+                                    ${ptsCost.toLocaleString()} Points
                                 </button>
                             </div>`;
                         }).join('');
@@ -498,20 +469,27 @@ $activeTab = 'profile';
                             }
                         ];
                         window._profileVouchersList = fallbackVouchers;
-                        catalogEl.innerHTML = fallbackVouchers.map((v, idx) => `
-                            <div onclick="window.showRewardDetailsModal(${idx})" style="display:flex; justify-content:space-between; align-items:center; background:#112046; border:none !important; outline:none !important; padding:12px 14px; border-radius:16px; margin-bottom:8px; cursor:pointer; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
-                                <div style="text-align: left;">
-                                    <div style="display:flex; align-items:center; gap:6px;">
-                                        <strong style="display:block; font-size:13px; font-weight:800; color:#fff;">${v.title}</strong>
-                                        <span style="font-size:9.5px; font-weight:800; color:#0b193d !important; background:#38bdf8 !important; padding:2px 7px; border-radius:6px; border:none !important; flex-shrink:0; text-transform:uppercase;">${v.badge}</span>
+                        catalogEl.innerHTML = fallbackVouchers.map((v, idx) => {
+                            const ptsCost = parseInt(v.pointsCost || v.required_points || 100);
+                            return `
+                            <div onclick="window.showRewardDetailsModal(${idx})" style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid #e2e8f0; padding:12px 14px; border-radius:16px; margin-bottom:8px; cursor:pointer; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                                <div style="display:flex; align-items:center; gap:10px; min-width:0; text-align:left; flex:1;">
+                                    <div style="width:38px; height:38px; border-radius:12px; background:#ffffff; border:1px solid #e2e8f0; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">
+                                        <img src="${v.image || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png'}" alt="${v.title}" style="width:100%; height:100%; object-fit:contain; padding:3px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
                                     </div>
-                                    <span style="font-size:11px; color:#cbd5e1;">${v.partner}</span>
+                                    <div style="min-width:0; flex:1;">
+                                        <div style="display:flex; align-items:center; gap:6px;">
+                                            <strong style="display:block; font-size:13.5px; font-weight:800; color:#0f172a;">${v.title}</strong>
+                                            <span style="font-size:9.5px; font-weight:800; color:#1e3a8a !important; background:#eff6ff !important; border:1px solid #bfdbfe !important; padding:2px 7px; border-radius:6px; flex-shrink:0; text-transform:uppercase;">${v.badge}</span>
+                                        </div>
+                                        <span style="font-size:11.5px; color:#64748b; font-weight:600;">${v.partner}</span>
+                                    </div>
                                 </div>
-                                <button type="button" onclick="event.stopPropagation(); window.showRewardDetailsModal(${idx})" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; padding:8px 14px; border-radius:10px; font-size:11px; font-weight:900; cursor:pointer; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important;">
-                                    ${v.pointsCost || v.required_points || 100} Points
+                                <button type="button" onclick="event.stopPropagation(); window.showRewardDetailsModal(${idx})" style="background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color:#ffffff !important; border:none !important; outline:none !important; padding:7px 13px; border-radius:10px; font-size:11.5px; font-weight:800; cursor:pointer; flex-shrink:0; box-shadow:0 2px 6px rgba(30,58,138,0.2) !important;">
+                                    ${ptsCost.toLocaleString()} Points
                                 </button>
-                            </div>
-                        `).join('');
+                            </div>`;
+                        }).join('');
                     }
                 }
             }
@@ -884,6 +862,59 @@ $activeTab = 'profile';
         }
     };
 
+    window.renderProfileBio = function(bio) {
+        const elBio = document.getElementById('profile-bio-text');
+        if (!elBio) return;
+        if (bio && typeof bio === 'string' && bio.trim()) {
+            elBio.textContent = `"${bio.trim()}"`;
+            elBio.style.display = 'block';
+        } else {
+            elBio.style.display = 'none';
+        }
+    };
+
+    window.renderProfilePreferences = function(prefStr) {
+        const elChips = document.getElementById('profile-pref-chips');
+        if (!elChips) return;
+        if (!prefStr || typeof prefStr !== 'string' || !prefStr.trim()) {
+            elChips.innerHTML = '';
+            elChips.style.display = 'none';
+            return;
+        }
+        const iconMap = {
+            'surfing': '🏄‍♂️',
+            'beach': '🏄‍♂️',
+            'nature': '🏔️',
+            'falls': '🏔️',
+            'heritage': '🏛️',
+            'culture': '🏛️',
+            'food': '🍲',
+            'dining': '🍲',
+            'sunset': '🌅',
+            'nightlife': '🌅'
+        };
+        const prefs = prefStr.split(',').map(s => s.trim()).filter(Boolean);
+        if (!prefs.length) {
+            elChips.innerHTML = '';
+            elChips.style.display = 'none';
+            return;
+        }
+        elChips.innerHTML = prefs.map(p => {
+            let icon = '';
+            const pLower = p.toLowerCase();
+            if (!/[\u{1F300}-\u{1F9FF}]/u.test(p)) {
+                for (const [key, ic] of Object.entries(iconMap)) {
+                    if (pLower.includes(key)) {
+                        icon = ic + ' ';
+                        break;
+                    }
+                }
+            }
+            return `<span style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; padding:5px 14px; border-radius:100px; font-size:11px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">${icon}${p}</span>`;
+        }).join('');
+        elChips.style.display = 'flex';
+    };
+
     // Instant local cache render for zero-latency UI
     try {
         const _cachedAuth = JSON.parse(localStorage.getItem('auth_user') || '{}');
@@ -893,8 +924,28 @@ $activeTab = 'profile';
         if (_cachedAuth.email && document.getElementById('profile-email')) {
             document.getElementById('profile-email').textContent = _cachedAuth.email;
         }
+        if (_cachedAuth.avatar && document.getElementById('profile-img')) {
+            document.getElementById('profile-img').src = window.getFullImageUrl ? window.getFullImageUrl(_cachedAuth.avatar) : _cachedAuth.avatar;
+        }
         window.renderProfileUserMeta(_cachedAuth);
+        window.renderProfileBio(_cachedAuth.bio);
+        window.renderProfilePreferences(_cachedAuth.travel_preferences);
     } catch(e) {}
+
+    // Listen for real-time profile updates from edit_profile
+    window.addEventListener('userProfileUpdated', function(e) {
+        if (e.detail) {
+            const u = e.detail;
+            if (u.name && document.getElementById('profile-name')) document.getElementById('profile-name').textContent = u.name;
+            if (u.email && document.getElementById('profile-email')) document.getElementById('profile-email').textContent = u.email;
+            if (u.avatar && document.getElementById('profile-img')) {
+                document.getElementById('profile-img').src = window.getFullImageUrl ? window.getFullImageUrl(u.avatar) : u.avatar;
+            }
+            window.renderProfileUserMeta(u);
+            window.renderProfileBio(u.bio);
+            window.renderProfilePreferences(u.travel_preferences);
+        }
+    });
 
     fetchProfileData();
     fetchPointsAndVouchers();
@@ -978,31 +1029,45 @@ $activeTab = 'profile';
 <!-- Reward Details Modal -->
 <div id="reward-details-modal" onclick="if(event.target===this)window.closeRewardDetailsModal()"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.65); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:2000000; justify-content:center; align-items:center; padding:20px; opacity:0; transition:opacity 0.25s ease;">
-    <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:24px; padding:24px; width:100%; max-width:340px; box-shadow:0 20px 50px rgba(10,25,60,0.5); text-align:center; transform:scale(0.88); transition:transform 0.25s cubic-bezier(0.16,1,0.3,1); position:relative;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-            <span id="reward-modal-badge" style="font-size:10px; font-weight:800; color:#0b193d !important; background:#38bdf8 !important; padding:3px 9px; border-radius:8px; border:none !important; text-transform:uppercase;">PROMO</span>
-            <button type="button" onclick="window.closeRewardDetailsModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+    <div style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:350px; max-height:86vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 16px 40px rgba(10,25,60,0.45); text-align:center; transform:scale(0.88); transition:transform 0.25s cubic-bezier(0.16,1,0.3,1); position:relative; padding:0;">
+        <!-- Header Banner (Royal Blue) -->
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:14px 18px; flex-shrink:0; display:flex; justify-content:space-between; align-items:center; border:none !important;">
+            <div style="text-align:left;">
+                <div style="font-size:15px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-gift" style="color:#00f2fe; font-size:14px;"></i> Reward Details
+                </div>
+                <span id="reward-modal-badge" style="font-size:9.5px; font-weight:800; color:#1e3a8a !important; background:#eff6ff !important; padding:2px 7px; border-radius:6px; margin-top:3px; display:inline-block; text-transform:uppercase;">PROMO</span>
+            </div>
+            <button type="button" onclick="window.closeRewardDetailsModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; box-shadow:0 2px 8px rgba(0,0,0,0.18);">
                 <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
             </button>
         </div>
-        <div style="width:70px; height:70px; border-radius:18px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; overflow:hidden; box-shadow:none !important;">
-            <img id="reward-modal-img" src="" alt="Reward Logo" style="width:100%; height:100%; object-fit:contain; padding:8px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
-        </div>
-        <h4 id="reward-modal-title" style="margin:0 0 4px; font-size:17px; font-weight:800; color:#ffffff; line-height:1.3;">Reward Details</h4>
-        <p style="margin:0 0 14px; font-size:12px; color:rgba(226,232,240,0.85); display:flex; align-items:center; justify-content:center; gap:4px;">
-            <i class="fa-solid fa-store" style="font-size:11px; color:#38bdf8;"></i> <span id="reward-modal-partner-name">Partner</span>
-        </p>
-        <div id="reward-modal-id-notice" style="display:none; background:#ef4444 !important; border:none !important; border-radius:12px; padding:8px 12px; margin-bottom:12px; text-align:left;">
-            <div style="display:flex; align-items:center; gap:6px; color:#ffffff !important; font-size:11.5px; font-weight:800;">
-                <i class="fa-solid fa-id-card"></i> Valid ID Required Upon Redemption
+
+        <!-- Middle Body (White) -->
+        <div class="hide-scrollbar" style="background:#ffffff !important; flex:1; min-height:0; overflow-y:auto; padding:18px; color:#0f172a;">
+            <div style="width:68px; height:68px; border-radius:18px; background:#ffffff; border:1.5px solid #e2e8f0; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.06);">
+                <img id="reward-modal-img" src="" alt="Reward Logo" style="width:100%; height:100%; object-fit:contain; padding:6px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
+            </div>
+            <h4 id="reward-modal-title" style="margin:0 0 4px; font-size:17px; font-weight:800; color:#0f172a; line-height:1.3;">Reward Details</h4>
+            <p style="margin:0 0 14px; font-size:12.5px; color:#1e3a8a; font-weight:700; display:flex; align-items:center; justify-content:center; gap:4px;">
+                <i class="fa-solid fa-store" style="font-size:11px; color:#0284c7;"></i> <span id="reward-modal-partner-name">Partner</span>
+            </p>
+            <div id="reward-modal-id-notice" style="display:none; background:#fef2f2 !important; border:1px solid #fecaca !important; border-radius:12px; padding:10px 12px; margin-bottom:12px; text-align:left;">
+                <div style="display:flex; align-items:center; gap:6px; color:#dc2626 !important; font-size:11.5px; font-weight:800;">
+                    <i class="fa-solid fa-id-card"></i> Valid ID Required Upon Redemption
+                </div>
+            </div>
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:12px 14px; margin-bottom:6px; text-align:left;">
+                <div style="font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#64748b; margin-bottom:4px;">Description & Terms</div>
+                <p id="reward-modal-desc" style="margin:0; font-size:12px; color:#334155; line-height:1.45;"></p>
             </div>
         </div>
-        <div style="background:rgba(255,255,255,0.1); border-radius:14px; padding:12px; margin-bottom:16px; text-align:left;">
-            <div style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:rgba(255,255,255,0.65); margin-bottom:4px;">Description & Terms</div>
-            <p id="reward-modal-desc" style="margin:0; font-size:12px; color:rgba(255,255,255,0.92); line-height:1.45;"></p>
+
+        <!-- Footer Banner (Royal Blue) -->
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:14px 18px; flex-shrink:0; border:none !important;">
+            <button type="button" id="reward-modal-redeem-btn" style="width:100%; padding:12px; border:none !important; outline:none !important; border-radius:12px; background:#ffffff !important; color:#1e3a8a !important; font-size:13.5px; font-weight:900; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.18) !important; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <i class="fa-solid fa-gift" style="color:#1e3a8a;"></i> <span style="color:#1e3a8a;">Redeem for <strong id="reward-modal-cost-text" style="color:#1e3a8a;">-- Points</strong></span>
+            </button>
         </div>
-        <button type="button" id="reward-modal-redeem-btn" style="width:100%; padding:13px; border:none !important; outline:none !important; border-radius:14px; background:#ffffff !important; color:#1e3a8a !important; font-size:13.5px; font-weight:900; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,0.18) !important; display:flex; align-items:center; justify-content:center; gap:8px;">
-            <i class="fa-solid fa-gift" style="color:#1e3a8a;"></i> <span style="color:#1e3a8a;">Redeem for <strong id="reward-modal-cost-text" style="color:#1e3a8a;">-- Points</strong></span>
-        </button>
     </div>
 </div>

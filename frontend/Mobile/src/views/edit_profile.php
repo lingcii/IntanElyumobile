@@ -567,6 +567,68 @@ input:checked + .slider:before {
     </div>
 </div>
 
+<!-- Full-screen Photo Preview & Crop Modal (Matching Exact UI from Screenshot) -->
+<div id="avatar-crop-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100vw; height:100vh; background:#ffffff; z-index:9999999; flex-direction:column; justify-content:space-between; box-sizing:border-box; overflow:hidden;">
+    
+    <!-- Top Header -->
+    <div style="height:56px; padding:0 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #f1f5f9; flex-shrink:0;">
+        <button type="button" onclick="window.closeCropPreviewModal()" style="background:transparent; border:none; outline:none; font-size:18px; color:#0f172a; padding:8px 12px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <span style="font-size:17px; font-weight:700; color:#0f172a; letter-spacing:-0.2px;">Preview</span>
+        <div style="width:38px;"></div> <!-- Spacer to balance header -->
+    </div>
+
+    <!-- Cropper Container Card -->
+    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px 16px; box-sizing:border-box; overflow:hidden;">
+        <div id="crop-card" style="width:100%; max-width:440px; height:100%; max-height:520px; background:#f1f3f5; border-radius:28px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; box-shadow:inset 0 0 0 1px rgba(0,0,0,0.04);">
+            
+            <!-- Interactive Viewport -->
+            <div id="crop-viewport" style="position:absolute; top:0; left:0; width:100%; height:100%; overflow:hidden; touch-action:none; cursor:grab; user-select:none;">
+                <img id="crop-source-img" draggable="false" style="position:absolute; left:50%; top:45%; max-width:none; transform-origin:center center; pointer-events:none; user-select:none; will-change:transform;" alt="Crop source">
+            </div>
+
+            <!-- SVG Mask Cutout with Crisp White Border Ring -->
+            <svg id="crop-svg-mask" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:10;">
+                <defs>
+                    <mask id="crop-aperture-mask">
+                        <rect width="100%" height="100%" fill="white" />
+                        <circle id="crop-mask-circle" cx="50%" cy="45%" r="125" fill="black" />
+                    </mask>
+                </defs>
+                <rect width="100%" height="100%" fill="rgba(241, 243, 245, 0.82)" mask="url(#crop-aperture-mask)" />
+                <circle id="crop-border-circle" cx="50%" cy="45%" r="125" fill="none" stroke="#ffffff" stroke-width="2.5" />
+            </svg>
+
+            <!-- Floating Zoom & Reset Pill (matching screenshot) -->
+            <div style="position:absolute; bottom:22px; z-index:20; background:#ffffff; border-radius:999px; box-shadow:0 4px 18px rgba(0,0,0,0.12); padding:5px 16px; display:inline-flex; align-items:center; gap:14px;">
+                <button type="button" onclick="window.cropZoomStep(-0.15)" style="background:none; border:none; outline:none; font-size:16px; font-weight:700; color:#0f172a; cursor:pointer; padding:6px 8px; display:flex; align-items:center; justify-content:center;" title="Zoom Out">
+                    <i class="fa-solid fa-minus"></i>
+                </button>
+                <button type="button" onclick="window.cropZoomStep(0.15)" style="background:none; border:none; outline:none; font-size:16px; font-weight:700; color:#0f172a; cursor:pointer; padding:6px 8px; display:flex; align-items:center; justify-content:center;" title="Zoom In">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+                <div style="width:1px; height:18px; background:#e2e8f0;"></div>
+                <button type="button" onclick="window.cropResetPosition()" style="background:none; border:none; outline:none; font-size:14px; font-weight:700; color:#0f172a; cursor:pointer; padding:6px 8px;" title="Reset">
+                    Reset
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bottom Actions -->
+    <div style="padding:14px 20px 24px 20px; display:flex; flex-direction:column; gap:10px; max-width:440px; width:100%; margin:0 auto; box-sizing:border-box; flex-shrink:0;">
+        <button type="button" onclick="window.cropSelectAnother()" style="width:100%; height:50px; background:#f1f5f9; color:#0f172a; border-radius:25px; border:none; outline:none; font-size:15px; font-weight:700; cursor:pointer; transition:background 0.15s ease;">
+            Select another photo
+        </button>
+        <button type="button" onclick="window.cropConfirm()" style="width:100%; height:50px; background:#0f172a; color:#ffffff; border-radius:25px; border:none; outline:none; font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(15,23,42,0.25); transition:transform 0.15s ease;">
+            Confirm
+        </button>
+    </div>
+
+</div>
+
 <script>
 (function() {
     // Ensure view opens at the absolute top
@@ -619,18 +681,20 @@ input:checked + .slider:before {
         const chips = document.querySelectorAll('#preferences-chips .chip-item');
         if (!chips.length) return;
 
-        let rawPrefs = (u && u.travel_preferences) ? u.travel_preferences : '';
-        if (!rawPrefs) {
+        let rawPrefs = null;
+        if (u && typeof u.travel_preferences !== 'undefined' && u.travel_preferences !== null) {
+            rawPrefs = u.travel_preferences;
+        } else {
             try {
                 const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                rawPrefs = stored.travel_preferences || '';
+                if (typeof stored.travel_preferences !== 'undefined' && stored.travel_preferences !== null) {
+                    rawPrefs = stored.travel_preferences;
+                }
             } catch (e) {}
         }
 
-        if (rawPrefs && typeof rawPrefs === 'string' && rawPrefs.trim() !== '') {
-            const prefList = rawPrefs.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-            let anyMatched = false;
-
+        if (rawPrefs !== null && rawPrefs !== undefined) {
+            const prefList = String(rawPrefs).split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
             chips.forEach(chip => {
                 const val = (chip.getAttribute('data-value') || '').toLowerCase();
                 const text = chip.textContent.toLowerCase();
@@ -638,7 +702,7 @@ input:checked + .slider:before {
                 const isMatch = prefList.some(p => {
                     const cleanP = p.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
                     if (!cleanP) return false;
-                    return val.includes(cleanP) || cleanP.includes(val) ||
+                    return val === cleanP || val.includes(cleanP) || cleanP.includes(val) ||
                            text.includes(cleanP) || cleanP.includes(text) ||
                            (cleanP.includes('surf') && val.includes('surf')) ||
                            (cleanP.includes('beach') && val.includes('beach')) ||
@@ -650,17 +714,12 @@ input:checked + .slider:before {
 
                 if (isMatch) {
                     chip.classList.add('active');
-                    anyMatched = true;
                 } else {
                     chip.classList.remove('active');
                 }
             });
-
-            if (!anyMatched) {
-                chips.forEach(chip => chip.classList.add('active'));
-            }
         } else {
-            // Activate preferences by default when editing so the user has them activated and ready
+            // First time only when preferences have never been set: default to active
             chips.forEach(chip => chip.classList.add('active'));
         }
     }
@@ -763,22 +822,13 @@ input:checked + .slider:before {
                 const cameraPlugin = window.Capacitor.Plugins.Camera;
                 const image = await cameraPlugin.getPhoto({
                     quality: 90,
-                    allowEditing: true,
+                    allowEditing: false,
                     resultType: 'dataUrl',
                     source: mode === 'camera' ? 'CAMERA' : 'PHOTOS'
                 });
 
                 if (image && image.dataUrl) {
-                    if (img) {
-                        img.src = image.dataUrl;
-                        img.style.display = 'block';
-                    }
-                    if (icon) icon.style.display = 'none';
-
-                    // Convert dataUrl to Blob File
-                    const res = await fetch(image.dataUrl);
-                    const blob = await res.blob();
-                    window.selectedAvatarBlob = new File([blob], 'avatar_' + Date.now() + '.jpg', { type: blob.type || 'image/jpeg' });
+                    window.openCropPreviewModal(image.dataUrl);
                 }
             } catch (err) {
                 console.warn('Capacitor Camera cancel or error:', err);
@@ -796,20 +846,255 @@ input:checked + .slider:before {
     };
 
     window.previewAvatar = function(event) {
-        const file = event.target.files[0];
+        const file = event.target?.files?.[0];
         if (!file) return;
-        window.selectedAvatarBlob = file;
         const reader = new FileReader();
         reader.onload = function(e) {
-            if (img) {
-                img.src = e.target.result;
-                img.style.display = 'block';
+            if (e.target && e.target.result) {
+                window.openCropPreviewModal(e.target.result);
             }
-            if (icon) icon.style.display = 'none';
         };
         reader.readAsDataURL(file);
+        event.target.value = '';
     };
 
+    // ─────────────────────────────────────────────────────────────
+    // Photo Preview & Interactive Cropper Controller (Matching Design)
+    // ─────────────────────────────────────────────────────────────
+    const cropState = {
+        img: null,
+        naturalW: 0,
+        naturalH: 0,
+        panX: 0,
+        panY: 0,
+        zoom: 1,
+        baseZoom: 1,
+        isDragging: false,
+        startX: 0,
+        startY: 0,
+        startPanX: 0,
+        startPanY: 0,
+        touchDist: 0,
+        startZoom: 1,
+        radius: 125
+    };
+
+    function updateCropTransform() {
+        const imgEl = document.getElementById('crop-source-img');
+        if (!imgEl) return;
+        imgEl.style.transform = `translate(calc(-50% + ${cropState.panX}px), calc(-50% + ${cropState.panY}px)) scale(${cropState.zoom})`;
+    }
+
+    window.openCropPreviewModal = function(imageSrc) {
+        const modal = document.getElementById('avatar-crop-modal');
+        const sourceImg = document.getElementById('crop-source-img');
+        const cropCard = document.getElementById('crop-card');
+        if (!modal || !sourceImg) return;
+
+        modal.style.display = 'flex';
+
+        sourceImg.onload = function() {
+            cropState.img = sourceImg;
+            cropState.naturalW = sourceImg.naturalWidth || 400;
+            cropState.naturalH = sourceImg.naturalHeight || 400;
+
+            const rect = cropCard ? cropCard.getBoundingClientRect() : { width: 360, height: 460 };
+            const cardW = rect.width || 360;
+            const r = Math.min(Math.floor(cardW * 0.36), 130);
+            cropState.radius = r;
+
+            const maskHole = document.getElementById('crop-mask-circle');
+            const borderCircle = document.getElementById('crop-border-circle');
+            if (maskHole) maskHole.setAttribute('r', r);
+            if (borderCircle) borderCircle.setAttribute('r', r);
+
+            const minSide = Math.min(cropState.naturalW, cropState.naturalH);
+            const targetSide = r * 2 * 1.15;
+            cropState.baseZoom = targetSide / minSide;
+            cropState.zoom = cropState.baseZoom;
+            cropState.panX = 0;
+            cropState.panY = 0;
+
+            sourceImg.style.width = cropState.naturalW + 'px';
+            sourceImg.style.height = cropState.naturalH + 'px';
+
+            updateCropTransform();
+        };
+
+        sourceImg.src = imageSrc;
+    };
+
+    window.closeCropPreviewModal = function() {
+        const modal = document.getElementById('avatar-crop-modal');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.cropZoomStep = function(delta) {
+        const minZoom = cropState.baseZoom * 0.4;
+        const maxZoom = cropState.baseZoom * 4.5;
+        cropState.zoom = Math.max(minZoom, Math.min(maxZoom, cropState.zoom + delta));
+        updateCropTransform();
+    };
+
+    window.cropResetPosition = function() {
+        cropState.zoom = cropState.baseZoom;
+        cropState.panX = 0;
+        cropState.panY = 0;
+        updateCropTransform();
+    };
+
+    window.cropSelectAnother = function() {
+        window.closeCropPreviewModal();
+        window.openImagePickerModal();
+    };
+
+    window.cropConfirm = function() {
+        if (!cropState.img || !cropState.naturalW || !cropState.naturalH) {
+            window.closeCropPreviewModal();
+            return;
+        }
+
+        try {
+            const cropCard = document.getElementById('crop-card');
+            const rect = cropCard ? cropCard.getBoundingClientRect() : { width: 360, height: 460 };
+            const cardW = rect.width || 360;
+            const cardH = rect.height || 460;
+
+            const apertureCX = cardW * 0.5;
+            const apertureCY = cardH * 0.45;
+            const r = cropState.radius || 125;
+
+            const imgScreenCX = apertureCX + cropState.panX;
+            const imgScreenCY = apertureCY + cropState.panY;
+
+            const offsetScreenX = apertureCX - imgScreenCX;
+            const offsetScreenY = apertureCY - imgScreenCY;
+
+            const imgOffsetX = offsetScreenX / cropState.zoom;
+            const imgOffsetY = offsetScreenY / cropState.zoom;
+
+            const cropImgCX = cropState.naturalW / 2 + imgOffsetX;
+            const cropImgCY = cropState.naturalH / 2 + imgOffsetY;
+            const cropSize = (r * 2) / cropState.zoom;
+
+            const srcX = cropImgCX - cropSize / 2;
+            const srcY = cropImgCY - cropSize / 2;
+            const srcW = cropSize;
+            const srcH = cropSize;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 600;
+            canvas.height = 600;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 600, 600);
+            ctx.drawImage(cropState.img, srcX, srcY, srcW, srcH, 0, 0, 600, 600);
+
+            canvas.toBlob(function(blob) {
+                if (!blob) return;
+                window.selectedAvatarBlob = new File([blob], 'avatar_' + Date.now() + '.jpg', { type: 'image/jpeg' });
+                const previewUrl = canvas.toDataURL('image/jpeg', 0.92);
+                if (img) {
+                    img.src = previewUrl;
+                    img.style.display = 'block';
+                }
+                if (icon) icon.style.display = 'none';
+
+                window.closeCropPreviewModal();
+                if (typeof showToast === 'function') {
+                    showToast('Photo confirmed! Click "Save Changes" to save profile.');
+                }
+            }, 'image/jpeg', 0.92);
+        } catch (err) {
+            console.error('Crop confirmation error:', err);
+            window.closeCropPreviewModal();
+        }
+    };
+
+    // Attach dragging and pinch-to-zoom listeners to viewport
+    const viewport = document.getElementById('crop-viewport');
+    if (viewport) {
+        viewport.addEventListener('mousedown', function(e) {
+            cropState.isDragging = true;
+            cropState.startX = e.clientX;
+            cropState.startY = e.clientY;
+            cropState.startPanX = cropState.panX;
+            cropState.startPanY = cropState.panY;
+            viewport.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mousemove', function(e) {
+            if (!cropState.isDragging) return;
+            const dx = e.clientX - cropState.startX;
+            const dy = e.clientY - cropState.startY;
+            cropState.panX = cropState.startPanX + dx;
+            cropState.panY = cropState.startPanY + dy;
+            updateCropTransform();
+        });
+
+        window.addEventListener('mouseup', function() {
+            cropState.isDragging = false;
+            if (viewport) viewport.style.cursor = 'grab';
+        });
+
+        viewport.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 1) {
+                cropState.isDragging = true;
+                cropState.startX = e.touches[0].clientX;
+                cropState.startY = e.touches[0].clientY;
+                cropState.startPanX = cropState.panX;
+                cropState.startPanY = cropState.panY;
+            } else if (e.touches.length === 2) {
+                cropState.isDragging = false;
+                cropState.touchDist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                cropState.startZoom = cropState.zoom;
+            }
+        }, { passive: false });
+
+        window.addEventListener('touchmove', function(e) {
+            const modal = document.getElementById('avatar-crop-modal');
+            if (!modal || modal.style.display === 'none') return;
+
+            if (e.touches.length === 1 && cropState.isDragging) {
+                e.preventDefault();
+                const dx = e.touches[0].clientX - cropState.startX;
+                const dy = e.touches[0].clientY - cropState.startY;
+                cropState.panX = cropState.startPanX + dx;
+                cropState.panY = cropState.startPanY + dy;
+                updateCropTransform();
+            } else if (e.touches.length === 2 && cropState.touchDist > 0) {
+                e.preventDefault();
+                const newDist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                const scaleFactor = newDist / cropState.touchDist;
+                cropState.zoom = Math.max(cropState.baseZoom * 0.4, Math.min(cropState.baseZoom * 4.5, cropState.startZoom * scaleFactor));
+                updateCropTransform();
+            }
+        }, { passive: false });
+
+        window.addEventListener('touchend', function(e) {
+            if (e.touches.length === 0) {
+                cropState.isDragging = false;
+                cropState.touchDist = 0;
+            } else if (e.touches.length === 1) {
+                cropState.isDragging = true;
+                cropState.startX = e.touches[0].clientX;
+                cropState.startY = e.touches[0].clientY;
+                cropState.startPanX = cropState.panX;
+                cropState.startPanY = cropState.panY;
+            }
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Save Profile Action
+    // ─────────────────────────────────────────────────────────────
     window.saveProfile = async function(event) {
         event.preventDefault();
         const btn = document.getElementById('btn-save');
@@ -861,8 +1146,8 @@ input:checked + .slider:before {
             } catch (e) {}
 
             if (res.ok) {
+                const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
                 if (data.user) {
-                    const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
                     stored.name = data.user.name;
                     stored.email = data.user.email;
                     stored.phone = data.user.phone;
@@ -870,13 +1155,23 @@ input:checked + .slider:before {
                     stored.age = data.user.age;
                     stored.gender = data.user.gender;
                     stored.bio = data.user.bio;
-                    stored.travel_preferences = data.user.travel_preferences;
+                    stored.travel_preferences = (data.user.travel_preferences !== undefined) ? data.user.travel_preferences : travelPreferences;
 
                     if (data.user.avatar) {
                         stored.avatar = window.getFullImageUrl ? window.getFullImageUrl(data.user.avatar) : data.user.avatar;
                     }
-                    localStorage.setItem('auth_user', JSON.stringify(stored));
+                } else {
+                    stored.name = name;
+                    stored.email = email;
+                    stored.phone = phone;
+                    stored.home_location = homeLocation;
+                    stored.age = age;
+                    stored.gender = gender;
+                    stored.bio = bio;
+                    stored.travel_preferences = travelPreferences;
                 }
+                localStorage.setItem('auth_user', JSON.stringify(stored));
+
                 // Invalidate cached profile, dashboard, and leaderboard data so all screens reload fresh data from DB
                 window.profileNeedsRefresh = true;
                 window.dashboardNeedsRefresh = true;
@@ -890,7 +1185,7 @@ input:checked + .slider:before {
                 }
 
                 // Notify active components of real-time profile update
-                window.dispatchEvent(new CustomEvent('userProfileUpdated', { detail: data.user }));
+                window.dispatchEvent(new CustomEvent('userProfileUpdated', { detail: data.user || stored }));
                 if (typeof showToast === 'function') showToast('Profile updated successfully!');
                 if (typeof navigateTo === 'function') navigateTo('profile');
             } else {

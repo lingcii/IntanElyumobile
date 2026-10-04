@@ -1138,7 +1138,11 @@ body[data-view="saved_trips"],
         sessionStorage.setItem('editing_trip_date', trip.trip_date || '');
         sessionStorage.setItem('editing_trip_budget', (trip.budget !== null && trip.budget !== undefined) ? trip.budget : '');
         sessionStorage.setItem('editing_trip_transport', trip.transport_mode || '');
-        // Build map of public_map_data cached spots to enrich missing vehicle data if needed
+        if (trip.transport_mode) {
+            localStorage.setItem('intan_elyu_draft_trip_transport', trip.transport_mode);
+            const rawModes = trip.transport_mode.split(/[\+,]/).map(s => s.trim().toLowerCase()).filter(Boolean);
+            localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(rawModes.length > 0 ? rawModes : [trip.transport_mode]));
+        }
         let mapSpotsMap = {};
         try {
             const rawMap = localStorage.getItem('public_map_data');

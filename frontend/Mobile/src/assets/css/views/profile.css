@@ -53,7 +53,7 @@ body[data-view="profile"] .mobile-header .header-icon i {
 .profile-container {
     width: 100%;
     min-height: 100vh;
-    padding: 16px 16px 120px 16px;
+    padding: 16px 16px calc(135px + env(safe-area-inset-bottom, 0px)) 16px;
     box-sizing: border-box;
     background: #ffffff !important;
     background-color: #ffffff !important;

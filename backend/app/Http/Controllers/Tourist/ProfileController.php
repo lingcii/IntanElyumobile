@@ -277,37 +277,37 @@ class ProfileController extends Controller
             'avatar' => 'sometimes|file|mimes:jpeg,png,jpg,gif,webp,heic,heif|max:10240',
         ]);
 
-        if ($request->has('name')) {
+        if ($request->exists('name') && $request->filled('name')) {
             $user->name = $request->input('name');
         }
 
-        if ($request->filled('email')) {
+        if ($request->exists('email') && $request->filled('email')) {
             $user->email = strtolower(trim($request->input('email')));
         }
 
-        if ($request->has('phone') && Schema::hasColumn('users', 'phone')) {
+        if ($request->exists('phone') && Schema::hasColumn('users', 'phone')) {
             $user->phone = $request->input('phone');
         }
 
-        if ($request->has('home_location') && Schema::hasColumn('users', 'home_location')) {
+        if ($request->exists('home_location') && Schema::hasColumn('users', 'home_location')) {
             $user->home_location = $request->input('home_location');
         }
 
-        if ($request->has('bio') && Schema::hasColumn('users', 'bio')) {
+        if ($request->exists('bio') && Schema::hasColumn('users', 'bio')) {
             $user->bio = $request->input('bio');
         }
 
-        if ($request->has('age') && Schema::hasColumn('users', 'age')) {
+        if ($request->exists('age') && Schema::hasColumn('users', 'age')) {
             $ageVal = $request->input('age');
             $user->age = ($ageVal !== null && $ageVal !== '') ? (int) $ageVal : null;
         }
 
-        if ($request->has('gender') && Schema::hasColumn('users', 'gender')) {
+        if ($request->exists('gender') && Schema::hasColumn('users', 'gender')) {
             $genderVal = $request->input('gender');
             $user->gender = ($genderVal !== null && trim($genderVal) !== '') ? trim($genderVal) : null;
         }
 
-        if ($request->has('travel_preferences') && Schema::hasColumn('users', 'travel_preferences')) {
+        if ($request->exists('travel_preferences') && Schema::hasColumn('users', 'travel_preferences')) {
             $user->travel_preferences = $request->input('travel_preferences');
         }
 
