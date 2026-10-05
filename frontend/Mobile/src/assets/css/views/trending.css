@@ -47,7 +47,7 @@ body[data-view="trending"] .mobile-header .header-icon i {
 .saved-trips-page-container.trending-page-container {
     width: 100%;
     min-height: 100vh;
-    padding-top: calc(60px + max(env(safe-area-inset-top, 0px), 40px) + 16px) !important;
+    padding-top: calc(max(env(safe-area-inset-top, 0px), 40px) + 64px) !important;
     padding-left: 16px !important;
     padding-right: 16px !important;
     padding-bottom: 40px !important;

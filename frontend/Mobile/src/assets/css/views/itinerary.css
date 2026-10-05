@@ -53,7 +53,10 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
 .itinerary-container {
     width: 100%;
     min-height: 100vh;
-    padding: 16px 16px 110px 16px;
+    padding-top: calc(max(env(safe-area-inset-top, 0px), 40px) + 64px) !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-bottom: 110px !important;
     box-sizing: border-box;
     background: #ffffff !important;
     background-color: #ffffff !important;

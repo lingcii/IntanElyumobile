@@ -53,7 +53,7 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
 .leaderboard-container {
     width: 100%;
     min-height: 100vh;
-    padding-top: calc(var(--header-height, 90px) + 16px) !important;
+    padding-top: calc(max(env(safe-area-inset-top, 0px), 40px) + 64px) !important;
     padding-left: 16px !important;
     padding-right: 16px !important;
     padding-bottom: 120px !important;

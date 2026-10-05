@@ -8,7 +8,16 @@ body[data-view="puzzles"] {
     background-color: #ffffff !important;
 }
 .puzzles-container {
+    width: 100%;
+    min-height: 100vh;
+    padding-top: calc(max(env(safe-area-inset-top, 0px), 40px) + 64px) !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-bottom: 40px !important;
+    box-sizing: border-box;
     background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
 }
 .game-nav-tab {
     border: none !important;

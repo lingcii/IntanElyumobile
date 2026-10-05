@@ -6,9 +6,9 @@ $backRoute = 'dashboard';
 <!-- Include Header Component -->
 <?php include __DIR__ . '/../components/header.php'; ?>
 
-<div class="merch-page-container has-header animate-fade-in" style="padding-left: 16px; padding-right: 16px; padding-bottom: 50px; background: #ffffff !important; min-height: 100vh; box-sizing: border-box;">
+<div class="merch-page-container has-header animate-fade-in">
     <!-- Hero Section -->
-    <div class="merch-hero" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 24px; padding: 20px 18px; text-align: center; margin-top: 14px; margin-bottom: 18px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; color: #ffffff !important;">
+    <div class="merch-hero" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 24px; padding: 20px 18px; text-align: center; margin-bottom: 18px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; color: #ffffff !important;">
         <p style="margin: 0 0 12px; font-size: 13.5px; color: rgba(255, 255, 255, 0.95); line-height: 1.45; max-width: 320px; margin-left: auto; margin-right: auto; font-weight: 600;">
             Redeem your <strong style="color: #ffffff; font-weight: 800;">Explorer Points</strong> for exclusive discounts!
         </p>

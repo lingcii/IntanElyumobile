@@ -54,7 +54,10 @@ body[data-view="edit_profile"] .mobile-header .header-back-btn i {
 .edit-profile-container {
     width: 100%;
     min-height: calc(100vh - 60px);
-    padding: 20px 16px 120px 16px;
+    padding-top: calc(max(env(safe-area-inset-top, 0px), 40px) + 64px) !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-bottom: 120px !important;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;

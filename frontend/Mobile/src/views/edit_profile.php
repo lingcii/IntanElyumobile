@@ -3,8 +3,6 @@ $pageTitle = 'Edit Profile';
 $backRoute = 'profile';
 ?>
 
-">
-
 <?php include __DIR__ . '/../components/header.php'; ?>
 
 <div class="edit-profile-container has-header animate-slide-up">

@@ -66,6 +66,13 @@
   /* Rule #3: Generous Whitespace Padding */
   --padding-card-generous: 20px 24px;
   --padding-modal-generous: 24px;
+
+  /* Header & Navigation Spacing Tokens */
+  --safe-area-top: max(env(safe-area-inset-top, 0px), 40px);
+  --header-content-height: 48px;
+  --header-height: calc(var(--safe-area-top) + var(--header-content-height));
+  --header-gap: 16px;
+  --content-top-padding: calc(var(--header-height) + var(--header-gap));
 }
 
 /* Fallback for legacy CSS engines that do not support OKLCH color-mix */

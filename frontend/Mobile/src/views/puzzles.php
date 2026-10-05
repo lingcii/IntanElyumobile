@@ -4,10 +4,10 @@ $backRoute = 'dashboard';
 include __DIR__ . '/../components/header.php';
 ?>
 
-<div class="puzzles-container has-header animate-slide-up" style="padding-left: 16px; padding-right: 16px; padding-bottom: 40px; min-height: 100vh; box-sizing: border-box; background: #ffffff !important; color: #0f172a;">
+<div class="puzzles-container has-header animate-slide-up">
     
     <!-- Points Status Header -->
-    <div style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; margin-top: 16px; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
+    <div style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <div style="width: 44px; height: 44px; border-radius: 12px; background: #ffffff !important; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #203f8d !important; border: none !important; outline: none !important; box-shadow: 0 2px 8px rgba(0,0,0,0.12);">
                 <i class="fa-solid fa-gamepad" style="color: #203f8d !important;"></i>

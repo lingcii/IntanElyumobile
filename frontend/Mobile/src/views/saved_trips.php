@@ -10,7 +10,7 @@ $backRoute = 'itinerary';
 
 <!-- Saved Trips Container -->
 <div class="saved-trips-page-container has-header animate-slide-up">
-    <div id="saved-trips-list" style="margin-top: 16px;">
+    <div id="saved-trips-list">
         <!-- Fetched saved trips will be injected here -->
         <p style="text-align:center; color:#999; margin-top: 20px;">
             <i class="fa-solid fa-spinner fa-spin"></i> Loading saved trips...

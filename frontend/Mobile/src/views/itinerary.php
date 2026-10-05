@@ -30,7 +30,7 @@ try {
 
 <div class="itinerary-container has-header has-bottom-nav animate-slide-up">
 
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px; padding-top: 16px;"
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;"
         class="stagger-1">
         <h2 id="itinerary-page-title"
             style="margin:0; font-size:22px; font-weight:800; letter-spacing:-0.5px; color:#0f172a !important;">Draft

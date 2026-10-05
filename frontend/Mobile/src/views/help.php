@@ -14,7 +14,7 @@ $backRoute = 'dashboard';
 })();
 </script>
 
-<div class="help-container has-header animate-slide-up" style="margin-top: 20px;">
+<div class="help-container has-header animate-slide-up">
 
     <div class="help-section">
         <h2 class="help-main-title">Frequently Asked Questions</h2>

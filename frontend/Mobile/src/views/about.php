@@ -5,7 +5,7 @@ $backRoute = 'dashboard';
 
 <?php include __DIR__ . '/../components/header.php'; ?>
 
-<div class="about-container has-header animate-slide-up" style="margin-top: 20px;">
+<div class="about-container has-header animate-slide-up">
     <div class="about-logo">
         <i class="fa-solid fa-compass"></i>
     </div>

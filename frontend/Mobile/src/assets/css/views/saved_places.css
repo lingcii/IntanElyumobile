@@ -31,7 +31,7 @@ body[data-view="saved_places"] #main-content {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    padding-top: calc(56px + max(env(safe-area-inset-top, 0px), 40px)) !important;
+    padding-top: calc(max(env(safe-area-inset-top, 0px), 40px) + 64px) !important;
     padding-bottom: max(env(safe-area-inset-bottom, 0px), 24px) !important;
     padding-left: 16px !important;
     padding-right: 16px !important;

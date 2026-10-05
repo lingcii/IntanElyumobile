@@ -34,9 +34,9 @@ body[data-view="settings"]::-webkit-scrollbar,
 }
 
 .settings-container {
-    padding-top: max(calc(env(safe-area-inset-top) + 68px), 108px) !important;
-    padding-left: 16px;
-    padding-right: 16px;
+    padding-top: calc(max(env(safe-area-inset-top, 0px), 40px) + 64px) !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
     padding-bottom: 30px !important;
     max-width: 600px;
     margin: 0 auto;
