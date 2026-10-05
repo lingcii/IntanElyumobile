@@ -283,243 +283,254 @@ body[data-view="saved_trips"],
     }
 
     function renderSavedTrips(itineraries) {
-        window._cachedSavedTrips = itineraries;
-        const list = document.getElementById('saved-trips-list');
-        
-        if (!list) return;
+        try {
+            window._cachedSavedTrips = itineraries;
+            const list = document.getElementById('saved-trips-list');
+            
+            if (!list) return;
 
-        const emptyStateHtml = `
-            <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px;">
-                <div class="empty-state-icon" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
-                    <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
+            const emptyStateHtml = `
+                <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px;">
+                    <div class="empty-state-icon" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                        <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
+                    </div>
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff; text-wrap: balance;">No Saved Trips Yet</h3>
+                    <p style="margin: 0; font-size: 13.5px; color: rgba(255, 255, 255, 0.88); line-height: 1.5; max-width: 260px; text-wrap: pretty;">
+                        Your adventure starts here! Explore La Union tourist spots and plan your personalized itinerary.
+                    </p>
+                    <button type="button" class="btn-open-map" onclick="if(typeof window.navigateTo==='function') window.navigateTo('itinerary');">
+                        <i class="fa-solid fa-plus"></i> Create New Trip
+                    </button>
                 </div>
-                <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff; text-wrap: balance;">No Saved Trips Yet</h3>
-                <p style="margin: 0; font-size: 13.5px; color: rgba(255, 255, 255, 0.88); line-height: 1.5; max-width: 260px; text-wrap: pretty;">
-                    Your adventure starts here! Explore La Union tourist spots and plan your personalized itinerary.
-                </p>
-                <button type="button" class="btn-open-map" onclick="if(typeof window.navigateTo==='function') window.navigateTo('itinerary');">
-                    <i class="fa-solid fa-plus"></i> Create New Trip
-                </button>
-            </div>
-        `;
+            `;
 
-        if (!itineraries || itineraries.length === 0) {
-            list.innerHTML = emptyStateHtml;
-            return;
-        }
-
-        const activeItineraries = itineraries.filter(trip => trip.status !== 'completed');
-
-        if (activeItineraries.length === 0) {
-            list.innerHTML = emptyStateHtml;
-            return;
-        }
-
-        let html = '';
-
-        activeItineraries.forEach(trip => {
-            let budgetIndicator = '';
-            if (trip.budget && trip.budget > 0) {
-                const cost = parseFloat(trip.total_cost || 0);
-                const budget = parseFloat(trip.budget);
-                
-                let color = '#10b981'; // Green
-                let statusTitle = `Within Budget: ₱${cost.toFixed(2)} / ₱${budget.toFixed(2)}`;
-
-                if (cost > budget) {
-                    const coverage = (cost > 0) ? (budget / cost) : 0;
-                    if (coverage >= 0.8) {
-                        color = '#f59e0b'; // Yellow (Nearing target: 80% to 99% covered)
-                        statusTitle = `Nearing Budget: ₱${budget.toFixed(2)} / ₱${cost.toFixed(2)}`;
-                    } else {
-                        color = '#ef4444'; // Red (Over budget > 100%)
-                        statusTitle = `Over Budget by ₱${(cost - budget).toFixed(2)}`;
-                    }
-                } else {
-                    // Budget meets or exceeds cost: GREEN!
-                    color = '#10b981';
-                    statusTitle = `Within Budget: ₱${cost.toFixed(2)} / ₱${budget.toFixed(2)}`;
-                }
-                
-                budgetIndicator = `<span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${color}; margin-left:6px; border:none; outline:none; box-shadow:0 0 6px ${color}80;" title="${statusTitle}"></span>`;
+            if (!itineraries || itineraries.length === 0) {
+                list.innerHTML = emptyStateHtml;
+                return;
             }
 
-            const transportBadge = getSavedTripTransportBadge(trip.transport_mode);
-            const safeTitle = trip.title ? trip.title.replace(/"/g, '&quot;').replace(/'/g, "\\'") : 'Saved Trip';
-            html += `
-            <div class="trip-swipe-container" data-trip-id="${trip.id}" data-trip-title="${safeTitle}" style="position:relative; overflow:hidden; border-radius:24px; -webkit-mask-image:-webkit-radial-gradient(white, black); mask-image:radial-gradient(white, black); isolation:isolate; contain:paint; margin-bottom:20px;">
-                <!-- Red Delete Action Button (Slides smoothly in tandem from right wall) -->
-                <div class="trip-swipe-bg" onclick="window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}')" style="position:absolute; top:0; right:0; bottom:0; width:95px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 24px 24px 0; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:13px; font-weight:800; gap:6px; z-index:1; cursor:pointer; opacity:0; pointer-events:none; transform:translateX(95px); transition:transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;">
-                    <i class="fa-solid fa-trash-can"></i> Delete
-                </div>
-                
-                <!-- Rich Glassmorphic Front Card Content (Overlays z-index 2) -->
-                <div class="trip-swipe-content" style="position:relative; z-index:2; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 24px; padding: 22px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease; box-shadow: 0 10px 28px rgba(10, 25, 60, 0.28);">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 6px;">
-                        <h3 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; flex: 1; min-width: 0; word-break: break-word;">${trip.title}</h3>
-                        <button type="button" class="btn-edit-saved-trip" onclick="event.stopPropagation(); window.editSavedTrip('${trip.id}')" ontouchstart="event.stopPropagation();" onpointerdown="event.stopPropagation();" onmousedown="event.stopPropagation();" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" style="background: rgba(255,255,255,0.18); border: none !important; outline: none !important; border-radius: 12px; padding: 6px 14px; color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; transition: all 0.2s ease; box-shadow: none !important; position: relative; z-index: 10; pointer-events: auto; touch-action: manipulation;">
-                            <i class="fa-solid fa-pen-to-square"></i> Edit
-                        </button>
-                    </div>
-                    <div style="font-size: 12.5px; color: #ffffff; opacity: 0.95; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                        <span style="display:inline-flex; align-items:center; gap:5px; font-weight:700;"><i class="fa-regular fa-calendar" style="color: #ffffff;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}</span> 
-                        ${transportBadge}
-                        ${trip.budget ? `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-coins" style="font-size:10px; color:#fbbf24;"></i>Budget: ₱${parseFloat(trip.budget).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}${budgetIndicator}</span>` : ''}
-                    </div>
-                    <div class="timeline-collapsible" id="timeline-${trip.id}">
-                        <div class="timeline-inner">
-                            <div class="timeline">`;
-                                  let unvisitedCount = 0;
-                const isTripCompleted = (trip.status === 'completed');
-                if (trip.items && trip.items.length) {
-                    const firstUnvisitedIdx = trip.items.findIndex(i => !(i.is_visited || i.proof_status === 'approved'));
-                    trip.items.forEach((item, index) => {
-                        const dest = item.destination;
-                        const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
-                        const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
-                        const isRejected = (item.proof_status === 'rejected');
-                        const isNextStop = (!isVisited && !isPending && index === firstUnvisitedIdx);
-                        if (!isVisited) unvisitedCount++;
+            const activeItineraries = itineraries.filter(trip => trip && trip.status !== 'completed');
 
-                        let proofImgHtml = '';
-                        if (item.proof_image) {
-                            let pUrl = item.proof_image;
-                            if (!pUrl.startsWith('http') && !pUrl.startsWith('data:') && !pUrl.startsWith('blob:')) {
-                                let b = (window.backendUrl || '').replace(/\/+$/, '');
-                                pUrl = b + '/' + pUrl.replace(/^\//, '');
+            if (activeItineraries.length === 0) {
+                list.innerHTML = emptyStateHtml;
+                return;
+            }
+
+            let html = '';
+
+            activeItineraries.forEach(trip => {
+                if (!trip) return;
+                try {
+                    let budgetIndicator = '';
+                    if (trip.budget && trip.budget > 0) {
+                        const cost = parseFloat(trip.total_cost || 0);
+                        const budget = parseFloat(trip.budget);
+                        
+                        let color = '#10b981'; // Green
+                        let statusTitle = `Within Budget: ₱${cost.toFixed(2)} / ₱${budget.toFixed(2)}`;
+
+                        if (cost > budget) {
+                            const coverage = (cost > 0) ? (budget / cost) : 0;
+                            if (coverage >= 0.8) {
+                                color = '#f59e0b'; // Yellow (Nearing target: 80% to 99% covered)
+                                statusTitle = `Nearing Budget: ₱${budget.toFixed(2)} / ₱${cost.toFixed(2)}`;
+                            } else {
+                                color = '#ef4444'; // Red (Over budget > 100%)
+                                statusTitle = `Over Budget by ₱${(cost - budget).toFixed(2)}`;
                             }
-                            let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + item.proof_image.replace(/^\//, '');
-                            proofImgHtml = `<img src="${pUrl}" onerror="if(this.src!=='${fallbackUrl}'){this.src='${fallbackUrl}';}" alt="Proof" style="width:52px; height:52px; border-radius:10px; object-fit:cover; border:none !important; outline:none !important; box-shadow:0 4px 12px rgba(0,0,0,0.3); flex-shrink:0;">`;
+                        } else {
+                            // Budget meets or exceeds cost: GREEN!
+                            color = '#10b981';
+                            statusTitle = `Within Budget: ₱${cost.toFixed(2)} / ₱${budget.toFixed(2)}`;
                         }
+                        
+                        budgetIndicator = `<span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${color}; margin-left:6px; border:none; outline:none; box-shadow:0 0 6px ${color}80;" title="${statusTitle}"></span>`;
+                    }
 
-                        const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
-                        if (item.transport_mode) {
-                            const legModes = parseVehicleModes(item.transport_mode);
-                            let vIcon = 'fa-route';
-                            let vName = item.transport_mode;
-
-                            if (legModes.length > 1) {
-                                vIcon = 'fa-route';
-                                vName = `${legModes.length} Vehicles`;
-                            } else if (legModes.length === 1) {
-                                const info = getVehicleInfo(legModes[0]);
-                                vIcon = info.icon;
-                                vName = info.name;
-                            }
-
-                            const costNum = parseFloat(item.leg_cost || 0);
-                            const costStr = (costNum > 0) ? `&bull; ₱${costNum.toFixed(2)}` : (legModes.length === 1 && ['own_car', 'motorcycle', 'walking'].includes(legModes[0]) ? '&bull; ₱0' : '');
-                            const distNum = parseFloat(item.leg_distance_km || 0);
-                            const distStr = (distNum > 0) ? `&bull; ${distNum.toFixed(1)} km` : '';
-
-                            html += `
-                            <div style="display:flex; align-items:center; gap:8px; margin:${index === 0 ? '0 0 10px 18px' : '4px 0 10px 18px'};">
-                                <span style="padding:3px 10px; border-radius:100px; font-size:10.5px; font-weight:700; background:rgba(255,255,255,0.16); color:#e0f2fe; display:inline-flex; align-items:center; gap:5px; border:none !important; outline:none !important;">
-                                    <i class="fa-solid ${vIcon}" style="color:#00f2fe; font-size:10px;"></i>
-                                    <span>${vName}</span>
-                                    ${costStr ? `<span style="color:#38bdf8; font-weight:800;">${costStr}</span>` : ''}
-                                    ${distStr ? `<span style="opacity:0.8; font-size:9.5px;">${distStr}</span>` : ''}
-                                </span>
-                            </div>`;
-                        }
-
-                        html += `
-                        <div class="timeline-item ${isVisited ? 'completed' : (isPending ? 'pending' : (isNextStop ? 'is-next-stop' : ''))}" style="margin-bottom: 12px;">
-                            <div class="timeline-dot"></div>
-                            <div class="timeline-content" style="padding:14px; background: rgba(255,255,255,0.12); border: none !important; outline: none !important; border-radius: 16px; display:flex; flex-direction:column; gap:8px;">
-                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <h4 style="margin:0; font-size:15px; font-weight:800; color:#ffffff;">${dest ? dest.name : 'Unknown Destination'}</h4>
-                                    ${isNextStop ? `<span style="padding: 2px 8px; border-radius: 100px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: linear-gradient(135deg, #00f2fe, #0284c7); border: none !important; outline: none !important;"><i class="fa-solid fa-location-dot" style="font-size:8px;"></i> Next Stop</span>` : ''}
-                                    ${(dest && dest.classification_status) ? `<span style="padding: 2px 8px; border-radius: 100px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; border: none !important; outline: none !important;">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
-                                </div>
-                                ${(dest && (dest.accessible_by_private_vehicle === 0 || dest.accessible_by_private_vehicle === false)) ? `<div style="background:rgba(239, 68, 68, 0.15); border:none !important; outline:none !important; border-radius:10px; padding:8px 12px; display:flex; gap:8px; align-items:flex-start; margin-top:4px;"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; font-size:13px; margin-top:2px;"></i><div><h5 style="margin:0 0 2px 0; font-size:11px; font-weight:800; color:#ef4444; text-transform:uppercase;">Inaccessible by Private Car</h5><p style="margin:0; font-size:10px; color:#ffffff; opacity:0.9; line-height:1.3;">Prepare to hike or use specialized local transport.</p></div></div>` : ''}
-
-                                ${isVisited ? 
-                                    `<div style="display:flex; align-items:center; justify-space-between; gap:10px; margin-top:4px;">
-                                        <div style="display:flex; align-items:center; gap:10px;">
-                                            ${proofImgHtml}
-                                            <div>
-                                                <span style="color:#34c759; font-size:12px; font-weight:800; display:block;">
-                                                    <i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Visited & Verified
-                                                </span>
-                                                <span style="font-size:10px; color:#ffffff; opacity:0.8;">Approved by Tourism Office</span>
-                                            </div>
-                                        </div>
-                                        <button type="button" data-spot-id="${item.tourist_spot_id || (dest ? dest.id : '')}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (dest ? dest.id : '')}', this)" style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:none; flex-shrink:0;">
-                                            ${(window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(item.tourist_spot_id || (dest ? dest.id : '')))) ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review (+${sMeta.points} PTS)`}
-                                        </button>
-                                    </div>` : 
-                                    (isRejected ? 
-                                        `<div style="display:flex; flex-direction:column; gap:6px; margin-top:4px;">
-                                            <div style="display:flex; align-items:center; gap:10px;">
-                                                ${proofImgHtml}
-                                                <div>
-                                                    <span style="color:#ef4444; font-size:12px; font-weight:800; display:block;">
-                                                        <i class="fa-solid fa-circle-xmark" style="margin-right:4px;"></i> Proof Rejected
-                                                    </span>
-                                                    <span style="font-size:10px; color:#ef4444;">${item.rejection_reason || 'Please upload a clearer photo taken at the destination.'}</span>
-                                                </div>
-                                            </div>
-                                            <button class="btn-primary" style="padding: 8px 14px; font-size:12px; font-weight:700; width:max-content; border-radius:100px; background: linear-gradient(135deg, #ef4444, #dc2626); border:none !important; outline:none !important; box-shadow: none; color:#fff; cursor:pointer;" onclick="window.openCheckinModal('${item.id}')">
-                                                <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Re-upload Photo Proof
-                                            </button>
-                                        </div>` : 
-                                        (isPending ? 
-                                            `<div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
-                                                ${proofImgHtml}
-                                                <div>
-                                                    <span style="background:rgba(255,149,0,0.2); border:none !important; outline:none !important; color:#FF9500; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
-                                                        <i class="fa-solid fa-clock"></i> Pending Review
-                                                    </span>
-                                                    <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Awaiting Approval</span>
-                                                </div>
-                                            </div>` : 
-                                            `<button class="btn-primary" style="padding: 8px 14px; font-size:12px; font-weight:800; width:max-content; border-radius:100px; background: linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; box-shadow: none; color:#fff; cursor:pointer;" onclick="window.openCheckinModal('${item.id}')">
-                                                <i class="fa-solid fa-location-arrow" style="margin-right:4px;"></i> Check In (+50 PTS)
-                                             </button>`))
-                                }
+                    const transportBadge = getSavedTripTransportBadge(trip.transport_mode);
+                    const safeTitle = trip.title ? trip.title.replace(/"/g, '&quot;').replace(/'/g, "\\'") : 'Saved Trip';
+                    html += `
+                    <div class="trip-swipe-container" data-trip-id="${trip.id}" data-trip-title="${safeTitle}" style="position:relative; overflow:hidden; border-radius:24px; -webkit-mask-image:-webkit-radial-gradient(white, black); mask-image:radial-gradient(white, black); isolation:isolate; contain:paint; margin-bottom:20px;">
+                        <!-- Red Delete Action Button (Slides smoothly in tandem from right wall) -->
+                        <div class="trip-swipe-bg" onclick="window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}')" style="position:absolute; top:0; right:0; bottom:0; width:95px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 24px 24px 0; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:13px; font-weight:800; gap:6px; z-index:1; cursor:pointer; opacity:0; pointer-events:none; transform:translateX(95px); transition:transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;">
+                            <i class="fa-solid fa-trash-can"></i> Delete
+                        </div>
+                        
+                        <!-- Rich Glassmorphic Front Card Content (Overlays z-index 2) -->
+                        <div class="trip-swipe-content" style="position:relative; z-index:2; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 24px; padding: 22px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease; box-shadow: 0 10px 28px rgba(10, 25, 60, 0.28);">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 6px;">
+                                <h3 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; flex: 1; min-width: 0; word-break: break-word;">${trip.title}</h3>
+                                <button type="button" class="btn-edit-saved-trip" onclick="event.stopPropagation(); window.editSavedTrip('${trip.id}')" ontouchstart="event.stopPropagation();" onpointerdown="event.stopPropagation();" onmousedown="event.stopPropagation();" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" style="background: rgba(255,255,255,0.18); border: none !important; outline: none !important; border-radius: 12px; padding: 6px 14px; color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; transition: all 0.2s ease; box-shadow: none !important; position: relative; z-index: 10; pointer-events: auto; touch-action: manipulation;">
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                                </button>
                             </div>
-                        </div>`;
-                    });
-                } else {
-                    html += `<p style="font-size:13px; color:#ffffff; opacity:0.85; margin:10px 0;">No destinations in this trip.</p>`;
+                            <div style="font-size: 12.5px; color: #ffffff; opacity: 0.95; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <span style="display:inline-flex; align-items:center; gap:5px; font-weight:700;"><i class="fa-regular fa-calendar" style="color: #ffffff;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}</span> 
+                                ${transportBadge}
+                                ${trip.budget ? `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-coins" style="font-size:10px; color:#fbbf24;"></i>Budget: ₱${parseFloat(trip.budget).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}${budgetIndicator}</span>` : ''}
+                            </div>
+                            <div class="timeline-collapsible" id="timeline-${trip.id}">
+                                <div class="timeline-inner">
+                                    <div class="timeline">`;
+                                          let unvisitedCount = 0;
+                        const isTripCompleted = (trip.status === 'completed');
+                        if (trip.items && trip.items.length) {
+                            const firstUnvisitedIdx = trip.items.findIndex(i => !(i.is_visited || i.proof_status === 'approved'));
+                            trip.items.forEach((item, index) => {
+                                if (!item) return;
+                                const dest = item.destination;
+                                const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
+                                const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
+                                const isRejected = (item.proof_status === 'rejected');
+                                const isNextStop = (!isVisited && !isPending && index === firstUnvisitedIdx);
+                                if (!isVisited) unvisitedCount++;
+
+                                let proofImgHtml = '';
+                                if (item.proof_image) {
+                                    let pUrl = item.proof_image;
+                                    if (!pUrl.startsWith('http') && !pUrl.startsWith('data:') && !pUrl.startsWith('blob:')) {
+                                        let b = (window.backendUrl || '').replace(/\/+$/, '');
+                                        pUrl = b + '/' + pUrl.replace(/^\//, '');
+                                    }
+                                    let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + item.proof_image.replace(/^\//, '');
+                                    proofImgHtml = `<img src="${pUrl}" onerror="if(this.src!=='${fallbackUrl}'){this.src='${fallbackUrl}';}" alt="Proof" style="width:52px; height:52px; border-radius:10px; object-fit:cover; border:none !important; outline:none !important; box-shadow:0 4px 12px rgba(0,0,0,0.3); flex-shrink:0;">`;
+                                }
+
+                                const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
+                                const sMeta = (typeof window.getRewardPointsForClassification === 'function')
+                                    ? window.getRewardPointsForClassification(sClass)
+                                    : { points: (sClass === 'POTENTIAL' ? 75 : (sClass === 'EMERGE' ? 50 : 25)) };
+
+                                if (item.transport_mode) {
+                                    const legModes = parseVehicleModes(item.transport_mode);
+                                    let vIcon = 'fa-route';
+                                    let vName = item.transport_mode;
+
+                                    if (legModes.length > 1) {
+                                        vIcon = 'fa-route';
+                                        vName = `${legModes.length} Vehicles`;
+                                    } else if (legModes.length === 1) {
+                                        const info = getVehicleInfo(legModes[0]);
+                                        vIcon = info.icon;
+                                        vName = info.name;
+                                    }
+
+                                    const costNum = parseFloat(item.leg_cost || 0);
+                                    const costStr = (costNum > 0) ? `&bull; ₱${costNum.toFixed(2)}` : (legModes.length === 1 && ['own_car', 'motorcycle', 'walking'].includes(legModes[0]) ? '&bull; ₱0' : '');
+                                    const distNum = parseFloat(item.leg_distance_km || 0);
+                                    const distStr = (distNum > 0) ? `&bull; ${distNum.toFixed(1)} km` : '';
+
+                                    html += `
+                                    <div style="display:flex; align-items:center; gap:8px; margin:${index === 0 ? '0 0 10px 18px' : '4px 0 10px 18px'};">
+                                        <span style="padding:3px 10px; border-radius:100px; font-size:10.5px; font-weight:700; background:rgba(255,255,255,0.16); color:#e0f2fe; display:inline-flex; align-items:center; gap:5px; border:none !important; outline:none !important;">
+                                            <i class="fa-solid ${vIcon}" style="color:#00f2fe; font-size:10px;"></i>
+                                            <span>${vName}</span>
+                                            ${costStr ? `<span style="color:#38bdf8; font-weight:800;">${costStr}</span>` : ''}
+                                            ${distStr ? `<span style="opacity:0.8; font-size:9.5px;">${distStr}</span>` : ''}
+                                        </span>
+                                    </div>`;
+                                }
+
+                                html += `
+                                <div class="timeline-item ${isVisited ? 'completed' : (isPending ? 'pending' : (isNextStop ? 'is-next-stop' : ''))}" style="margin-bottom: 12px;">
+                                    <div class="timeline-dot"></div>
+                                    <div class="timeline-content" style="padding:14px; background: rgba(255,255,255,0.12); border: none !important; outline: none !important; border-radius: 16px; display:flex; flex-direction:column; gap:8px;">
+                                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                            <h4 style="margin:0; font-size:15px; font-weight:800; color:#ffffff;">${dest ? dest.name : 'Unknown Destination'}</h4>
+                                            ${isNextStop ? `<span style="padding: 2px 8px; border-radius: 100px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: linear-gradient(135deg, #00f2fe, #0284c7); border: none !important; outline: none !important;"><i class="fa-solid fa-location-dot" style="font-size:8px;"></i> Next Stop</span>` : ''}
+                                            ${(dest && dest.classification_status) ? `<span style="padding: 2px 8px; border-radius: 100px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; border: none !important; outline: none !important;">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
+                                        </div>
+                                        ${(dest && (dest.accessible_by_private_vehicle === 0 || dest.accessible_by_private_vehicle === false)) ? `<div style="background:rgba(239, 68, 68, 0.15); border:none !important; outline:none !important; border-radius:10px; padding:8px 12px; display:flex; gap:8px; align-items:flex-start; margin-top:4px;"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; font-size:13px; margin-top:2px;"></i><div><h5 style="margin:0 0 2px 0; font-size:11px; font-weight:800; color:#ef4444; text-transform:uppercase;">Inaccessible by Private Car</h5><p style="margin:0; font-size:10px; color:#ffffff; opacity:0.9; line-height:1.3;">Prepare to hike or use specialized local transport.</p></div></div>` : ''}
+
+                                        ${isVisited ? 
+                                            `<div style="display:flex; align-items:center; justify-space-between; gap:10px; margin-top:4px;">
+                                                <div style="display:flex; align-items:center; gap:10px;">
+                                                    ${proofImgHtml}
+                                                    <div>
+                                                        <span style="color:#34c759; font-size:12px; font-weight:800; display:block;">
+                                                            <i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Visited & Verified
+                                                        </span>
+                                                        <span style="font-size:10px; color:#ffffff; opacity:0.8;">Approved by Tourism Office</span>
+                                                    </div>
+                                                </div>
+                                                <button type="button" data-spot-id="${item.tourist_spot_id || (dest ? dest.id : '')}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (dest ? dest.id : '')}', this)" style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:none; flex-shrink:0;">
+                                                    ${(window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(item.tourist_spot_id || (dest ? dest.id : '')))) ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review (+${sMeta.points} PTS)`}
+                                                </button>
+                                            </div>` : 
+                                            (isRejected ? 
+                                                `<div style="display:flex; flex-direction:column; gap:6px; margin-top:4px;">
+                                                    <div style="display:flex; align-items:center; gap:10px;">
+                                                        ${proofImgHtml}
+                                                        <div>
+                                                            <span style="color:#ef4444; font-size:12px; font-weight:800; display:block;">
+                                                                <i class="fa-solid fa-circle-xmark" style="margin-right:4px;"></i> Proof Rejected
+                                                            </span>
+                                                            <span style="font-size:10px; color:#ef4444;">${item.rejection_reason || 'Please upload a clearer photo taken at the destination.'}</span>
+                                                        </div>
+                                                    </div>
+                                                    <button class="btn-primary" style="padding: 8px 14px; font-size:12px; font-weight:700; width:max-content; border-radius:100px; background: linear-gradient(135deg, #ef4444, #dc2626); border:none !important; outline:none !important; box-shadow: none; color:#fff; cursor:pointer;" onclick="window.openCheckinModal('${item.id}')">
+                                                        <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Re-upload Photo Proof
+                                                    </button>
+                                                </div>` : 
+                                                (isPending ? 
+                                                    `<div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
+                                                        ${proofImgHtml}
+                                                        <div>
+                                                            <span style="background:rgba(255,149,0,0.2); border:none !important; outline:none !important; color:#FF9500; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
+                                                                <i class="fa-solid fa-clock"></i> Pending Review
+                                                            </span>
+                                                            <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Awaiting Approval</span>
+                                                        </div>
+                                                    </div>` : 
+                                                    `<button class="btn-primary" style="padding: 8px 14px; font-size:12px; font-weight:800; width:max-content; border-radius:100px; background: linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; box-shadow: none; color:#fff; cursor:pointer;" onclick="window.openCheckinModal('${item.id}')">
+                                                        <i class="fa-solid fa-location-arrow" style="margin-right:4px;"></i> Check In (+50 PTS)
+                                                     </button>`))
+                                        }
+                                    </div>
+                                </div>`;
+                            });
+                        } else {
+                            html += `<p style="font-size:13px; color:#ffffff; opacity:0.85; margin:10px 0;">No destinations in this trip.</p>`;
+                        }
+                            
+                        html += `</div></div></div>`; // Close timeline, timeline-inner, and timeline-collapsible
+
+                        // Action buttons
+                        html += `<div style="display:flex; gap:10px; margin-top:16px;">`;
+
+                        // View Details button
+                        html += `
+                        <button class="btn-primary" style="flex:1; background: rgba(255, 255, 255, 0.22); border: none !important; outline: none !important; color: #ffffff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.25s ease;" onclick="window.toggleTripDetails('${trip.id}')">
+                            <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="margin-right:8px; transition:transform 0.3s ease;"></i> View Details
+                        </button>`;
+
+                        // Start / Complete button wrapper
+                        html += `<div class="start-collapsible" id="start-wrapper-${trip.id}">`;
+                        if (isTripCompleted) {
+                            html += `
+                            <button class="btn-primary" style="width:100%; white-space:nowrap; background: rgba(16,185,129,0.25); border: none !important; outline: none !important; color: #ffffff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: default;" disabled>
+                                <i class="fa-solid fa-circle-check" style="margin-right:6px; color:#34c759;"></i> Completed
+                            </button>`;
+                        } else if (unvisitedCount === 0 && trip.items && trip.items.length > 0) {
+                            html += `
+                            <button class="btn-primary" id="btn-complete-trip-${trip.id}" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none !important; outline: none !important; color: #fff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; box-shadow: none; cursor: pointer;" onclick="window.markTripCompleted('${trip.id}')">
+                                <i class="fa-solid fa-flag-checkered" style="margin-right:6px;"></i> Complete
+                            </button>`;
+                        } else {
+                            html += `
+                            <button type="button" class="btn-primary" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border: none !important; outline: none !important; color: #fff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; box-shadow: none; cursor: pointer;" onclick="event.stopPropagation(); window.startTrip('${trip.id}', this)">
+                                <i class="fa-solid fa-play" style="margin-right:6px;"></i> Start
+                            </button>`;
+                        }
+                        html += `</div>`; // Close start-collapsible
+                        
+                        html += `</div></div></div>`; // Close trip-swipe-content and trip-swipe-container
+                } catch (tripErr) {
+                    console.error("Error rendering saved trip item:", tripErr, trip);
                 }
-                    
-                html += `</div></div></div>`; // Close timeline, timeline-inner, and timeline-collapsible
-
-                // Action buttons
-                html += `<div style="display:flex; gap:10px; margin-top:16px;">`;
-
-                // View Details button
-                html += `
-                <button class="btn-primary" style="flex:1; background: rgba(255, 255, 255, 0.22); border: none !important; outline: none !important; color: #ffffff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.25s ease;" onclick="window.toggleTripDetails('${trip.id}')">
-                    <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="margin-right:8px; transition:transform 0.3s ease;"></i> View Details
-                </button>`;
-
-                // Start / Complete button wrapper
-                html += `<div class="start-collapsible" id="start-wrapper-${trip.id}">`;
-                if (isTripCompleted) {
-                    html += `
-                    <button class="btn-primary" style="width:100%; white-space:nowrap; background: rgba(16,185,129,0.25); border: none !important; outline: none !important; color: #ffffff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: default;" disabled>
-                        <i class="fa-solid fa-circle-check" style="margin-right:6px; color:#34c759;"></i> Completed
-                    </button>`;
-                } else if (unvisitedCount === 0 && trip.items && trip.items.length > 0) {
-                    html += `
-                    <button class="btn-primary" id="btn-complete-trip-${trip.id}" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none !important; outline: none !important; color: #fff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; box-shadow: none; cursor: pointer;" onclick="window.markTripCompleted('${trip.id}')">
-                        <i class="fa-solid fa-flag-checkered" style="margin-right:6px;"></i> Complete
-                    </button>`;
-                } else {
-                    html += `
-                    <button type="button" class="btn-primary" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border: none !important; outline: none !important; color: #fff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; box-shadow: none; cursor: pointer;" onclick="event.stopPropagation(); window.startTrip('${trip.id}', this)">
-                        <i class="fa-solid fa-play" style="margin-right:6px;"></i> Start
-                    </button>`;
-                }
-                html += `</div>`; // Close start-collapsible
-                
-                html += `</div></div></div>`; // Close trip-swipe-content and trip-swipe-container
             });
 
-            list.innerHTML = html;
+            list.innerHTML = html || emptyStateHtml;
             initSavedTripsSwipe();
             if (typeof window.syncReviewedButtons === 'function') {
                 window.syncReviewedButtons();
@@ -537,6 +548,25 @@ body[data-view="saved_trips"],
                     }
                 }, 80);
             }
+        } catch (fatalErr) {
+            console.error("Fatal error rendering saved trips:", fatalErr);
+            const list = document.getElementById('saved-trips-list');
+            if (list) {
+                list.innerHTML = `
+                    <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px;">
+                        <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                            <i class="fa-solid fa-circle-exclamation" style="font-size: 32px; color: #ef4444;"></i>
+                        </div>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff;">Unable to Display Trips</h3>
+                        <p style="margin: 0; font-size: 13px; color: rgba(148,163,184,0.9); line-height: 1.45; max-width: 260px;">Something went wrong while displaying your trips. Tap below to reload.</p>
+                        <button type="button" class="btn-cta-accent-10" onclick="if(typeof window.loadSavedTrips==='function') window.loadSavedTrips(true);" style="margin-top: 10px; padding: 12px 24px; border-radius: 100px; font-size: 14px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <i class="fa-solid fa-rotate"></i> Retry
+                        </button>
+                    </div>
+                `;
+            }
+        }
+    }            }
     }
 
     window.toggleTripDetails = function(tripId) {
@@ -1447,7 +1477,7 @@ body[data-view="saved_trips"],
         if (rawCached) {
             try {
                 const parsed = window.safeJsonParse(rawCached, null);
-                if (parsed && Array.isArray(parsed.data) && parsed.data.length > 0) {
+                if (parsed && Array.isArray(parsed.data)) {
                     renderSavedTrips(parsed.data);
                 }
             } catch (e) {}
