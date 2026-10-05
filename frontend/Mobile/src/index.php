@@ -258,6 +258,7 @@ if ($isAjax) {
     <link rel="stylesheet" href="assets/css/views/trip_map.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/saved_trips.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/trending.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/views/user_manual.css?v=<?= time() ?>">
 </head>
 
 <body data-view="<?= htmlspecialchars($view) ?>">

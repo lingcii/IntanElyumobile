@@ -6,18 +6,33 @@ $backRoute = 'settings';
 <?php include __DIR__ . '/../components/header.php'; ?>
 
 <style>
+html:has(body[data-view="user_manual"]),
 body[data-view="user_manual"] {
-    background:
-        radial-gradient(ellipse at 85% 5%, rgba(0, 242, 254, 0.35) 0%, transparent 55%),
-        radial-gradient(ellipse at 15% 45%, rgba(56, 189, 248, 0.3) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 80%, rgba(63, 125, 183, 0.4) 0%, transparent 60%),
-        linear-gradient(180deg, #1e3a8a 0%, #3f7db7 30%, #0284c7 65%, #06b6d4 90%, #00f2fe 100%) !important;
-    background-attachment: fixed !important;
-    color: #ffffff !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
 }
 
+body[data-view="user_manual"] #app-container,
+body[data-view="user_manual"] #main-content {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+}
+
+body[data-view="user_manual"] .mobile-header,
+.mobile-header {
+    background: #1e3a8a !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: none !important;
+    outline: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+
+html:has(body[data-view="user_manual"])::-webkit-scrollbar,
 body[data-view="user_manual"]::-webkit-scrollbar,
 .user-manual-page::-webkit-scrollbar {
     display: none !important;
@@ -30,12 +45,16 @@ body[data-view="user_manual"]::-webkit-scrollbar,
     padding-left: 16px;
     padding-right: 16px;
     padding-bottom: 30px;
-    color: #ffffff;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a;
     font-family: 'Inter', sans-serif;
     max-width: 800px;
     margin: 0 auto;
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
+    min-height: 100vh;
+    box-sizing: border-box;
 }
 
 #bottom-navigation {
@@ -134,8 +153,8 @@ body[data-view="user_manual"]::-webkit-scrollbar,
 
 .manual-chip {
     flex-shrink: 0;
-    background: rgba(255, 255, 255, 0.12);
-    border: none !important;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
     outline: none !important;
     color: #ffffff;
     font-size: 11px;
@@ -149,11 +168,11 @@ body[data-view="user_manual"]::-webkit-scrollbar,
 }
 
 .manual-chip:hover, .manual-chip.active {
-    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
-    border: none !important;
+    background: #ffffff !important;
+    border: 1px solid #ffffff !important;
     outline: none !important;
-    color: #ffffff !important;
-    box-shadow: 0 4px 14px rgba(0, 242, 254, 0.35);
+    color: #1e3a8a !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
 }
 
 .manual-section {

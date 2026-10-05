@@ -992,6 +992,7 @@
             updateTitleWithTransition('Welcome to Elyu');
         }
     }
+    window.toggleAuthMode = toggleAuthMode;
 
     window.showForgotPassword = function(e) {
         if (e) e.preventDefault();
@@ -1386,8 +1387,8 @@
             }
 
             // Animate checkmark success in modal
-            if (titleEl) titleEl.textContent = 'Account Registered Successfully!';
-            if (subEl) subEl.textContent = 'Redirecting to your dashboard...';
+            if (titleEl) titleEl.textContent = 'Account Created Successfully!';
+            if (subEl) subEl.textContent = 'Please log in with your credentials...';
             if (spinnerSvg) spinnerSvg.style.display = 'none';
             if (checkmarkIcon) checkmarkIcon.style.display = 'block';
 
@@ -1397,14 +1398,51 @@
                     setTimeout(() => { modal.style.display = 'none'; }, 300);
                 }
 
-                if (data.user) localStorage.setItem('auth_user', JSON.stringify(data.user));
-                if (data.token) localStorage.setItem('intan_elyu_token', data.token);
+                // Ensure user is not auto-logged in, requiring manual login first
+                try {
+                    localStorage.removeItem('intan_elyu_token');
+                    localStorage.removeItem('auth_user');
+                } catch (e) {}
 
                 sessionStorage.setItem('show_onboarding', '1');
                 sessionStorage.setItem('pending_reg_email', data.email || email);
 
-                if (typeof showToast === 'function') showToast('Account created successfully! Welcome to Intan Elyu!');
-                window.location.href = '?view=dashboard';
+                // Reset registration form inputs & validation hints
+                const regForm = document.getElementById('form-register');
+                if (regForm) regForm.reset();
+                const regEmailStatusIcon = document.getElementById('reg-email-status-icon');
+                if (regEmailStatusIcon) regEmailStatusIcon.className = 'fa-solid field-status-icon';
+                const regPwdStatusIcon = document.getElementById('reg-password-status-icon');
+                if (regPwdStatusIcon) regPwdStatusIcon.className = 'fa-solid field-status-icon password-offset';
+                const regEmailHint = document.getElementById('reg-email-hint');
+                if (regEmailHint) regEmailHint.style.display = 'none';
+                const regPwdHint = document.getElementById('reg-password-hint');
+                if (regPwdHint) regPwdHint.style.display = 'none';
+
+                if (btn) {
+                    btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
+                    btn.disabled = false;
+                }
+
+                // Switch back to Login view
+                if (typeof toggleAuthMode === 'function') {
+                    toggleAuthMode(false);
+                }
+
+                // Pre-fill email in Login Credentials
+                const loginEmailEl = document.getElementById('login-email');
+                if (loginEmailEl && email) {
+                    loginEmailEl.value = email;
+                }
+                const loginPwdEl = document.getElementById('login-password');
+                if (loginPwdEl) {
+                    loginPwdEl.value = '';
+                    setTimeout(() => { loginPwdEl.focus(); }, 350);
+                }
+
+                if (typeof showToast === 'function') {
+                    showToast('Account created successfully! Please log in to your account.', 'success', 5000);
+                }
             }, 1800);
 
         } catch (error) {
