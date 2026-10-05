@@ -3,7 +3,6 @@
 $token = $_GET['token'] ?? '';
 $email = $_GET['email'] ?? '';
 ?>
-<link rel="stylesheet" href="assets/css/views/auth.css?v=<?= time() ?>">
 <script>
     (function () {
         var winH = window.innerHeight || 0;

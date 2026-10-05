@@ -1,26 +1,3 @@
-<style>
-    .maplibregl-ctrl-bottom-right {
-        bottom: 190px !important;
-        right: 16px !important;
-        z-index: 999;
-    }
-    .maplibregl-ctrl-group {
-        box-shadow: none !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    }
-    .hide-scrollbar::-webkit-scrollbar {
-        display: none;
-    }
-    .hide-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
-    @keyframes markerPulse {
-        0% { transform: scale(0.6); opacity: 0.9; }
-        50% { transform: scale(1.3); opacity: 0.4; }
-        100% { transform: scale(2.0); opacity: 0; }
-    }
-</style>
 <?php
 $pageTitle = "Trip Route";
 $backRoute = "saved_trips";
@@ -130,12 +107,6 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
 
 
-<style>
-@keyframes slideDown {
-    from { transform: translateY(-20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-</style>
 
 <script>
 (function() {

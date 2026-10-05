@@ -241,6 +241,7 @@ if ($isAjax) {
     <!-- Component Styles -->
     <link rel="stylesheet" href="assets/css/components/header.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/components/bottom_nav.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/components/modals.css?v=<?= time() ?>">
     <!-- View Styles -->
     <link rel="stylesheet" href="assets/css/views/dashboard.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/profile.css?v=<?= time() ?>">
@@ -254,9 +255,12 @@ if ($isAjax) {
     <link rel="stylesheet" href="assets/css/views/splash.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/map.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/itinerary.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/views/puzzles.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/discount.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/trip_map.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/saved_trips.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/views/saved_places.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/views/ar_checkin.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/trending.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/user_manual.css?v=<?= time() ?>">
 </head>
@@ -341,54 +345,7 @@ if ($isAjax) {
     <div id="bottom-navigation" class="<?= $navHiddenClass ?>">
         <?php include __DIR__ . '/components/bottom_nav.php'; ?>
     </div>
-    <style>
-        body[data-view="download"] #app-container,
-        body[data-view="download"] #main-content {
-            max-width: 100% !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: transparent !important;
-            box-shadow: none !important;
-        }
-        body[data-view="download"] #global-cloud-container {
-            display: none !important;
-        }
-        #bottom-navigation {
-            position: fixed !important;
-            bottom: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            width: 100% !important;
-            height: 0 !important;
-            overflow: visible !important;
-            z-index: 99999 !important;
-            pointer-events: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            border: none !important;
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s ease !important;
-        }
 
-        #bottom-navigation.nav-hidden {
-            opacity: 0 !important;
-            pointer-events: none !important;
-            transform: translateY(140px) !important;
-            visibility: hidden !important;
-        }
-
-        #bottom-navigation.keyboard-hidden,
-        body.keyboard-open #bottom-navigation,
-        html.keyboard-open #bottom-navigation,
-        body.map-search-active #bottom-navigation,
-        body.sheet-open #bottom-navigation,
-        html.sheet-open #bottom-navigation {
-            opacity: 0 !important;
-            pointer-events: none !important;
-            transform: translateY(140px) !important;
-            visibility: hidden !important;
-        }
-    </style>
 </body>
 
 </html>

@@ -5,7 +5,7 @@ $activeTab = 'leaderboard';
 ?>
 
 <?php include __DIR__ . '/../components/header.php'; ?>
-<link rel="stylesheet" href="assets/css/views/leaderboard.css?v=<?= time() ?>">
+
 
 <div class="leaderboard-container has-header has-bottom-nav animate-fade-in">
 

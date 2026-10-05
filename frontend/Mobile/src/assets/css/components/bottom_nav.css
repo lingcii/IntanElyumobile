@@ -198,3 +198,18 @@ html.sheet-open #bottom-navigation,
 .has-bottom-nav {
     padding-bottom: calc(108px + env(safe-area-inset-bottom));
 }
+
+/* Download View Fullscreen Resets */
+body[data-view="download"] #app-container,
+body[data-view="download"] #main-content {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+body[data-view="download"] #global-cloud-container {
+    display: none !important;
+}

@@ -24,8 +24,6 @@ if (is_dir($imgDir)) {
 }
 ?>
 
-<link rel="stylesheet" href="assets/css/views/dashboard.css?v=<?= time() ?>">
-
 <?php include __DIR__ . '/../components/header.php'; ?>
 
 

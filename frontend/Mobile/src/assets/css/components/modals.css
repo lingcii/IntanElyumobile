@@ -1,0 +1,1212 @@
+/* ==========================================================================
+   Intan-Elyu Mobile Component: Modals & Dialog Overlays
+   Location: frontend/Mobile/src/assets/css/components/modals.css
+   ========================================================================== */
+
+/* ── Universal Modal Animations ── */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes modalEnter {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes oauthModalFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes oauthCardPop {
+    0% {
+        transform: scale(0.85);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes oauthSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes oauthSuccessPop {
+    0% {
+        transform: scale(0.7);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ==========================================================================
+   1. Standard & Profile Modal Overlays & Cards
+   ========================================================================== */
+.modal-overlay,
+.profile-modal-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background: rgba(15, 23, 42, 0.75) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    z-index: 1000005 !important;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-overlay.active,
+.modal-overlay.show,
+.profile-modal-overlay.active,
+.profile-modal-overlay.show {
+    display: flex !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+.modal-card,
+.profile-modal-card {
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%) !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: none !important;
+    outline: none !important;
+    border-radius: 26px !important;
+    width: 100%;
+    max-width: 380px;
+    padding: 24px 22px !important;
+    box-shadow: 0 25px 60px rgba(10, 25, 60, 0.55) !important;
+    box-sizing: border-box;
+    position: relative;
+    transform: scale(0.85) translateY(20px);
+    transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-align: center;
+}
+
+.modal-overlay.active .modal-card,
+.profile-modal-overlay.active .profile-modal-card {
+    transform: scale(1) translateY(0);
+}
+
+/* Modal Header & Badges */
+.modal-header,
+.profile-modal-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 14px;
+    margin-bottom: 14px !important;
+    text-align: left;
+}
+
+.modal-badge,
+.profile-modal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(0, 242, 254, 0.22) !important;
+    border: none !important;
+    outline: none !important;
+    color: #00f2fe !important;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.modal-time,
+.profile-modal-time {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.75) !important;
+    font-weight: 600;
+}
+
+.modal-close,
+.profile-modal-close {
+    background: #ffffff !important;
+    border: none !important;
+    outline: none !important;
+    color: #1e3a8a !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    transition: all 0.2s ease !important;
+    position: static !important;
+    flex-shrink: 0;
+}
+
+.modal-close i,
+.profile-modal-close i {
+    color: #1e3a8a !important;
+}
+
+.modal-close:hover,
+.profile-modal-close:hover {
+    background: #f1f5f9 !important;
+}
+
+.modal-close:active,
+.profile-modal-close:active {
+    transform: scale(0.92);
+}
+
+/* Profile Identity inside Modal */
+.profile-modal-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.profile-avatar-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+#modal-avatar {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px #00f2fe, 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.modal-rank-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00f2fe, #0284c7);
+    color: #ffffff;
+    font-weight: 900;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px #ffffff;
+}
+
+#modal-name {
+    margin: 0 0 6px 0;
+    font-size: 20px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.3px;
+    line-height: 1.25;
+}
+
+.profile-tags-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+
+.profile-rank-pill {
+    font-size: 11px;
+    font-weight: 800;
+    color: #00f2fe;
+    background: rgba(0, 242, 254, 0.16);
+    border: none !important;
+    outline: none !important;
+    padding: 3px 12px;
+    border-radius: 100px;
+}
+
+.profile-location-pill {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.profile-location-pill i {
+    color: #00f2fe;
+    font-size: 11px;
+}
+
+.profile-bio-box {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.92);
+    font-style: italic;
+    margin: 8px 0 0 0;
+    line-height: 1.45;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: none !important;
+    outline: none !important;
+    max-width: 100%;
+}
+
+/* Modal Stats Boxes */
+.modal-stats {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    margin-top: 10px !important;
+}
+
+.modal-stat-box {
+    background: rgba(255, 255, 255, 0.14) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    border-radius: 16px;
+    padding: 10px 6px !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+
+.modal-stat-box i {
+    font-size: 15px;
+    margin-bottom: 2px;
+}
+
+.modal-stat-box span {
+    font-size: 14px;
+    font-weight: 900;
+    color: #ffffff;
+}
+
+.modal-stat-box small {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.85) !important;
+    text-transform: uppercase;
+}
+
+/* Modal Action Buttons */
+.modal-actions,
+.profile-modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.profile-modal-btn-white {
+    flex: 1;
+    border: none !important;
+    outline: none !important;
+    background: #ffffff !important;
+    color: #1e3a8a !important;
+    padding: 13px 18px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 13.5px;
+    cursor: pointer;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.profile-modal-btn-white:hover {
+    background: #f1f5f9 !important;
+}
+
+.profile-modal-btn-white:active {
+    transform: scale(0.97);
+}
+
+.profile-modal-btn-dismiss {
+    flex: 1;
+    border: none !important;
+    outline: none !important;
+    background: rgba(255, 255, 255, 0.16) !important;
+    color: #ffffff !important;
+    padding: 13px 18px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 13.5px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.profile-modal-btn-dismiss:hover {
+    background: rgba(255, 255, 255, 0.24) !important;
+}
+
+.profile-modal-btn-dismiss:active {
+    transform: scale(0.97);
+}
+
+.profile-modal-btn-dismiss.is-self {
+    background: #ffffff !important;
+    color: #1e3a8a !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    flex: 1;
+}
+
+.profile-modal-btn-dismiss.is-self:hover {
+    background: #f1f5f9 !important;
+}
+
+/* ==========================================================================
+   2. Check-in & Trip Modals (Shared across Saved Trips & Trip Map)
+   ========================================================================== */
+#checkin-modal,
+#complete-trip-modal,
+#delete-trip-modal {
+    z-index: 99999 !important;
+    background: rgba(6, 11, 25, 0.75) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+}
+
+#checkin-modal > div,
+#complete-trip-modal > div,
+#delete-trip-modal > div {
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45) !important;
+    color: #ffffff !important;
+    border-radius: 26px !important;
+}
+
+/* Check-in Image Picker Choice Modal */
+#checkin-image-picker-modal {
+    background: rgba(6, 11, 25, 0.75) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    z-index: 999999 !important;
+}
+
+/* ==========================================================================
+   3. Save Trip Modal (Itinerary)
+   ========================================================================== */
+#save-trip-modal {
+    z-index: 99999 !important;
+    background: rgba(6, 11, 25, 0.8) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+}
+
+#save-trip-modal > div {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 8px 24px rgba(10, 25, 60, 0.3) !important;
+    color: #ffffff !important;
+    border-radius: 26px !important;
+}
+
+#save-trip-modal h3 {
+    color: #ffffff !important;
+    font-size: 21px !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.4px !important;
+}
+
+#save-trip-modal label {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+#save-trip-modal p {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+#save-trip-modal input,
+#save-trip-modal button,
+#save-trip-modal select,
+#save-trip-modal div {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    box-sizing: border-box;
+}
+
+#save-trip-modal input[type="text"],
+#save-trip-modal input[type="tel"],
+#save-trip-modal input[type="number"] {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: none !important;
+    outline: none !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    box-shadow: none !important;
+    transition: all 0.2s ease;
+}
+
+#save-trip-modal input[type="text"]:focus,
+#save-trip-modal input[type="tel"]:focus,
+#save-trip-modal input[type="number"]:focus {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: rgba(255, 255, 255, 0.18) !important;
+}
+
+#save-trip-modal input::placeholder {
+    color: rgba(255, 255, 255, 0.8) !important;
+    -webkit-text-fill-color: rgba(255, 255, 255, 0.8) !important;
+    opacity: 1 !important;
+    font-weight: 500 !important;
+}
+
+#save-trip-modal input::-webkit-input-placeholder {
+    color: rgba(255, 255, 255, 0.8) !important;
+    -webkit-text-fill-color: rgba(255, 255, 255, 0.8) !important;
+    opacity: 1 !important;
+    font-weight: 500 !important;
+}
+
+#save-trip-modal input::-moz-placeholder {
+    color: rgba(255, 255, 255, 0.8) !important;
+    opacity: 1 !important;
+    font-weight: 500 !important;
+}
+
+#save-trip-modal input:-ms-input-placeholder {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: 500 !important;
+}
+
+/* ==========================================================================
+   4. Testimony / Review Destination Modal
+   ========================================================================== */
+#testimony-modal.active {
+    opacity: 1 !important;
+}
+
+#testimony-modal.active .testimony-card-anim {
+    transform: scale(1) translateY(0) !important;
+    opacity: 1 !important;
+}
+
+.testimony-card-anim {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+.testimony-card-anim::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+#testimony-comment::placeholder,
+#testimony-policy::placeholder {
+    color: rgba(255, 255, 255, 0.65) !important;
+    opacity: 1 !important;
+}
+
+#testimony-comment::-webkit-input-placeholder,
+#testimony-policy::-webkit-input-placeholder {
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+
+#testimony-comment,
+#testimony-policy {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    overflow-y: hidden !important;
+    overflow-x: hidden !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    resize: none !important;
+}
+
+#testimony-comment::-webkit-scrollbar,
+#testimony-policy::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+.option-pill {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.option-pill:focus,
+.option-pill:active,
+.option-pill:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* ==========================================================================
+   5. Google OAuth & Authentication Modal
+   ========================================================================== */
+#global-oauth-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+    opacity: 0;
+    animation: oauthModalFadeIn 0.25s ease forwards;
+}
+
+.oauth-modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    max-width: 310px;
+    width: 86%;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    border-radius: 26px;
+    padding: 34px 22px 28px 22px;
+    box-sizing: border-box;
+    box-shadow: 0 15px 35px rgba(10, 25, 60, 0.4), 0 0 25px rgba(63, 125, 183, 0.25);
+    border: none !important;
+    outline: none !important;
+    animation: oauthCardPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    text-align: center;
+}
+
+.oauth-spinner-circle {
+    position: relative;
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+.oauth-spinner-ring {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 3.5px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-right-color: rgba(255, 255, 255, 0.85);
+    animation: oauthSpin 0.85s linear infinite;
+}
+
+.oauth-modal-title {
+    margin: 4px 0 0 0;
+    font-size: 19px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.2px;
+    text-shadow: 0 2px 6px rgba(15, 23, 42, 0.2);
+}
+
+.oauth-modal-subtitle {
+    margin: 0;
+    font-size: 13.5px;
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 500;
+    text-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+}
+
+.oauth-success-circle {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+    animation: oauthSuccessPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* ==========================================================================
+   6. Authentication, Login Success & 2FA Modals (from auth.php)
+   ========================================================================== */
+.login-success-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 999999;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.login-success-overlay.active {
+    display: flex !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+.login-success-card {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    border: none !important;
+    outline: none !important;
+    border-radius: 26px;
+    padding: 34px 24px 28px 24px;
+    max-width: 310px;
+    width: 86%;
+    text-align: center;
+    box-shadow: 0 15px 35px rgba(10, 25, 60, 0.4), 0 0 25px rgba(63, 125, 183, 0.25);
+    position: relative;
+    transform: scale(0.88) translateY(16px);
+    transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.login-success-overlay.active .login-success-card {
+    transform: scale(1) translateY(0);
+}
+
+.success-icon-badge {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.22);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px auto;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+
+.success-icon-badge.is-done {
+    background: #ffffff;
+    border-color: #ffffff;
+    box-shadow: 0 8px 25px rgba(15, 23, 42, 0.2);
+}
+
+.success-modal-title {
+    color: #ffffff !important;
+    font-size: 19px !important;
+    font-weight: 800 !important;
+    margin: 0 0 6px 0 !important;
+    letter-spacing: -0.2px;
+    text-shadow: 0 2px 6px rgba(15, 23, 42, 0.2);
+}
+
+.success-modal-sub {
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-size: 13.5px !important;
+    margin: 0 !important;
+    font-weight: 500 !important;
+    text-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+}
+
+.circular-spinner {
+    width: 38px;
+    height: 38px;
+    animation: spinnerRotate 1.2s linear infinite;
+}
+
+.circular-spinner .spinner-track,
+.spinner-track {
+    stroke: rgba(255, 255, 255, 0.35) !important;
+}
+
+.circular-spinner .spinner-head,
+.spinner-head {
+    stroke: #ffffff !important;
+    stroke-linecap: round;
+    stroke-dasharray: 80, 200;
+    stroke-dashoffset: 0;
+    animation: spinnerDash 1.4s ease-in-out infinite;
+}
+
+@keyframes spinnerRotate {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes spinnerDash {
+    0% {
+        stroke-dasharray: 1, 200;
+        stroke-dashoffset: 0;
+    }
+    50% {
+        stroke-dasharray: 89, 200;
+        stroke-dashoffset: -35px;
+    }
+    100% {
+        stroke-dasharray: 89, 200;
+        stroke-dashoffset: -124px;
+    }
+}
+
+.modal-check-mark {
+    font-size: 34px;
+    color: #0284c7 !important;
+    animation: checkPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes checkPop {
+    0% {
+        transform: scale(0.2);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.auth-2fa-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 999999;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.auth-2fa-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.auth-2fa-card {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 50%, #74a3cf 100%) !important;
+    border: none !important;
+    outline: none !important;
+    border-radius: 26px;
+    padding: 30px 24px;
+    max-width: 380px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(10, 25, 60, 0.45), 0 0 35px rgba(116, 163, 207, 0.25);
+    position: relative;
+    transform: scale(0.88) translateY(16px);
+    transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.auth-2fa-overlay.active .auth-2fa-card {
+    transform: scale(1) translateY(0);
+}
+
+.auth-2fa-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none !important;
+    outline: none !important;
+    color: #ffffff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s;
+}
+
+.auth-2fa-close:hover {
+    background: rgba(255, 255, 255, 0.35);
+    color: #fff;
+}
+
+.auth-2fa-icon-ring {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.22);
+    border: none !important;
+    outline: none !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 14px auto;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    font-size: 28px;
+    color: #ffffff;
+}
+
+.auth-2fa-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.3px;
+    text-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
+}
+
+.auth-2fa-desc {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.95);
+    line-height: 1.55;
+    margin: 0 0 16px 0;
+}
+
+.auth-2fa-alert-box {
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    text-align: left;
+    font-size: 12px;
+    color: #f59e0b;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+}
+
+.auth-2fa-info-box {
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-bottom: 18px;
+    text-align: left;
+    font-size: 12px;
+    color: #38bdf8;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+}
+
+.auth-2fa-btn-primary {
+    width: 100%;
+    padding: 14px;
+    border-radius: 100px;
+    background: linear-gradient(135deg, #38bdf8, #2563eb);
+    border: none;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(56, 189, 248, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-2fa-btn-primary:active {
+    transform: scale(0.97);
+}
+
+.auth-2fa-btn-success {
+    width: 100%;
+    padding: 14px;
+    border-radius: 100px;
+    background: linear-gradient(135deg, #34c759, #10b981);
+    border: none;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(52, 199, 89, 0.35);
+    transition: transform 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-2fa-otp-input {
+    width: 100%;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: 8px;
+    padding: 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1.5px solid #38bdf8;
+    color: #ffffff;
+    margin-bottom: 16px;
+    outline: none;
+}
+
+/* Custom Calendar Date Picker Dropdown inside Save Trip Modal */
+#custom-calendar-dropdown {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+    transition: max-height 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), margin 0.3s ease, padding 0.3s ease !important;
+    background: linear-gradient(135deg, rgba(16, 38, 86, 0.96) 0%, rgba(25, 55, 115, 0.96) 100%) !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    border-radius: 20px !important;
+    padding: 0 16px !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    pointer-events: none;
+}
+
+#custom-calendar-dropdown.calendar-open {
+    max-height: 480px !important;
+    opacity: 1 !important;
+    transform: translateY(0) scale(1) !important;
+    padding: 16px !important;
+    margin-top: -8px !important;
+    margin-bottom: 16px !important;
+    pointer-events: auto !important;
+}
+
+/* ==========================================================================
+   7. Push Notification Detail Modal (from header.php)
+   ========================================================================== */
+.push-notif-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000005;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.push-notif-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.push-notif-card {
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%) !important;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: none !important;
+    outline: none !important;
+    border-radius: 26px;
+    width: 100%;
+    max-width: 380px;
+    padding: 24px 22px;
+    box-shadow: 0 25px 60px rgba(10, 25, 60, 0.55);
+    transform: scale(0.85) translateY(20px);
+    transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-align: left;
+}
+
+.push-notif-backdrop.active .push-notif-card {
+    transform: scale(1) translateY(0);
+}
+
+.push-notif-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.push-notif-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(0, 242, 254, 0.22) !important;
+    border: none !important;
+    outline: none !important;
+    color: #00f2fe !important;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.push-notif-time {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.75) !important;
+    font-weight: 600;
+}
+
+.push-notif-close-btn {
+    background: #ffffff !important;
+    border: none !important;
+    outline: none !important;
+    color: #1e3a8a !important;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.push-notif-close-btn:hover {
+    background: #f1f5f9 !important;
+}
+
+.push-notif-close-btn:active {
+    transform: scale(0.95);
+}
+
+.push-notif-title {
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 800;
+    color: #ffffff !important;
+    line-height: 1.35;
+    letter-spacing: -0.3px;
+    border: none !important;
+    outline: none !important;
+}
+
+.push-notif-body {
+    margin: 0 0 20px;
+    font-size: 13.5px;
+    color: rgba(255, 255, 255, 0.92) !important;
+    line-height: 1.55;
+    font-weight: 400;
+    border: none !important;
+    outline: none !important;
+}
+
+.push-notif-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.push-notif-btn-secondary {
+    flex: 1;
+    border: none !important;
+    outline: none !important;
+    background: #ffffff !important;
+    color: #1e3a8a !important;
+    padding: 13px 18px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+}
+
+.push-notif-btn-secondary:hover {
+    background: #f1f5f9 !important;
+}
+
+.push-notif-btn-secondary:active {
+    transform: scale(0.97);
+}
+
+.push-notif-btn-delete {
+    flex: 1;
+    border: none !important;
+    outline: none !important;
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    padding: 13px 18px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+    transition: all 0.2s ease;
+}
+
+.push-notif-btn-delete:hover {
+    background: #dc2626 !important;
+}
+
+.push-notif-btn-delete:active {
+    transform: scale(0.97);
+}

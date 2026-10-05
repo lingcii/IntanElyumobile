@@ -1,0 +1,177 @@
+/* ============================================================
+ * AR Check-in View Styles - ar_checkin.css
+ * Intan Elyu Mobile — AR Camera & Overlay Interface
+ * ============================================================ */
+
+body[data-view="ar_checkin"] {
+    background: #000000 !important;
+    overflow: hidden !important;
+}
+
+#camera-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+    background: #000000;
+}
+
+#camera-view {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* UI Overlay */
+.ar-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+.ar-header {
+    pointer-events: all;
+    margin-top: env(safe-area-inset-top, 40px);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.btn-close-ar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+}
+
+.status-pill {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 8px 16px;
+    border-radius: 20px;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Target Reticle */
+.ar-reticle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 250px;
+    height: 250px;
+    border: 2px dashed rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+    z-index: 5;
+    transition: all 0.3s;
+}
+
+.ar-reticle.active {
+    border-color: #34d399;
+    background: rgba(52, 211, 153, 0.1);
+}
+
+/* Action Area */
+.ar-footer {
+    pointer-events: all;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+}
+
+.btn-scan {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.2);
+    border: 4px solid #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: all 0.2s;
+}
+
+.btn-scan:active {
+    transform: scale(0.9);
+    background: rgba(255, 255, 255, 0.4);
+}
+
+/* Trivia Modal */
+.trivia-card {
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 24px;
+    padding: 24px;
+    text-align: center;
+    color: #ffffff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.trivia-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.trivia-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 14px;
+    border-radius: 14px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.trivia-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.trivia-btn.correct {
+    background: rgba(52, 211, 153, 0.2);
+    border-color: #34d399;
+    color: #34d399;
+}
+
+.trivia-btn.wrong {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+/* Success Screen */
+.success-screen {
+    text-align: center;
+    color: #ffffff;
+    padding: 30px 20px;
+    background: radial-gradient(circle, rgba(52, 211, 153, 0.2) 0%, transparent 70%);
+}

@@ -5,8 +5,6 @@ $backRoute = 'dashboard';
 
 <?php include __DIR__ . '/../components/header.php'; ?>
 
-<link rel="stylesheet" href="assets/css/views/settings.css?v=<?php echo time(); ?>">
-
 <div class="settings-container has-header animate-slide-up">
     
     <!-- Account Security Group -->

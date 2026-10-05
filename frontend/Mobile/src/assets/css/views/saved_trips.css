@@ -308,3 +308,35 @@ body[data-view="saved_trips"] .mobile-header .header-icon i {
     color: #ffffff !important;
     border-radius: 26px !important;
 }
+
+/* Timeline and Start Collapsible Controls */
+.timeline-collapsible {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease, margin-top 0.4s ease;
+}
+
+.timeline-collapsible.expanded {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    margin-top: 16px;
+}
+
+.timeline-inner {
+    overflow: hidden;
+}
+
+.start-collapsible {
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease;
+    display: flex;
+}
+
+.start-collapsible.expanded {
+    max-width: 200px;
+    opacity: 1;
+}
+

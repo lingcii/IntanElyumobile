@@ -6,40 +6,7 @@ $backRoute = 'itinerary';
 <!-- Include Header Component -->
 <?php include __DIR__ . '/../components/header.php'; ?>
 <?php include __DIR__ . '/../components/testimony_modal.php'; ?>
-<link rel="stylesheet" href="assets/css/views/saved_trips.css?v=<?= time() ?>">
 
-<style>
-body[data-view="saved_trips"],
-.saved-trips-page-container {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
-}
-.timeline-collapsible {
-    display: grid;
-    grid-template-rows: 0fr;
-    opacity: 0;
-    transition: grid-template-rows 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease, margin-top 0.4s ease;
-}
-.timeline-collapsible.expanded {
-    grid-template-rows: 1fr;
-    opacity: 1;
-    margin-top: 16px;
-}
-.timeline-inner {
-    overflow: hidden;
-}
-.start-collapsible {
-    max-width: 0;
-    opacity: 0;
-    overflow: hidden;
-    transition: max-width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease;
-    display: flex;
-}
-.start-collapsible.expanded {
-    max-width: 200px;
-    opacity: 1;
-}
-</style>
 
 <!-- Saved Trips Container -->
 <div class="saved-trips-page-container has-header animate-slide-up">

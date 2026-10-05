@@ -16,44 +16,7 @@ $error = isset($_GET['error']) ? $_GET['error'] : null;
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Signing in... — Intan Elyu</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #F2F2F7;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 20px;
-            text-align: center;
-            padding: 40px;
-        }
-        .spinner {
-            width: 56px; height: 56px;
-            border: 4px solid rgba(0,122,255,0.15);
-            border-top-color: #007AFF;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .msg { font-size: 17px; font-weight: 600; color: #1C1C1E; }
-        .sub { font-size: 14px; color: #8E8E93; margin-top: 6px; }
-        .error-icon { font-size: 48px; }
-        .btn {
-            margin-top: 10px;
-            padding: 14px 28px;
-            background: #007AFF;
-            color: white;
-            border: none;
-            border-radius: 100px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: inherit;
-        }
-    </style>
+    <link rel="stylesheet" href="../assets/css/views/callback.css?v=<?= time() ?>">
 </head>
 <body>
 

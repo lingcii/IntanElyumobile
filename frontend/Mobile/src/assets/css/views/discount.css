@@ -101,4 +101,42 @@ body[data-view="discount"] .mobile-header,
 
 .voucher-card:active {
     transform: scale(0.98);
-}
+}
+
+.voucher-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -30%;
+    width: 140px;
+    height: 140px;
+    background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+/* Town Filter Pills */
+.muni-pill {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 5px 12px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.muni-pill.active {
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    border-color: transparent !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(32, 63, 141, 0.25) !important;
+}
+
+/* Voucher Detail Modal */
+#voucher-modal.active { opacity: 1 !important; }
+#voucher-modal.active .voucher-card-anim { transform: scale(1) translateY(0) !important; opacity: 1 !important; }
+
