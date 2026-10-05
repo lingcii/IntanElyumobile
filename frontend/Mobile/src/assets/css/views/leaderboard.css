@@ -634,94 +634,142 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
     box-shadow: 0 4px 14px rgba(32, 63, 141, 0.25) !important;
     transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-/* ── User Profile Modal Overlay & Card ── */
+/* ── User Profile Modal Overlay & Card (Notification Design) ── */
 .profile-modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(6, 11, 25, 0.75);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    z-index: 9999;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.75) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    z-index: 1000005 !important;
     display: none;
     align-items: center;
     justify-content: center;
     padding: 20px;
     box-sizing: border-box;
     opacity: 0;
+    pointer-events: none;
     transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .profile-modal-overlay.active {
     display: flex !important;
     opacity: 1 !important;
+    pointer-events: auto !important;
 }
 
 .profile-modal-card {
     background: linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%) !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
     border: none !important;
     outline: none !important;
-    border-radius: 28px;
+    border-radius: 26px !important;
     width: 100%;
-    max-width: 340px;
-    padding: 26px 20px;
+    max-width: 380px;
+    padding: 24px 22px !important;
+    box-shadow: 0 25px 60px rgba(10, 25, 60, 0.55) !important;
     box-sizing: border-box;
-    text-align: center;
     position: relative;
     transform: scale(0.85) translateY(20px);
-    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: none !important;
+    transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-align: center;
 }
 
 .profile-modal-overlay.active .profile-modal-card {
     transform: scale(1) translateY(0);
 }
 
+/* Modal Notification Header */
+.profile-modal-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 14px;
+    margin-bottom: 14px !important;
+    text-align: left;
+}
+
+.profile-modal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(0, 242, 254, 0.22) !important;
+    border: none !important;
+    outline: none !important;
+    color: #00f2fe !important;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.profile-modal-time {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.75) !important;
+    font-weight: 600;
+}
+
 .profile-modal-close {
-    position: absolute;
-    top: 14px;
-    right: 14px;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
     background: #ffffff !important;
     border: none !important;
     outline: none !important;
     color: #1e3a8a !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 14px !important;
+    font-weight: 800 !important;
     cursor: pointer;
-    font-size: 13px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
-    transition: transform 0.15s ease, background 0.15s ease;
+    transition: all 0.2s ease !important;
+    position: static !important;
+    flex-shrink: 0;
 }
 
 .profile-modal-close i {
     color: #1e3a8a !important;
 }
 
-.profile-modal-close:active {
-    transform: scale(0.9);
+.profile-modal-close:hover {
     background: #f1f5f9 !important;
 }
 
-.profile-modal-header {
-    position: relative;
-    display: inline-block;
+.profile-modal-close:active {
+    transform: scale(0.92);
+}
+
+/* Profile Identity */
+.profile-modal-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
     margin-bottom: 12px;
 }
 
+.profile-avatar-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
 #modal-avatar {
-    width: 84px;
-    height: 84px;
+    width: 76px;
+    height: 76px;
     border-radius: 50%;
     object-fit: cover;
     border: none !important;
     outline: none !important;
-    box-shadow: 0 0 0 3px #00f2fe;
+    box-shadow: 0 0 0 3px #00f2fe, 0 8px 20px rgba(0, 0, 0, 0.25);
 }
 
 .modal-rank-badge {
@@ -734,7 +782,7 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
     background: linear-gradient(135deg, #00f2fe, #0284c7);
     color: #ffffff;
     font-weight: 900;
-    font-size: 12px;
+    font-size: 11px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -744,18 +792,68 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
 }
 
 #modal-name {
-    margin: 0 0 4px 0;
-    font-size: 19px;
-    font-weight: 900;
+    margin: 0 0 6px 0;
+    font-size: 20px;
+    font-weight: 800;
     color: #ffffff;
     letter-spacing: -0.3px;
+    line-height: 1.25;
 }
 
+.profile-tags-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+
+.profile-rank-pill {
+    font-size: 11px;
+    font-weight: 800;
+    color: #00f2fe;
+    background: rgba(0, 242, 254, 0.16);
+    border: none !important;
+    outline: none !important;
+    padding: 3px 12px;
+    border-radius: 100px;
+}
+
+.profile-location-pill {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.profile-location-pill i {
+    color: #00f2fe;
+    font-size: 11px;
+}
+
+.profile-bio-box {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.92);
+    font-style: italic;
+    margin: 8px 0 0 0;
+    line-height: 1.45;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: none !important;
+    outline: none !important;
+    max-width: 100%;
+}
+
+/* Modal Stats Boxes */
 .modal-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-top: 12px;
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    margin-top: 10px !important;
 }
 
 .modal-stat-box {
@@ -764,7 +862,7 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
     outline: none !important;
     box-shadow: none !important;
     border-radius: 16px;
-    padding: 11px 8px;
+    padding: 10px 6px !important;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -777,17 +875,85 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
 }
 
 .modal-stat-box span {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 900;
     color: #ffffff;
 }
 
 .modal-stat-box small {
-    font-size: 10px;
+    font-size: 9.5px;
     font-weight: 700;
-    color: #ffffff !important;
-    opacity: 0.9;
+    color: rgba(255, 255, 255, 0.85) !important;
     text-transform: uppercase;
+}
+
+/* Modal Action Buttons (Notification Style) */
+.profile-modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.profile-modal-btn-white {
+    flex: 1;
+    border: none !important;
+    outline: none !important;
+    background: #ffffff !important;
+    color: #1e3a8a !important;
+    padding: 13px 18px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 13.5px;
+    cursor: pointer;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.profile-modal-btn-white:hover {
+    background: #f1f5f9 !important;
+}
+
+.profile-modal-btn-white:active {
+    transform: scale(0.97);
+}
+
+.profile-modal-btn-dismiss {
+    flex: 1;
+    border: none !important;
+    outline: none !important;
+    background: rgba(255, 255, 255, 0.16) !important;
+    color: #ffffff !important;
+    padding: 13px 18px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 13.5px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.profile-modal-btn-dismiss:hover {
+    background: rgba(255, 255, 255, 0.24) !important;
+}
+
+.profile-modal-btn-dismiss:active {
+    transform: scale(0.97);
+}
+
+.profile-modal-btn-dismiss.is-self {
+    background: #ffffff !important;
+    color: #1e3a8a !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    flex: 1;
+}
+
+.profile-modal-btn-dismiss.is-self:hover {
+    background: #f1f5f9 !important;
 }
 
 

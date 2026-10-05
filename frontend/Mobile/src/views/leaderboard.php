@@ -84,79 +84,68 @@ $activeTab = 'leaderboard';
 
 </div>
 
-<!-- User Profile Modal -->
+<!-- User Profile Modal (Notification Design) -->
 <div id="user-profile-modal" class="profile-modal-overlay" onclick="if(event.target===this) closeUserProfile();">
     <div class="profile-modal-card">
-        <button class="profile-modal-close" onclick="closeUserProfile()"><i class="fa-solid fa-xmark"></i></button>
-        <div class="profile-modal-header" style="margin-top: 6px;">
-            <img id="modal-avatar" src="" alt="Avatar">
-            <div id="modal-rank-badge" class="modal-rank-badge">1</div>
-        </div>
-        <h2 id="modal-name">Explorer</h2>
-        <div
-            style="display:flex; justify-content:center; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
-            <span id="modal-rank-pill"
-                style="font-size:11px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.12); border:none !important; outline:none !important; padding:2px 10px; border-radius:100px;">#1
-                Ranked Explorer</span>
-            <div id="modal-location"
-                style="font-size: 11.5px; color: rgba(226,232,240,0.85); font-weight: 600; display: none;"><i
-                    class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:3px;"></i><span>Hometown</span>
+        <!-- Notification Header -->
+        <div class="profile-modal-header">
+            <div style="flex: 1; min-width: 0;">
+                <div class="profile-modal-badge">
+                    <i class="fa-solid fa-trophy" style="font-size: 10px;"></i>
+                    <span id="modal-header-badge">EXPLORER PROFILE</span>
+                </div>
+                <div id="modal-header-status" class="profile-modal-time">Leaderboard Standing</div>
             </div>
+            <button type="button" class="profile-modal-close" onclick="closeUserProfile()" aria-label="Close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
-        <p id="modal-bio"
-            style="font-size: 12px; color: rgba(226, 232, 240, 0.85); font-style: italic; margin: 0 0 12px 0; display: none; line-height: 1.4; background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: 12px; border: none !important; outline: none !important;">
-        </p>
+
+        <!-- Explorer Identity -->
+        <div class="profile-modal-body">
+            <div class="profile-avatar-wrapper">
+                <img id="modal-avatar" src="" alt="Avatar">
+                <div id="modal-rank-badge" class="modal-rank-badge">1</div>
+            </div>
+            <h2 id="modal-name">Explorer</h2>
+            <div class="profile-tags-row">
+                <span id="modal-rank-pill" class="profile-rank-pill">#1 Ranked Explorer</span>
+                <div id="modal-location" class="profile-location-pill" style="display: none;">
+                    <i class="fa-solid fa-location-dot"></i><span>Hometown</span>
+                </div>
+            </div>
+            <p id="modal-bio" class="profile-bio-box" style="display: none;"></p>
+        </div>
 
         <!-- 3 Stats Boxes Grid -->
-        <div class="modal-stats" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px;">
+        <div class="modal-stats">
             <div class="modal-stat-box">
-                <i class="fa-solid fa-coins" style="color:#fbbf24; font-size:15px;"></i>
-                <span id="modal-pts" style="font-size:13px; font-weight:900; color:#fbbf24;">0</span>
-                <small
-                    style="font-size:9px; color:rgba(226,232,240,0.8); text-transform:uppercase; font-weight:700;">Points</small>
+                <i class="fa-solid fa-coins" style="color:#fbbf24;"></i>
+                <span id="modal-pts" style="color:#fbbf24;">0</span>
+                <small>Points</small>
             </div>
             <div class="modal-stat-box">
-                <i class="fa-solid fa-map-location-dot" style="color:#34c759; font-size:15px;"></i>
-                <span id="modal-activities" style="font-size:13px; font-weight:900; color:#fff;">0</span>
-                <small
-                    style="font-size:9px; color:rgba(226,232,240,0.8); text-transform:uppercase; font-weight:700;">Spots</small>
+                <i class="fa-solid fa-map-location-dot" style="color:#34c759;"></i>
+                <span id="modal-activities">0</span>
+                <small>Spots</small>
             </div>
             <div class="modal-stat-box">
-                <i class="fa-solid fa-trophy" style="color:#38bdf8; font-size:15px;"></i>
-                <span id="modal-rank-num" style="font-size:13px; font-weight:900; color:#38bdf8;">#1</span>
-                <small
-                    style="font-size:9px; color:rgba(226,232,240,0.8); text-transform:uppercase; font-weight:700;">Rank</small>
+                <i class="fa-solid fa-trophy" style="color:#00f2fe;"></i>
+                <span id="modal-rank-num" style="color:#00f2fe;">#1</span>
+                <small>Rank</small>
             </div>
         </div>
 
-        <!-- Explorer Badges / Milestones Section -->
-        <div id="modal-explorer-milestones"
-            style="margin-top:12px; background:rgba(255,255,255,0.02); border:none !important; outline:none !important; border-radius:14px; padding:10px 12px; text-align:left;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                <span
-                    style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:rgba(148,163,184,0.8);">Achievements
-                    & Status</span>
-                <span id="modal-status-tag"
-                    style="font-size:9.5px; font-weight:800; color:#34c759; background:rgba(52,199,89,0.12); padding:1px 6px; border-radius:6px;">Verified
-                    Explorer</span>
-            </div>
-            <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                <span
-                    style="font-size:10px; font-weight:700; color:#fff; background:rgba(56,189,248,0.12); border:none !important; outline:none !important; padding:3px 8px; border-radius:8px;">🌊
-                    Elyu Surfer</span>
-                <span
-                    style="font-size:10px; font-weight:700; color:#fff; background:rgba(251,191,36,0.12); border:none !important; outline:none !important; padding:3px 8px; border-radius:8px;">🪙
-                    Points Pioneer</span>
-                <span
-                    style="font-size:10px; font-weight:700; color:#fff; background:rgba(52,199,89,0.12); border:none !important; outline:none !important; padding:3px 8px; border-radius:8px;">🌿
-                    Eco Spot Check-in</span>
-            </div>
+        <!-- Action Buttons (Notification Style) -->
+        <div class="profile-modal-actions">
+            <button id="modal-cheer-btn" type="button" class="profile-modal-btn-white"
+                onclick="if(typeof showToast==='function'){showToast('Sent High Five! 🎉');} closeUserProfile();">
+                <i class="fa-solid fa-hand-peace"></i> Send High Five
+            </button>
+            <button id="modal-dismiss-btn" type="button" class="profile-modal-btn-dismiss" onclick="closeUserProfile()">
+                Dismiss
+            </button>
         </div>
-
-        <button id="modal-cheer-btn" onclick="if(typeof showToast==='function'){showToast('Cheered explorer! 🎉');} closeUserProfile();"
-            style="width: 100%; margin-top: 14px; padding: 12px; border-radius: 100px; background: linear-gradient(135deg, #38bdf8, #2563eb); border: none; color: #ffffff; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: transform 0.15s ease; box-shadow:0 4px 15px rgba(56,189,248,0.3);">
-            <i class="fa-solid fa-hand-peace"></i> Send High Five
-        </button>
     </div>
 </div>
 
@@ -520,10 +509,30 @@ $activeTab = 'leaderboard';
                 }
             }
 
+            // Notification Header Badge & Status
+            const headerBadge = document.getElementById('modal-header-badge');
+            if (headerBadge) {
+                headerBadge.textContent = isSelf ? 'YOUR PROFILE' : 'EXPLORER PROFILE';
+            }
+            const headerStatus = document.getElementById('modal-header-status');
+            if (headerStatus) {
+                headerStatus.textContent = isSelf ? 'Your Standing' : 'Leaderboard Standing';
+            }
+
             // Yourself should not be sending high fives to yourself
             const cheerBtn = document.getElementById('modal-cheer-btn');
             if (cheerBtn) {
                 cheerBtn.style.display = isSelf ? 'none' : 'flex';
+            }
+            const dismissBtn = document.getElementById('modal-dismiss-btn');
+            if (dismissBtn) {
+                if (isSelf) {
+                    dismissBtn.classList.add('is-self');
+                    dismissBtn.textContent = 'Close';
+                } else {
+                    dismissBtn.classList.remove('is-self');
+                    dismissBtn.textContent = 'Dismiss';
+                }
             }
 
             const elLoc = document.getElementById('modal-location');
