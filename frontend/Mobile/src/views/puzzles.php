@@ -140,6 +140,82 @@ include __DIR__ . '/../components/header.php';
             </div>
         </div>
 
+        <!-- Game Mechanics & Rules Accordion -->
+        <div id="scramble-mechanics-wrapper" style="margin-bottom: 16px;">
+            <div class="scramble-mechanics-card">
+                <button type="button" class="scramble-mechanics-toggle" onclick="toggleScrambleMechanics()">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-gamepad" style="color: #00f2fe; font-size: 15px;"></i>
+                        <span style="font-weight: 800; font-size: 13px; color: #ffffff;">Game Mechanics &amp; How to Play</span>
+                    </div>
+                    <i id="scramble-mechanics-icon" class="fa-solid fa-chevron-down" style="color: rgba(255,255,255,0.8); font-size: 12px; transition: transform 0.25s ease;"></i>
+                </button>
+                <div id="scramble-mechanics-content" class="scramble-mechanics-content" style="display: none;">
+                    <div class="scramble-mechanic-item">
+                        <div class="scramble-mechanic-icon"><i class="fa-solid fa-shuffle"></i></div>
+                        <div class="scramble-mechanic-text">
+                            <strong>1. Randomized Word Pool:</strong> Each round picks 4 random unique destinations from La Union's 20 municipalities &amp; famous attractions.
+                        </div>
+                    </div>
+                    <div class="scramble-mechanic-item">
+                        <div class="scramble-mechanic-icon"><i class="fa-solid fa-font"></i></div>
+                        <div class="scramble-mechanic-text">
+                            <strong>2. Scrambled Anagrams:</strong> The letters of each location are dynamically jumbled. Rearrange them into the correct destination name.
+                        </div>
+                    </div>
+                    <div class="scramble-mechanic-item">
+                        <div class="scramble-mechanic-icon"><i class="fa-solid fa-lightbulb"></i></div>
+                        <div class="scramble-mechanic-text">
+                            <strong>3. Local Trivia Hints:</strong> Read the hint below each anagram for geographical and cultural clues about the spot.
+                        </div>
+                    </div>
+                    <div class="scramble-mechanic-item">
+                        <div class="scramble-mechanic-icon"><i class="fa-solid fa-arrows-rotate"></i></div>
+                        <div class="scramble-mechanic-text">
+                            <strong>4. Reshuffle Anagram:</strong> Tap the <i class="fa-solid fa-arrows-rotate" style="font-size:10px; color:#00f2fe;"></i> icon on any word to shake and reorder its scrambled letters for a fresh view.
+                        </div>
+                    </div>
+                    <div class="scramble-mechanic-item">
+                        <div class="scramble-mechanic-icon"><i class="fa-solid fa-dice"></i></div>
+                        <div class="scramble-mechanic-text">
+                            <strong>5. Randomize Words Button:</strong> Want a different puzzle? Tap <strong>Randomize Words</strong> to draw 4 completely new destinations anytime!
+                        </div>
+                    </div>
+                    <div class="scramble-mechanic-item">
+                        <div class="scramble-mechanic-icon"><i class="fa-solid fa-trophy"></i></div>
+                        <div class="scramble-mechanic-text">
+                            <strong>6. Earn +75 Points:</strong> Unscramble all 4 words correctly and tap <strong>Submit Answers</strong> to claim your rewards!
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scramble Live Progress & Action Controls -->
+        <div id="scramble-stats-bar" style="background: rgba(30, 58, 138, 0.4); border-radius: 18px; padding: 14px 16px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 4px 14px rgba(32, 63, 141, 0.2);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-chart-pie" style="color: #00f2fe;"></i> Challenge Progress
+                </span>
+                <span id="scramble-solved-badge" style="font-size: 11.5px; font-weight: 800; color: #00f2fe; background: rgba(0, 242, 254, 0.18); padding: 3px 10px; border-radius: 100px;">
+                    0 / 4 Solved
+                </span>
+            </div>
+            <!-- Progress Fill Bar -->
+            <div style="width: 100%; height: 8px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; margin-bottom: 12px;">
+                <div id="scramble-progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #00f2fe, #34d399); border-radius: 10px; transition: width 0.35s ease;"></div>
+            </div>
+            <!-- Randomize & Reset Action Buttons -->
+            <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+                <button type="button" onclick="randomizeScrambleWords()" style="border: none !important; outline: none !important; background: #ffffff !important; color: #1e3a8a !important; padding: 8px 15px; border-radius: 11px; font-weight: 800; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); transition: all 0.2s ease;">
+                    <i class="fa-solid fa-shuffle"></i> Randomize Words
+                </button>
+                <button type="button" onclick="resetScrambleInputs()" style="border: none !important; outline: none !important; background: rgba(255,255,255,0.15) !important; color: #ffffff !important; padding: 8px 13px; border-radius: 11px; font-weight: 700; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s ease;">
+                    <i class="fa-solid fa-eraser"></i> Clear
+                </button>
+            </div>
+        </div>
+
         <div id="scramble-container" style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
             <!-- 4 Scrambled Words -->
         </div>
@@ -463,6 +539,101 @@ button:active, .trivia-option-btn:active {
     -webkit-text-fill-color: #ffffff !important;
     box-shadow: 0 0 16px rgba(32, 63, 141, 0.35), inset 0 2px 6px rgba(0, 0, 0, 0.2) !important;
 }
+
+/* Word Scramble Mechanics & Rules */
+.scramble-mechanics-card {
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.95) 0%, rgba(43, 84, 156, 0.95) 100%) !important;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    outline: none !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.2) !important;
+    overflow: hidden;
+}
+
+.scramble-mechanics-toggle {
+    width: 100%;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    padding: 13px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    text-align: left;
+}
+
+.scramble-mechanics-content {
+    padding: 0 16px 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 2px;
+    padding-top: 10px;
+}
+
+.scramble-mechanic-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.92);
+    line-height: 1.45;
+}
+
+.scramble-mechanic-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(0, 242, 254, 0.2);
+    color: #00f2fe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.scramble-card {
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    outline: none !important;
+    border-radius: 18px !important;
+    padding: 16px !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
+    transition: all 0.25s ease;
+}
+
+.scramble-card.is-correct {
+    box-shadow: 0 4px 18px rgba(52, 211, 153, 0.35) !important;
+    border: 1.5px solid rgba(52, 211, 153, 0.6) !important;
+}
+
+.scramble-reshuffle-btn {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: none !important;
+    outline: none !important;
+    color: #00f2fe !important;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.scramble-reshuffle-btn:hover {
+    background: rgba(255, 255, 255, 0.25) !important;
+}
+
+.scramble-reshuffle-btn:active {
+    transform: rotate(180deg) scale(0.9);
+}
 </style>
 
 <script>
@@ -743,6 +914,8 @@ function updateScrambleInfoUI() {
     const containerEl = document.getElementById('scramble-container');
     const submitBtn = document.getElementById('scramble-submit-btn');
     const finishedBanner = document.getElementById('scramble-finished-banner');
+    const mechanicsEl = document.getElementById('scramble-mechanics-wrapper');
+    const statsBarEl = document.getElementById('scramble-stats-bar');
 
     const isDone = isGameDoneToday('word_scramble');
 
@@ -751,6 +924,8 @@ function updateScrambleInfoUI() {
         if (descEl) descEl.style.display = 'none';
         if (containerEl) containerEl.style.display = 'none';
         if (submitBtn) submitBtn.style.display = 'none';
+        if (mechanicsEl) mechanicsEl.style.display = 'none';
+        if (statsBarEl) statsBarEl.style.display = 'none';
         if (finishedBanner) finishedBanner.style.display = 'block';
     } else {
         if (titleEl) titleEl.style.display = 'block';
@@ -760,6 +935,8 @@ function updateScrambleInfoUI() {
         }
         if (containerEl) containerEl.style.display = 'flex';
         if (submitBtn) submitBtn.style.display = 'block';
+        if (mechanicsEl) mechanicsEl.style.display = 'block';
+        if (statsBarEl) statsBarEl.style.display = 'block';
         if (finishedBanner) finishedBanner.style.display = 'none';
     }
 }
@@ -1138,106 +1315,284 @@ function flipMemoryCard(index) {
 
 
 // ----------------------------------------------------
-// WORD SCRAMBLE GAME LOGIC
+// WORD SCRAMBLE GAME LOGIC (Dynamic Randomization Engine)
 // ----------------------------------------------------
-const scrambleData = [
-    {
-        id: 1,
-        scrambled: "UNAJ NAS",
-        answer: "SAN JUAN",
-        hint: "Surfing Capital of Northern Luzon"
-    },
-    {
-        id: 2,
-        scrambled: "GABERIL NAS",
-        answer: "SAN GABRIEL",
-        hint: "Known for scenic mountain trails and highland nature"
-    },
-    {
-        id: 3,
-        scrambled: "AGUANB",
-        answer: "BAUANG",
-        hint: "Famous for its lush grape farms & winemaking"
-    },
-    {
-        id: 4,
-        scrambled: "ALURATBE",
-        answer: "BALUARTE",
-        hint: "Historic Spanish-era watchtower in Luna"
-    }
+const laUnionWordPool = [
+    { answer: "SAN JUAN", hint: "Surfing Capital of Northern Luzon & Urbiztondo Beach" },
+    { answer: "SAN GABRIEL", hint: "Home to the famous Tangadan Falls and highland cold streams" },
+    { answer: "BAUANG", hint: "Famous for lush grape picking farms and sunset beach resorts" },
+    { answer: "BALUARTE", hint: "Historic 400-year-old Spanish brick watchtower standing in Luna" },
+    { answer: "TANGADAN", hint: "Majestic two-tiered waterfall in San Gabriel with natural swimming pools" },
+    { answer: "IMMUKI", hint: "Enchanting mangrove lagoon and emerald tidal pools in Balaoan" },
+    { answer: "BALAOAN", hint: "Coastal municipality home to Immuki Island and crystal clear waters" },
+    { answer: "AGOO", hint: "Historic town with Basilica of Our Lady of Charity & Eco Fun World" },
+    { answer: "LUNA", hint: "Municipality known for stone handcrafts, Baluarte, and pebble beaches" },
+    { answer: "BACNOTAN", hint: "Center of beekeeping, sericulture, and Quirino Protected Landscape" },
+    { answer: "SAN FERNANDO", hint: "Provincial capital of La Union, home to Pindangan Ruins & Ma-Cho Temple" },
+    { answer: "PINDANGAN", hint: "Historic 18th-century Spanish church ruins made of coral stone" },
+    { answer: "MA CHO TEMPLE", hint: "Iconic Taoist temple built in 1975 overlooking San Fernando Bay" },
+    { answer: "ARINGAY", hint: "Coastal town celebrated for dried fish, artisanal salt-making, and river trails" },
+    { answer: "CABA", hint: "Birthplace of hero Diego Silang, known for bamboo crafts and rice fields" },
+    { answer: "TUBAO", hint: "Lush inland valley town celebrated for fresh sweet pineapples & tobacco" },
+    { answer: "PUGO", hint: "Southern highland gateway known for Tapuacan River and adventure eco-parks" },
+    { answer: "ROSARIO", hint: "Southern gateway of La Union connecting major mountain trail expressways" },
+    { answer: "BAGULIN", hint: "Highland indigenous eco-tourism town with Kedlap Cave & Loslosi Falls" },
+    { answer: "BURGOS", hint: "Scenic highland town tucked in foothills featuring Bolikewkew Falls" },
+    { answer: "SANTO TOMAS", hint: "Famous coastal fishing municipality known for sun-dried daing" },
+    { answer: "SUDIPEN", hint: "Northern border town with the scenic Amburayan River & hanging bridge" },
+    { answer: "SANTOL", hint: "Mountain peaks, cool highland climate, and pristine Simminublan Falls" },
+    { answer: "TAPUACAN", hint: "Known as the cleanest inland river in Region 1, located in Pugo" },
+    { answer: "PEBBLE BEACH", hint: "Luna's world-famous picturesque shoreline covered in multi-colored stones" },
+    { answer: "GRAPE FARM", hint: "Bauang's popular agritourism attraction where visitors harvest fresh sweet grapes" }
 ];
 
-function initScrambleGame() {
+let currentScrambleWords = [];
+
+// Helper to scramble a single word token (Fisher-Yates)
+function shuffleLetters(token) {
+    if (!token || token.length <= 1) return token;
+    const chars = token.split('');
+    let shuffled = token;
+    let attempts = 0;
+    while (shuffled === token && attempts < 25) {
+        for (let i = chars.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [chars[i], chars[j]] = [chars[j], chars[i]];
+        }
+        shuffled = chars.join('');
+        attempts++;
+    }
+    return shuffled;
+}
+
+// Scramble a phrase (handles multi-word names while keeping spaces recognizable)
+function scramblePhrase(phrase) {
+    return phrase
+        .split(' ')
+        .map(token => shuffleLetters(token))
+        .join(' ');
+}
+
+// Normalize strings for user-friendly comparison (ignores spaces, hyphens, and case)
+function normalizeScrambleText(str) {
+    return (str || '').toString().trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+
+// Toggle game mechanics accordion
+function toggleScrambleMechanics() {
+    const content = document.getElementById('scramble-mechanics-content');
+    const icon = document.getElementById('scramble-mechanics-icon');
+    if (!content) return;
+
+    if (content.style.display === 'none' || content.style.display === '') {
+        content.style.display = 'flex';
+        if (icon) icon.style.transform = 'rotate(180deg)';
+    } else {
+        content.style.display = 'none';
+        if (icon) icon.style.transform = 'rotate(0deg)';
+    }
+}
+
+// Draw 4 random locations from the pool and scramble them
+function randomizeScrambleWords() {
     if (isGameDoneToday('word_scramble')) {
         updateScrambleInfoUI();
         return;
     }
+
+    // Pick 4 unique items
+    const poolCopy = [...laUnionWordPool];
+    for (let i = poolCopy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [poolCopy[i], poolCopy[j]] = [poolCopy[j], poolCopy[i]];
+    }
+
+    const selected = poolCopy.slice(0, 4);
+    currentScrambleWords = selected.map((item, idx) => {
+        let scrambled = scramblePhrase(item.answer);
+        if (scrambled === item.answer && item.answer.replace(/\s+/g, '').length > 1) {
+            scrambled = scramblePhrase(item.answer);
+        }
+        return {
+            id: idx + 1,
+            answer: item.answer,
+            scrambled: scrambled,
+            hint: item.hint
+        };
+    });
+
+    renderScrambleCards();
+    updateScrambleProgress();
+}
+
+// Render the 4 scramble cards to the DOM
+function renderScrambleCards() {
     const container = document.getElementById('scramble-container');
     if (!container) return;
     container.innerHTML = '';
 
-    scrambleData.forEach((item, index) => {
+    currentScrambleWords.forEach((item, index) => {
         const card = document.createElement('div');
         card.className = 'scramble-card';
+        card.id = `scramble-card-${index}`;
 
         card.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <span style="font-size:12px; font-weight:800; color:#00f2fe; text-transform:uppercase; letter-spacing:0.8px;">Word #${index + 1}</span>
-                <span id="scramble-status-${index}" style="font-size:14px; color:rgba(255,255,255,0.4);"><i class="fa-solid fa-pen"></i></span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="font-size: 12px; font-weight: 800; color: #00f2fe; text-transform: uppercase; letter-spacing: 0.8px;">
+                    Word #${index + 1}
+                </span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button type="button" class="scramble-reshuffle-btn" onclick="reshuffleWordLetters(${index})" title="Reshuffle scrambled letters">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                    </button>
+                    <span id="scramble-status-${index}" style="font-size: 14px; color: rgba(255,255,255,0.4);">
+                        <i class="fa-solid fa-pen"></i>
+                    </span>
+                </div>
             </div>
-            <div style="font-size:22px; font-weight:900; color:#ffffff !important; letter-spacing:3px; margin-bottom:10px; text-align:center; background:rgba(0,0,0,0.25) !important; padding:12px; border-radius:14px; border:none !important; outline:none !important; text-shadow:0 2px 4px rgba(0,0,0,0.4);">
+            <div id="scramble-word-display-${index}" style="font-size: 21px; font-weight: 900; color: #ffffff !important; letter-spacing: 3px; margin-bottom: 10px; text-align: center; background: rgba(0,0,0,0.25) !important; padding: 12px; border-radius: 14px; border: none !important; outline: none !important; text-shadow: 0 2px 4px rgba(0,0,0,0.4); user-select: none;">
                 ${item.scrambled}
             </div>
-            <p style="margin:0 0 12px 0; font-size:12.5px; color:#ffffff !important; font-weight:600; text-shadow:0 1px 2px rgba(0,0,0,0.4); line-height:1.4;">
-                <span style="color:#facc15; font-size:13px; font-weight:800;">💡 Hint:</span> <span style="color:#ffffff !important; font-weight:700;">${item.hint}</span>
+            <p style="margin: 0 0 12px 0; font-size: 12px; color: #ffffff !important; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.4); line-height: 1.45;">
+                <span style="color: #facc15; font-size: 12.5px; font-weight: 800;">💡 Hint:</span> <span style="color: #ffffff !important; font-weight: 700;">${item.hint}</span>
             </p>
-            <input type="text" id="scramble-input-${index}" class="scramble-input" placeholder="TYPE ANSWER HERE..." oninput="checkScrambleWord(${index})" style="color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; border:none !important; outline:none !important;">
+            <input type="text" id="scramble-input-${index}" class="scramble-input" placeholder="TYPE ANSWER HERE..." oninput="checkScrambleWord(${index})" autocomplete="off" autocapitalize="characters" spellcheck="false" style="color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; border: none !important; outline: none !important;">
         `;
 
         container.appendChild(card);
     });
 }
 
+// Reshuffle just one word's letters if the user wants another perspective
+function reshuffleWordLetters(index) {
+    if (!currentScrambleWords[index]) return;
+    const item = currentScrambleWords[index];
+    const prev = item.scrambled;
+    let next = scramblePhrase(item.answer);
+    let attempts = 0;
+    while (next === prev && attempts < 10) {
+        next = scramblePhrase(item.answer);
+        attempts++;
+    }
+    item.scrambled = next;
+    const displayEl = document.getElementById(`scramble-word-display-${index}`);
+    if (displayEl) {
+        displayEl.style.transform = 'scale(0.95)';
+        displayEl.style.transition = 'transform 0.15s ease';
+        setTimeout(() => {
+            displayEl.textContent = next;
+            displayEl.style.transform = 'scale(1)';
+        }, 150);
+    }
+}
+
+// Validate input against answer
 function checkScrambleWord(index) {
     const input = document.getElementById(`scramble-input-${index}`);
     const status = document.getElementById(`scramble-status-${index}`);
-    if (!input || !status) return;
+    const card = document.getElementById(`scramble-card-${index}`);
+    if (!input || !status || !currentScrambleWords[index]) return;
 
-    const val = input.value.trim().toUpperCase();
-    if (val === scrambleData[index].answer) {
-        status.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#34d399; font-size:18px;"></i>';
+    const val = normalizeScrambleText(input.value);
+    const expected = normalizeScrambleText(currentScrambleWords[index].answer);
+
+    if (val.length > 0 && val === expected) {
+        status.innerHTML = '<i class="fa-solid fa-circle-check" style="color: #34d399; font-size: 18px;"></i>';
         input.style.border = 'none';
         input.style.outline = 'none';
-        input.style.background = 'rgba(52, 211, 153, 0.3)';
+        input.style.background = 'rgba(52, 211, 153, 0.28)';
         input.style.color = '#ffffff';
         input.style.webkitTextFillColor = '#ffffff';
+        if (card) card.classList.add('is-correct');
     } else {
-        status.innerHTML = '<i class="fa-solid fa-pen" style="color:rgba(255,255,255,0.4); font-size:14px;"></i>';
+        status.innerHTML = '<i class="fa-solid fa-pen" style="color: rgba(255,255,255,0.4); font-size: 14px;"></i>';
         input.style.border = 'none';
         input.style.outline = 'none';
         input.style.background = 'rgba(255, 255, 255, 0.2)';
         input.style.color = '#ffffff';
         input.style.webkitTextFillColor = '#ffffff';
+        if (card) card.classList.remove('is-correct');
+    }
+    updateScrambleProgress();
+}
+
+// Update the progress bar and counter
+function updateScrambleProgress() {
+    let solved = 0;
+    currentScrambleWords.forEach((item, index) => {
+        const input = document.getElementById(`scramble-input-${index}`);
+        if (input && normalizeScrambleText(input.value) === normalizeScrambleText(item.answer)) {
+            solved++;
+        }
+    });
+
+    const badge = document.getElementById('scramble-solved-badge');
+    const fill = document.getElementById('scramble-progress-fill');
+    if (badge) {
+        if (solved === 4) {
+            badge.textContent = '4 / 4 Solved! 🎉';
+            badge.style.color = '#34d399';
+            badge.style.background = 'rgba(52, 211, 153, 0.25)';
+        } else {
+            badge.textContent = `${solved} / 4 Solved`;
+            badge.style.color = '#00f2fe';
+            badge.style.background = 'rgba(0, 242, 254, 0.18)';
+        }
+    }
+    if (fill) {
+        fill.style.width = `${(solved / 4) * 100}%`;
     }
 }
 
-async function submitScrambleAnswers() {
-    let allCorrect = true;
-
-    scrambleData.forEach((item, index) => {
+// Reset all 4 inputs back to empty
+function resetScrambleInputs() {
+    currentScrambleWords.forEach((_, index) => {
         const input = document.getElementById(`scramble-input-${index}`);
-        const val = input ? input.value.trim().toUpperCase() : '';
-        if (val !== item.answer) {
+        const status = document.getElementById(`scramble-status-${index}`);
+        const card = document.getElementById(`scramble-card-${index}`);
+        if (input) {
+            input.value = '';
+            input.style.background = 'rgba(255, 255, 255, 0.2)';
+        }
+        if (status) {
+            status.innerHTML = '<i class="fa-solid fa-pen" style="color: rgba(255,255,255,0.4); font-size: 14px;"></i>';
+        }
+        if (card) card.classList.remove('is-correct');
+    });
+    updateScrambleProgress();
+}
+
+// Submit answers and claim points
+async function submitScrambleAnswers() {
+    if (currentScrambleWords.length === 0) return;
+
+    let allCorrect = true;
+    currentScrambleWords.forEach((item, index) => {
+        const input = document.getElementById(`scramble-input-${index}`);
+        const val = input ? normalizeScrambleText(input.value) : '';
+        if (val !== normalizeScrambleText(item.answer)) {
             allCorrect = false;
         }
     });
 
     if (!allCorrect) {
-        alert("Some words are still incorrect or incomplete. Use the hints to help unscramble all 4 words!");
+        openGameAlert("Some words are still incorrect or incomplete. Use the hints or tap Reshuffle to help unscramble all 4 words!", "Not Quite Finished");
         return;
     }
 
     claimMiniGamePoints('word_scramble');
+}
+
+// Initialize Scramble Game
+function initScrambleGame() {
+    if (isGameDoneToday('word_scramble')) {
+        updateScrambleInfoUI();
+        return;
+    }
+    updateScrambleInfoUI();
+    if (currentScrambleWords.length === 0) {
+        randomizeScrambleWords();
+    }
 }
 
 
@@ -1412,8 +1767,13 @@ window.executeGameConfirm = executeGameConfirm;
 window.closeGameSuccess = closeGameSuccess;
 window.submitTriviaAnswers = submitTriviaAnswers;
 window.initMemoryGame = initMemoryGame;
+window.initScrambleGame = initScrambleGame;
 window.submitScrambleAnswers = submitScrambleAnswers;
 window.checkScrambleWord = checkScrambleWord;
+window.randomizeScrambleWords = randomizeScrambleWords;
+window.resetScrambleInputs = resetScrambleInputs;
+window.reshuffleWordLetters = reshuffleWordLetters;
+window.toggleScrambleMechanics = toggleScrambleMechanics;
 window.closeGameAlert = closeGameAlert;
 })();
 </script>
