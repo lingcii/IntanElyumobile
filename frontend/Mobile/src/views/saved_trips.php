@@ -132,58 +132,112 @@ $backRoute = 'itinerary';
     window.fetchSavedTrips = async function(forceRefresh = false) {
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
         if (!token) {
+            const list = document.getElementById('saved-trips-list');
+            if (list) {
+                list.innerHTML = `
+                    <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px;">
+                        <div class="empty-state-icon" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                            <i class="fa-solid fa-lock" style="color: #1e3a8a !important;"></i>
+                        </div>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff;">Please Log In</h3>
+                        <p style="margin: 0; font-size: 13.5px; color: rgba(255, 255, 255, 0.88); line-height: 1.5; max-width: 260px;">
+                            You need to be logged in to view your saved trips.
+                        </p>
+                        <button type="button" class="btn-open-map" onclick="if(typeof window.navigateTo==='function') window.navigateTo('auth');">
+                            <i class="fa-solid fa-right-to-bracket"></i> Log In
+                        </button>
+                    </div>
+                `;
+            }
             if (typeof window.navigateTo === 'function') window.navigateTo('auth');
             return;
         }
 
         const cacheKey = 'saved_trips_' + token.substring(0, 10);
+        const fetchCache = (typeof window.useCache === 'function') ? window.useCache : (async (key, fetcher, renderer) => {
+            try {
+                const d = await fetcher();
+                if (typeof renderer === 'function') renderer(d);
+                return d;
+            } catch(e) {
+                if (typeof renderer === 'function') renderer(null);
+            }
+        });
 
-        await window.useCache(
-            cacheKey,
-            async () => {
-                const response = await fetch(backendUrl + '/api/tourist/itineraries', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'ngrok-skip-browser-warning': 'true',
-                        'Authorization': 'Bearer ' + token
+        try {
+            await fetchCache(
+                cacheKey,
+                async () => {
+                    const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                    const timeoutId = controller ? setTimeout(() => controller.abort(), 12000) : null;
+                    try {
+                        const response = await fetch(backendUrl + '/api/tourist/itineraries', {
+                            signal: controller ? controller.signal : undefined,
+                            headers: {
+                                'Accept': 'application/json',
+                                'ngrok-skip-browser-warning': 'true',
+                                'Authorization': 'Bearer ' + token
+                            }
+                        });
+                        if (response.status === 401) {
+                            localStorage.removeItem('intan_elyu_token');
+                            localStorage.removeItem('Intan_Elyu_Token');
+                            if (typeof showToast === 'function') showToast("Session expired. Please log in again.");
+                            if (typeof window.navigateTo === 'function') window.navigateTo('auth');
+                            return [];
+                        }
+                        if (!response.ok) throw new Error("Failed to fetch saved trips: " + response.status);
+                        const data = await response.json();
+                        return data.itineraries || [];
+                    } finally {
+                        if (timeoutId) clearTimeout(timeoutId);
                     }
-                });
-                if (response.status === 401) {
-                    localStorage.removeItem('intan_elyu_token');
-                    localStorage.removeItem('Intan_Elyu_Token');
-                    if (typeof showToast === 'function') showToast("Session expired. Please log in again.");
-                    if (typeof window.navigateTo === 'function') window.navigateTo('auth');
-                    return [];
-                }
-                if (!response.ok) throw new Error("Failed to fetch saved trips");
-                const data = await response.json();
-                return data.itineraries || [];
-            },
-            (itineraries) => {
-                if (window._isStartingTrip) return;
-                if (itineraries) {
-                    renderSavedTrips(itineraries);
-                } else if (!window._cachedSavedTrips || window._cachedSavedTrips.length === 0) {
-                    const list = document.getElementById('saved-trips-list');
-                    if (list) {
-                        list.innerHTML = `
-                            <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px;">
-                                <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; border: 1px solid rgba(239, 68, 68, 0.3);">
-                                    <i class="fa-solid fa-circle-exclamation" style="font-size: 32px; color: #ef4444;"></i>
+                },
+                (itineraries) => {
+                    if (window._isStartingTrip) return;
+                    if (itineraries) {
+                        renderSavedTrips(itineraries);
+                    } else if (!window._cachedSavedTrips || window._cachedSavedTrips.length === 0) {
+                        const list = document.getElementById('saved-trips-list');
+                        if (list) {
+                            list.innerHTML = `
+                                <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px;">
+                                    <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                                        <i class="fa-solid fa-circle-exclamation" style="font-size: 32px; color: #ef4444;"></i>
+                                    </div>
+                                    <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff;">Unable to Load Trips</h3>
+                                    <p style="margin: 0; font-size: 13px; color: rgba(148,163,184,0.9); line-height: 1.45; max-width: 260px;">Please check your connection and try refreshing.</p>
+                                    <button type="button" class="btn-cta-accent-10" onclick="if(typeof window.loadSavedTrips==='function') window.loadSavedTrips(true);" style="margin-top: 10px; padding: 12px 24px; border-radius: 100px; font-size: 14px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <i class="fa-solid fa-rotate"></i> Retry
+                                    </button>
                                 </div>
-                                <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff;">Unable to Load Trips</h3>
-                                <p style="margin: 0; font-size: 13px; color: rgba(148,163,184,0.9); line-height: 1.45; max-width: 260px;">Please check your connection and try refreshing.</p>
-                                <button type="button" class="btn-cta-accent-10" onclick="if(typeof window.loadSavedTrips==='function') window.loadSavedTrips(true);" style="margin-top: 10px; padding: 12px 24px; border-radius: 100px; font-size: 14px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                    <i class="fa-solid fa-rotate"></i> Retry
-                                </button>
-                            </div>
-                        `;
+                            `;
+                        }
                     }
+                },
+                forceRefresh,
+                60000 // 1 minute TTL
+            );
+        } catch (fetchErr) {
+            console.error("fetchSavedTrips uncaught error:", fetchErr);
+            if (!window._cachedSavedTrips || window._cachedSavedTrips.length === 0) {
+                const list = document.getElementById('saved-trips-list');
+                if (list) {
+                    list.innerHTML = `
+                        <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px;">
+                            <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                                <i class="fa-solid fa-circle-exclamation" style="font-size: 32px; color: #ef4444;"></i>
+                            </div>
+                            <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff;">Unable to Load Trips</h3>
+                            <p style="margin: 0; font-size: 13px; color: rgba(148,163,184,0.9); line-height: 1.45; max-width: 260px;">Please check your connection and try refreshing.</p>
+                            <button type="button" class="btn-cta-accent-10" onclick="if(typeof window.loadSavedTrips==='function') window.loadSavedTrips(true);" style="margin-top: 10px; padding: 12px 24px; border-radius: 100px; font-size: 14px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <i class="fa-solid fa-rotate"></i> Retry
+                            </button>
+                        </div>
+                    `;
                 }
-            },
-            forceRefresh,
-            60000 // 1 minute TTL
-        );
+            }
+        }
     };
 
     const VEHICLE_CATALOG = {
@@ -533,8 +587,7 @@ $backRoute = 'itinerary';
                 `;
             }
         }
-    }            }
-    }
+    };
 
     window.toggleTripDetails = function(tripId) {
         const timeline = document.getElementById('timeline-' + tripId);
@@ -1443,7 +1496,7 @@ $backRoute = 'itinerary';
         const rawCached = localStorage.getItem(cacheKey);
         if (rawCached) {
             try {
-                const parsed = window.safeJsonParse(rawCached, null);
+                const parsed = (typeof window.safeJsonParse === 'function') ? window.safeJsonParse(rawCached, null) : JSON.parse(rawCached);
                 if (parsed && Array.isArray(parsed.data)) {
                     renderSavedTrips(parsed.data);
                 }
