@@ -645,38 +645,17 @@ if (is_dir($imgDir)) {
                         </div>
 
                         <!-- Service Center & Assistance -->
-                        <div class="dest-support-box">
+                        <div class="dest-support-box" id="sheet-support-box" style="display:none;">
                             <div class="dest-support-header">
                                 <span
                                     style="font-size:12.5px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:6px;">
                                     <i class="fa-solid fa-headset" style="color:#00f2fe;"></i> Tourist Support & Service Centers
                                 </span>
-                                <span class="dest-support-badge" id="sheet-support-badge">Tourism Office</span>
+                                <span class="dest-support-badge" id="sheet-support-badge">Service Centers</span>
                             </div>
 
                             <!-- Dynamic Service Centers list -->
-                            <div id="sheet-service-centers-container" style="display:none; margin-bottom:8px;"></div>
-
-                            <div class="dest-contacts-list">
-                                <div class="dest-contact-row" id="sheet-service-phone-row">
-                                    <span class="dest-contact-label" style="color:rgba(255,255,255,0.85);"><i class="fa-solid fa-phone"
-                                            style="font-size:10px; color:#00f2fe;"></i> Service Hotline:</span>
-                                    <span class="dest-contact-val"><a id="sheet-service-phone"
-                                            href="tel:+630728882454" style="color:#00f2fe; text-decoration:none; font-weight:700;">+63 (072) 888-2454</a></span>
-                                </div>
-                                <div class="dest-contact-row">
-                                    <span class="dest-contact-label" style="color:rgba(255,255,255,0.85);"><i class="fa-solid fa-clock"
-                                            style="font-size:10px; color:#00f2fe;"></i> Service Hours:</span>
-                                    <span class="dest-contact-val" id="sheet-service-hours" style="color:#ffffff; font-weight:700;">8:00 AM - 5:00 PM
-                                        (Daily)</span>
-                                </div>
-                                <div class="dest-contact-row">
-                                    <span class="dest-contact-label" style="color:rgba(255,255,255,0.85);"><i class="fa-solid fa-kit-medical"
-                                            style="font-size:10px; color:#ef4444;"></i> Emergency / Medical:</span>
-                                    <span class="dest-contact-val emergency"><a href="tel:911" style="color:#f87171; font-weight:800; text-decoration:none;">MDRRMO / Call
-                                            911</a></span>
-                                </div>
-                            </div>
+                            <div id="sheet-service-centers-container" style="display:none; margin-bottom:0;"></div>
                         </div>
 
                         <!-- Testimonies Section -->
@@ -3884,10 +3863,12 @@ if (is_dir($imgDir)) {
             }
 
             // 4. Service Centers & Support
+            const supportBox = document.getElementById('sheet-support-box');
             const scContainer = document.getElementById('sheet-service-centers-container');
             const supportBadgeEl = document.getElementById('sheet-support-badge');
             if (scContainer) {
                 if (locationData.service_centers && locationData.service_centers.length > 0) {
+                    if (supportBox) supportBox.style.display = 'block';
                     scContainer.style.display = 'flex';
                     scContainer.style.flexDirection = 'column';
                     scContainer.style.gap = '6px';
@@ -3905,9 +3886,10 @@ if (is_dir($imgDir)) {
                     </div>
                 `).join('');
                 } else {
+                    if (supportBox) supportBox.style.display = 'none';
                     scContainer.style.display = 'none';
                     scContainer.innerHTML = '';
-                    if (supportBadgeEl) supportBadgeEl.textContent = 'Tourism Office';
+                    if (supportBadgeEl) supportBadgeEl.textContent = 'Service Centers';
                 }
             }
 
@@ -3927,12 +3909,6 @@ if (is_dir($imgDir)) {
                 } else {
                     if (hoursCard) hoursCard.style.display = 'none';
                 }
-            }
-
-            const servicePhoneEl = document.getElementById('sheet-service-phone');
-            if (servicePhoneEl && locationData.service_phone) {
-                servicePhoneEl.textContent = locationData.service_phone;
-                servicePhoneEl.href = 'tel:' + locationData.service_phone.replace(/[^0-9+]/g, '');
             }
 
             if (window.getDeviceLocation) {
