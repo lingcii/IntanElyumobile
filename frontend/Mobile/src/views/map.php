@@ -834,7 +834,7 @@ if (is_dir($imgDir)) {
                 if (cachedRaw) {
                     const parsed = window.safeJsonParse(cachedRaw, null);
                     if (parsed && parsed.data && parsed.data.destinations && parsed.data.destinations.length > 0) {
-                        parsed.data.destinations = parsed.data.destinations.filter(d => !d.status || d.status.toLowerCase() !== 'pending');
+                        parsed.data.destinations = parsed.data.destinations.filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
                         cachedMapData = parsed.data;
                     }
                 }
@@ -847,11 +847,11 @@ if (is_dir($imgDir)) {
                             .then(r => r.json())
                             .then(fresh => {
                                 if (fresh && fresh.destinations) {
-                                    fresh.destinations = (fresh.destinations || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
+                                    fresh.destinations = (fresh.destinations || []).filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
                                     try { localStorage.setItem(mapCacheKey, JSON.stringify({ data: fresh, timestamp: Date.now() })); } catch (e) {}
-                                    const oldIds = (cachedMapData.destinations || []).map(d => d.id).sort().join(',');
-                                    const freshIds = (fresh.destinations || []).map(d => d.id).sort().join(',');
-                                    if (oldIds !== freshIds) {
+                                    const oldIds = (cachedMapData.destinations || []).map(d => Number(d.id)).sort((a, b) => a - b).join(',');
+                                    const freshIds = (fresh.destinations || []).map(d => Number(d.id)).sort((a, b) => a - b).join(',');
+                                    if (oldIds !== freshIds || (cachedMapData.destinations || []).length !== fresh.destinations.length) {
                                         window.allMapLocations = fresh.destinations;
                                         if (typeof window.updateVisibleMarkers === 'function') window.updateVisibleMarkers();
                                     }
@@ -863,7 +863,7 @@ if (is_dir($imgDir)) {
                 const res = await fetch(_backendBase + '/api/public/map', { headers: { 'Accept': 'application/json' } });
                 const fresh = await res.json();
                 if (fresh && fresh.destinations) {
-                    fresh.destinations = (fresh.destinations || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
+                    fresh.destinations = (fresh.destinations || []).filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
                     try { localStorage.setItem(mapCacheKey, JSON.stringify({ data: fresh, timestamp: Date.now() })); } catch (e) {}
                 }
                 return fresh;

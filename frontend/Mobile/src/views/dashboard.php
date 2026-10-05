@@ -713,7 +713,9 @@ if (is_dir($imgDir)) {
                 },
                 (data) => {
                     if (data && data.destinations) {
-                        window.allTouristSpots = (data.destinations || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
+                        window.allTouristSpots = (data.destinations || [])
+                            .filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()))
+                            .sort((a, b) => (b.id || 0) - (a.id || 0));
                         const activeCat = window.currentDashCategory || 'All';
                         let filtered = window.allTouristSpots;
                         if (activeCat !== 'All' && typeof window.matchesCategory === 'function') {

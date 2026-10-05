@@ -143,18 +143,26 @@ class TouristSpot extends Model
         });
     }
 
+    public static function clearSpotCaches(): void
+    {
+        \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+        \Illuminate\Support\Facades\Cache::forget('map:public:spots:v8');
+        \Illuminate\Support\Facades\Cache::forget('map:public:spots:v4');
+        \Illuminate\Support\Facades\Cache::forget('map:public:municipalities');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:5');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:10');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:20');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:50');
+    }
+
     protected static function booted()
     {
         static::saved(function () {
-            \Illuminate\Support\Facades\Cache::forget('map:public:spots:v4');
-            \Illuminate\Support\Facades\Cache::forget('map:public:spots');
-            \Illuminate\Support\Facades\Cache::forget('map:public:municipalities');
+            self::clearSpotCaches();
         });
 
         static::deleted(function () {
-            \Illuminate\Support\Facades\Cache::forget('map:public:spots:v4');
-            \Illuminate\Support\Facades\Cache::forget('map:public:spots');
-            \Illuminate\Support\Facades\Cache::forget('map:public:municipalities');
+            self::clearSpotCaches();
         });
     }
 }

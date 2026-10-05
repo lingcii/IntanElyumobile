@@ -257,17 +257,33 @@ window.resetAppScrollTop = resetAppScrollTop;
  * @param {boolean} fade - Whether to apply the fade transition
  */
 async function navigateTo(viewName, addToHistory = true, fade = true) {
-    // Prevent overlapping navigations or navigating to the same view
+    // Prevent overlapping navigations
     if (state.isNavigating) return;
+
+    // Parse pure view name and any query parameters passed in viewName (e.g. 'trip_map&trip_id=123' or 'trip_map?trip_id=123')
+    let targetView = viewName;
+    const extraParams = new URLSearchParams();
+
+    if (typeof viewName === 'string') {
+        const sepIndex = viewName.search(/[?&]/);
+        if (sepIndex !== -1) {
+            targetView = viewName.substring(0, sepIndex);
+            const queryStr = viewName.substring(sepIndex + 1);
+            const parsed = new URLSearchParams(queryStr);
+            parsed.forEach((val, key) => extraParams.set(key, val));
+        }
+    }
 
     // Global Auth Enforcement: Ensure user is logged in
     const publicViews = ['splash', 'auth', 'download', 'about', 'terms', 'reset-password', 'user_manual'];
-    if (!publicViews.includes(viewName) && !localStorage.getItem('intan_elyu_token')) {
-        viewName = 'auth';
+    const authToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+    if (!publicViews.includes(targetView) && !authToken) {
+        targetView = 'auth';
+        extraParams.forEach((_, key) => extraParams.delete(key));
     }
 
-    // If we're already on this view and it's not a back-button event, do nothing
-    if (addToHistory && state.currentView === viewName) return;
+    // If we're already on this view with no extra params and it's not a back-button event, do nothing
+    if (addToHistory && state.currentView === targetView && extraParams.toString() === '') return;
 
     // Immediately reset scroll on navigation start
     resetAppScrollTop();
@@ -295,8 +311,13 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     }
 
     try {
-        // Fetch new view via AJAX (with strict cache buster)
-        const response = await fetch(`index.php?view=${viewName}&ajax=1&_t=${Date.now()}`, {
+        // Fetch new view via AJAX (with strict cache buster & query parameters)
+        let fetchUrl = `index.php?view=${encodeURIComponent(targetView)}&ajax=1&_t=${Date.now()}`;
+        extraParams.forEach((val, key) => {
+            fetchUrl += `&${encodeURIComponent(key)}=${encodeURIComponent(val)}`;
+        });
+
+        const response = await fetch(fetchUrl, {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
             }
@@ -309,6 +330,10 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         const updateContent = () => {
             try {
                 // ── Teardown previous view resources to prevent mobile lag & leaks ──
+                if (window._savedTripsInterval) {
+                    clearInterval(window._savedTripsInterval);
+                    window._savedTripsInterval = null;
+                }
                 if (window._mapSpotsCheckInterval) {
                     clearInterval(window._mapSpotsCheckInterval);
                     window._mapSpotsCheckInterval = null;
@@ -325,7 +350,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     clearTimeout(window._gpsDebounceTimer);
                     window._gpsDebounceTimer = null;
                 }
-                if (viewName !== 'map' && window.mapInstance) {
+                if (targetView !== 'map' && window.mapInstance) {
                     try {
                         if (window.mountedMarkersMap) {
                             window.mountedMarkersMap.forEach(m => {
@@ -348,7 +373,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
                 resetAppScrollTop();
                 mainContent.innerHTML = html;
-                document.body.setAttribute('data-view', viewName);
+                document.body.setAttribute('data-view', targetView);
                 resetAppScrollTop();
 
                 // Execute any scripts in the new view
@@ -358,7 +383,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 const bottomNav = document.getElementById('bottom-navigation');
                 const noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual'];
                 if (bottomNav) {
-                    bottomNav.classList.toggle('nav-hidden', noNavViews.includes(viewName));
+                    bottomNav.classList.toggle('nav-hidden', noNavViews.includes(targetView));
                 }
 
                 // Animate in
@@ -369,12 +394,18 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 // Update URL
                 if (addToHistory) {
                     const url = new URL(window.location);
-                    url.searchParams.set('view', viewName);
-                    window.history.pushState({ view: viewName }, '', url);
+                    url.searchParams.set('view', targetView);
+                    extraParams.forEach((val, key) => {
+                        url.searchParams.set(key, val);
+                    });
+                    window.history.pushState({ view: targetView }, '', url);
                 }
 
-                state.currentView = viewName;
+                state.currentView = targetView;
                 if (typeof initCurrentView === 'function') initCurrentView();
+
+                // Dispatch viewLoaded event for view auto-refresh and lifecycle handlers
+                window.dispatchEvent(new CustomEvent('viewLoaded', { detail: { view: targetView } }));
 
                 // Post-render scroll resets on next animation frames and timeouts to guarantee top placement
                 resetAppScrollTop();

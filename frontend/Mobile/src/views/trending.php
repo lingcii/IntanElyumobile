@@ -530,8 +530,11 @@ body[data-view="trending"] .mobile-header,
                     const data = await res.json();
                     return data.trending || [];
                 },
-                (spots) => {
-                    if (spots) trendingSpots = (spots || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
+                (spots, isCached) => {
+                    if (spots) {
+                        trendingSpots = (spots || []).filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
+                        if (!isCached) applyFilters();
+                    }
                 },
                 false,
                 60000
@@ -546,9 +549,10 @@ body[data-view="trending"] .mobile-header,
                     if (!res.ok) throw new Error("Failed to fetch map destinations");
                     return await res.json();
                 },
-                (data) => {
+                (data, isCached) => {
                     if (data && data.destinations) {
-                        allDestinations = (data.destinations || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
+                        allDestinations = (data.destinations || []).filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
+                        if (!isCached) applyFilters();
                     }
                 },
                 false,

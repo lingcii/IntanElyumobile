@@ -340,7 +340,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
     // Immediate frame-0 vehicle initialization so there is zero flicker of "Own Car"
     (function initImmediateVehicle() {
         const urlParams = new URLSearchParams(window.location.search);
-        const tripId = urlParams.get('trip_id');
+        const tripId = urlParams.get('trip_id') || sessionStorage.getItem('active_trip_id') || window.currentTripId;
         if (tripId) {
             const v = resolveTripVehicle(null, tripId);
             applyVehicleToUI(v);
@@ -543,7 +543,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
     function loadTripData() {
         const urlParams = new URLSearchParams(window.location.search);
-        const tripId = urlParams.get('trip_id');
+        const tripId = urlParams.get('trip_id') || sessionStorage.getItem('active_trip_id') || window.currentTripId;
         window.currentTripId = tripId;
         
         if (!tripId) {
@@ -551,13 +551,17 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             return;
         }
 
-        const token = localStorage.getItem('intan_elyu_token');
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
         if (!token) return;
 
         if (typeof showToast === 'function') showToast("Loading trip route...");
 
         fetch(backendUrl + '/api/tourist/itineraries', {
-            headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
+            headers: { 
+                'Accept': 'application/json',
+                'ngrok-skip-browser-warning': 'true',
+                'Authorization': 'Bearer ' + token 
+            }
         })
         .then(r => r.json())
         .then(data => {

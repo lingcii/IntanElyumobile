@@ -193,9 +193,10 @@ body[data-view="saved_trips"],
                 return data.itineraries || [];
             },
             (itineraries) => {
+                if (window._isStartingTrip) return;
                 if (itineraries) {
                     renderSavedTrips(itineraries);
-                } else {
+                } else if (!window._cachedSavedTrips || window._cachedSavedTrips.length === 0) {
                     const list = document.getElementById('saved-trips-list');
                     if (list) {
                         list.innerHTML = `
@@ -509,7 +510,7 @@ body[data-view="saved_trips"],
                     </button>`;
                 } else {
                     html += `
-                    <button class="btn-primary" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border: none !important; outline: none !important; color: #fff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; box-shadow: none; cursor: pointer;" onclick="window.startTrip('${trip.id}')">
+                    <button type="button" class="btn-primary" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border: none !important; outline: none !important; color: #fff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; box-shadow: none; cursor: pointer;" onclick="event.stopPropagation(); window.startTrip('${trip.id}', this)">
                         <i class="fa-solid fa-play" style="margin-right:6px;"></i> Start
                     </button>`;
                 }
@@ -556,7 +557,17 @@ body[data-view="saved_trips"],
         }
     };
 
-    window.startTrip = function(tripId) {
+    window._isStartingTrip = false;
+
+    window.startTrip = function(tripId, btnElement) {
+        if (window._isStartingTrip) return;
+        window._isStartingTrip = true;
+
+        if (btnElement) {
+            btnElement.disabled = true;
+            btnElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Starting...';
+        }
+
         let transportParam = '';
         if (window._cachedSavedTrips) {
             const found = window._cachedSavedTrips.find(t => t.id == tripId);
@@ -566,10 +577,28 @@ body[data-view="saved_trips"],
                 transportParam = '&transport=' + encodeURIComponent(found.transport_mode);
             }
         }
+
+        sessionStorage.setItem('active_trip_id', String(tripId));
+        window.currentTripId = String(tripId);
+
+        const curParams = new URLSearchParams(window.location.search);
+        const appParam = curParams.get('app') ? '&app=' + encodeURIComponent(curParams.get('app')) : '';
+
         if (typeof showToast === 'function') showToast("Starting trip navigation...");
+
+        if (window._savedTripsInterval) {
+            clearInterval(window._savedTripsInterval);
+            window._savedTripsInterval = null;
+        }
+
         setTimeout(() => {
-            window.location.href = '?view=trip_map&trip_id=' + tripId + transportParam;
-        }, 300);
+            const target = 'trip_map&trip_id=' + encodeURIComponent(tripId) + transportParam + appParam;
+            if (typeof window.navigateTo === 'function') {
+                window.navigateTo(target);
+            } else {
+                window.location.href = '?view=trip_map&trip_id=' + encodeURIComponent(tripId) + transportParam + appParam;
+            }
+        }, 180);
     };
 
     window.markTripCompleted = async function(tripId) {
@@ -1427,6 +1456,47 @@ body[data-view="saved_trips"],
 
     // Fetch and sync in background
     window.fetchSavedTrips();
+
+    // ── Auto-refresh setup for Saved Trips ──
+    if (window._savedTripsInterval) {
+        clearInterval(window._savedTripsInterval);
+        window._savedTripsInterval = null;
+    }
+
+    // Periodic background sync every 30 seconds
+    window._savedTripsInterval = setInterval(() => {
+        const list = document.getElementById('saved-trips-list');
+        const currentView = document.body.getAttribute('data-view');
+        if (!list || (currentView && currentView !== 'saved_trips')) {
+            clearInterval(window._savedTripsInterval);
+            window._savedTripsInterval = null;
+            return;
+        }
+        if (document.visibilityState === 'visible' && !window._isStartingTrip) {
+            window.fetchSavedTrips(true);
+        }
+    }, 30000);
+
+    // Event-based auto-refresh (visibility change, window focus, view loaded)
+    if (!window._savedTripsVisibilityBound) {
+        window._savedTripsVisibilityBound = true;
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && document.body.getAttribute('data-view') === 'saved_trips' && !window._isStartingTrip) {
+                window.fetchSavedTrips(true);
+            }
+        });
+        window.addEventListener('focus', () => {
+            if (document.body.getAttribute('data-view') === 'saved_trips' && !window._isStartingTrip) {
+                window.fetchSavedTrips(true);
+            }
+        });
+        window.addEventListener('viewLoaded', (e) => {
+            if (e && e.detail && e.detail.view === 'saved_trips') {
+                window._isStartingTrip = false;
+                window.fetchSavedTrips(true);
+            }
+        });
+    }
 
 })();
 </script>

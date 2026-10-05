@@ -407,8 +407,7 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
             }
         }
 
-        \Illuminate\Support\Facades\Cache::forget('map:public:spots');
-        \Illuminate\Support\Facades\Cache::forget('trending:top:5');
+        \App\Models\TouristSpot::clearSpotCaches();
 
         return response()->json([
             'success' => true,
@@ -629,8 +628,7 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
             }
 
             $spot = \App\Models\TouristSpot::create($data);
-            \Illuminate\Support\Facades\Cache::forget('map:public:spots');
-            \Illuminate\Support\Facades\Cache::forget('trending:top:5');
+            \App\Models\TouristSpot::clearSpotCaches();
 
             return response()->json([
                 'success' => true,
@@ -927,21 +925,26 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
 
         Route::post('/dashboard/approve-spot', function (\Illuminate\Http\Request $request) {
             $spot = \App\Models\TouristSpot::find($request->input('id'));
-            if ($spot)
+            if ($spot) {
                 $spot->update(['status' => 'approved']);
+            }
+            \App\Models\TouristSpot::clearSpotCaches();
             return response()->json(['success' => true]);
         });
 
         Route::post('/dashboard/reject-spot', function (\Illuminate\Http\Request $request) {
             $spot = \App\Models\TouristSpot::find($request->input('id'));
-            if ($spot)
+            if ($spot) {
                 $spot->update(['status' => 'rejected']);
+            }
+            \App\Models\TouristSpot::clearSpotCaches();
             return response()->json(['success' => true]);
         });
 
         Route::post('/dashboard/batch-approve-spots', function (\Illuminate\Http\Request $request) {
             $ids = $request->input('ids', []);
             \App\Models\TouristSpot::whereIn('id', $ids)->update(['status' => 'approved']);
+            \App\Models\TouristSpot::clearSpotCaches();
             return response()->json(['success' => true]);
         });
 

@@ -17,7 +17,7 @@ class MapController extends Controller
      */
     public function publicMapData(): JsonResponse
     {
-        $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots:v8', 900, function () {
+        $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots', 120, function () {
             $spotPublicVehicles = [];
             $spotPrivateVehicles = [];
             $spotAllVehicles = [];
@@ -67,6 +67,7 @@ class MapController extends Controller
             return TouristSpot::activeForTourists()
                 ->with('municipality:id,name')
                 ->with('images')
+                ->orderBy('id', 'desc')
                 ->get(['id', 'name', 'category', 'municipality_id', 'barangay', 'latitude', 'longitude',
                        'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types',
                        'environmental_fee', 'fee_types', 'route_guide', 'tour_guide_notice',
@@ -171,7 +172,7 @@ class MapController extends Controller
         });
 
         return response()->json(['destinations' => $spots])
-            ->header('Cache-Control', 'public, max-age=600, stale-while-revalidate=1800');
+            ->header('Cache-Control', 'no-cache, private, must-revalidate');
     }
 
     /**
