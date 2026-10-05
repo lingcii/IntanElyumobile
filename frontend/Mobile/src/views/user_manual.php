@@ -57,7 +57,7 @@ body[data-view="user_manual"]::-webkit-scrollbar,
     box-sizing: border-box;
 }
 
-#bottom-navigation {
+body[data-view="user_manual"] #bottom-navigation {
     display: none !important;
 }
 
