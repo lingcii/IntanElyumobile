@@ -752,7 +752,8 @@ try {
             const p = 0.017453292519943295;
             const c = Math.cos;
             const a = 0.5 - c((l2 - l1) * p) / 2 + c(l1 * p) * c(l2 * p) * (1 - c((o2 - o1) * p)) / 2;
-            const distKm = 12742 * Math.asin(Math.sqrt(a));
+            const straightKm = 12742 * Math.asin(Math.sqrt(a));
+            const distKm = straightKm * 1.215; // Realistic La Union road winding factor (~1.215x straight line)
 
             let durationMin = Math.round((distKm / 30) * 60);
             if (durationMin < 1) durationMin = 1;
@@ -2728,7 +2729,9 @@ try {
                         if (!isMaint) {
                             const lat = place.lat || place.latitude;
                             const lng = place.lng || place.longitude;
-                            const eta = window.getDistanceAndETA(lat, lng);
+                            const placeKey = String(place.id || place.name);
+                            const hasCachedOSRM = window._cachedNextStopOSRM && window._cachedNextStopOSRM.spotKey === placeKey;
+                            const eta = hasCachedOSRM ? window._cachedNextStopOSRM : window.getDistanceAndETA(lat, lng);
                             if (eta) {
                                 nextStopEtaHtml = `
                             <div class="next-stop-distance-chip" id="itinerary-next-eta" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; border-radius:100px !important; padding:5px 13px !important; font-size:11px !important; font-weight:700 !important; display:inline-flex !important; align-items:center !important; gap:7px !important; margin-top:8px !important; box-shadow:0 2px 6px rgba(0,0,0,0.12) !important;">
@@ -3136,7 +3139,9 @@ try {
                     } else {
                         const pLat = nextPlace.lat || nextPlace.latitude;
                         const pLng = nextPlace.lng || nextPlace.longitude;
-                        const eta = window.getDistanceAndETA(pLat, pLng);
+                        const placeKey = String(nextPlace.id || nextPlace.name);
+                        const hasCachedOSRM = window._cachedNextStopOSRM && window._cachedNextStopOSRM.spotKey === placeKey;
+                        const eta = hasCachedOSRM ? window._cachedNextStopOSRM : window.getDistanceAndETA(pLat, pLng);
                         if (eta) {
                             nextEtaEl.innerHTML = `<i class="fa-solid fa-route" style="color:#0284c7 !important; font-size:11px;"></i> <span style="color:#1e3a8a !important; font-weight:700; font-size:11px;">${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>`;
                         }
@@ -4122,6 +4127,7 @@ try {
                         // Fetch leg by leg with alternative option for each leg
                         try {
                             const legGeometries = [];
+                            const legList = [];
                             let totalDist = 0;
                             let totalDur = 0;
 
@@ -4138,6 +4144,7 @@ try {
                                     legGeometries.push(chosen.geometry);
                                     totalDist += chosen.distance;
                                     totalDur += chosen.duration;
+                                    legList.push({ distance: chosen.distance, duration: chosen.duration });
                                 }
                             }
 
@@ -4152,7 +4159,8 @@ try {
                                             type: 'Feature',
                                             geometry: g
                                         }))
-                                    }
+                                    },
+                                    legs: legList
                                 };
                             }
                         } catch (e) {
@@ -4184,7 +4192,8 @@ try {
                                 code: 'Ok',
                                 distance: chosenRoute.distance,
                                 duration: chosenRoute.duration,
-                                geometry: chosenRoute.geometry
+                                geometry: chosenRoute.geometry,
+                                legs: chosenRoute.legs || []
                             };
                         }
                     }
@@ -4249,6 +4258,50 @@ try {
                         window._draftDistanceKm = distanceKm;
                         window.setTxt('draft-map-dist', distanceKm.toFixed(1) + ' km');
                         window.setTxt('draft-map-time', Math.round(durationMin) + ' min');
+
+                        // Synchronize Next Stop (Stop 1) distance and drive duration chip with real OSRM road calculation
+                        let leg0DistKm = distanceKm;
+                        let leg0DurMin = durationMin;
+                        if (routeData.legs && routeData.legs.length > 0) {
+                            let lDist = (routeData.legs[0].distance || 0) / 1000;
+                            let lDur = (routeData.legs[0].duration || 0) / 60;
+                            if (isAlt) {
+                                lDist *= 1.12;
+                                lDur *= 1.25;
+                            }
+                            let lMult = 1.6;
+                            if (lDist <= 3) lMult = 2.5;
+                            else if (lDist <= 7) lMult = 2.0;
+                            lDur *= lMult;
+                            if (isRushHour) lDur *= 1.35;
+                            leg0DistKm = lDist;
+                            leg0DurMin = lDur;
+                        }
+
+                        const leg0DistText = leg0DistKm < 1 ? Math.round(leg0DistKm * 1000) + ' m' : leg0DistKm.toFixed(1) + ' km';
+                        const leg0DurMinRound = Math.max(1, Math.round(leg0DurMin));
+                        const leg0DurText = leg0DurMinRound >= 60
+                            ? `${Math.floor(leg0DurMinRound / 60)}h ${leg0DurMinRound % 60}m`
+                            : `${leg0DurMinRound} mins`;
+
+                        const firstPlace = (typeof draft !== 'undefined' && Array.isArray(draft) && draft[0]) ? draft[0] : null;
+                        const firstKey = firstPlace ? String(firstPlace.id || firstPlace.name) : null;
+
+                        window._cachedNextStopOSRM = {
+                            distanceKm: leg0DistKm,
+                            distanceText: leg0DistText,
+                            durationMin: leg0DurMinRound,
+                            durationText: leg0DurText,
+                            spotKey: firstKey
+                        };
+
+                        const nextEtaEl = document.getElementById('itinerary-next-eta');
+                        if (nextEtaEl) {
+                            nextEtaEl.innerHTML = `
+                                <i class="fa-solid fa-route" style="color:#0284c7 !important; font-size:11px;"></i> 
+                                <span style="color:#1e3a8a !important; font-weight:700; font-size:11px;">${leg0DistText} away &bull; ~${leg0DurText} drive from your location</span>
+                            `;
+                        }
 
                         const updateRouteScale = () => {
                             if (!draftMap) return;
