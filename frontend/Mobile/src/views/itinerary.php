@@ -356,21 +356,15 @@ try {
     <div style="background:#ffffff !important; border-radius:28px 28px 0 0; width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; max-height:86vh; display:flex; flex-direction:column; box-sizing:border-box; overflow:hidden; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
         
         <!-- Header (Royal Blue Banner) -->
-        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 18px 14px 18px; color:#ffffff; flex-shrink:0; border:none !important; outline:none !important;">
-            <div style="width:36px; height:4px; background:rgba(255,255,255,0.35); border-radius:99px; margin:0 auto 12px auto;"></div>
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 18px; color:#ffffff; flex-shrink:0; border:none !important; outline:none !important;">
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <div style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
                         <i class="fa-solid fa-map-location-dot" style="color:#1e3a8a !important; font-size:15px;"></i>
                     </div>
-                    <div>
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Transit Summary</h3>
-                            <span id="transit-summary-badge" style="font-size:9.5px; font-weight:800; background:rgba(255, 255, 255, 0.2); color:#ffffff; padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">0 Destinations</span>
-                        </div>
-                        <div style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">
-                            Per-destination transit & fare breakdown
-                        </div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Transit Summary</h3>
+                        <span id="transit-summary-badge" style="font-size:9.5px; font-weight:800; background:rgba(255, 255, 255, 0.2); color:#ffffff; padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">0 Destinations</span>
                     </div>
                 </div>
                 <button type="button" onclick="window.closeTransitSummaryOpensheet()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink:0; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
@@ -405,7 +399,7 @@ try {
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6, 11, 25, 0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:100003 !important; justify-content:center; align-items:flex-end; padding:0;">
     <div style="background:#ffffff !important; border-radius:28px 28px 0 0; width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; max-height:88vh; display:flex; flex-direction:column; box-sizing:border-box; overflow:hidden; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
         
-        <!-- Header (Matched to Notifications Header Banner) -->
+        <!-- Header (Royal Blue Banner) -->
         <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 18px 14px 18px; color:#ffffff; flex-shrink:0; border:none !important; outline:none !important;">
             <div style="width:36px; height:4px; background:rgba(255,255,255,0.35); border-radius:99px; margin:0 auto 12px auto;"></div>
             <div style="display:flex; align-items:center; justify-content:space-between;">
@@ -450,14 +444,14 @@ try {
                 </div>
             </div>
 
-            <!-- Transport Options List (Royal Blue Notification Cards) -->
+            <!-- Transport Options List -->
             <div id="leg-modal-options-list" style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:9px; padding-right:2px; -webkit-overflow-scrolling:touch; max-height:48vh; margin-bottom:4px;">
                 <!-- Rendered dynamically -->
             </div>
 
         </div>
 
-        <!-- Locked Bottom Footer Banner (Matched to Notifications Footer Banner) -->
+        <!-- Locked Bottom Footer Banner -->
         <div style="flex-shrink:0; padding:12px 18px calc(14px + env(safe-area-inset-bottom, 0px)) 18px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); display:flex; align-items:center; justify-content:space-between; gap:12px; border:none !important; outline:none !important;">
             <div id="leg-modal-fare-container">
                 <div style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.5px;">Estimated Leg Fare</div>
@@ -476,7 +470,7 @@ try {
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6, 11, 25, 0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:100003 !important; justify-content:center; align-items:flex-end; padding:0;">
     <div style="background:#ffffff !important; border-radius:28px 28px 0 0; width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; max-height:88vh; display:flex; flex-direction:column; box-sizing:border-box; overflow:hidden; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
         
-        <!-- Header (Matched to Notifications / Leg Transport Header Banner) -->
+        <!-- Header (Royal Blue Banner) -->
         <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 18px 14px 18px; color:#ffffff; flex-shrink:0; border:none !important; outline:none !important;">
             <div style="width:36px; height:4px; background:rgba(255,255,255,0.35); border-radius:99px; margin:0 auto 12px auto;"></div>
             <div style="display:flex; align-items:center; justify-content:space-between;">
@@ -521,7 +515,7 @@ try {
                 </span>
             </div>
 
-            <!-- Transport Options List (Royal Blue Notification Cards) -->
+            <!-- Transport Options List -->
             <div style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:9px; padding-right:2px; -webkit-overflow-scrolling:touch; max-height:48vh; margin-bottom:4px;">
                 
                 <!-- Category 1: Private Vehicles -->
@@ -738,7 +732,7 @@ try {
 
         </div>
 
-        <!-- Locked Bottom Footer Banner (Matched to Notifications / Leg Transport Footer Banner) -->
+        <!-- Locked Bottom Footer Banner -->
         <div style="flex-shrink:0; padding:12px 18px calc(14px + env(safe-area-inset-bottom, 0px)) 18px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); display:flex; align-items:center; justify-content:space-between; gap:12px; border:none !important; outline:none !important;">
             <div style="min-width:0; flex:1;">
                 <div style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.5px;">Trip Travel Mode</div>
@@ -955,6 +949,7 @@ try {
             const normType = rawType.replace(/[- ]/g, '_');
 
             if (['own_car', 'taxi', 'motorcycle', 'car'].includes(normType)) return null;
+            if (['van', 'uve', 'mini_bus'].includes(normType)) return 0;
 
             let fareEntry = null;
 
@@ -1147,7 +1142,7 @@ try {
                 return Math.round(subSum * 100) / 100;
             }
             const norm = (subParts.length === 1) ? subParts[0] : window.normalizeVehicleKey(mode);
-            if (['own_car', 'motorcycle', 'walking', 'walk', 'no_vehicle'].includes(norm)) {
+            if (['own_car', 'motorcycle', 'walking', 'walk', 'no_vehicle', 'van', 'uve', 'mini_bus'].includes(norm)) {
                 return 0;
             }
             const cleanA = (muniA || '').replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim();
@@ -2247,7 +2242,7 @@ try {
                 let transportMarkup = '';
                 if (isMaintenance) {
                     transportMarkup = `
-                        <span style="display:inline-flex; align-items:center; background:#fee2e2; color:#b91c1c; font-size:11px; font-weight:800; padding:4px 10px; border-radius:100px;">
+                        <span style="display:inline-flex; align-items:center; background:#ef4444; color:#ffffff; font-size:11px; font-weight:800; padding:4px 10px; border-radius:100px; border:none !important; outline:none !important;">
                             Unavailable
                         </span>
                     `;
@@ -2255,8 +2250,8 @@ try {
                     const iconClass = (info && info.icon) ? info.icon : 'fa-car';
                     const vehicleLabel = (info && (info.full_names || info.name)) ? (info.full_names || info.name) : 'Own Car';
                     transportMarkup = `
-                        <div style="display:inline-flex; align-items:center; gap:6px; background:#eff6ff; color:#1e3a8a; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:100px; border:1px solid #dbeafe;">
-                            <i class="fa-solid ${iconClass}" style="color:#2563eb; font-size:12px;"></i>
+                        <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.16); color:#ffffff; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:100px; border:1px solid rgba(255,255,255,0.22);">
+                            <i class="fa-solid ${iconClass}" style="color:#00f2fe; font-size:12px;"></i>
                             <span style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${vehicleLabel}</span>
                         </div>
                     `;
@@ -2265,61 +2260,61 @@ try {
                 // Fare display
                 let fareMarkup = '';
                 if (isMaintenance) {
-                    fareMarkup = `<span style="font-size:14px; font-weight:800; color:#94a3b8;">₱0.00</span>`;
+                    fareMarkup = `<span style="font-size:14px; font-weight:800; color:rgba(255,255,255,0.6);">₱0.00</span>`;
                 } else if (cost === 0) {
-                    fareMarkup = `<span style="font-size:13.5px; font-weight:800; color:#059669;">₱0.00</span> <span style="font-size:10px; font-weight:700; color:#64748b;">(Free)</span>`;
+                    fareMarkup = `<span style="font-size:13.5px; font-weight:800; color:#34d399;">₱0.00</span> <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.72);">(Free)</span>`;
                 } else {
-                    fareMarkup = `<span style="font-size:15px; font-weight:900; color:#1e3a8a;">₱${cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>`;
+                    fareMarkup = `<span style="font-size:15px; font-weight:900; color:#00f2fe;">₱${cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>`;
                 }
 
                 // Warning or note
                 let noteMarkup = '';
                 if (isMaintenance) {
                     noteMarkup = `
-                        <div style="margin-top:6px; font-size:11px; font-weight:600; color:#b91c1c; background:#fff1f2; padding:6px 10px; border-radius:8px; border:1px solid #ffe4e6; display:flex; align-items:center; gap:6px;">
-                            <i class="fa-solid fa-triangle-exclamation" style="font-size:11px;"></i>
+                        <div style="margin-top:6px; font-size:11px; font-weight:600; color:#fee2e2; background:rgba(239,68,68,0.25); padding:6px 10px; border-radius:8px; border:1px solid rgba(239,68,68,0.4); display:flex; align-items:center; gap:6px;">
+                            <i class="fa-solid fa-triangle-exclamation" style="font-size:11px; color:#fca5a5;"></i>
                             <span>Destination temporarily closed / under maintenance</span>
                         </div>
                     `;
                 } else if (info && info.warning) {
                     noteMarkup = `
-                        <div style="margin-top:6px; font-size:11px; font-weight:600; color:#92400e; background:#fffbeb; padding:6px 10px; border-radius:8px; border:1px solid #fde68a; display:flex; align-items:center; gap:6px;">
-                            <i class="fa-solid fa-circle-info" style="font-size:11px; color:#d97706;"></i>
+                        <div style="margin-top:6px; font-size:11px; font-weight:600; color:#fef3c7; background:rgba(245,158,11,0.25); padding:6px 10px; border-radius:8px; border:1px solid rgba(245,158,11,0.4); display:flex; align-items:center; gap:6px;">
+                            <i class="fa-solid fa-circle-info" style="font-size:11px; color:#fcd34d;"></i>
                             <span>${info.warning}</span>
                         </div>
                     `;
                 }
 
                 cardsHtml += `
-                    <div style="background:#ffffff; border-radius:16px; padding:13px 15px; border:1px solid #e2e8f0; box-shadow:0 1px 4px rgba(15,23,42,0.04); display:flex; flex-direction:column; gap:8px;">
+                    <div style="background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border-radius:16px; padding:13px 15px; border:none !important; outline:none !important; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important; display:flex; flex-direction:column; gap:8px; color:#ffffff;">
                         <!-- Header: Stop Badge + Distance -->
                         <div style="display:flex; align-items:center; justify-content:space-between;">
-                            <span style="font-size:11px; font-weight:800; color:#1e3a8a; background:rgba(30,58,138,0.08); padding:3px 10px; border-radius:100px;">
+                            <span style="font-size:11px; font-weight:800; color:#ffffff; background:rgba(255,255,255,0.2); padding:3px 10px; border-radius:100px; border:none !important; outline:none !important;">
                                 Stop ${idx + 1}
                             </span>
-                            <span style="font-size:11.5px; font-weight:700; color:#64748b; display:inline-flex; align-items:center; gap:4px;">
-                                <i class="fa-solid fa-route" style="font-size:10.5px; color:#94a3b8;"></i> ${distKm} km
+                            <span style="font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.9); display:inline-flex; align-items:center; gap:4px;">
+                                <i class="fa-solid fa-route" style="font-size:10.5px; color:#00f2fe;"></i> ${distKm} km
                             </span>
                         </div>
 
                         <!-- Route Segment: From -> To -->
                         <div style="display:flex; flex-direction:column; gap:4px; padding:2px 0;">
-                            <div style="display:flex; align-items:center; gap:7px; font-size:11.5px; color:#64748b; font-weight:600;">
-                                <i class="fa-regular fa-circle-dot" style="font-size:9.5px; color:#94a3b8; flex-shrink:0;"></i>
+                            <div style="display:flex; align-items:center; gap:7px; font-size:11.5px; color:rgba(255,255,255,0.78); font-weight:600;">
+                                <i class="fa-regular fa-circle-dot" style="font-size:9.5px; color:#38bdf8; flex-shrink:0;"></i>
                                 <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${fromName}</span>
                             </div>
-                            <div style="display:flex; align-items:center; gap:7px; font-size:13px; color:#0f172a; font-weight:800;">
-                                <i class="fa-solid fa-location-dot" style="font-size:11px; color:#0284c7; flex-shrink:0;"></i>
+                            <div style="display:flex; align-items:center; gap:7px; font-size:13px; color:#ffffff; font-weight:800;">
+                                <i class="fa-solid fa-location-dot" style="font-size:11px; color:#00f2fe; flex-shrink:0;"></i>
                                 <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${toName}</span>
-                                ${muni ? `<span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:1px 6px; border-radius:4px; flex-shrink:0;">${muni}</span>` : ''}
+                                ${muni ? `<span style="font-size:10px; font-weight:700; color:#00f2fe; background:rgba(0, 242, 254, 0.2); padding:1px 6px; border-radius:4px; border:none !important; outline:none !important; flex-shrink:0;">${muni}</span>` : ''}
                             </div>
                         </div>
 
                         <!-- Footer: Transport Mode & Price -->
-                        <div style="display:flex; align-items:center; justify-content:space-between; padding-top:6px; border-top:1px dashed #e2e8f0; margin-top:2px;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding-top:6px; border-top:1px dashed rgba(255,255,255,0.22); margin-top:2px;">
                             <div>${transportMarkup}</div>
                             <div style="text-align:right;">
-                                <div style="font-size:9.5px; font-weight:700; color:#64748b; text-transform:uppercase;">Estimated Fare</div>
+                                <div style="font-size:9.5px; font-weight:700; color:rgba(255,255,255,0.72); text-transform:uppercase;">Estimated Fare</div>
                                 <div>${fareMarkup}</div>
                             </div>
                         </div>
