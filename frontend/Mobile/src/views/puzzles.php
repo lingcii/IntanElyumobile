@@ -155,56 +155,6 @@ include __DIR__ . '/../components/header.php';
             </div>
         </div>
 
-        <!-- Game Mechanics & Rules Accordion -->
-        <div id="scramble-mechanics-wrapper" style="margin-bottom: 16px;">
-            <div class="scramble-mechanics-card">
-                <button type="button" class="scramble-mechanics-toggle" onclick="toggleScrambleMechanics()">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <i class="fa-solid fa-gamepad" style="color: #00f2fe; font-size: 15px;"></i>
-                        <span style="font-weight: 800; font-size: 13px; color: #ffffff;">Game Mechanics &amp; How to Play</span>
-                    </div>
-                    <i id="scramble-mechanics-icon" class="fa-solid fa-chevron-down" style="color: rgba(255,255,255,0.8); font-size: 12px; transition: transform 0.25s ease;"></i>
-                </button>
-                <div id="scramble-mechanics-content" class="scramble-mechanics-content" style="display: none;">
-                    <div class="scramble-mechanic-item">
-                        <div class="scramble-mechanic-icon"><i class="fa-solid fa-shuffle"></i></div>
-                        <div class="scramble-mechanic-text">
-                            <strong>1. Randomized Word Pool:</strong> Each round picks 4 random unique destinations from La Union's 20 municipalities &amp; famous attractions.
-                        </div>
-                    </div>
-                    <div class="scramble-mechanic-item">
-                        <div class="scramble-mechanic-icon"><i class="fa-solid fa-font"></i></div>
-                        <div class="scramble-mechanic-text">
-                            <strong>2. Scrambled Anagrams:</strong> The letters of each location are dynamically jumbled. Rearrange them into the correct destination name.
-                        </div>
-                    </div>
-                    <div class="scramble-mechanic-item">
-                        <div class="scramble-mechanic-icon"><i class="fa-solid fa-lightbulb"></i></div>
-                        <div class="scramble-mechanic-text">
-                            <strong>3. Local Trivia Hints:</strong> Read the hint below each anagram for geographical and cultural clues about the spot.
-                        </div>
-                    </div>
-                    <div class="scramble-mechanic-item">
-                        <div class="scramble-mechanic-icon"><i class="fa-solid fa-arrows-rotate"></i></div>
-                        <div class="scramble-mechanic-text">
-                            <strong>4. Reshuffle Anagram:</strong> Tap the <i class="fa-solid fa-arrows-rotate" style="font-size:10px; color:#00f2fe;"></i> icon on any word to shake and reorder its scrambled letters for a fresh view.
-                        </div>
-                    </div>
-                    <div class="scramble-mechanic-item">
-                        <div class="scramble-mechanic-icon"><i class="fa-solid fa-dice"></i></div>
-                        <div class="scramble-mechanic-text">
-                            <strong>5. Randomize Words Button:</strong> Want a different puzzle? Tap <strong>Randomize Words</strong> to draw 4 completely new destinations anytime!
-                        </div>
-                    </div>
-                    <div class="scramble-mechanic-item">
-                        <div class="scramble-mechanic-icon"><i class="fa-solid fa-trophy"></i></div>
-                        <div class="scramble-mechanic-text">
-                            <strong>6. Earn +75 Points:</strong> Unscramble all 4 words correctly and tap <strong>Submit Answers</strong> to claim your rewards!
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- Scramble Live Progress & Action Controls -->
         <div id="scramble-stats-bar" style="background: rgba(30, 58, 138, 0.4); border-radius: 18px; padding: 14px 16px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 4px 14px rgba(32, 63, 141, 0.2);">
