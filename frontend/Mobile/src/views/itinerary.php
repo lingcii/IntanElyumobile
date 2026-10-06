@@ -1523,8 +1523,8 @@ try {
                     mode: 'suspended',
                     transport_mode: 'suspended',
                     transport_modes: [],
-                    name: 'Site Under Maintenance',
-                    icon: 'fa-triangle-exclamation',
+                    name: 'Unavailable',
+                    icon: '',
                     cost: 0,
                     leg_cost: 0,
                     distance_km: distKm,
@@ -2010,7 +2010,7 @@ try {
                     btnApply.style.cursor = 'not-allowed';
                     btnApply.style.width = '100%';
                     btnApply.style.justifyContent = 'center';
-                    btnApply.innerHTML = `<i class="fa-solid fa-ban"></i> Site Under Maintenance`;
+                    btnApply.innerHTML = `Unavailable`;
                 } else {
                     btnApply.disabled = false;
                     btnApply.style.opacity = '1';
@@ -2664,16 +2664,19 @@ try {
                 const leg0ClickAction = leg0Info.is_maintenance
                     ? `if(typeof showToast==='function') showToast('${leg0DestName} is currently under maintenance or temporarily closed. Vehicle transit is restricted.');`
                     : `window.openLegTransportModal(0)`;
+                const leg0LeadingIcon = (leg0Info.is_maintenance || !leg0Info.icon)
+                    ? ''
+                    : `<i class="fa-solid ${leg0Info.icon}" style="color:${leg0IconColor}; font-size:11px; flex-shrink:0;"></i>`;
                 const leg0TrailingIcon = leg0Info.is_maintenance
-                    ? `<i class="fa-solid fa-ban" style="color:#ffffff; font-size:10px; margin-left:2px; flex-shrink:0;"></i>`
-                    : `<i class="fa-solid fa-chevron-right leg-action-edit" flex-shrink:0;"></i>`;
+                    ? ''
+                    : `<i class="fa-solid fa-chevron-right leg-action-edit" style="flex-shrink:0;"></i>`;
 
                 startingLegHtml = `
             <div class="stops-swap-divider starting-leg-divider">
                 <div class="stops-swap-line"></div>
                 <div class="stops-leg-wrapper" style="display:flex; align-items:center; gap:8px; z-index:3;">
-                    <div class="${leg0ChipClass}" onclick="${leg0ClickAction}" title="${leg0Info.is_maintenance ? 'Destination is under maintenance. Transport options are disabled.' : 'Selected: ' + (leg0Info.full_names || leg0Info.name)}">
-                        <i class="fa-solid ${leg0Info.icon}" style="color:${leg0IconColor}; font-size:11px; flex-shrink:0;"></i>
+                    <div class="${leg0ChipClass}" style="display:none !important;" onclick="${leg0ClickAction}" title="${leg0Info.is_maintenance ? 'Destination is under maintenance. Transport options are disabled.' : 'Selected: ' + (leg0Info.full_names || leg0Info.name)}">
+                        ${leg0LeadingIcon}
                         <span class="leg-chip-name" style="${leg0NameStyle}">${leg0Info.name}</span>
                         ${fareBadge}
                         ${leg0Info.is_maintenance ? '' : `<span class="leg-dist-text">&bull; ${startDistText}</span>`}
@@ -2768,16 +2771,19 @@ try {
                         const legClickAction = legInfo.is_maintenance
                             ? `if(typeof showToast==='function') showToast('${legDestName} is currently under maintenance or temporarily closed. Vehicle transit is restricted.');`
                             : `window.openLegTransportModal(${index})`;
+                        const legLeadingIcon = (legInfo.is_maintenance || !legInfo.icon)
+                            ? ''
+                            : `<i class="fa-solid ${legInfo.icon}" style="color:${legIconColor}; font-size:11px; flex-shrink:0;"></i>`;
                         const legTrailingIcon = legInfo.is_maintenance
-                            ? `<i class="fa-solid fa-ban" style="color:#ffffff; font-size:10px; margin-left:2px; flex-shrink:0;"></i>`
-                            : `<i class="fa-solid fa-chevron-right leg-action-edit" flex-shrink:0;"></i>`;
+                            ? ''
+                            : `<i class="fa-solid fa-chevron-right leg-action-edit" style="flex-shrink:0;"></i>`;
 
                         html += `
                         <div class="stops-swap-divider">
                             <div class="stops-swap-line"></div>
                             <div class="stops-leg-wrapper" style="display:flex; align-items:center; gap:8px; z-index:3;">
-                                <div class="${legChipClass}" onclick="${legClickAction}" title="${legInfo.is_maintenance ? 'Destination is under maintenance. Transport options are disabled.' : 'Selected: ' + (legInfo.full_names || legInfo.name)}">
-                                    <i class="fa-solid ${legInfo.icon}" style="color:${legIconColor}; font-size:11px; flex-shrink:0;"></i>
+                                <div class="${legChipClass}" style="display:none !important;" onclick="${legClickAction}" title="${legInfo.is_maintenance ? 'Destination is under maintenance. Transport options are disabled.' : 'Selected: ' + (legInfo.full_names || legInfo.name)}">
+                                    ${legLeadingIcon}
                                     <span class="leg-chip-name" style="${legNameStyle}">${legInfo.name}</span>
                                     ${fareBadge}
                                     ${legInfo.is_maintenance ? '' : `<span class="leg-dist-text">&bull; ${legDistText}</span>`}

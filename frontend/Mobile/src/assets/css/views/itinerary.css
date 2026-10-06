@@ -457,13 +457,7 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
 }
 
 .stops-leg-chip {
-    background: #ffffff !important;
-    border-radius: 100px !important;
-    padding: 5px 13px !important;
-    font-size: 11px !important;
-    font-weight: 700 !important;
-    color: #1e3a8a !important;
-    display: inline-flex !important;
+    display: none !important;
     align-items: center !important;
     gap: 6px !important;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) !important;
@@ -1255,13 +1249,7 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
 
 .stops-leg-chip,
 .p2p-leg-chip {
-    background: #ffffff !important;
-    border-radius: 100px !important;
-    padding: 6px 14px !important;
-    font-size: 11px !important;
-    font-weight: 700 !important;
-    color: #1e3a8a !important;
-    display: inline-flex !important;
+    display: none !important;
     align-items: center !important;
     gap: 6px !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
