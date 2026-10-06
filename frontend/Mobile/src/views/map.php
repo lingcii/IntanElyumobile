@@ -243,51 +243,64 @@ if (is_dir($imgDir)) {
 
     <!-- Classification Toggle Button & Popover (Vertical on Left Side Corner) -->
     <div class="btn-classification-wrapper" id="btn-classification-wrapper" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); left: 10px; z-index: 895; transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease, visibility 0.38s ease;">
-        <!-- Popover showing the 3 Types of Classification (Matched to blue gradient theme) -->
-        <div id="classification-popover" style="display: none; position: absolute; bottom: 0; left: calc(100% + 10px); transform-origin: bottom left; transform: scale(0.95); opacity: 0; width: 250px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(45, 90, 155, 0.94) 50%, rgba(63, 125, 183, 0.94) 100%) !important; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 20px; padding: 12px 14px; box-shadow: 0 16px 36px rgba(10, 25, 60, 0.45); border: none !important; outline: none !important; transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.18);">
-                <span style="font-size: 11px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.6px;">
-                    <i class="fa-solid fa-tags" style="color: #00f2fe; margin-right: 5px;"></i> Classifications
-                </span>
-                <span onclick="window.toggleClassificationMenu(false)" style="cursor: pointer; color: #ffffff; opacity: 0.85; font-size: 12px; padding: 2px 4px;"><i class="fa-solid fa-xmark"></i></span>
+        <!-- Popover showing the 3 Types of Classification (Solid Opaque Theme) -->
+        <div id="classification-popover" style="display: none; position: absolute; bottom: 0; left: calc(100% + 10px); transform-origin: bottom left; transform: scale(0.95); opacity: 0; width: 270px; background: #ffffff !important; border-radius: 22px; box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45) !important; border: none !important; outline: none !important; overflow: hidden; transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none; z-index: 1000;">
+            <!-- Header Banner -->
+            <div style="background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; border: none !important; outline: none !important;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 28px; height: 28px; border-radius: 8px; background: #ffffff !important; display: flex; align-items: center; justify-content: center; color: #1e3a8a !important; font-size: 13px; box-shadow: 0 2px 6px rgba(0,0,0,0.18); flex-shrink: 0;">
+                        <i class="fa-solid fa-tags" style="color: #1e3a8a !important;"></i>
+                    </div>
+                    <span style="font-size: 13.5px; font-weight: 800; color: #ffffff; letter-spacing: -0.2px;">Classifications</span>
+                </div>
+                <button type="button" onclick="window.toggleClassificationMenu(false)" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-xmark" style="color: #1e3a8a !important; font-size: 12px;"></i>
+                </button>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 6px;">
+
+            <!-- Body List (Solid royal blue gradient cards on pure white) -->
+            <div style="background: #ffffff !important; padding: 10px 10px 12px 10px; display: flex; flex-direction: column; gap: 7px;">
                 <!-- 1. Existing -->
-                <div class="classification-item-chip" onclick="window.filterByClassification('EXIST')" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; transition: background 0.15s ease;">
-                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #0284c7; box-shadow: none !important; flex-shrink: 0;"></span>
-                    <div style="flex: 1;">
-                        <div style="font-size: 12px; font-weight: 800; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
-                            <span>Existing</span>
-                            <span id="count-exist" style="font-size: 10px; font-weight: 800; color: #0284c7; background: rgba(2,132,199,0.22); padding: 1px 6px; border-radius: 6px;">Site</span>
+                <div class="classification-item-chip" onclick="window.filterByClassification('EXIST')" style="cursor: pointer; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 3px 10px rgba(32, 63, 141, 0.22) !important; border: none !important; outline: none !important; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span style="width: 7.5px; height: 7.5px; border-radius: 50%; background: #00f2fe; flex-shrink: 0; box-shadow: 0 0 6px #00f2fe; display: inline-block;"></span>
+                            <span style="font-size: 12.5px; font-weight: 800; color: #ffffff;">Existing</span>
                         </div>
-                        <div style="font-size: 10px; color: rgba(255,255,255,0.85); font-weight: 500;">Fully developed spots & facilities</div>
+                        <span id="count-exist" style="font-size: 10px; font-weight: 800; color: #00f2fe; background: rgba(0, 242, 254, 0.18); padding: 2px 8px; border-radius: 100px;">Site</span>
                     </div>
+                    <div style="font-size: 10.5px; color: rgba(255,255,255,0.85); font-weight: 500; line-height: 1.35; padding-left: 13.5px;">Fully developed spots & facilities</div>
                 </div>
-                <!-- 2. Potential (Middle) -->
-                <div class="classification-item-chip" onclick="window.filterByClassification('POTENTIAL')" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; transition: background 0.15s ease;">
-                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; box-shadow: none !important; flex-shrink: 0;"></span>
-                    <div style="flex: 1;">
-                        <div style="font-size: 12px; font-weight: 800; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
-                            <span>Potential</span>
-                            <span id="count-potential" style="font-size: 10px; font-weight: 800; color: #10b981; background: rgba(16,185,129,0.22); padding: 1px 6px; border-radius: 6px;">Site</span>
+
+                <!-- 2. Potential -->
+                <div class="classification-item-chip" onclick="window.filterByClassification('POTENTIAL')" style="cursor: pointer; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 3px 10px rgba(32, 63, 141, 0.22) !important; border: none !important; outline: none !important; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span style="width: 7.5px; height: 7.5px; border-radius: 50%; background: #34d399; flex-shrink: 0; box-shadow: 0 0 6px #34d399; display: inline-block;"></span>
+                            <span style="font-size: 12.5px; font-weight: 800; color: #ffffff;">Potential</span>
                         </div>
-                        <div style="font-size: 10px; color: rgba(255,255,255,0.85); font-weight: 500;">Unspoiled spots with high promise</div>
+                        <span id="count-potential" style="font-size: 10px; font-weight: 800; color: #34d399; background: rgba(52, 211, 153, 0.18); padding: 2px 8px; border-radius: 100px;">Site</span>
                     </div>
+                    <div style="font-size: 10.5px; color: rgba(255,255,255,0.85); font-weight: 500; line-height: 1.35; padding-left: 13.5px;">Unspoiled spots with high promise</div>
                 </div>
-                <!-- 3. Emerging (Bottom) -->
-                <div class="classification-item-chip" onclick="window.filterByClassification('EMERGE')" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; transition: background 0.15s ease;">
-                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444; box-shadow: none !important; flex-shrink: 0;"></span>
-                    <div style="flex: 1;">
-                        <div style="font-size: 12px; font-weight: 800; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
-                            <span>Emerging</span>
-                            <span id="count-emerge" style="font-size: 10px; font-weight: 800; color: #ef4444; background: rgba(239,68,68,0.22); padding: 1px 6px; border-radius: 6px;">Site</span>
+
+                <!-- 3. Emerging -->
+                <div class="classification-item-chip" onclick="window.filterByClassification('EMERGE')" style="cursor: pointer; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 3px 10px rgba(32, 63, 141, 0.22) !important; border: none !important; outline: none !important; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span style="width: 7.5px; height: 7.5px; border-radius: 50%; background: #f87171; flex-shrink: 0; box-shadow: 0 0 6px #f87171; display: inline-block;"></span>
+                            <span style="font-size: 12.5px; font-weight: 800; color: #ffffff;">Emerging</span>
                         </div>
-                        <div style="font-size: 10px; color: rgba(255,255,255,0.85); font-weight: 500;">Rising attractions gaining visitors</div>
+                        <span id="count-emerge" style="font-size: 10px; font-weight: 800; color: #f87171; background: rgba(248, 113, 113, 0.18); padding: 2px 8px; border-radius: 100px;">Site</span>
                     </div>
+                    <div style="font-size: 10.5px; color: rgba(255,255,255,0.85); font-weight: 500; line-height: 1.35; padding-left: 13.5px;">Rising attractions gaining visitors</div>
                 </div>
-            </div>
-            <div onclick="window.filterByClassification('ALL')" style="cursor: pointer; margin-top: 8px; text-align: center; font-size: 11px; font-weight: 800; color: #ffffff; padding: 7px; border-radius: 10px; background: rgba(255,255,255,0.18); transition: background 0.15s ease;">
-                Show All Classifications
+
+                <!-- Show All Classifications Button -->
+                <div onclick="window.filterByClassification('ALL')" style="cursor: pointer; margin-top: 3px; text-align: center; font-size: 11.5px; font-weight: 800; color: #1e3a8a; padding: 9px 12px; border-radius: 12px; background: #f1f5f9; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-list-check" style="font-size: 11px; color: #1e3a8a;"></i>
+                    Show All Classifications
+                </div>
             </div>
         </div>
 
@@ -308,17 +321,11 @@ if (is_dir($imgDir)) {
     <!-- Action Buttons Stack (Stacked on the Right Side) -->
     <!-- 1. Layer Toggle Button -->
     <div class="btn-layer-toggle animate-slide-up" id="btn-layer-toggle"
-        style="position: absolute; bottom: calc(295px + env(safe-area-inset-bottom)); right: 10px !important; left: auto !important; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: none !important; outline: none !important; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: 0 8px 20px rgba(10, 25, 60, 0.3); z-index: 900; cursor: pointer; transition: all 0.2s;">
+        style="position: absolute; bottom: calc(235px + env(safe-area-inset-bottom)); right: 10px !important; left: auto !important; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: none !important; outline: none !important; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: 0 8px 20px rgba(10, 25, 60, 0.3); z-index: 900; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-layer-group"></i>
     </div>
 
-    <!-- 2. 3D Mode Button -->
-    <div class="btn-3d-view animate-slide-up" id="btn-3d-view"
-        style="position: absolute; bottom: calc(235px + env(safe-area-inset-bottom)); right: 10px !important; left: auto !important; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: none !important; outline: none !important; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: 0 8px 20px rgba(10, 25, 60, 0.3); z-index: 900; cursor: pointer; transition: all 0.2s;">
-        <i class="fa-solid fa-cube"></i>
-    </div>
-
-    <!-- 3. Nearby Tourist Sites Button (Aligned with other 3 buttons) -->
+    <!-- 2. Nearby Tourist Sites Button (Aligned with other buttons) -->
     <div class="btn-nearby-sites animate-slide-up" id="btn-nearby-sites" onclick="window.toggleNearbySitesSheet()"
         style="position: absolute; bottom: calc(175px + env(safe-area-inset-bottom)); right: 10px !important; left: auto !important; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: none !important; outline: none !important; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: 0 8px 20px rgba(10, 25, 60, 0.3); z-index: 900; cursor: pointer; transition: all 0.2s;"
         title="Tourist Sites List">
@@ -327,7 +334,7 @@ if (is_dir($imgDir)) {
             style="display:none; position:absolute; top:-5px; right:-5px; min-width:18px; height:18px; padding:0 4px; border-radius:9px; background:#00f2fe; color:#0f172a; font-size:10px; font-weight:800; align-items:center; justify-content:center; box-shadow:none;">0</span>
     </div>
 
-    <!-- 4. Locate Me Button -->
+    <!-- 3. Locate Me Button -->
     <div class="btn-locate-me animate-slide-up" id="btn-locate-me"
         style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); right: 10px !important; left: auto !important; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: none !important; outline: none !important; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: 0 8px 20px rgba(10, 25, 60, 0.3); z-index: 900; cursor: pointer; transition: all 0.2s;">
         <i class="fa-solid fa-crosshairs"></i>
@@ -1955,9 +1962,9 @@ if (is_dir($imgDir)) {
                 const countExist = document.getElementById('count-exist');
                 const countEmerge = document.getElementById('count-emerge');
                 const countPot = document.getElementById('count-potential');
-                if (countExist) countExist.textContent = `${cExist} Sites • +50 PTS`;
-                if (countEmerge) countEmerge.textContent = `${cEmerge} Sites • +100 PTS`;
-                if (countPot) countPot.textContent = `${cPot} Sites • +75 PTS`;
+                if (countExist) countExist.textContent = `${cExist} Sites`;
+                if (countEmerge) countEmerge.textContent = `${cEmerge} Sites`;
+                if (countPot) countPot.textContent = `${cPot} Sites`;
 
                 popover.style.display = 'block';
                 requestAnimationFrame(() => {
@@ -3487,13 +3494,13 @@ if (is_dir($imgDir)) {
                     const cStatus = String(locationData.classification_status).toUpperCase().trim();
                     if (cStatus === 'EXIST' || cStatus === 'EXISTING') {
                         statusBadge.className = 'sheet-status-pill status-exist';
-                        statusBadge.innerHTML = '<i class="fa-solid fa-circle-check" style="font-size:9px; margin-right:4px; color:#ffffff;"></i>Existing • +50 PTS';
+                        statusBadge.innerHTML = '<i class="fa-solid fa-circle-check" style="font-size:9px; margin-right:4px; color:#ffffff;"></i>Existing';
                     } else if (cStatus === 'EMERGE' || cStatus === 'EMERGING') {
                         statusBadge.className = 'sheet-status-pill status-emerge';
-                        statusBadge.innerHTML = '<i class="fa-solid fa-sparkles" style="font-size:9px; margin-right:4px; color:#ffffff;"></i>Emerging • +100 PTS';
+                        statusBadge.innerHTML = '<i class="fa-solid fa-sparkles" style="font-size:9px; margin-right:4px; color:#ffffff;"></i>Emerging';
                     } else if (cStatus === 'POTENTIAL') {
                         statusBadge.className = 'sheet-status-pill status-potential';
-                        statusBadge.innerHTML = '<i class="fa-solid fa-compass" style="font-size:9px; margin-right:4px; color:#ffffff;"></i>Potential • +75 PTS';
+                        statusBadge.innerHTML = '<i class="fa-solid fa-compass" style="font-size:9px; margin-right:4px; color:#ffffff;"></i>Potential';
                     } else {
                         statusBadge.style.display = 'none';
                     }
