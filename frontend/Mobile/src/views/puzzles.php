@@ -67,6 +67,11 @@ include __DIR__ . '/../components/header.php';
                 <p style="margin: 0; font-size: 15px; font-weight: 800; color: #ffffff; line-height: 1.5;">
                     You have finished this mode please come back tomorrow.
                 </p>
+                <div style="margin-top: 14px; display: flex; justify-content: center;">
+                    <button type="button" onclick="playInPracticeMode('puzzle')" style="background: rgba(255,255,255,0.18) !important; border: 1px solid rgba(255,255,255,0.3) !important; outline: none !important; color: #ffffff !important; padding: 8px 16px; border-radius: 100px; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-gamepad" style="color: #38bdf8;"></i> Play Practice Mode
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -107,6 +112,11 @@ include __DIR__ . '/../components/header.php';
                 <p style="margin: 0; font-size: 15px; font-weight: 800; color: #ffffff; line-height: 1.5;">
                     You have finished this mode please come back tomorrow.
                 </p>
+                <div style="margin-top: 14px; display: flex; justify-content: center;">
+                    <button type="button" onclick="playInPracticeMode('memory_match')" style="background: rgba(255,255,255,0.18) !important; border: 1px solid rgba(255,255,255,0.3) !important; outline: none !important; color: #ffffff !important; padding: 8px 16px; border-radius: 100px; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-gamepad" style="color: #38bdf8;"></i> Play Practice Mode
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -137,6 +147,11 @@ include __DIR__ . '/../components/header.php';
                 <p style="margin: 0; font-size: 15px; font-weight: 800; color: #ffffff; line-height: 1.5;">
                     You have finished this mode please come back tomorrow.
                 </p>
+                <div style="margin-top: 14px; display: flex; justify-content: center;">
+                    <button type="button" onclick="playInPracticeMode('word_scramble')" style="background: rgba(255,255,255,0.18) !important; border: 1px solid rgba(255,255,255,0.3) !important; outline: none !important; color: #ffffff !important; padding: 8px 16px; border-radius: 100px; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-gamepad" style="color: #38bdf8;"></i> Play Practice Mode
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -292,22 +307,41 @@ async function loadGamePoints() {
             if (window.updateProfilePointsDisplay) {
                 window.updateProfilePointsDisplay(userPoints);
             }
-            // Check history for today's completed games
+            // Reconcile today's completed games with actual server history using local date matching
+            const todayLocalStr = new Date().toDateString();
+            const serverCompletedToday = {
+                puzzle: false,
+                memory_match: false,
+                word_scramble: false,
+                trivia: false
+            };
+
             if (d.history && Array.isArray(d.history)) {
-                const todayStr = new Date().toDateString();
-                const nowIsoDate = new Date().toISOString().slice(0, 10);
                 d.history.forEach(item => {
-                    const itemDate = item.created_at ? item.created_at.slice(0, 10) : '';
-                    if (itemDate === nowIsoDate) {
+                    if (!item.created_at) return;
+                    const itemDate = new Date(item.created_at);
+                    if (!isNaN(itemDate.getTime()) && itemDate.toDateString() === todayLocalStr) {
                         const desc = (item.description || '').toLowerCase();
-                        if (desc.includes('puzzle')) localStorage.setItem('game_done_puzzle', todayStr);
-                        if (desc.includes('memory')) localStorage.setItem('game_done_memory_match', todayStr);
-                        if (desc.includes('scramble')) localStorage.setItem('game_done_word_scramble', todayStr);
-                        if (desc.includes('trivia')) localStorage.setItem('game_done_trivia', todayStr);
+                        if (desc.includes('puzzle')) serverCompletedToday.puzzle = true;
+                        if (desc.includes('memory')) serverCompletedToday.memory_match = true;
+                        if (desc.includes('scramble')) serverCompletedToday.word_scramble = true;
+                        if (desc.includes('trivia')) serverCompletedToday.trivia = true;
                     }
                 });
-                updateAllGamesFinishedUI();
             }
+
+            // Sync localStorage with verified server data:
+            // If the server confirms completed today, retain; otherwise clear stale lock
+            ['puzzle', 'memory_match', 'word_scramble', 'trivia'].forEach(gameType => {
+                const key = 'game_done_' + gameType;
+                if (serverCompletedToday[gameType]) {
+                    localStorage.setItem(key, todayLocalStr);
+                } else {
+                    localStorage.removeItem(key);
+                }
+            });
+
+            updateAllGamesFinishedUI();
         }
     } catch (e) {
         console.error("Points load error:", e);
@@ -462,8 +496,28 @@ function shuffleTiles() {
     } while (!isSolvable(tiles));
 }
 
+window._practiceModes = window._practiceModes || {};
+
+function playInPracticeMode(gameType) {
+    window._practiceModes = window._practiceModes || {};
+    window._practiceModes[gameType] = true;
+
+    if (gameType === 'puzzle') {
+        initPuzzle(true);
+    } else if (gameType === 'memory_match') {
+        initMemoryGame();
+    } else if (gameType === 'word_scramble') {
+        initScrambleGame();
+    }
+}
+
 function isGameDoneToday(gameType) {
+    if (window._practiceModes && window._practiceModes[gameType]) {
+        return false;
+    }
     try {
+        const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token');
+        if (!token) return false;
         return localStorage.getItem('game_done_' + gameType) === new Date().toDateString();
     } catch (e) {
         return false;
@@ -1239,6 +1293,11 @@ function initScrambleGame() {
 // ----------------------------------------------------
 async function claimMiniGamePoints(gameType) {
     try {
+        if (window._practiceModes && window._practiceModes[gameType]) {
+            openGameSuccess("Awesome practice run! You have already claimed today's daily points. Come back tomorrow for new reward points!");
+            return;
+        }
+
         const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token');
         const _baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
 
@@ -1413,5 +1472,6 @@ window.resetScrambleInputs = resetScrambleInputs;
 window.reshuffleWordLetters = reshuffleWordLetters;
 window.toggleScrambleMechanics = toggleScrambleMechanics;
 window.closeGameAlert = closeGameAlert;
+window.playInPracticeMode = playInPracticeMode;
 })();
 </script>

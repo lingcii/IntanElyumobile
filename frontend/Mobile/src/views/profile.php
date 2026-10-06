@@ -285,26 +285,37 @@ $activeTab = 'profile';
                     elImg.src = avatarUrl;
                 }
 
-                // Trip History
-                window._cachedCompletedTrips = data.completed_trips || [];
+                // Trip History: Filter out any trips with 0 visited destinations
+                const rawCompletedTrips = data.completed_trips || [];
+                const validCompletedTrips = rawCompletedTrips.filter(trip => {
+                    const items = Array.isArray(trip.items) ? trip.items : [];
+                    const visitedCount = items.filter(i => i.is_visited === true || i.is_visited === 1 || i.is_visited === '1').length;
+                    const totalCount = items.length || parseInt(trip.destinations_visited) || 0;
+                    const effectiveCount = visitedCount > 0 ? visitedCount : totalCount;
+                    return effectiveCount > 0;
+                });
+                window._cachedCompletedTrips = validCompletedTrips;
+
                 const historyList = document.getElementById('trip-history-list');
                 const historyBadge = document.getElementById('trip-history-count-badge');
                 if (historyList) {
-                    if (!data.completed_trips || data.completed_trips.length === 0) {
+                    if (validCompletedTrips.length === 0) {
                         if (historyBadge) historyBadge.textContent = '0 Completed';
                         historyList.innerHTML = '<div style="text-align:center; padding:20px; color:#ffffff; opacity:0.95; font-size:13px; font-weight:600; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:20px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">No completed trips yet. Start exploring!</div>';
                     } else {
-                        if (historyBadge) historyBadge.textContent = `${data.completed_trips.length} Completed`;
+                        if (historyBadge) historyBadge.textContent = `${validCompletedTrips.length} Completed`;
                         let html = '';
                         // Limit main profile view to maximum 3 completed trips
-                        const displayTrips = data.completed_trips.slice(0, 3);
+                        const displayTrips = validCompletedTrips.slice(0, 3);
                         displayTrips.forEach(trip => {
                             const date = trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date';
-                            const count = Array.isArray(trip.items) ? trip.items.length : (parseInt(trip.destinations_visited) || parseInt(trip.items) || 0);
+                            const items = Array.isArray(trip.items) ? trip.items : [];
+                            const visitedCount = items.filter(i => i.is_visited === true || i.is_visited === 1 || i.is_visited === '1').length;
+                            const count = visitedCount > 0 ? visitedCount : (items.length || parseInt(trip.destinations_visited) || 1);
                             const cost = parseFloat(trip.total_cost || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
 
                             html += `
-                            <div onclick="window.showTripDetailsModal('${trip.id}')" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 20px; padding: 16px 18px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">
+                            <div onclick="window.showTripDetailsModal('${trip.id}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 20px; padding: 16px 18px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform 0.15s ease, opacity 0.15s ease; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointerleave="this.style.transform='scale(1)'">
                                 <div style="flex: 1; min-width: 0;">
                                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
                                         <strong style="color: #ffffff; font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${trip.title || 'Completed Trip'}</strong>
@@ -691,18 +702,28 @@ $activeTab = 'profile';
         const container = document.getElementById('full-history-list');
         if (!modal || !container) return;
 
-        const trips = window._cachedCompletedTrips || [];
+        const allTrips = window._cachedCompletedTrips || [];
+        const trips = allTrips.filter(trip => {
+            const items = Array.isArray(trip.items) ? trip.items : [];
+            const visitedCount = items.filter(i => i.is_visited === true || i.is_visited === 1 || i.is_visited === '1').length;
+            const totalCount = items.length || parseInt(trip.destinations_visited) || 0;
+            const effectiveCount = visitedCount > 0 ? visitedCount : totalCount;
+            return effectiveCount > 0;
+        });
+
         if (trips.length === 0) {
             container.innerHTML = '<div style="text-align:center; padding:24px 16px; color:#64748b; font-size:13px; font-weight:600; background:#f8fafc; border:none !important; outline:none !important; box-shadow:none !important; border-radius:16px;">No completed trips found in your history.</div>';
         } else {
             let html = '';
             trips.forEach((trip, idx) => {
                 const date = trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set';
-                const count = Array.isArray(trip.items) ? trip.items.length : (parseInt(trip.destinations_visited) || parseInt(trip.items) || 0);
+                const items = Array.isArray(trip.items) ? trip.items : [];
+                const visitedCount = items.filter(i => i.is_visited === true || i.is_visited === 1 || i.is_visited === '1').length;
+                const count = visitedCount > 0 ? visitedCount : (items.length || parseInt(trip.destinations_visited) || 1);
                 const cost = parseFloat(trip.total_cost || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
 
                 html += `
-                <div onclick="window.showTripDetailsModal('${trip.id}')" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: none !important; border-radius: 18px; padding: 16px; margin-bottom: 12px; cursor: pointer; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                <div onclick="window.showTripDetailsModal('${trip.id}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: none !important; border-radius: 18px; padding: 16px; margin-bottom: 12px; cursor: pointer; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointerleave="this.style.transform='scale(1)'">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                         <div>
                             <div style="font-size:10px; font-weight:800; color:#00f2fe; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Trip #${trips.length - idx}</div>
@@ -784,18 +805,15 @@ $activeTab = 'profile';
         if (modal) modal.style.display = 'none';
     };
 
-    window.showTripDetailsModal = function(tripId) {
-        const trips = window._cachedCompletedTrips || [];
-        const trip = trips.find(t => t.id == tripId) || trips[0];
+    window.renderTripDetailModalContent = function(trip) {
         if (!trip) return;
-
         document.getElementById('trip-detail-title').textContent = trip.title || 'Completed Trip';
         document.getElementById('trip-detail-date').innerHTML = `<i class="fa-regular fa-calendar" style="color:#0284c7; margin-right:4px;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}`;
         const cost = parseFloat(trip.total_cost || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
         document.getElementById('trip-detail-cost').innerHTML = `<i class="fa-solid fa-coins" style="color:#d97706; margin-right:4px;"></i>₱${cost}`;
         
         const items = trip.items || [];
-        const visitedCount = items.filter(i => i.is_visited).length || items.length;
+        const visitedCount = items.filter(i => i.is_visited === true || i.is_visited === 1 || i.is_visited === '1').length || items.length;
         document.getElementById('trip-detail-count').innerHTML = `<i class="fa-solid fa-location-dot" style="margin-right:4px; color:#ffffff;"></i>${visitedCount} Visited`;
 
         let destHtml = '';
@@ -826,9 +844,36 @@ $activeTab = 'profile';
         if (typeof window.syncReviewedButtons === 'function') {
             window.syncReviewedButtons();
         }
+    };
+
+    window.showTripDetailsModal = function(tripId) {
+        const trips = window._cachedCompletedTrips || [];
+        let trip = trips.find(t => String(t.id) === String(tripId));
+        if (!trip && trips.length > 0) trip = trips[0];
 
         const modal = document.getElementById('trip-details-modal');
-        if (modal) modal.style.display = 'flex';
+        if (trip) {
+            window.renderTripDetailModalContent(trip);
+            if (modal) modal.style.display = 'flex';
+            return;
+        }
+
+        // If not in cache, fetch directly
+        const token = localStorage.getItem('intan_elyu_token');
+        if (tripId && token && typeof backendUrl !== 'undefined') {
+            fetch(`${backendUrl}/api/tourist/itineraries/${tripId}`, {
+                headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
+            })
+            .then(r => r.json())
+            .then(res => {
+                const fetched = res.data || res.itinerary || res;
+                if (fetched && fetched.id) {
+                    window.renderTripDetailModalContent(fetched);
+                    if (modal) modal.style.display = 'flex';
+                }
+            })
+            .catch(err => console.error("Trip details fetch error:", err));
+        }
     };
 
     window.closeTripDetailsModal = function() {

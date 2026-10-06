@@ -59,14 +59,28 @@ class ProfileController extends Controller
         // 2. Places Visited — use denormalized counter (Technique 5)
         $placesVisited = (int) ($user->completed_activities ?? 0);
 
-        // 3. Completed Trips (Trip History) — Technique 2: Server-Side Caching
-        $completedTrips = Cache::remember("profile:trips:{$user->id}", 120, function () use ($user) {
+        // 3. Completed Trips (Trip History) — Filter out any with 0 visited destinations
+        $completedTrips = Cache::remember("profile:trips:v2:{$user->id}", 60, function () use ($user) {
             return Itinerary::where('user_id', $user->id)
                 ->where('status', 'completed')
+                ->whereHas('items')
                 ->with(['items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee'])
                 ->orderByDesc('updated_at')
                 ->get()
+                ->filter(function ($trip) {
+                    $totalItems = $trip->items->count();
+                    $visitedItems = $trip->items->filter(function ($item) {
+                        return (bool) $item->is_visited;
+                    })->count();
+                    $effectiveVisited = $visitedItems > 0 ? $visitedItems : $totalItems;
+                    return $effectiveVisited > 0;
+                })
+                ->values()
                 ->map(function ($trip) {
+                    $visitedCount = $trip->items->filter(function ($item) {
+                        return (bool) $item->is_visited;
+                    })->count() ?: $trip->items->count();
+
                     return [
                         'id' => $trip->id,
                         'title' => $trip->title,
@@ -76,12 +90,13 @@ class ProfileController extends Controller
                         'status' => $trip->status,
                         'route_type' => $trip->route_type,
                         'transport_mode' => $trip->transport_mode,
+                        'destinations_visited' => $visitedCount,
                         'items' => $trip->items->map(function ($item) {
                             $dest = $item->destination;
                             return [
                                 'id' => $item->id,
                                 'tourist_spot_id' => $item->tourist_spot_id,
-                                'is_visited' => $item->is_visited,
+                                'is_visited' => (bool) $item->is_visited,
                                 'proof_image' => $item->proof_image,
                                 'visited_at' => $item->visited_at,
                                 'destination' => $dest ? [
