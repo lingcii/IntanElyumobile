@@ -90,6 +90,7 @@ class ItineraryController extends Controller
 
         return [
             'id'               => $item->id,
+            'order_index'      => (int) ($item->order_index ?? 0),
             'is_visited'       => $item->is_visited,
             'proof_image'      => $item->proof_image,
             'proof_status'     => $item->proof_status ?? ($item->is_visited ? 'approved' : 'pending'),
@@ -130,7 +131,7 @@ class ItineraryController extends Controller
      */
     private function formatItineraryResponse($itinerary, array $spotPublicVehicles, array $spotPrivateVehicles, array $spotAllVehicles): array
     {
-        $items = $itinerary->items->map(function ($item) use ($spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles) {
+        $items = $itinerary->items->sortBy('order_index')->values()->map(function ($item) use ($spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles) {
             return $this->formatItineraryItem($item, $spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles);
         });
 
@@ -306,6 +307,7 @@ class ItineraryController extends Controller
                 ItineraryItem::create([
                     'itinerary_id'    => $itinerary->id,
                     'tourist_spot_id' => $spotId,
+                    'order_index'     => $idx + 1,
                     'transport_mode'  => $legMode,
                     'leg_cost'        => $legCost,
                     'leg_distance_km' => $legDist,
@@ -529,6 +531,7 @@ class ItineraryController extends Controller
 
                 if ($existingItems->has($spotId)) {
                     $existingItems->get($spotId)->update([
+                        'order_index'     => $idx + 1,
                         'transport_mode'  => $legMode,
                         'leg_cost'        => $legCost,
                         'leg_distance_km' => $legDist,
@@ -537,6 +540,7 @@ class ItineraryController extends Controller
                     ItineraryItem::create([
                         'itinerary_id'    => $itinerary->id,
                         'tourist_spot_id' => $spotId,
+                        'order_index'     => $idx + 1,
                         'transport_mode'  => $legMode,
                         'leg_cost'        => $legCost,
                         'leg_distance_km' => $legDist,
@@ -546,6 +550,7 @@ class ItineraryController extends Controller
         }
 
         Cache::forget("profile:trips:{$user->id}");
+        Cache::forget("profile:trips:v2:{$user->id}");
 
         $freshItinerary = $itinerary->fresh()->load([
             'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id',
@@ -586,6 +591,7 @@ class ItineraryController extends Controller
         // Cache invalidation — flush stale profile/rank caches
         Cache::forget("rank:user:{$user->id}");
         Cache::forget("profile:trips:{$user->id}");
+        Cache::forget("profile:trips:v2:{$user->id}");
 
         return response()->json([
             'success' => true,

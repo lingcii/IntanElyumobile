@@ -10,6 +10,7 @@ class ItineraryItem extends Model
     protected $fillable = [
         'itinerary_id',
         'tourist_spot_id',
+        'order_index',
         'is_visited',
         'proof_image',
         'visited_at',
@@ -23,6 +24,7 @@ class ItineraryItem extends Model
     ];
 
     protected $casts = [
+        'order_index'     => 'integer',
         'is_visited'      => 'boolean',
         'visited_at'      => 'datetime',
         'reviewed_at'     => 'datetime',

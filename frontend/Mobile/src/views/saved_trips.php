@@ -396,8 +396,9 @@ $backRoute = 'itinerary';
                                           let unvisitedCount = 0;
                         const isTripCompleted = (trip.status === 'completed');
                         if (trip.items && trip.items.length) {
-                            const firstUnvisitedIdx = trip.items.findIndex(i => !(i.is_visited || i.proof_status === 'approved'));
-                            trip.items.forEach((item, index) => {
+                            const sortedTripItems = [...trip.items].sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+                            const firstUnvisitedIdx = sortedTripItems.findIndex(i => !(i.is_visited || i.proof_status === 'approved'));
+                            sortedTripItems.forEach((item, index) => {
                                 if (!item) return;
                                 const dest = item.destination;
                                 const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
@@ -1234,7 +1235,8 @@ $backRoute = 'itinerary';
             }
         } catch(e) {}
 
-        const spots = (trip.items || []).map(i => {
+        const sortedTripItems = [...(trip.items || [])].sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+        const spots = sortedTripItems.map(i => {
             if (i.destination) {
                 const mapSpot = mapSpotsMap[String(i.destination.id)] || {};
                 const accVeh = (Array.isArray(i.destination.accessible_vehicles) && i.destination.accessible_vehicles.length > 0)
@@ -1274,7 +1276,7 @@ $backRoute = 'itinerary';
 
         localStorage.setItem('intan_elyu_draft_itinerary', JSON.stringify(spots));
 
-        const legVehicles = (trip.items || []).map(i => ({
+        const legVehicles = sortedTripItems.map(i => ({
             transport_mode: i.transport_mode || null,
             leg_cost: (i.leg_cost !== null && i.leg_cost !== undefined) ? parseFloat(i.leg_cost) : null,
             leg_distance_km: (i.leg_distance_km !== null && i.leg_distance_km !== undefined) ? parseFloat(i.leg_distance_km) : null

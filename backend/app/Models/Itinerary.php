@@ -39,6 +39,6 @@ class Itinerary extends Model
 
     public function items(): HasMany
     {
-        return $this->hasMany(ItineraryItem::class);
+        return $this->hasMany(ItineraryItem::class)->orderBy('order_index', 'asc')->orderBy('id', 'asc');
     }
 }

@@ -2640,6 +2640,16 @@ try {
                 localStorage.setItem('intan_elyu_draft_itinerary', JSON.stringify(draft));
                 window.currentRouteType = 'recommended';
 
+                try {
+                    let overrides = JSON.parse(localStorage.getItem('intan_elyu_draft_leg_vehicles') || '[]');
+                    if (Array.isArray(overrides) && overrides.length > Math.max(i, j)) {
+                        const tempLeg = overrides[i];
+                        overrides[i] = overrides[j];
+                        overrides[j] = tempLeg;
+                        localStorage.setItem('intan_elyu_draft_leg_vehicles', JSON.stringify(overrides));
+                    }
+                } catch (e) {}
+
                 const container = document.getElementById('route-toggle-container');
                 if (container) container.classList.remove('alt-active');
                 const recBtn = document.getElementById('btn-route-rec');
@@ -4133,10 +4143,13 @@ try {
 
                 if (response.ok) {
                     // Invalidate caches
-                    const cacheKey = 'saved_trips_' + token.substring(0, 10);
-                    const dashCacheKey = 'dashboard_trips_' + token.substring(0, 10);
-                    localStorage.removeItem(dashCacheKey);
-                    localStorage.removeItem(cacheKey);
+                    const tokenKey = token.substring(0, 10);
+                    localStorage.removeItem('saved_trips_' + tokenKey);
+                    localStorage.removeItem('dashboard_trips_' + tokenKey);
+                    localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
+                    if (typeof window._cachedSavedTrips !== 'undefined') {
+                        window._cachedSavedTrips = null;
+                    }
 
                     const savedId = String(editingId || data.itinerary_id || (data.itinerary && data.itinerary.id) || '');
                     if (savedId) {
