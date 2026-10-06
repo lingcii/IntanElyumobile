@@ -240,10 +240,17 @@ try {
             </div>
         </div>
 
-        <!-- Point-to-Point Route & Transit Summary Card -->
+        <!-- Point-to-Point Route & Transit Summary Card (Tap to view opensheet) -->
         <input type="hidden" id="trip-transport" value="">
         <div id="save-p2p-transit-summary"
-            style="background:rgba(255,255,255,0.08); border-radius:16px; padding:14px 16px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; border:1px solid rgba(255,255,255,0.08);">
+            onclick="window.openTransitSummaryOpensheet()"
+            role="button"
+            tabindex="0"
+            title="Tap to view per-destination transit summary"
+            style="background:rgba(255,255,255,0.08); border-radius:16px; padding:14px 16px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; border:1px solid rgba(255,255,255,0.14); cursor:pointer; user-select:none; transition:background 0.2s ease, transform 0.15s ease;"
+            onpointerdown="this.style.transform='scale(0.98)'; this.style.background='rgba(255,255,255,0.14)';"
+            onpointerup="this.style.transform='scale(1)'; this.style.background='rgba(255,255,255,0.08)';"
+            onpointerleave="this.style.transform='scale(1)'; this.style.background='rgba(255,255,255,0.08)';">
             <div style="display:flex; align-items:center; gap:12px; min-width:0;">
                 <div id="save-p2p-transit-icon" style="width:40px; height:40px; border-radius:12px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.15);">
                     <i class="fa-solid fa-car" style="color:#1e3a8a !important; font-size:16px;"></i>
@@ -251,12 +258,15 @@ try {
                 <div style="min-width:0;">
                     <div style="font-size:10px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:2px;">Transport Mode</div>
                     <div id="save-p2p-transit-label" style="font-size:13px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Own Car</div>
-                    <div id="save-p2p-legs-count" style="font-size:11px; color:rgba(255,255,255,0.75); margin-top:1px;">Configured from draft timeline</div>
+                    <div id="save-p2p-legs-count" style="font-size:11px; color:rgba(255,255,255,0.75); margin-top:1px;">Tap to view destination summary</div>
                 </div>
             </div>
-            <div style="text-align:right; flex-shrink:0;">
-                <div style="font-size:10px; color:rgba(255,255,255,0.65); font-weight:700; text-transform:uppercase;">Transit Total</div>
-                <div id="save-p2p-transit-cost" style="font-size:16px; font-weight:800; color:#00f2fe; margin-top:2px;">₱0.00</div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <div style="text-align:right; flex-shrink:0;">
+                    <div style="font-size:10px; color:rgba(255,255,255,0.65); font-weight:700; text-transform:uppercase;">Transit Total</div>
+                    <div id="save-p2p-transit-cost" style="font-size:16px; font-weight:800; color:#00f2fe; margin-top:2px;">₱0.00</div>
+                </div>
+                <i class="fa-solid fa-chevron-right" style="color:rgba(255,255,255,0.55); font-size:12px; margin-left:2px;"></i>
             </div>
         </div>
 
@@ -337,6 +347,56 @@ try {
                 style="flex:1; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; padding:13px; border-radius:14px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:none !important; transition:transform 0.15s ease;">Save
                 Anyway</button>
         </div>
+    </div>
+</div>
+
+<!-- Transit Summary Modal (Opensheet from Save Trip Modal) -->
+<div id="transit-summary-opensheet" onclick="if(event.target===this) window.closeTransitSummaryOpensheet()"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6, 11, 25, 0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:100005 !important; justify-content:center; align-items:flex-end; padding:0;">
+    <div style="background:#ffffff !important; border-radius:28px 28px 0 0; width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; max-height:86vh; display:flex; flex-direction:column; box-sizing:border-box; overflow:hidden; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
+        
+        <!-- Header (Royal Blue Banner) -->
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 18px 14px 18px; color:#ffffff; flex-shrink:0; border:none !important; outline:none !important;">
+            <div style="width:36px; height:4px; background:rgba(255,255,255,0.35); border-radius:99px; margin:0 auto 12px auto;"></div>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                        <i class="fa-solid fa-map-location-dot" style="color:#1e3a8a !important; font-size:15px;"></i>
+                    </div>
+                    <div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Transit Summary</h3>
+                            <span id="transit-summary-badge" style="font-size:9.5px; font-weight:800; background:rgba(255, 255, 255, 0.2); color:#ffffff; padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">0 Destinations</span>
+                        </div>
+                        <div style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">
+                            Per-destination transit & fare breakdown
+                        </div>
+                    </div>
+                </div>
+                <button type="button" onclick="window.closeTransitSummaryOpensheet()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink:0; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; font-size:14px;"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Body: Destinations Summary List -->
+        <div style="background:#f8fafc; color:#1e293b; padding:16px 18px 12px 18px; flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box; -webkit-overflow-scrolling:touch;">
+            <div id="transit-summary-items-list" style="display:flex; flex-direction:column; gap:10px;">
+                <!-- Populated dynamically via JS -->
+            </div>
+        </div>
+
+        <!-- Footer: Total Transit Fare Banner -->
+        <div style="flex-shrink:0; padding:14px 18px calc(14px + env(safe-area-inset-bottom, 0px)) 18px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); display:flex; align-items:center; justify-content:space-between; gap:12px; border:none !important; outline:none !important;">
+            <div>
+                <div style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.5px;">Total Transit Fare</div>
+                <div id="transit-summary-total-fare" style="font-size:18px; font-weight:900; color:#ffffff; letter-spacing:-0.2px;">₱0.00</div>
+            </div>
+            <button type="button" onclick="window.closeTransitSummaryOpensheet()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; cursor:pointer; padding:9px 20px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; display:inline-flex; align-items:center; gap:7px; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Done
+            </button>
+        </div>
+
     </div>
 </div>
 
@@ -2122,7 +2182,7 @@ try {
                 window.updateDraftTravelModeBar();
             }
             if (typeof showToast === 'function') {
-                showToast(`Leg ${legIdx + 1} transit set to ${displayName}`);
+                showToast(`Stop ${legIdx + 1} transit set to ${displayName}`);
             }
         };
 
@@ -2132,6 +2192,154 @@ try {
 
             const bottomNav = document.getElementById('bottom-navigation');
             if (bottomNav) bottomNav.classList.remove('nav-hidden');
+        };
+
+        window.openTransitSummaryOpensheet = function () {
+            const modal = document.getElementById('transit-summary-opensheet');
+            if (!modal) return;
+
+            const listEl = document.getElementById('transit-summary-items-list');
+            const badgeEl = document.getElementById('transit-summary-badge');
+            const totalFareEl = document.getElementById('transit-summary-total-fare');
+
+            const draft = (typeof window.getEffectiveDraft === 'function')
+                ? window.getEffectiveDraft()
+                : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+
+            if (!draft || draft.length === 0) {
+                if (listEl) {
+                    listEl.innerHTML = `
+                        <div style="text-align:center; padding:32px 16px; color:#64748b;">
+                            <i class="fa-regular fa-compass" style="font-size:32px; color:#94a3b8; margin-bottom:8px;"></i>
+                            <div style="font-size:14px; font-weight:700; color:#334155;">No Destinations Added</div>
+                            <div style="font-size:12px; color:#94a3b8; margin-top:2px;">Add spots to your itinerary to view transit breakdowns.</div>
+                        </div>
+                    `;
+                }
+                if (badgeEl) badgeEl.textContent = '0 Destinations';
+                if (totalFareEl) totalFareEl.textContent = '₱0.00';
+                modal.style.display = 'flex';
+                return;
+            }
+
+            if (badgeEl) {
+                badgeEl.textContent = `${draft.length} Destination${draft.length > 1 ? 's' : ''}`;
+            }
+
+            let grandTotal = 0;
+            let cardsHtml = '';
+
+            draft.forEach((dest, idx) => {
+                const info = (typeof window.getLegTransportInfo === 'function')
+                    ? window.getLegTransportInfo(idx)
+                    : { mode: 'own_car', name: 'Own Car', cost: 0, distance_km: 2.0 };
+
+                const isMaintenance = Boolean(info && info.is_maintenance);
+                const cost = (info && !isMaintenance) ? parseFloat(info.cost || info.leg_cost || 0) : 0;
+                grandTotal += cost;
+
+                const fromName = (idx === 0) ? 'Your Starting Location' : (draft[idx - 1].name || `Stop ${idx}`);
+                const toName = dest.name || `Destination ${idx + 1}`;
+                const muni = (typeof window.getSpotMuniName === 'function') ? window.getSpotMuniName(dest) : '';
+                const distKm = (info && info.distance_km != null) ? parseFloat(info.distance_km).toFixed(1) : '—';
+
+                // Vehicle badge / icon (Unavailable has NO icon as requested)
+                let transportMarkup = '';
+                if (isMaintenance) {
+                    transportMarkup = `
+                        <span style="display:inline-flex; align-items:center; background:#fee2e2; color:#b91c1c; font-size:11px; font-weight:800; padding:4px 10px; border-radius:100px;">
+                            Unavailable
+                        </span>
+                    `;
+                } else {
+                    const iconClass = (info && info.icon) ? info.icon : 'fa-car';
+                    const vehicleLabel = (info && (info.full_names || info.name)) ? (info.full_names || info.name) : 'Own Car';
+                    transportMarkup = `
+                        <div style="display:inline-flex; align-items:center; gap:6px; background:#eff6ff; color:#1e3a8a; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:100px; border:1px solid #dbeafe;">
+                            <i class="fa-solid ${iconClass}" style="color:#2563eb; font-size:12px;"></i>
+                            <span style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${vehicleLabel}</span>
+                        </div>
+                    `;
+                }
+
+                // Fare display
+                let fareMarkup = '';
+                if (isMaintenance) {
+                    fareMarkup = `<span style="font-size:14px; font-weight:800; color:#94a3b8;">₱0.00</span>`;
+                } else if (cost === 0) {
+                    fareMarkup = `<span style="font-size:13.5px; font-weight:800; color:#059669;">₱0.00</span> <span style="font-size:10px; font-weight:700; color:#64748b;">(Free)</span>`;
+                } else {
+                    fareMarkup = `<span style="font-size:15px; font-weight:900; color:#1e3a8a;">₱${cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>`;
+                }
+
+                // Warning or note
+                let noteMarkup = '';
+                if (isMaintenance) {
+                    noteMarkup = `
+                        <div style="margin-top:6px; font-size:11px; font-weight:600; color:#b91c1c; background:#fff1f2; padding:6px 10px; border-radius:8px; border:1px solid #ffe4e6; display:flex; align-items:center; gap:6px;">
+                            <i class="fa-solid fa-triangle-exclamation" style="font-size:11px;"></i>
+                            <span>Destination temporarily closed / under maintenance</span>
+                        </div>
+                    `;
+                } else if (info && info.warning) {
+                    noteMarkup = `
+                        <div style="margin-top:6px; font-size:11px; font-weight:600; color:#92400e; background:#fffbeb; padding:6px 10px; border-radius:8px; border:1px solid #fde68a; display:flex; align-items:center; gap:6px;">
+                            <i class="fa-solid fa-circle-info" style="font-size:11px; color:#d97706;"></i>
+                            <span>${info.warning}</span>
+                        </div>
+                    `;
+                }
+
+                cardsHtml += `
+                    <div style="background:#ffffff; border-radius:16px; padding:13px 15px; border:1px solid #e2e8f0; box-shadow:0 1px 4px rgba(15,23,42,0.04); display:flex; flex-direction:column; gap:8px;">
+                        <!-- Header: Stop Badge + Distance -->
+                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                            <span style="font-size:11px; font-weight:800; color:#1e3a8a; background:rgba(30,58,138,0.08); padding:3px 10px; border-radius:100px;">
+                                Stop ${idx + 1}
+                            </span>
+                            <span style="font-size:11.5px; font-weight:700; color:#64748b; display:inline-flex; align-items:center; gap:4px;">
+                                <i class="fa-solid fa-route" style="font-size:10.5px; color:#94a3b8;"></i> ${distKm} km
+                            </span>
+                        </div>
+
+                        <!-- Route Segment: From -> To -->
+                        <div style="display:flex; flex-direction:column; gap:4px; padding:2px 0;">
+                            <div style="display:flex; align-items:center; gap:7px; font-size:11.5px; color:#64748b; font-weight:600;">
+                                <i class="fa-regular fa-circle-dot" style="font-size:9.5px; color:#94a3b8; flex-shrink:0;"></i>
+                                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${fromName}</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:7px; font-size:13px; color:#0f172a; font-weight:800;">
+                                <i class="fa-solid fa-location-dot" style="font-size:11px; color:#0284c7; flex-shrink:0;"></i>
+                                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${toName}</span>
+                                ${muni ? `<span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:1px 6px; border-radius:4px; flex-shrink:0;">${muni}</span>` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Footer: Transport Mode & Price -->
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding-top:6px; border-top:1px dashed #e2e8f0; margin-top:2px;">
+                            <div>${transportMarkup}</div>
+                            <div style="text-align:right;">
+                                <div style="font-size:9.5px; font-weight:700; color:#64748b; text-transform:uppercase;">Estimated Fare</div>
+                                <div>${fareMarkup}</div>
+                            </div>
+                        </div>
+
+                        ${noteMarkup}
+                    </div>
+                `;
+            });
+
+            if (listEl) listEl.innerHTML = cardsHtml;
+            if (totalFareEl) {
+                totalFareEl.textContent = '₱' + grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+
+            modal.style.display = 'flex';
+        };
+
+        window.closeTransitSummaryOpensheet = function () {
+            const modal = document.getElementById('transit-summary-opensheet');
+            if (modal) modal.style.display = 'none';
         };
 
         window.selectLegVehicle = function (legIdx, mode, cost, distKm) {
@@ -3347,7 +3555,7 @@ try {
                 p2pCostEl.textContent = '₱' + transCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }
             if (p2pLegsEl) {
-                p2pLegsEl.textContent = `${draft.length} Destination${draft.length > 1 ? 's' : ''} • ${draft.length} Leg${draft.length > 1 ? 's' : ''}`;
+                p2pLegsEl.textContent = `${draft.length} Destination${draft.length > 1 ? 's' : ''} • Tap to view summary`;
             }
 
             if (p2pLabelEl) {
@@ -3839,6 +4047,9 @@ try {
 
         window.closeSaveModal = function () {
             document.getElementById('save-trip-modal').style.display = 'none';
+            if (typeof window.closeTransitSummaryOpensheet === 'function') {
+                window.closeTransitSummaryOpensheet();
+            }
 
             // Restore bottom nav
             const bottomNav = document.getElementById('bottom-navigation');
