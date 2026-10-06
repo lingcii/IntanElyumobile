@@ -507,6 +507,21 @@ if (is_dir($imgDir)) {
                     <span style="font-size:10px; font-weight:800; padding:4px 10px; border-radius:100px; background:rgba(255,255,255,0.2); color:#ffffff; text-transform:uppercase; letter-spacing:0.5px;">Required</span>
                 </div>
 
+                <!-- Maximum Capacity Card -->
+                <div id="sheet-capacity-card"
+                    style="display:none; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#1e3a8a !important; font-size:16px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                            <i class="fa-solid fa-users" style="color:#1e3a8a !important;"></i>
+                        </div>
+                        <div style="display:flex; flex-direction:column;">
+                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Maximum Capacity</span>
+                            <span style="font-size:10.5px; color:rgba(255,255,255,0.85); font-weight:600;" id="sheet-capacity-detail">Max visitors allowed</span>
+                        </div>
+                    </div>
+                    <span id="sheet-capacity-badge" style="font-size:10.5px; font-weight:800; padding:4px 10px; border-radius:100px; background:rgba(0,242,254,0.2); color:#00f2fe; letter-spacing:0.3px;">--</span>
+                </div>
+
                 <!-- Open 24 Hours Card -->
                 <div id="sheet-24h-card"
                     style="display:none; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important;">
@@ -578,7 +593,7 @@ if (is_dir($imgDir)) {
                 <!-- Vehicles Action Button (White button with royal blue text) -->
                 <button id="sheet-btn-view-vehicles" type="button" onclick="window.openSpotVehiclesModal()"
                     style="width:100%; border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s ease; background:#ffffff !important; color:#1e3a8a !important; box-shadow:0 4px 14px rgba(0,0,0,0.15); cursor:pointer;">
-                    <i class="fa-solid fa-van-shuttle" style="color:#1e3a8a !important;"></i> View Available Vehicles & Fares
+                    <i class="fa-solid fa-van-shuttle" style="color:#1e3a8a !important;"></i> View Available Vehicles
                 </button>
             </div>
 
@@ -723,7 +738,7 @@ if (is_dir($imgDir)) {
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:999999; align-items:flex-end; justify-content:center; background:rgba(6,11,25,0.78); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); box-sizing:border-box;">
     <div style="background:#ffffff !important; border-radius:28px 28px 0 0; width:100%; max-width:540px; max-height:86vh; display:flex; flex-direction:column; box-shadow:0 -10px 40px rgba(0,0,0,0.5); text-align:left; box-sizing:border-box; overflow:hidden;">
         
-        <!-- Header (Matched to Notifications Modal Header) -->
+        <!-- Header (Royal Blue Banner) -->
         <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 18px 14px 18px; color:#ffffff; flex-shrink:0; border:none !important; outline:none !important;">
             <div style="width:36px; height:4px; background:rgba(255,255,255,0.35); border-radius:99px; margin:0 auto 12px auto;"></div>
             <div style="display:flex; align-items:center; justify-content:space-between;">
@@ -732,7 +747,7 @@ if (is_dir($imgDir)) {
                         <i class="fa-solid fa-van-shuttle" style="color:#1e3a8a !important;"></i>
                     </div>
                     <div>
-                        <h4 id="spot-veh-modal-title" style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Available Vehicles & Fares</h4>
+                        <h4 id="spot-veh-modal-title" style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Available Vehicles</h4>
                         <span id="spot-veh-modal-subtitle" style="font-size:11.5px; font-weight:600; color:rgba(255,255,255,0.85);">--</span>
                     </div>
                 </div>
@@ -3525,6 +3540,29 @@ if (is_dir($imgDir)) {
                 }
             }
 
+            // Maximum Capacity Card
+            const capCard = document.getElementById('sheet-capacity-card');
+            if (capCard) {
+                const capVal = (locationData.maximum_capacity !== undefined && locationData.maximum_capacity !== null) ? parseInt(locationData.maximum_capacity) : NaN;
+                if (!isNaN(capVal) && capVal > 0) {
+                    capCard.style.display = 'flex';
+                    hasAnyAttr = true;
+                    const capDetail = document.getElementById('sheet-capacity-detail');
+                    const capBadge = document.getElementById('sheet-capacity-badge');
+                    if (capDetail) capDetail.textContent = `Up to ${capVal.toLocaleString()} visitors at a time`;
+                    if (capBadge) capBadge.textContent = `${capVal.toLocaleString()} Max`;
+                } else if (locationData.maximum_capacity !== undefined && locationData.maximum_capacity !== null && String(locationData.maximum_capacity).trim() !== '') {
+                    capCard.style.display = 'flex';
+                    hasAnyAttr = true;
+                    const capDetail = document.getElementById('sheet-capacity-detail');
+                    const capBadge = document.getElementById('sheet-capacity-badge');
+                    if (capDetail) capDetail.textContent = 'Maximum visitor capacity specified';
+                    if (capBadge) capBadge.textContent = `${locationData.maximum_capacity} Max`;
+                } else {
+                    capCard.style.display = 'none';
+                }
+            }
+
             if (open24Card) {
                 if (locationData.is_open_24_hours) {
                     open24Card.style.display = 'flex';
@@ -3849,7 +3887,7 @@ if (is_dir($imgDir)) {
                     btnViewVehicles.style.background = '#ffffff';
                     btnViewVehicles.style.color = '#1e3a8a';
                     btnViewVehicles.style.boxShadow = '0 4px 14px rgba(0, 0, 0, 0.15)';
-                    btnViewVehicles.innerHTML = `<i class="fa-solid fa-van-shuttle" style="color:#1e3a8a;"></i> View Available Vehicles & Fares (${allVehicles.length})`;
+                    btnViewVehicles.innerHTML = `<i class="fa-solid fa-van-shuttle" style="color:#1e3a8a;"></i> View Available Vehicles (${allVehicles.length})`;
                 }
             }
 
@@ -4094,7 +4132,7 @@ if (is_dir($imgDir)) {
             const distTextEl = document.getElementById('spot-veh-modal-dist-text');
             const listEl = document.getElementById('spot-veh-modal-list');
 
-            if (titleEl) titleEl.textContent = 'Available Vehicles & Fares';
+            if (titleEl) titleEl.textContent = 'Available Vehicles';
             if (subTitleEl) subTitleEl.textContent = `${dest.name || 'Tourist Site'} • ${dest.municipality || 'La Union'}`;
 
             // Determine route or straight line distance
@@ -4168,10 +4206,10 @@ if (is_dir($imgDir)) {
 
             const renderCard = (vehName, isPub) => {
                 const est = window.getFareBoundaryEstimate(vehName, distKm, dest.municipality, !isPub);
-                const fareDisplay = est ? (est.isPrivate ? '₱0.00' : `₱${est.fare.toFixed(2)}`) : 'Rate on inquiry';
-                const discDisplay = (isPub && est && est.discountedFare < est.fare) ? `₱${est.discountedFare.toFixed(2)} Disc.` : '';
-                const boundaryText = est?.boundaryLabel || (est?.isPrivate ? 'Direct road access • No fare required' : 'Boundary step calculated');
-                const baseText = (est && !est.isPrivate && est.baseFare > 0) ? `Base: ₱${est.baseFare.toFixed(2)}` : '';
+                const isPrivateVeh = !isPub || (est && est.isPrivate);
+                const fareDisplay = est ? `₱${est.fare.toFixed(2)}` : 'Rate on inquiry';
+                const boundaryText = est?.boundaryLabel || (isPrivateVeh ? 'Direct road access • No fare required' : 'Boundary step calculated');
+                const baseText = (!isPrivateVeh && est && est.baseFare > 0) ? `Base: ₱${est.baseFare.toFixed(2)}` : '';
 
                 return `
                 <div style="background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border-radius:14px; padding:12px 14px; border:none !important; outline:none !important; box-shadow:0 4px 12px rgba(32, 63, 141, 0.28) !important; color:#ffffff !important; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
@@ -4186,24 +4224,24 @@ if (is_dir($imgDir)) {
                                     <span style="font-size:13.5px; font-weight:800; color:#ffffff;">${vehName}</span>
                                 </div>
                                 <div style="font-size:9.5px; font-weight:800; color:#00f2fe; background:rgba(0, 242, 254, 0.18); padding:1px 7px; border-radius:100px; display:inline-block; margin-top:2px; letter-spacing:0.4px;">
-                                    ${isPub ? 'PUBLIC TRANSIT' : 'PRIVATE ACCESS'}
+                                    ${!isPrivateVeh ? 'PUBLIC TRANSIT' : 'PRIVATE ACCESS'}
                                 </div>
                             </div>
                         </div>
                         <div style="text-align:right;">
-                            <div style="font-size:15px; font-weight:900; color:#00f2fe; letter-spacing:-0.2px;">${fareDisplay}</div>
-                            ${discDisplay ? `
-                                <div style="font-size:9.5px; font-weight:800; color:#00f2fe; background:rgba(0, 242, 254, 0.18); padding:1px 6px; border-radius:100px; margin-top:2px; display:inline-block;">
-                                    <i class="fa-solid fa-tags" style="font-size:8px;"></i> ${discDisplay}
+                            ${isPrivateVeh ? `
+                                <div style="font-size:11.5px; font-weight:800; color:#34d399; background:rgba(16, 185, 129, 0.22); padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+                                    <i class="fa-solid fa-check" style="font-size:9.5px;"></i> No fare required
                                 </div>
-                            ` : (est?.isPrivate ? `
-                                <div style="font-size:9.5px; font-weight:800; color:rgba(255,255,255,0.85); margin-top:2px;"><i class="fa-solid fa-car" style="font-size:8px;"></i> Personal / Own</div>
-                            ` : '')}
+                            ` : `
+                                <div style="font-size:15px; font-weight:900; color:#00f2fe; letter-spacing:-0.2px;">${fareDisplay}</div>
+                                <div style="font-size:9.5px; font-weight:700; color:rgba(255,255,255,0.75); margin-top:2px;">Standard Fare</div>
+                            `}
                         </div>
                     </div>
                     <div style="background:rgba(0,0,0,0.18); border-radius:10px; padding:7px 11px; font-size:11px; color:#e2e8f0; display:flex; align-items:center; justify-content:space-between; gap:6px;">
                         <span style="display:flex; align-items:center; gap:5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                            <i class="fa-solid ${est?.isPrivate ? 'fa-route' : 'fa-chart-line'}" style="color:#00f2fe; font-size:10px; flex-shrink:0;"></i>
+                            <i class="fa-solid ${isPrivateVeh ? 'fa-route' : 'fa-chart-line'}" style="color:#00f2fe; font-size:10px; flex-shrink:0;"></i>
                             <span style="font-size:10.5px; font-weight:500; color:rgba(255,255,255,0.85);">${boundaryText}</span>
                         </span>
                         ${baseText ? `<span style="font-weight:800; color:#00f2fe; font-size:10.5px; flex-shrink:0;">${baseText}</span>` : ''}

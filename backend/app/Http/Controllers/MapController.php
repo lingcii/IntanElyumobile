@@ -72,7 +72,7 @@ class MapController extends Controller
                        'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types',
                        'environmental_fee', 'fee_types', 'route_guide', 'tour_guide_notice',
                        'accessible_by_private_vehicle', 'photo_url', 'description', 'opening_time', 'closing_time',
-                       'is_open_24_hours', 'is_maintenance', 'rating', 'visits', 'classification_status', 'status'])
+                       'is_open_24_hours', 'is_maintenance', 'rating', 'visits', 'classification_status', 'status', 'maximum_capacity'])
                 ->map(function ($spot) use ($spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles, $spotServiceCenterMap) {
                     $imageUrl = $spot->photo_url;
                     if (!$imageUrl && $spot->images->isNotEmpty()) {
@@ -163,6 +163,7 @@ class MapController extends Controller
                         'visits'                        => $spot->visits,
                         'classification_status'         => $spot->classification_status,
                         'status'                        => $spot->status ?? 'approved',
+                        'maximum_capacity'              => $spot->maximum_capacity ? (int) $spot->maximum_capacity : null,
                         'accessible_vehicles'           => $allList,
                         'public_vehicles'               => $pubList,
                         'private_vehicles'              => $privList,

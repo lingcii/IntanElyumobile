@@ -37,6 +37,7 @@ class TouristSpot extends Model
         'classification_status',
         'visits',
         'rating',
+        'maximum_capacity',
     ];
 
     protected $casts = [
@@ -55,6 +56,7 @@ class TouristSpot extends Model
         'is_maintenance'                => 'boolean',
         'visits'                        => 'integer',
         'rating'                        => 'float',
+        'maximum_capacity'              => 'integer',
     ];
 
     public static array $VALID_CATEGORIES = [

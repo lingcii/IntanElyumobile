@@ -56,8 +56,17 @@ class ProfileController extends Controller
             }
         });
 
-        // 2. Places Visited — use denormalized counter (Technique 5)
-        $placesVisited = (int) ($user->completed_activities ?? 0);
+        // 2. Places Visited — Calculate true distinct tourist spots visited
+        $placesVisited = (int) DB::table('itinerary_items')
+            ->join('itineraries', 'itinerary_items.itinerary_id', '=', 'itineraries.id')
+            ->where('itineraries.user_id', $user->id)
+            ->where('itinerary_items.is_visited', true)
+            ->whereNotNull('itinerary_items.tourist_spot_id')
+            ->distinct('itinerary_items.tourist_spot_id')
+            ->count('itinerary_items.tourist_spot_id');
+        if ($placesVisited === 0 && ($user->completed_activities ?? 0) > 0) {
+            $placesVisited = min(1, (int) $user->completed_activities);
+        }
 
         // 3. Completed Trips (Trip History) — Filter out any with 0 visited destinations
         $completedTrips = Cache::remember("profile:trips:v2:{$user->id}", 60, function () use ($user) {
