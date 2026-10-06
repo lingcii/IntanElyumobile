@@ -2175,9 +2175,13 @@ if (is_dir($imgDir)) {
                     const highlightedName = highlightMatch(loc.name, q);
                     const subtitle = loc.municipality ? (loc.municipality + (loc.category ? ' • ' + loc.category : '')) : (loc.category || '');
                     const highlightedSubtitle = highlightMatch(subtitle, q);
+                    const safeLat = loc.lat !== undefined && loc.lat !== null ? loc.lat : loc.latitude;
+                    const safeLng = loc.lng !== undefined && loc.lng !== null ? loc.lng : loc.longitude;
 
                     return `
-                    <div class="map-search-suggestion-item" data-id="${loc.id}" data-lat="${loc.lat}" data-lng="${loc.lng}">
+                    <div class="map-search-suggestion-item" data-id="${loc.id}" data-lat="${safeLat}" data-lng="${safeLng}"
+                        onpointerdown="event.preventDefault(); window.selectMapSearchSuggestion('${loc.id}')"
+                        onclick="window.selectMapSearchSuggestion('${loc.id}')">
                         <div class="suggestion-icon" style="background:#ffffff !important; color:#0284c7 !important; border:none !important; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
                             <i class="fa-solid ${icon}" style="color:#0284c7 !important;"></i>
                         </div>
@@ -2191,19 +2195,88 @@ if (is_dir($imgDir)) {
                 suggestionsEl.classList.add('open');
             }
 
-            function selectSuggestion(loc) {
+            window.selectMapSearchSuggestion = function (locIdOrObj) {
+                if (!locIdOrObj) return;
+                const locations = window.allMapLocations || [];
+                const loc = (typeof locIdOrObj === 'object')
+                    ? locIdOrObj
+                    : locations.find(l => String(l.id) === String(locIdOrObj));
                 if (!loc) return;
-                suggestionsEl.classList.remove('open');
-                searchInput.value = loc.name;
-                searchInput.blur(); // Dismiss mobile soft keyboard
-                if (typeof deactivateMapSearch === 'function') deactivateMapSearch(true);
-                const activeCatEl = document.querySelector('.category-pill.active');
-                window.filterCategory('All', document.querySelector('.category-pill'));
-                const lat = parseFloat(loc.lat);
-                const lng = parseFloat(loc.lng);
+
+                // 1. Immediately hide suggestions and clear dropdown
+                if (suggestionsEl) {
+                    suggestionsEl.classList.remove('open');
+                    suggestionsEl.innerHTML = '';
+                }
+
+                // 2. Set search input value and blur mobile keyboard
+                if (searchInput) {
+                    searchInput.value = loc.name || '';
+                    searchInput.blur();
+                }
+
+                // 3. Deactivate search keyboard overlay state
+                if (typeof deactivateMapSearch === 'function') {
+                    deactivateMapSearch(true);
+                } else if (typeof window.deactivateMapSearchGlobal === 'function') {
+                    window.deactivateMapSearchGlobal(true);
+                }
+
+                // 4. Update category pill to 'All' visually without firing competing fitBounds
+                const allPill = document.querySelector('.category-pill');
+                if (allPill) {
+                    document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+                    allPill.classList.add('active');
+                    window.currentActiveCategory = 'All';
+                }
+
+                // 5. Ensure markers exist so the destination marker is visible
+                if (typeof window.renderMarkers === 'function' && Array.isArray(window.allMapLocations)) {
+                    const markerKey = String(loc.id);
+                    if (!window.mountedMarkersMap || !window.mountedMarkersMap.has(markerKey)) {
+                        window.renderMarkers(window.allMapLocations);
+                    }
+                }
+
+                // 6. Navigate camera directly and smoothly to the tourist site
+                const lat = parseFloat(loc.lat !== undefined && loc.lat !== null ? loc.lat : loc.latitude);
+                const lng = parseFloat(loc.lng !== undefined && loc.lng !== null ? loc.lng : loc.longitude);
                 if (!isNaN(lat) && !isNaN(lng) && window.mapInstance) {
+                    window.mapInstance.flyTo({
+                        center: [lng, lat],
+                        zoom: 15.5,
+                        offset: [0, -90],
+                        duration: 850,
+                        essential: true,
+                        curve: 1.42
+                    });
+                }
+
+                // 7. Open tourist site details sheet
+                if (typeof window.openSheet === 'function') {
                     window.openSheet(loc);
                 }
+
+                // 8. Pop & highlight marker pin
+                setTimeout(() => {
+                    if (window.mountedMarkersMap) {
+                        const marker = window.mountedMarkersMap.get(String(loc.id));
+                        if (marker && marker.getElement()) {
+                            const el = marker.getElement();
+                            el.style.transform = 'scale(1.28)';
+                            el.style.zIndex = '999';
+                            setTimeout(() => {
+                                el.style.transform = '';
+                                el.style.zIndex = '10';
+                            }, 1400);
+                        }
+                    }
+                }, 250);
+            };
+
+            function selectSuggestion(loc) {
+                if (!loc) return;
+                window.selectMapSearchSuggestion(loc);
             }
 
             var activateMapSearch = null;
@@ -2249,7 +2322,7 @@ if (is_dir($imgDir)) {
                     if (immediate) {
                         doDeactivate();
                     } else {
-                        setTimeout(doDeactivate, 180);
+                        setTimeout(doDeactivate, 250);
                     }
                 };
 
@@ -2260,15 +2333,21 @@ if (is_dir($imgDir)) {
                 searchInput.addEventListener('focus', activateMapSearch);
                 searchInput.addEventListener('click', activateMapSearch);
 
-                // Click on suggestions via delegation
+                // Click and touch on suggestions via delegation
                 if (suggestionsEl) {
-                    suggestionsEl.addEventListener('click', (e) => {
+                    const handleSelect = (e) => {
                         const item = e.target.closest('.map-search-suggestion-item');
                         if (!item) return;
+                        e.preventDefault();
+                        e.stopPropagation();
                         const id = item.dataset.id;
-                        const loc = (window.allMapLocations || []).find(l => String(l.id) === id);
-                        if (loc) selectSuggestion(loc);
-                    });
+                        if (id && typeof window.selectMapSearchSuggestion === 'function') {
+                            window.selectMapSearchSuggestion(id);
+                        }
+                    };
+                    suggestionsEl.addEventListener('pointerdown', handleSelect);
+                    suggestionsEl.addEventListener('touchstart', handleSelect, { passive: false });
+                    suggestionsEl.addEventListener('click', handleSelect);
                 }
 
                 // Keyboard navigation
@@ -2288,8 +2367,15 @@ if (is_dir($imgDir)) {
                         if (activeIdx >= 0) {
                             const active = items[activeIdx];
                             const id = active.dataset.id;
-                            const loc = (window.allMapLocations || []).find(l => String(l.id) === id);
-                            if (loc) selectSuggestion(loc);
+                            if (id && typeof window.selectMapSearchSuggestion === 'function') {
+                                window.selectMapSearchSuggestion(id);
+                            }
+                        } else if (items.length > 0) {
+                            const first = items[0];
+                            const id = first.dataset.id;
+                            if (id && typeof window.selectMapSearchSuggestion === 'function') {
+                                window.selectMapSearchSuggestion(id);
+                            }
                         }
                         return;
                     } else {
