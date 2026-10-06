@@ -371,7 +371,11 @@ function updateClaimedBadge() {
 
 async function fetchUserPointsAndRedemptions() {
     const token = localStorage.getItem('intan_elyu_token');
-    if (!token) return;
+    if (!token) {
+        const ptsBadge = document.getElementById('discount-user-pts');
+        if (ptsBadge) ptsBadge.textContent = '0 Points';
+        return;
+    }
 
     try {
         const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
@@ -878,8 +882,7 @@ async function fetchLiveDatabaseVouchers() {
         }
     } catch(e) {}
 
-    const isStale = !cached || !cached.timestamp || (Date.now() - cached.timestamp > VOUCHERS_CACHE_TTL);
-    if (!isStale) return;
+    // Render cached vouchers instantly, but always fetch fresh vouchers in background so other devices see updates immediately
 
     try {
         const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
