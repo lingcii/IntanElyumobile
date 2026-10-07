@@ -53,6 +53,21 @@ class PointsController extends Controller
             if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
                 $vouchers = PointRedemption::where('user_id', $user->id)->latest()->get();
             }
+            if ($vouchers->isEmpty() && \Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
+                $vouchers = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
+                    ->leftJoin('vouchers', 'voucher_redemptions.voucher_id', '=', 'vouchers.id')
+                    ->where('voucher_redemptions.user_id', $user->id)
+                    ->select(
+                        'voucher_redemptions.id',
+                        \Illuminate\Support\Facades\DB::raw('COALESCE(vouchers.voucher_name, "Voucher") as type'),
+                        'voucher_redemptions.points_used as points_cost',
+                        'voucher_redemptions.redemption_code as voucher_code',
+                        'voucher_redemptions.status',
+                        'voucher_redemptions.created_at'
+                    )
+                    ->latest('voucher_redemptions.created_at')
+                    ->get();
+            }
         } catch (\Throwable $e) {
             $vouchers = collect();
         }

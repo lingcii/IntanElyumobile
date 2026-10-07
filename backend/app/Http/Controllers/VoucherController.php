@@ -255,14 +255,25 @@ class VoucherController extends Controller
 
             // Check if user has reached max claims for this voucher
             $maxPerUser = (int) ($voucher->maximum_redemption_per_user ?: 1);
-            $alreadyClaimedCount = PointRedemption::where('user_id', $user->id)
-                ->where(function($q) use ($voucher) {
-                    $q->where('type', $voucher->voucher_name);
-                    if ($voucher->voucher_code) {
-                        $q->orWhere('voucher_code', 'LIKE', $voucher->voucher_code . '%');
-                    }
-                })
-                ->count();
+            $alreadyClaimedCount = 0;
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
+                $alreadyClaimedCount = (int) \Illuminate\Support\Facades\DB::table('voucher_redemptions')
+                    ->where('user_id', $user->id)
+                    ->where('voucher_id', $voucher->id)
+                    ->count();
+            }
+
+            if ($alreadyClaimedCount === 0 && \Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
+                $alreadyClaimedCount = PointRedemption::where('user_id', $user->id)
+                    ->where(function($q) use ($voucher) {
+                        $q->where('type', $voucher->voucher_name);
+                        if ($voucher->voucher_code) {
+                            $q->orWhere('voucher_code', 'LIKE', $voucher->voucher_code . '%');
+                        }
+                    })
+                    ->count();
+            }
 
             if ($alreadyClaimedCount >= $maxPerUser) {
                 return response()->json([
@@ -291,7 +302,12 @@ class VoucherController extends Controller
                 $suffix = strtoupper(Str::random(4));
                 $uniqueCode = "{$baseCode}-{$suffix}";
                 $attempts++;
-            } while (PointRedemption::where('voucher_code', $uniqueCode)->exists() && $attempts < 10);
+
+                $existsInVoucherTbl = \Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions') &&
+                    \Illuminate\Support\Facades\DB::table('voucher_redemptions')->where('redemption_code', $uniqueCode)->exists();
+                $existsInPointTbl = \Illuminate\Support\Facades\Schema::hasTable('point_redemptions') &&
+                    PointRedemption::where('voucher_code', $uniqueCode)->exists();
+            } while (($existsInVoucherTbl || $existsInPointTbl) && $attempts < 10);
 
             if ($attempts >= 10) {
                 $uniqueCode = 'ELYU-' . strtoupper(Str::random(10));
@@ -321,13 +337,55 @@ class VoucherController extends Controller
                     } catch (\Throwable $ignored) {}
                 }
 
-                return PointRedemption::create([
-                    'user_id' => $user->id,
-                    'type' => $voucher->voucher_name,
-                    'points_cost' => $cost,
-                    'voucher_code' => $uniqueCode,
-                    'status' => 'active'
-                ]);
+                $qrToken = 'elyu_rdm_' . bin2hex(random_bytes(16));
+
+                // 1. Sync with voucher_redemptions (used by web admin / partner scanning)
+                if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
+                    try {
+                        \Illuminate\Support\Facades\DB::table('voucher_redemptions')->insert([
+                            'voucher_id'      => $voucher->id,
+                            'user_id'         => $user->id,
+                            'redemption_code' => $uniqueCode,
+                            'qr_token'        => $qrToken,
+                            'points_used'     => $cost,
+                            'status'          => 'claimed',
+                            'redeemed_at'     => now(),
+                            'claimed_at'      => now(),
+                            'created_at'      => now(),
+                            'updated_at'      => now(),
+                        ]);
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning('Could not record into voucher_redemptions: ' . $e->getMessage());
+                    }
+                }
+
+                // 2. Sync with point_redemptions (used by mobile views & PointRedemption model)
+                $pointRedemption = null;
+                if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
+                    try {
+                        $pointRedemption = PointRedemption::create([
+                            'user_id'      => $user->id,
+                            'type'         => $voucher->voucher_name,
+                            'points_cost'  => $cost,
+                            'voucher_code' => $uniqueCode,
+                            'status'       => 'active'
+                        ]);
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning('Could not record into point_redemptions: ' . $e->getMessage());
+                    }
+                }
+
+                if (!$pointRedemption) {
+                    $pointRedemption = (object) [
+                        'user_id'      => $user->id,
+                        'type'         => $voucher->voucher_name,
+                        'points_cost'  => $cost,
+                        'voucher_code' => $uniqueCode,
+                        'status'       => 'active'
+                    ];
+                }
+
+                return $pointRedemption;
             });
 
             // Trigger notification safely
