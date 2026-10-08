@@ -51,4 +51,9 @@ class Voucher extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function partnerEstablishments()
+    {
+        return $this->belongsToMany(PartnerEstablishment::class, 'partner_establishment_voucher', 'voucher_id', 'partner_establishment_id');
+    }
 }

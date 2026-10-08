@@ -724,6 +724,80 @@ window.showToast = function showToast(message, type = 'info', duration = 3200) {
 var showToast = window.showToast;
 
 /**
+ * Universal Cross-Browser / Mobile Clipboard Copy Helper
+ * Handles HTTPS, HTTP (LAN/XAMPP IP), WebViews, iOS/Android, and Desktop
+ */
+window.copyToClipboard = function(text, onSuccess, onError) {
+    if (!text) {
+        if (typeof onError === 'function') onError(new Error('No text provided to copy'));
+        return;
+    }
+
+    const trimmed = String(text).trim();
+
+    // 1. Try modern Async Clipboard API if supported and in secure context
+    if (navigator.clipboard && window.isSecureContext && typeof navigator.clipboard.writeText === 'function') {
+        navigator.clipboard.writeText(trimmed).then(() => {
+            if (typeof onSuccess === 'function') onSuccess(trimmed);
+        }).catch((err) => {
+            console.warn('Clipboard writeText failed, trying execCommand fallback:', err);
+            fallbackExecCopy(trimmed, onSuccess, onError);
+        });
+        return;
+    }
+
+    // 2. Fallback using document.execCommand('copy')
+    fallbackExecCopy(trimmed, onSuccess, onError);
+};
+
+function fallbackExecCopy(text, onSuccess, onError) {
+    let ta = null;
+    try {
+        ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '0';
+        ta.style.left = '-9999px';
+        ta.style.width = '2em';
+        ta.style.height = '2em';
+        ta.style.padding = '0';
+        ta.style.border = 'none';
+        ta.style.outline = 'none';
+        ta.style.boxShadow = 'none';
+        ta.style.background = 'transparent';
+        ta.style.opacity = '0.01';
+        ta.style.zIndex = '-9999';
+        ta.style.pointerEvents = 'none';
+
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        ta.setSelectionRange(0, ta.value.length);
+
+        const successful = document.execCommand('copy');
+        document.body.removeChild(ta);
+        ta = null;
+
+        if (successful) {
+            if (typeof onSuccess === 'function') onSuccess(text);
+        } else {
+            throw new Error('execCommand returned false');
+        }
+    } catch (e) {
+        if (ta && ta.parentNode) {
+            ta.parentNode.removeChild(ta);
+        }
+        console.warn('Fallback execCommand copy error:', e);
+        if (typeof onError === 'function') {
+            onError(e);
+        } else if (typeof showToast === 'function') {
+            showToast('Unable to copy automatically. Code: ' + text);
+        }
+    }
+}
+
+/**
  * Execute scripts injected via innerHTML
  */
 function executeScripts(container) {

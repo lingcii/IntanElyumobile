@@ -380,7 +380,8 @@ $activeTab = 'profile';
                 if (list) {
                     if (d.vouchers && d.vouchers.length > 0) {
                         window._cachedActiveVouchers = d.vouchers;
-                        if (badge) badge.textContent = `${d.vouchers.length} Active`;
+                        const activeCount = d.vouchers.filter(v => ['active', 'claimed'].includes((v.status || '').toLowerCase())).length;
+                        if (badge) badge.textContent = `${activeCount} Active`;
                         if (headerBtn) {
                             headerBtn.style.display = (d.vouchers.length > 2) ? 'inline-flex' : 'none';
                         }
@@ -391,10 +392,13 @@ $activeTab = 'profile';
                         displayVouchers.forEach(v => {
                             const voucherTitle = v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.type || 'Tourist Voucher'));
                             const safeCode = (v.voucher_code || '').replace(/'/g, "\\'");
-                            const isAct = (v.status || '').toLowerCase() === 'active';
+                            const statusLower = (v.status || '').toLowerCase();
+                            const isRedeemed = statusLower === 'redeemed' || statusLower === 'used';
+                            const statusLabel = isRedeemed ? 'Redeemed' : 'Ready to Use';
+                            const statusColor = isRedeemed ? '#64748b' : '#10b981';
                             
                             html += `
-                            <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; padding: 14px 16px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; gap: 10px; box-shadow: 0 4px 14px rgba(10, 25, 60, 0.22);">
+                            <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; padding: 14px 16px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; gap: 10px; box-shadow: 0 4px 14px rgba(10, 25, 60, 0.22); cursor: pointer; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                                 <div style="text-align: left; flex: 1; min-width: 0;">
                                     <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
                                         <i class="fa-solid fa-ticket" style="color: #00f2fe; font-size: 13px;"></i>
@@ -402,14 +406,19 @@ $activeTab = 'profile';
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 8px;">
                                         <code style="font-size: 12.5px; font-weight: 900; color: #1e3a8a; letter-spacing: 0.5px; background: #ffffff !important; border: none !important; padding: 4px 10px; border-radius: 8px; font-family: monospace; box-shadow: 0 1px 4px rgba(0,0,0,0.12);">${v.voucher_code}</code>
-                                        <button type="button" onclick="navigator.clipboard.writeText('${safeCode}'); if(typeof showToast==='function') showToast('Voucher code copied!');" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a; padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                                        <button type="button" onclick="event.stopPropagation(); window.copyVoucherCodeToClipboard('${safeCode}')" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a; padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
                                             <i class="fa-solid fa-copy" style="color: #1e3a8a;"></i> Copy
                                         </button>
                                     </div>
                                 </div>
-                                <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #ffffff !important; background: ${isAct ? '#10b981' : '#64748b'} !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.18);">
-                                    ${v.status || 'Active'}
-                                </span>
+                                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+                                    <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #ffffff !important; background: ${statusColor} !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.18);">
+                                        <i class="fa-solid ${isRedeemed ? 'fa-check-double' : 'fa-check'}" style="margin-right: 4px; color: #ffffff !important;"></i>${statusLabel}
+                                    </span>
+                                    <div style="font-size: 10.5px; font-weight: 700; color: #00f2fe; display: flex; align-items: center; gap: 4px;">
+                                        <i class="fa-solid fa-qrcode"></i> ${isRedeemed ? 'View Pass' : 'Show QR'}
+                                    </div>
+                                </div>
                             </div>`;
                         });
                         list.innerHTML = html;
@@ -766,19 +775,29 @@ $activeTab = 'profile';
             vouchers.forEach((v, idx) => {
                 const voucherTitle = v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.type || 'Tourist Voucher'));
                 const safeCode = (v.voucher_code || '').replace(/'/g, "\\'");
-                const isAct = (v.status || '').toLowerCase() === 'active';
+                const statusLower = (v.status || '').toLowerCase();
+                const isRedeemed = statusLower === 'redeemed' || statusLower === 'used';
+                const statusLabel = isRedeemed ? 'Redeemed' : 'Ready to Use';
+                const statusColor = isRedeemed ? '#64748b' : '#10b981';
                 const createdDate = v.created_at ? new Date(v.created_at).toLocaleDateString() : '';
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(v.voucher_code)}`;
 
                 html += `
-                <div style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 18px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.25);">
+                <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 18px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.25); cursor: pointer; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
                         <div>
                             <div style="font-size: 10px; font-weight: 800; color: #00f2fe; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Voucher #${idx + 1}</div>
                             <strong style="color: #ffffff; font-size: 15px; font-weight: 800; line-height: 1.3;">${voucherTitle}</strong>
                         </div>
-                        <span style="color: #ffffff !important; font-weight: 800; font-size: 11px; background: ${isAct ? '#10b981' : '#64748b'} !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; text-transform: uppercase;">
-                            <i class="fa-solid ${isAct ? 'fa-check' : 'fa-clock'}" style="margin-right: 4px; color: #ffffff !important;"></i>${v.status || 'Active'}
+                        <span style="color: #ffffff !important; font-weight: 800; font-size: 11px; background: ${statusColor} !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; text-transform: uppercase;">
+                            <i class="fa-solid ${isRedeemed ? 'fa-check-double' : 'fa-check'}" style="margin-right: 4px; color: #ffffff !important;"></i>${statusLabel}
                         </span>
+                    </div>
+
+                    <!-- QR Code Display Box -->
+                    <div style="background: #ffffff !important; border-radius: 14px; padding: 10px; width: 140px; height: 140px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: relative;">
+                        <img src="${qrUrl}" alt="Voucher QR Code" style="width: 100%; height: 100%; object-fit: contain; ${isRedeemed ? 'filter: grayscale(1); opacity: 0.4;' : ''}">
+                        ${isRedeemed ? '<div style="position: absolute; background: rgba(220, 38, 38, 0.9); color: #ffffff; font-size: 11px; font-weight: 900; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">REDEEMED</div>' : ''}
                     </div>
 
                     <div style="background: #ffffff !important; border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px;">
@@ -786,12 +805,15 @@ $activeTab = 'profile';
                             <div style="font-size: 9.5px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Claim Code</div>
                             <code style="font-size: 14px; font-weight: 900; color: #1e3a8a; letter-spacing: 1px; font-family: monospace;">${v.voucher_code}</code>
                         </div>
-                        <button type="button" onclick="navigator.clipboard.writeText('${safeCode}'); if(typeof showToast==='function') showToast('Voucher code copied!');" style="background: #1e3a8a !important; color: #ffffff !important; border: none !important; outline: none !important; padding: 7px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                        <button type="button" onclick="event.stopPropagation(); window.copyVoucherCodeToClipboard('${safeCode}')" style="background: #1e3a8a !important; color: #ffffff !important; border: none !important; outline: none !important; padding: 7px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 5px;">
                             <i class="fa-solid fa-copy" style="color: #ffffff;"></i> Copy
                         </button>
                     </div>
 
-                    ${createdDate ? `<div style="font-size: 11px; color: #e2e8f0; font-weight: 600;"><i class="fa-regular fa-calendar" style="color: #00f2fe; margin-right: 4px;"></i>Claimed: ${createdDate}</div>` : ''}
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #e2e8f0; font-weight: 600;">
+                        ${createdDate ? `<span><i class="fa-regular fa-calendar" style="color: #00f2fe; margin-right: 4px;"></i>Claimed: ${createdDate}</span>` : '<span></span>'}
+                        <span style="color: #00f2fe; font-size: 11px; font-weight: 800;"><i class="fa-solid fa-expand" style="margin-right: 3px;"></i>${isRedeemed ? 'View Details' : 'Tap for QR Pass'}</span>
+                    </div>
                 </div>`;
             });
             container.innerHTML = html;
@@ -800,10 +822,197 @@ $activeTab = 'profile';
         modal.style.display = 'flex';
     };
 
-    window.closeFullVouchersModal = function() {
-        const modal = document.getElementById('full-vouchers-modal');
+    let activeQrSyncInterval = null;
+    let currentActiveQrCode = '';
+
+    window.openActiveVoucherQrModal = function(codeOrVoucher) {
+        let voucher = null;
+        const vouchers = window._cachedActiveVouchers || [];
+        
+        if (typeof codeOrVoucher === 'object' && codeOrVoucher !== null) {
+            voucher = codeOrVoucher;
+        } else {
+            voucher = vouchers.find(v => v.voucher_code === codeOrVoucher) || { voucher_code: codeOrVoucher };
+        }
+
+        if (!voucher || !voucher.voucher_code) return;
+
+        currentActiveQrCode = voucher.voucher_code;
+        const modal = document.getElementById('active-voucher-qr-modal');
+        if (!modal) return;
+
+        const titleEl = document.getElementById('active-qr-modal-title');
+        const partnerEl = document.getElementById('active-qr-modal-partner');
+        const promoCodeEl = document.getElementById('active-qr-modal-promo-code');
+        const codeEl = document.getElementById('active-qr-modal-code');
+        const imgEl = document.getElementById('active-qr-modal-img');
+        const statusBadge = document.getElementById('active-qr-status-badge');
+        const noticeEl = document.getElementById('active-qr-notice');
+
+        const vTitle = voucher.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (voucher.type === 'environmental_fee' ? 'Waived Environmental Fee' : (voucher.type || 'Tourist Voucher'));
+        if (titleEl) titleEl.textContent = vTitle;
+        if (partnerEl) partnerEl.textContent = voucher.partner_establishment || voucher.category || 'Official Partner Merchant';
+        
+        // Extract master promo code (e.g. INTAN-8A22C8) and unique claim code (INTAN-8A22C8-FBHC)
+        const parts = voucher.voucher_code.split('-');
+        let masterCode = voucher.voucher_code;
+        if (parts.length >= 3 && parts[parts.length - 1].length === 4) {
+            masterCode = parts.slice(0, -1).join('-');
+        }
+        if (promoCodeEl) promoCodeEl.textContent = masterCode;
+        if (codeEl) codeEl.textContent = voucher.voucher_code;
+        
+        if (imgEl) {
+            imgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(voucher.voucher_code)}`;
+        }
+
+        // Reset copy button
+        const btn = document.getElementById('btn-copy-active-qr');
+        const label = document.getElementById('active-qr-copy-label');
+        const icon = document.getElementById('active-qr-copy-icon');
+        if (btn) {
+            btn.style.background = '#ffffff';
+            btn.style.borderColor = '#bfdbfe';
+            btn.style.color = '#1e3a8a';
+            btn.disabled = false;
+        }
+        if (label) label.textContent = 'Copy Voucher Code';
+        if (icon) icon.className = 'fa-solid fa-copy';
+
+        const statusLower = (voucher.status || '').toLowerCase();
+        const isRedeemed = statusLower === 'redeemed' || statusLower === 'used';
+
+        if (statusBadge) {
+            if (isRedeemed) {
+                statusBadge.innerHTML = '<i class="fa-solid fa-ban"></i> Voucher Already Redeemed';
+                statusBadge.style.background = '#fee2e2';
+                statusBadge.style.color = '#dc2626';
+                statusBadge.style.border = '1px solid #fca5a5';
+                if (imgEl) {
+                    imgEl.style.filter = 'grayscale(1)';
+                    imgEl.style.opacity = '0.35';
+                }
+                if (noticeEl) {
+                    noticeEl.textContent = 'This voucher has already been redeemed and verified at checkout. It can no longer be used.';
+                    noticeEl.style.color = '#dc2626';
+                    noticeEl.style.fontWeight = '700';
+                }
+            } else {
+                statusBadge.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Ready for scan at checkout';
+                statusBadge.style.background = '#e0f2fe';
+                statusBadge.style.color = '#0369a1';
+                statusBadge.style.border = 'none';
+                if (imgEl) {
+                    imgEl.style.filter = 'none';
+                    imgEl.style.opacity = '1';
+                }
+                if (noticeEl) {
+                    noticeEl.textContent = 'Present this QR code or alphanumeric code directly to staff at checkout.';
+                    noticeEl.style.color = '#64748b';
+                    noticeEl.style.fontWeight = '500';
+                }
+                startActiveQrSync(voucher.voucher_code);
+            }
+        }
+
+        modal.style.display = 'flex';
+    };
+
+    window.closeActiveVoucherQrModal = function() {
+        stopActiveQrSync();
+        const modal = document.getElementById('active-voucher-qr-modal');
         if (modal) modal.style.display = 'none';
     };
+
+    window.copyCurrentActiveQrCode = function() {
+        if (!currentActiveQrCode) return;
+        const btn = document.getElementById('btn-copy-active-qr');
+        const label = document.getElementById('active-qr-copy-label');
+        const icon = document.getElementById('active-qr-copy-icon');
+
+        const showSuccess = () => {
+            if (label) label.textContent = 'Code Copied!';
+            if (icon) icon.className = 'fa-solid fa-check';
+            if (btn) {
+                btn.style.background = '#dcfce7';
+                btn.style.borderColor = '#86efac';
+                btn.style.color = '#15803d';
+            }
+            if (typeof showToast === 'function') showToast("Voucher code copied to clipboard!");
+
+            setTimeout(() => {
+                if (label) label.textContent = 'Copy Voucher Code';
+                if (icon) icon.className = 'fa-solid fa-copy';
+                if (btn) {
+                    btn.style.background = '#ffffff';
+                    btn.style.borderColor = '#bfdbfe';
+                    btn.style.color = '#1e3a8a';
+                }
+            }, 2500);
+        };
+
+        if (typeof window.copyToClipboard === 'function') {
+            window.copyToClipboard(currentActiveQrCode, showSuccess, () => {
+                if (typeof showToast === 'function') showToast("Code: " + currentActiveQrCode);
+            });
+        } else {
+            window.copyVoucherCodeToClipboard(currentActiveQrCode);
+        }
+    };
+
+    function startActiveQrSync(code) {
+        stopActiveQrSync();
+        if (!code) return;
+
+        const check = async () => {
+            try {
+                const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+                const res = await fetch(`${baseUrl}/api/public/redemptions/${encodeURIComponent(code)}/status`, {
+                    headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.status === 'success' && data.is_redeemed) {
+                        const statusBadge = document.getElementById('active-qr-status-badge');
+                        const imgEl = document.getElementById('active-qr-modal-img');
+                        const noticeEl = document.getElementById('active-qr-notice');
+
+                        if (statusBadge) {
+                            statusBadge.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#15803d; font-size:13px;"></i> Redeemed & Verified at ${data.redeemed_by_partner || 'Partner Merchant'}!`;
+                            statusBadge.style.background = '#dcfce7';
+                            statusBadge.style.color = '#15803d';
+                            statusBadge.style.border = '1px solid #86efac';
+                        }
+                        if (imgEl) {
+                            imgEl.style.filter = 'grayscale(1)';
+                            imgEl.style.opacity = '0.35';
+                        }
+                        if (noticeEl) {
+                            noticeEl.textContent = 'Redemption complete! This voucher has been recorded and can no longer be reused.';
+                            noticeEl.style.color = '#15803d';
+                            noticeEl.style.fontWeight = '700';
+                        }
+                        if (window.confetti) {
+                            window.confetti({ particleCount: 60, spread: 60, origin: { y: 0.6 } });
+                        }
+                        stopActiveQrSync();
+                        // Refresh vouchers cache on profile page
+                        fetchPointsAndVouchers();
+                    }
+                }
+            } catch(e) {}
+        };
+
+        setTimeout(check, 1200);
+        activeQrSyncInterval = setInterval(check, 4000);
+    }
+
+    function stopActiveQrSync() {
+        if (activeQrSyncInterval) {
+            clearInterval(activeQrSyncInterval);
+            activeQrSyncInterval = null;
+        }
+    }
 
     window.renderTripDetailModalContent = function(trip) {
         if (!trip) return;
@@ -1030,6 +1239,58 @@ $activeTab = 'profile';
         <!-- Body Area Below Header (Pure White, No Shadow, No Outlines) -->
         <div id="full-vouchers-list" class="hide-scrollbar" style="flex:1; overflow-y:auto; padding:18px 16px; background:#ffffff !important; border:none !important; outline:none !important; box-shadow:none !important;">
             <div style="text-align:center; padding:20px; color:#64748b; font-size:13px; font-weight:600;">Loading vouchers...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Dedicated Active Voucher QR Pass Modal -->
+<div id="active-voucher-qr-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:2000002; justify-content:center; align-items:center; padding:20px;">
+    <div style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:390px; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 20px 50px rgba(0,0,0,0.3) !important; overflow:hidden; text-align:center; padding:0;">
+        <!-- Header Banner (Royal Blue) -->
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border:none !important; outline:none !important; flex-shrink:0;">
+            <div style="display:flex; align-items:center; gap:9px;">
+                <i class="fa-solid fa-qrcode" style="color:#00f2fe; font-size:18px;"></i>
+                <h3 style="margin:0; color:#ffffff; font-size:17px; font-weight:800; letter-spacing:-0.2px;">Voucher QR Pass</h3>
+            </div>
+            <button onclick="window.closeActiveVoucherQrModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="hide-scrollbar" style="flex:1; overflow-y:auto; padding:20px 18px; background:#ffffff !important;">
+            <div id="active-qr-modal-title" style="font-size:17px; font-weight:900; color:#1e3a8a; margin-bottom:4px; line-height:1.3;">Tourist Voucher</div>
+            <div id="active-qr-modal-partner" style="font-size:12px; font-weight:700; color:#64748b; margin-bottom:14px;">Official Partner Merchant</div>
+
+            <!-- QR Code Container -->
+            <div style="background:#eff6ff; border:1.5px dashed #bfdbfe; border-radius:20px; padding:16px; margin-bottom:14px;">
+                <div style="background:#ffffff; border-radius:14px; padding:10px; width:170px; height:170px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,0.08); border:1px solid #e2e8f0; position:relative;">
+                    <img id="active-qr-modal-img" src="" alt="Voucher QR Code" style="width:100%; height:100%; object-fit:contain;">
+                </div>
+
+                <!-- Codes Information -->
+                <div style="display:flex; justify-content:center; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
+                    <span style="font-size:11px; background:#ffffff; padding:4px 10px; border-radius:8px; color:#64748b; font-weight:700; border:1px solid #e2e8f0;">
+                        Promo: <strong id="active-qr-modal-promo-code" style="color:#1e3a8a;">INTAN-ELYU</strong>
+                    </span>
+                    <span style="font-size:11px; background:#ffffff; padding:4px 10px; border-radius:8px; color:#64748b; font-weight:700; border:1px solid #e2e8f0;">
+                        Claim Pass: <strong id="active-qr-modal-code" style="color:#0284c7; font-family:monospace;">INTAN-XXXX-XXXX</strong>
+                    </span>
+                </div>
+
+                <button id="btn-copy-active-qr" onclick="copyCurrentActiveQrCode()" style="background:#ffffff !important; border:1px solid #bfdbfe !important; color:#1e3a8a !important; padding:9px 18px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(0,0,0,0.05); transition:all 0.2s ease;">
+                    <i class="fa-solid fa-copy" id="active-qr-copy-icon" style="color:#1e3a8a !important;"></i>
+                    <span id="active-qr-copy-label">Copy Voucher Code</span>
+                </button>
+
+                <p id="active-qr-notice" style="margin:10px 0 0 0; font-size:11px; color:#64748b; line-height:1.4;">
+                    Present this QR code or alphanumeric code directly to staff at checkout.
+                </p>
+
+                <div id="active-qr-status-badge" style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:100px; font-size:11px; font-weight:800; background:#e0f2fe; color:#0369a1; margin-top:10px; transition:all 0.3s ease;">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> Ready for scan at checkout
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -156,7 +156,7 @@ class VoucherController extends Controller
 
                 $isUpcoming = $v->valid_from ? $v->valid_from->isFuture() : false;
                 $computedStatus = $isExpired ? 'expired' : ($isUpcoming ? 'upcoming' : 'active');
-                $isOutOfStock = ($v->remaining_quantity !== null && $v->remaining_quantity <= 0);
+                $isMabanag = str_contains(strtolower($partner ?? ''), 'mabanag') || (isset($v->partner_establishments) && str_contains(strtolower(is_array($v->partner_establishments) ? implode(' ', $v->partner_establishments) : (string) $v->partner_establishments), 'mabanag'));
 
                 return [
                     'id'                       => $v->id,
@@ -191,6 +191,7 @@ class VoucherController extends Controller
                     'available_quantity'       => $v->available_quantity,
                     'remaining_quantity'       => $v->remaining_quantity,
                     'redeemed_quantity'        => $v->redeemed_quantity,
+                    'is_mabanag'               => $isMabanag,
                 ];
             });
 
@@ -298,8 +299,12 @@ class VoucherController extends Controller
             $baseCode = $voucher->voucher_code ? strtoupper(trim($voucher->voucher_code)) : 'ELYU';
             $uniqueCode = '';
             $attempts = 0;
+            $letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             do {
-                $suffix = strtoupper(Str::random(4));
+                $suffix = '';
+                for ($i = 0; $i < 4; $i++) {
+                    $suffix .= $letters[random_int(0, 25)];
+                }
                 $uniqueCode = "{$baseCode}-{$suffix}";
                 $attempts++;
 
@@ -310,7 +315,11 @@ class VoucherController extends Controller
             } while (($existsInVoucherTbl || $existsInPointTbl) && $attempts < 10);
 
             if ($attempts >= 10) {
-                $uniqueCode = 'ELYU-' . strtoupper(Str::random(10));
+                $suffix = '';
+                for ($i = 0; $i < 4; $i++) {
+                    $suffix .= $letters[random_int(0, 25)];
+                }
+                $uniqueCode = 'ELYU-' . time() . "-{$suffix}";
             }
 
             $redemption = DB::transaction(function() use ($user, $voucher, $cost, $uniqueCode) {
@@ -442,6 +451,71 @@ class VoucherController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to redeem voucher. Please try again.'
+            ], 500);
+        }
+    }
+
+    /**
+     * GET /api/tourist/redemptions/{code}/status
+     * Live status check to see if voucher/merchandise has been scanned & redeemed by partner staff (e.g. Mabanag Hall).
+     */
+    public function checkRedemptionStatus(Request $request, string $code): JsonResponse
+    {
+        try {
+            $user = $request->user();
+            $record = null;
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
+                $query = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
+                    ->where(function ($q) use ($code) {
+                        $q->where('redemption_code', $code)
+                          ->orWhere('qr_token', $code);
+                    });
+
+                if ($user) {
+                    $query->where('user_id', $user->id);
+                }
+
+                $record = $query->first();
+            }
+
+            if (!$record && \Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
+                $query = \Illuminate\Support\Facades\DB::table('point_redemptions')
+                    ->where('voucher_code', $code);
+                if ($user) {
+                    $query->where('user_id', $user->id);
+                }
+                $record = $query->first();
+            }
+
+            if (!$record) {
+                return response()->json([
+                    'status' => 'not_found',
+                    'message' => 'Redemption record not found.'
+                ], 404);
+            }
+
+            $isRedeemed = in_array(strtolower($record->status ?? ''), ['redeemed', 'used', 'completed']);
+            $partnerName = 'Mabanag Hall';
+            if (!empty($record->redeemed_by_partner_id)) {
+                $partner = \Illuminate\Support\Facades\DB::table('partner_establishments')->where('id', $record->redeemed_by_partner_id)->first();
+                if ($partner) {
+                    $partnerName = $partner->name;
+                }
+            }
+
+            return response()->json([
+                'status'               => 'success',
+                'redemption_status'    => $isRedeemed ? 'redeemed' : 'claimed',
+                'is_redeemed'          => $isRedeemed,
+                'redeemed_at'          => $record->redeemed_at ?? null,
+                'redeemed_by_partner'  => $partnerName,
+                'code'                 => $code
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
             ], 500);
         }
     }

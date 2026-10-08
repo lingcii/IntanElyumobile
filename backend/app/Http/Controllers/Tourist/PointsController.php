@@ -53,7 +53,7 @@ class PointsController extends Controller
             if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
                 $vouchers = PointRedemption::where('user_id', $user->id)->latest()->get();
             }
-            if ($vouchers->isEmpty() && \Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
+            if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
                 $vouchers = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
                     ->leftJoin('vouchers', 'voucher_redemptions.voucher_id', '=', 'vouchers.id')
                     ->where('voucher_redemptions.user_id', $user->id)
@@ -63,7 +63,9 @@ class PointsController extends Controller
                         'voucher_redemptions.points_used as points_cost',
                         'voucher_redemptions.redemption_code as voucher_code',
                         'voucher_redemptions.status',
-                        'voucher_redemptions.created_at'
+                        'voucher_redemptions.created_at',
+                        'vouchers.partner_establishment',
+                        'vouchers.category'
                     )
                     ->latest('voucher_redemptions.created_at')
                     ->get();
@@ -296,8 +298,13 @@ class PointsController extends Controller
             $prefix = $type === 'pasalubong_discount' ? 'ELYU-PASA-' : 'ELYU-ENV-';
             $code = '';
             $attempts = 0;
+            $letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             do {
-                $code = $prefix . strtoupper(Str::random(8));
+                $suffix = '';
+                for ($i = 0; $i < 4; $i++) {
+                    $suffix .= $letters[random_int(0, 25)];
+                }
+                $code = $prefix . $suffix;
                 $attempts++;
             } while (PointRedemption::where('voucher_code', $code)->exists() && $attempts < 10);
 

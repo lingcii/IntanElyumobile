@@ -39,12 +39,38 @@ $backRoute = 'dashboard';
     <!-- Category Filters -->
     <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 18px; scrollbar-width: none;" id="discount-filters">
         <button class="discount-cat-btn active" onclick="filterDiscounts('All')">All Deals</button>
+        <button class="discount-cat-btn" onclick="filterDiscounts('Mabanag Hall')"><i class="fa-solid fa-landmark" style="margin-right: 4px;"></i>Mabanag Hall</button>
         <button class="discount-cat-btn" id="btn-my-claimed" onclick="filterDiscounts('Claimed')">My Vouchers (<span id="claimed-count">0</span>)</button>
         <button class="discount-cat-btn" onclick="filterDiscounts('Food & Dining')">Food & Dining</button>
         <button class="discount-cat-btn" onclick="filterDiscounts('Activities')">Activities & Surf</button>
         <button class="discount-cat-btn" onclick="filterDiscounts('Accommodations')">Accommodations</button>
-        <button class="discount-cat-btn" onclick="filterDiscounts('Souvenirs')">Gear & Passes</button>
         <button class="discount-cat-btn" onclick="filterDiscounts('Upcoming')">Upcoming</button>
+    </div>
+
+    <!-- Mabanag Hall Partner Merchant Spotlight Hero (Shown when Mabanag Hall filter or San Fernando town active) -->
+    <div id="mabanag-spotlight-card" style="display: none; background: linear-gradient(135deg, #0f2b66 0%, #1a428a 50%, #2559b3 100%) !important; border-radius: 22px; padding: 18px 20px; margin-bottom: 18px; box-shadow: 0 8px 24px rgba(15, 43, 102, 0.28); color: #ffffff !important; position: relative; overflow: hidden; border: 1.5px solid rgba(255,255,255,0.18);">
+        <div style="position: absolute; right: -15px; bottom: -25px; font-size: 110px; color: rgba(255,255,255,0.06); pointer-events: none;">
+            <i class="fa-solid fa-landmark"></i>
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 14px; position: relative; z-index: 2;">
+            <div style="width: 54px; height: 54px; border-radius: 16px; background: #ffffff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.18); overflow: hidden; padding: 4px;">
+                <img src="https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/SAN-FERNANDO.png" alt="Mabanag Hall" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+            <div style="flex: 1; min-width: 0; text-align: left;">
+                <div style="display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.18); backdrop-filter: blur(4px); padding: 3px 9px; border-radius: 100px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; color: #fef08a;">
+                    <i class="fa-solid fa-certificate"></i> Official Partner Merchant
+                </div>
+                <h3 style="margin: 0 0 4px 0; font-size: 17px; font-weight: 900; letter-spacing: -0.2px; color: #ffffff;">Mabanag Hall</h3>
+                <p style="margin: 0 0 8px 0; font-size: 11.5px; color: rgba(255,255,255,0.92); line-height: 1.4;">
+                    Official Partner Merchant in San Fernando City. Redeem your Explorer Points for partner vouchers and present your unique QR code at checkout.
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: rgba(255,255,255,0.9); font-weight: 600;">
+                    <div><i class="fa-solid fa-location-dot" style="color: #38bdf8; width: 14px;"></i> City Plaza, San Fernando City, La Union</div>
+                    <div><i class="fa-regular fa-clock" style="color: #38bdf8; width: 14px;"></i> Mon - Sun • 8:00 AM - 5:00 PM</div>
+                    <div><i class="fa-solid fa-ticket" style="color: #38bdf8; width: 14px;"></i> Present your digital QR claim code to staff at the counter</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Discounts Grid -->
@@ -146,6 +172,9 @@ $backRoute = 'dashboard';
                 <p style="margin: 10px 0 0 0; font-size: 11px; color: #64748b; line-height: 1.35;">
                     Present this QR code or alphanumeric code directly to staff at checkout.
                 </p>
+                <div id="modal-live-status-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 100px; font-size: 11px; font-weight: 800; background: #e0f2fe; color: #0369a1; margin-top: 10px; transition: all 0.3s ease;">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> Ready for scan at checkout
+                </div>
             </div>
         </div>
 
@@ -321,7 +350,11 @@ function filterDiscounts(cat) {
     activeCategory = cat;
     document.querySelectorAll('.discount-cat-btn').forEach(btn => {
         btn.classList.remove('active');
-        if (btn.textContent.includes(cat) || (cat === 'All' && btn.textContent.includes('All Deals'))) {
+        const text = btn.textContent.trim();
+        if ((cat === 'All' && text.includes('All Deals')) ||
+            (cat === 'Claimed' && text.includes('My Vouchers')) ||
+            (cat === 'Mabanag Hall' && text.includes('Mabanag Hall')) ||
+            (cat !== 'All' && text.includes(cat))) {
             btn.classList.add('active');
         }
     });
@@ -401,8 +434,12 @@ async function fetchUserPointsAndRedemptions() {
                             (v.voucher_code && item.code && v.voucher_code.startsWith(item.code)) || 
                             (item.dbId && item.title === v.type)
                         );
-                        if (match && !claimed.includes(match.id)) {
-                            claimed.push(match.id);
+                        if (match) {
+                            if (v.voucher_code) match.code = v.voucher_code;
+                            if (v.status) match.redemptionStatus = v.status;
+                            if (!claimed.includes(match.id)) {
+                                claimed.push(match.id);
+                            }
                         }
                     });
                     localStorage.setItem('intan_elyu_claimed_vouchers', JSON.stringify(claimed));
@@ -446,16 +483,29 @@ function renderDiscounts() {
     if (!grid) return;
     updateClaimedBadge();
 
+    // Toggle Mabanag Spotlight Banner
+    const spotlightCard = document.getElementById('mabanag-spotlight-card');
+    if (spotlightCard) {
+        spotlightCard.style.display = (activeCategory === 'Mabanag Hall' || (activeMunicipality && activeMunicipality.toLowerCase() === 'san fernando')) ? 'block' : 'none';
+    }
+
     const claimed = getClaimedVouchers();
     let filtered = vouchersData;
 
-    // 1. Category Filter
+    // 1. Category Filter & Claimed Exclusion
     if (activeCategory === 'Claimed') {
         filtered = filtered.filter(v => claimed.includes(v.id));
-    } else if (activeCategory === 'Upcoming') {
-        filtered = filtered.filter(v => v.is_upcoming && !v.is_expired);
-    } else if (activeCategory !== 'All') {
-        filtered = filtered.filter(v => v.category === activeCategory);
+    } else {
+        // Exclude claimed vouchers from All Deals and browsing lists
+        filtered = filtered.filter(v => !claimed.includes(v.id));
+
+        if (activeCategory === 'Upcoming') {
+            filtered = filtered.filter(v => v.is_upcoming && !v.is_expired);
+        } else if (activeCategory === 'Mabanag Hall') {
+            filtered = filtered.filter(v => (v.partner && v.partner.toLowerCase().includes('mabanag')) || (v.location && v.location.toLowerCase().includes('mabanag')));
+        } else if (activeCategory !== 'All') {
+            filtered = filtered.filter(v => v.category === activeCategory);
+        }
     }
 
     // 2. Municipality Filter
@@ -481,6 +531,8 @@ function renderDiscounts() {
         let msg = 'No vouchers match your current filters.';
         if (activeCategory === 'Claimed') {
             msg = 'You have not claimed any vouchers yet. Redeem your Points to store vouchers here!';
+        } else if (activeCategory === 'Mabanag Hall') {
+            msg = 'No active unredeemed vouchers for Mabanag Hall right now. Check "My Vouchers" if already claimed!';
         } else if (activeCategory === 'Upcoming') {
             msg = 'No upcoming promotions scheduled right now. Check back soon for new discounts!';
         } else if (searchQuery) {
@@ -532,7 +584,12 @@ function renderDiscounts() {
             `;
         }
 
-        // Badges: ID Needed & Low Stock
+        // Badges: Mabanag Partner, ID Needed & Low Stock
+        let mabanagBadgeHtml = '';
+        if (v.is_mabanag || (v.partner && v.partner.toLowerCase().includes('mabanag'))) {
+            mabanagBadgeHtml = `<span style="font-size: 9.5px; font-weight: 800; background: #fef08a !important; color: #854d0e !important; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px;"><i class="fa-solid fa-landmark"></i> Mabanag Partner</span>`;
+        }
+
         let idBadgeHtml = '';
         if (v.id_needed) {
             idBadgeHtml = `<span style="font-size: 9.5px; font-weight: 800; background: #ef4444 !important; color: #ffffff !important; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px;"><i class="fa-solid fa-id-card"></i> ID Required</span>`;
@@ -552,6 +609,7 @@ function renderDiscounts() {
                     </div>
                     <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
                         <span style="font-size: 11px; font-weight: 900; background: #ffffff !important; color: #203f8d !important; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; box-shadow: 0 2px 6px rgba(0,0,0,0.12);">${v.badge}</span>
+                        ${mabanagBadgeHtml}
                         ${idBadgeHtml}
                         ${stockBadgeHtml}
                     </div>
@@ -586,6 +644,48 @@ function renderDiscounts() {
     });
 
     grid.innerHTML = html;
+}
+
+let liveSyncInterval = null;
+
+function startLiveRedemptionSync(code) {
+    stopLiveRedemptionSync();
+    if (!code) return;
+
+    const check = async () => {
+        try {
+            const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+            const res = await fetch(`${baseUrl}/api/public/redemptions/${encodeURIComponent(code)}/status`, {
+                headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.status === 'success' && data.is_redeemed) {
+                    const statusBadge = document.getElementById('modal-live-status-badge');
+                    if (statusBadge) {
+                        statusBadge.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#15803d; font-size:13px;"></i> Redeemed & Verified at ${data.redeemed_by_partner || 'Partner Merchant'}!`;
+                        statusBadge.style.background = '#dcfce7';
+                        statusBadge.style.color = '#15803d';
+                        statusBadge.style.border = '1px solid #86efac';
+                    }
+                    if (window.confetti) {
+                        window.confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+                    }
+                    stopLiveRedemptionSync();
+                }
+            }
+        } catch(e) {}
+    };
+
+    setTimeout(check, 1200);
+    liveSyncInterval = setInterval(check, 4000);
+}
+
+function stopLiveRedemptionSync() {
+    if (liveSyncInterval) {
+        clearInterval(liveSyncInterval);
+        liveSyncInterval = null;
+    }
 }
 
 function openVoucherModal(id) {
@@ -661,19 +761,58 @@ function openVoucherModal(id) {
     const redeemLabel = document.getElementById('modal-redeem-btn-label');
     const footerBanner = document.getElementById('modal-footer-banner');
 
+    // Reset live status badge text
+    const statusBadge = document.getElementById('modal-live-status-badge');
+    if (statusBadge) {
+        statusBadge.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Ready for scan at checkout';
+        statusBadge.style.background = '#e0f2fe';
+        statusBadge.style.color = '#0369a1';
+        statusBadge.style.border = 'none';
+    }
+
+    // Reset copy button feedback
+    const copyBtn = document.getElementById('btn-copy-voucher');
+    const copyLabel = document.getElementById('copy-btn-label');
+    const copyIcon = document.getElementById('copy-btn-icon');
+    if (copyBtn) {
+        copyBtn.style.background = '#ffffff';
+        copyBtn.style.borderColor = '#bfdbfe';
+        copyBtn.style.color = '#1e3a8a';
+    }
+    if (copyLabel) copyLabel.textContent = 'Copy Voucher Code';
+    if (copyIcon) copyIcon.className = 'fa-solid fa-copy';
+
     if (isAlreadyClaimed) {
+        const claimCode = item.code || 'ELYU-PROMO';
+        const isRedeemedOnWeb = (item.redemptionStatus || '').toLowerCase() === 'redeemed';
         if (claimedBox) {
             claimedBox.style.display = 'block';
             const codeEl = document.getElementById('modal-code');
-            if (codeEl) codeEl.textContent = item.code;
+            if (codeEl) codeEl.textContent = claimCode;
             const qrImg = document.getElementById('modal-qr-img');
             if (qrImg) {
-                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(item.code)}`;
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(claimCode)}`;
                 qrImg.style.display = 'block';
+                if (isRedeemedOnWeb) {
+                    qrImg.style.filter = 'grayscale(1)';
+                    qrImg.style.opacity = '0.35';
+                } else {
+                    qrImg.style.filter = 'none';
+                    qrImg.style.opacity = '1';
+                }
+            }
+            if (isRedeemedOnWeb && statusBadge) {
+                statusBadge.innerHTML = '<i class="fa-solid fa-check-double" style="color:#15803d; font-size:13px;"></i> Voucher Already Redeemed & Verified';
+                statusBadge.style.background = '#dcfce7';
+                statusBadge.style.color = '#15803d';
+                statusBadge.style.border = '1px solid #86efac';
             }
         }
         if (redeemBtn) redeemBtn.style.display = 'none';
         if (footerBanner) footerBanner.style.display = 'none';
+        if (!isRedeemedOnWeb) {
+            startLiveRedemptionSync(claimCode);
+        }
     } else {
         if (claimedBox) claimedBox.style.display = 'none';
         if (footerBanner) footerBanner.style.display = 'flex';
@@ -712,6 +851,7 @@ function openVoucherModal(id) {
 }
 
 function closeVoucherModal() {
+    stopLiveRedemptionSync();
     const modal = document.getElementById('voucher-modal');
     if (modal) {
         modal.classList.remove('active');
@@ -724,25 +864,89 @@ function closeVoucherModal() {
 }
 
 function copyVoucherCode() {
-    const code = document.getElementById('modal-code').textContent;
+    const codeEl = document.getElementById('modal-code');
+    let code = codeEl ? (codeEl.innerText || codeEl.textContent || '').trim() : '';
+
+    if (!code && currentVoucherId) {
+        const currentItem = vouchersData.find(v => v.id === currentVoucherId);
+        if (currentItem && currentItem.code) {
+            code = String(currentItem.code).trim();
+        }
+    }
+
+    if (!code) {
+        if (typeof showToast === 'function') showToast("No voucher code available to copy.");
+        return;
+    }
+
     const btn = document.getElementById('btn-copy-voucher');
     const label = document.getElementById('copy-btn-label');
     const icon = document.getElementById('copy-btn-icon');
 
-    navigator.clipboard.writeText(code).then(() => {
+    const showCopiedSuccess = () => {
         if (label) label.textContent = 'Code Copied!';
         if (icon) icon.className = 'fa-solid fa-check';
-        if (btn) btn.style.background = '#dcfce7';
+        if (btn) {
+            btn.style.background = '#dcfce7';
+            btn.style.borderColor = '#86efac';
+            btn.style.color = '#15803d';
+        }
         if (typeof showToast === 'function') showToast("Voucher code copied to clipboard!");
 
         setTimeout(() => {
             if (label) label.textContent = 'Copy Voucher Code';
             if (icon) icon.className = 'fa-solid fa-copy';
-            if (btn) btn.style.background = '#ffffff';
+            if (btn) {
+                btn.style.background = '#ffffff';
+                btn.style.borderColor = '#bfdbfe';
+                btn.style.color = '#1e3a8a';
+            }
         }, 2500);
-    }).catch(err => {
-        console.error("Copy error:", err);
-    });
+    };
+
+    const showCopiedFallback = () => {
+        if (typeof showToast === 'function') showToast("Voucher Code: " + code);
+    };
+
+    if (typeof window.copyToClipboard === 'function') {
+        window.copyToClipboard(code, showCopiedSuccess, showCopiedFallback);
+    } else if (navigator.clipboard && window.isSecureContext && typeof navigator.clipboard.writeText === 'function') {
+        navigator.clipboard.writeText(code)
+            .then(showCopiedSuccess)
+            .catch(() => localFallbackCopy(code, showCopiedSuccess, showCopiedFallback));
+    } else {
+        localFallbackCopy(code, showCopiedSuccess, showCopiedFallback);
+    }
+}
+
+function localFallbackCopy(text, onSuccess, onError) {
+    let ta = null;
+    try {
+        ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '0';
+        ta.style.left = '-9999px';
+        ta.style.width = '2em';
+        ta.style.height = '2em';
+        ta.style.opacity = '0.01';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        ta.setSelectionRange(0, ta.value.length);
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        ta = null;
+        if (ok) {
+            if (typeof onSuccess === 'function') onSuccess();
+        } else {
+            if (typeof onError === 'function') onError();
+        }
+    } catch(e) {
+        if (ta && ta.parentNode) ta.parentNode.removeChild(ta);
+        if (typeof onError === 'function') onError();
+    }
 }
 
 async function handleModalRedeem() {
@@ -849,6 +1053,8 @@ async function handleModalRedeem() {
             const footerBanner = document.getElementById('modal-footer-banner');
             if (footerBanner) footerBanner.style.display = 'none';
 
+            startLiveRedemptionSync(claimCode);
+
             renderDiscounts();
             fetchUserPointsAndRedemptions();
         } else {
@@ -938,7 +1144,8 @@ function processVouchersData(rawList) {
             status: v.status || 'active',
             description: v.description || 'Present voucher code at merchant checkout.',
             available_quantity: v.available_quantity,
-            remaining_quantity: v.remaining_quantity
+            remaining_quantity: v.remaining_quantity,
+            is_mabanag: (v.is_mabanag !== undefined) ? v.is_mabanag : (v.partner && v.partner.toLowerCase().includes('mabanag'))
         };
     });
 

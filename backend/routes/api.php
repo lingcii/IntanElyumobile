@@ -126,6 +126,12 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/puzzles/spots', [PuzzleController::cl
 Route::get('/vouchers', [\App\Http\Controllers\VoucherController::class, 'index']);
 Route::get('/public/vouchers', [\App\Http\Controllers\VoucherController::class, 'index']);
 
+// Partner Merchants & Hubs (Public)
+Route::get('/partner-merchants', [\App\Http\Controllers\PartnerMerchantController::class, 'index']);
+Route::get('/public/partner-merchants', [\App\Http\Controllers\PartnerMerchantController::class, 'index']);
+Route::get('/public/partner-merchants/{id}', [\App\Http\Controllers\PartnerMerchantController::class, 'show']);
+Route::get('/public/redemptions/{code}/status', [\App\Http\Controllers\VoucherController::class, 'checkRedemptionStatus']);
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  Auth (public)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1287,6 +1293,7 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     Route::post('/points/minigame', [PointsController::class, 'awardMiniGamePoints']);
     Route::post('/points/redeem', [PointsController::class, 'redeem']);
     Route::post('/points/redeem-voucher', [\App\Http\Controllers\VoucherController::class, 'redeemVoucher']);
+    Route::get('/redemptions/{code}/status', [\App\Http\Controllers\VoucherController::class, 'checkRedemptionStatus']);
 
     // Puzzle Tourist Spot Images from Database
     Route::match(['GET', 'POST', 'OPTIONS'], '/puzzles/spots', [PuzzleController::class, 'spots']);
