@@ -29,70 +29,72 @@ $backRoute = 'profile';
         </p>
     </div>
 
-    <!-- Search & Town Filters Bar -->
-    <div style="margin-bottom: 14px;">
-        <div style="position: relative; margin-bottom: 10px;">
+    <!-- Search Bar -->
+    <div style="margin-bottom: 12px;">
+        <div style="position: relative;">
             <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px;"></i>
             <input type="text" id="voucher-search-input" placeholder="Search vouchers, merchants, or towns..." oninput="handleVoucherSearch(this.value)" style="width: 100%; box-sizing: border-box; padding: 11px 14px 11px 38px; border-radius: 14px; border: 1.5px solid #e2e8f0; font-size: 13px; font-weight: 600; outline: none; background: #f8fafc; color: #1e293b; transition: all 0.2s;">
             <button id="btn-clear-search" onclick="clearVoucherSearch()" style="display: none; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: #e2e8f0; border: none; border-radius: 50%; width: 22px; height: 22px; color: #64748b; font-size: 11px; cursor: pointer; align-items: center; justify-content: center;">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
-
-        <!-- Municipalities Scrollable Filter -->
-        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;" id="muni-filter-bar">
-            <button class="muni-pill active" onclick="filterMunicipality('All')">All Towns</button>
-            <!-- Dynamic Municipality Pills -->
-        </div>
     </div>
 
-    <!-- Categories Floating Drop List & Quick Filter Tabs -->
-    <div style="margin-bottom: 18px; position: relative;">
-        <!-- Floating Categories Drop List -->
-        <div id="floating-cat-wrapper" style="position: relative; margin-bottom: 10px; z-index: 95;">
+    <!-- Sliced Floating Droplists: Left = Category Deals | Right = Municipalities -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; position: relative; z-index: 95;">
+        <!-- Left: Category Deals Floating Drop List -->
+        <div id="floating-cat-wrapper" style="position: relative;">
             <!-- Floating Trigger Card -->
-            <div id="floating-cat-trigger" onclick="toggleFloatingCategoryDropdown()" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 18px; padding: 11px 16px; box-shadow: 0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
-                <div style="display: flex; align-items: center; min-width: 0;">
-                    <span id="floating-cat-selected-label" style="font-size: 13.5px; font-weight: 800; color: #1e3a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">All Categories & Deals</span>
+            <div id="floating-cat-trigger" onclick="toggleFloatingCategoryDropdown()" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 16px; padding: 11px 12px; box-shadow: 0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+                <div style="display: flex; align-items: center; min-width: 0; flex: 1;">
+                    <span id="floating-cat-selected-label" style="font-size: 12.5px; font-weight: 800; color: #1e3a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">All Deals</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 8px;">
-                    <span id="floating-cat-selected-badge" style="font-size: 11px; font-weight: 800; background: #f1f5f9; color: #64748b; padding: 2px 8px; border-radius: 100px;">0</span>
-                    <i id="floating-cat-chevron" class="fa-solid fa-chevron-down" style="color: #64748b; font-size: 11px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);"></i>
+                <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 6px;">
+                    <span id="floating-cat-selected-badge" style="font-size: 10.5px; font-weight: 800; background: #f1f5f9; color: #64748b; padding: 2px 7px; border-radius: 100px;">0</span>
+                    <i id="floating-cat-chevron" class="fa-solid fa-chevron-down" style="color: #64748b; font-size: 10.5px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);"></i>
                 </div>
             </div>
 
             <!-- Floating Menu Panel (Elevated Floating Card) -->
-            <div id="floating-cat-menu" class="hide-scrollbar" style="display: none; position: absolute; top: calc(100% + 8px); left: 0; right: 0; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1.5px solid #cbd5e1; border-radius: 20px; box-shadow: 0 20px 40px -8px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(0, 0, 0, 0.06); padding: 6px; max-height: 310px; overflow-y: auto; z-index: 1000; opacity: 0; transform: translateY(-8px) scale(0.98); transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div id="floating-cat-menu" class="hide-scrollbar" style="display: none; position: absolute; top: calc(100% + 8px); left: 0; width: 100%; min-width: 190px; max-width: calc(100vw - 32px); background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1.5px solid #cbd5e1; border-radius: 18px; box-shadow: 0 20px 40px -8px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(0, 0, 0, 0.06); padding: 6px; max-height: 310px; overflow-y: auto; z-index: 1000; opacity: 0; transform: translateY(-8px) scale(0.98); transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); box-sizing: border-box;">
                 <div id="floating-cat-items-list" style="display: flex; flex-direction: column; gap: 4px;">
-                    <!-- Dynamically populated floating list items -->
+                    <!-- Dynamically populated floating category items -->
                 </div>
             </div>
 
             <!-- Programmatic compatibility select element -->
             <select id="category-dropdown-select" onchange="filterDiscounts(this.value)" style="display: none;">
-                <option value="All">All Categories & Deals</option>
+                <option value="All">All Deals</option>
                 <option value="Food & Dining">Food & Dining</option>
                 <option value="Activities">Activities & Surf</option>
                 <option value="Accommodations">Accommodations</option>
                 <option value="Souvenirs">Souvenirs & Pasalubong</option>
-                <option value="Mabanag Hall">Mabanag Hall Partner Deals</option>
+                <option value="Mabanag Hall">Mabanag Hall Deals</option>
                 <option value="Upcoming">Upcoming Promotions</option>
-                <option id="opt-cat-claimed" value="Claimed">My Vouchers (Active)</option>
-                <option id="opt-cat-history" value="History">Voucher History (Redeemed)</option>
+                <option id="opt-cat-claimed" value="Claimed">My Vouchers</option>
+                <option id="opt-cat-history" value="History">Voucher History</option>
             </select>
         </div>
 
-        <!-- Quick Status Filter Pills -->
-        <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;" id="discount-filters">
-            <button class="discount-cat-btn active" onclick="filterDiscounts('All')">
-                All Deals
-            </button>
-            <button class="discount-cat-btn" id="btn-my-claimed" onclick="filterDiscounts('Claimed')">
-                My Vouchers (<span id="claimed-count">0</span>)
-            </button>
-            <button class="discount-cat-btn" id="btn-my-history" onclick="filterDiscounts('History')">
-                History (<span id="history-count">0</span>)
-            </button>
+        <!-- Right: Municipalities Floating Drop List -->
+        <div id="floating-muni-wrapper" style="position: relative;">
+            <!-- Floating Trigger Card -->
+            <div id="floating-muni-trigger" onclick="toggleFloatingMunicipalityDropdown()" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 16px; padding: 11px 12px; box-shadow: 0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+                <div style="display: flex; align-items: center; min-width: 0; flex: 1;">
+                    <span id="floating-muni-selected-label" style="font-size: 12.5px; font-weight: 800; color: #1e3a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">All Towns</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 6px;">
+                    <span id="floating-muni-selected-badge" style="font-size: 10.5px; font-weight: 800; background: #f1f5f9; color: #64748b; padding: 2px 7px; border-radius: 100px;">0</span>
+                    <i id="floating-muni-chevron" class="fa-solid fa-chevron-down" style="color: #64748b; font-size: 10.5px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);"></i>
+                </div>
+            </div>
+
+            <!-- Floating Menu Panel (Elevated Floating Card) -->
+            <div id="floating-muni-menu" class="hide-scrollbar" style="display: none; position: absolute; top: calc(100% + 8px); right: 0; width: 100%; min-width: 190px; max-width: calc(100vw - 32px); background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1.5px solid #cbd5e1; border-radius: 18px; box-shadow: 0 20px 40px -8px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(0, 0, 0, 0.06); padding: 6px; max-height: 310px; overflow-y: auto; z-index: 1000; opacity: 0; transform: translateY(-8px) scale(0.98); transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); box-sizing: border-box;">
+                <div id="floating-muni-items-list" style="display: flex; flex-direction: column; gap: 4px;">
+                    <!-- Dynamically populated floating municipality items -->
+                </div>
+            </div>
         </div>
     </div>
 
@@ -440,34 +442,17 @@ function filterDiscounts(cat) {
         }
     }
 
-    // 2. Synchronize Floating Dropdown UI items & trigger card
+    // 2. Synchronize Floating Dropdowns UI items & trigger cards
     populateCategoryDropdown();
-
-    // 3. Synchronize Quick Status Filter buttons (.discount-cat-btn)
-    document.querySelectorAll('.discount-cat-btn').forEach(btn => {
-        btn.classList.remove('active');
-        const text = btn.textContent.trim();
-        if (activeCategory === 'Claimed') {
-            if (text.includes('My Vouchers')) btn.classList.add('active');
-        } else if (activeCategory === 'History') {
-            if (text.includes('History')) btn.classList.add('active');
-        } else {
-            // When browsing All Deals or any specific category
-            if (text.includes('All Deals')) btn.classList.add('active');
-        }
-    });
+    populateMunicipalityDropdown();
 
     renderDiscounts();
 }
 
 function filterMunicipality(muni) {
-    activeMunicipality = muni;
-    document.querySelectorAll('.muni-pill').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.textContent.trim() === (muni === 'All' ? 'All Towns' : muni)) {
-            btn.classList.add('active');
-        }
-    });
+    activeMunicipality = muni || 'All';
+    populateMunicipalityDropdown();
+    populateCategoryDropdown();
     renderDiscounts();
 }
 
@@ -605,28 +590,7 @@ async function fetchUserPointsAndRedemptions() {
 }
 
 function buildMunicipalityFilterBar() {
-    const bar = document.getElementById('muni-filter-bar');
-    if (!bar) return;
-
-    const townSet = new Set();
-    vouchersData.forEach(v => {
-        if (Array.isArray(v.municipalities) && v.municipalities.length > 0) {
-            v.municipalities.forEach(m => townSet.add(m));
-        } else if (v.location && v.location !== 'La Union') {
-            const firstPart = v.location.split(',')[0].trim();
-            if (firstPart) townSet.add(firstPart);
-        }
-    });
-
-    const towns = Array.from(townSet).sort();
-    if (towns.length === 0) return;
-
-    let html = `<button class="muni-pill ${activeMunicipality === 'All' ? 'active' : ''}" onclick="filterMunicipality('All')">All Towns</button>`;
-    towns.forEach(t => {
-        const isActive = activeMunicipality.toLowerCase() === t.toLowerCase();
-        html += `<button class="muni-pill ${isActive ? 'active' : ''}" onclick="filterMunicipality('${t.replace(/'/g, "\\'")}')">${t}</button>`;
-    });
-    bar.innerHTML = html;
+    populateMunicipalityDropdown();
 }
 
 function renderDiscounts() {
@@ -1384,7 +1348,7 @@ function populateCategoryDropdown() {
 
     // Compile ordered list of clean categories (NO icons / emojis)
     const categoriesList = [
-        { value: 'All', label: 'All Categories & Deals', count: availableVouchers.length }
+        { value: 'All', label: 'All Deals', count: availableVouchers.length }
     ];
 
     ['Food & Dining', 'Activities', 'Accommodations', 'Souvenirs'].forEach(cat => {
@@ -1408,7 +1372,7 @@ function populateCategoryDropdown() {
     const mabanagCount = availableVouchers.filter(v => v.is_mabanag || (v.partner && v.partner.toLowerCase().includes('mabanag'))).length;
     categoriesList.push({
         value: 'Mabanag Hall',
-        label: 'Mabanag Hall Partner Deals',
+        label: 'Mabanag Hall Deals',
         count: mabanagCount
     });
 
@@ -1442,10 +1406,10 @@ function populateCategoryDropdown() {
         floatingList.innerHTML = categoriesList.map(c => {
             const isSelected = currentVal.toLowerCase() === c.value.toLowerCase();
             return `
-                <div onclick="selectFloatingCategory('${c.value.replace(/'/g, "\\'")}')" role="button" tabindex="0" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 14px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1); ${isSelected ? 'background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; font-weight: 800; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);' : 'background: transparent; color: #1e293b; font-weight: 700;'}" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
-                    <span style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 8px;">${c.label}</span>
-                    <div style="display: flex; align-items: center; gap: 7px; flex-shrink: 0;">
-                        <span style="font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 100px; ${isSelected ? 'background: rgba(255, 255, 255, 0.22); color: #ffffff;' : 'background: #f1f5f9; color: #475569;'}">${c.count}</span>
+                <div onclick="selectFloatingCategory('${c.value.replace(/'/g, "\\'")}')" role="button" tabindex="0" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 12px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1); ${isSelected ? 'background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; font-weight: 800; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);' : 'background: transparent; color: #1e293b; font-weight: 700;'}" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <span style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 6px;">${c.label}</span>
+                    <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                        <span style="font-size: 10.5px; font-weight: 800; padding: 2px 7px; border-radius: 100px; ${isSelected ? 'background: rgba(255, 255, 255, 0.22); color: #ffffff;' : 'background: #f1f5f9; color: #475569;'}">${c.count}</span>
                         ${isSelected ? '<span style="font-size: 13px; font-weight: 900; line-height: 1;">✓</span>' : ''}
                     </div>
                 </div>
@@ -1457,6 +1421,85 @@ function populateCategoryDropdown() {
     const activeItem = categoriesList.find(c => c.value.toLowerCase() === currentVal.toLowerCase()) || categoriesList[0];
     const triggerLabel = document.getElementById('floating-cat-selected-label');
     const triggerBadge = document.getElementById('floating-cat-selected-badge');
+    if (triggerLabel && activeItem) triggerLabel.textContent = activeItem.label;
+    if (triggerBadge && activeItem) triggerBadge.textContent = activeItem.count;
+}
+
+function populateMunicipalityDropdown() {
+    const floatingMuniList = document.getElementById('floating-muni-items-list');
+    if (!floatingMuniList) return;
+
+    const claimed = getClaimedVouchers();
+    let baseList = vouchersData;
+    if (activeCategory === 'Claimed') {
+        baseList = vouchersData.filter(v => claimed.includes(v.id) && !isVoucherRedeemed(v));
+    } else if (activeCategory === 'History') {
+        baseList = vouchersData.filter(v => claimed.includes(v.id) && isVoucherRedeemed(v));
+    } else {
+        baseList = vouchersData.filter(v => !claimed.includes(v.id) && !isVoucherRedeemed(v));
+    }
+
+    const townSet = new Set();
+    vouchersData.forEach(v => {
+        if (Array.isArray(v.municipalities) && v.municipalities.length > 0) {
+            v.municipalities.forEach(m => {
+                if (m && m.trim()) townSet.add(m.trim());
+            });
+        } else if (v.location && v.location !== 'La Union') {
+            const firstPart = v.location.split(',')[0].trim();
+            if (firstPart) townSet.add(firstPart);
+        }
+    });
+
+    const standardTowns = ['Agoo', 'Aringay', 'Bacnotan', 'Bagulin', 'Balaoan', 'Bangar', 'Bauang', 'Burgos', 'Caba', 'Luna', 'Naguilian', 'Pugo', 'Rosario', 'San Fernando', 'San Gabriel', 'San Juan', 'Santo Tomas', 'Santol', 'Sudipen', 'Tubao'];
+    if (townSet.size === 0) {
+        standardTowns.forEach(t => townSet.add(t));
+    }
+
+    const sortedTowns = Array.from(townSet).sort();
+
+    const getTownCount = (townName) => {
+        if (townName === 'All') return baseList.length;
+        const target = townName.toLowerCase();
+        return baseList.filter(v => {
+            if (Array.isArray(v.municipalities) && v.municipalities.length > 0) {
+                return v.municipalities.some(m => m.toLowerCase().includes(target));
+            }
+            return (v.location || '').toLowerCase().includes(target);
+        }).length;
+    };
+
+    const muniList = [
+        { value: 'All', label: 'All Towns', count: baseList.length }
+    ];
+
+    sortedTowns.forEach(t => {
+        muniList.push({
+            value: t,
+            label: t,
+            count: getTownCount(t)
+        });
+    });
+
+    const currentMuni = activeMunicipality || 'All';
+
+    floatingMuniList.innerHTML = muniList.map(m => {
+        const isSelected = currentMuni.toLowerCase() === m.value.toLowerCase();
+        return `
+            <div onclick="selectFloatingMunicipality('${m.value.replace(/'/g, "\\'")}')" role="button" tabindex="0" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 12px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1); ${isSelected ? 'background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; font-weight: 800; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);' : 'background: transparent; color: #1e293b; font-weight: 700;'}" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                <span style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 6px;">${m.label}</span>
+                <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                    <span style="font-size: 10.5px; font-weight: 800; padding: 2px 7px; border-radius: 100px; ${isSelected ? 'background: rgba(255, 255, 255, 0.22); color: #ffffff;' : 'background: #f1f5f9; color: #475569;'}">${m.count}</span>
+                    ${isSelected ? '<span style="font-size: 13px; font-weight: 900; line-height: 1;">✓</span>' : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Update Right Trigger Card
+    const activeItem = muniList.find(m => m.value.toLowerCase() === currentMuni.toLowerCase()) || muniList[0];
+    const triggerLabel = document.getElementById('floating-muni-selected-label');
+    const triggerBadge = document.getElementById('floating-muni-selected-badge');
     if (triggerLabel && activeItem) triggerLabel.textContent = activeItem.label;
     if (triggerBadge && activeItem) triggerBadge.textContent = activeItem.count;
 }
@@ -1480,6 +1523,8 @@ function toggleFloatingCategoryDropdown(forceClose = false) {
             menu.style.display = 'none';
         }, 180);
     } else {
+        toggleFloatingMunicipalityDropdown(true);
+
         menu.style.display = 'block';
         if (chevron) chevron.style.transform = 'rotate(180deg)';
         if (trigger) {
@@ -1498,11 +1543,54 @@ function selectFloatingCategory(catValue) {
     filterDiscounts(catValue);
 }
 
-// Click outside listener to dismiss floating dropdown
-document.addEventListener('click', function(e) {
-    const wrapper = document.getElementById('floating-cat-wrapper');
-    if (wrapper && !wrapper.contains(e.target)) {
+function toggleFloatingMunicipalityDropdown(forceClose = false) {
+    const menu = document.getElementById('floating-muni-menu');
+    const chevron = document.getElementById('floating-muni-chevron');
+    const trigger = document.getElementById('floating-muni-trigger');
+    if (!menu) return;
+
+    const isCurrentlyOpen = (menu.style.display === 'block') && !forceClose;
+    if (isCurrentlyOpen) {
+        menu.style.opacity = '0';
+        menu.style.transform = 'translateY(-8px) scale(0.98)';
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+        if (trigger) {
+            trigger.style.borderColor = '#cbd5e1';
+            trigger.style.boxShadow = '0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05)';
+        }
+        setTimeout(() => {
+            menu.style.display = 'none';
+        }, 180);
+    } else {
         toggleFloatingCategoryDropdown(true);
+
+        menu.style.display = 'block';
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+        if (trigger) {
+            trigger.style.borderColor = '#2563eb';
+            trigger.style.boxShadow = '0 12px 28px -4px rgba(37, 99, 235, 0.20), 0 4px 12px -2px rgba(37, 99, 235, 0.10)';
+        }
+        requestAnimationFrame(() => {
+            menu.style.opacity = '1';
+            menu.style.transform = 'translateY(0) scale(1)';
+        });
+    }
+}
+
+function selectFloatingMunicipality(muniValue) {
+    toggleFloatingMunicipalityDropdown(true);
+    filterMunicipality(muniValue);
+}
+
+// Click outside listener to dismiss floating dropdowns
+document.addEventListener('click', function(e) {
+    const catWrapper = document.getElementById('floating-cat-wrapper');
+    if (catWrapper && !catWrapper.contains(e.target)) {
+        toggleFloatingCategoryDropdown(true);
+    }
+    const muniWrapper = document.getElementById('floating-muni-wrapper');
+    if (muniWrapper && !muniWrapper.contains(e.target)) {
+        toggleFloatingMunicipalityDropdown(true);
     }
 });
 
@@ -1518,6 +1606,10 @@ window.handleModalRedeem = handleModalRedeem;
 window.renderDiscounts = renderDiscounts;
 window.toggleFloatingCategoryDropdown = toggleFloatingCategoryDropdown;
 window.selectFloatingCategory = selectFloatingCategory;
+window.toggleFloatingMunicipalityDropdown = toggleFloatingMunicipalityDropdown;
+window.selectFloatingMunicipality = selectFloatingMunicipality;
+window.populateCategoryDropdown = populateCategoryDropdown;
+window.populateMunicipalityDropdown = populateMunicipalityDropdown;
 
 fetchLiveDatabaseVouchers();
 fetchUserPointsAndRedemptions();
