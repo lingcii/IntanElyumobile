@@ -17,50 +17,167 @@ class ItineraryController extends Controller
      * GET /api/tourist/itineraries
      * Returns all saved trips for the authenticated tourist.
      */
+    /**
+     * Helper to load spot-to-vehicle-type mappings.
+     *
+     * @param array $spotIds
+     * @return array [$spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles]
+     */
+    private function getSpotVehiclesMap(array $spotIds): array
+    {
+        $spotPublicVehicles = [];
+        $spotPrivateVehicles = [];
+        $spotAllVehicles = [];
+
+        if (empty($spotIds)) {
+            return [$spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles];
+        }
+
+        try {
+            $spotVehicles = DB::table('tourist_spot_vehicle_type')
+                ->join('vehicle_types', 'tourist_spot_vehicle_type.vehicle_type_id', '=', 'vehicle_types.id')
+                ->whereIn('tourist_spot_vehicle_type.tourist_spot_id', $spotIds)
+                ->select('tourist_spot_vehicle_type.tourist_spot_id', 'vehicle_types.name', 'vehicle_types.category')
+                ->get();
+
+            foreach ($spotVehicles as $sv) {
+                $isPub = stripos($sv->category, 'Public') !== false;
+                if ($isPub) {
+                    $spotPublicVehicles[$sv->tourist_spot_id][] = $sv->name;
+                } else {
+                    $spotPrivateVehicles[$sv->tourist_spot_id][] = $sv->name;
+                }
+                $spotAllVehicles[$sv->tourist_spot_id][] = $sv->name;
+            }
+        } catch (\Throwable $e) {}
+
+        return [$spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles];
+    }
+
+    /**
+     * Format an itinerary item with complete destination metadata and vehicle capabilities.
+     */
+    private function formatItineraryItem($item, array $spotPublicVehicles, array $spotPrivateVehicles, array $spotAllVehicles): array
+    {
+        $dest = $item->destination;
+        $imageUrl = $dest ? $dest->photo_url : null;
+        $destId = $dest ? $dest->id : null;
+
+        $hasExplicit = ($destId && isset($spotAllVehicles[$destId]) && !empty($spotAllVehicles[$destId]));
+        $isDrivable = (bool) ($dest?->accessible_by_private_vehicle ?? 1);
+
+        if ($hasExplicit) {
+            $pubList = isset($spotPublicVehicles[$destId])
+                ? array_values(array_unique($spotPublicVehicles[$destId]))
+                : [];
+            $privList = isset($spotPrivateVehicles[$destId])
+                ? array_values(array_unique($spotPrivateVehicles[$destId]))
+                : [];
+            $allList = isset($spotAllVehicles[$destId])
+                ? array_values(array_unique($spotAllVehicles[$destId]))
+                : [];
+        } else {
+            if ($isDrivable) {
+                $privList = ['Car', 'Motorcycle', 'Van', 'Tricycle'];
+                $pubList = ['MPUJ', 'TPUJ', 'Tricycle', 'PUB_Regular', 'PUB_Aircon', 'UVE', 'TAXI'];
+                $allList = ['Car', 'Motorcycle', 'Van', 'MPUJ', 'TPUJ', 'Tricycle', 'PUB_Regular', 'PUB_Aircon', 'UVE', 'TAXI'];
+            } else {
+                $privList = ['Motorcycle', 'Tricycle'];
+                $pubList = ['Tricycle', 'Motorcycle'];
+                $allList = ['Tricycle', 'Motorcycle'];
+            }
+        }
+
+        return [
+            'id'               => $item->id,
+            'order_index'      => (int) ($item->order_index ?? 0),
+            'is_visited'       => $item->is_visited,
+            'proof_image'      => $item->proof_image,
+            'proof_status'     => $item->proof_status ?? ($item->is_visited ? 'approved' : 'pending'),
+            'rejection_reason' => $item->rejection_reason,
+            'visited_at'       => $item->visited_at,
+            'transport_mode'   => $item->transport_mode,
+            'leg_cost'         => (float) ($item->leg_cost ?? 0),
+            'leg_distance_km'  => $item->leg_distance_km !== null ? (float) $item->leg_distance_km : null,
+            'destination' => $dest ? [
+                'id'                            => $dest->id,
+                'name'                          => $dest->name,
+                'image'                         => $imageUrl,
+                'latitude'                      => $dest->latitude,
+                'longitude'                     => $dest->longitude,
+                'entrance_fee'                  => (float) ($dest->entrance_fee ?? 0),
+                'adult_fee'                     => (float) ($dest->adult_fee ?? 0),
+                'kids_fee'                      => (float) ($dest->kids_fee ?? 0),
+                'pwd_fee'                       => (float) ($dest->pwd_fee ?? 0),
+                'senior_citizen_fee'            => (float) ($dest->senior_citizen_fee ?? 0),
+                'environmental_fee'             => (float) ($dest->environmental_fee ?? 0),
+                'classification_status'         => $dest->classification_status,
+                'accessible_by_private_vehicle' => (bool) ($dest->accessible_by_private_vehicle ?? 1),
+                'municipality'                  => $dest->municipality?->name,
+                'is_open_24_hours'              => (bool) ($dest->is_open_24_hours ?? 0),
+                'is_maintenance'                => (bool) ($dest->is_maintenance ?? 0),
+                'tour_guide_notice'             => $dest->tour_guide_notice,
+                'tour_guide_needed'             => !empty($dest->tour_guide_notice) && !in_array(strtolower(trim($dest->tour_guide_notice)), ['no', 'none', 'false', '0']),
+                'accessible_vehicles'           => $allList,
+                'public_vehicles'               => $pubList,
+                'private_vehicles'              => $privList,
+                'has_available_vehicles'        => !empty($allList),
+            ] : null,
+        ];
+    }
+
+    /**
+     * Format a complete itinerary with its items.
+     */
+    private function formatItineraryResponse($itinerary, array $spotPublicVehicles, array $spotPrivateVehicles, array $spotAllVehicles): array
+    {
+        $items = $itinerary->items->sortBy('order_index')->values()->map(function ($item) use ($spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles) {
+            return $this->formatItineraryItem($item, $spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles);
+        });
+
+        return [
+            'id'             => $itinerary->id,
+            'title'          => $itinerary->title,
+            'trip_date'      => $itinerary->trip_date?->format('Y-m-d'),
+            'budget'         => $itinerary->budget,
+            'total_cost'     => $itinerary->total_cost,
+            'status'         => $itinerary->status,
+            'route_type'     => $itinerary->route_type,
+            'transport_mode' => $itinerary->transport_mode,
+            'items'          => $items,
+        ];
+    }
+
+    /**
+     * GET /api/tourist/itineraries
+     * Returns all saved trips for the authenticated tourist.
+     */
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
 
-        $itineraries = Itinerary::where('user_id', $user->id)
-            ->with(['items.destination:id,name,photo_url,latitude,longitude,entrance_fee,classification_status'])
+        $rawItineraries = Itinerary::where('user_id', $user->id)
+            ->with([
+                'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id',
+                'items.destination.municipality:id,name'
+            ])
             ->orderByDesc('created_at')
-            ->get()
-            ->map(function ($itinerary) {
-                $items = $itinerary->items->map(function ($item) {
-                    $dest = $item->destination;
-                    $imageUrl = $dest ? $dest->photo_url : null;
+            ->get();
 
-                    return [
-                        'id'               => $item->id,
-                        'is_visited'       => $item->is_visited,
-                        'proof_image'      => $item->proof_image,
-                        'proof_status'     => $item->proof_status ?? ($item->is_visited ? 'approved' : 'pending'),
-                        'rejection_reason' => $item->rejection_reason,
-                        'visited_at'       => $item->visited_at,
-                        'destination' => $dest ? [
-                            'id'           => $dest->id,
-                            'name'         => $dest->name,
-                            'image'        => $imageUrl,
-                            'latitude'     => $dest->latitude,
-                            'longitude'    => $dest->longitude,
-                            'entrance_fee' => $dest->entrance_fee,
-                            'classification_status' => $dest->classification_status,
-                        ] : null,
-                    ];
-                });
+        $spotIds = [];
+        foreach ($rawItineraries as $it) {
+            foreach ($it->items as $item) {
+                if ($item->tourist_spot_id) {
+                    $spotIds[] = $item->tourist_spot_id;
+                }
+            }
+        }
+        $spotIds = array_values(array_unique(array_filter($spotIds)));
+        [$spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles] = $this->getSpotVehiclesMap($spotIds);
 
-                return [
-                    'id'             => $itinerary->id,
-                    'title'          => $itinerary->title,
-                    'trip_date'      => $itinerary->trip_date?->format('Y-m-d'),
-                    'budget'         => $itinerary->budget,
-                    'total_cost'     => $itinerary->total_cost,
-                    'status'         => $itinerary->status,
-                    'route_type'     => $itinerary->route_type,
-                    'transport_mode' => $itinerary->transport_mode,
-                    'items'          => $items,
-                ];
-            });
+        $itineraries = $rawItineraries->map(function ($itinerary) use ($spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles) {
+            return $this->formatItineraryResponse($itinerary, $spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles);
+        });
 
         return response()->json(['itineraries' => $itineraries]);
     }
@@ -73,43 +190,17 @@ class ItineraryController extends Controller
     {
         $user = $request->user();
         $itinerary = Itinerary::where('user_id', $user->id)
-            ->with(['items.destination:id,name,photo_url,latitude,longitude,entrance_fee,classification_status'])
+            ->with([
+                'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id',
+                'items.destination.municipality:id,name'
+            ])
             ->findOrFail($id);
 
-        $items = $itinerary->items->map(function ($item) {
-            $dest = $item->destination;
-            $imageUrl = $dest ? $dest->photo_url : null;
-            return [
-                'id'               => $item->id,
-                'is_visited'       => $item->is_visited,
-                'proof_image'      => $item->proof_image,
-                'proof_status'     => $item->proof_status ?? ($item->is_visited ? 'approved' : 'pending'),
-                'rejection_reason' => $item->rejection_reason,
-                'visited_at'       => $item->visited_at,
-                'destination' => $dest ? [
-                    'id'           => $dest->id,
-                    'name'         => $dest->name,
-                    'image'        => $imageUrl,
-                    'latitude'     => $dest->latitude,
-                    'longitude'    => $dest->longitude,
-                    'entrance_fee' => $dest->entrance_fee,
-                    'classification_status' => $dest->classification_status,
-                ] : null,
-            ];
-        });
+        $spotIds = $itinerary->items->pluck('tourist_spot_id')->filter()->unique()->values()->all();
+        [$spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles] = $this->getSpotVehiclesMap($spotIds);
 
         return response()->json([
-            'itinerary' => [
-                'id'             => $itinerary->id,
-                'title'          => $itinerary->title,
-                'trip_date'      => $itinerary->trip_date?->format('Y-m-d'),
-                'budget'         => $itinerary->budget,
-                'total_cost'     => $itinerary->total_cost,
-                'status'         => $itinerary->status,
-                'route_type'     => $itinerary->route_type,
-                'transport_mode' => $itinerary->transport_mode,
-                'items'          => $items,
-            ]
+            'itinerary' => $this->formatItineraryResponse($itinerary, $spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles)
         ]);
     }
 
@@ -122,7 +213,8 @@ class ItineraryController extends Controller
      *   - destinations (array of spot IDs, required)
      *   - trip_date (optional)
      *   - budget (optional)
-     *   - transport (optional)
+     *   - transport_mode (optional)
+     *   - leg_transports (optional array of per-leg transports)
      */
     public function store(Request $request): JsonResponse
     {
@@ -134,74 +226,108 @@ class ItineraryController extends Controller
             'budget'         => 'nullable|numeric|min:0',
             'route_type'     => 'nullable|string|max:255',
             'transport_mode' => 'nullable|string|max:255',
+            'leg_transports' => 'nullable|array',
         ]);
 
         $user = $request->user();
 
         $itinerary = DB::transaction(function () use ($request, $user) {
-            // Rough cost estimation based on entrance fees
-            $spots = TouristSpot::whereIn('id', $request->destinations)->get();
-            $totalFee = $spots->sum('entrance_fee');
+            $rawTransport = trim((string)($request->transport_mode ?? ''));
+            $isNoVehicle = empty($rawTransport) 
+                || stripos($rawTransport, 'no_vehicle') !== false 
+                || stripos($rawTransport, 'no vehicle') !== false;
+            $savedTransportMode = $isNoVehicle ? 'No Vehicle Selected' : $rawTransport;
+
+            $legTransports = $request->leg_transports ?? [];
+
+            // Accurate cost estimation using CostEstimationService with Point-to-Point leg fares
+            $totalEstimatedCost = 0.00;
+            $est = [];
+            try {
+                $service = new \App\Services\CostEstimationService();
+                $est = $service->estimateItineraryCosts(
+                    $request->destinations,
+                    $savedTransportMode,
+                    null,
+                    null,
+                    $request->trip_date,
+                    null,
+                    $legTransports
+                );
+                $totalEstimatedCost = (float) ($est['total_cost'] ?? 0.00);
+            } catch (\Throwable $e) {
+                $spots = TouristSpot::whereIn('id', $request->destinations)->get();
+                $totalEstimatedCost = (float) ($spots->sum('entrance_fee') + $spots->sum('environmental_fee'));
+            }
 
             $itinerary = Itinerary::create([
                 'user_id'        => $user->id,
                 'title'          => $request->title,
                 'trip_date'      => $request->trip_date,
                 'budget'         => $request->budget,
-                'total_cost'     => $totalFee,
+                'total_cost'     => $totalEstimatedCost,
                 'status'         => 'pending',
                 'route_type'     => $request->route_type,
-                'transport_mode' => $request->transport_mode,
+                'transport_mode' => $savedTransportMode,
             ]);
 
-            // Create itinerary items preserving order
-            foreach ($request->destinations as $spotId) {
+            // Create itinerary items preserving order with Point-to-Point transportation
+            $legsList = $est['legs'] ?? [];
+            foreach ($request->destinations as $idx => $spotId) {
+                $legMode = null;
+                $legCost = 0.00;
+                $legDist = null;
+
+                if (isset($legTransports[$idx])) {
+                    if (is_array($legTransports[$idx])) {
+                        $legMode = $legTransports[$idx]['vehicle'] ?? $legTransports[$idx]['transport_mode'] ?? null;
+                        $legCost = (float)($legTransports[$idx]['cost'] ?? $legTransports[$idx]['leg_cost'] ?? 0.00);
+                        $legDist = isset($legTransports[$idx]['distance_km']) ? (float)$legTransports[$idx]['distance_km'] : (isset($legTransports[$idx]['leg_distance_km']) ? (float)$legTransports[$idx]['leg_distance_km'] : null);
+                    } else {
+                        $legMode = (string)$legTransports[$idx];
+                    }
+                }
+
+                // If no explicit leg mode passed, look up from calculated legs
+                if (!$legMode) {
+                    $matchLeg = $legsList[$idx] ?? ($idx > 0 && isset($legsList[$idx - 1]) ? $legsList[$idx - 1] : null);
+                    if ($matchLeg) {
+                        $legMode = $matchLeg['vehicle_mode'] ?? null;
+                        $legCost = (float)($matchLeg['leg_total'] ?? 0.00);
+                        $legDist = (float)($matchLeg['distance_km'] ?? 0.00);
+                    } elseif ($savedTransportMode === 'own_car' || $savedTransportMode === 'car') {
+                        $legMode = 'own_car';
+                        $legCost = 0.00;
+                    } elseif ($savedTransportMode === 'motorcycle') {
+                        $legMode = 'motorcycle';
+                        $legCost = 0.00;
+                    }
+                }
+
                 ItineraryItem::create([
                     'itinerary_id'    => $itinerary->id,
                     'tourist_spot_id' => $spotId,
+                    'order_index'     => $idx + 1,
+                    'transport_mode'  => $legMode,
+                    'leg_cost'        => $legCost,
+                    'leg_distance_km' => $legDist,
                 ]);
             }
 
             return $itinerary;
         });
 
-        $itinerary->load(['items.destination:id,name,photo_url,latitude,longitude,entrance_fee,classification_status']);
-        $items = $itinerary->items->map(function ($item) {
-            $dest = $item->destination;
-            $imageUrl = $dest ? $dest->photo_url : null;
-            return [
-                'id'               => $item->id,
-                'is_visited'       => $item->is_visited,
-                'proof_image'      => $item->proof_image,
-                'proof_status'     => $item->proof_status ?? ($item->is_visited ? 'approved' : 'pending'),
-                'rejection_reason' => $item->rejection_reason,
-                'visited_at'       => $item->visited_at,
-                'destination' => $dest ? [
-                    'id'           => $dest->id,
-                    'name'         => $dest->name,
-                    'image'        => $imageUrl,
-                    'latitude'     => $dest->latitude,
-                    'longitude'    => $dest->longitude,
-                    'entrance_fee' => $dest->entrance_fee,
-                    'classification_status' => $dest->classification_status,
-                ] : null,
-            ];
-        });
+        $itinerary->load([
+            'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id',
+            'items.destination.municipality:id,name'
+        ]);
+        $spotIds = $itinerary->items->pluck('tourist_spot_id')->filter()->unique()->values()->all();
+        [$spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles] = $this->getSpotVehiclesMap($spotIds);
 
         return response()->json([
             'message'      => 'Trip saved! 🎉',
             'itinerary_id' => $itinerary->id,
-            'itinerary'    => [
-                'id'             => $itinerary->id,
-                'title'          => $itinerary->title,
-                'trip_date'      => $itinerary->trip_date?->format('Y-m-d'),
-                'budget'         => $itinerary->budget,
-                'total_cost'     => $itinerary->total_cost,
-                'status'         => $itinerary->status,
-                'route_type'     => $itinerary->route_type,
-                'transport_mode' => $itinerary->transport_mode,
-                'items'          => $items,
-            ]
+            'itinerary'    => $this->formatItineraryResponse($itinerary, $spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles),
         ], 201);
     }
 
@@ -282,7 +408,7 @@ class ItineraryController extends Controller
         \App\Models\Notification::createSafely(
             $user->id,
             'itinerary_reminder',
-            '🎉 Trip Completed!',
+            'Trip Completed!',
             "Congratulations! You completed '{$itinerary->title}' and earned +100 XP!",
             ['action_url' => '/saved_trips']
         );
@@ -326,13 +452,116 @@ class ItineraryController extends Controller
             'budget'         => 'nullable|numeric|min:0',
             'route_type'     => 'nullable|string|max:255',
             'transport_mode' => 'nullable|string|max:255',
+            'destinations'   => 'nullable|array',
+            'destinations.*' => 'integer|exists:tourist_spots,id',
+            'leg_transports' => 'nullable|array',
         ]);
 
-        $itinerary->update($request->only(['title', 'trip_date', 'budget', 'route_type', 'transport_mode']));
+        $updateData = $request->only(['title', 'trip_date', 'budget', 'route_type', 'transport_mode']);
+        if (isset($updateData['trip_date']) && $updateData['trip_date'] === '') {
+            $updateData['trip_date'] = null;
+        }
+        if (isset($updateData['budget']) && $updateData['budget'] === '') {
+            $updateData['budget'] = null;
+        }
+        if (array_key_exists('transport_mode', $updateData)) {
+            $rawT = trim((string)($updateData['transport_mode'] ?? ''));
+            $isNoVeh = empty($rawT) || stripos($rawT, 'no_vehicle') !== false || stripos($rawT, 'no vehicle') !== false;
+            $updateData['transport_mode'] = $isNoVeh ? 'No Vehicle Selected' : $rawT;
+        }
+        $itinerary->update($updateData);
+
+        if ($request->has('destinations') && is_array($request->destinations) && count($request->destinations) > 0) {
+            $totalEstimatedCost = 0.00;
+            $est = [];
+            $legTransports = $request->leg_transports ?? [];
+            try {
+                $service = new \App\Services\CostEstimationService();
+                $est = $service->estimateItineraryCosts(
+                    $request->destinations,
+                    $itinerary->transport_mode ?? 'No Vehicle Selected',
+                    null,
+                    null,
+                    $itinerary->trip_date,
+                    null,
+                    $legTransports
+                );
+                $totalEstimatedCost = (float) ($est['total_cost'] ?? 0.00);
+            } catch (\Throwable $e) {
+                $spots = TouristSpot::whereIn('id', $request->destinations)->get();
+                $totalEstimatedCost = (float) ($spots->sum('entrance_fee') + $spots->sum('environmental_fee'));
+            }
+            $itinerary->update(['total_cost' => $totalEstimatedCost]);
+
+            $existingItems = $itinerary->items->keyBy('tourist_spot_id');
+            // Remove items no longer in destinations
+            $itinerary->items()->whereNotIn('tourist_spot_id', $request->destinations)->delete();
+
+            $legsList = $est['legs'] ?? [];
+            // Re-create or update destination stops with leg transportation
+            foreach ($request->destinations as $idx => $spotId) {
+                $legMode = null;
+                $legCost = 0.00;
+                $legDist = null;
+
+                if (isset($legTransports[$idx])) {
+                    if (is_array($legTransports[$idx])) {
+                        $legMode = $legTransports[$idx]['vehicle'] ?? $legTransports[$idx]['transport_mode'] ?? null;
+                        $legCost = (float)($legTransports[$idx]['cost'] ?? $legTransports[$idx]['leg_cost'] ?? 0.00);
+                        $legDist = isset($legTransports[$idx]['distance_km']) ? (float)$legTransports[$idx]['distance_km'] : (isset($legTransports[$idx]['leg_distance_km']) ? (float)$legTransports[$idx]['leg_distance_km'] : null);
+                    } else {
+                        $legMode = (string)$legTransports[$idx];
+                    }
+                }
+
+                if (!$legMode) {
+                    $matchLeg = $legsList[$idx] ?? ($idx > 0 && isset($legsList[$idx - 1]) ? $legsList[$idx - 1] : null);
+                    if ($matchLeg) {
+                        $legMode = $matchLeg['vehicle_mode'] ?? null;
+                        $legCost = (float)($matchLeg['leg_total'] ?? 0.00);
+                        $legDist = (float)($matchLeg['distance_km'] ?? 0.00);
+                    } elseif ($itinerary->transport_mode === 'own_car' || $itinerary->transport_mode === 'car') {
+                        $legMode = 'own_car';
+                        $legCost = 0.00;
+                    } elseif ($itinerary->transport_mode === 'motorcycle') {
+                        $legMode = 'motorcycle';
+                        $legCost = 0.00;
+                    }
+                }
+
+                if ($existingItems->has($spotId)) {
+                    $existingItems->get($spotId)->update([
+                        'order_index'     => $idx + 1,
+                        'transport_mode'  => $legMode,
+                        'leg_cost'        => $legCost,
+                        'leg_distance_km' => $legDist,
+                    ]);
+                } else {
+                    ItineraryItem::create([
+                        'itinerary_id'    => $itinerary->id,
+                        'tourist_spot_id' => $spotId,
+                        'order_index'     => $idx + 1,
+                        'transport_mode'  => $legMode,
+                        'leg_cost'        => $legCost,
+                        'leg_distance_km' => $legDist,
+                    ]);
+                }
+            }
+        }
+
+        Cache::forget("profile:trips:{$user->id}");
+        Cache::forget("profile:trips:v2:{$user->id}");
+
+        $freshItinerary = $itinerary->fresh()->load([
+            'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id',
+            'items.destination.municipality:id,name'
+        ]);
+        $spotIds = $freshItinerary->items->pluck('tourist_spot_id')->filter()->unique()->values()->all();
+        [$spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles] = $this->getSpotVehiclesMap($spotIds);
 
         return response()->json([
             'message'    => 'Trip updated successfully!',
-            'itinerary'  => $itinerary->fresh()            ->load(['items.destination:id,name,photo_url,latitude,longitude,entrance_fee,classification_status']),
+            'itinerary'  => $this->formatItineraryResponse($freshItinerary, $spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles),
         ]);
     }
 
@@ -362,6 +591,7 @@ class ItineraryController extends Controller
         // Cache invalidation — flush stale profile/rank caches
         Cache::forget("rank:user:{$user->id}");
         Cache::forget("profile:trips:{$user->id}");
+        Cache::forget("profile:trips:v2:{$user->id}");
 
         return response()->json([
             'success' => true,
@@ -380,6 +610,7 @@ class ItineraryController extends Controller
             'destination_ids.*' => 'integer',
             'transport_mode' => 'nullable|string',
             'trip_date' => 'nullable|date',
+            'leg_transports' => 'nullable|array',
         ]);
 
         $service = new \App\Services\CostEstimationService();
@@ -389,7 +620,8 @@ class ItineraryController extends Controller
             $request->input('fuel_price'),
             $request->input('fuel_efficiency'),
             $request->input('trip_date'),
-            $request->input('peak_multiplier')
+            $request->input('peak_multiplier'),
+            $request->input('leg_transports')
         );
 
         return response()->json([

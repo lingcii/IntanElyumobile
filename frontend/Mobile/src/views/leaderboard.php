@@ -5,7 +5,7 @@ $activeTab = 'leaderboard';
 ?>
 
 <?php include __DIR__ . '/../components/header.php'; ?>
-<link rel="stylesheet" href="assets/css/views/leaderboard.css?v=<?= time() ?>">
+
 
 <div class="leaderboard-container has-header has-bottom-nav animate-fade-in">
 
@@ -14,12 +14,12 @@ $activeTab = 'leaderboard';
         <h2>
             <i class="fa-solid fa-trophy" style="color: #fbbf24;"></i> La Union Top Explorers
         </h2>
-        <p>Earn XP and unlock achievements across Elyu</p>
+        <p>Earn Points across Elyu</p>
     </div>
 
     <!-- Your Current Standing Banner -->
     <div id="my-standing-banner" class="standing-banner-card stagger-1" style="display: none;"
-        onclick="if(window.myUserData) showUserProfile(window.myUserData.name, window.myUserData.avatar, window.myUserData.xp, window.myUserData.pts, window.myUserData.rank, window.myUserData.level, window.myUserData.activities, window.myUserData.location, window.myUserData.bio, true)">
+        onclick="if(window.myUserData) showUserProfile(window.myUserData.name, window.myUserData.avatar, window.myUserData.pts, window.myUserData.rank, window.myUserData.activities, window.myUserData.location, window.myUserData.bio, true)">
         <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
             <div class="standing-rank-avatar-wrap">
                 <img id="my-standing-avatar" class="standing-rank-avatar"
@@ -43,16 +43,13 @@ $activeTab = 'leaderboard';
     </div>
 
     <!-- Sort Filter Tabs -->
-    <div class="leaderboard-tabs-wrapper mode-xp stagger-1">
+    <div class="leaderboard-tabs-wrapper mode-points stagger-1">
         <div class="leaderboard-tab-glider" id="tab-glider"></div>
-        <button class="leaderboard-tab-btn active" id="tab-sort-xp" onclick="setLeaderboardSort('xp')">
-            <i class="fa-solid fa-bolt" style="color:#fbbf24;"></i> Top XP
-        </button>
-        <button class="leaderboard-tab-btn" id="tab-sort-points" onclick="setLeaderboardSort('points')">
-            <i class="fa-solid fa-coins" style="color:#f59e0b;"></i> Highest Points
+        <button class="leaderboard-tab-btn active" id="tab-sort-points" onclick="setLeaderboardSort('points')">
+            Points
         </button>
         <button class="leaderboard-tab-btn" id="tab-sort-visited" onclick="setLeaderboardSort('visited')">
-            <i class="fa-solid fa-map-location-dot" style="color:#00f2fe;"></i> Most Visited
+            Visited
         </button>
     </div>
 
@@ -66,10 +63,10 @@ $activeTab = 'leaderboard';
         <div class="stagger-2"
             style="display: flex; justify-content: space-between; align-items: center; margin: 20px 4px 12px 4px;">
             <h3
-                style="font-size: 15px; font-weight: 800; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 6px;">
-                <i class="fa-solid fa-list-ol" style="color: #00f2fe;"></i> Explorer Leaderboard
+                style="font-size: 15px; font-weight: 800; color: #0f172a !important; margin: 0; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-list-ol" style="color: #1e3a8a;"></i> Explorer Leaderboard
             </h3>
-            <span style="font-size: 11px; font-weight: 700; color: #ffffff; opacity: 0.9;"
+            <span style="font-size: 11px; font-weight: 700; color: #64748b !important;"
                 id="explorers-count-badge">Top Ranks</span>
         </div>
 
@@ -87,94 +84,73 @@ $activeTab = 'leaderboard';
 
 </div>
 
-<!-- User Profile Modal -->
+<!-- User Profile Modal (Notification Design) -->
 <div id="user-profile-modal" class="profile-modal-overlay" onclick="if(event.target===this) closeUserProfile();">
     <div class="profile-modal-card">
-        <button class="profile-modal-close" onclick="closeUserProfile()"><i class="fa-solid fa-xmark"></i></button>
-        <div class="profile-modal-header" style="margin-top: 6px;">
-            <img id="modal-avatar" src="" alt="Avatar">
-            <div id="modal-rank-badge" class="modal-rank-badge">1</div>
-        </div>
-        <h2 id="modal-name">Explorer</h2>
-        <div
-            style="display:flex; justify-content:center; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
-            <span id="modal-rank-pill"
-                style="font-size:11px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.12); border:none !important; outline:none !important; padding:2px 10px; border-radius:100px;">#1
-                Ranked Explorer</span>
-            <div id="modal-location"
-                style="font-size: 11.5px; color: rgba(226,232,240,0.85); font-weight: 600; display: none;"><i
-                    class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:3px;"></i><span>Hometown</span>
+        <!-- Notification Header -->
+        <div class="profile-modal-header">
+            <div style="flex: 1; min-width: 0;">
+                <div class="profile-modal-badge">
+                    <i class="fa-solid fa-trophy" style="font-size: 10px;"></i>
+                    <span id="modal-header-badge">EXPLORER PROFILE</span>
+                </div>
+                <div id="modal-header-status" class="profile-modal-time">Leaderboard Standing</div>
             </div>
+            <button type="button" class="profile-modal-close" onclick="closeUserProfile()" aria-label="Close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
-        <p id="modal-bio"
-            style="font-size: 12px; color: rgba(226, 232, 240, 0.85); font-style: italic; margin: 0 0 12px 0; display: none; line-height: 1.4; background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: 12px; border: none !important; outline: none !important;">
-        </p>
 
-        <!-- 4 Stats Boxes Grid -->
-        <div class="modal-stats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+        <!-- Explorer Identity -->
+        <div class="profile-modal-body">
+            <div class="profile-avatar-wrapper">
+                <img id="modal-avatar" src="" alt="Avatar">
+                <div id="modal-rank-badge" class="modal-rank-badge">1</div>
+            </div>
+            <h2 id="modal-name">Explorer</h2>
+            <div class="profile-tags-row">
+                <span id="modal-rank-pill" class="profile-rank-pill">#1 Ranked Explorer</span>
+                <div id="modal-location" class="profile-location-pill" style="display: none;">
+                    <i class="fa-solid fa-location-dot"></i><span>Hometown</span>
+                </div>
+            </div>
+            <p id="modal-bio" class="profile-bio-box" style="display: none;"></p>
+        </div>
+
+        <!-- 3 Stats Boxes Grid -->
+        <div class="modal-stats">
             <div class="modal-stat-box">
-                <i class="fa-solid fa-bolt" style="color:#fbbf24; font-size:16px;"></i>
-                <span id="modal-xp" style="font-size:15px; font-weight:900; color:#fff;">0</span>
-                <small
-                    style="font-size:10px; color:rgba(226,232,240,0.6); text-transform:uppercase; font-weight:700;">Total
-                    XP</small>
+                <i class="fa-solid fa-coins" style="color:#fbbf24;"></i>
+                <span id="modal-pts" style="color:#fbbf24;">0</span>
+                <small>Points</small>
             </div>
             <div class="modal-stat-box">
-                <i class="fa-solid fa-coins" style="color:#f59e0b; font-size:16px;"></i>
-                <span id="modal-pts" style="font-size:15px; font-weight:900; color:#f59e0b;">0</span>
-                <small
-                    style="font-size:10px; color:rgba(226,232,240,0.6); text-transform:uppercase; font-weight:700;">Points
-                    (PTS)</small>
+                <i class="fa-solid fa-map-location-dot" style="color:#34c759;"></i>
+                <span id="modal-activities">0</span>
+                <small>Spots</small>
             </div>
             <div class="modal-stat-box">
-                <i class="fa-solid fa-map-location-dot" style="color:#34c759; font-size:16px;"></i>
-                <span id="modal-activities" style="font-size:15px; font-weight:900; color:#fff;">0</span>
-                <small
-                    style="font-size:10px; color:rgba(226,232,240,0.6); text-transform:uppercase; font-weight:700;">Visited
-                    Spots</small>
-            </div>
-            <div class="modal-stat-box">
-                <i class="fa-solid fa-shield-halved" style="color:#38bdf8; font-size:16px;"></i>
-                <span id="modal-level" style="font-size:15px; font-weight:900; color:#38bdf8;">Lvl 1</span>
-                <small
-                    style="font-size:10px; color:rgba(226,232,240,0.6); text-transform:uppercase; font-weight:700;">Explorer
-                    Tier</small>
+                <i class="fa-solid fa-trophy" style="color:#00f2fe;"></i>
+                <span id="modal-rank-num" style="color:#00f2fe;">#1</span>
+                <small>Rank</small>
             </div>
         </div>
 
-        <!-- Explorer Badges / Milestones Section -->
-        <div id="modal-explorer-milestones"
-            style="margin-top:12px; background:rgba(255,255,255,0.02); border:none !important; outline:none !important; border-radius:14px; padding:10px 12px; text-align:left;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                <span
-                    style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:rgba(148,163,184,0.8);">Achievements
-                    & Status</span>
-                <span id="modal-status-tag"
-                    style="font-size:9.5px; font-weight:800; color:#34c759; background:rgba(52,199,89,0.12); padding:1px 6px; border-radius:6px;">Verified
-                    Explorer</span>
-            </div>
-            <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                <span
-                    style="font-size:10px; font-weight:700; color:#fff; background:rgba(56,189,248,0.12); border:none !important; outline:none !important; padding:3px 8px; border-radius:8px;">🌊
-                    Elyu Surfer</span>
-                <span
-                    style="font-size:10px; font-weight:700; color:#fff; background:rgba(251,191,36,0.12); border:none !important; outline:none !important; padding:3px 8px; border-radius:8px;">⚡
-                    XP Pioneer</span>
-                <span
-                    style="font-size:10px; font-weight:700; color:#fff; background:rgba(52,199,89,0.12); border:none !important; outline:none !important; padding:3px 8px; border-radius:8px;">🌿
-                    Eco Spot Check-in</span>
-            </div>
+        <!-- Action Buttons (Notification Style) -->
+        <div class="profile-modal-actions">
+            <button id="modal-cheer-btn" type="button" class="profile-modal-btn-white"
+                onclick="if(typeof showToast==='function'){showToast('Sent High Five! 🎉');} closeUserProfile();">
+                <i class="fa-solid fa-hand-peace"></i> Send High Five
+            </button>
+            <button id="modal-dismiss-btn" type="button" class="profile-modal-btn-dismiss" onclick="closeUserProfile()">
+                Dismiss
+            </button>
         </div>
-
-        <button id="modal-cheer-btn" onclick="if(typeof showToast==='function'){showToast('Cheered explorer! 🎉');} closeUserProfile();"
-            style="width: 100%; margin-top: 14px; padding: 12px; border-radius: 100px; background: linear-gradient(135deg, #38bdf8, #2563eb); border: none; color: #ffffff; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: transform 0.15s ease; box-shadow:0 4px 15px rgba(56,189,248,0.3);">
-            <i class="fa-solid fa-hand-peace"></i> Send High Five
-        </button>
     </div>
 </div>
 
 <script>
-    var currentSortMode = 'xp';
+    var currentSortMode = 'points';
     var rawLeadersList = [];
     var cachedMeData = null;
     var cachedMyRank = 999;
@@ -185,15 +161,13 @@ $activeTab = 'leaderboard';
 
         const tabsWrapper = document.querySelector('.leaderboard-tabs-wrapper');
         if (tabsWrapper) {
-            tabsWrapper.classList.remove('mode-xp', 'mode-points', 'mode-visited');
+            tabsWrapper.classList.remove('mode-points', 'mode-visited');
             tabsWrapper.classList.add(`mode-${mode}`);
         }
 
-        const tabXp = document.getElementById('tab-sort-xp');
         const tabPoints = document.getElementById('tab-sort-points');
         const tabVisited = document.getElementById('tab-sort-visited');
 
-        if (tabXp) tabXp.classList.toggle('active', mode === 'xp');
         if (tabPoints) tabPoints.classList.toggle('active', mode === 'points');
         if (tabVisited) tabVisited.classList.toggle('active', mode === 'visited');
 
@@ -207,40 +181,29 @@ $activeTab = 'leaderboard';
         if (!podiumContainer && !rankListContainer) return;
         if (!rawLeadersList) return;
 
-            // Filter out users with no points, no visited, or no XP based on active sort mode
+            // Filter out users based on active sort mode
             let leaders = (rawLeadersList || []).filter(u => {
-                const xp = parseInt(u.total_points || u.total_xp || u.xp || 0);
-                const pts = parseInt(u.claimable_points || u.points || 0);
+                const pts = parseInt(u.points || u.pts || u.total_points || u.claimable_points || 0);
                 const act = parseInt(u.completed_activities || u.places_visited || 0);
-                if (currentSortMode === 'points') return pts > 0;
                 if (currentSortMode === 'visited') return act > 0;
-                return xp > 0;
+                return pts > 0;
             });
 
             // Sort items based on current sort mode
-            if (currentSortMode === 'points') {
-                leaders.sort((a, b) => {
-                    const ptsA = parseInt(a.claimable_points || a.points || 0);
-                    const ptsB = parseInt(b.claimable_points || b.points || 0);
-                    if (ptsB !== ptsA) return ptsB - ptsA;
-                    const xpA = parseInt(a.total_points || a.total_xp || a.xp || 0);
-                    const xpB = parseInt(b.total_points || b.total_xp || b.xp || 0);
-                    return xpB - xpA;
-                });
-            } else if (currentSortMode === 'visited') {
+            if (currentSortMode === 'visited') {
                 leaders.sort((a, b) => {
                     const actA = parseInt(a.completed_activities || a.places_visited || 0);
                     const actB = parseInt(b.completed_activities || b.places_visited || 0);
                     if (actB !== actA) return actB - actA;
-                    const xpA = parseInt(a.total_points || a.total_xp || a.xp || 0);
-                    const xpB = parseInt(b.total_points || b.total_xp || b.xp || 0);
-                    return xpB - xpA;
+                    const ptsA = parseInt(a.points || a.pts || a.total_points || a.claimable_points || 0);
+                    const ptsB = parseInt(b.points || b.pts || b.total_points || b.claimable_points || 0);
+                    return ptsB - ptsA;
                 });
             } else {
                 leaders.sort((a, b) => {
-                    const xpA = parseInt(a.total_points || a.total_xp || a.xp || 0);
-                    const xpB = parseInt(b.total_points || b.total_xp || b.xp || 0);
-                    if (xpB !== xpA) return xpB - xpA;
+                    const ptsA = parseInt(a.points || a.pts || a.total_points || a.claimable_points || 0);
+                    const ptsB = parseInt(b.points || b.pts || b.total_points || b.claimable_points || 0);
+                    if (ptsB !== ptsA) return ptsB - ptsA;
                     const actA = parseInt(a.completed_activities || a.places_visited || 0);
                     const actB = parseInt(b.completed_activities || b.places_visited || 0);
                     return actB - actA;
@@ -262,23 +225,19 @@ $activeTab = 'leaderboard';
             if (banner) {
                 banner.style.display = 'flex';
                 const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                const myXp = cachedMeData ? parseInt(cachedMeData.xp ?? cachedMeData.total_xp ?? 0) : (authUser.xp || 0);
                 const myPts = cachedMeData ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? cachedMeData.claimable_points ?? 0) : (authUser.points || 0);
                 const myActivities = cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.places_visited ?? 0) : 0;
-                const isUnranked = (myXp === 0 && myPts === 0 && myActivities === 0);
+                const isUnranked = (myPts === 0 && myActivities === 0);
                 const myRankNum = (!isUnranked && cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (isUnranked ? '—' : 1);
                 const myDisplayName = isUnranked ? 'Unranked Explorer' : `${myRankNum}# Explorer`;
-                const myLevel = Math.floor(myXp / 1000) + 1;
                 const myRawName = (cachedMeData ? (cachedMeData.name || cachedMeData.full_name) : (authUser.name || authUser.full_name || 'Explorer')).replace(/[^a-zA-Z\s]/g, '').trim() || 'Explorer';
                 const myAvatar = cachedMeData && cachedMeData.avatar ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myRawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
 
                 window.myUserData = {
                     name: myDisplayName,
                     avatar: myAvatar,
-                    xp: myXp,
                     pts: myPts,
                     rank: myRankNum,
-                    level: myLevel,
                     activities: myActivities,
                     location: cachedMeData ? (cachedMeData.home_location || '') : '',
                     bio: cachedMeData ? (cachedMeData.bio || '') : ''
@@ -296,22 +255,30 @@ $activeTab = 'leaderboard';
                     }
                 }
                 if (subtext) {
-                    subtext.textContent = `${myXp.toLocaleString()} XP • ${myPts.toLocaleString()} PTS • ${myActivities} Visited`;
+                    if (currentSortMode === 'visited') {
+                        subtext.textContent = `${myActivities} Spots Visited • ${myPts.toLocaleString()} Points`;
+                    } else {
+                        subtext.textContent = `${myPts.toLocaleString()} Points • ${myActivities} Spots Visited`;
+                    }
                 }
             }
 
             // Render Podium (1st, 2nd, 3rd)
             let podiumHTML = '';
             if (leaders.length === 0) {
+                let emptySubtext = 'Visit attractions and play games to earn Points and claim the #1 spot on the leaderboard!';
+                if (currentSortMode === 'visited') {
+                    emptySubtext = 'Visit attractions across La Union and check in to claim the #1 spot on the leaderboard!';
+                }
                 if (podiumContainer) {
                     podiumContainer.innerHTML = `
-                        <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 32px 16px; background: rgba(30, 58, 138, 0.4); border-radius: 24px; backdrop-filter: blur(16px); margin-bottom: 20px; border:none !important; outline:none !important;">
-                            <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(245, 158, 11, 0.18); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #f59e0b; font-size: 22px; border:none !important;">
+                        <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 24px 16px; background: transparent; border:none !important; outline:none !important;">
+                            <div style="width: 52px; height: 52px; border-radius: 50%; background: #fef3c7; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #d97706; font-size: 22px; border:none !important;">
                                 <i class="fa-solid fa-trophy"></i>
                             </div>
-                            <div style="font-size: 15px; font-weight: 800; color: #ffffff; margin-bottom: 5px;">No Ranked Explorers Yet</div>
-                            <div style="font-size: 12px; color: rgba(255,255,255,0.75); max-width: 270px; margin: 0 auto; line-height: 1.4;">
-                                Visit attractions across La Union, check in, and earn XP to claim the #1 spot on the leaderboard!
+                            <div style="font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 5px;">No Ranked Explorers Yet</div>
+                            <div style="font-size: 12px; color: #64748b; max-width: 270px; margin: 0 auto; line-height: 1.4;">
+                                ${emptySubtext}
                             </div>
                         </div>
                     `;
@@ -384,9 +351,7 @@ $activeTab = 'leaderboard';
 
             const isMe = Boolean(cachedMeData && (user.id === cachedMeData.id || user.user_id === cachedMeData.id));
             const safeName = displayName.replace(/'/g, "\\'");
-            const xp = parseInt(user.xp ?? user.total_xp ?? 0);
             const pts = parseInt(user.points ?? user.pts ?? user.total_points ?? user.claimable_points ?? 0);
-            const level = user.level || (Math.floor(xp / 1000) + 1);
             const activities = parseInt(user.completed_activities ?? user.places_visited ?? 0);
             const safeLocation = (user.home_location || '').replace(/'/g, "\\'");
             const safeBio = (user.bio || '').replace(/'/g, "\\'");
@@ -394,24 +359,21 @@ $activeTab = 'leaderboard';
             let iconHtml = '';
             let textMetric = '';
 
-            if (currentSortMode === 'points') {
-                iconHtml = '<i class="fa-solid fa-coins" style="font-size:10px;"></i>';
-                textMetric = `${pts.toLocaleString()} PTS`;
-            } else if (currentSortMode === 'visited') {
+            if (currentSortMode === 'visited') {
                 iconHtml = '<i class="fa-solid fa-map-location-dot" style="font-size:10px;"></i>';
                 textMetric = `${activities} Visited`;
             } else {
-                iconHtml = '<i class="fa-solid fa-bolt" style="font-size:10px;"></i>';
-                textMetric = `${xp.toLocaleString()} XP`;
+                iconHtml = '<i class="fa-solid fa-coins" style="font-size:10px; color:#fbbf24;"></i>';
+                textMetric = `${pts.toLocaleString()} PTS`;
             }
 
             const metricPillHtml = `
-            <div class="podium-xp-pill podium-xp-${rank}" style="margin-bottom:10px;">
+            <div class="podium-metric-pill podium-metric-${rank}" style="margin-bottom:10px;">
                 ${iconHtml} ${textMetric}
             </div>`;
 
             return `
-        <div class="podium-place rank-${rank}" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${xp}, ${pts}, ${rank}, ${level}, ${activities}, '${safeLocation}', '${safeBio}', ${isMe})">
+        <div class="podium-place rank-${rank}" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${pts}, ${rank}, ${activities}, '${safeLocation}', '${safeBio}', ${isMe})">
             <div class="podium-avatar-wrap">
                 ${medalIcon}
                 <img src="${avatarUrl}" alt="${displayName}" class="podium-avatar" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128';">
@@ -438,35 +400,28 @@ $activeTab = 'leaderboard';
             const delay = 0.15 + ((rank - 4) * 0.03);
 
             const safeName = displayName.replace(/'/g, "\\'");
-            const xp = parseInt(user.xp ?? user.total_xp ?? 0);
             const pts = parseInt(user.points ?? user.pts ?? user.total_points ?? user.claimable_points ?? 0);
-            const level = user.level || (Math.floor(xp / 1000) + 1);
             const activities = parseInt(user.completed_activities ?? user.places_visited ?? 0);
             const safeLocation = (user.home_location || '').replace(/'/g, "\\'");
             const safeBio = (user.bio || '').replace(/'/g, "\\'");
 
             let rightBadgeHtml = '';
-            let subMetaText = `<span>Lvl ${level} Explorer</span>`;
+            let subMetaText = `<span>${activities} Spots Visited</span>`;
 
-            if (currentSortMode === 'points') {
+            if (currentSortMode === 'visited') {
                 rightBadgeHtml = `
-            <div class="rank-xp-badge" style="color:#f59e0b;">
-                ${pts.toLocaleString()} <small style="font-size:10px; font-weight:700; color:rgba(245,158,11,0.85); margin-left:3px;">PTS</small>
-            </div>`;
-            } else if (currentSortMode === 'visited') {
-                rightBadgeHtml = `
-            <div class="rank-xp-badge" style="color:#38bdf8;">
+            <div class="rank-metric-badge" style="color:#38bdf8;">
                 ${activities} <small style="font-size:10px; font-weight:700; color:rgba(56,189,248,0.85); margin-left:3px;">VISITED</small>
             </div>`;
             } else {
                 rightBadgeHtml = `
-            <div class="rank-xp-badge" style="color:#ffffff;">
-                ${xp.toLocaleString()} <small style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.6); margin-left:3px;">XP</small>
+            <div class="rank-metric-badge" style="color:#fbbf24;">
+                <i class="fa-solid fa-coins" style="font-size:11px; margin-right:3px;"></i>${pts.toLocaleString()} <small style="font-size:10px; font-weight:700; color:rgba(251,191,36,0.85); margin-left:3px;">PTS</small>
             </div>`;
             }
 
             return `
-        <div class="rank-item ${activeClass}" style="animation-delay: ${Math.max(0, delay)}s;" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${xp}, ${pts}, ${rank}, ${level}, ${activities}, '${safeLocation}', '${safeBio}', ${Boolean(isMe)})">
+        <div class="rank-item ${activeClass}" style="animation-delay: ${Math.max(0, delay)}s;" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${pts}, ${rank}, ${activities}, '${safeLocation}', '${safeBio}', ${Boolean(isMe)})">
             <div style="display: flex; align-items: center; min-width: 0; flex: 1;">
                 <img src="${avatarUrl}" alt="${displayName}" class="rank-avatar" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128';">
                 <div class="rank-info">
@@ -483,7 +438,7 @@ $activeTab = 'leaderboard';
         </div>`;
         }
 
-        window.showUserProfile = function (name, avatar, xp, pts, rank, level, activities, location, bio, isMe = false) {
+        window.showUserProfile = function (name, avatar, pts, rank, activities, location, bio, isMe = false) {
             // Determine if the viewed profile is the current logged-in user
             const isSelf = Boolean(
                 isMe === true || 
@@ -512,10 +467,10 @@ $activeTab = 'leaderboard';
 
             document.getElementById('modal-avatar').src = avatar;
             document.getElementById('modal-name').innerText = name;
-            document.getElementById('modal-xp').innerText = Number(xp || 0).toLocaleString();
             document.getElementById('modal-pts').innerText = displayPts.toLocaleString();
             document.getElementById('modal-rank-badge').innerText = rank;
-            document.getElementById('modal-level').innerText = 'Lvl ' + (level || 1);
+            const rankNumEl = document.getElementById('modal-rank-num');
+            if (rankNumEl) rankNumEl.innerText = rank ? (String(rank).startsWith('#') ? rank : '#' + rank) : '—';
             document.getElementById('modal-activities').innerText = activities ? Number(activities).toLocaleString() : '0';
 
             // When viewing self, fetch fresh live balance to guarantee accuracy
@@ -533,7 +488,7 @@ $activeTab = 'leaderboard';
                             if (window.myUserData) window.myUserData.pts = livePts;
                             const subtext = document.getElementById('my-standing-subtext');
                             if (subtext && window.myUserData) {
-                                subtext.textContent = `${(window.myUserData.xp || 0).toLocaleString()} XP • ${livePts.toLocaleString()} PTS • ${window.myUserData.activities || 0} Visited`;
+                                subtext.textContent = `${livePts.toLocaleString()} Points • ${window.myUserData.activities || 0} Spots Visited`;
                             }
                             try {
                                 const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
@@ -554,10 +509,30 @@ $activeTab = 'leaderboard';
                 }
             }
 
+            // Notification Header Badge & Status
+            const headerBadge = document.getElementById('modal-header-badge');
+            if (headerBadge) {
+                headerBadge.textContent = isSelf ? 'YOUR PROFILE' : 'EXPLORER PROFILE';
+            }
+            const headerStatus = document.getElementById('modal-header-status');
+            if (headerStatus) {
+                headerStatus.textContent = isSelf ? 'Your Standing' : 'Leaderboard Standing';
+            }
+
             // Yourself should not be sending high fives to yourself
             const cheerBtn = document.getElementById('modal-cheer-btn');
             if (cheerBtn) {
                 cheerBtn.style.display = isSelf ? 'none' : 'flex';
+            }
+            const dismissBtn = document.getElementById('modal-dismiss-btn');
+            if (dismissBtn) {
+                if (isSelf) {
+                    dismissBtn.classList.add('is-self');
+                    dismissBtn.textContent = 'Close';
+                } else {
+                    dismissBtn.classList.remove('is-self');
+                    dismissBtn.textContent = 'Dismiss';
+                }
             }
 
             const elLoc = document.getElementById('modal-location');
@@ -601,10 +576,10 @@ $activeTab = 'leaderboard';
                 const headers = { 'Accept': 'application/json' };
 
                 var backendUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
-                let url = backendUrl + '/api/public/leaderboard';
+                let url = backendUrl + '/api/public/leaderboard?limit=50';
                 if (token) {
                     headers['Authorization'] = 'Bearer ' + token;
-                    url = backendUrl + '/api/tourist/leaderboard';
+                    url = backendUrl + '/api/tourist/leaderboard?limit=50';
                 }
 
                 // In parallel, fetch live points balance if user is authenticated
@@ -618,14 +593,18 @@ $activeTab = 'leaderboard';
                                 window.myUserData.pts = ptsVal;
                                 const subtext = document.getElementById('my-standing-subtext');
                                 if (subtext) {
-                                    subtext.textContent = `${(window.myUserData.xp || 0).toLocaleString()} XP • ${ptsVal.toLocaleString()} PTS • ${window.myUserData.activities || 0} Visited`;
+                                    if (currentSortMode === 'visited') {
+                                        subtext.textContent = `${window.myUserData.activities || 0} Spots Visited • ${ptsVal.toLocaleString()} Points`;
+                                    } else {
+                                        subtext.textContent = `${ptsVal.toLocaleString()} Points • ${window.myUserData.activities || 0} Spots Visited`;
+                                    }
                                 }
                             }
                         }
                     }).catch(() => {});
                 }
 
-                const cacheKey = 'leaderboard_data_v13_' + (token ? token.substring(0, 10) : 'public');
+                const cacheKey = 'leaderboard_data_v15_' + (token ? token.substring(0, 10) : 'public');
                 const fetchCache = window.useCache || (async (key, fetcher, renderer) => { const d = await fetcher(); if (renderer) renderer(d); return d; });
 
                 await fetchCache(
@@ -636,7 +615,7 @@ $activeTab = 'leaderboard';
                             localStorage.removeItem('intan_elyu_token');
                             localStorage.removeItem('Intan_Elyu_Token');
                             localStorage.removeItem('api_token');
-                            res = await fetch(backendUrl + '/api/public/leaderboard', { headers: { 'Accept': 'application/json' } });
+                            res = await fetch(backendUrl + '/api/public/leaderboard?limit=50', { headers: { 'Accept': 'application/json' } });
                         }
                         if (!res.ok) throw new Error("Failed to fetch leaderboard");
                         return await res.json();

@@ -274,6 +274,25 @@ body[data-view="map"] #main-content {
     background: rgba(63, 125, 183, 0.85);
 }
 
+/* ── Classification Button & Wrapper Transition on Search/Keyboard ── */
+.btn-classification-wrapper {
+    position: absolute;
+    bottom: calc(115px + env(safe-area-inset-bottom));
+    left: 10px;
+    z-index: 895;
+    transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease, visibility 0.38s ease !important;
+    will-change: transform, opacity;
+}
+
+body.keyboard-open .btn-classification-wrapper,
+body.map-search-active .btn-classification-wrapper,
+.btn-classification-wrapper.search-hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(30px) scale(0.85) !important;
+    visibility: hidden !important;
+}
+
 /* ── Bottom Sheet (Intact Docked Design) ── */
 .bottom-sheet {
     position: fixed !important;
@@ -531,21 +550,21 @@ body[data-view="map"] #main-content {
 }
 
 .sheet-status-pill.status-exist {
-    background: rgba(16, 185, 129, 0.7) !important;
+    background: rgba(2, 132, 199, 0.85) !important;
     border: none !important;
     outline: none !important;
     color: #ffffff !important;
 }
 
 .sheet-status-pill.status-emerge {
-    background: rgba(14, 165, 233, 0.7) !important;
+    background: rgba(239, 68, 68, 0.85) !important;
     border: none !important;
     outline: none !important;
     color: #ffffff !important;
 }
 
 .sheet-status-pill.status-potential {
-    background: rgba(217, 119, 6, 0.75) !important;
+    background: rgba(16, 185, 129, 0.85) !important;
     border: none !important;
     outline: none !important;
     color: #ffffff !important;
@@ -664,59 +683,52 @@ body[data-view="map"] #main-content {
     justify-content: center !important;
     font-size: 15px !important;
     flex-shrink: 0 !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
     border: none !important;
     outline: none !important;
-    color: #ffffff !important;
+    background: #ffffff !important;
+    color: #1e3a8a !important;
 }
 
 .quick-stat-icon i {
-    color: #ffffff !important;
+    color: #1e3a8a !important;
     font-size: 15px !important;
 }
 
-.quick-stat-icon.blue {
-    background: #007AFF !important;
-    color: #ffffff !important;
-    border: none !important;
-}
-
-.quick-stat-icon.emerald {
-    background: #34C759 !important;
-    color: #ffffff !important;
-    border: none !important;
-}
-
-.quick-stat-icon.amber {
-    background: #FF9500 !important;
-    color: #ffffff !important;
-    border: none !important;
-}
-
+.quick-stat-icon.blue,
+.quick-stat-icon.emerald,
+.quick-stat-icon.amber,
 .quick-stat-icon.purple {
-    background: #AF52DE !important;
-    color: #ffffff !important;
+    background: #ffffff !important;
+    color: #1e3a8a !important;
     border: none !important;
+}
+
+.quick-stat-icon.blue i,
+.quick-stat-icon.emerald i,
+.quick-stat-icon.amber i,
+.quick-stat-icon.purple i {
+    color: #1e3a8a !important;
 }
 
 .dest-fee-icon-box {
     width: 36px !important;
     height: 36px !important;
     border-radius: 10px !important;
-    background: #34C759 !important;
-    color: #ffffff !important;
+    background: #ffffff !important;
+    color: #1e3a8a !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     font-size: 15px !important;
     flex-shrink: 0 !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
     border: none !important;
     outline: none !important;
 }
 
 .dest-fee-icon-box i {
-    color: #ffffff !important;
+    color: #1e3a8a !important;
     font-size: 15px !important;
 }
 
@@ -775,16 +787,16 @@ body[data-view="map"] #main-content {
     align-items: center !important;
     justify-content: center !important;
     font-size: 15px !important;
-    background: #007AFF !important;
-    color: #ffffff !important;
+    background: #ffffff !important;
+    color: #0284c7 !important;
     border: none !important;
     outline: none !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
     flex-shrink: 0 !important;
 }
 
 .dest-section-icon i {
-    color: #ffffff !important;
+    color: #0284c7 !important;
     font-size: 15px !important;
 }
 
@@ -823,6 +835,16 @@ body[data-view="map"] #main-content {
     color: #ef4444;
     font-size: 14px;
     margin-top: 2px;
+}
+
+.dest-warning-icon-box {
+    background: #ffffff !important;
+    color: #ef4444 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dest-warning-icon-box i {
+    color: #ef4444 !important;
 }
 
 .dest-warning-card h6 {
@@ -1462,6 +1484,7 @@ body[data-view="map"] .btn-locate-me {
 .dest-guide-box,
 .dest-advisory-box,
 .dest-support-box,
+.dest-amenities-box,
 .dest-fees-card,
 .dest-toggle-btn,
 .dest-expanded-wrapper,
@@ -1485,6 +1508,7 @@ body[data-view="map"] .btn-locate-me {
 .bottom-sheet .dest-guide-box,
 .bottom-sheet .dest-advisory-box,
 .bottom-sheet .dest-support-box,
+.bottom-sheet .dest-amenities-box,
 .bottom-sheet .dest-fees-card,
 .bottom-sheet .dest-toggle-btn,
 .bottom-sheet .dest-expanded-wrapper,
@@ -1495,4 +1519,682 @@ body[data-view="map"] .btn-locate-me {
     border: none !important;
     outline: none !important;
 }
+
+/* ── Nearby Amenities Map Markers (Strictly Non-Clickable & Locked to Coordinates) ── */
+.elyu-amenity-marker {
+    pointer-events: none !important;
+    user-select: none !important;
+    cursor: default !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    will-change: transform;
+    z-index: 12;
+    transition: none !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: max-content;
+}
+
+.amenity-marker-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none !important;
+    user-select: none !important;
+    transition: none !important;
+    animation: amenityMarkerFadeIn 0.2s ease-out backwards;
+}
+
+@keyframes amenityMarkerFadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.amenity-marker-bubble {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    padding: 3px;
+    background: #ffffff;
+    border-radius: 999px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+    border: 1.5px solid rgba(0, 0, 0, 0.1) !important;
+    outline: none !important;
+    cursor: pointer;
+    pointer-events: auto !important;
+}
+
+.amenity-marker-icon-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #ffffff !important;
+    border: 1.5px solid #64748b !important;
+    color: #64748b !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+}
+
+.amenity-marker-icon-circle i {
+    color: #64748b !important;
+}
+
+.amenity-marker-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: 0.15px;
+    white-space: nowrap;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-left: 0;
+    padding-right: 0;
+    transition: max-width 0.2s ease, opacity 0.15s ease;
+    line-height: 1.2;
+}
+
+.amenity-marker-tip {
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid #ffffff;
+    margin-top: -1px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Expanded state when an amenity is clicked */
+.elyu-amenity-marker.is-expanded {
+    z-index: 999 !important;
+}
+
+.elyu-amenity-marker.is-expanded .amenity-marker-bubble {
+    gap: 7px;
+    padding: 3px 12px 3px 3px;
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+}
+
+.elyu-amenity-marker.is-expanded .amenity-marker-label {
+    max-width: 280px;
+    opacity: 1;
+    padding-right: 3px;
+}
+
+.elyu-amenity-marker.is-expanded .amenity-marker-tip {
+    border-top-color: #ffffff;
+}
+
+/* Targeted amenity marker styling (no glowing effect) */
+.elyu-amenity-marker.amenity-targeted .amenity-marker-bubble {
+    border-color: rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22) !important;
+}
+
+/* Hide amenity markers cleanly via opacity when zoomed out without any transform movement */
+.map-zoomed-out .amenity-marker-inner {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity 0.2s ease !important;
+}
+
+/* ── Nearby Amenities Box in Tourist Site Details Sheet ── */
+.dest-amenities-box {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: none !important;
+    outline: none !important;
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 10px;
+    box-shadow: none !important;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dest-amenities-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.dest-amenities-icon-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #ffffff !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0284c7 !important;
+    font-size: 12px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dest-amenities-icon-circle i {
+    color: #0284c7 !important;
+}
+
+.dest-amenities-count-badge {
+    font-size: 9.5px;
+    font-weight: 800;
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.22) !important;
+    border: none !important;
+    outline: none !important;
+    padding: 3px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    letter-spacing: 0.4px;
+}
+
+.dest-amenities-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.dest-amenities-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.dest-amenities-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 4px;
+}
+
+.sheet-amenity-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    transition: background 0.18s ease, transform 0.15s ease;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.sheet-amenity-row:hover,
+.sheet-amenity-row:active {
+    background: rgba(255, 255, 255, 0.16);
+    transform: translateY(-1px);
+}
+
+.sheet-amenity-left {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+    flex: 1;
+}
+
+.sheet-amenity-icon-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: #ffffff !important;
+    border: 1.5px solid #64748b !important;
+    color: #64748b !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.sheet-amenity-icon-circle i {
+    color: #64748b !important;
+}
+
+.sheet-amenity-info {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.sheet-amenity-name {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.25;
+}
+
+.sheet-amenity-type {
+    font-size: 9.5px;
+    color: rgba(255, 255, 255, 0.72);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.15;
+}
+
+.sheet-amenity-distance-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3.5px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.sheet-amenity-distance-badge i {
+    font-size: 9px;
+    opacity: 0.9;
+}
+
+.dest-amenities-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 7px 12px;
+    margin-top: 4px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.12);
+    border: none !important;
+    outline: none !important;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.dest-amenities-toggle-btn:hover,
+.dest-amenities-toggle-btn:active {
+    background: rgba(255, 255, 255, 0.22);
+}
+
+/* ── Tourist Site Details Sheet (Royal Blue Header & Pure White Body Below) ── */
+#place-details-sheet {
+    background: #ffffff !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    box-shadow: 0 -8px 36px rgba(10, 25, 60, 0.28) !important;
+}
+
+#place-details-sheet.sheet-peeked {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    pointer-events: none !important;
+}
+
+#place-details-sheet.sheet-peeked .dest-sheet-royal-header {
+    border-radius: 24px !important;
+    box-shadow: 0 10px 32px rgba(10, 25, 60, 0.45) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    pointer-events: auto !important;
+}
+
+#place-details-sheet.sheet-peeked .draggable-content {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+#place-details-sheet .dest-sheet-royal-header {
+    background: #1e3a8a !important;
+    padding: 6px 16px 14px 16px !important;
+    border-radius: 28px 28px 0 0 !important;
+    flex-shrink: 0 !important;
+    box-shadow: 0 4px 14px rgba(10, 25, 60, 0.15) !important;
+    position: relative !important;
+    z-index: 10 !important;
+}
+
+#place-details-sheet .dest-sheet-header-content {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+}
+
+#place-details-sheet .dest-sheet-header-main {
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+
+#place-details-sheet .sheet-drag-handle {
+    padding: 2px 0 8px !important;
+}
+
+#place-details-sheet .sheet-drag-dot {
+    background: rgba(255, 255, 255, 0.45) !important;
+}
+
+#place-details-sheet .sheet-title {
+    font-size: 19px !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    letter-spacing: -0.3px !important;
+    margin: 0 0 3px 0 !important;
+    line-height: 1.25 !important;
+    white-space: normal !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+#place-details-sheet .sheet-location {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: #bfdbfe !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    opacity: 1 !important;
+}
+
+#place-details-sheet .sheet-location i {
+    color: #93c5fd !important;
+    font-size: 11px !important;
+}
+
+#place-details-sheet .dest-sheet-close-btn {
+    background: rgba(255, 255, 255, 0.18) !important;
+    border: none !important;
+    outline: none !important;
+    color: #ffffff !important;
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+#place-details-sheet .dest-sheet-close-btn:hover {
+    background: rgba(255, 255, 255, 0.28) !important;
+    transform: scale(1.06) !important;
+}
+
+#place-details-sheet .dest-sheet-close-btn:active {
+    transform: scale(0.92) !important;
+}
+
+/* Scrollable Content Body Below Header */
+#place-details-sheet .draggable-content,
+#place-details-sheet .place-details-white-body {
+    background: #ffffff !important;
+    padding: 14px 16px calc(24px + env(safe-area-inset-bottom)) 16px !important;
+    flex: 1 !important;
+    overflow-y: auto !important;
+    max-height: calc(85vh - 90px) !important;
+}
+
+/* Quick Stat Cards */
+#place-details-sheet .quick-stat-card {
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    border: none !important;
+    outline: none !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
+    transition: transform 0.18s ease !important;
+}
+
+#place-details-sheet .quick-stat-card:hover,
+#place-details-sheet .quick-stat-card:active {
+    transform: translateY(-2px) !important;
+}
+
+#place-details-sheet .quick-stat-label {
+    color: rgba(255, 255, 255, 0.82) !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    opacity: 1 !important;
+}
+
+#place-details-sheet .quick-stat-value {
+    color: #ffffff !important;
+    font-size: 12.5px !important;
+    font-weight: 800 !important;
+}
+
+#place-details-sheet .quick-stat-icon,
+#place-details-sheet .dest-fee-icon-box,
+#place-details-sheet .dest-section-icon,
+#place-details-sheet .dest-amenities-icon-circle {
+    background: #ffffff !important;
+    color: #1e3a8a !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
+}
+
+#place-details-sheet .quick-stat-icon i,
+#place-details-sheet .dest-fee-icon-box i,
+#place-details-sheet .dest-section-icon i,
+#place-details-sheet .dest-amenities-icon-circle i {
+    color: #1e3a8a !important;
+}
+
+/* Blue Card Containers (Matching Notifications Modal Gradient & Glow) */
+#place-details-sheet .dest-fees-card,
+#place-details-sheet .dest-vehicles-card,
+#place-details-sheet .dest-info-card,
+#place-details-sheet #sheet-tour-guide-card,
+#place-details-sheet #sheet-24h-card,
+#place-details-sheet #sheet-maint-card {
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
+    border: none !important;
+    outline: none !important;
+}
+
+/* Destination Info Card & About Section */
+#place-details-sheet .dest-info-card {
+    border-radius: 18px !important;
+}
+
+#place-details-sheet .dest-section-title {
+    color: #ffffff !important;
+    font-weight: 800 !important;
+}
+
+#place-details-sheet .dest-desc-text {
+    color: rgba(255, 255, 255, 0.92) !important;
+    line-height: 1.55 !important;
+}
+
+#place-details-sheet .dest-toggle-btn {
+    background: rgba(255, 255, 255, 0.18) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    color: #ffffff !important;
+    border-radius: 12px !important;
+}
+
+#place-details-sheet .dest-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.26) !important;
+}
+
+/* Route Guide */
+#place-details-sheet .dest-guide-box {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border-radius: 14px !important;
+    padding: 12px 14px !important;
+    box-shadow: none !important;
+}
+
+#place-details-sheet .dest-guide-title {
+    color: #00f2fe !important;
+    font-weight: 800 !important;
+}
+
+#place-details-sheet .dest-guide-text {
+    color: rgba(255, 255, 255, 0.92) !important;
+}
+
+/* Nearby Amenities Box */
+#place-details-sheet .dest-amenities-box {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border-radius: 16px !important;
+    box-shadow: none !important;
+}
+
+#place-details-sheet .dest-amenities-count-badge {
+    background: rgba(0, 242, 254, 0.22) !important;
+    color: #00f2fe !important;
+    border: none !important;
+}
+
+#place-details-sheet .sheet-amenity-row {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    border-radius: 12px !important;
+}
+
+#place-details-sheet .sheet-amenity-row:hover,
+#place-details-sheet .sheet-amenity-row:active {
+    background: rgba(255, 255, 255, 0.16) !important;
+}
+
+#place-details-sheet .sheet-amenity-icon-circle {
+    background: #ffffff !important;
+    border: none !important;
+    outline: none !important;
+    color: #1e3a8a !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
+}
+
+#place-details-sheet .sheet-amenity-icon-circle i {
+    color: #1e3a8a !important;
+}
+
+#place-details-sheet .sheet-amenity-name {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+#place-details-sheet .sheet-amenity-type {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+#place-details-sheet .sheet-amenity-distance-badge {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: none !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+}
+
+#place-details-sheet .dest-amenities-toggle-btn {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    color: #ffffff !important;
+    border-radius: 12px !important;
+}
+
+#place-details-sheet .dest-amenities-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.22) !important;
+}
+
+/* Support Box */
+#place-details-sheet .dest-support-box {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border-radius: 16px !important;
+    box-shadow: none !important;
+}
+
+#place-details-sheet .dest-support-badge {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+    border: none !important;
+}
+
+#place-details-sheet .dest-contact-row {
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.18) !important;
+}
+
+#place-details-sheet .dest-contact-label {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+#place-details-sheet .dest-contact-label i {
+    color: #00f2fe !important;
+}
+
+#place-details-sheet .dest-contact-val {
+    color: #ffffff !important;
+}
+
+#place-details-sheet .dest-contact-val a {
+    color: #00f2fe !important;
+}
+
+#place-details-sheet .dest-contact-val.emergency a {
+    color: #f87171 !important;
+}
+
+/* Action Buttons */
+#place-details-sheet .btn-add-itinerary-premium {
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.35) !important;
+}
+
+#place-details-sheet .btn-sheet-fav {
+    background: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
+    color: #1e3a8a !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+#place-details-sheet .btn-sheet-fav:hover {
+    background: #f8fafc !important;
+    color: #ef4444 !important;
+}
+
+#place-details-sheet .btn-sheet-secondary {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #1e3a8a !important;
+}
+
 

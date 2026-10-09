@@ -24,8 +24,6 @@ if (is_dir($imgDir)) {
 }
 ?>
 
-<link rel="stylesheet" href="assets/css/views/dashboard.css?v=<?= time() ?>">
-
 <?php include __DIR__ . '/../components/header.php'; ?>
 
 
@@ -33,9 +31,9 @@ if (is_dir($imgDir)) {
 
 <div class="dashboard-container has-header has-bottom-nav animate-slide-up">
 
-    <!-- Profile + EXP Card -->
+    <!-- Profile Card with embedded Stats -->
     <div class="profile-header stagger-1" onclick="navigateTo('profile')"
-        style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; box-shadow: 0 10px 24px rgba(10, 25, 60, 0.25) !important;">
+        style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
             <div class="profile-info-row" style="margin-bottom:0; flex:1;">
                 <div class="profile-avatar">
@@ -51,49 +49,34 @@ if (is_dir($imgDir)) {
                     </div>
                     <div style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
                         <span class="profile-title" id="dash-title"><i class="fa-solid fa-compass"
-                                style="color:#00f2fe; font-size:11px;"></i> Explorer of Elyu</span>
+                                style="color:#ffffff; font-size:11px;"></i> Explorer of Elyu</span>
                         <span id="dash-status-badge"><i class="fa-solid fa-circle"
-                                style="font-size:6px; margin-right:4px;"></i> Active Tourist</span>
+                                style="font-size:6px; margin-right:4px; color:#ffffff;"></i> Active Tourist</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Level XP Progress Section -->
-        <div class="exp-container">
-            <div class="exp-header">
-                <span class="exp-label" id="dash-level-label"><i class="fa-solid fa-award"
-                        style="color:#00f2fe; margin-right:4px;"></i> Level Progress</span>
-                <span class="exp-value" id="dash-xp-value"><i class="fa-solid fa-bolt"
-                        style="color:#fbbf24; margin-right:4px;"></i>— XP</span>
+        <!-- 3 Stat Cards inside Profile Card (Sleek & Visible, No Outlines) -->
+        <div class="stats-row" style="margin-bottom:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
+            <div class="stat-card" onclick="event.stopPropagation(); navigateTo('itinerary');"
+                style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important; transition: transform 0.2s ease;">
+                <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-map-location-dot" style="color:#38bdf8;"></i></div>
+                <div class="stat-value" id="dash-stat-places" style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—</div>
+                <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">Places</div>
             </div>
-            <div class="exp-bar-bg">
-                <div class="exp-bar-fill" id="dash-xp-bar" style="width:0%;"></div>
+            <div class="stat-card" onclick="event.stopPropagation(); navigateTo('leaderboard');"
+                style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important; transition: transform 0.2s ease;">
+                <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-coins" style="color:#fbbf24;"></i></div>
+                <div class="stat-value" id="dash-stat-points" style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—</div>
+                <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">Points</div>
             </div>
-            <div
-                style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#cbd5e1; font-weight:600; margin-top:4px;">
-                <span id="dash-xp-needed" style="color:#cbd5e1;">1,000 XP to next level</span>
-                <span id="dash-xp-pct" style="color:#00f2fe; font-weight:800;">0%</span>
+            <div class="stat-card" onclick="event.stopPropagation(); navigateTo('leaderboard');"
+                style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important; transition: transform 0.2s ease;">
+                <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-trophy" style="color:#f59e0b;"></i></div>
+                <div class="stat-value" id="dash-stat-rank" style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—</div>
+                <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">Rank</div>
             </div>
-        </div>
-    </div>
-
-    <!-- Stats Row -->
-    <div class="stats-row stagger-1">
-        <div class="stat-card" onclick="navigateTo('itinerary')">
-            <div class="stat-icon"><i class="fa-solid fa-map-location-dot" style="color:#38bdf8;"></i></div>
-            <div class="stat-value" id="dash-stat-places">—</div>
-            <div class="stat-label">Places</div>
-        </div>
-        <div class="stat-card" onclick="navigateTo('leaderboard')">
-            <div class="stat-icon"><i class="fa-solid fa-bolt" style="color:#fbbf24;"></i></div>
-            <div class="stat-value" id="dash-stat-xp">—</div>
-            <div class="stat-label">XP</div>
-        </div>
-        <div class="stat-card" onclick="navigateTo('leaderboard')">
-            <div class="stat-icon"><i class="fa-solid fa-trophy" style="color:#f59e0b;"></i></div>
-            <div class="stat-value" id="dash-stat-rank">—</div>
-            <div class="stat-label">Rank</div>
         </div>
     </div>
 
@@ -128,7 +111,7 @@ if (is_dir($imgDir)) {
     <div id="weather-modal" onclick="if(event.target===this) window.closeWeatherModal()"
         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); backdrop-filter:blur(10px); z-index:99999; justify-content:center; align-items:flex-end;">
         <div
-            style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; border-radius:28px 28px 0 0; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; padding:24px 20px; box-shadow: 0 -8px 24px rgba(10, 25, 60, 0.3); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+            style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); border: none; outline: none; border-radius:28px 28px 0 0; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; padding:24px 20px; box-shadow: 0 -8px 24px rgba(10, 25, 60, 0.3); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                 <div>
                     <h3
@@ -139,8 +122,8 @@ if (is_dir($imgDir)) {
                         Fernando, La Union</p>
                 </div>
                 <button onclick="window.closeWeatherModal()"
-                    style="background:rgba(255,255,255,0.2); border:none; color:#fff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                    <i class="fa-solid fa-xmark"></i>
+                    style="background:#ffffff !important; border:none; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                    <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
                 </button>
             </div>
 
@@ -175,7 +158,7 @@ if (is_dir($imgDir)) {
 
     <!-- Gamification Panel -->
     <div class="weather-card stagger-2" onclick="navigateTo('puzzles')"
-        style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 24px; box-shadow: 0 10px 24px rgba(10, 25, 60, 0.22) !important; margin-top: 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
+        style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 24px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; margin-top: 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="font-size: 32px; filter: none;">🧩</div>
             <div>
@@ -186,8 +169,8 @@ if (is_dir($imgDir)) {
             </div>
         </div>
         <div
-            style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 14px;">
-            <i class="fa-solid fa-play"></i></div>
+            style="width: 34px; height: 34px; border-radius: 50%; background: #ffffff !important; display: flex; align-items: center; justify-content: center; color: #1e3a8a !important; font-size: 13px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0;">
+            <i class="fa-solid fa-play" style="color: #1e3a8a !important; margin-left: 2px;"></i></div>
     </div>
 
     <!-- Categories Section -->
@@ -244,7 +227,7 @@ if (is_dir($imgDir)) {
     <div class="dash-section stagger-2">
         <div class="section-title">
             <h3>Trending Sites</h3>
-            <a href="javascript:void(0);" onclick="navigateTo('trending')">See All</a>
+            <a href="javascript:void(0);" onclick="localStorage.setItem('intan_elyu_explore_mode', 'trending'); navigateTo('trending');">See All</a>
         </div>
         <div class="favorites-row is-empty" id="trending-container">
             <div class="dash-loading-state">
@@ -252,6 +235,32 @@ if (is_dir($imgDir)) {
                 <span>Loading trending sites...</span>
             </div>
         </div>
+    </div>
+
+    <!-- Tourist Sites -->
+    <div class="dash-section stagger-2" id="all-spots-section" style="margin-top: 24px;">
+        <div class="section-title" style="margin-bottom: 8px;">
+            <div>
+                <h3 style="display: flex; align-items: center; gap: 8px;">
+                    <span>Tourist Sites</span>
+                    <span id="all-spots-count-badge" class="dash-count-pill">0 Spots</span>
+                </h3>
+                <p class="section-subtitle" id="all-spots-subtitle">Browse verified attractions & hidden gems across La Union</p>
+            </div>
+            <a href="javascript:void(0);" onclick="window.navigateToTouristSitesPage()">See All</a>
+        </div>
+        <div id="all-spots-container">
+            <div class="dash-loading-state">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>Loading tourist destinations...</span>
+            </div>
+        </div>
+        <button type="button" id="btn-view-more-all-spots" onclick="window.navigateToTouristSitesPage()"
+            style="display:none; width:100%; margin-top:14px; padding:12px 18px; border-radius:14px; border:none; outline:none; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 12px rgba(32, 63, 141, 0.25); transition:all 0.2s;">
+            <i class="fa-solid fa-compass" style="font-size:13px;"></i>
+            <span id="all-spots-more-text">View All Tourist Sites</span>
+            <i class="fa-solid fa-arrow-right" style="font-size:11px; margin-left:2px;"></i>
+        </button>
     </div>
 
 
@@ -317,7 +326,7 @@ if (is_dir($imgDir)) {
 <div id="delete-trip-modal"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center;">
     <div
-        style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow: 0 12px 30px rgba(10, 25, 60, 0.4); text-align:center;">
+        style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); border: none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow: 0 12px 30px rgba(10, 25, 60, 0.4); text-align:center;">
         <i class="fa-solid fa-trash-can" style="font-size:32px; color:#ffffff; margin-bottom:10px; display:block;"></i>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Delete Saved Trip?</h3>
         <p id="delete-trip-title-text"
@@ -359,8 +368,8 @@ if (is_dir($imgDir)) {
             const t = targetCat.toLowerCase().trim();
 
             // Direct or token match
-            if (c === t || c.includes(t) || t.includes(c)) return true;
-            if (` ${c} `.includes(` ${t} `)) return true;
+            if (c && (c === t || c.includes(t) || (c.length >= 3 && t.includes(c)))) return true;
+            if (c && ` ${c} `.includes(` ${t} `)) return true;
 
             // Beach, Coastal & Surfing
             if (t.includes('beach') || t.includes('surf') || t.includes('coastal') || t.includes('island')) {
@@ -417,15 +426,21 @@ if (is_dir($imgDir)) {
                        combined.includes('mushroom') || combined.includes('fishery') || combined.includes('agri');
             }
 
-            // Nightlife & Recreation
-            if (t.includes('nightlife') || t.includes('bar') || t.includes('resort') || t.includes('recreation')) {
-                return combined.includes('nightlife') || combined.includes('bar') || combined.includes('resort') || 
-                       combined.includes('shopping') || combined.includes('festival') || combined.includes('club') || combined.includes('recreation');
+            // Nightlife (Strict matching for authentic nightlife spots only)
+            if (t === 'nightlife' || t.includes('nightlife')) {
+                return c.includes('nightlife') || combined.includes('nightlife') || 
+                       /\b(nightclub|night club|pub|pubs|disco|discotheque|restobar|resto-bar|sports bar|comedy bar|karaoke bar|lounge bar)\b/i.test(combined);
+            }
+
+            // Recreation & Resorts (Separated from Nightlife so resorts & recreation do not pollute nightlife)
+            if (t.includes('resort') || t.includes('recreation')) {
+                return c.includes('resort') || c.includes('recreation') || combined.includes('resort') || combined.includes('recreation');
             }
 
             return false;
         };
 
+        window.matchesCategory = matchesCategory;
         window.currentDashCategory = cat;
 
         const renderEmpty = (container, emptyMsg) => {
@@ -447,13 +462,17 @@ if (is_dir($imgDir)) {
 
         const renderFavCard = (dest) => {
             const img = window.getDestImage(dest, 600);
-            const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
+            const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
             const encodedDest = encodeURIComponent(JSON.stringify(dest));
+            const muni = dest.municipality || dest.location || '';
             return `
                 <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                     ${badgeHtml}
-                    <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
-                    <div class="fav-card-overlay"><span class="fav-card-name">${dest.name}</span></div>
+                    <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='assets/img/no_image.svg';">
+                    <div class="fav-card-overlay">
+                        <span class="fav-card-name">${dest.name}</span>
+                        ${muni ? `<span style="display:block; font-size:10px; color:#38bdf8; margin-top:2px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-location-dot" style="margin-right:3px;"></i>${muni}</span>` : ''}
+                    </div>
                     <i class="fa-solid fa-fire fav-heart" style="color: #ff9500; font-size: 14px;"></i>
                 </div>
             `;
@@ -477,7 +496,7 @@ if (is_dir($imgDir)) {
                 trendingContainer.innerHTML = list.map(renderFavCard).join('');
                 window.initLoopingFocusCarousel('trending-container');
             } else {
-                renderEmpty(trendingContainer, 'No trending sites in this category.');
+                renderEmpty(trendingContainer, cat === 'Nightlife' ? 'No Nightlife Tourist Sites Yet' : 'No trending sites in this category.');
             }
         }
 
@@ -501,7 +520,7 @@ if (is_dir($imgDir)) {
                         </div>
                         <button id="btn-view-more-rec"
                             onclick="window.toggleRecommendedMore()"
-                            style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border: none; outline:none; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 6px 16px rgba(10, 25, 60, 0.2); transition: all 0.2s;">
+                            style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border: none; outline:none; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.25); transition: all 0.2s;">
                             <i class="fa-solid fa-chevron-down" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i>
                             View ${extras.length} More
                         </button>
@@ -513,7 +532,7 @@ if (is_dir($imgDir)) {
                     recContainer.classList.remove('is-empty');
                     recContainer.innerHTML = list.map(dest => window.buildRecommendedItem(dest)).join('');
                 } else {
-                    renderEmpty(recContainer, 'No recommended sites in this category.');
+                    renderEmpty(recContainer, cat === 'Nightlife' ? 'No Nightlife Tourist Sites Yet' : 'No recommended sites in this category.');
                 }
             }
         }
@@ -537,7 +556,7 @@ if (is_dir($imgDir)) {
                     nearContainer.style.marginRight = '';
                     nearContainer.innerHTML = list.map(dest => {
                         const img = window.getDestImage(dest, 600);
-                        const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
+                        const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
                         let distText = '';
                         if (dest.distance !== undefined && dest.distance < 999999) {
                             if (dest.distance < 0.05) distText = `${Math.max(5, Math.round(dest.distance * 1000))}m away`;
@@ -548,7 +567,7 @@ if (is_dir($imgDir)) {
                         return `
                             <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                                 ${badgeHtml}
-                                <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
+                                <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='assets/img/no_image.svg';">
                                 <div class="fav-card-overlay">
                                     <span class="fav-card-name">${dest.name}</span>
                                     ${distText ? `<span style="display:block; font-size:10px; color:#38bdf8; margin-top:2px; font-weight:700;"><i class="fa-solid fa-location-arrow"></i> ${distText}</span>` : ''}
@@ -558,9 +577,156 @@ if (is_dir($imgDir)) {
                     }).join('');
                     window.initLoopingFocusCarousel('near-me-container');
                 } else if (cat !== 'All') {
-                    renderEmpty(nearContainer, 'No nearby sites found in this category.');
+                    renderEmpty(nearContainer, cat === 'Nightlife' ? 'No Nightlife Sites Nearby' : 'No nearby sites found in this category.');
                 }
             }
+        }
+
+        // 4. Filter All Tourist Sites Section
+        if (window.allTouristSpots && typeof window.renderAllTouristSpots === 'function') {
+            let allList = [];
+            if (cat === 'All') {
+                allList = window.allTouristSpots;
+            } else {
+                allList = window.allTouristSpots.filter(d => matchesCategory(d.category, d.name, d.municipality || d.location, cat));
+            }
+            window.renderAllTouristSpots(allList, cat);
+        }
+    };
+
+    window.buildAllSpotCard = function (dest) {
+        const img = window.getDestImage(dest, 400);
+        const badgeHtml = dest.classification_status ? `<div class="all-spot-badge" style="background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')};">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
+        const muni = dest.municipality || dest.location || 'La Union';
+        const rating = (dest.rating !== undefined && dest.rating !== null && !isNaN(parseFloat(dest.rating))) ? parseFloat(dest.rating).toFixed(1) : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating).toFixed(1) : '0.0');
+        const fee = (dest.entrance_fee && parseFloat(dest.entrance_fee) > 0) ? `₱${parseFloat(dest.entrance_fee).toFixed(0)}` : 'Free';
+        const cat = dest.category || 'Spot';
+        const encodedDest = encodeURIComponent(JSON.stringify(dest));
+
+        return `
+            <div class="all-spot-card" onclick="window.viewDestinationOnMap('${encodedDest}')">
+                <div class="all-spot-img-wrap">
+                    ${badgeHtml}
+                    <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400';">
+                </div>
+                <div class="all-spot-content">
+                    <div>
+                        <h4 class="all-spot-title" title="${(dest.name || '').replace(/"/g, '&quot;')}">${dest.name}</h4>
+                        <div class="all-spot-muni"><i class="fa-solid fa-location-dot" style="font-size:9px;"></i> ${muni}</div>
+                    </div>
+                    <div class="all-spot-tags">
+                        <span class="all-spot-pill">${cat}</span>
+                        <span class="all-spot-rating"><i class="fa-solid fa-star" style="font-size:9px;"></i> ${rating}</span>
+                        <span class="all-spot-fee">${fee}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    };
+
+    // Limit the number of tourist sites on the dashboard to maximize a compact minimum (4 cards)
+    // Full catalog with search, filters & sort displays on the dedicated Tourist Sites page
+    window.navigateToTouristSitesPage = function () {
+        localStorage.setItem('intan_elyu_explore_mode', 'all');
+        if (window.currentDashCategory && window.currentDashCategory !== 'All') {
+            localStorage.setItem('intan_elyu_filter_category', window.currentDashCategory);
+        } else {
+            localStorage.removeItem('intan_elyu_filter_category');
+        }
+        if (typeof window.navigateTo === 'function') {
+            window.navigateTo('trending');
+        } else {
+            window.location.href = '?view=trending';
+        }
+    };
+
+    window.toggleAllSpotsMore = window.navigateToTouristSitesPage;
+
+    window.renderAllTouristSpots = function (spots, activeCat = 'All') {
+        const container = document.getElementById('all-spots-container');
+        const countBadge = document.getElementById('all-spots-count-badge');
+        const subtitle = document.getElementById('all-spots-subtitle');
+        const moreBtn = document.getElementById('btn-view-more-all-spots');
+        if (!container) return;
+
+        if (!spots || spots.length === 0) {
+            if (countBadge) countBadge.textContent = '0 Spots';
+            if (moreBtn) moreBtn.style.display = 'none';
+            container.innerHTML = `
+                <div class="dash-empty-state" style="margin-top: 6px !important;">
+                    <div class="dash-empty-icon-wrap">
+                        <i class="fa-solid fa-compass"></i>
+                    </div>
+                    <div class="dash-empty-title">No Spots in ${activeCat}</div>
+                    <div class="dash-empty-desc">No tourist sites found in this category right now. Tap All to view all destinations.</div>
+                </div>
+            `;
+            return;
+        }
+
+        if (countBadge) {
+            countBadge.textContent = `${spots.length} Spot${spots.length === 1 ? '' : 's'}`;
+        }
+
+        if (subtitle) {
+            if (activeCat === 'All') {
+                subtitle.textContent = `Browse verified attractions & hidden gems across La Union`;
+            } else {
+                subtitle.textContent = `Showing ${spots.length} destination${spots.length === 1 ? '' : 's'} in ${activeCat}`;
+            }
+        }
+
+        const DASHBOARD_SPOT_LIMIT = 4;
+        const initialSpots = spots.slice(0, DASHBOARD_SPOT_LIMIT);
+
+        let html = '<div class="all-spots-grid">';
+        initialSpots.forEach(s => {
+            html += window.buildAllSpotCard(s);
+        });
+        html += '</div>';
+
+        container.innerHTML = html;
+
+        if (moreBtn) {
+            if (spots.length > DASHBOARD_SPOT_LIMIT) {
+                moreBtn.style.display = 'flex';
+                const moreTxt = document.getElementById('all-spots-more-text');
+                if (moreTxt) moreTxt.textContent = `View All ${spots.length} Tourist Sites`;
+            } else {
+                moreBtn.style.display = 'none';
+            }
+        }
+    };
+
+    window.fetchAllTouristSpots = async function () {
+        const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+        const cacheKey = 'public_map_data';
+        try {
+            await window.useCache(
+                cacheKey,
+                async () => {
+                    const res = await fetch(backendUrl + '/api/public/map');
+                    if (!res.ok) throw new Error("Failed to fetch all spots");
+                    return await res.json();
+                },
+                (data) => {
+                    if (data && data.destinations) {
+                        window.allTouristSpots = (data.destinations || [])
+                            .filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()))
+                            .sort((a, b) => (b.id || 0) - (a.id || 0));
+                        const activeCat = window.currentDashCategory || 'All';
+                        let filtered = window.allTouristSpots;
+                        if (activeCat !== 'All' && typeof window.matchesCategory === 'function') {
+                            filtered = window.allTouristSpots.filter(d => window.matchesCategory(d.category, d.name, d.municipality || d.location, activeCat));
+                        }
+                        window.renderAllTouristSpots(filtered, activeCat);
+                    }
+                },
+                false,
+                60000
+            );
+        } catch (e) {
+            console.warn('fetchAllTouristSpots handled:', e);
         }
     };
 
@@ -662,11 +828,22 @@ if (is_dir($imgDir)) {
         if (user && user.name) {
             setHtml('dash-name', 'Hi, ' + user.name.split(' ')[0] + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
             setSrc('dash-avatar', user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+            const initTouristNum = user.tourist_number || user.tourist_id || (user.role === 'tourist' ? 1 : '');
+            if (initTouristNum) {
+                setTxt('dash-explorer-id', 'ID: #' + initTouristNum);
+            }
+            const initPts = parseInt(user.points !== undefined ? user.points : (user.xp || 0)) || 0;
+            const ptsEl = document.getElementById('dash-stat-points');
+            if (ptsEl) ptsEl.textContent = initPts.toLocaleString();
+            setTxt('dash-title', 'Explorer of Elyu');
         }
 
         if (!token) return;
 
-        let lat = window.currentGPSLat || null, lng = window.currentGPSLng || null;
+        // Fetch all tourist spots early so "All Tourist Sites" container loads without delay
+        if (typeof window.fetchAllTouristSpots === 'function') {
+            window.fetchAllTouristSpots();
+        }
         try {
             if (typeof window.requestPreciseLocation === 'function') {
                 const loc = await window.requestPreciseLocation(true);
@@ -703,9 +880,9 @@ if (is_dir($imgDir)) {
         const cacheKey = 'dashboard_data_' + (lat && lng ? `${lat.toFixed(3)}_${lng.toFixed(3)}` : 'default');
 
         function renderDashboard(data) {
-            window.dashTrending = data.trending || [];
-            window.dashRecommended = data.recommended || [];
-            window.dashSaved = data.savedPlaces || [];
+            window.dashTrending = (data.trending || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
+            window.dashRecommended = (data.recommended || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
+            window.dashSaved = (data.savedPlaces || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
 
             // Update notification badge
             if (data.stats && typeof window.updateUnreadBadge === 'function') {
@@ -714,13 +891,23 @@ if (is_dir($imgDir)) {
 
             const u = data.user || {};
 
+            const points = parseInt(u.points !== undefined ? u.points : (u.xp || 0)) || 0;
+
             // Profile header
             const firstName = (u.name || 'Explorer').split(' ')[0];
             setHtml('dash-name', 'Hi, ' + firstName + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
-            setTxt('dash-title', 'Level ' + (u.level || 1) + ' Explorer');
+            setTxt('dash-title', 'Explorer of Elyu');
 
-            const userId = u.id || u.user_id || '';
-            if (userId) setTxt('dash-explorer-id', 'ID: #' + userId);
+            const touristNum = u.tourist_number || u.tourist_id || (u.role === 'tourist' ? 1 : (u.id || u.user_id || ''));
+            if (touristNum) {
+                setTxt('dash-explorer-id', 'ID: #' + touristNum);
+                try {
+                    const storedUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    storedUser.tourist_number = touristNum;
+                    storedUser.tourist_id = touristNum;
+                    localStorage.setItem('auth_user', JSON.stringify(storedUser));
+                } catch (e) { }
+            }
 
             if (u.avatar) {
                 let avatarUrl = u.avatar;
@@ -749,31 +936,9 @@ if (is_dir($imgDir)) {
                 setSrc('dash-avatar', `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Tourist')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
             }
 
-            // XP Bar
-            const xp = parseInt(u.xp) || 0;
-            const level = parseInt(u.level) || 1;
-            const xpPerLevel = 1000;
-            const xpInLevel = xp % xpPerLevel;
-            const xpPct = Math.min((xpInLevel / xpPerLevel) * 100, 100);
-            const xpNeeded = xpPerLevel - xpInLevel;
-
-            const lvlLabel = document.getElementById('dash-level-label');
-            if (lvlLabel) lvlLabel.innerHTML = `<i class="fa-solid fa-award" style="color:#00f2fe; margin-right:4px;"></i> Level ${level} Progress`;
-
-            const xpVal = document.getElementById('dash-xp-value');
-            if (xpVal) xpVal.innerHTML = `<i class="fa-solid fa-bolt" style="color:#fbbf24; margin-right:4px;"></i>${xpInLevel.toLocaleString()} / ${xpPerLevel.toLocaleString()} XP`;
-
-            const xpNeedEl = document.getElementById('dash-xp-needed');
-            if (xpNeedEl) xpNeedEl.textContent = `${xpNeeded.toLocaleString()} XP to Level ${level + 1}`;
-
-            const xpPctEl = document.getElementById('dash-xp-pct');
-            if (xpPctEl) xpPctEl.textContent = `${Math.round(xpPct)}%`;
-
-            if (document.getElementById('dash-xp-bar')) document.getElementById('dash-xp-bar').style.width = xpPct + '%';
-
             // Stats
             if (document.getElementById('dash-stat-places')) document.getElementById('dash-stat-places').textContent = (data.stats && data.stats.placesVisited) ? data.stats.placesVisited : 0;
-            if (document.getElementById('dash-stat-xp')) document.getElementById('dash-stat-xp').textContent = xp.toLocaleString();
+            if (document.getElementById('dash-stat-points')) document.getElementById('dash-stat-points').textContent = points.toLocaleString();
 
             // Populate Trending Spots (Limit to top 5, "See All" opens full list)
             const trendingContainer = document.getElementById('trending-container');
@@ -788,13 +953,17 @@ if (is_dir($imgDir)) {
                     const trendingList = data.trending.slice(0, 5);
                     trendingList.forEach(dest => {
                         const img = window.getDestImage(dest, 600);
-                        const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
+                        const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
                         const encodedDest = encodeURIComponent(JSON.stringify(dest));
+                        const muni = dest.municipality || dest.location || '';
                         trendingContainer.innerHTML += `
                         <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                             ${badgeHtml}
                             <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
-                            <div class="fav-card-overlay"><span class="fav-card-name">${dest.name}</span></div>
+                            <div class="fav-card-overlay">
+                                <span class="fav-card-name">${dest.name}</span>
+                                ${muni ? `<span style="display:block; font-size:10px; color:#38bdf8; margin-top:2px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-location-dot"></i> ${muni}</span>` : ''}
+                            </div>
                             <i class="fa-solid fa-fire fav-heart" style="color: #ff9500; font-size: 14px;"></i>
                         </div>
                     `;
@@ -836,7 +1005,7 @@ if (is_dir($imgDir)) {
                     const savedList = data.savedPlaces.slice(0, 5);
                     savedList.forEach(dest => {
                         const img = window.getDestImage(dest, 600);
-                        const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
+                        const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
                         const encodedDest = encodeURIComponent(JSON.stringify(dest));
                         savedContainer.innerHTML += `
                         <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
@@ -895,7 +1064,7 @@ if (is_dir($imgDir)) {
                     </div>
                     <button id="btn-view-more-rec"
                         onclick="window.toggleRecommendedMore()"
-                        style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border: none; outline:none; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 6px 16px rgba(10, 25, 60, 0.2); transition: all 0.2s;">
+                        style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border: none; outline:none; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.25); transition: all 0.2s;">
                         <i class="fa-solid fa-chevron-down" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i>
                         View ${extras.length} More
                     </button>
@@ -955,25 +1124,25 @@ if (is_dir($imgDir)) {
             // Identify user's municipality in La Union
             const munis = [
                 { name: 'San Fernando City', lat: 16.6159, lng: 120.3167 },
-                { name: 'San Juan', lat: 16.6731, lng: 120.3320 },
+                { name: 'San Juan', lat: 16.671123, lng: 120.338487 },
                 { name: 'Bauang', lat: 16.5319, lng: 120.3298 },
-                { name: 'Bacnotan', lat: 16.7340, lng: 120.3530 },
-                { name: 'Balaoan', lat: 16.8200, lng: 120.4000 },
-                { name: 'Luna', lat: 16.8554, lng: 120.3832 },
-                { name: 'Bangar', lat: 16.8942, lng: 120.4298 },
-                { name: 'Sudipen', lat: 16.8734, lng: 120.5200 },
-                { name: 'Santol', lat: 16.7800, lng: 120.5400 },
-                { name: 'San Gabriel', lat: 16.7150, lng: 120.5600 },
-                { name: 'Bagulin', lat: 16.6100, lng: 120.5000 },
-                { name: 'Burgos', lat: 16.5990, lng: 120.5330 },
+                { name: 'Bacnotan', lat: 16.7202, lng: 120.3353 },
+                { name: 'Balaoan', lat: 16.8228, lng: 120.4005 },
+                { name: 'Luna', lat: 16.8554, lng: 120.3758 },
+                { name: 'Bangar', lat: 16.8942, lng: 120.4245 },
+                { name: 'Sudipen', lat: 16.9031, lng: 120.4700 },
+                { name: 'Santol', lat: 16.7686, lng: 120.4578 },
+                { name: 'San Gabriel', lat: 16.6711, lng: 120.4050 },
+                { name: 'Bagulin', lat: 16.6072, lng: 120.4422 },
+                { name: 'Burgos', lat: 16.5183, lng: 120.4578 },
                 { name: 'Naguilian', lat: 16.5366, lng: 120.3926 },
-                { name: 'Caba', lat: 16.4318, lng: 120.3456 },
-                { name: 'Aringay', lat: 16.3946, lng: 120.3543 },
-                { name: 'Agoo', lat: 16.3223, lng: 120.3670 },
+                { name: 'Caba', lat: 16.4292, lng: 120.3344 },
+                { name: 'Aringay', lat: 16.3958, lng: 120.3325 },
+                { name: 'Agoo', lat: 16.3217, lng: 120.3667 },
                 { name: 'Tubao', lat: 16.3470, lng: 120.4126 },
-                { name: 'Pugo', lat: 16.3350, lng: 120.4850 },
-                { name: 'Santo Tomas', lat: 16.2650, lng: 120.3850 },
-                { name: 'Rosario', lat: 16.2100, lng: 120.4300 }
+                { name: 'Pugo', lat: 16.3167, lng: 120.4667 },
+                { name: 'Santo Tomas', lat: 16.2842, lng: 120.3861 },
+                { name: 'Rosario', lat: 16.2286, lng: 120.4850 }
             ];
 
             let detectedMuni = preferredLocationName || null;
@@ -998,7 +1167,7 @@ if (is_dir($imgDir)) {
                 _renderedNearMuniHeader = cleanName;
                 const nearSectionHeader = document.querySelector('#near-me-container')?.closest('.dash-section')?.querySelector('.section-title h3');
                 if (nearSectionHeader) {
-                    nearSectionHeader.innerHTML = `Near Me <span style="font-size:12px; font-weight:700; color:#38bdf8; margin-left:6px; background:rgba(56,189,248,0.15); padding:2px 8px; border-radius:12px;"><i class="fa-solid fa-location-dot"></i> ${cleanName}</span>`;
+                    nearSectionHeader.innerHTML = `Near Me <span class="dash-count-pill" style="font-size:11px; font-weight:800; color:#1e3a8a !important; margin-left:6px; background:#ffffff !important; border:none !important; outline:none !important; padding:3px 10px; border-radius:100px; box-shadow:0 1px 4px rgba(0,0,0,0.14); display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-location-dot" style="color:#0284c7 !important; font-size:9.5px;"></i> ${cleanName}</span>`;
                 }
             }
 
@@ -1033,7 +1202,7 @@ if (is_dir($imgDir)) {
                     }
 
                     // Clone spots array so we do not mutate cached data in-place
-                    let rawSpots = data.destinations || [];
+                    let rawSpots = (data.destinations || []).filter(s => !s.status || s.status.toLowerCase() !== 'pending');
                     let spots = rawSpots.map(s => {
                         const copy = { ...s };
                         const sLat = parseFloat(copy.lat || copy.latitude);
@@ -1102,7 +1271,7 @@ if (is_dir($imgDir)) {
 
                         nearSpots.forEach(dest => {
                             const img = window.getDestImage(dest, 600);
-                            const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
+                            const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
 
                             let distText = '';
                             if (dest.distance < 0.05) {
@@ -1155,23 +1324,40 @@ if (is_dir($imgDir)) {
         }
         window.loadNearMe = loadNearMe;
 
+        window.resolveMunicipalityName = function (dest) {
+            if (!dest) return 'La Union';
+            const muniMap = {
+                1: 'San Fernando City', 2: 'San Juan', 3: 'Bauang', 4: 'Bacnotan',
+                5: 'Balaoan', 6: 'Luna', 7: 'Bangar', 8: 'Sudipen', 9: 'Santol',
+                10: 'San Gabriel', 11: 'Bagulin', 12: 'Burgos', 13: 'Naguilian',
+                14: 'Caba', 15: 'Aringay', 16: 'Agoo', 17: 'Tubao', 18: 'Pugo',
+                19: 'Santo Tomas', 20: 'Rosario'
+            };
+            let val = dest.municipality || dest.location;
+            if (!val || !isNaN(Number(val))) {
+                val = muniMap[dest.municipality_id] || muniMap[Number(val)] || 'San Juan, La Union';
+            }
+            return val;
+        };
+
         window.buildRecommendedItem = function (dest) {
             const img = window.getDestImage(dest, 300);
-            const rating = dest.rating ? parseFloat(dest.rating).toFixed(1) : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating).toFixed(1) : 'New');
+            const rating = (dest.rating !== undefined && dest.rating !== null && !isNaN(parseFloat(dest.rating))) ? parseFloat(dest.rating).toFixed(1) : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating).toFixed(1) : '0.0');
             const desc = dest.description ? dest.description.substring(0, 150) + (dest.description.length > 150 ? '...' : '') : 'A beautiful destination waiting to be explored.';
+            const locName = window.resolveMunicipalityName(dest);
 
             const encodedDest = encodeURIComponent(JSON.stringify(dest));
             return `
-            <div class="rec-item-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}">
+            <div class="rec-item-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(locName || '').replace(/"/g, '&quot;')}">
                 <div onclick="window.toggleRecommendedCard(this)" style="cursor:pointer; display:flex; align-items:center; gap: 12px; padding: 12px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(56, 189, 248, 0.18)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
                     <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" style="width:60px; height:60px; border-radius:12px; object-fit:cover;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
                     <div style="flex:1; min-width:0;">
                         <h4 class="rec-title">${dest.name}</h4>
-                        <p class="rec-loc"><i class="fa-solid fa-location-dot" style="margin-right:4px; color:#00f2fe;"></i>${dest.location || dest.municipality_id || 'La Union'}</p>
+                        <p class="rec-loc"><i class="fa-solid fa-location-dot" style="margin-right:4px; color:#00f2fe;"></i>${locName}</p>
                         <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
                             <i class="fa-solid fa-star" style="color:#f59e0b; font-size:11px;"></i>
                             <span class="rec-rating">${rating}</span>
-                            ${dest.classification_status ? `<span style="padding: 2px 6px; border-radius: 6px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#16a34a' : (dest.classification_status === 'EMERGE' ? '#0284c7' : '#d97706')};">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
+                            ${dest.classification_status ? `<span style="padding: 2px 6px; border-radius: 6px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')};">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
                         </div>
                     </div>
                     <i class="fa-solid fa-chevron-right toggle-icon rec-chevron"></i>
@@ -1182,11 +1368,11 @@ if (is_dir($imgDir)) {
                         ${desc}
                     </div>
                     <div style="display:flex; gap:8px; font-size:11px; margin-bottom:12px; flex-wrap:wrap;">
-                        ${dest.category ? `<span style="background:rgba(255,255,255,0.2); color:#ffffff; padding:4px 10px; border-radius:100px; font-weight:700;">${dest.category}</span>` : ''}
-                        ${dest.entrance_fee ? `<span style="background:rgba(0,242,254,0.18); color:#00f2fe; padding:4px 10px; border-radius:100px; font-weight:700;">₱${dest.entrance_fee}</span>` : '<span style="background:rgba(34,197,94,0.2); color:#4ade80; padding:4px 10px; border-radius:100px; font-weight:700;">Free</span>'}
+                        ${dest.category ? `<span style="background:#ffffff !important; color:#1e3a8a !important; padding:4px 10px; border-radius:100px; font-weight:800; box-shadow:0 1px 4px rgba(0,0,0,0.12);">${dest.category}</span>` : ''}
+                        ${dest.entrance_fee ? `<span style="background:#ffffff !important; color:#0284c7 !important; padding:4px 10px; border-radius:100px; font-weight:800; box-shadow:0 1px 4px rgba(0,0,0,0.12);">₱${dest.entrance_fee}</span>` : '<span style="background:#ffffff !important; color:#16a34a !important; padding:4px 10px; border-radius:100px; font-weight:800; box-shadow:0 1px 4px rgba(0,0,0,0.12);">Free</span>'}
                     </div>
-                    <button onclick="window.viewDestinationOnMap('${encodedDest}')" style="width:100%; margin-bottom:14px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none; color:#0f172a; padding:10px; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:none; display:flex; align-items:center; justify-content:center; gap:8px;">
-                        <i class="fa-solid fa-map-location-dot"></i> View Details on Map
+                    <button onclick="window.viewDestinationOnMap('${encodedDest}')" style="width:100%; margin-bottom:14px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none; color:#ffffff !important; padding:10px; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:none; display:flex; align-items:center; justify-content:center; gap:8px;">
+                        <i class="fa-solid fa-map-location-dot" style="color:#ffffff !important;"></i> View Details on Map
                     </button>
                 </div>
             </div>
@@ -1322,17 +1508,65 @@ if (is_dir($imgDir)) {
                                     <div class="trip-swipe-bg" onclick="window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}')" style="position: absolute; top: 0; right: 0; bottom: 0; width: 85px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 0 20px 20px 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 800; gap: 4px; z-index: 1; opacity: 0; pointer-events: none; transform: translateX(85px); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease; cursor: pointer;">
                                         <i class="fa-solid fa-trash-can"></i> Delete
                                     </div>
-                                    <div class="trip-swipe-content" style="position: relative; z-index: 2; transition: transform 0.2s ease, border-radius 0.2s ease; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 20px rgba(10, 25, 60, 0.2) !important;">
+                                    <div class="trip-swipe-content" style="position: relative; z-index: 2; transition: transform 0.2s ease, border-radius 0.2s ease; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
                                         <div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.toggle-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.paddingTop = '14px'; content.style.paddingBottom = '16px'; content.style.maxHeight = (content.scrollHeight + 50) + 'px'; content.style.opacity = '1'; icon.style.transform = 'rotate(90deg)'; } else { content.style.maxHeight = '0px'; content.style.opacity = '0'; content.style.paddingTop = '0'; content.style.paddingBottom = '0'; icon.style.transform = 'rotate(0deg)'; }" style="cursor:pointer; display:flex; align-items:center; gap: 14px; padding: 16px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.08)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
                                             <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(255, 255, 255, 0.22); border: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: none;">
                                                 <i class="fa-solid fa-map-location-dot" style="color: #ffffff; font-size: 20px;"></i>
                                             </div>
                                             <div style="flex: 1; min-width: 0;">
                                                 <span style="display:block; font-size:16px; font-weight:800; color:#ffffff; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.3px;">${trip.title}</span>
-                                                <span style="display:flex; align-items:center; gap:8px; font-size:12px; color:rgba(255,255,255,0.9); font-weight:600;">
+                                                <span style="display:flex; align-items:center; gap:8px; font-size:12px; color:rgba(255,255,255,0.9); font-weight:600; flex-wrap:wrap;">
                                                     <span><i class="fa-solid fa-location-dot" style="margin-right:4px; color:#ffffff;"></i>${trip.items ? trip.items.length : 0} Stops</span>
                                                     <span style="color:rgba(255,255,255,0.4);">&bull;</span>
                                                     <span><i class="fa-regular fa-calendar" style="margin-right:4px; color:#ffffff;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No Date'}</span>
+                                                    ${trip.transport_mode ? (() => {
+                                                        const parts = String(trip.transport_mode).split(/[,+]|\band\b/i).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+                                                        if (parts.length === 0 || parts[0].includes('no_vehicle') || parts[0].includes('no vehicle')) {
+                                                            return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid fa-ban" style="margin-right:4px; color:#f87171;"></i>No Vehicle Selected</span>`;
+                                                        }
+                                                        if (parts.length > 1) {
+                                                            return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid fa-route" style="margin-right:4px; color:#38bdf8;"></i>${parts.length} Vehicles</span>`;
+                                                        }
+                                                        const rawT = parts[0];
+                                                        const tMap = {
+                                                            'own_car': 'Own Car',
+                                                            'mpuj': 'MPUJ',
+                                                            'tpuj': 'TPUJ',
+                                                            'pub_aircon': 'PUB Aircon',
+                                                            'pub_ordinary': 'PUB Ordinary',
+                                                            'pub_regular': 'PUB Regular',
+                                                            'uve': 'UV Express',
+                                                            'jeepney': 'Jeepney',
+                                                            'tricycle': 'Tricycle',
+                                                            'bus': 'Bus',
+                                                            'private_bus': 'PUB Aircon',
+                                                            'mini_bus': 'Mini Bus',
+                                                            'lutrampco': 'LUTRAMPCO',
+                                                            'taxi': 'Taxi',
+                                                            'motorcycle': 'Motorcycle',
+                                                            'walking': 'Walking'
+                                                        };
+                                                        const tIco = {
+                                                            'own_car': 'fa-car',
+                                                            'mpuj': 'fa-van-shuttle',
+                                                            'tpuj': 'fa-van-shuttle',
+                                                            'pub_aircon': 'fa-bus',
+                                                            'pub_ordinary': 'fa-bus-simple',
+                                                            'pub_regular': 'fa-bus-simple',
+                                                            'uve': 'fa-van-shuttle',
+                                                            'jeepney': 'fa-van-shuttle',
+                                                            'tricycle': 'fa-motorcycle',
+                                                            'bus': 'fa-bus',
+                                                            'private_bus': 'fa-bus',
+                                                            'mini_bus': 'fa-bus-simple',
+                                                            'lutrampco': 'fa-van-shuttle',
+                                                            'taxi': 'fa-taxi',
+                                                            'motorcycle': 'fa-motorcycle',
+                                                            'walking': 'fa-person-walking'
+                                                        };
+                                                        const displayName = tMap[rawT] || rawT.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                                        return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid ${tIco[rawT] || 'fa-car'}" style="margin-right:4px; color:#38bdf8;"></i>${displayName}</span>`;
+                                                    })() : ''}
                                                 </span>
                                             </div>
                                             <i class="fa-solid fa-chevron-right toggle-icon" style="color: rgba(255,255,255,0.7); font-size: 14px; margin-right:4px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></i>
@@ -1340,11 +1574,11 @@ if (is_dir($imgDir)) {
                                         <div style="max-height: 0px; opacity: 0; padding: 0 16px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; background: transparent; border-top: none;">
                                             ${destinationsHtml}
                                             <div style="display:flex; gap:10px; margin-top:12px; margin-bottom:2px;">
-                                                <button onclick="window.location.href='?view=trip_map&trip_id=${trip.id}'" style="flex:1; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none; outline:none; color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:none;">
+                                                <button onclick="if(window.sessionStorage){sessionStorage.setItem('active_trip_transport_${trip.id}', '${trip.transport_mode || ''}'); localStorage.setItem('selected_trip_vehicle_${trip.id}', '${trip.transport_mode || ''}');} window.location.href='?view=trip_map&trip_id=${trip.id}${trip.transport_mode ? '&transport=' + encodeURIComponent(trip.transport_mode) : ''}'" style="flex:1; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none; outline:none; color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:none;">
                                                     <i class="fa-solid fa-compass"></i> Start Trip
                                                 </button>
-                                                <button onclick="navigateTo('saved_trips')" style="flex:1; background:rgba(255,255,255,0.22); border:none; outline:none; color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:none;">
-                                                    <i class="fa-solid fa-route"></i> View Details
+                                                <button onclick="navigateTo('saved_trips')" style="flex:1; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important;">
+                                                    <i class="fa-solid fa-route" style="color:#1e3a8a !important;"></i> View Details
                                                 </button>
                                             </div>
                                         </div>
@@ -1359,8 +1593,8 @@ if (is_dir($imgDir)) {
                         } else {
                             tripsContainer.innerHTML = `
                             <div class="dash-empty-state">
-                                <div class="dash-empty-icon-wrap">
-                                    <i class="fa-solid fa-route"></i>
+                                <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                                    <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
                                 </div>
                                 <div class="dash-empty-title">No Saved Trips Yet</div>
                                 <div class="dash-empty-desc">Create custom itineraries and explore recommended routes for your La Union adventure.</div>
@@ -1492,7 +1726,11 @@ if (is_dir($imgDir)) {
         try {
             const dest = JSON.parse(decodeURIComponent(encodedDest));
             localStorage.setItem('intan_elyu_view_destination', JSON.stringify(dest));
-            window.location.href = '?view=map';
+            if (typeof window.navigateTo === 'function') {
+                window.navigateTo('map');
+            } else {
+                window.location.href = '?view=map';
+            }
         } catch (e) { console.error('Failed to view destination:', e); }
     };
 
@@ -1583,7 +1821,7 @@ if (is_dir($imgDir)) {
                         const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
                         const res = await fetch(backendUrl + '/api/public/map');
                         const data = await res.json();
-                        allDestinationsForSearch = data.destinations || [];
+                        allDestinationsForSearch = (data.destinations || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
                     } catch (err) {
                         console.error('Failed to fetch destinations for search', err);
                         allDestinationsForSearch = [];
@@ -1830,8 +2068,8 @@ if (is_dir($imgDir)) {
                         if (tripsContainer && (!tripsContainer.querySelectorAll('.trip-swipe-container') || tripsContainer.querySelectorAll('.trip-swipe-container').length === 0)) {
                             tripsContainer.innerHTML = `
                                 <div class="dash-empty-state">
-                                    <div class="dash-empty-icon-wrap">
-                                        <i class="fa-solid fa-route"></i>
+                                    <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                                        <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
                                     </div>
                                     <div class="dash-empty-title">No Saved Trips Yet</div>
                                     <div class="dash-empty-desc">Create custom itineraries and explore recommended routes for your La Union adventure.</div>
@@ -2172,7 +2410,7 @@ if (is_dir($imgDir)) {
 <div id="delete-trip-modal"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center;">
     <div
-        style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow: 0 12px 30px rgba(10, 25, 60, 0.4); text-align:center;">
+        style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); border: none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow: 0 12px 30px rgba(10, 25, 60, 0.4); text-align:center;">
         <i class="fa-solid fa-trash-can" style="font-size:32px; color:#ffffff; margin-bottom:10px; display:block;"></i>
         <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Delete Saved Trip?</h3>
         <p id="delete-trip-title-text"

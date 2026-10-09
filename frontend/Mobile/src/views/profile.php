@@ -7,13 +7,13 @@ $activeTab = 'profile';
 <?php include __DIR__ . '/../components/header.php'; ?>
 <?php include __DIR__ . '/../components/testimony_modal.php'; ?>
 
-<div class="profile-container has-header has-bottom-nav animate-slide-up" style="padding-bottom: 90px;">
+<div class="profile-container has-header has-bottom-nav animate-slide-up">
     
     <!-- Profile Main Header Card -->
     <div class="profile-header stagger-1" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; border-radius: 24px; padding: 24px 20px; text-align: center; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25); margin-bottom: 20px;">
         <div class="profile-avatar-container" style="position: relative; display: inline-block; margin-bottom: 12px;">
             <img src="https://ui-avatars.com/api/?name=User&background=007AFF&color=fff&rounded=true&bold=true&size=128" alt="Profile" class="profile-avatar" id="profile-img" style="width: 100px; height: 100px; border-radius: 50%; border: none !important; outline: none !important; object-fit: cover; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);">
-            <span id="profile-badge-icon" style="position: absolute; bottom: 2px; right: 2px; background: linear-gradient(135deg, #00f2fe, #0284c7); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; border: none !important; outline: none !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);" title="Explorer Level"><i class="fa-solid fa-shield-halved"></i></span>
+            <span id="profile-badge-icon" style="position: absolute; bottom: 2px; right: 2px; background: linear-gradient(135deg, #00f2fe, #0284c7); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; border: none !important; outline: none !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);" title="Verified Explorer"><i class="fa-solid fa-shield-halved"></i></span>
         </div>
 
         <h2 class="profile-name" id="profile-name" style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">Loading...</h2>
@@ -24,51 +24,36 @@ $activeTab = 'profile';
         
         <div id="profile-pref-chips" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 12px;"></div>
 
-    </div>
-    
-    <!-- Stats Cards (XP, Visited, Rank) -->
-    <div class="stats-container stagger-2" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
-        <div class="stat-card" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 18px; padding: 14px 10px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">
-            <div class="stat-value" id="stat-xp" style="font-size: 20px; font-weight: 800; color: #00f2fe;">0</div>
-            <div class="stat-label" style="font-size: 11px; font-weight: 700; color: #ffffff; opacity: 0.95; text-transform: uppercase; margin-top: 2px;">Total XP</div>
-        </div>
-        <div class="stat-card" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 18px; padding: 14px 10px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">
-            <div class="stat-value" id="stat-places" style="font-size: 20px; font-weight: 800; color: #ffffff;">0</div>
-            <div class="stat-label" style="font-size: 11px; font-weight: 700; color: #ffffff; opacity: 0.95; text-transform: uppercase; margin-top: 2px;">Visited</div>
-        </div>
-        <div class="stat-card" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 18px; padding: 14px 10px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">
-            <div class="stat-value" id="stat-rank" style="font-size: 20px; font-weight: 800; color: #fbbf24;">—</div>
-            <div class="stat-label" style="font-size: 11px; font-weight: 700; color: #ffffff; opacity: 0.95; text-transform: uppercase; margin-top: 2px;">Leaderboard</div>
-        </div>
-    </div>
-
-    <!-- Explorer Level Progress Card -->
-    <div class="stagger-2" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; border-radius: 20px; padding: 18px; margin-bottom: 20px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-compass" style="color: #00f2fe; font-size: 16px;"></i>
-                <span id="explorer-level-title" style="font-size: 14px; font-weight: 800; color: #ffffff;">Level 1 Explorer</span>
+        <!-- 3 Stats Cards inside Profile Card (Sleek & Visible, No Outlines) -->
+        <div class="stats-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px;">
+            <div class="stat-card" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important;">
+                <div style="font-size: 18px; margin-bottom: 3px;"><i class="fa-solid fa-map-location-dot" style="color: #38bdf8;"></i></div>
+                <div class="stat-value" id="stat-places" style="font-size: 17px; font-weight: 900; color: #ffffff; margin-bottom: 1px; letter-spacing: -0.4px;">0</div>
+                <div class="stat-label" style="font-size: 10px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.5px;">Places</div>
             </div>
-            <span id="explorer-xp-text" style="font-size: 12px; font-weight: 800; color: #00f2fe;">0 / 1000 XP</span>
+            <div class="stat-card" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important;">
+                <div style="font-size: 18px; margin-bottom: 3px;"><i class="fa-solid fa-coins" style="color: #fbbf24;"></i></div>
+                <div class="stat-value" id="stat-points" style="font-size: 17px; font-weight: 900; color: #ffffff; margin-bottom: 1px; letter-spacing: -0.4px;">0</div>
+                <div class="stat-label" style="font-size: 10px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.5px;">Points</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important;">
+                <div style="font-size: 18px; margin-bottom: 3px;"><i class="fa-solid fa-trophy" style="color: #f59e0b;"></i></div>
+                <div class="stat-value" id="stat-rank" style="font-size: 17px; font-weight: 900; color: #ffffff; margin-bottom: 1px; letter-spacing: -0.4px;">—</div>
+                <div class="stat-label" style="font-size: 10px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.5px;">Rank</div>
+            </div>
         </div>
-        <div style="background: rgba(255,255,255,0.14); height: 10px; border-radius: 100px; overflow: hidden; position: relative;">
-            <div id="explorer-xp-bar" style="background: linear-gradient(90deg, #00f2fe, #0284c7); height: 100%; width: 0%; border-radius: 100px; transition: width 0.5s ease;"></div>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: #ffffff; opacity: 0.9; font-weight: 600;">
-            <span>Next Level Goal</span>
-            <span id="explorer-xp-pct">0%</span>
-        </div>
+
     </div>
 
     <!-- Trip History -->
     <div class="stagger-3" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; margin-left: 4px;">
-        <h3 style="font-size: 16px; font-weight: 800; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-route" style="color: #00f2fe;"></i> Trip History
+        <h3 style="font-size: 16px; font-weight: 800; color: #0f172a !important; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-route" style="color: #1e3a8a;"></i> Trip History
         </h3>
         <div style="display: flex; align-items: center; gap: 8px;">
-            <span id="trip-history-count-badge" style="font-size: 11px; font-weight: 800; background: rgba(0, 242, 254, 0.2); color: #00f2fe; padding: 3px 10px; border-radius: 100px; border: none !important; outline: none !important;">0 Completed</span>
-            <button onclick="window.openFullHistoryModal()" style="background: rgba(255, 255, 255, 0.16); border: none !important; outline: none !important; color: #ffffff; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 12px; border-radius: 100px; display: flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
-                View All <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i>
+            <span id="trip-history-count-badge" style="font-size: 11px; font-weight: 800; background: #eff6ff; color: #1e3a8a; padding: 3px 10px; border-radius: 100px; border: none !important; outline: none !important;">0 Completed</span>
+            <button onclick="window.openFullHistoryModal()" style="background: #f1f5f9; border: none !important; outline: none !important; color: #1e3a8a; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 12px; border-radius: 100px; display: flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
+                View All <i class="fa-solid fa-chevron-right" style="font-size: 9px; color: #1e3a8a;"></i>
             </button>
         </div>
     </div>
@@ -78,72 +63,76 @@ $activeTab = 'profile';
         </div>
     </div>
     
-    <!-- Points & Rewards -->
-    <h3 class="stagger-3" style="font-size: 16px; font-weight: 800; color: #ffffff; margin-bottom: 12px; margin-left: 4px; display: flex; align-items: center; gap: 8px;">
-        <i class="fa-solid fa-gift" style="color: #00f2fe;"></i> Points & Rewards
-    </h3>
-    
-    <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:20px; padding:20px; margin-bottom:24px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);" class="stagger-3">
-        <!-- Display balance -->
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:16px;">
+    <!-- Points & Rewards Card (Styled like Notification Modal: Blue Banner Header, White Body) -->
+    <div class="stagger-3" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 22px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.08);">
+        <!-- Points Header Banner (Royal Blue like Notification Modal) -->
+        <div style="background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%); padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; border: none !important;">
             <div style="text-align: left;">
-                <h4 style="margin:0 0 4px 0; font-size:12px; color:#ffffff; opacity:0.9; text-transform:uppercase; letter-spacing:0.5px;">Claimable Points</h4>
-                <div style="display:flex; align-items:baseline; gap:6px;">
-                    <span id="profile-points-val" style="font-size:32px; font-weight:800; color:#ffffff; letter-spacing:-1px;">--</span>
-                    <span style="font-size:14px; font-weight:700; color:#ffffff; opacity:0.8;">PTS</span>
+                <div style="font-size: 11px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-coins" style="color: #fbbf24;"></i> Available Points Balance
+                </div>
+                <div style="display: flex; align-items: baseline; gap: 6px;">
+                    <span id="profile-points-val" style="font-size: 28px; font-weight: 900; color: #ffffff; letter-spacing: -0.8px;">--</span>
+                    <span style="font-size: 13px; font-weight: 700; color: rgba(255, 255, 255, 0.85);">Points</span>
                 </div>
             </div>
-            <button onclick="navigateTo('puzzles')" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; padding:8px 16px; border-radius:12px; font-weight:800; font-size:12px; cursor:pointer; box-shadow: 0 4px 12px rgba(0, 242, 254, 0.3);">
-                <i class="fa-solid fa-gamepad"></i> Play & Earn
+            <button onclick="navigateTo('puzzles')" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; padding: 8px 16px; border-radius: 100px; font-weight: 800; font-size: 12px; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; display: inline-flex; align-items: center; gap: 6px; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.94)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-gamepad" style="color: #0284c7;"></i> Play & Earn
             </button>
         </div>
 
-        <!-- Catalog list -->
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h5 style="margin:0; font-size:14px; font-weight:800; color:#fff; text-align: left;">Redeem Rewards</h5>
-            <a href="#" onclick="navigateTo('discount'); return false;" style="font-size:11px; font-weight:800; color:#00f2fe; text-decoration:none; display:flex; align-items:center; gap:4px;">
-                View All Deals <i class="fa-solid fa-arrow-right" style="font-size:9px;"></i>
-            </a>
-        </div>
-        <div id="profile-rewards-catalog" style="display:flex; flex-direction:column; gap:10px; margin-bottom:24px;">
-            <div style="text-align:center; padding:12px; color:#ffffff; opacity:0.75; font-size:12px;">
-                <i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Loading available rewards...
+        <!-- Card Body Area (Pure White Background like Notification Modal) -->
+        <div style="padding: 20px 18px; background: #ffffff;">
+            <!-- Catalog list: Redeem Rewards -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h5 style="margin: 0; font-size: 14.5px; font-weight: 800; color: #0f172a; text-align: left;">Redeem Rewards</h5>
+                <a href="#" onclick="navigateTo('discount'); return false;" style="font-size: 11.5px; font-weight: 800; color: #1e3a8a; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+                    View All Deals <i class="fa-solid fa-arrow-right" style="font-size: 9px; color: #1e3a8a;"></i>
+                </a>
             </div>
-        </div>
+            <div id="profile-rewards-catalog" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+                <div style="text-align: center; padding: 16px; color: #64748b; font-size: 12px; font-weight: 600;">
+                    <i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px; color: #1e3a8a;"></i> Loading available rewards...
+                </div>
+            </div>
 
-        <!-- Active Claimed Vouchers -->
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h5 style="margin:0; font-size:14px; font-weight:800; color:#fff; text-align: left;">Active Vouchers</h5>
-            <span id="active-vouchers-count" style="font-size:10px; font-weight:800; background:rgba(0, 242, 254, 0.2); border:none !important; outline:none !important; color:#00f2fe; padding:3px 10px; border-radius:100px;">0 Active</span>
-        </div>
-        <div id="vouchers-list" style="display:flex; flex-direction:column; gap:10px;">
-            <div style="font-size:12px; color:#ffffff; opacity:0.85; text-align:center; padding:16px; background:rgba(255,255,255,0.08); border:none !important; outline:none !important; border-radius:14px;">No redeemed vouchers yet.</div>
+            <!-- Divider Line Above Active Vouchers -->
+            <div style="height: 1px; background: #e2e8f0; margin-bottom: 20px;"></div>
+
+            <!-- Active Claimed Vouchers -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h5 style="margin: 0; font-size: 14.5px; font-weight: 800; color: #0f172a; text-align: left;">Active Vouchers</h5>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span id="active-vouchers-count" style="font-size: 11px; font-weight: 800; background: #eff6ff !important; border: 1px solid #bfdbfe !important; color: #1e3a8a !important; padding: 3px 10px; border-radius: 100px;">0 Active</span>
+                    <button id="view-all-vouchers-header-btn" onclick="window.openFullVouchersModal()" style="display: none; background: #f1f5f9 !important; border: 1px solid #e2e8f0 !important; outline: none !important; color: #1e3a8a !important; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 12px; border-radius: 100px; align-items: center; gap: 4px; transition: all 0.2s ease;">
+                        View All <i class="fa-solid fa-chevron-right" style="font-size: 9px; color: #1e3a8a;"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="vouchers-list" style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="font-size: 12.5px; color: #64748b; font-weight: 600; text-align: center; padding: 18px; background: #f8fafc !important; border: 1.5px dashed #cbd5e1 !important; border-radius: 14px;">No redeemed vouchers yet.</div>
+            </div>
         </div>
     </div>
     
     <!-- Account Settings -->
-    <h3 class="stagger-3" style="font-size: 16px; font-weight: 800; color: #ffffff; margin-bottom: 12px; margin-left: 4px; display: flex; align-items: center; gap: 8px;">
-        <i class="fa-solid fa-user-gear" style="color: #00f2fe;"></i> Account Settings
+    <h3 class="stagger-3" style="font-size: 16px; font-weight: 800; color: #0f172a !important; margin-bottom: 12px; margin-left: 4px; display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-user-gear" style="color: #1e3a8a;"></i> Account Settings
     </h3>
     
     <div class="settings-group stagger-3" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 20px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">
-        <a href="javascript:void(0);" class="settings-item" onclick="event.preventDefault(); window.scrollTo(0, 0); navigateTo('edit_profile'); return false;">
-            <div class="settings-icon" style="background: #007AFF;"><i class="fa-solid fa-user-pen"></i></div>
-            <div class="settings-text">Edit Personal Information</div>
-            <i class="fa-solid fa-chevron-right settings-arrow"></i>
-        </a>
         <a href="#" class="settings-item" onclick="navigateTo('settings'); return false;">
-            <div class="settings-icon" style="background: #8e8e93;"><i class="fa-solid fa-gear"></i></div>
+            <div class="settings-icon" style="background: #ffffff !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;"><i class="fa-solid fa-gear" style="color: #1e3a8a !important;"></i></div>
             <div class="settings-text">App Preferences & Settings</div>
             <i class="fa-solid fa-chevron-right settings-arrow"></i>
         </a>
         <a href="#" class="settings-item" onclick="navigateTo('help'); return false;">
-            <div class="settings-icon" style="background: #34C759;"><i class="fa-solid fa-circle-question"></i></div>
+            <div class="settings-icon" style="background: #ffffff !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;"><i class="fa-solid fa-circle-question" style="color: #1e3a8a !important;"></i></div>
             <div class="settings-text">Help & Support Center</div>
             <i class="fa-solid fa-chevron-right settings-arrow"></i>
         </a>
         <a href="#" class="settings-item" onclick="handleLogout(event)">
-            <div class="settings-icon" style="background: #FF3B30;"><i class="fa-solid fa-arrow-right-from-bracket"></i></div>
+            <div class="settings-icon logout" style="background: #FF3B30 !important; box-shadow: 0 2px 8px rgba(255, 59, 48, 0.3) !important;"><i class="fa-solid fa-arrow-right-from-bracket" style="color: #ffffff !important;"></i></div>
             <div class="settings-text" style="color: #FF3B30;">Log Out</div>
         </a>
     </div>
@@ -179,19 +168,16 @@ $activeTab = 'profile';
             (data) => {
                 if (!data) return;
                 const u = data.user || {};
-                const elXp = document.getElementById('stat-xp');
+                const elPoints = document.getElementById('stat-points') || document.getElementById('stat-xp');
                 const elPlaces = document.getElementById('stat-places');
                 const elRank = document.getElementById('stat-rank');
                 const elName = document.getElementById('profile-name');
                 const elEmail = document.getElementById('profile-email');
                 const elImg = document.getElementById('profile-img');
 
-                const xp = parseInt(u.xp) || 0;
-                const level = Math.floor(xp / 1000) + 1;
-                const xpInLevel = xp % 1000;
-                const xpPct = Math.min(Math.round((xpInLevel / 1000) * 100), 100);
+                const points = parseInt(u.points !== undefined ? u.points : (u.xp || 0)) || 0;
 
-                if (elXp) elXp.textContent = xp.toLocaleString();
+                if (elPoints) elPoints.textContent = points.toLocaleString();
                 if (elPlaces) elPlaces.textContent = data.places_visited || 0;
                 if (elRank && data.my_rank) elRank.textContent = '#' + data.my_rank;
                 if (elName) elName.textContent = u.name || 'Explorer';
@@ -200,16 +186,13 @@ $activeTab = 'profile';
                     elImg.src = window.getFullImageUrl(u.avatar);
                 }
 
-                // Level Progress
-                const elLevelTitle = document.getElementById('explorer-level-title');
-                const elXpText = document.getElementById('explorer-xp-text');
-                const elXpBar = document.getElementById('explorer-xp-bar');
-                const elXpPct = document.getElementById('explorer-xp-pct');
-
-                if (elLevelTitle) elLevelTitle.textContent = `Level ${level} Explorer`;
-                if (elXpText) elXpText.textContent = `${xpInLevel} / 1000 XP`;
-                if (elXpBar) elXpBar.style.width = `${xpPct}%`;
-                if (elXpPct) elXpPct.textContent = `${xpPct}%`;
+                if (u && u.id) {
+                    try {
+                        const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                        Object.assign(stored, u);
+                        localStorage.setItem('auth_user', JSON.stringify(stored));
+                    } catch (e) {}
+                }
 
                 // Render Badges (Unlocked & Locked)
                 const badges = data.badges || [];
@@ -265,45 +248,14 @@ $activeTab = 'profile';
                     }).join('');
                 }
 
-                // Extra Meta (Phone & Home Location)
-                const elMeta = document.getElementById('profile-meta');
-                if (elMeta) {
-                    let metaParts = [];
-                    if (u.home_location) metaParts.push(`<i class="fa-solid fa-location-dot"></i> ${u.home_location}`);
-                    if (u.phone) metaParts.push(`<i class="fa-solid fa-phone"></i> ${u.phone}`);
-                    if (metaParts.length > 0) {
-                        elMeta.innerHTML = metaParts.join(' &nbsp;•&nbsp; ');
-                        elMeta.style.display = 'flex';
-                    } else {
-                        elMeta.style.display = 'none';
-                    }
-                }
+                // Extra Meta (Tourist ID, Age, Gender, Phone & Home Location)
+                window.renderProfileUserMeta(u);
 
                 // Bio
-                const elBio = document.getElementById('profile-bio-text');
-                if (elBio) {
-                    if (u.bio) {
-                        elBio.textContent = `"${u.bio}"`;
-                        elBio.style.display = 'block';
-                    } else {
-                        elBio.style.display = 'none';
-                    }
-                }
+                window.renderProfileBio(u.bio);
 
                 // Preferences Chips
-                const elChips = document.getElementById('profile-pref-chips');
-                if (elChips) {
-                    if (u.travel_preferences) {
-                        const prefs = u.travel_preferences.split(',').map(s => s.trim()).filter(Boolean);
-                        elChips.innerHTML = prefs.map(p => `
-                            <span style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; padding:5px 14px; border-radius:100px; font-size:11px; font-weight:700;">${p}</span>
-                        `).join('');
-                        elChips.style.display = 'flex';
-                    } else {
-                        elChips.innerHTML = '';
-                        elChips.style.display = 'none';
-                    }
-                }
+                window.renderProfilePreferences(u.travel_preferences);
 
                 // Avatar
                 if (elImg) {
@@ -333,26 +285,37 @@ $activeTab = 'profile';
                     elImg.src = avatarUrl;
                 }
 
-                // Trip History
-                window._cachedCompletedTrips = data.completed_trips || [];
+                // Trip History: Filter out any trips with 0 visited destinations
+                const rawCompletedTrips = data.completed_trips || [];
+                const validCompletedTrips = rawCompletedTrips.filter(trip => {
+                    const items = Array.isArray(trip.items) ? trip.items : [];
+                    const visitedCount = items.filter(i => i.is_visited === true || i.is_visited === 1 || i.is_visited === '1').length;
+                    const totalCount = items.length || parseInt(trip.destinations_visited) || 0;
+                    const effectiveCount = visitedCount > 0 ? visitedCount : totalCount;
+                    return effectiveCount > 0;
+                });
+                window._cachedCompletedTrips = validCompletedTrips;
+
                 const historyList = document.getElementById('trip-history-list');
                 const historyBadge = document.getElementById('trip-history-count-badge');
                 if (historyList) {
-                    if (!data.completed_trips || data.completed_trips.length === 0) {
+                    if (validCompletedTrips.length === 0) {
                         if (historyBadge) historyBadge.textContent = '0 Completed';
                         historyList.innerHTML = '<div style="text-align:center; padding:20px; color:#ffffff; opacity:0.95; font-size:13px; font-weight:600; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:20px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">No completed trips yet. Start exploring!</div>';
                     } else {
-                        if (historyBadge) historyBadge.textContent = `${data.completed_trips.length} Completed`;
+                        if (historyBadge) historyBadge.textContent = `${validCompletedTrips.length} Completed`;
                         let html = '';
                         // Limit main profile view to maximum 3 completed trips
-                        const displayTrips = data.completed_trips.slice(0, 3);
+                        const displayTrips = validCompletedTrips.slice(0, 3);
                         displayTrips.forEach(trip => {
                             const date = trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date';
-                            const count = Array.isArray(trip.items) ? trip.items.length : (parseInt(trip.destinations_visited) || parseInt(trip.items) || 0);
+                            const items = Array.isArray(trip.items) ? trip.items : [];
+                            const visitedCount = items.filter(i => i.is_visited === true || i.is_visited === 1 || i.is_visited === '1').length;
+                            const count = visitedCount > 0 ? visitedCount : (items.length || parseInt(trip.destinations_visited) || 1);
                             const cost = parseFloat(trip.total_cost || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
 
                             html += `
-                            <div onclick="window.showTripDetailsModal('${trip.id}')" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 20px; padding: 16px 18px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">
+                            <div onclick="window.showTripDetailsModal('${trip.id}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 20px; padding: 16px 18px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform 0.15s ease, opacity 0.15s ease; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointerleave="this.style.transform='scale(1)'">
                                 <div style="flex: 1; min-width: 0;">
                                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
                                         <strong style="color: #ffffff; font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${trip.title || 'Completed Trip'}</strong>
@@ -365,8 +328,8 @@ $activeTab = 'profile';
                                         <span><i class="fa-solid fa-location-dot" style="color: #00f2fe; margin-right: 3px;"></i>${count} Visited</span>
                                     </div>
                                 </div>
-                                <span style="color: #ffffff; font-weight: 800; font-size: 11px; background: rgba(52, 199, 89, 0.25); border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; flex-shrink: 0;">
-                                    <i class="fa-solid fa-check" style="margin-right: 3px; color:#34c759;"></i>Done
+                                <span style="color: #ffffff !important; font-weight: 800; font-size: 11px; background: #10b981 !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+                                    <i class="fa-solid fa-check" style="color: #ffffff !important; font-size: 11px;"></i>Done
                                 </span>
                             </div>`;
                         });
@@ -395,45 +358,75 @@ $activeTab = 'profile';
             });
             const d = await r.json();
             if (d.status === 'success') {
-                window._userPointsBalance = d.points || 0;
+                const pointsBalance = (d.points !== undefined) ? d.points : (d.xp ?? 0);
+                window._userPointsBalance = pointsBalance;
                 const ptsVal = document.getElementById('profile-points-val');
-                if (ptsVal) ptsVal.textContent = (d.points || 0).toLocaleString();
+                if (ptsVal) ptsVal.textContent = pointsBalance.toLocaleString();
+
+                const elPoints = document.getElementById('stat-points') || document.getElementById('stat-xp');
+                if (elPoints) elPoints.textContent = pointsBalance.toLocaleString();
+
+                // Sync auth_user in localStorage
+                try {
+                    let stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    stored.points = pointsBalance;
+                    localStorage.setItem('auth_user', JSON.stringify(stored));
+                } catch(e) {}
                 
                 // Render Active Vouchers
                 const list = document.getElementById('vouchers-list');
                 const badge = document.getElementById('active-vouchers-count');
+                const headerBtn = document.getElementById('view-all-vouchers-header-btn');
                 if (list) {
                     if (d.vouchers && d.vouchers.length > 0) {
-                        if (badge) badge.textContent = `${d.vouchers.length} Active`;
+                        window._cachedActiveVouchers = d.vouchers;
+                        const activeCount = d.vouchers.filter(v => ['active', 'claimed'].includes((v.status || '').toLowerCase())).length;
+                        if (badge) badge.textContent = `${activeCount} Active`;
+                        if (headerBtn) {
+                            headerBtn.style.display = (d.vouchers.length > 2) ? 'inline-flex' : 'none';
+                        }
+                        
+                        // Limit displayed vouchers on profile card to max 2
+                        const displayVouchers = d.vouchers.slice(0, 2);
                         let html = '';
-                        d.vouchers.forEach(v => {
-                            const badgeColor = v.status === 'active' ? '#34c759' : '#8e8e93';
+                        displayVouchers.forEach(v => {
                             const voucherTitle = v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.type || 'Tourist Voucher'));
                             const safeCode = (v.voucher_code || '').replace(/'/g, "\\'");
+                            const statusLower = (v.status || '').toLowerCase();
+                            const isRedeemed = statusLower === 'redeemed' || statusLower === 'used';
+                            const statusLabel = isRedeemed ? 'Redeemed' : 'Ready to Use';
+                            const statusColor = isRedeemed ? '#64748b' : '#10b981';
                             
                             html += `
-                            <div style="background: rgba(255, 255, 255, 0.08); border: none !important; outline: none !important; padding: 14px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                            <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; padding: 14px 16px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; gap: 10px; box-shadow: 0 4px 14px rgba(10, 25, 60, 0.22); cursor: pointer; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                                 <div style="text-align: left; flex: 1; min-width: 0;">
-                                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-                                        <i class="fa-solid fa-ticket" style="color: #38bdf8; font-size: 13px;"></i>
-                                        <span style="font-size: 13px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${voucherTitle}</span>
+                                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                                        <i class="fa-solid fa-ticket" style="color: #00f2fe; font-size: 13px;"></i>
+                                        <span style="font-size: 13.5px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px;">${voucherTitle}</span>
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 8px;">
-                                        <code style="font-size: 13px; font-weight: 900; color: #38bdf8; letter-spacing: 0.5px; background: rgba(56,189,248,0.15); border: none !important; outline: none !important; padding: 3px 8px; border-radius: 8px;">${v.voucher_code}</code>
-                                        <button type="button" onclick="navigator.clipboard.writeText('${safeCode}'); if(typeof showToast==='function') showToast('Voucher code copied!');" style="background: rgba(255,255,255,0.12); border: none !important; outline: none !important; color: #ffffff; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer;">
-                                            <i class="fa-solid fa-copy"></i>
+                                        <code style="font-size: 12.5px; font-weight: 900; color: #1e3a8a; letter-spacing: 0.5px; background: #ffffff !important; border: none !important; padding: 4px 10px; border-radius: 8px; font-family: monospace; box-shadow: 0 1px 4px rgba(0,0,0,0.12);">${v.voucher_code}</code>
+                                        <button type="button" onclick="event.stopPropagation(); window.copyVoucherCodeToClipboard('${safeCode}')" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a; padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                                            <i class="fa-solid fa-copy" style="color: #1e3a8a;"></i> Copy
                                         </button>
                                     </div>
                                 </div>
-                                <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: ${badgeColor}; background: ${v.status === 'active' ? 'rgba(52,199,89,0.25)' : 'rgba(255,255,255,0.1)'}; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap;">
-                                    ${v.status || 'Active'}
-                                </span>
+                                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+                                    <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #ffffff !important; background: ${statusColor} !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.18);">
+                                        <i class="fa-solid ${isRedeemed ? 'fa-check-double' : 'fa-check'}" style="margin-right: 4px; color: #ffffff !important;"></i>${statusLabel}
+                                    </span>
+                                    <div style="font-size: 10.5px; font-weight: 700; color: #00f2fe; display: flex; align-items: center; gap: 4px;">
+                                        <i class="fa-solid fa-qrcode"></i> ${isRedeemed ? 'View Pass' : 'Show QR'}
+                                    </div>
+                                </div>
                             </div>`;
                         });
                         list.innerHTML = html;
                     } else {
+                        window._cachedActiveVouchers = [];
                         if (badge) badge.textContent = '0 Active';
-                        list.innerHTML = '<div style="font-size:12px; color:rgba(255,255,255,0.7); text-align:center; padding:16px; background:rgba(255,255,255,0.08); border:none !important; outline:none !important; border-radius:14px;">No redeemed vouchers yet.</div>';
+                        if (headerBtn) headerBtn.style.display = 'none';
+                        list.innerHTML = '<div style="font-size:12.5px; color:#64748b; font-weight:600; text-align:center; padding:18px; background:#f8fafc !important; border:1.5px dashed #cbd5e1 !important; border-radius:14px;">No redeemed vouchers yet.</div>';
                     }
                 }
             }
@@ -448,48 +441,73 @@ $activeTab = 'profile';
                     const vouchersPayload = await resVouchers.json();
                     if (vouchersPayload.status === 'success' && Array.isArray(vouchersPayload.data) && vouchersPayload.data.length > 0) {
                         const topVouchers = vouchersPayload.data.slice(0, 3);
-                        catalogEl.innerHTML = topVouchers.map(v => {
-                            const iconClass = v.category === 'Activities' ? 'fa-person-hiking' : (v.category === 'Accommodations' ? 'fa-hotel' : (v.category === 'Souvenirs' ? 'fa-gift' : 'fa-utensils'));
+                        window._profileVouchersList = topVouchers;
+                        catalogEl.innerHTML = topVouchers.map((v, idx) => {
+                            const ptsCost = parseInt(v.pointsCost || v.required_points || 100);
                             return `
-                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.08); border:none !important; outline:none !important; padding:12px 14px; border-radius:16px; gap:12px; transition:transform 0.15s ease;">
+                            <div onclick="window.showRewardDetailsModal(${idx})" style="display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; padding:12px 14px; border-radius:18px; gap:12px; transition:transform 0.15s ease, box-shadow 0.15s ease; cursor:pointer; box-shadow:0 6px 18px rgba(10, 25, 60, 0.22);" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
                                 <div style="display:flex; align-items:center; gap:10px; min-width:0; text-align:left; flex:1;">
-                                    <div style="width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,0.14); border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.25);">
+                                    <div style="width:38px; height:38px; border-radius:12px; background:#ffffff; border:none; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
                                         <img src="${v.image || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png'}" alt="${v.title}" style="width:100%; height:100%; object-fit:contain; padding:3px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
                                     </div>
                                     <div style="min-width:0; flex:1;">
                                         <div style="display:flex; align-items:center; gap:6px;">
-                                            <strong style="display:block; font-size:13px; font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.title}</strong>
-                                            <span style="font-size:9px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.2); padding:2px 7px; border-radius:6px; border:none !important; flex-shrink:0;">${v.badge}</span>
+                                            <strong style="display:block; font-size:13.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.2px;">${v.title}</strong>
+                                            <span style="font-size:9.5px; font-weight:800; color:#1e3a8a !important; background:#ffffff !important; border:none !important; padding:2px 7px; border-radius:6px; flex-shrink:0; text-transform:uppercase; box-shadow:0 1px 4px rgba(0,0,0,0.12);">${v.badge}</span>
+                                            ${v.id_needed ? `<span style="font-size:8.5px; font-weight:800; color:#ffffff !important; background:#ef4444 !important; padding:2px 6px; border-radius:4px; flex-shrink:0;"><i class="fa-solid fa-id-card"></i> ID</span>` : ''}
                                         </div>
-                                        <span style="font-size:11px; color:rgba(226,232,240,0.7); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.partner}</span>
+                                        <span style="font-size:11.5px; color:rgba(255, 255, 255, 0.88); font-weight:600; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px;">${v.partner}</span>
                                     </div>
                                 </div>
-                                <button type="button" onclick="window.redeemAdminVoucher(${v.id}, ${v.pointsCost}, '${(v.title || '').replace(/'/g, "\\'")}')" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; border:none !important; outline:none !important; padding:8px 14px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer; flex-shrink:0; box-shadow:0 3px 10px rgba(0,242,254,0.3); white-space:nowrap;">
-                                    ${v.pointsCost} PTS
+                                <button type="button" onclick="event.stopPropagation(); window.showRewardDetailsModal(${idx})" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; padding:7px 14px; border-radius:100px; font-size:11.5px; font-weight:900; cursor:pointer; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.18) !important; white-space:nowrap; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.94)'" onpointerup="this.style.transform='scale(1)'">
+                                    ${ptsCost.toLocaleString()} Points
                                 </button>
                             </div>`;
                         }).join('');
                     } else {
                         // Default built-in rewards fallback
-                        catalogEl.innerHTML = `
-                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.08); border:none !important; outline:none !important; padding:12px 14px; border-radius:16px;">
-                                <div style="text-align: left;">
-                                    <strong style="display:block; font-size:13px; color:#fff;">₱50 Pasalubong Discount</strong>
-                                    <span style="font-size:11px; color:rgba(255,255,255,0.6);">Claimable at local Pasalubong Center</span>
+                        const fallbackVouchers = [
+                            {
+                                id: 'pasalubong_discount',
+                                title: '₱50 Pasalubong Discount',
+                                partner: 'Pasalubong Center, La Union',
+                                badge: '₱50 OFF',
+                                description: 'Enjoy a ₱50 discount on authentic local pasalubong and souvenirs made by Elyu artisans.',
+                                pointsCost: 100,
+                                image: 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png'
+                            },
+                            {
+                                id: 'environmental_fee',
+                                title: 'Waived Environmental Fee',
+                                partner: 'Municipality of La Union',
+                                badge: 'FREE ENTRY',
+                                description: 'Waive standard municipality environmental entrance fee on your next eco-tourism visit.',
+                                pointsCost: 150,
+                                image: 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png'
+                            }
+                        ];
+                        window._profileVouchersList = fallbackVouchers;
+                        catalogEl.innerHTML = fallbackVouchers.map((v, idx) => {
+                            const ptsCost = parseInt(v.pointsCost || v.required_points || 100);
+                            return `
+                            <div onclick="window.showRewardDetailsModal(${idx})" style="display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; padding:12px 14px; border-radius:18px; margin-bottom:8px; cursor:pointer; transition:transform 0.15s ease, box-shadow 0.15s ease; box-shadow:0 6px 18px rgba(10, 25, 60, 0.22);" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                                <div style="display:flex; align-items:center; gap:10px; min-width:0; text-align:left; flex:1;">
+                                    <div style="width:38px; height:38px; border-radius:12px; background:#ffffff; border:none; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+                                        <img src="${v.image || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png'}" alt="${v.title}" style="width:100%; height:100%; object-fit:contain; padding:3px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
+                                    </div>
+                                    <div style="min-width:0; flex:1;">
+                                        <div style="display:flex; align-items:center; gap:6px;">
+                                            <strong style="display:block; font-size:13.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.2px;">${v.title}</strong>
+                                            <span style="font-size:9.5px; font-weight:800; color:#1e3a8a !important; background:#ffffff !important; border:none !important; padding:2px 7px; border-radius:6px; flex-shrink:0; text-transform:uppercase; box-shadow:0 1px 4px rgba(0,0,0,0.12);">${v.badge}</span>
+                                        </div>
+                                        <span style="font-size:11.5px; color:rgba(255, 255, 255, 0.88); font-weight:600; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px;">${v.partner}</span>
+                                    </div>
                                 </div>
-                                <button onclick="redeemReward('pasalubong_discount', 100)" style="background:linear-gradient(135deg, #00f2fe, #0284c7); color:#fff; border:none !important; outline:none !important; padding:8px 12px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer;">
-                                    100 PTS
-                                </button>
-                            </div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.08); border:none !important; outline:none !important; padding:12px 14px; border-radius:16px; margin-top:8px;">
-                                <div style="text-align: left;">
-                                    <strong style="display:block; font-size:13px; color:#fff;">Waived Environmental Fee</strong>
-                                    <span style="font-size:11px; color:rgba(255,255,255,0.6);">Waive standard municipality entry fee</span>
-                                </div>
-                                <button onclick="redeemReward('environmental_fee', 150)" style="background:linear-gradient(135deg, #00f2fe, #0284c7); color:#fff; border:none !important; outline:none !important; padding:8px 12px; border-radius:10px; font-size:11px; font-weight:800; cursor:pointer;">
-                                    150 PTS
+                                <button type="button" onclick="event.stopPropagation(); window.showRewardDetailsModal(${idx})" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; padding:7px 14px; border-radius:100px; font-size:11.5px; font-weight:900; cursor:pointer; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.18) !important; white-space:nowrap; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.94)'" onpointerup="this.style.transform='scale(1)'">
+                                    ${ptsCost.toLocaleString()} Points
                                 </button>
                             </div>`;
+                        }).join('');
                     }
                 }
             }
@@ -504,11 +522,11 @@ $activeTab = 'profile';
 
         const currentPts = window._userPointsBalance || 0;
         if (currentPts < cost) {
-            if (typeof showToast === 'function') showToast(`Insufficient points. You need ${cost} PTS (Balance: ${currentPts} PTS).`);
+            if (typeof showToast === 'function') showToast(`Insufficient Points. You need ${cost} Points (Balance: ${currentPts} Points).`);
             return;
         }
 
-        if (!confirm(`Redeem '${title}' for ${cost} PTS?`)) return;
+        if (!confirm(`Redeem '${title}' for ${cost} Points?`)) return;
 
         try {
             const response = await fetch(backendUrl + '/api/tourist/points/redeem-voucher', {
@@ -528,6 +546,21 @@ $activeTab = 'profile';
                 if (window.confetti) {
                     window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
                 }
+                window.dashboardNeedsRefresh = true;
+                try {
+                    let claimed = JSON.parse(localStorage.getItem('intan_elyu_claimed_vouchers') || '[]');
+                    const dbKey = 'db_' + voucherId;
+                    if (!claimed.includes(dbKey)) claimed.push(dbKey);
+                    localStorage.setItem('intan_elyu_claimed_vouchers', JSON.stringify(claimed));
+                    localStorage.removeItem('intan_elyu_cached_vouchers');
+
+                    for (let i = localStorage.length - 1; i >= 0; i--) {
+                        const k = localStorage.key(i);
+                        if (k && (k.startsWith('dashboard_data_') || k.startsWith('profile_data_'))) {
+                            localStorage.removeItem(k);
+                        }
+                    }
+                } catch(e) {}
                 fetchPointsAndVouchers();
             } else {
                 if (typeof showToast === 'function') showToast(data.message || "Failed to redeem voucher.");
@@ -544,7 +577,7 @@ $activeTab = 'profile';
 
         const currentPts = window._userPointsBalance || 0;
         if (currentPts < cost) {
-            if (typeof showToast === 'function') showToast(`Insufficient points. You need ${cost} PTS (Balance: ${currentPts} PTS).`);
+            if (typeof showToast === 'function') showToast(`Insufficient Points. You need ${cost} Points (Balance: ${currentPts} Points).`);
             return;
         }
 
@@ -568,6 +601,15 @@ $activeTab = 'profile';
                 if (window.confetti) {
                     window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
                 }
+                window.dashboardNeedsRefresh = true;
+                try {
+                    for (let i = localStorage.length - 1; i >= 0; i--) {
+                        const k = localStorage.key(i);
+                        if (k && (k.startsWith('dashboard_data_') || k.startsWith('profile_data_'))) {
+                            localStorage.removeItem(k);
+                        }
+                    }
+                } catch(e) {}
                 fetchPointsAndVouchers();
             } else {
                 if (typeof showToast === 'function') showToast(data.message || "Failed to redeem reward.");
@@ -584,38 +626,128 @@ $activeTab = 'profile';
         if (ptsVal) ptsVal.textContent = points;
     };
 
+    window.showRewardDetailsModal = function(idxOrVoucher) {
+        let voucher = null;
+        if (typeof idxOrVoucher === 'number' && window._profileVouchersList) {
+            voucher = window._profileVouchersList[idxOrVoucher];
+        } else if (typeof idxOrVoucher === 'object') {
+            voucher = idxOrVoucher;
+        }
+        if (!voucher) return;
+
+        const modal = document.getElementById('reward-details-modal');
+        if (!modal) return;
+
+        const badge = document.getElementById('reward-modal-badge');
+        const img = document.getElementById('reward-modal-img');
+        const title = document.getElementById('reward-modal-title');
+        const partner = document.getElementById('reward-modal-partner-name');
+        const desc = document.getElementById('reward-modal-desc');
+        const costText = document.getElementById('reward-modal-cost-text');
+        const redeemBtn = document.getElementById('reward-modal-redeem-btn');
+        const idNotice = document.getElementById('reward-modal-id-notice');
+
+        if (badge) badge.textContent = voucher.badge || 'PROMO';
+        if (img) img.src = voucher.image || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png';
+        if (title) title.textContent = voucher.title || 'Exclusive Reward';
+        if (partner) partner.textContent = voucher.partner || voucher.merchant || 'La Union Partner';
+        if (idNotice) idNotice.style.display = voucher.id_needed ? 'block' : 'none';
+
+        if (desc) {
+            let descText = voucher.description || 'Redeem this voucher with your available Points to enjoy discounts at this partner establishment.';
+            if (voucher.terms_and_conditions) {
+                descText += '\n\n• Terms & Conditions:\n' + voucher.terms_and_conditions;
+            }
+            if (voucher.expires_formatted) {
+                descText += '\n\n• Validity: ' + voucher.expires_formatted;
+            }
+            desc.textContent = descText;
+        }
+        if (costText) costText.textContent = `${voucher.pointsCost || voucher.required_points || 100} Points`;
+
+        if (redeemBtn) {
+            if (voucher.is_upcoming) {
+                redeemBtn.disabled = true;
+                redeemBtn.style.cursor = 'not-allowed';
+                redeemBtn.style.opacity = '0.7';
+                redeemBtn.textContent = `Starts on ${voucher.valid_from_formatted || 'Soon'}`;
+                redeemBtn.onclick = null;
+            } else {
+                redeemBtn.disabled = false;
+                redeemBtn.style.cursor = 'pointer';
+                redeemBtn.style.opacity = '1';
+                redeemBtn.textContent = `Redeem for ${voucher.pointsCost || voucher.required_points || 100} Points`;
+                redeemBtn.onclick = function() {
+                    window.closeRewardDetailsModal();
+                    if (typeof voucher.id === 'string' && voucher.id.includes('_')) {
+                        redeemReward(voucher.id, voucher.pointsCost);
+                    } else {
+                        window.redeemAdminVoucher(voucher.id, voucher.pointsCost, voucher.title);
+                    }
+                };
+            }
+        }
+
+        modal.style.display = 'flex';
+        void modal.offsetHeight;
+        modal.style.opacity = '1';
+        const card = modal.querySelector('div');
+        if (card) card.style.transform = 'scale(1)';
+    };
+
+    window.closeRewardDetailsModal = function() {
+        const modal = document.getElementById('reward-details-modal');
+        if (!modal) return;
+        modal.style.opacity = '0';
+        const card = modal.querySelector('div');
+        if (card) card.style.transform = 'scale(0.88)';
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 220);
+    };
+
     window.openFullHistoryModal = function() {
         const modal = document.getElementById('full-history-modal');
         const container = document.getElementById('full-history-list');
         if (!modal || !container) return;
 
-        const trips = window._cachedCompletedTrips || [];
+        const allTrips = window._cachedCompletedTrips || [];
+        const trips = allTrips.filter(trip => {
+            const items = Array.isArray(trip.items) ? trip.items : [];
+            const visitedCount = items.filter(i => i.is_visited === true || i.is_visited === 1 || i.is_visited === '1').length;
+            const totalCount = items.length || parseInt(trip.destinations_visited) || 0;
+            const effectiveCount = visitedCount > 0 ? visitedCount : totalCount;
+            return effectiveCount > 0;
+        });
+
         if (trips.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:24px; color:rgba(148, 163, 184, 0.8); font-size:13px; background:rgba(37, 99, 235, 0.1); border:1px solid rgba(56, 189, 248, 0.2); border-radius:16px;">No completed trips found in your history.</div>';
+            container.innerHTML = '<div style="text-align:center; padding:24px 16px; color:#64748b; font-size:13px; font-weight:600; background:#f8fafc; border:none !important; outline:none !important; box-shadow:none !important; border-radius:16px;">No completed trips found in your history.</div>';
         } else {
             let html = '';
             trips.forEach((trip, idx) => {
                 const date = trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set';
-                const count = Array.isArray(trip.items) ? trip.items.length : (parseInt(trip.destinations_visited) || parseInt(trip.items) || 0);
+                const items = Array.isArray(trip.items) ? trip.items : [];
+                const visitedCount = items.filter(i => i.is_visited === true || i.is_visited === 1 || i.is_visited === '1').length;
+                const count = visitedCount > 0 ? visitedCount : (items.length || parseInt(trip.destinations_visited) || 1);
                 const cost = parseFloat(trip.total_cost || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
 
                 html += `
-                <div onclick="window.showTripDetailsModal('${trip.id}')" style="background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 18px; padding: 16px; margin-bottom: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.borderColor='rgba(56,189,248,0.5)'" onmouseout="this.style.borderColor='rgba(56,189,248,0.25)'">
+                <div onclick="window.showTripDetailsModal('${trip.id}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: none !important; border-radius: 18px; padding: 16px; margin-bottom: 12px; cursor: pointer; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointerleave="this.style.transform='scale(1)'">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                         <div>
-                            <div style="font-size:10px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Trip #${trips.length - idx}</div>
-                            <strong style="color: #f8fafc; font-size: 16px; font-weight: 800;">${trip.title || 'Completed Trip'}</strong>
+                            <div style="font-size:10px; font-weight:800; color:#00f2fe; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Trip #${trips.length - idx}</div>
+                            <strong style="color: #ffffff; font-size: 16px; font-weight: 800; line-height: 1.3;">${trip.title || 'Completed Trip'}</strong>
                         </div>
-                        <span style="color: #34c759; font-weight: 800; font-size: 11px; background: rgba(52, 199, 89, 0.15); border: 1px solid rgba(52, 199, 89, 0.3); padding: 4px 10px; border-radius: 100px; white-space: nowrap;">
-                            <i class="fa-solid fa-circle-check" style="margin-right: 4px;"></i>Completed
+                        <span style="color: #ffffff; font-weight: 800; font-size: 11px; background: #10b981; border: none !important; outline: none !important; box-shadow: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap;">
+                            <i class="fa-solid fa-circle-check" style="margin-right: 4px; color: #ffffff;"></i>Completed
                         </span>
                     </div>
-                    <div style="font-size: 12px; color: rgba(226, 232, 240, 0.85); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 8px 12px; border-radius: 12px;">
-                        <span><i class="fa-regular fa-calendar" style="color: #38bdf8; margin-right: 4px;"></i>${date}</span>
+                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.95); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: rgba(255,255,255,0.14); border: none !important; outline: none !important; box-shadow: none !important; padding: 8px 12px; border-radius: 12px;">
+                        <span><i class="fa-regular fa-calendar" style="color: #00f2fe; margin-right: 4px;"></i>${date}</span>
                         <span>&bull;</span>
-                        <span><i class="fa-solid fa-coins" style="color: #f59e0b; margin-right: 4px;"></i>₱${cost}</span>
+                        <span><i class="fa-solid fa-coins" style="color: #fbbf24; margin-right: 4px;"></i>₱${cost}</span>
                         <span>&bull;</span>
-                        <span><i class="fa-solid fa-location-dot" style="color: #34c759; margin-right: 4px;"></i>${count} Destinations Visited</span>
+                        <span><i class="fa-solid fa-location-dot" style="color: #34d399; margin-right: 4px;"></i>${count} Destinations Visited</span>
                     </div>
                 </div>`;
             });
@@ -630,45 +762,327 @@ $activeTab = 'profile';
         if (modal) modal.style.display = 'none';
     };
 
-    window.showTripDetailsModal = function(tripId) {
-        const trips = window._cachedCompletedTrips || [];
-        const trip = trips.find(t => t.id == tripId) || trips[0];
-        if (!trip) return;
+    window.openFullVouchersModal = function() {
+        const modal = document.getElementById('full-vouchers-modal');
+        const container = document.getElementById('full-vouchers-list');
+        if (!modal || !container) return;
 
+        const vouchers = window._cachedActiveVouchers || [];
+        if (vouchers.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:28px 16px; color:#64748b; font-size:13px; font-weight:700; background:#f8fafc; border-radius:16px;">No active vouchers found.</div>';
+        } else {
+            let html = '';
+            vouchers.forEach((v, idx) => {
+                const voucherTitle = v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.type || 'Tourist Voucher'));
+                const safeCode = (v.voucher_code || '').replace(/'/g, "\\'");
+                const statusLower = (v.status || '').toLowerCase();
+                const isRedeemed = statusLower === 'redeemed' || statusLower === 'used';
+                const statusLabel = isRedeemed ? 'Redeemed' : 'Ready to Use';
+                const statusColor = isRedeemed ? '#64748b' : '#10b981';
+                const createdDate = v.created_at ? new Date(v.created_at).toLocaleDateString() : '';
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(v.voucher_code)}`;
+
+                html += `
+                <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 18px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.25); cursor: pointer; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                        <div>
+                            <div style="font-size: 10px; font-weight: 800; color: #00f2fe; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Voucher #${idx + 1}</div>
+                            <strong style="color: #ffffff; font-size: 15px; font-weight: 800; line-height: 1.3;">${voucherTitle}</strong>
+                        </div>
+                        <span style="color: #ffffff !important; font-weight: 800; font-size: 11px; background: ${statusColor} !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; text-transform: uppercase;">
+                            <i class="fa-solid ${isRedeemed ? 'fa-check-double' : 'fa-check'}" style="margin-right: 4px; color: #ffffff !important;"></i>${statusLabel}
+                        </span>
+                    </div>
+
+                    <!-- QR Code Display Box -->
+                    <div style="background: #ffffff !important; border-radius: 14px; padding: 10px; width: 140px; height: 140px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: relative;">
+                        <img src="${qrUrl}" alt="Voucher QR Code" style="width: 100%; height: 100%; object-fit: contain; ${isRedeemed ? 'filter: grayscale(1); opacity: 0.4;' : ''}">
+                        ${isRedeemed ? '<div style="position: absolute; background: rgba(220, 38, 38, 0.9); color: #ffffff; font-size: 11px; font-weight: 900; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">REDEEMED</div>' : ''}
+                    </div>
+
+                    <div style="background: #ffffff !important; border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px;">
+                        <div>
+                            <div style="font-size: 9.5px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Claim Code</div>
+                            <code style="font-size: 14px; font-weight: 900; color: #1e3a8a; letter-spacing: 1px; font-family: monospace;">${v.voucher_code}</code>
+                        </div>
+                        <button type="button" onclick="event.stopPropagation(); window.copyVoucherCodeToClipboard('${safeCode}')" style="background: #1e3a8a !important; color: #ffffff !important; border: none !important; outline: none !important; padding: 7px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                            <i class="fa-solid fa-copy" style="color: #ffffff;"></i> Copy
+                        </button>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #e2e8f0; font-weight: 600;">
+                        ${createdDate ? `<span><i class="fa-regular fa-calendar" style="color: #00f2fe; margin-right: 4px;"></i>Claimed: ${createdDate}</span>` : '<span></span>'}
+                        <span style="color: #00f2fe; font-size: 11px; font-weight: 800;"><i class="fa-solid fa-expand" style="margin-right: 3px;"></i>${isRedeemed ? 'View Details' : 'Tap for QR Pass'}</span>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        modal.style.display = 'flex';
+    };
+
+    let activeQrSyncInterval = null;
+    let currentActiveQrCode = '';
+
+    window.openActiveVoucherQrModal = function(codeOrVoucher) {
+        let voucher = null;
+        const vouchers = window._cachedActiveVouchers || [];
+        
+        if (typeof codeOrVoucher === 'object' && codeOrVoucher !== null) {
+            voucher = codeOrVoucher;
+        } else {
+            voucher = vouchers.find(v => v.voucher_code === codeOrVoucher) || { voucher_code: codeOrVoucher };
+        }
+
+        if (!voucher || !voucher.voucher_code) return;
+
+        currentActiveQrCode = voucher.voucher_code;
+        const modal = document.getElementById('active-voucher-qr-modal');
+        if (!modal) return;
+
+        const titleEl = document.getElementById('active-qr-modal-title');
+        const partnerEl = document.getElementById('active-qr-modal-partner');
+        const promoCodeEl = document.getElementById('active-qr-modal-promo-code');
+        const codeEl = document.getElementById('active-qr-modal-code');
+        const imgEl = document.getElementById('active-qr-modal-img');
+        const statusBadge = document.getElementById('active-qr-status-badge');
+        const noticeEl = document.getElementById('active-qr-notice');
+
+        const vTitle = voucher.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (voucher.type === 'environmental_fee' ? 'Waived Environmental Fee' : (voucher.type || 'Tourist Voucher'));
+        if (titleEl) titleEl.textContent = vTitle;
+        if (partnerEl) partnerEl.textContent = voucher.partner_establishment || voucher.category || 'Official Partner Merchant';
+        
+        // Extract master promo code (e.g. INTAN-8A22C8) and unique claim code (INTAN-8A22C8-FBHC)
+        const parts = voucher.voucher_code.split('-');
+        let masterCode = voucher.voucher_code;
+        if (parts.length >= 3 && parts[parts.length - 1].length === 4) {
+            masterCode = parts.slice(0, -1).join('-');
+        }
+        if (promoCodeEl) promoCodeEl.textContent = masterCode;
+        if (codeEl) codeEl.textContent = voucher.voucher_code;
+        
+        if (imgEl) {
+            imgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(voucher.voucher_code)}`;
+        }
+
+        // Reset copy button
+        const btn = document.getElementById('btn-copy-active-qr');
+        const label = document.getElementById('active-qr-copy-label');
+        const icon = document.getElementById('active-qr-copy-icon');
+        if (btn) {
+            btn.style.background = '#ffffff';
+            btn.style.borderColor = '#bfdbfe';
+            btn.style.color = '#1e3a8a';
+            btn.disabled = false;
+        }
+        if (label) label.textContent = 'Copy Voucher Code';
+        if (icon) icon.className = 'fa-solid fa-copy';
+
+        const statusLower = (voucher.status || '').toLowerCase();
+        const isRedeemed = statusLower === 'redeemed' || statusLower === 'used';
+
+        if (statusBadge) {
+            if (isRedeemed) {
+                statusBadge.innerHTML = '<i class="fa-solid fa-ban"></i> Voucher Already Redeemed';
+                statusBadge.style.background = '#fee2e2';
+                statusBadge.style.color = '#dc2626';
+                statusBadge.style.border = '1px solid #fca5a5';
+                if (imgEl) {
+                    imgEl.style.filter = 'grayscale(1)';
+                    imgEl.style.opacity = '0.35';
+                }
+                if (noticeEl) {
+                    noticeEl.textContent = 'This voucher has already been redeemed and verified at checkout. It can no longer be used.';
+                    noticeEl.style.color = '#dc2626';
+                    noticeEl.style.fontWeight = '700';
+                }
+            } else {
+                statusBadge.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Ready for scan at checkout';
+                statusBadge.style.background = '#e0f2fe';
+                statusBadge.style.color = '#0369a1';
+                statusBadge.style.border = 'none';
+                if (imgEl) {
+                    imgEl.style.filter = 'none';
+                    imgEl.style.opacity = '1';
+                }
+                if (noticeEl) {
+                    noticeEl.textContent = 'Present this QR code or alphanumeric code directly to staff at checkout.';
+                    noticeEl.style.color = '#64748b';
+                    noticeEl.style.fontWeight = '500';
+                }
+                startActiveQrSync(voucher.voucher_code);
+            }
+        }
+
+        modal.style.display = 'flex';
+    };
+
+    window.closeActiveVoucherQrModal = function() {
+        stopActiveQrSync();
+        const modal = document.getElementById('active-voucher-qr-modal');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.copyCurrentActiveQrCode = function() {
+        if (!currentActiveQrCode) return;
+        const btn = document.getElementById('btn-copy-active-qr');
+        const label = document.getElementById('active-qr-copy-label');
+        const icon = document.getElementById('active-qr-copy-icon');
+
+        const showSuccess = () => {
+            if (label) label.textContent = 'Code Copied!';
+            if (icon) icon.className = 'fa-solid fa-check';
+            if (btn) {
+                btn.style.background = '#dcfce7';
+                btn.style.borderColor = '#86efac';
+                btn.style.color = '#15803d';
+            }
+            if (typeof showToast === 'function') showToast("Voucher code copied to clipboard!");
+
+            setTimeout(() => {
+                if (label) label.textContent = 'Copy Voucher Code';
+                if (icon) icon.className = 'fa-solid fa-copy';
+                if (btn) {
+                    btn.style.background = '#ffffff';
+                    btn.style.borderColor = '#bfdbfe';
+                    btn.style.color = '#1e3a8a';
+                }
+            }, 2500);
+        };
+
+        if (typeof window.copyToClipboard === 'function') {
+            window.copyToClipboard(currentActiveQrCode, showSuccess, () => {
+                if (typeof showToast === 'function') showToast("Code: " + currentActiveQrCode);
+            });
+        } else {
+            window.copyVoucherCodeToClipboard(currentActiveQrCode);
+        }
+    };
+
+    function startActiveQrSync(code) {
+        stopActiveQrSync();
+        if (!code) return;
+
+        const check = async () => {
+            try {
+                const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+                const res = await fetch(`${baseUrl}/api/public/redemptions/${encodeURIComponent(code)}/status`, {
+                    headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.status === 'success' && data.is_redeemed) {
+                        const statusBadge = document.getElementById('active-qr-status-badge');
+                        const imgEl = document.getElementById('active-qr-modal-img');
+                        const noticeEl = document.getElementById('active-qr-notice');
+
+                        if (statusBadge) {
+                            statusBadge.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#15803d; font-size:13px;"></i> Redeemed & Verified at ${data.redeemed_by_partner || 'Partner Merchant'}!`;
+                            statusBadge.style.background = '#dcfce7';
+                            statusBadge.style.color = '#15803d';
+                            statusBadge.style.border = '1px solid #86efac';
+                        }
+                        if (imgEl) {
+                            imgEl.style.filter = 'grayscale(1)';
+                            imgEl.style.opacity = '0.35';
+                        }
+                        if (noticeEl) {
+                            noticeEl.textContent = 'Redemption complete! This voucher has been recorded and can no longer be reused.';
+                            noticeEl.style.color = '#15803d';
+                            noticeEl.style.fontWeight = '700';
+                        }
+                        if (window.confetti) {
+                            window.confetti({ particleCount: 60, spread: 60, origin: { y: 0.6 } });
+                        }
+                        stopActiveQrSync();
+                        // Refresh vouchers cache on profile page
+                        fetchPointsAndVouchers();
+                    }
+                }
+            } catch(e) {}
+        };
+
+        setTimeout(check, 1200);
+        activeQrSyncInterval = setInterval(check, 4000);
+    }
+
+    function stopActiveQrSync() {
+        if (activeQrSyncInterval) {
+            clearInterval(activeQrSyncInterval);
+            activeQrSyncInterval = null;
+        }
+    }
+
+    window.renderTripDetailModalContent = function(trip) {
+        if (!trip) return;
         document.getElementById('trip-detail-title').textContent = trip.title || 'Completed Trip';
-        document.getElementById('trip-detail-date').innerHTML = `<i class="fa-regular fa-calendar" style="color:#38bdf8; margin-right:4px;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}`;
+        document.getElementById('trip-detail-date').innerHTML = `<i class="fa-regular fa-calendar" style="color:#0284c7; margin-right:4px;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}`;
         const cost = parseFloat(trip.total_cost || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-        document.getElementById('trip-detail-cost').innerHTML = `<i class="fa-solid fa-coins" style="color:#f59e0b; margin-right:4px;"></i>₱${cost}`;
+        document.getElementById('trip-detail-cost').innerHTML = `<i class="fa-solid fa-coins" style="color:#d97706; margin-right:4px;"></i>₱${cost}`;
         
         const items = trip.items || [];
-        const visitedCount = items.filter(i => i.is_visited).length || items.length;
-        document.getElementById('trip-detail-count').innerHTML = `<i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>${visitedCount} Visited`;
+        const visitedCount = items.filter(i => i.is_visited === true || i.is_visited === 1 || i.is_visited === '1').length || items.length;
+        document.getElementById('trip-detail-count').innerHTML = `<i class="fa-solid fa-location-dot" style="margin-right:4px; color:#ffffff;"></i>${visitedCount} Visited`;
 
         let destHtml = '';
         if (items.length === 0) {
-            destHtml = '<div style="text-align:center; padding:16px; color:rgba(148,163,184,0.8); font-size:12px;">No destination details found for this trip.</div>';
+            destHtml = '<div style="text-align:center; padding:16px; color:#94a3b8; font-size:12px;">No destination details found for this trip.</div>';
         } else {
             items.forEach((item, idx) => {
                 const dest = item.destination;
                 const destName = dest ? dest.name : (item.destination_name || 'Destination ' + (idx + 1));
                 const fee = dest ? (dest.entrance_fee && parseFloat(dest.entrance_fee) > 0 ? '₱' + parseFloat(dest.entrance_fee).toFixed(2) : 'Free Entrance') : 'Visited';
                 const spotId = item.tourist_spot_id || (dest ? dest.id : item.id);
+                const isReviewed = spotId && window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(spotId));
+                const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
+                const sMeta = (typeof window.getRewardPointsForClassification === 'function') ? window.getRewardPointsForClassification(sClass) : { points: 50 };
 
                 destHtml += `
-                <div style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:14px; margin-bottom:8px;">
-                    <div style="width:32px; height:32px; border-radius:10px; background:linear-gradient(135deg, #38bdf8, #2563eb); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:900; font-size:13px; color:#fff;">${idx + 1}</div>
+                <div style="display:flex; align-items:center; gap:10px; padding:12px 14px; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; box-shadow:none !important; border-radius:14px; margin-bottom:8px;">
+                    <div style="width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,0.2); border:none !important; outline:none !important; box-shadow:none !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:900; font-size:14px; color:#ffffff;">${idx + 1}</div>
                     <div style="flex:1; min-width:0;">
-                        <div style="font-size:13px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
-                        <div style="font-size:11px; color:rgba(148,163,184,0.8); font-weight:600;">${fee}</div>
+                        <div style="font-size:13.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
+                        <div style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">${fee}</div>
                     </div>
-                    ${spotId ? `<button type="button" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${spotId}', this)" style="background: linear-gradient(135deg, #38bdf8, #2563eb); border: none; color: #ffffff; padding: 6px 14px; border-radius: 100px; font-weight: 800; font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 8px rgba(56,189,248,0.3); flex-shrink: 0;"><i class="fa-solid fa-pen" style="font-size: 10px;"></i> Review</button>` : ''}
+                    ${spotId ? `<button type="button" data-spot-id="${spotId}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${spotId}', this)" style="background: ${isReviewed ? 'rgba(255,255,255,0.22)' : 'linear-gradient(135deg, #00f2fe 0%, #0284c7 100%)'}; border: none !important; outline: none !important; box-shadow: none !important; color: #ffffff; padding: 7px 14px; border-radius: 100px; font-weight: 800; font-size: 11.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;">${isReviewed ? '<i class="fa-solid fa-check" style="font-size: 10px; margin-right: 4px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="font-size: 10px;"></i> Review (+${sMeta.points} PTS)`}</button>` : ''}
                 </div>`;
             });
         }
         document.getElementById('trip-detail-destinations-list').innerHTML = destHtml;
+        if (typeof window.syncReviewedButtons === 'function') {
+            window.syncReviewedButtons();
+        }
+    };
+
+    window.showTripDetailsModal = function(tripId) {
+        const trips = window._cachedCompletedTrips || [];
+        let trip = trips.find(t => String(t.id) === String(tripId));
+        if (!trip && trips.length > 0) trip = trips[0];
 
         const modal = document.getElementById('trip-details-modal');
-        if (modal) modal.style.display = 'flex';
+        if (trip) {
+            window.renderTripDetailModalContent(trip);
+            if (modal) modal.style.display = 'flex';
+            return;
+        }
+
+        // If not in cache, fetch directly
+        const token = localStorage.getItem('intan_elyu_token');
+        if (tripId && token && typeof backendUrl !== 'undefined') {
+            fetch(`${backendUrl}/api/tourist/itineraries/${tripId}`, {
+                headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
+            })
+            .then(r => r.json())
+            .then(res => {
+                const fetched = res.data || res.itinerary || res;
+                if (fetched && fetched.id) {
+                    window.renderTripDetailModalContent(fetched);
+                    if (modal) modal.style.display = 'flex';
+                }
+            })
+            .catch(err => console.error("Trip details fetch error:", err));
+        }
     };
 
     window.closeTripDetailsModal = function() {
@@ -676,55 +1090,288 @@ $activeTab = 'profile';
         if (modal) modal.style.display = 'none';
     };
 
+    window.renderProfileUserMeta = function(u) {
+        const elMeta = document.getElementById('profile-meta');
+        if (!elMeta || !u) return;
+        let metaParts = [];
+        const tNum = u.tourist_number || u.tourist_id || (u.role === 'tourist' ? 1 : '');
+        if (tNum) metaParts.push(`<span style="background:#2563eb; color:#ffffff; padding:3px 10px; border-radius:100px; font-size:11px; font-weight:800; border:none !important; outline:none !important; box-shadow:0 2px 6px rgba(0,0,0,0.2);">ID: #${tNum}</span>`);
+        if (u.age) metaParts.push(`<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-cake-candles" style="color:#00f2fe;"></i> ${u.age} yrs old</span>`);
+        if (u.gender) {
+            const gLow = String(u.gender).toLowerCase();
+            let gIcon = 'fa-venus-mars';
+            if (gLow === 'male') gIcon = 'fa-mars';
+            else if (gLow === 'female') gIcon = 'fa-venus';
+            metaParts.push(`<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid ${gIcon}" style="color:#00f2fe;"></i> ${u.gender}</span>`);
+        }
+        if (u.home_location) metaParts.push(`<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-location-dot" style="color:#00f2fe;"></i> ${u.home_location}</span>`);
+        if (u.phone) metaParts.push(`<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-phone" style="color:#00f2fe;"></i> ${u.phone}</span>`);
+        if (metaParts.length > 0) {
+            elMeta.innerHTML = metaParts.join(' &nbsp;•&nbsp; ');
+            elMeta.style.display = 'flex';
+        } else {
+            elMeta.style.display = 'none';
+        }
+    };
+
+    window.renderProfileBio = function(bio) {
+        const elBio = document.getElementById('profile-bio-text');
+        if (!elBio) return;
+        if (bio && typeof bio === 'string' && bio.trim()) {
+            elBio.textContent = `"${bio.trim()}"`;
+            elBio.style.display = 'block';
+        } else {
+            elBio.style.display = 'none';
+        }
+    };
+
+    window.renderProfilePreferences = function(prefStr) {
+        const elChips = document.getElementById('profile-pref-chips');
+        if (!elChips) return;
+        if (!prefStr || typeof prefStr !== 'string' || !prefStr.trim()) {
+            elChips.innerHTML = '';
+            elChips.style.display = 'none';
+            return;
+        }
+        const iconMap = {
+            'surfing': '🏄‍♂️',
+            'beach': '🏄‍♂️',
+            'nature': '🏔️',
+            'falls': '🏔️',
+            'heritage': '🏛️',
+            'culture': '🏛️',
+            'food': '🍲',
+            'dining': '🍲',
+            'sunset': '🌅',
+            'nightlife': '🌅'
+        };
+        const prefs = prefStr.split(',').map(s => s.trim()).filter(Boolean);
+        if (!prefs.length) {
+            elChips.innerHTML = '';
+            elChips.style.display = 'none';
+            return;
+        }
+        elChips.innerHTML = prefs.map(p => {
+            let icon = '';
+            const pLower = p.toLowerCase();
+            if (!/[\u{1F300}-\u{1F9FF}]/u.test(p)) {
+                for (const [key, ic] of Object.entries(iconMap)) {
+                    if (pLower.includes(key)) {
+                        icon = ic + ' ';
+                        break;
+                    }
+                }
+            }
+            return `<span style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; padding:5px 14px; border-radius:100px; font-size:11px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">${icon}${p}</span>`;
+        }).join('');
+        elChips.style.display = 'flex';
+    };
+
+    // Instant local cache render for zero-latency UI
+    try {
+        const _cachedAuth = JSON.parse(localStorage.getItem('auth_user') || '{}');
+        if (_cachedAuth.name && document.getElementById('profile-name')) {
+            document.getElementById('profile-name').textContent = _cachedAuth.name;
+        }
+        if (_cachedAuth.email && document.getElementById('profile-email')) {
+            document.getElementById('profile-email').textContent = _cachedAuth.email;
+        }
+        if (_cachedAuth.avatar && document.getElementById('profile-img')) {
+            document.getElementById('profile-img').src = window.getFullImageUrl ? window.getFullImageUrl(_cachedAuth.avatar) : _cachedAuth.avatar;
+        }
+        window.renderProfileUserMeta(_cachedAuth);
+        window.renderProfileBio(_cachedAuth.bio);
+        window.renderProfilePreferences(_cachedAuth.travel_preferences);
+    } catch(e) {}
+
+    // Listen for real-time profile updates from edit_profile
+    window.addEventListener('userProfileUpdated', function(e) {
+        if (e.detail) {
+            const u = e.detail;
+            if (u.name && document.getElementById('profile-name')) document.getElementById('profile-name').textContent = u.name;
+            if (u.email && document.getElementById('profile-email')) document.getElementById('profile-email').textContent = u.email;
+            if (u.avatar && document.getElementById('profile-img')) {
+                document.getElementById('profile-img').src = window.getFullImageUrl ? window.getFullImageUrl(u.avatar) : u.avatar;
+            }
+            window.renderProfileUserMeta(u);
+            window.renderProfileBio(u.bio);
+            window.renderProfilePreferences(u.travel_preferences);
+        }
+    });
+
     fetchProfileData();
     fetchPointsAndVouchers();
 </script>
 
 <!-- Full Trip History Modal -->
 <div id="full-history-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center; padding:20px;">
-    <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:1.5px solid rgba(255, 255, 255, 0.25); border-radius:24px; padding:24px 20px; width:100%; max-width:400px; max-height:82vh; display:flex; flex-direction:column; box-shadow:0 24px 60px rgba(10,25,60,0.6); text-align:left;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.12);">
-            <h3 style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
-                <i class="fa-solid fa-clock-rotate-left" style="color:#38bdf8;"></i> Trip History
+    <div style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:400px; max-height:82vh; display:flex; flex-direction:column; box-shadow:none !important; overflow:hidden; text-align:left; padding:0;">
+        <!-- Trip History Header Banner -->
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border:none !important; outline:none !important; box-shadow:none !important; flex-shrink:0;">
+            <h3 style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:9px; letter-spacing:-0.2px;">
+                <i class="fa-solid fa-clock-rotate-left" style="color:#00f2fe; font-size:17px;"></i> Trip History
             </h3>
-            <button onclick="window.closeFullHistoryModal()" style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); color:#e2e8f0; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px;">
-                <i class="fa-solid fa-xmark"></i>
+            <button onclick="window.closeFullHistoryModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; box-shadow:none !important; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
             </button>
         </div>
 
-        <div id="full-history-list" style="flex:1; overflow-y:auto; padding-right:4px;">
-            <div style="text-align:center; padding:20px; color:rgba(148, 163, 184, 0.8); font-size:13px;">Loading history...</div>
+        <!-- Body Area Below Header (Pure White, No Shadow, No Outlines) -->
+        <div id="full-history-list" class="hide-scrollbar" style="flex:1; overflow-y:auto; padding:18px 16px; background:#ffffff !important; border:none !important; outline:none !important; box-shadow:none !important;">
+            <div style="text-align:center; padding:20px; color:#64748b; font-size:13px; font-weight:600;">Loading history...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Full Active Vouchers Modal -->
+<div id="full-vouchers-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center; padding:20px;">
+    <div style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:400px; max-height:82vh; display:flex; flex-direction:column; box-shadow:none !important; overflow:hidden; text-align:left; padding:0;">
+        <!-- Vouchers Header Banner -->
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border:none !important; outline:none !important; box-shadow:none !important; flex-shrink:0;">
+            <h3 style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:9px; letter-spacing:-0.2px;">
+                <i class="fa-solid fa-ticket" style="color:#00f2fe; font-size:17px;"></i> Active Vouchers
+            </h3>
+            <button onclick="window.closeFullVouchersModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; box-shadow:none !important; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
+            </button>
+        </div>
+
+        <!-- Body Area Below Header (Pure White, No Shadow, No Outlines) -->
+        <div id="full-vouchers-list" class="hide-scrollbar" style="flex:1; overflow-y:auto; padding:18px 16px; background:#ffffff !important; border:none !important; outline:none !important; box-shadow:none !important;">
+            <div style="text-align:center; padding:20px; color:#64748b; font-size:13px; font-weight:600;">Loading vouchers...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Dedicated Active Voucher QR Pass Modal -->
+<div id="active-voucher-qr-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:2000002; justify-content:center; align-items:center; padding:20px;">
+    <div style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:390px; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 20px 50px rgba(0,0,0,0.3) !important; overflow:hidden; text-align:center; padding:0;">
+        <!-- Header Banner (Royal Blue) -->
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border:none !important; outline:none !important; flex-shrink:0;">
+            <div style="display:flex; align-items:center; gap:9px;">
+                <i class="fa-solid fa-qrcode" style="color:#00f2fe; font-size:18px;"></i>
+                <h3 style="margin:0; color:#ffffff; font-size:17px; font-weight:800; letter-spacing:-0.2px;">Voucher QR Pass</h3>
+            </div>
+            <button onclick="window.closeActiveVoucherQrModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="hide-scrollbar" style="flex:1; overflow-y:auto; padding:20px 18px; background:#ffffff !important;">
+            <div id="active-qr-modal-title" style="font-size:17px; font-weight:900; color:#1e3a8a; margin-bottom:4px; line-height:1.3;">Tourist Voucher</div>
+            <div id="active-qr-modal-partner" style="font-size:12px; font-weight:700; color:#64748b; margin-bottom:14px;">Official Partner Merchant</div>
+
+            <!-- QR Code Container -->
+            <div style="background:#eff6ff; border:1.5px dashed #bfdbfe; border-radius:20px; padding:16px; margin-bottom:14px;">
+                <div style="background:#ffffff; border-radius:14px; padding:10px; width:170px; height:170px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,0.08); border:1px solid #e2e8f0; position:relative;">
+                    <img id="active-qr-modal-img" src="" alt="Voucher QR Code" style="width:100%; height:100%; object-fit:contain;">
+                </div>
+
+                <!-- Codes Information -->
+                <div style="display:flex; justify-content:center; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
+                    <span style="font-size:11px; background:#ffffff; padding:4px 10px; border-radius:8px; color:#64748b; font-weight:700; border:1px solid #e2e8f0;">
+                        Promo: <strong id="active-qr-modal-promo-code" style="color:#1e3a8a;">INTAN-ELYU</strong>
+                    </span>
+                    <span style="font-size:11px; background:#ffffff; padding:4px 10px; border-radius:8px; color:#64748b; font-weight:700; border:1px solid #e2e8f0;">
+                        Claim Pass: <strong id="active-qr-modal-code" style="color:#0284c7; font-family:monospace;">INTAN-XXXX-XXXX</strong>
+                    </span>
+                </div>
+
+                <button id="btn-copy-active-qr" onclick="copyCurrentActiveQrCode()" style="background:#ffffff !important; border:1px solid #bfdbfe !important; color:#1e3a8a !important; padding:9px 18px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(0,0,0,0.05); transition:all 0.2s ease;">
+                    <i class="fa-solid fa-copy" id="active-qr-copy-icon" style="color:#1e3a8a !important;"></i>
+                    <span id="active-qr-copy-label">Copy Voucher Code</span>
+                </button>
+
+                <p id="active-qr-notice" style="margin:10px 0 0 0; font-size:11px; color:#64748b; line-height:1.4;">
+                    Present this QR code or alphanumeric code directly to staff at checkout.
+                </p>
+
+                <div id="active-qr-status-badge" style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:100px; font-size:11px; font-weight:800; background:#e0f2fe; color:#0369a1; margin-top:10px; transition:all 0.3s ease;">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> Ready for scan at checkout
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Completed Trip Details Modal -->
 <div id="trip-details-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:2000000; justify-content:center; align-items:center; padding:20px;">
-    <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:1.5px solid rgba(255, 255, 255, 0.25); border-radius:24px; padding:24px 20px; width:100%; max-width:400px; max-height:82vh; display:flex; flex-direction:column; box-shadow:0 24px 60px rgba(10,25,60,0.6); text-align:left;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.08);">
+    <div style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:400px; max-height:82vh; display:flex; flex-direction:column; box-shadow:none !important; overflow:hidden; text-align:left; padding:0;">
+        <!-- Header Banner -->
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border:none !important; outline:none !important; box-shadow:none !important; flex-shrink:0;">
             <div style="display:flex; align-items:center; gap:10px;">
-                <div style="width:36px; height:36px; border-radius:12px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); display:flex; align-items:center; justify-content:center; color:#10b981; font-size:16px;">
+                <div style="width:34px; height:34px; border-radius:10px; background:#10b981; border:none !important; outline:none !important; box-shadow:none !important; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:15px;">
                     <i class="fa-solid fa-flag-checkered"></i>
                 </div>
                 <div>
-                    <div style="font-size:10px; font-weight:800; color:#34c759; text-transform:uppercase; letter-spacing:0.5px;">Finished Trip Details</div>
-                    <h3 id="trip-detail-title" style="margin:0; color:#ffffff; font-size:17px; font-weight:800;">Trip Details</h3>
+                    <div style="font-size:10px; font-weight:800; color:#00f2fe; text-transform:uppercase; letter-spacing:0.5px;">Finished Trip Details</div>
+                    <h3 id="trip-detail-title" style="margin:0; color:#ffffff; font-size:17px; font-weight:800; letter-spacing:-0.2px;">Trip Details</h3>
                 </div>
             </div>
-            <button onclick="window.closeTripDetailsModal()" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); color:#e2e8f0; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px;">
-                <i class="fa-solid fa-xmark"></i>
+            <button onclick="window.closeTripDetailsModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; box-shadow:none !important; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
             </button>
         </div>
 
-        <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
-            <span id="trip-detail-date" style="font-size:11px; color:rgba(226,232,240,0.85); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); padding:5px 10px; border-radius:100px; font-weight:600;"><i class="fa-regular fa-calendar" style="color:#38bdf8; margin-right:4px;"></i>--</span>
-            <span id="trip-detail-cost" style="font-size:11px; color:rgba(226,232,240,0.85); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); padding:5px 10px; border-radius:100px; font-weight:600;"><i class="fa-solid fa-coins" style="color:#f59e0b; margin-right:4px;"></i>₱0.00</span>
-            <span id="trip-detail-count" style="font-size:11px; color:#34c759; background:rgba(52,199,89,0.12); border:1px solid rgba(52,199,89,0.25); padding:5px 10px; border-radius:100px; font-weight:700;"><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>0 Visited</span>
+        <!-- Body Area Below Header (Pure White, No Shadow, No Outlines) -->
+        <div class="hide-scrollbar" style="flex:1; overflow-y:auto; padding:18px 16px; background:#ffffff !important; border:none !important; outline:none !important; box-shadow:none !important;">
+            <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+                <span id="trip-detail-date" style="font-size:11.5px; color:#1e3a8a; background:#f1f5f9; border:none !important; outline:none !important; box-shadow:none !important; padding:6px 12px; border-radius:100px; font-weight:700;"><i class="fa-regular fa-calendar" style="color:#0284c7; margin-right:5px;"></i>--</span>
+                <span id="trip-detail-cost" style="font-size:11.5px; color:#1e3a8a; background:#f1f5f9; border:none !important; outline:none !important; box-shadow:none !important; padding:6px 12px; border-radius:100px; font-weight:700;"><i class="fa-solid fa-coins" style="color:#d97706; margin-right:5px;"></i>₱0.00</span>
+                <span id="trip-detail-count" style="font-size:11.5px; color:#ffffff; background:#10b981; border:none !important; outline:none !important; box-shadow:none !important; padding:6px 12px; border-radius:100px; font-weight:800;"><i class="fa-solid fa-location-dot" style="margin-right:5px; color:#ffffff;"></i>0 Visited</span>
+            </div>
+
+            <div style="font-size:11px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Destinations Visited</div>
+            <div id="trip-detail-destinations-list" style="padding-right:0;">
+                <div style="text-align:center; padding:16px; color:#94a3b8; font-size:12px;">Loading destinations...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reward Details Modal -->
+<div id="reward-details-modal" onclick="if(event.target===this)window.closeRewardDetailsModal()"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.65); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:2000000; justify-content:center; align-items:center; padding:20px; opacity:0; transition:opacity 0.25s ease;">
+    <div style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:350px; max-height:86vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 16px 40px rgba(10,25,60,0.45); text-align:center; transform:scale(0.88); transition:transform 0.25s cubic-bezier(0.16,1,0.3,1); position:relative; padding:0;">
+        <!-- Header Banner (Royal Blue) -->
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:14px 18px; flex-shrink:0; display:flex; justify-content:space-between; align-items:center; border:none !important;">
+            <div style="text-align:left;">
+                <div style="font-size:15px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-gift" style="color:#00f2fe; font-size:14px;"></i> Reward Details
+                </div>
+                <span id="reward-modal-badge" style="font-size:9.5px; font-weight:800; color:#1e3a8a !important; background:#eff6ff !important; padding:2px 7px; border-radius:6px; margin-top:3px; display:inline-block; text-transform:uppercase;">PROMO</span>
+            </div>
+            <button type="button" onclick="window.closeRewardDetailsModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; box-shadow:0 2px 8px rgba(0,0,0,0.18);">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
+            </button>
         </div>
 
-        <div style="font-size:11px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Destinations Visited</div>
-        <div id="trip-detail-destinations-list" style="flex:1; overflow-y:auto; padding-right:4px;">
-            <div style="text-align:center; padding:16px; color:rgba(148,163,184,0.8); font-size:12px;">Loading destinations...</div>
+        <!-- Middle Body (White) -->
+        <div class="hide-scrollbar" style="background:#ffffff !important; flex:1; min-height:0; overflow-y:auto; padding:18px; color:#0f172a;">
+            <div style="width:68px; height:68px; border-radius:18px; background:#ffffff; border:1.5px solid #e2e8f0; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.06);">
+                <img id="reward-modal-img" src="" alt="Reward Logo" style="width:100%; height:100%; object-fit:contain; padding:6px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
+            </div>
+            <h4 id="reward-modal-title" style="margin:0 0 4px; font-size:17px; font-weight:800; color:#0f172a; line-height:1.3;">Reward Details</h4>
+            <p style="margin:0 0 14px; font-size:12.5px; color:#1e3a8a; font-weight:700; display:flex; align-items:center; justify-content:center; gap:4px;">
+                <i class="fa-solid fa-store" style="font-size:11px; color:#0284c7;"></i> <span id="reward-modal-partner-name">Partner</span>
+            </p>
+            <div id="reward-modal-id-notice" style="display:none; background:#fef2f2 !important; border:1px solid #fecaca !important; border-radius:12px; padding:10px 12px; margin-bottom:12px; text-align:left;">
+                <div style="display:flex; align-items:center; gap:6px; color:#dc2626 !important; font-size:11.5px; font-weight:800;">
+                    <i class="fa-solid fa-id-card"></i> Valid ID Required Upon Redemption
+                </div>
+            </div>
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:12px 14px; margin-bottom:6px; text-align:left;">
+                <div style="font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#64748b; margin-bottom:4px;">Description & Terms</div>
+                <p id="reward-modal-desc" style="margin:0; font-size:12px; color:#334155; line-height:1.45;"></p>
+            </div>
+        </div>
+
+        <!-- Footer Banner (Royal Blue) -->
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:14px 18px; flex-shrink:0; border:none !important;">
+            <button type="button" id="reward-modal-redeem-btn" style="width:100%; padding:12px; border:none !important; outline:none !important; border-radius:12px; background:#ffffff !important; color:#1e3a8a !important; font-size:13.5px; font-weight:900; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.18) !important; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <i class="fa-solid fa-gift" style="color:#1e3a8a;"></i> <span style="color:#1e3a8a;">Redeem for <strong id="reward-modal-cost-text" style="color:#1e3a8a;">-- Points</strong></span>
+            </button>
         </div>
     </div>
 </div>

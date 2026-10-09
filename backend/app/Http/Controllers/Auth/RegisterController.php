@@ -94,13 +94,15 @@ class RegisterController extends Controller
             'success' => true,
             'token'   => $token,
             'user'    => [
-                'id'     => $user->id,
-                'name'   => $user->name,
-                'email'  => $user->email,
-                'role'   => $user->role,
-                'xp'     => 0,
-                'level'  => 1,
-                'avatar' => null,
+                'id'             => $user->id,
+                'tourist_number' => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
+                'tourist_id'     => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
+                'name'           => $user->name,
+                'email'          => $user->email,
+                'role'           => $user->role,
+                'xp'             => 0,
+                'level'          => 1,
+                'avatar'         => null,
             ],
             'message' => 'Account created successfully! Welcome to Intan Elyu!',
         ], 201);
@@ -161,18 +163,35 @@ class RegisterController extends Controller
             Mail::to($user->email)->send(new TouristWelcomeMail($user));
         } catch (\Throwable $e) {}
 
+        // Create Welcome in-app notification in notifications table
+        try {
+            $firstName = trim(explode(' ', $user->name ?? 'Explorer')[0]);
+            \App\Models\Notification::createSafely(
+                $user->id,
+                'welcome',
+                'Welcome to Intan Elyu',
+                "Welcome to Intan Elyu, {$firstName}! Explore top tourist spots in La Union, plan your personalized itineraries, and earn XP with AR check-ins!",
+                [
+                    'module'     => 'welcome',
+                    'action_url' => 'dashboard'
+                ]
+            );
+        } catch (\Throwable $e) {}
+
         return response()->json([
             'success' => true,
             'message' => 'Email verified and account activated successfully!',
             'token'   => $token,
             'user'    => [
-                'id'     => $user->id,
-                'name'   => $user->name,
-                'email'  => $user->email,
-                'role'   => $user->role,
-                'xp'     => 0,
-                'level'  => 1,
-                'avatar' => null,
+                'id'             => $user->id,
+                'tourist_number' => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
+                'tourist_id'     => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
+                'name'           => $user->name,
+                'email'          => $user->email,
+                'role'           => $user->role,
+                'xp'             => 0,
+                'level'          => 1,
+                'avatar'         => null,
             ],
         ], 201);
     }

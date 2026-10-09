@@ -3,381 +3,6 @@ $pageTitle = 'Edit Profile';
 $backRoute = 'profile';
 ?>
 
-<link rel="stylesheet" href="assets/css/views/edit_profile.css?v=<?= time() ?>">
-<style>
-/* Embedded styles for Edit Profile view */
-body[data-view="edit_profile"] {
-    background:
-        radial-gradient(ellipse at 85% 5%, rgba(0, 242, 254, 0.35) 0%, transparent 55%),
-        radial-gradient(ellipse at 15% 45%, rgba(56, 189, 248, 0.3) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 80%, rgba(63, 125, 183, 0.4) 0%, transparent 60%),
-        linear-gradient(180deg, #1e3a8a 0%, #3f7db7 30%, #0284c7 65%, #06b6d4 90%, #00f2fe 100%) !important;
-    background-attachment: fixed !important;
-    color: #ffffff !important;
-}
-
-.edit-profile-container {
-    width: 100%;
-    min-height: calc(100vh - 60px);
-    padding: 20px 16px 120px 16px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-}
-
-.edit-profile-card {
-    width: 100%;
-    max-width: 440px;
-    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: none !important;
-    outline: none !important;
-    border-radius: 28px;
-    padding: 28px 20px;
-    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    box-sizing: border-box;
-}
-
-.avatar-upload {
-    position: relative;
-    margin-bottom: 24px;
-    display: inline-block;
-}
-
-.avatar-preview {
-    width: 110px;
-    height: 110px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.12);
-    border: none !important;
-    outline: none !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    margin: 0 auto;
-    position: relative;
-}
-
-.avatar-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: none;
-    border-radius: 50%;
-}
-
-.avatar-preview i {
-    font-size: 42px;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.avatar-btn {
-    position: absolute;
-    bottom: 2px;
-    right: 2px;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%);
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none !important;
-    outline: none !important;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 242, 254, 0.4);
-    font-size: 15px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.avatar-btn:active {
-    transform: scale(0.92);
-}
-
-.edit-profile-form {
-    width: 100%;
-}
-
-.edit-section-title {
-    font-size: 13px;
-    font-weight: 800;
-    color: #00f2fe;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin: 22px 0 14px 0;
-    display: flex !important;
-    justify-content: flex-start !important;
-    align-items: center !important;
-    gap: 8px !important;
-    width: 100% !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-    padding-bottom: 8px;
-    text-align: left;
-    box-sizing: border-box;
-}
-
-.edit-section-title i {
-    color: #00f2fe;
-    font-size: 14px;
-}
-
-.form-group {
-    text-align: left;
-    margin-bottom: 18px;
-    width: 100%;
-}
-
-.form-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.85);
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.form-label i {
-    color: #00f2fe;
-    font-size: 13px;
-}
-
-.form-control {
-    width: 100%;
-    padding: 13px 16px;
-    background: rgba(255, 255, 255, 0.12);
-    border: none !important;
-    outline: none !important;
-    color: #ffffff;
-    border-radius: 16px;
-    font-size: 14px;
-    font-family: inherit;
-    transition: all 0.25s ease;
-    box-sizing: border-box;
-}
-
-textarea.form-control {
-    resize: vertical;
-    min-height: 80px;
-    line-height: 1.5;
-}
-
-.form-control::placeholder {
-    color: rgba(255, 255, 255, 0.5);
-}
-
-.form-control:focus {
-    background: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 0 0 2px #00f2fe;
-}
-
-.input-with-badge {
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-
-.form-control.disabled-input {
-    background: rgba(255, 255, 255, 0.06);
-    border: none !important;
-    outline: none !important;
-    color: rgba(255, 255, 255, 0.5);
-    padding-right: 90px;
-    cursor: not-allowed;
-}
-
-.read-only-badge {
-    position: absolute;
-    right: 12px;
-    font-size: 11px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.7);
-    background: rgba(255, 255, 255, 0.12);
-    padding: 4px 8px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    pointer-events: none;
-    border: none !important;
-    outline: none !important;
-}
-
-.chips-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 6px;
-}
-
-.chip-item {
-    background: rgba(255, 255, 255, 0.12);
-    border: none !important;
-    outline: none !important;
-    color: rgba(255, 255, 255, 0.85);
-    padding: 8px 14px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    user-select: none;
-}
-
-.chip-item.active {
-    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%);
-    color: #ffffff;
-    box-shadow: 0 4px 14px rgba(0, 242, 254, 0.35);
-}
-
-.toggle-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(255, 255, 255, 0.08);
-    border: none !important;
-    outline: none !important;
-    padding: 14px 16px;
-    border-radius: 16px;
-    margin-bottom: 20px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.toggle-info {
-    text-align: left;
-}
-
-.toggle-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: #ffffff;
-}
-
-.toggle-desc {
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.7);
-    margin-top: 2px;
-}
-
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 46px;
-    height: 26px;
-    flex-shrink: 0;
-}
-
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(255, 255, 255, 0.2);
-    transition: .3s;
-    border-radius: 26px;
-    border: none !important;
-    outline: none !important;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 20px;
-    width: 20px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: .3s;
-    border-radius: 50%;
-}
-
-input:checked + .slider {
-    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%);
-}
-
-input:checked + .slider:before {
-    transform: translateX(20px);
-}
-
-.form-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 14px;
-    width: 100%;
-}
-
-.btn-save-profile {
-    width: 100%;
-    height: 50px;
-    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%);
-    color: #ffffff;
-    border: none !important;
-    outline: none !important;
-    border-radius: 16px;
-    font-size: 15px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    cursor: pointer;
-    box-shadow: 0 8px 20px rgba(0, 242, 254, 0.35);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.btn-save-profile:active {
-    transform: scale(0.98);
-    box-shadow: 0 4px 12px rgba(0, 242, 254, 0.25);
-}
-
-.btn-save-profile:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.btn-cancel-profile {
-    width: 100%;
-    height: 44px;
-    background: rgba(255, 255, 255, 0.1);
-    color: #ffffff;
-    border: none !important;
-    outline: none !important;
-    border-radius: 16px;
-    font-size: 14px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-cancel-profile:hover, .btn-cancel-profile:active {
-    background: rgba(255, 255, 255, 0.18);
-    color: #ffffff;
-}
-</style>
-
 <?php include __DIR__ . '/../components/header.php'; ?>
 
 <div class="edit-profile-container has-header animate-slide-up">
@@ -397,57 +22,80 @@ input:checked + .slider:before {
         <form class="edit-profile-form" onsubmit="saveProfile(event)">
             <!-- Personal Info -->
             <div class="edit-section-title">
-                <i class="fa-solid fa-user-gear"></i> Personal Details
+                Personal Details
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="profile-name">
-                    <i class="fa-solid fa-user-pen"></i> Full Name
+                    Full Name
                 </label>
                 <input class="form-control" id="profile-name" type="text" placeholder="Enter your full name" required autocomplete="name">
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="profile-email">
-                    <i class="fa-solid fa-envelope"></i> Email Address
+                    Email Address
                 </label>
                 <input class="form-control" id="profile-email" type="email" placeholder="Email address" required autocomplete="email">
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="profile-phone">
-                    <i class="fa-solid fa-phone"></i> Phone / Mobile Number
+                    Phone / Mobile Number
                 </label>
                 <input class="form-control" id="profile-phone" type="tel" placeholder="+63 9XX XXX XXXX" autocomplete="tel">
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="profile-location">
-                    <i class="fa-solid fa-location-dot"></i> Hometown / Origin
+                    Hometown / Origin
                 </label>
                 <input class="form-control" id="profile-location" type="text" placeholder="e.g. San Juan, La Union / Manila">
             </div>
 
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                    <label class="form-label" for="profile-age">
+                        Age
+                    </label>
+                    <input class="form-control" id="profile-age" type="number" min="1" max="120" placeholder="e.g. 24">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="profile-gender">
+                        Gender
+                    </label>
+                    <select class="form-control" id="profile-gender" style="cursor: pointer; background: rgba(255, 255, 255, 0.12) !important; color: #ffffff !important; border: none !important; outline: none !important; border-radius: 16px; padding: 13px 14px; font-size: 14px; font-weight: 600; width: 100%; box-sizing: border-box;">
+                        <option value="" style="background: #1e3a8a; color: #ffffff;">Select gender</option>
+                        <option value="Male" style="background: #1e3a8a; color: #ffffff;">Male</option>
+                        <option value="Female" style="background: #1e3a8a; color: #ffffff;">Female</option>
+                        <option value="Non-binary" style="background: #1e3a8a; color: #ffffff;">Non-binary</option>
+                        <option value="Prefer not to say" style="background: #1e3a8a; color: #ffffff;">Prefer not to say</option>
+                        <option value="Other" style="background: #1e3a8a; color: #ffffff;">Other</option>
+                    </select>
+                </div>
+            </div>
+
             <!-- Bio / Motto -->
             <div class="edit-section-title">
-                <i class="fa-solid fa-quote-left"></i> Travel Bio & Motto
+                Travel Bio & Motto
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="profile-bio">
-                    <i class="fa-solid fa-pen-nib"></i> Bio / Traveler Statement
+                    Bio / Traveler Statement
                 </label>
                 <textarea class="form-control" id="profile-bio" placeholder="Share a brief motto or your passion for exploring La Union..."></textarea>
             </div>
 
             <!-- Travel Preferences -->
             <div class="edit-section-title">
-                <i class="fa-solid fa-compass"></i> Travel Preferences
+                Travel Preferences
             </div>
 
             <div class="form-group">
                 <label class="form-label">
-                    <i class="fa-solid fa-heart"></i> Preferred Spot Categories
+                    Preferred Spot Categories
                 </label>
                 <div class="chips-container" id="preferences-chips">
                     <div class="chip-item" onclick="toggleChip(this)" data-value="Surfing & Beach">🏄‍♂️ Surfing & Beach</div>
@@ -496,6 +144,68 @@ input:checked + .slider:before {
     </div>
 </div>
 
+<!-- Full-screen Photo Preview & Crop Modal (Matching Exact UI from Screenshot) -->
+<div id="avatar-crop-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100vw; height:100vh; background:#ffffff; z-index:9999999; flex-direction:column; justify-content:space-between; box-sizing:border-box; overflow:hidden;">
+    
+    <!-- Top Header -->
+    <div style="height:56px; padding:0 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #f1f5f9; flex-shrink:0;">
+        <button type="button" onclick="window.closeCropPreviewModal()" style="background:transparent; border:none; outline:none; font-size:18px; color:#0f172a; padding:8px 12px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <span style="font-size:17px; font-weight:700; color:#0f172a; letter-spacing:-0.2px;">Preview</span>
+        <div style="width:38px;"></div> <!-- Spacer to balance header -->
+    </div>
+
+    <!-- Cropper Container Card -->
+    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px 16px; box-sizing:border-box; overflow:hidden;">
+        <div id="crop-card" style="width:100%; max-width:440px; height:100%; max-height:520px; background:#f1f3f5; border-radius:28px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; box-shadow:inset 0 0 0 1px rgba(0,0,0,0.04);">
+            
+            <!-- Interactive Viewport -->
+            <div id="crop-viewport" style="position:absolute; top:0; left:0; width:100%; height:100%; overflow:hidden; touch-action:none; cursor:grab; user-select:none;">
+                <img id="crop-source-img" draggable="false" style="position:absolute; left:50%; top:45%; max-width:none; transform-origin:center center; pointer-events:none; user-select:none; will-change:transform;" alt="Crop source">
+            </div>
+
+            <!-- SVG Mask Cutout with Crisp White Border Ring -->
+            <svg id="crop-svg-mask" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:10;">
+                <defs>
+                    <mask id="crop-aperture-mask">
+                        <rect width="100%" height="100%" fill="white" />
+                        <circle id="crop-mask-circle" cx="50%" cy="45%" r="125" fill="black" />
+                    </mask>
+                </defs>
+                <rect width="100%" height="100%" fill="rgba(241, 243, 245, 0.82)" mask="url(#crop-aperture-mask)" />
+                <circle id="crop-border-circle" cx="50%" cy="45%" r="125" fill="none" stroke="#ffffff" stroke-width="2.5" />
+            </svg>
+
+            <!-- Floating Zoom & Reset Pill (matching screenshot) -->
+            <div style="position:absolute; bottom:22px; z-index:20; background:#ffffff; border-radius:999px; box-shadow:0 4px 18px rgba(0,0,0,0.12); padding:5px 16px; display:inline-flex; align-items:center; gap:14px;">
+                <button type="button" onclick="window.cropZoomStep(-0.15)" style="background:none; border:none; outline:none; font-size:16px; font-weight:700; color:#0f172a; cursor:pointer; padding:6px 8px; display:flex; align-items:center; justify-content:center;" title="Zoom Out">
+                    <i class="fa-solid fa-minus"></i>
+                </button>
+                <button type="button" onclick="window.cropZoomStep(0.15)" style="background:none; border:none; outline:none; font-size:16px; font-weight:700; color:#0f172a; cursor:pointer; padding:6px 8px; display:flex; align-items:center; justify-content:center;" title="Zoom In">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+                <div style="width:1px; height:18px; background:#e2e8f0;"></div>
+                <button type="button" onclick="window.cropResetPosition()" style="background:none; border:none; outline:none; font-size:14px; font-weight:700; color:#0f172a; cursor:pointer; padding:6px 8px;" title="Reset">
+                    Reset
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bottom Actions -->
+    <div style="padding:14px 20px 24px 20px; display:flex; flex-direction:column; gap:10px; max-width:440px; width:100%; margin:0 auto; box-sizing:border-box; flex-shrink:0;">
+        <button type="button" onclick="window.cropSelectAnother()" style="width:100%; height:50px; background:#f1f5f9; color:#0f172a; border-radius:25px; border:none; outline:none; font-size:15px; font-weight:700; cursor:pointer; transition:background 0.15s ease;">
+            Select another photo
+        </button>
+        <button type="button" onclick="window.cropConfirm()" style="width:100%; height:50px; background:#0f172a; color:#ffffff; border-radius:25px; border:none; outline:none; font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(15,23,42,0.25); transition:transform 0.15s ease;">
+            Confirm
+        </button>
+    </div>
+
+</div>
+
 <script>
 (function() {
     // Ensure view opens at the absolute top
@@ -529,8 +239,9 @@ input:checked + .slider:before {
     const emailInput = document.getElementById('profile-email');
     const phoneInput = document.getElementById('profile-phone');
     const locationInput = document.getElementById('profile-location');
+    const ageInput = document.getElementById('profile-age');
+    const genderInput = document.getElementById('profile-gender');
     const bioInput = document.getElementById('profile-bio');
-    const privacyToggle = document.getElementById('profile-privacy');
     const img = document.getElementById('avatar-img');
     const icon = document.getElementById('avatar-icon');
 
@@ -539,25 +250,98 @@ input:checked + .slider:before {
     if (emailInput && user.email) emailInput.value = user.email;
     if (phoneInput && user.phone) phoneInput.value = user.phone;
     if (locationInput && user.home_location) locationInput.value = user.home_location;
+    if (ageInput && user.age !== undefined && user.age !== null) ageInput.value = user.age;
+    if (genderInput && user.gender) genderInput.value = user.gender;
     if (bioInput && user.bio) bioInput.value = user.bio;
-    if (privacyToggle && typeof user.is_leaderboard_private !== 'undefined') {
-        privacyToggle.checked = Boolean(user.is_leaderboard_private);
+
+    function syncPreferencesFromData(u) {
+        const chips = document.querySelectorAll('#preferences-chips .chip-item');
+        if (!chips.length) return;
+
+        let rawPrefs = null;
+        if (u && typeof u.travel_preferences !== 'undefined' && u.travel_preferences !== null) {
+            rawPrefs = u.travel_preferences;
+        } else {
+            try {
+                const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                if (typeof stored.travel_preferences !== 'undefined' && stored.travel_preferences !== null) {
+                    rawPrefs = stored.travel_preferences;
+                }
+            } catch (e) {}
+        }
+
+        if (rawPrefs !== null && rawPrefs !== undefined) {
+            const prefList = String(rawPrefs).split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+            chips.forEach(chip => {
+                const val = (chip.getAttribute('data-value') || '').toLowerCase();
+                const text = chip.textContent.toLowerCase();
+
+                const isMatch = prefList.some(p => {
+                    const cleanP = p.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+                    if (!cleanP) return false;
+                    return val === cleanP || val.includes(cleanP) || cleanP.includes(val) ||
+                           text.includes(cleanP) || cleanP.includes(text) ||
+                           (cleanP.includes('surf') && val.includes('surf')) ||
+                           (cleanP.includes('beach') && val.includes('beach')) ||
+                           ((cleanP.includes('nature') || cleanP.includes('fall') || cleanP.includes('hike')) && val.includes('nature')) ||
+                           ((cleanP.includes('heritage') || cleanP.includes('cultur')) && val.includes('heritage')) ||
+                           ((cleanP.includes('food') || cleanP.includes('dine') || cleanP.includes('dining')) && val.includes('food')) ||
+                           ((cleanP.includes('sunset') || cleanP.includes('night')) && val.includes('sunset'));
+                });
+
+                if (isMatch) {
+                    chip.classList.add('active');
+                } else {
+                    chip.classList.remove('active');
+                }
+            });
+        } else {
+            // First time only when preferences have never been set: default to active
+            chips.forEach(chip => chip.classList.add('active'));
+        }
     }
 
-    // Populate travel preferences chips
-    if (user.travel_preferences) {
-        const selected = user.travel_preferences.split(',').map(s => s.trim());
-        document.querySelectorAll('#preferences-chips .chip-item').forEach(chip => {
-            if (selected.includes(chip.getAttribute('data-value'))) {
-                chip.classList.add('active');
-            }
-        });
-    }
+    // Run initial sync from current user
+    syncPreferencesFromData(user);
 
     // Toggle chip helper
     window.toggleChip = function(el) {
         el.classList.toggle('active');
     };
+
+    // Immediately fetch fresh profile from API to ensure 100% accuracy from DB
+    (async function fetchLatestUserData() {
+        const token = localStorage.getItem('intan_elyu_token');
+        if (!token) return;
+        try {
+            const res = await fetch((window.backendUrl || '') + '/api/tourist/profile', {
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.user) {
+                    const u = data.user;
+                    if (nameInput && (!nameInput.value || nameInput.value === 'Explorer')) nameInput.value = u.name || '';
+                    if (emailInput && (!emailInput.value || emailInput.value.includes('loading'))) emailInput.value = u.email || '';
+                    if (phoneInput && u.phone) phoneInput.value = u.phone;
+                    if (locationInput && u.home_location) locationInput.value = u.home_location;
+                    if (ageInput && u.age !== undefined && u.age !== null) ageInput.value = u.age;
+                    if (genderInput && u.gender) genderInput.value = u.gender;
+                    if (bioInput && u.bio) bioInput.value = u.bio;
+                    syncPreferencesFromData(u);
+
+                    const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    Object.assign(stored, u);
+                    localStorage.setItem('auth_user', JSON.stringify(stored));
+                }
+            }
+        } catch (e) {
+            console.warn('Could not fetch fresh user profile in edit_profile:', e);
+        }
+    })();
 
     if (user.avatar && img) {
         let avatarUrl = user.avatar;
@@ -615,22 +399,13 @@ input:checked + .slider:before {
                 const cameraPlugin = window.Capacitor.Plugins.Camera;
                 const image = await cameraPlugin.getPhoto({
                     quality: 90,
-                    allowEditing: true,
+                    allowEditing: false,
                     resultType: 'dataUrl',
                     source: mode === 'camera' ? 'CAMERA' : 'PHOTOS'
                 });
 
                 if (image && image.dataUrl) {
-                    if (img) {
-                        img.src = image.dataUrl;
-                        img.style.display = 'block';
-                    }
-                    if (icon) icon.style.display = 'none';
-
-                    // Convert dataUrl to Blob File
-                    const res = await fetch(image.dataUrl);
-                    const blob = await res.blob();
-                    window.selectedAvatarBlob = new File([blob], 'avatar_' + Date.now() + '.jpg', { type: blob.type || 'image/jpeg' });
+                    window.openCropPreviewModal(image.dataUrl);
                 }
             } catch (err) {
                 console.warn('Capacitor Camera cancel or error:', err);
@@ -648,20 +423,255 @@ input:checked + .slider:before {
     };
 
     window.previewAvatar = function(event) {
-        const file = event.target.files[0];
+        const file = event.target?.files?.[0];
         if (!file) return;
-        window.selectedAvatarBlob = file;
         const reader = new FileReader();
         reader.onload = function(e) {
-            if (img) {
-                img.src = e.target.result;
-                img.style.display = 'block';
+            if (e.target && e.target.result) {
+                window.openCropPreviewModal(e.target.result);
             }
-            if (icon) icon.style.display = 'none';
         };
         reader.readAsDataURL(file);
+        event.target.value = '';
     };
 
+    // ─────────────────────────────────────────────────────────────
+    // Photo Preview & Interactive Cropper Controller (Matching Design)
+    // ─────────────────────────────────────────────────────────────
+    const cropState = {
+        img: null,
+        naturalW: 0,
+        naturalH: 0,
+        panX: 0,
+        panY: 0,
+        zoom: 1,
+        baseZoom: 1,
+        isDragging: false,
+        startX: 0,
+        startY: 0,
+        startPanX: 0,
+        startPanY: 0,
+        touchDist: 0,
+        startZoom: 1,
+        radius: 125
+    };
+
+    function updateCropTransform() {
+        const imgEl = document.getElementById('crop-source-img');
+        if (!imgEl) return;
+        imgEl.style.transform = `translate(calc(-50% + ${cropState.panX}px), calc(-50% + ${cropState.panY}px)) scale(${cropState.zoom})`;
+    }
+
+    window.openCropPreviewModal = function(imageSrc) {
+        const modal = document.getElementById('avatar-crop-modal');
+        const sourceImg = document.getElementById('crop-source-img');
+        const cropCard = document.getElementById('crop-card');
+        if (!modal || !sourceImg) return;
+
+        modal.style.display = 'flex';
+
+        sourceImg.onload = function() {
+            cropState.img = sourceImg;
+            cropState.naturalW = sourceImg.naturalWidth || 400;
+            cropState.naturalH = sourceImg.naturalHeight || 400;
+
+            const rect = cropCard ? cropCard.getBoundingClientRect() : { width: 360, height: 460 };
+            const cardW = rect.width || 360;
+            const r = Math.min(Math.floor(cardW * 0.36), 130);
+            cropState.radius = r;
+
+            const maskHole = document.getElementById('crop-mask-circle');
+            const borderCircle = document.getElementById('crop-border-circle');
+            if (maskHole) maskHole.setAttribute('r', r);
+            if (borderCircle) borderCircle.setAttribute('r', r);
+
+            const minSide = Math.min(cropState.naturalW, cropState.naturalH);
+            const targetSide = r * 2 * 1.15;
+            cropState.baseZoom = targetSide / minSide;
+            cropState.zoom = cropState.baseZoom;
+            cropState.panX = 0;
+            cropState.panY = 0;
+
+            sourceImg.style.width = cropState.naturalW + 'px';
+            sourceImg.style.height = cropState.naturalH + 'px';
+
+            updateCropTransform();
+        };
+
+        sourceImg.src = imageSrc;
+    };
+
+    window.closeCropPreviewModal = function() {
+        const modal = document.getElementById('avatar-crop-modal');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.cropZoomStep = function(delta) {
+        const minZoom = cropState.baseZoom * 0.4;
+        const maxZoom = cropState.baseZoom * 4.5;
+        cropState.zoom = Math.max(minZoom, Math.min(maxZoom, cropState.zoom + delta));
+        updateCropTransform();
+    };
+
+    window.cropResetPosition = function() {
+        cropState.zoom = cropState.baseZoom;
+        cropState.panX = 0;
+        cropState.panY = 0;
+        updateCropTransform();
+    };
+
+    window.cropSelectAnother = function() {
+        window.closeCropPreviewModal();
+        window.openImagePickerModal();
+    };
+
+    window.cropConfirm = function() {
+        if (!cropState.img || !cropState.naturalW || !cropState.naturalH) {
+            window.closeCropPreviewModal();
+            return;
+        }
+
+        try {
+            const cropCard = document.getElementById('crop-card');
+            const rect = cropCard ? cropCard.getBoundingClientRect() : { width: 360, height: 460 };
+            const cardW = rect.width || 360;
+            const cardH = rect.height || 460;
+
+            const apertureCX = cardW * 0.5;
+            const apertureCY = cardH * 0.45;
+            const r = cropState.radius || 125;
+
+            const imgScreenCX = apertureCX + cropState.panX;
+            const imgScreenCY = apertureCY + cropState.panY;
+
+            const offsetScreenX = apertureCX - imgScreenCX;
+            const offsetScreenY = apertureCY - imgScreenCY;
+
+            const imgOffsetX = offsetScreenX / cropState.zoom;
+            const imgOffsetY = offsetScreenY / cropState.zoom;
+
+            const cropImgCX = cropState.naturalW / 2 + imgOffsetX;
+            const cropImgCY = cropState.naturalH / 2 + imgOffsetY;
+            const cropSize = (r * 2) / cropState.zoom;
+
+            const srcX = cropImgCX - cropSize / 2;
+            const srcY = cropImgCY - cropSize / 2;
+            const srcW = cropSize;
+            const srcH = cropSize;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 600;
+            canvas.height = 600;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 600, 600);
+            ctx.drawImage(cropState.img, srcX, srcY, srcW, srcH, 0, 0, 600, 600);
+
+            canvas.toBlob(function(blob) {
+                if (!blob) return;
+                window.selectedAvatarBlob = new File([blob], 'avatar_' + Date.now() + '.jpg', { type: 'image/jpeg' });
+                const previewUrl = canvas.toDataURL('image/jpeg', 0.92);
+                if (img) {
+                    img.src = previewUrl;
+                    img.style.display = 'block';
+                }
+                if (icon) icon.style.display = 'none';
+
+                window.closeCropPreviewModal();
+                if (typeof showToast === 'function') {
+                    showToast('Photo confirmed! Click "Save Changes" to save profile.');
+                }
+            }, 'image/jpeg', 0.92);
+        } catch (err) {
+            console.error('Crop confirmation error:', err);
+            window.closeCropPreviewModal();
+        }
+    };
+
+    // Attach dragging and pinch-to-zoom listeners to viewport
+    const viewport = document.getElementById('crop-viewport');
+    if (viewport) {
+        viewport.addEventListener('mousedown', function(e) {
+            cropState.isDragging = true;
+            cropState.startX = e.clientX;
+            cropState.startY = e.clientY;
+            cropState.startPanX = cropState.panX;
+            cropState.startPanY = cropState.panY;
+            viewport.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mousemove', function(e) {
+            if (!cropState.isDragging) return;
+            const dx = e.clientX - cropState.startX;
+            const dy = e.clientY - cropState.startY;
+            cropState.panX = cropState.startPanX + dx;
+            cropState.panY = cropState.startPanY + dy;
+            updateCropTransform();
+        });
+
+        window.addEventListener('mouseup', function() {
+            cropState.isDragging = false;
+            if (viewport) viewport.style.cursor = 'grab';
+        });
+
+        viewport.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 1) {
+                cropState.isDragging = true;
+                cropState.startX = e.touches[0].clientX;
+                cropState.startY = e.touches[0].clientY;
+                cropState.startPanX = cropState.panX;
+                cropState.startPanY = cropState.panY;
+            } else if (e.touches.length === 2) {
+                cropState.isDragging = false;
+                cropState.touchDist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                cropState.startZoom = cropState.zoom;
+            }
+        }, { passive: false });
+
+        window.addEventListener('touchmove', function(e) {
+            const modal = document.getElementById('avatar-crop-modal');
+            if (!modal || modal.style.display === 'none') return;
+
+            if (e.touches.length === 1 && cropState.isDragging) {
+                e.preventDefault();
+                const dx = e.touches[0].clientX - cropState.startX;
+                const dy = e.touches[0].clientY - cropState.startY;
+                cropState.panX = cropState.startPanX + dx;
+                cropState.panY = cropState.startPanY + dy;
+                updateCropTransform();
+            } else if (e.touches.length === 2 && cropState.touchDist > 0) {
+                e.preventDefault();
+                const newDist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                const scaleFactor = newDist / cropState.touchDist;
+                cropState.zoom = Math.max(cropState.baseZoom * 0.4, Math.min(cropState.baseZoom * 4.5, cropState.startZoom * scaleFactor));
+                updateCropTransform();
+            }
+        }, { passive: false });
+
+        window.addEventListener('touchend', function(e) {
+            if (e.touches.length === 0) {
+                cropState.isDragging = false;
+                cropState.touchDist = 0;
+            } else if (e.touches.length === 1) {
+                cropState.isDragging = true;
+                cropState.startX = e.touches[0].clientX;
+                cropState.startY = e.touches[0].clientY;
+                cropState.startPanX = cropState.panX;
+                cropState.startPanY = cropState.panY;
+            }
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Save Profile Action
+    // ─────────────────────────────────────────────────────────────
     window.saveProfile = async function(event) {
         event.preventDefault();
         const btn = document.getElementById('btn-save');
@@ -673,6 +683,8 @@ input:checked + .slider:before {
         const email = document.getElementById('profile-email')?.value || '';
         const phone = document.getElementById('profile-phone')?.value || '';
         const homeLocation = document.getElementById('profile-location')?.value || '';
+        const age = document.getElementById('profile-age')?.value || '';
+        const gender = document.getElementById('profile-gender')?.value || '';
         const bio = document.getElementById('profile-bio')?.value || '';
 
         // Active preferences chips
@@ -687,6 +699,8 @@ input:checked + .slider:before {
         formData.append('email', email);
         formData.append('phone', phone);
         formData.append('home_location', homeLocation);
+        formData.append('age', age);
+        formData.append('gender', gender);
         formData.append('bio', bio);
         formData.append('travel_preferences', travelPreferences);
 
@@ -709,20 +723,32 @@ input:checked + .slider:before {
             } catch (e) {}
 
             if (res.ok) {
+                const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
                 if (data.user) {
-                    const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
                     stored.name = data.user.name;
                     stored.email = data.user.email;
                     stored.phone = data.user.phone;
                     stored.home_location = data.user.home_location;
+                    stored.age = data.user.age;
+                    stored.gender = data.user.gender;
                     stored.bio = data.user.bio;
-                    stored.travel_preferences = data.user.travel_preferences;
+                    stored.travel_preferences = (data.user.travel_preferences !== undefined) ? data.user.travel_preferences : travelPreferences;
 
                     if (data.user.avatar) {
                         stored.avatar = window.getFullImageUrl ? window.getFullImageUrl(data.user.avatar) : data.user.avatar;
                     }
-                    localStorage.setItem('auth_user', JSON.stringify(stored));
+                } else {
+                    stored.name = name;
+                    stored.email = email;
+                    stored.phone = phone;
+                    stored.home_location = homeLocation;
+                    stored.age = age;
+                    stored.gender = gender;
+                    stored.bio = bio;
+                    stored.travel_preferences = travelPreferences;
                 }
+                localStorage.setItem('auth_user', JSON.stringify(stored));
+
                 // Invalidate cached profile, dashboard, and leaderboard data so all screens reload fresh data from DB
                 window.profileNeedsRefresh = true;
                 window.dashboardNeedsRefresh = true;
@@ -736,7 +762,7 @@ input:checked + .slider:before {
                 }
 
                 // Notify active components of real-time profile update
-                window.dispatchEvent(new CustomEvent('userProfileUpdated', { detail: data.user }));
+                window.dispatchEvent(new CustomEvent('userProfileUpdated', { detail: data.user || stored }));
                 if (typeof showToast === 'function') showToast('Profile updated successfully!');
                 if (typeof navigateTo === 'function') navigateTo('profile');
             } else {

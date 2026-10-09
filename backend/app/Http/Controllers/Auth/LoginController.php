@@ -55,6 +55,8 @@ class LoginController extends Controller
             'token'   => $token,
             'user'    => [
                 'id'              => $user->id,
+                'tourist_number'  => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
+                'tourist_id'      => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
                 'name'            => $user->name,
                 'email'           => $user->email,
                 'role'            => $user->role,
@@ -161,6 +163,21 @@ class LoginController extends Controller
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::warning('TouristWelcomeMail failed for Google user #' . $user->id . ': ' . $e->getMessage());
             }
+
+            // Create Welcome in-app notification in notifications table
+            try {
+                $firstName = trim(explode(' ', $user->name ?? 'Explorer')[0]);
+                \App\Models\Notification::createSafely(
+                    $user->id,
+                    'welcome',
+                    'Welcome to Intan Elyu',
+                    "Welcome to Intan Elyu, {$firstName}! Explore top tourist spots in La Union, plan your personalized itineraries, and earn XP with AR check-ins!",
+                    [
+                        'module'     => 'welcome',
+                        'action_url' => 'dashboard'
+                    ]
+                );
+            } catch (\Throwable $e) {}
         }
 
         if ($user->status !== 'active') {
@@ -184,6 +201,8 @@ class LoginController extends Controller
             'token'   => $token,
             'user'    => [
                 'id'              => $user->id,
+                'tourist_number'  => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
+                'tourist_id'      => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
                 'name'            => $user->name,
                 'email'           => $user->email,
                 'role'            => $user->role,

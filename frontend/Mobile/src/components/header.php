@@ -1,93 +1,4 @@
 <!-- Top App Header Component -->
-<style>
-    .mobile-header {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        background: rgba(30, 58, 138, 0.92) !important;
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
-        border: none !important;
-        outline: none !important;
-        border-bottom: none !important;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 18px;
-        z-index: 9000 !important;
-        /* Ensure Android gets safe padding since safe-area-inset-top is sometimes 0 on Android WebViews */
-        padding-top: max(env(safe-area-inset-top), 40px);
-        box-shadow: none;
-    }
-    
-    .header-title {
-        font-size: 18px;
-        font-weight: 800;
-        color: #ffffff !important;
-        margin: 0;
-        letter-spacing: -0.3px;
-        text-align: center;
-        flex: 1;
-    }
-    
-    .header-icon {
-        color: #ffffff !important;
-        font-size: 16px;
-        cursor: pointer;
-        width: 38px;
-        height: 38px;
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.14);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        border: none !important;
-        outline: none !important;
-        flex-shrink: 0;
-        transition: transform 0.15s ease, background 0.15s ease;
-    }
-    
-    .header-icon:active {
-        transform: scale(0.92);
-        background: rgba(255, 255, 255, 0.24);
-    }
-    
-    .header-icon .bell-dot {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        width: 8px;
-        height: 8px;
-        background: #00f2fe;
-        border-radius: 50%;
-        box-shadow: 0 0 0 2px #1e3a8a;
-        display: none;
-    }
-    
-    .header-icon .bell-dot.show {
-        display: block;
-    }
-    
-    .bell-ring {
-        animation: bell-shake 0.4s ease;
-    }
-    
-    @keyframes bell-shake {
-        0%, 100% { transform: rotate(0deg); }
-        20% { transform: rotate(15deg); }
-        40% { transform: rotate(-15deg); }
-        60% { transform: rotate(10deg); }
-        80% { transform: rotate(-10deg); }
-    }
-    
-    /* Ensure content below header has padding */
-    .has-header {
-        padding-top: calc(60px + max(env(safe-area-inset-top), 40px));
-    }
-</style>
-
 <div class="mobile-header">
     <?php if (isset($backRoute) && $backRoute): ?>
         <div class="header-icon" onclick="navigateTo('<?php echo htmlspecialchars($backRoute); ?>')" title="Back">
@@ -100,58 +11,84 @@
     <?php endif; ?>
     <h1 class="header-title"><?php echo isset($pageTitle) ? $pageTitle : 'Intan Elyu'; ?></h1>
     <div class="header-icon" onclick="toggleNotifications()" title="Notifications">
-        <i class="fa-regular fa-bell" id="bell-icon"></i>
+        <i class="fa-solid fa-bell" id="bell-icon"></i>
         <div class="bell-dot" id="bell-dot"></div>
     </div>
 </div>
 
-<!-- Notifications Dropdown (In Front of All Elements) -->
-<div id="notifications-dropdown" style="position: fixed; top: max(env(safe-area-inset-top, 0px), 65px); right: 12px; left: 12px; max-width: 360px; margin: 0 auto; background: linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 20px; z-index: 999999; box-shadow: none; padding: 18px; max-height: 75vh; overflow-y: auto; opacity: 0; pointer-events: none; transform: translateY(-10px) scale(0.96); transition: opacity 0.25s ease, transform 0.25s ease;">
-    <h3 style="margin: 0 0 12px 0; font-size: 15px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-        <span><i class="fa-regular fa-bell" style="margin-right: 8px; color: #00f2fe;"></i>Notifications</span>
-        <i class="fa-solid fa-xmark" style="font-size: 16px; color: #ffffff; opacity: 0.85; cursor: pointer; padding: 4px; transition: color 0.2s;" onclick="toggleNotifications()"></i>
-    </h3>
-    <div id="notifications-list">
-        <div style="color: #ffffff; opacity: 0.85; font-size: 13px; text-align: center; padding: 24px 0;"><i class="fa-regular fa-bell-slash" style="margin-right: 6px;"></i>No new notifications.</div>
+<!-- Notifications Modal Backdrop with Soft Blur -->
+<div id="notifications-backdrop" onclick="toggleNotifications()" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: rgba(10, 25, 60, 0.45); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 999990; opacity: 0; transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none;"></div>
+
+<div id="notifications-dropdown" class="hide-scrollbar" style="position: fixed; top: max(env(safe-area-inset-top, 0px), 65px); right: 12px; left: 12px; max-width: 360px; margin: 0 auto; background: #ffffff; border: none !important; outline: none !important; border-radius: 22px; z-index: 999999; box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45); padding: 0; max-height: 75vh; display: flex; flex-direction: column; overflow: hidden; opacity: 0; pointer-events: none; transform-origin: top right; transform: scale(0.4) translate(35px, -35px); transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.34s cubic-bezier(0.175, 0.885, 0.32, 1.15) !important;">
+    <!-- Notifications Header Banner -->
+    <div style="padding: 14px 16px; border-bottom: none !important; background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%); flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; border: none !important; outline: none !important;">
+        <span style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">
+            <i class="fa-solid fa-bell" style="color: #00f2fe; font-size: 15px;"></i> Notifications
+        </span>
+        <button type="button" onclick="toggleNotifications()" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+            <i class="fa-solid fa-xmark" style="color: #1e3a8a !important; font-size: 14px;"></i>
+        </button>
+    </div>
+
+    <!-- Scrollable Middle Body (White Background) -->
+    <div id="notifications-list" class="hide-scrollbar" style="flex: 1; min-height: 0; padding: 14px 12px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; scrollbar-width: none !important; -ms-overflow-style: none !important; background: #ffffff; border: none !important; outline: none !important;">
+        <div class="empty-state-card notif-empty-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px 18px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; border-radius: 16px; margin: 4px 0; border: none !important; outline: none !important;">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: #ffffff !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);">
+                <i class="fa-solid fa-bell-slash" style="color: #1e3a8a !important; font-size: 22px;"></i>
+            </div>
+            <h4 style="margin: 0 0 6px 0; font-size: 15px; font-weight: 800; color: #ffffff; letter-spacing: -0.2px;">No Notifications Yet</h4>
+            <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.85); line-height: 1.45; max-width: 230px;">
+                You're all caught up! Updates, trip reminders, and vouchers will appear here.
+            </p>
+        </div>
+    </div>
+
+    <!-- Locked Bottom Footer Banner -->
+    <div id="notifications-footer" style="flex-shrink: 0; padding: 12px 14px; background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%); border-top: none !important; border: none !important; outline: none !important; display: none; align-items: center; justify-content: space-between; gap: 10px;">
+        <button type="button" id="notif-mark-all-btn" onclick="markAllNotifRead()" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; font-size: 11.5px; font-weight: 800; cursor: pointer; padding: 6px 14px; border-radius: 100px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important; display: inline-flex; align-items: center; gap: 6px; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+            <i class="fa-solid fa-check-double" style="font-size: 11px; color: #1e3a8a !important;"></i> Mark all read
+        </button>
+        <button type="button" onclick="window.clearAllNotifications()" style="background: #ffffff !important; border: none !important; outline: none !important; color: #ef4444 !important; font-size: 11.5px; font-weight: 800; cursor: pointer; padding: 6px 14px; border-radius: 100px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important; display: inline-flex; align-items: center; gap: 6px; margin-left: auto; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+            <i class="fa-solid fa-trash-can" style="font-size: 11px; color: #ef4444 !important;"></i> Clear all
+        </button>
     </div>
 </div>
 
-<!-- Sidebar Menu Drawer -->
-<div id="sidebar-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 99990; transition: opacity 0.3s ease;" onclick="toggleSidebar()"></div>
-<div id="sidebar-menu" style="position: fixed; top: 0; left: -310px; width: 300px; bottom: 0; background: radial-gradient(ellipse at 90% 10%, rgba(0, 242, 254, 0.3) 0%, transparent 60%), radial-gradient(ellipse at 10% 50%, rgba(56, 189, 248, 0.25) 0%, transparent 60%), linear-gradient(180deg, #1e3a8a 0%, #2b5c9e 30%, #0284c7 70%, #06b6d4 100%); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); z-index: 99991; transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; box-shadow: 15px 0 50px rgba(0,0,0,0.5); border: none !important; outline: none !important; overflow: hidden;">
+<div id="sidebar-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 100002 !important; transition: opacity 0.3s ease;" onclick="toggleSidebar()"></div>
+<div id="sidebar-menu" style="position: fixed; top: 0; left: -280px; width: 260px; bottom: 0; background: #ffffff; z-index: 100003 !important; transition: left 0.32s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; box-shadow: 10px 0 35px rgba(0,0,0,0.12); border: none !important; border-right: none !important; outline: none !important; overflow: hidden;">
     
     <!-- User Profile Header Banner -->
-    <div style="padding: 24px 20px 18px 20px; border-bottom: none; background: rgba(30, 75, 135, 0.58); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); margin-top: max(env(safe-area-inset-top), 20px); position: relative;">
-        <button onclick="toggleSidebar()" style="position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.16); border: none !important; outline: none !important; color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s;">
-            <i class="fa-solid fa-xmark"></i>
+    <div style="padding: max(calc(env(safe-area-inset-top, 0px) + 16px), 20px) 16px 14px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%); margin-top: 0; position: relative; flex-shrink: 0;">
+        <button onclick="toggleSidebar()" style="position: absolute; top: max(calc(env(safe-area-inset-top, 0px) + 14px), 18px); right: 14px; background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.18); transition: all 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+            <i class="fa-solid fa-xmark" style="color: #1e3a8a !important; font-size: 13px;"></i>
         </button>
         
-        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 4px;">
-            <div style="width: 52px; height: 52px; border-radius: 50%; overflow: hidden; border: none !important; outline: none !important; box-shadow: none; flex-shrink: 0;">
-                <img id="sidebar-avatar" src="https://ui-avatars.com/api/?name=Tourist&background=007AFF&color=fff&rounded=true&bold=true&size=128" alt="Avatar" style="width:100%; height:100%; object-fit:cover;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 2px;">
+            <div style="width: 46px; height: 46px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255, 255, 255, 0.35); box-shadow: 0 2px 8px rgba(0,0,0,0.2); flex-shrink: 0;">
+                <img id="sidebar-avatar" src="https://ui-avatars.com/api/?name=Explorer&background=007AFF&color=fff&rounded=true&bold=true&size=128" alt="Avatar" style="width:100%; height:100%; object-fit:cover;">
             </div>
-            <div style="flex: 1; min-width: 0;">
-                <h3 id="sidebar-user-name" style="margin: 0 0 4px 0; font-size: 16px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Hi, Explorer!</h3>
-                <span style="font-size: 11px; font-weight: 800; color: #00f2fe; background: rgba(0, 242, 254, 0.2); padding: 3px 10px; border-radius: 100px; border: none !important; outline: none !important; display: inline-flex; align-items: center; gap: 4px;">
-                    <i class="fa-solid fa-compass" style="font-size: 10px;"></i> Elyu Tourist
+            <div style="flex: 1; min-width: 0; padding-right: 28px;">
+                <h3 id="sidebar-user-name" style="margin: 0 0 3px 0; font-size: 16px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px;">Explorer</h3>
+                <span style="font-size: 10.5px; font-weight: 800; color: #00f2fe; background: rgba(0, 242, 254, 0.18); padding: 2px 8px; border-radius: 100px; border: none !important; outline: none !important; display: inline-flex; align-items: center; gap: 4px;">
+                    <i class="fa-solid fa-compass" style="font-size: 9.5px; color: #00f2fe;"></i> Elyu Tourist
                 </span>
             </div>
         </div>
     </div>
 
     <!-- Scrollable Navigation Items -->
-    <div style="flex: 1; padding: 18px 16px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto;">
+    <div style="flex: 1; min-height: 0; padding: 14px 12px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; background: #ffffff;">
         
         <!-- Section: Your Stuff -->
         <div>
-            <div style="font-size: 11px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding-left: 6px;">Your Stuff</div>
-            <div style="display: flex; flex-direction: column; gap: 6px;">
-                <a href="#" onclick="toggleSidebar(); navigateTo('saved_places'); return false;" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 16px; background: rgba(30, 75, 135, 0.58); border: none !important; outline: none !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.2s;">
-                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(255,59,48,0.25); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-heart" style="color: #ff453a; font-size: 14px;"></i></span>
+            <div style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 7px; padding-left: 4px;">Your Stuff</div>
+            <div style="display: flex; flex-direction: column; gap: 7px;">
+                <a href="#" onclick="toggleSidebar(); navigateTo('saved_places'); return false;" style="color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                    <span style="width: 32px; height: 32px; border-radius: 9px; background: #ffffff !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);"><i class="fa-solid fa-heart" style="color: #1e3a8a !important; font-size: 13px;"></i></span>
                     Saved Places
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('saved_trips'); return false;" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 16px; background: rgba(30, 75, 135, 0.58); border: none !important; outline: none !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.2s;">
-                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(52,199,89,0.25); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-route" style="color: #30d158; font-size: 14px;"></i></span>
+                <a href="#" onclick="toggleSidebar(); navigateTo('saved_trips'); return false;" style="color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                    <span style="width: 32px; height: 32px; border-radius: 9px; background: #ffffff !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);"><i class="fa-solid fa-route" style="color: #1e3a8a !important; font-size: 13px;"></i></span>
                     Saved Trips
                 </a>
             </div>
@@ -159,18 +96,18 @@
 
         <!-- Section: Discover -->
         <div>
-            <div style="font-size: 11px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding-left: 6px;">Discover & Explore</div>
-            <div style="display: flex; flex-direction: column; gap: 6px;">
-                <a href="#" onclick="toggleSidebar(); navigateTo('trending'); return false;" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 16px; background: rgba(30, 75, 135, 0.58); border: none !important; outline: none !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.2s;">
-                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(239,68,68,0.25); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-fire" style="color: #ff453a; font-size: 14px;"></i></span>
-                    Trending Sites
+            <div style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 7px; padding-left: 4px;">Discover & Explore</div>
+            <div style="display: flex; flex-direction: column; gap: 7px;">
+                <a href="#" onclick="toggleSidebar(); navigateTo('trending'); return false;" style="color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                    <span style="width: 32px; height: 32px; border-radius: 9px; background: #ffffff !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);"><i class="fa-solid fa-compass" style="color: #1e3a8a !important; font-size: 13px;"></i></span>
+                    Tourist Sites
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('puzzles'); return false;" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 16px; background: rgba(30, 75, 135, 0.58); border: none !important; outline: none !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.2s;">
-                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(0,242,254,0.25); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-gamepad" style="color: #00f2fe; font-size: 14px;"></i></span>
+                <a href="#" onclick="toggleSidebar(); navigateTo('puzzles'); return false;" style="color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                    <span style="width: 32px; height: 32px; border-radius: 9px; background: #ffffff !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);"><i class="fa-solid fa-gamepad" style="color: #1e3a8a !important; font-size: 13px;"></i></span>
                     GameZone
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('discount'); return false;" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 16px; background: rgba(30, 75, 135, 0.58); border: none !important; outline: none !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.2s;">
-                    <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(236,72,153,0.25); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-tags" style="color: #ff375f; font-size: 14px;"></i></span>
+                <a href="#" onclick="toggleSidebar(); navigateTo('discount'); return false;" style="color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                    <span style="width: 32px; height: 32px; border-radius: 9px; background: #ffffff !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);"><i class="fa-solid fa-tags" style="color: #1e3a8a !important; font-size: 13px;"></i></span>
                     Discounts & Vouchers
                 </a>
             </div>
@@ -178,89 +115,119 @@
 
         <!-- Section: Support -->
         <div>
-            <div style="font-size: 11px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding-left: 6px;">Support & System</div>
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-                <a href="#" onclick="toggleSidebar(); navigateTo('settings'); return false;" style="color: #ffffff; opacity: 0.95; text-decoration: none; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 12px; transition: all 0.2s;">
-                    <i class="fa-solid fa-gear" style="color: #ffffff; width: 20px; text-align: center;"></i> Settings
+            <div style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 7px; padding-left: 4px;">Support & System</div>
+            <div style="display: flex; flex-direction: column; gap: 7px;">
+                <a href="#" onclick="toggleSidebar(); navigateTo('settings'); return false;" style="color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                    <span style="width: 32px; height: 32px; border-radius: 9px; background: #ffffff !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);"><i class="fa-solid fa-gear" style="color: #1e3a8a !important; font-size: 13px;"></i></span>
+                    Settings
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('help'); return false;" style="color: #ffffff; opacity: 0.95; text-decoration: none; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 12px; transition: all 0.2s;">
-                    <i class="fa-solid fa-circle-question" style="color: #ffffff; width: 20px; text-align: center;"></i> Help & FAQ
+                <a href="#" onclick="toggleSidebar(); navigateTo('help'); return false;" style="color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                    <span style="width: 32px; height: 32px; border-radius: 9px; background: #ffffff !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);"><i class="fa-solid fa-circle-question" style="color: #1e3a8a !important; font-size: 13px;"></i></span>
+                    Help & FAQ
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('terms'); return false;" style="color: #ffffff; opacity: 0.95; text-decoration: none; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 12px; transition: all 0.2s;">
-                    <i class="fa-solid fa-shield-halved" style="color: #ffffff; width: 20px; text-align: center;"></i> Terms & Privacy
+                <a href="#" onclick="toggleSidebar(); navigateTo('terms'); return false;" style="color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                    <span style="width: 32px; height: 32px; border-radius: 9px; background: #ffffff !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);"><i class="fa-solid fa-shield-halved" style="color: #1e3a8a !important; font-size: 13px;"></i></span>
+                    Terms & Privacy
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('about'); return false;" style="color: #ffffff; opacity: 0.95; text-decoration: none; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 12px; transition: all 0.2s;">
-                    <i class="fa-solid fa-circle-info" style="color: #ffffff; width: 20px; text-align: center;"></i> About Us
+                <a href="#" onclick="toggleSidebar(); navigateTo('about'); return false;" style="color: #ffffff !important; text-decoration: none; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                    <span style="width: 32px; height: 32px; border-radius: 9px; background: #ffffff !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);"><i class="fa-solid fa-circle-info" style="color: #1e3a8a !important; font-size: 13px;"></i></span>
+                    About Us
                 </a>
             </div>
         </div>
 
     </div>
 
-    <!-- Sidebar Bottom Footer -->
-    <div style="padding: 16px 20px; border-top: none; background: rgba(15, 23, 42, 0.45);">
-        <a href="#" onclick="logoutUser(); return false;" id="sidebar-logout-btn" style="color: #ffffff !important; text-decoration: none; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; border: none !important; outline: none !important; border-radius: 14px; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4); transition: transform 0.15s ease, opacity 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
-            <i class="fa-solid fa-right-from-bracket" style="color: #ffffff !important; font-size: 16px;"></i> Log Out
+    <!-- Locked Bottom Corner: Log Out Button -->
+    <div style="flex-shrink: 0; padding: 12px 14px max(calc(env(safe-area-inset-bottom, 0px) + 12px), 14px) 14px; background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%); border-top: 1px solid rgba(255, 255, 255, 0.12);">
+        <a href="#" onclick="logoutUser(); return false;" id="sidebar-logout-btn" style="color: #ffffff !important; text-decoration: none; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 14px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; border: none !important; outline: none !important; border-radius: 12px; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+            <i class="fa-solid fa-right-from-bracket" style="color: #ffffff !important; font-size: 14px;"></i> Log Out
         </a>
     </div>
 </div>
 
 <script>
-    document.addEventListener('click', function(e) {
-        const dropdown = document.getElementById('notifications-dropdown');
-        const bell = document.querySelector('.header-icon .fa-bell');
-        if (dropdown && dropdown.style.opacity === '1' && bell && !e.target.closest('.header-icon') && !e.target.closest('#notifications-dropdown')) {
-            dropdown.style.opacity = '0';
-            dropdown.style.pointerEvents = 'none';
-            dropdown.style.transform = 'translateY(-8px)';
-        }
-    });
+    function updateSidebarUserProfile() {
+        try {
+            const user = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : (JSON.parse(localStorage.getItem('auth_user') || '{}'));
+            const avatarEl = document.getElementById('sidebar-avatar');
+            const nameEl = document.getElementById('sidebar-user-name');
+            if (user) {
+                const fullName = (user.first_name || user.name || '').trim();
+                const firstName = fullName ? fullName.split(/\s+/)[0] : 'Explorer';
+                if (nameEl && firstName) nameEl.textContent = firstName;
+                if (avatarEl && firstName) {
+                    avatarEl.src = user.avatar ? (window.getFullImageUrl ? window.getFullImageUrl(user.avatar) : user.avatar) : `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
+                }
+            }
+        } catch (e) {}
+    }
 
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar-menu');
         const overlay = document.getElementById('sidebar-overlay');
+        const bottomNav = document.getElementById('bottom-navigation');
         if (sidebar && overlay) {
-            const isClosed = sidebar.style.left === '-310px' || !sidebar.style.left || sidebar.style.left === '';
+            const isClosed = sidebar.style.left === '-280px' || !sidebar.style.left || sidebar.style.left === '' || sidebar.style.left.startsWith('-');
             if (isClosed) {
-                // Populate user profile info in sidebar
-                const user = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : {};
-                const avatarEl = document.getElementById('sidebar-avatar');
-                const nameEl = document.getElementById('sidebar-user-name');
-                if (user && user.name) {
-                    if (nameEl) nameEl.textContent = user.name;
-                    if (avatarEl) {
-                        avatarEl.src = user.avatar ? (window.getFullImageUrl ? window.getFullImageUrl(user.avatar) : user.avatar) : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
-                    }
-                }
-
+                updateSidebarUserProfile();
                 sidebar.style.left = '0px';
                 overlay.style.display = 'block';
                 overlay.style.opacity = '1';
+                if (bottomNav) bottomNav.classList.add('nav-hidden');
             } else {
-                sidebar.style.left = '-310px';
+                sidebar.style.left = '-280px';
                 overlay.style.opacity = '0';
+                if (bottomNav) bottomNav.classList.remove('nav-hidden');
                 setTimeout(() => { overlay.style.display = 'none'; }, 300);
             }
         }
     }
 
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', updateSidebarUserProfile);
+    } else {
+        updateSidebarUserProfile();
+    }
+
     function logoutUser() {
-        localStorage.removeItem('intan_elyu_token');
-        localStorage.removeItem('auth_user');
-        window.location.href = '?view=auth';
+        if (typeof handleLogout === 'function') {
+            handleLogout();
+        } else {
+            localStorage.removeItem('intan_elyu_token');
+            localStorage.removeItem('auth_user');
+            window.location.href = '?view=auth';
+        }
     }
 
     function toggleNotifications() {
         const dropdown = document.getElementById('notifications-dropdown');
+        const backdrop = document.getElementById('notifications-backdrop');
+        if (!dropdown) return;
         const isOpen = dropdown.style.opacity === '1';
         if (isOpen) {
             dropdown.style.opacity = '0';
             dropdown.style.pointerEvents = 'none';
-            dropdown.style.transform = 'translateY(-10px) scale(0.96)';
+            dropdown.style.transform = 'scale(0.4) translate(35px, -35px)';
+            if (backdrop) {
+                backdrop.style.opacity = '0';
+                backdrop.style.pointerEvents = 'none';
+                setTimeout(() => {
+                    if (dropdown.style.opacity === '0') {
+                        backdrop.style.display = 'none';
+                    }
+                }, 300);
+            }
         } else {
+            if (backdrop) {
+                backdrop.style.display = 'block';
+                void backdrop.offsetHeight; // trigger reflow for smooth animation
+                backdrop.style.opacity = '1';
+                backdrop.style.pointerEvents = 'all';
+            }
             dropdown.style.opacity = '1';
             dropdown.style.pointerEvents = 'all';
-            dropdown.style.transform = 'translateY(0) scale(1)';
+            dropdown.style.transform = 'scale(1) translate(0, 0)';
             const bell = document.getElementById('bell-icon');
             if (bell) { bell.classList.remove('bell-ring'); void bell.offsetWidth; bell.classList.add('bell-ring'); }
             const dot = document.getElementById('bell-dot');
@@ -269,14 +236,38 @@
         }
     }
 
+    // Close notifications dropdown on click outside
+    document.addEventListener('click', function(e) {
+        const dropdown = document.getElementById('notifications-dropdown');
+        if (dropdown && dropdown.style.opacity === '1') {
+            if (!dropdown.contains(e.target) && !e.target.closest('.header-icon') && !e.target.closest('#notifications-backdrop')) {
+                toggleNotifications();
+            }
+        }
+    });
+
     async function fetchNotifications() {
         const list = document.getElementById('notifications-list');
+        const footer = document.getElementById('notifications-footer');
         if (!list) return;
-        list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;"><i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px;"></i>Loading...</div>';
+        if (footer) footer.style.display = 'none';
+        list.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 16px; gap: 10px; color: #64748b;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 22px; color: #1e3a8a;"></i>
+                <span style="font-size: 13px; font-weight: 600; color: #64748b;">Loading notifications...</span>
+            </div>
+        `;
 
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
         if (!token) {
-            list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;"><i class="fa-regular fa-bell-slash" style="margin-right: 6px;"></i>Please sign in to view notifications.</div>';
+            list.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 16px; gap: 10px; color: #64748b;">
+                    <div style="width: 48px; height: 48px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-regular fa-user" style="font-size: 20px; color: #94a3b8;"></i>
+                    </div>
+                    <span style="font-size: 13px; font-weight: 600; color: #64748b;">Please sign in to view notifications.</span>
+                </div>
+            `;
             return;
         }
 
@@ -293,7 +284,12 @@
             const data = await res.json();
             renderNotifications(data.notifications || []);
         } catch (e) {
-            list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;">Failed to load notifications.</div>';
+            list.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 16px; gap: 10px; color: #64748b;">
+                    <i class="fa-solid fa-circle-exclamation" style="font-size: 22px; color: #ef4444;"></i>
+                    <span style="font-size: 13px; font-weight: 600; color: #64748b;">Failed to load notifications.</span>
+                </div>
+            `;
         }
     }
 </script>
@@ -302,12 +298,8 @@
 <div id="push-notification-modal" class="push-notif-backdrop" style="display: none;" onclick="if(event.target===this) closePushNotificationModal()">
     <div class="push-notif-card">
         <div class="push-notif-header">
-            <div id="push-notif-icon-ring" class="push-notif-icon-ring">
-                <i id="push-notif-icon" class="fa-solid fa-bell"></i>
-            </div>
             <div style="flex: 1; min-width: 0;">
                 <div id="push-notif-badge" class="push-notif-badge">
-                    <i id="push-notif-badge-icon" class="fa-solid fa-bolt"></i>
                     <span id="push-notif-category">PUSH NOTIFICATION</span>
                 </div>
                 <div id="push-notif-time" class="push-notif-time">Just now</div>
@@ -318,176 +310,97 @@
         <h3 id="push-notif-title" class="push-notif-title">Push Notification Alert</h3>
         <p id="push-notif-body" class="push-notif-body">Notification details will appear here.</p>
 
-        <div id="push-notif-footer-extra" style="display: none; margin-bottom: 16px; padding: 10px 14px; background: rgba(56,189,248,0.08); border-radius: 12px; border: 1px dashed rgba(56,189,248,0.3); font-size: 12px; color: #38bdf8;">
-            <i class="fa-solid fa-location-dot" style="margin-right: 6px;"></i><span id="push-notif-spot-name"></span>
+        <div id="push-notif-footer-extra" style="display: none; margin-bottom: 16px; padding: 10px 14px; background: rgba(255, 255, 255, 0.12); border-radius: 12px; border: none !important; outline: none !important; font-size: 12px; color: #00f2fe;">
+            <span id="push-notif-spot-name"></span>
         </div>
 
         <div class="push-notif-actions">
-            <button id="push-notif-action-btn" type="button" class="push-notif-btn-primary" onclick="handlePushNotificationAction()">
-                <i class="fa-solid fa-compass" style="margin-right: 6px;"></i><span id="push-notif-action-text">View Details</span>
-            </button>
             <button type="button" class="push-notif-btn-secondary" onclick="closePushNotificationModal()">Dismiss</button>
+            <button id="push-notif-delete-btn" type="button" class="push-notif-btn-delete" onclick="handlePushNotificationDelete()">Delete</button>
         </div>
     </div>
 </div>
 
-<style>
-.push-notif-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 1000005;
-    background: rgba(15, 23, 42, 0.82);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.push-notif-backdrop.active {
-    opacity: 1;
-    pointer-events: auto;
-}
-.push-notif-card {
-    background: linear-gradient(145deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.99));
-    border: 1px solid rgba(56, 189, 248, 0.35);
-    border-radius: 28px;
-    width: 100%;
-    max-width: 380px;
-    padding: 24px;
-    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.8), 0 0 50px rgba(56, 189, 248, 0.18);
-    transform: scale(0.85) translateY(20px);
-    transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
-    text-align: left;
-}
-.push-notif-backdrop.active .push-notif-card {
-    transform: scale(1) translateY(0);
-}
-.push-notif-header {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 16px;
-}
-.push-notif-icon-ring {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: rgba(56, 189, 248, 0.15);
-    border: 2px solid #38bdf8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    color: #38bdf8;
-    flex-shrink: 0;
-    box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
-    animation: pushPulse 2s infinite;
-}
-@keyframes pushPulse {
-    0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); }
-    70% { box-shadow: 0 0 0 14px rgba(56, 189, 248, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
-}
-.push-notif-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 10px;
-    border-radius: 20px;
-    background: rgba(56, 189, 248, 0.15);
-    border: 1px solid rgba(56, 189, 248, 0.3);
-    color: #38bdf8;
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    margin-bottom: 4px;
-}
-.push-notif-time {
-    font-size: 11px;
-    color: rgba(148, 163, 184, 0.6);
-    font-weight: 500;
-}
-.push-notif-close-btn {
-    background: rgba(255, 255, 255, 0.08);
-    border: none;
-    color: rgba(248, 250, 252, 0.7);
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-.push-notif-close-btn:hover {
-    background: rgba(255, 255, 255, 0.18);
-    color: #fff;
-}
-.push-notif-title {
-    margin: 0 0 8px;
-    font-size: 19px;
-    font-weight: 800;
-    color: #ffffff;
-    line-height: 1.35;
-    letter-spacing: -0.3px;
-}
-.push-notif-body {
-    margin: 0 0 20px;
-    font-size: 14px;
-    color: rgba(203, 213, 225, 0.9);
-    line-height: 1.55;
-    font-weight: 400;
-}
-.push-notif-actions {
-    display: flex;
-    gap: 10px;
-}
-.push-notif-btn-primary {
-    flex: 1;
-    border: none;
-    background: linear-gradient(135deg, #38bdf8, #2563eb);
-    color: #ffffff;
-    padding: 13px;
-    border-radius: 14px;
-    font-weight: 800;
-    font-size: 14px;
-    cursor: pointer;
-    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.push-notif-btn-primary:active {
-    transform: scale(0.97);
-}
-.push-notif-btn-secondary {
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    background: rgba(255, 255, 255, 0.06);
-    color: rgba(248, 250, 252, 0.8);
-    padding: 13px 18px;
-    border-radius: 14px;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-.push-notif-btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.12);
-}
-</style>
-
 <script>
     var _currentPushNotifTargetUrl = window._currentPushNotifTargetUrl || null;
+    var _currentPushNotifId = window._currentPushNotifId || null;
+    window._notifTimerInterval = window._notifTimerInterval || null;
+
+    window.cleanNotifTitle = function(title, isWelcome) {
+        if (!title) return isWelcome ? 'Welcome to Intan Elyu' : 'Notification';
+        return title
+            .replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]/gu, '')
+            .trim();
+    };
+
+    window.cleanNotifMessage = function(msg) {
+        if (!msg) return '';
+        return msg
+            .replace(/\s*was confirmed by admin/gi, ' was confirmed')
+            .replace(/\s*(?:&|and|,)\s*\+?\d+\s*Points\.?/gi, '.')
+            .replace(/\s*\+?\d+\s*Points\.?/gi, '')
+            .replace(/\.\.+/g, '.')
+            .replace(/\s+/g, ' ')
+            .trim();
+    };
+
+    window.formatReverseTimer = function(timestamp) {
+        if (!timestamp) return 'Just now';
+        const now = Date.now();
+        const diffSec = Math.max(0, Math.floor((now - timestamp) / 1000));
+        if (diffSec < 1) return '1s ago';
+        if (diffSec < 60) return `${diffSec}s ago`;
+        const mins = Math.floor(diffSec / 60);
+        const secs = diffSec % 60;
+        if (mins < 60) return `${mins}m ${secs}s ago`;
+        const hours = Math.floor(diffSec / 3600);
+        const remMins = Math.floor((diffSec % 3600) / 60);
+        if (hours < 24) return `${hours}h ${remMins}m ago`;
+        const days = Math.floor(diffSec / 86400);
+        return `${days}d ago`;
+    };
+
+    function startNotifTimerTicker() {
+        if (window._notifTimerInterval) {
+            clearInterval(window._notifTimerInterval);
+        }
+        window._notifTimerInterval = setInterval(() => {
+            const timerEls = document.querySelectorAll('.notif-reverse-timer');
+            timerEls.forEach(el => {
+                const time = parseInt(el.getAttribute('data-time'), 10);
+                if (time) {
+                    const txt = el.querySelector('.timer-text');
+                    if (txt) txt.textContent = window.formatReverseTimer(time);
+                }
+            });
+
+            const modalTime = document.getElementById('push-notif-time');
+            if (modalTime && modalTime.getAttribute('data-time')) {
+                const t = parseInt(modalTime.getAttribute('data-time'), 10);
+                if (t) {
+                    modalTime.textContent = window.formatReverseTimer(t);
+                }
+            }
+        }, 1000);
+    }
+
+    function getNotifEmptyStateHtml() {
+        return `
+            <div class="empty-state-card notif-empty-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px 18px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; border-radius: 16px; margin: 4px 0; border: none !important; outline: none !important;">
+                <div style="width: 56px; height: 56px; border-radius: 50%; background: #ffffff !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);">
+                    <i class="fa-solid fa-bell-slash" style="color: #1e3a8a !important; font-size: 22px;"></i>
+                </div>
+                <h4 style="margin: 0 0 6px 0; font-size: 15px; font-weight: 800; color: #ffffff; letter-spacing: -0.2px;">No Notifications Yet</h4>
+                <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.85); line-height: 1.45; max-width: 230px;">
+                    You're all caught up! Updates, trip reminders, and vouchers will appear here.
+                </p>
+            </div>
+        `;
+    }
 
     function renderNotifications(notifications) {
         const list = document.getElementById('notifications-list');
+        const footer = document.getElementById('notifications-footer');
         const dot = document.getElementById('bell-dot');
         if (!list) return;
 
@@ -495,50 +408,46 @@
             let html = '';
             const unread = notifications.filter(n => !n.is_read);
             notifications.forEach(item => {
-                let icon = 'fa-bell';
-                let color = '#38bdf8';
-
-                if (item.type === 'new_spot' || item.type === 'spot_added') {
-                    icon = 'fa-map-pin';
-                    color = '#34c759';
-                } else if (item.type === 'favorite_update' || item.type === 'spot_updated') {
-                    icon = 'fa-pen-to-square';
-                    color = '#f59e0b';
-                } else if (item.type === 'itinerary_reminder') {
-                    icon = 'fa-calendar-day';
-                    color = '#8b5cf6';
-                } else if (item.type === 'spot_maintenance') {
-                    icon = 'fa-triangle-exclamation';
-                    color = '#ef4444';
-                } else if (item.type === 'welcome') {
-                    icon = 'fa-compass';
-                    color = '#38bdf8';
-                }
-
+                const isWelcome = item.type === 'welcome';
                 const isUnread = !item.is_read;
                 const encodedItem = encodeURIComponent(JSON.stringify(item));
+                const itemTime = item.created_at ? new Date(item.created_at).getTime() : Date.now();
+                const timerStr = window.formatReverseTimer(itemTime);
+                const formattedDate = new Date(itemTime).toLocaleDateString(undefined, {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'});
+                const displayTitle = window.cleanNotifTitle(item.title, isWelcome);
+                const displayMsg = window.cleanNotifMessage(item.message);
+
                 html += `
-                    <div style="display: flex; gap: 12px; margin-bottom: 10px; padding: 12px; background: ${isUnread ? 'rgba(56,189,248,0.06)' : 'rgba(255,255,255,0.02)'}; border: 1px solid ${isUnread ? 'rgba(56,189,248,0.12)' : 'rgba(255,255,255,0.04)'}; border-radius: 12px; align-items: flex-start; cursor: pointer; transition: background 0.2s;" onclick="handleNotifClick('${encodedItem}', this)">
-                        <div style="width: 34px; height: 34px; border-radius: 50%; background: ${color}15; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid ${color}30;">
-                            <i class="fa-solid ${icon}" style="color: ${color}; font-size: 14px;"></i>
+                    <div class="notif-card-item" id="notif-item-${item.id}" style="display: block; padding: 12px 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28) !important; border: none !important; outline: none !important; border-radius: 14px; cursor: pointer; transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s;" onclick="handleNotifClick('${encodedItem}', this)" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px;">
+                            <div style="display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1;">
+                                ${isUnread ? '<span class="unread-dot" style="width: 7px; height: 7px; border-radius: 50%; background: #00f2fe; flex-shrink: 0; box-shadow: 0 0 8px #00f2fe; display: inline-block;"></span>' : ''}
+                                ${isWelcome ? '<span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0, 242, 254, 0.25); color: #00f2fe; padding: 2px 6px; border-radius: 4px; border: none !important; outline: none !important; flex-shrink: 0;">Welcome</span>' : ''}
+                                <span style="font-size: 13.5px; color: #ffffff; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${displayTitle}</span>
+                            </div>
+                            <button type="button" onclick="event.stopPropagation(); window.deleteNotification('${item.id}', this.closest('.notif-card-item'))" style="background: #ffffff !important; border: none !important; outline: none !important; color: #ef4444 !important; font-size: 11px; font-weight: 800; cursor: pointer; padding: 3px 10px; border-radius: 8px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important; display: inline-flex; align-items: center; justify-content: center; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">Delete</button>
                         </div>
-                        <div style="flex: 1; min-width: 0;">
-                            <p style="margin: 0 0 4px 0; font-size: 13px; color: #e2e8f0; line-height: 1.4; font-weight: ${isUnread ? '600' : '400'};">${item.message || item.title}</p>
-                            <span style="font-size: 11px; color: rgba(148,163,184,0.5); font-weight: 500;">${new Date(item.created_at || Date.now()).toLocaleDateString(undefined, {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'})}</span>
+                        <p style="margin: 0 0 6px 0; font-size: 12px; color: ${isUnread ? '#ffffff' : 'rgba(255, 255, 255, 0.85)'}; line-height: 1.45; font-weight: ${isUnread ? '600' : '400'};">${displayMsg}</p>
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                            <span class="notif-reverse-timer" data-time="${itemTime}" style="font-size: 10px; font-weight: 700; color: #00f2fe; display: inline-flex; align-items: center; background: rgba(0, 242, 254, 0.18); padding: 2px 8px; border-radius: 100px; border: none !important; outline: none !important;">
+                                <span class="timer-text">${timerStr}</span>
+                            </span>
+                            <span style="font-size: 10.5px; color: rgba(255, 255, 255, 0.65); font-weight: 500;">${formattedDate}</span>
                         </div>
-                        ${isUnread ? '<i class="fa-solid fa-circle" style="font-size: 8px; color: #38bdf8; margin-top: 6px; flex-shrink: 0;"></i>' : ''}
                     </div>
                 `;
             });
-            if (unread.length > 0) {
-                html += `<div style="text-align: center; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
-                    <button onclick="markAllNotifRead()" style="background: none; border: none; color: #38bdf8; font-size: 12px; font-weight: 600; cursor: pointer; padding: 6px 12px;">Mark all as read</button>
-                </div>`;
-            }
             list.innerHTML = html;
+            if (footer) {
+                footer.style.display = 'flex';
+                const markBtn = document.getElementById('notif-mark-all-btn');
+                if (markBtn) markBtn.style.display = unread.length > 0 ? 'inline-flex' : 'none';
+            }
             if (unread.length > 0 && dot) dot.classList.add('show');
+            startNotifTimerTicker();
         } else {
-            list.innerHTML = '<div style="color: rgba(148,163,184,0.6); font-size: 13px; text-align: center; padding: 24px 0;"><i class="fa-regular fa-bell-slash" style="margin-right: 6px;"></i>No new notifications.</div>';
+            list.innerHTML = getNotifEmptyStateHtml();
+            if (footer) footer.style.display = 'none';
             if (dot) dot.classList.remove('show');
         }
     }
@@ -561,48 +470,31 @@
         const modal = document.getElementById('push-notification-modal');
         if (!modal) return;
 
-        const title = opts.title || (opts.type ? opts.type.replace(/_/g, ' ').toUpperCase() : 'Notification');
-        const body = opts.message || opts.body || 'You have a new update.';
+        _currentPushNotifId = opts.id || null;
+        const rawTitle = opts.title || (opts.type ? opts.type.replace(/_/g, ' ').toUpperCase() : 'Notification');
+        const title = window.cleanNotifTitle(rawTitle, opts.type === 'welcome');
+        const rawBody = opts.message || opts.body || 'You have a new update.';
+        const body = window.cleanNotifMessage(rawBody);
         const type = opts.type || 'general';
         const actionUrl = opts.action_url || opts.url || null;
         const spotName = opts.spot_name || opts.spot || null;
-        const timeStr = opts.created_at ? new Date(opts.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now';
+        const notifTimestamp = opts.created_at ? new Date(opts.created_at).getTime() : Date.now();
+        const timeStr = window.formatReverseTimer ? window.formatReverseTimer(notifTimestamp) : 'Just now';
 
-        let icon = 'fa-bell';
-        let color = '#38bdf8';
         let category = 'PUSH ALERT';
-        let badgeIcon = 'fa-bolt';
 
         if (type === 'new_spot' || type === 'spot_added') {
-            icon = 'fa-map-pin';
-            color = '#34c759';
             category = 'NEW SPOT';
-            badgeIcon = 'fa-location-dot';
         } else if (type === 'favorite_update' || type === 'spot_updated') {
-            icon = 'fa-star';
-            color = '#f59e0b';
             category = 'FAVORITE UPDATE';
-            badgeIcon = 'fa-star';
         } else if (type === 'itinerary_reminder' || type === 'trip') {
-            icon = 'fa-calendar-day';
-            color = '#8b5cf6';
             category = 'TRIP REMINDER';
-            badgeIcon = 'fa-clock';
         } else if (type === 'spot_maintenance' || type === 'alert') {
-            icon = 'fa-triangle-exclamation';
-            color = '#ef4444';
             category = 'SPOT ALERT';
-            badgeIcon = 'fa-triangle-exclamation';
         } else if (type === 'reward' || type === 'quest' || type === 'points') {
-            icon = 'fa-trophy';
-            color = '#facc15';
             category = 'REWARD UNLOCKED';
-            badgeIcon = 'fa-gift';
         } else if (type === 'welcome') {
-            icon = 'fa-compass';
-            color = '#38bdf8';
-            category = 'SYSTEM NOTICE';
-            badgeIcon = 'fa-compass';
+            category = 'WELCOME TO ELYU';
         }
 
         // Apply dynamic DOM values
@@ -610,35 +502,23 @@
         const bodyEl = document.getElementById('push-notif-body');
         const catEl = document.getElementById('push-notif-category');
         const timeEl = document.getElementById('push-notif-time');
-        const iconEl = document.getElementById('push-notif-icon');
-        const ringEl = document.getElementById('push-notif-icon-ring');
         const badgeEl = document.getElementById('push-notif-badge');
-        const badgeIconEl = document.getElementById('push-notif-badge-icon');
         const spotContainer = document.getElementById('push-notif-footer-extra');
         const spotNameEl = document.getElementById('push-notif-spot-name');
-        const actionBtn = document.getElementById('push-notif-action-btn');
 
         if (titleEl) titleEl.textContent = title;
         if (bodyEl) bodyEl.textContent = body;
         if (catEl) catEl.textContent = category;
-        if (timeEl) timeEl.textContent = timeStr;
+        if (timeEl) {
+            timeEl.setAttribute('data-time', notifTimestamp);
+            timeEl.textContent = timeStr;
+        }
 
-        if (ringEl) {
-            ringEl.style.borderColor = color;
-            ringEl.style.background = color + '20';
-            ringEl.style.boxShadow = `0 0 24px ${color}40`;
-        }
-        if (iconEl) {
-            iconEl.className = `fa-solid ${icon}`;
-            iconEl.style.color = color;
-        }
         if (badgeEl) {
-            badgeEl.style.borderColor = color + '50';
-            badgeEl.style.background = color + '20';
-            badgeEl.style.color = color;
-        }
-        if (badgeIconEl) {
-            badgeIconEl.className = `fa-solid ${badgeIcon}`;
+            badgeEl.style.border = 'none';
+            badgeEl.style.outline = 'none';
+            badgeEl.style.background = 'rgba(0, 242, 254, 0.22)';
+            badgeEl.style.color = '#00f2fe';
         }
 
         if (spotName && spotContainer && spotNameEl) {
@@ -649,19 +529,11 @@
         }
 
         _currentPushNotifTargetUrl = actionUrl;
-        if (actionBtn) {
-            if (actionUrl) {
-                actionBtn.style.display = 'flex';
-            } else {
-                actionBtn.style.display = 'none';
-            }
-        }
 
         modal.style.display = 'flex';
         requestAnimationFrame(() => {
             modal.classList.add('active');
         });
-        document.body.style.overflow = 'hidden';
     };
 
     window.closePushNotificationModal = function() {
@@ -675,14 +547,95 @@
     };
 
     window.handlePushNotificationAction = function() {
-        if (_currentPushNotifTargetUrl) {
-            const target = _currentPushNotifTargetUrl;
+        closePushNotificationModal();
+    };
+
+    window.handlePushNotificationDelete = async function() {
+        if (_currentPushNotifId) {
+            const id = _currentPushNotifId;
             closePushNotificationModal();
-            setTimeout(() => {
-                window.location.href = target;
-            }, 150);
+            const cardEl = document.getElementById('notif-item-' + id);
+            await window.deleteNotification(id, cardEl);
         } else {
             closePushNotificationModal();
+        }
+    };
+
+    window.deleteNotification = async function(id, el) {
+        if (!id) return;
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
+        if (!token) return;
+
+        if (el) {
+            el.style.opacity = '0';
+            el.style.transform = 'translateX(20px)';
+            setTimeout(() => {
+                el.remove();
+                const list = document.getElementById('notifications-list');
+                const remaining = list ? list.querySelectorAll('.notif-card-item') : [];
+                if (remaining.length === 0 && list) {
+                    list.innerHTML = getNotifEmptyStateHtml();
+                    const dot = document.getElementById('bell-dot');
+                    if (dot) dot.classList.remove('show');
+                    const footer = document.getElementById('notifications-footer');
+                    if (footer) footer.style.display = 'none';
+                } else {
+                    const unreadRemaining = list ? list.querySelectorAll('.unread-dot') : [];
+                    if (unreadRemaining.length === 0) {
+                        const dot = document.getElementById('bell-dot');
+                        if (dot) dot.classList.remove('show');
+                        const markBtn = document.getElementById('notif-mark-all-btn');
+                        if (markBtn) markBtn.style.display = 'none';
+                    }
+                }
+            }, 200);
+        }
+
+        try {
+            const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+            const res = await fetch(backendUrl + '/api/tourist/notifications/' + id, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (typeof data.unread_count !== 'undefined') {
+                    window.updateUnreadBadge(data.unread_count);
+                }
+            }
+        } catch (e) {
+            console.error("Error deleting notification:", e);
+        }
+    };
+
+    window.clearAllNotifications = async function() {
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
+        if (!token) return;
+
+        const list = document.getElementById('notifications-list');
+        if (list) {
+            list.innerHTML = getNotifEmptyStateHtml();
+        }
+        const dot = document.getElementById('bell-dot');
+        if (dot) dot.classList.remove('show');
+        const footer = document.getElementById('notifications-footer');
+        if (footer) footer.style.display = 'none';
+
+        try {
+            const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+            await fetch(backendUrl + '/api/tourist/notifications/clear-all', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+            window.updateUnreadBadge(0);
+        } catch (e) {
+            console.error("Error clearing notifications:", e);
         }
     };
 
@@ -699,14 +652,21 @@
                 }
             });
             if (el) {
-                el.style.opacity = '0.5';
-                el.onclick = null;
-                const dot = el.querySelector('.fa-circle');
+                const dot = el.querySelector('.unread-dot');
                 if (dot) dot.remove();
+                const msg = el.querySelector('p');
+                if (msg) {
+                    msg.style.fontWeight = '400';
+                    msg.style.color = 'rgba(255, 255, 255, 0.85)';
+                }
             }
             const dot = document.getElementById('bell-dot');
-            const remaining = document.querySelectorAll('#notifications-list .fa-circle');
-            if (remaining.length === 0 && dot) dot.classList.remove('show');
+            const remaining = document.querySelectorAll('#notifications-list .unread-dot');
+            if (remaining.length === 0) {
+                if (dot) dot.classList.remove('show');
+                const markBtn = document.getElementById('notif-mark-all-btn');
+                if (markBtn) markBtn.style.display = 'none';
+            }
         } catch (e) {}
     }
 
@@ -722,15 +682,20 @@
                     'Authorization': 'Bearer ' + token
                 }
             });
-            const items = document.querySelectorAll('#notifications-list > div[style*="cursor: pointer"]');
+            const items = document.querySelectorAll('#notifications-list .notif-card-item');
             items.forEach(el => {
-                el.style.opacity = '0.5';
-                el.onclick = null;
-                const dot = el.querySelector('.fa-circle');
+                const dot = el.querySelector('.unread-dot');
                 if (dot) dot.remove();
+                const msg = el.querySelector('p');
+                if (msg) {
+                    msg.style.fontWeight = '400';
+                    msg.style.color = 'rgba(255, 255, 255, 0.85)';
+                }
             });
             const dot = document.getElementById('bell-dot');
             if (dot) dot.classList.remove('show');
+            const markBtn = document.getElementById('notif-mark-all-btn');
+            if (markBtn) markBtn.style.display = 'none';
         } catch (e) {}
     }
 

@@ -36,6 +36,16 @@
         }
         return false;
     };
+
+    const origConsoleError = console.error;
+    console.error = function () {
+        const args = Array.prototype.slice.call(arguments);
+        const fullStr = args.map(function (a) {
+            return typeof a === 'string' ? a : (a && (a.message || a.stack)) ? (a.message + ' ' + a.stack) : String(a);
+        }).join(' ');
+        if (shouldSuppress(fullStr)) return;
+        return origConsoleError.apply(console, arguments);
+    };
 })();
 
 window.safeJsonParse = function (str, fallback = {}) {
@@ -247,17 +257,33 @@ window.resetAppScrollTop = resetAppScrollTop;
  * @param {boolean} fade - Whether to apply the fade transition
  */
 async function navigateTo(viewName, addToHistory = true, fade = true) {
-    // Prevent overlapping navigations or navigating to the same view
+    // Prevent overlapping navigations
     if (state.isNavigating) return;
+
+    // Parse pure view name and any query parameters passed in viewName (e.g. 'trip_map&trip_id=123' or 'trip_map?trip_id=123')
+    let targetView = viewName;
+    const extraParams = new URLSearchParams();
+
+    if (typeof viewName === 'string') {
+        const sepIndex = viewName.search(/[?&]/);
+        if (sepIndex !== -1) {
+            targetView = viewName.substring(0, sepIndex);
+            const queryStr = viewName.substring(sepIndex + 1);
+            const parsed = new URLSearchParams(queryStr);
+            parsed.forEach((val, key) => extraParams.set(key, val));
+        }
+    }
 
     // Global Auth Enforcement: Ensure user is logged in
     const publicViews = ['splash', 'auth', 'download', 'about', 'terms', 'reset-password', 'user_manual'];
-    if (!publicViews.includes(viewName) && !localStorage.getItem('intan_elyu_token')) {
-        viewName = 'auth';
+    const authToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+    if (!publicViews.includes(targetView) && !authToken) {
+        targetView = 'auth';
+        extraParams.forEach((_, key) => extraParams.delete(key));
     }
 
-    // If we're already on this view and it's not a back-button event, do nothing
-    if (addToHistory && state.currentView === viewName) return;
+    // If we're already on this view with no extra params and it's not a back-button event, do nothing
+    if (addToHistory && state.currentView === targetView && extraParams.toString() === '') return;
 
     // Immediately reset scroll on navigation start
     resetAppScrollTop();
@@ -285,8 +311,13 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     }
 
     try {
-        // Fetch new view via AJAX (with strict cache buster)
-        const response = await fetch(`index.php?view=${viewName}&ajax=1&_t=${Date.now()}`, {
+        // Fetch new view via AJAX (with strict cache buster & query parameters)
+        let fetchUrl = `index.php?view=${encodeURIComponent(targetView)}&ajax=1&_t=${Date.now()}`;
+        extraParams.forEach((val, key) => {
+            fetchUrl += `&${encodeURIComponent(key)}=${encodeURIComponent(val)}`;
+        });
+
+        const response = await fetch(fetchUrl, {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
             }
@@ -299,6 +330,10 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         const updateContent = () => {
             try {
                 // ── Teardown previous view resources to prevent mobile lag & leaks ──
+                if (window._savedTripsInterval) {
+                    clearInterval(window._savedTripsInterval);
+                    window._savedTripsInterval = null;
+                }
                 if (window._mapSpotsCheckInterval) {
                     clearInterval(window._mapSpotsCheckInterval);
                     window._mapSpotsCheckInterval = null;
@@ -315,8 +350,22 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     clearTimeout(window._gpsDebounceTimer);
                     window._gpsDebounceTimer = null;
                 }
-                if (viewName !== 'map' && window.mapInstance) {
+                if (targetView !== 'map' && window.mapInstance) {
                     try {
+                        if (window.mountedMarkersMap) {
+                            window.mountedMarkersMap.forEach(m => {
+                                try { m.remove(); } catch (e) {}
+                            });
+                            window.mountedMarkersMap.clear();
+                        }
+                        if (window.userMarker) {
+                            try { window.userMarker.remove(); } catch (e) {}
+                            window.userMarker = null;
+                        }
+                        if (window._mapGpsHandler) {
+                            document.removeEventListener('gpsUpdated', window._mapGpsHandler);
+                            window._mapGpsHandler = null;
+                        }
                         window.mapInstance.remove();
                     } catch (e) {}
                     window.mapInstance = null;
@@ -324,7 +373,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
                 resetAppScrollTop();
                 mainContent.innerHTML = html;
-                document.body.setAttribute('data-view', viewName);
+                document.body.setAttribute('data-view', targetView);
                 resetAppScrollTop();
 
                 // Execute any scripts in the new view
@@ -334,7 +383,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 const bottomNav = document.getElementById('bottom-navigation');
                 const noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual'];
                 if (bottomNav) {
-                    bottomNav.classList.toggle('nav-hidden', noNavViews.includes(viewName));
+                    bottomNav.classList.toggle('nav-hidden', noNavViews.includes(targetView));
                 }
 
                 // Animate in
@@ -345,12 +394,18 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 // Update URL
                 if (addToHistory) {
                     const url = new URL(window.location);
-                    url.searchParams.set('view', viewName);
-                    window.history.pushState({ view: viewName }, '', url);
+                    url.searchParams.set('view', targetView);
+                    extraParams.forEach((val, key) => {
+                        url.searchParams.set(key, val);
+                    });
+                    window.history.pushState({ view: targetView }, '', url);
                 }
 
-                state.currentView = viewName;
+                state.currentView = targetView;
                 if (typeof initCurrentView === 'function') initCurrentView();
+
+                // Dispatch viewLoaded event for view auto-refresh and lifecycle handlers
+                window.dispatchEvent(new CustomEvent('viewLoaded', { detail: { view: targetView } }));
 
                 // Post-render scroll resets on next animation frames and timeouts to guarantee top placement
                 resetAppScrollTop();
@@ -669,6 +724,80 @@ window.showToast = function showToast(message, type = 'info', duration = 3200) {
 var showToast = window.showToast;
 
 /**
+ * Universal Cross-Browser / Mobile Clipboard Copy Helper
+ * Handles HTTPS, HTTP (LAN/XAMPP IP), WebViews, iOS/Android, and Desktop
+ */
+window.copyToClipboard = function(text, onSuccess, onError) {
+    if (!text) {
+        if (typeof onError === 'function') onError(new Error('No text provided to copy'));
+        return;
+    }
+
+    const trimmed = String(text).trim();
+
+    // 1. Try modern Async Clipboard API if supported and in secure context
+    if (navigator.clipboard && window.isSecureContext && typeof navigator.clipboard.writeText === 'function') {
+        navigator.clipboard.writeText(trimmed).then(() => {
+            if (typeof onSuccess === 'function') onSuccess(trimmed);
+        }).catch((err) => {
+            console.warn('Clipboard writeText failed, trying execCommand fallback:', err);
+            fallbackExecCopy(trimmed, onSuccess, onError);
+        });
+        return;
+    }
+
+    // 2. Fallback using document.execCommand('copy')
+    fallbackExecCopy(trimmed, onSuccess, onError);
+};
+
+function fallbackExecCopy(text, onSuccess, onError) {
+    let ta = null;
+    try {
+        ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '0';
+        ta.style.left = '-9999px';
+        ta.style.width = '2em';
+        ta.style.height = '2em';
+        ta.style.padding = '0';
+        ta.style.border = 'none';
+        ta.style.outline = 'none';
+        ta.style.boxShadow = 'none';
+        ta.style.background = 'transparent';
+        ta.style.opacity = '0.01';
+        ta.style.zIndex = '-9999';
+        ta.style.pointerEvents = 'none';
+
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        ta.setSelectionRange(0, ta.value.length);
+
+        const successful = document.execCommand('copy');
+        document.body.removeChild(ta);
+        ta = null;
+
+        if (successful) {
+            if (typeof onSuccess === 'function') onSuccess(text);
+        } else {
+            throw new Error('execCommand returned false');
+        }
+    } catch (e) {
+        if (ta && ta.parentNode) {
+            ta.parentNode.removeChild(ta);
+        }
+        console.warn('Fallback execCommand copy error:', e);
+        if (typeof onError === 'function') {
+            onError(e);
+        } else if (typeof showToast === 'function') {
+            showToast('Unable to copy automatically. Code: ' + text);
+        }
+    }
+}
+
+/**
  * Execute scripts injected via innerHTML
  */
 function executeScripts(container) {
@@ -907,11 +1036,6 @@ window.showInAppNotification = function (title, message, iconUrl = '') {
         modal.style.opacity = '1';
         modal.querySelector('div > div').style.transform = 'scale(1)';
     });
-
-    try {
-        const audio = new Audio('assets/audio/tuturu.mp3');
-        audio.play().catch(e => { });
-    } catch (e) { }
 };
 
 window.closeNotifModal = function () {
@@ -978,36 +1102,7 @@ window.startLocationWatch = function () {
             document.dispatchEvent(new CustomEvent('gpsUpdated', { detail: { lat: currentLat, lng: currentLng, accuracy, altitude, speed, source: 'gps' } }));
         });
 
-        // Throttle background notification/itinerary checks to once every 3 seconds
-        const now = Date.now();
-        if (now - lastGpsProcessTime >= 3000) {
-            lastGpsProcessTime = now;
-
-            const savedTrips = window.savedTripsData || [];
-            savedTrips.forEach(trip => {
-                if (trip.status === 'active' && trip.items) {
-                    trip.items.forEach(item => {
-                        if (item.is_visited) return;
-
-                        const dest = item.destination;
-                        if (!dest || !dest.lat || !dest.lng) return;
-
-                        const dist = calculateDistance(currentLat, currentLng, parseFloat(dest.lat), parseFloat(dest.lng));
-
-                        if (dist <= 500 && !lastAlertedItems[item.id]) {
-                            if (localStorage.getItem('intan_elyu_push_enabled') !== 'false') {
-                                window.showInAppNotification(
-                                    "Destination Nearby!",
-                                    `You are near ${dest.name}! Open the app to check in and earn XP.`
-                                );
-                            }
-                            lastAlertedItems[item.id] = true;
-                            localStorage.setItem('intan_elyu_alerted_items', JSON.stringify(lastAlertedItems));
-                        }
-                    });
-                }
-            });
-        }
+        // Proximity auto check-in is intentionally disabled as check-in requires explicit photo proof submission and pending review.
     };
 
     const onErr = (error) => {
@@ -1207,24 +1302,28 @@ window.resolveUserLocation = async function (forceFresh = false) {
     return null;
 };
 
-// La Union towns catalog for instant manual location picking
+// La Union towns catalog for instant manual location picking (All 20 Municipalities & City)
 window.LA_UNION_TOWNS = [
-    { name: 'San Juan (Surfing Capital)', lat: 16.6755, lng: 120.3392, icon: '', desc: 'Urbiztondo Beach, Gearlan St., Surf Spots & Cafes' },
-    { name: 'San Fernando City (Capitol)', lat: 16.6159, lng: 120.3167, icon: '', desc: 'City Center, Poro Point & Malls' },
-    { name: 'Bauang', lat: 16.5312, lng: 120.3340, icon: '', desc: 'Grape Farms, Beaches & Resorts' },
-    { name: 'San Gabriel', lat: 16.6853, lng: 120.4042, icon: '', desc: 'Tangadan Falls & Highland Nature' },
-    { name: 'Bacnotan', lat: 16.7197, lng: 120.3541, icon: '', desc: 'Apiary, Surfing & Coastal Views' },
-    { name: 'Luna', lat: 16.8575, lng: 120.3778, icon: '', desc: 'Pebble Beach, Baluarte & Ruins' },
-    { name: 'Balaoan', lat: 16.8222, lng: 120.4000, icon: '', desc: 'Immuki Island & Eco Tourism' },
-    { name: 'Agoo', lat: 16.3214, lng: 120.3653, icon: '', desc: 'Basilica Minore & Eco-Fun Park' },
-    { name: 'Aringay', lat: 16.3939, lng: 120.3592, icon: '', desc: 'Centennial Tunnel & Eco Park' },
-    { name: 'Caba', lat: 16.4318, lng: 120.3394, icon: '', desc: 'Bamboo Crafts, Agri-Tourism' },
-    { name: 'Naguilian', lat: 16.5322, lng: 120.3956, icon: '', desc: 'Basi Wine & Scenic Foothills' },
-    { name: 'Pugo', lat: 16.3167, lng: 120.4667, icon: '', desc: 'Pugad Adventure & Tapuakan River' },
-    { name: 'Tubao', lat: 16.3458, lng: 120.4128, icon: '', desc: 'Mount Franciscan & Grotto' },
-    { name: 'Santo Tomas', lat: 16.2844, lng: 120.3872, icon: '', desc: 'Damortis & Coastal Fishing' },
-    { name: 'Rosario', lat: 16.2300, lng: 120.4850, icon: '', desc: 'Southern Gateway & Canopy' },
-    { name: 'Santol', lat: 16.7667, lng: 120.4500, icon: '', desc: 'Highland Waterfalls & Mountains' }
+    { name: 'San Juan (Surfing Capital)', lat: 16.671123, lng: 120.338487, icon: 'fa-person-surfing', desc: 'Urbiztondo Beach, Surf Breaks & Cafes' },
+    { name: 'San Fernando City (Capitol)', lat: 16.6159, lng: 120.3167, icon: 'fa-landmark-dome', desc: 'City Center, Capitol, Poro Point & Malls' },
+    { name: 'Bauang', lat: 16.5319, lng: 120.3298, icon: 'fa-wine-bottle', desc: 'Grape Farms, Beaches & Resorts' },
+    { name: 'Bacnotan', lat: 16.7202, lng: 120.3353, icon: 'fa-cubes-stacked', desc: 'Apiary, Surfing & Coastal Views' },
+    { name: 'Balaoan', lat: 16.8228, lng: 120.4005, icon: 'fa-gem', desc: 'Immuki Island & Coral Lagoons' },
+    { name: 'Luna', lat: 16.8554, lng: 120.3758, icon: 'fa-chess-rook', desc: 'Pebble Beach, Baluarte & Ruins' },
+    { name: 'Bangar', lat: 16.8942, lng: 120.4245, icon: 'fa-shirt', desc: 'Abel Loom Weaving & Cultural Heritage' },
+    { name: 'Sudipen', lat: 16.9031, lng: 120.4700, icon: 'fa-bridge-water', desc: 'Amburayan River & Northern Gateway' },
+    { name: 'Santol', lat: 16.7686, lng: 120.4578, icon: 'fa-mountain', desc: 'Highland Waterfalls & Mountain Vistas' },
+    { name: 'San Gabriel', lat: 16.6711, lng: 120.4050, icon: 'fa-water-ladder', desc: 'Tangadan Falls Jump-off & Eco Nature' },
+    { name: 'Bagulin', lat: 16.6072, lng: 120.4422, icon: 'fa-campground', desc: 'Loslosi Hills, Bamboo Craft & Nature' },
+    { name: 'Burgos', lat: 16.5183, lng: 120.4578, icon: 'fa-mountain-sun', desc: 'Highland Ridge Trails & Basi Legacy' },
+    { name: 'Naguilian', lat: 16.5366, lng: 120.3926, icon: 'fa-bottle-droplet', desc: 'Basi Wine, Woodcraft & Foothills' },
+    { name: 'Aringay', lat: 16.3958, lng: 120.3325, icon: 'fa-train-subway', desc: 'Centennial Tunnel & Eco Tourism' },
+    { name: 'Caba', lat: 16.4292, lng: 120.3344, icon: 'fa-basket-shopping', desc: 'Bamboo Crafts & Agri-Tourism' },
+    { name: 'Agoo', lat: 16.3217, lng: 120.3667, icon: 'fa-church', desc: 'Basilica Minore & Eco-Fun Park' },
+    { name: 'Tubao', lat: 16.3470, lng: 120.4126, icon: 'fa-place-of-worship', desc: 'Mount Franciscan & Heritage Grotto' },
+    { name: 'Pugo', lat: 16.3167, lng: 120.4667, icon: 'fa-person-hiking', desc: 'Pugad Adventure & Tapuakan River' },
+    { name: 'Santo Tomas', lat: 16.2842, lng: 120.3861, icon: 'fa-fish', desc: 'Daing Capital & Marine Sanctuaries' },
+    { name: 'Rosario', lat: 16.2286, lng: 120.4850, icon: 'fa-archway', desc: 'Gateway to Ilocandia & Tree Canopy' }
 ];
 
 window.setManualLocation = function (lat, lng, name) {
@@ -1586,22 +1685,22 @@ window.getDestImage = function (dest, width) {
         }
     }
 
-    // Phase 3: Final fallback to Cloudflare R2 verified spot image
-    return 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a686f4d0f48b.jpg';
+    // Phase 3: Final fallback to no_image.svg if no image was uploaded or inputted
+    return 'assets/img/no_image.svg';
 };
 
 window.handleImgError = function (imgEl, spotName, muniName) {
     if (!imgEl) return;
     imgEl.onerror = null;
-    var r2Default = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a686f4d0f48b.jpg';
+    var defaultNoImage = 'assets/img/no_image.svg';
     if (window.getDestImage && (spotName || muniName)) {
         var fallback = window.getDestImage({ name: spotName || '', municipality: muniName || '', photo_url: null }, 600);
-        if (fallback && fallback !== imgEl.src && !fallback.includes('unsplash.com') && !fallback.startsWith('data:image/svg')) {
+        if (fallback && fallback !== imgEl.src && !fallback.includes('unsplash.com') && !fallback.endsWith('no_image.svg')) {
             imgEl.src = fallback;
             return;
         }
     }
-    imgEl.src = r2Default;
+    imgEl.src = defaultNoImage;
 };
 
 /**
@@ -1619,7 +1718,7 @@ window.getDestImages = function (dest, width) {
         if (Array.isArray(dest.images) && dest.images.length > 0) {
             dest.images.forEach(function (imgItem) {
                 var resolved = window.getDestImage(imgItem, width);
-                if (resolved && !list.includes(resolved) && resolved !== window.noImageFallback) {
+                if (resolved && !list.includes(resolved) && resolved !== 'assets/img/no_image.svg' && resolved !== window.noImageFallback) {
                     list.push(resolved);
                 }
             });
@@ -1634,8 +1733,7 @@ window.getDestImages = function (dest, width) {
     return list;
 };
 
-var rawFallbackSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" fill="none"><rect width="600" height="400" fill="#0F172A"/><rect x="2" y="2" width="596" height="396" rx="16" fill="url(#bg_grad)" stroke="rgba(255,255,255,0.08)" stroke-width="2"/><defs><linearGradient id="bg_grad" x1="0" y1="0" x2="600" y2="400" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#0F172A"/><stop offset="100%" stop-color="#1E293B"/></linearGradient></defs><circle cx="300" cy="165" r="44" fill="rgba(56,189,248,0.1)" stroke="#38BDF8" stroke-width="2" stroke-dasharray="4 4"/><path d="M284 153H288L290.5 149H309.5L312 153H316C320.418 153 324 156.582 324 161V177C324 181.418 320.418 185 316 185H284C279.582 185 276 181.418 276 177V161C276 156.582 279.582 153 284 153Z" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="300" cy="169" r="7" stroke="#38BDF8" stroke-width="3"/><text x="300" y="240" text-anchor="middle" fill="#F8FAFC" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="20" font-weight="800" letter-spacing="2">NO IMAGE ADDED</text><text x="300" y="268" text-anchor="middle" fill="#94A3B8" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="500" letter-spacing="0.5">Destination photo coming soon</text></svg>';
-window.noImageFallback = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(rawFallbackSvg);
+window.noImageFallback = 'assets/img/no_image.svg';
 
 /**
  * Stale-While-Revalidate Caching fetch helper
@@ -1886,7 +1984,7 @@ window.processOfflineCheckinQueue = async function () {
         }
 
         if (syncedCount > 0 && typeof showToast === 'function') {
-            showToast(`⚡ ${syncedCount} Offline Check-in(s) synced! XP awarded!`);
+            showToast(`⚡ ${syncedCount} Offline Check-in(s) synced! Points awarded!`);
         }
     } catch (e) {
         console.warn('Failed processing offline checkin queue', e);
@@ -1979,3 +2077,44 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e) {}
     }
 })();
+
+// =========================================================================
+// Global Dimension Lock for Auth & Reset Password Views
+// =========================================================================
+window.freezeAuthLayout = function() {
+    const view = document.body ? document.body.getAttribute('data-view') : '';
+    if (view !== 'auth' && view !== 'reset-password') return;
+
+    const winH = window.innerHeight || 0;
+    const scrH = (window.screen && window.screen.height) ? window.screen.height : 0;
+    let storedH = parseInt(sessionStorage.getItem('auth_locked_screen_h') || '0', 10);
+    if (!storedH || winH > storedH) {
+        storedH = Math.max(winH, scrH > 300 ? scrH : winH);
+        try { sessionStorage.setItem('auth_locked_screen_h', storedH); } catch(e) {}
+    }
+    if (storedH > 0) {
+        const topH = Math.min(330, Math.max(250, Math.round(storedH * 0.38)));
+        document.documentElement.style.setProperty('--auth-screen-h', storedH + 'px');
+        document.documentElement.style.setProperty('--auth-top-h', topH + 'px');
+        const container = document.querySelector('.auth-container');
+        if (container) {
+            container.style.height = storedH + 'px';
+            container.style.minHeight = storedH + 'px';
+            container.style.maxHeight = storedH + 'px';
+        }
+        const topEl = document.querySelector('.auth-top');
+        if (topEl) {
+            topEl.style.height = topH + 'px';
+            topEl.style.minHeight = topH + 'px';
+            topEl.style.maxHeight = topH + 'px';
+        }
+    }
+};
+
+document.addEventListener('DOMContentLoaded', window.freezeAuthLayout);
+window.addEventListener('load', window.freezeAuthLayout);
+window.addEventListener('orientationchange', function() {
+    try { sessionStorage.removeItem('auth_locked_screen_h'); } catch(e) {}
+    setTimeout(window.freezeAuthLayout, 250);
+});
+

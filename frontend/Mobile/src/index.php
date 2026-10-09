@@ -3,15 +3,35 @@ if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
     @session_start();
 }
 
+$reqUri = $_SERVER['REQUEST_URI'] ?? '/';
+$reqPath = parse_url($reqUri, PHP_URL_PATH);
+
+// Health check endpoint for Railway/cloud monitoring
+if ($reqPath === '/up' || $reqPath === '/health') {
+    http_response_code(200);
+    header('Content-Type: text/plain');
+    echo 'OK';
+    exit;
+}
+
+// Canonical Host Redirection:
+// If accessed via default Railway subdomain (*.railway.app),
+// permanently redirect (301) to official custom domain (https://app.intan-elyu.online)
+$httpHost = $_SERVER['HTTP_HOST'] ?? '';
+if (strpos($httpHost, 'railway.app') !== false) {
+    header('Location: https://app.intan-elyu.online' . $reqUri, true, 301);
+    exit;
+}
+
 // Direct APK Binary Streaming Handler
 if (
     (isset($_GET['action']) && $_GET['action'] === 'download_apk') ||
     (isset($_GET['download']) && $_GET['download'] === 'apk') ||
     (strpos($_SERVER['REQUEST_URI'] ?? '', 'intan-elyu.apk') !== false && !isset($_GET['view']))
 ) {
-    $apkPath = __DIR__ . '/downloads/intan-elyu.apk';
+    $apkPath = dirname(__DIR__) . '/public/downloads/intan-elyu.apk';
     if (!file_exists($apkPath)) {
-        $apkPath = dirname(__DIR__) . '/public/downloads/intan-elyu.apk';
+        $apkPath = __DIR__ . '/downloads/intan-elyu.apk';
     }
     if (file_exists($apkPath)) {
         while (ob_get_level()) {
@@ -34,6 +54,29 @@ if (
 }
 
 // Extract view name safely - from $_GET['view'] or URI path (e.g. /download)
+// Detect if running inside the native Android APK vs regular web browser (Brave, Chrome, Safari, etc.)
+$userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+$isApk = (strpos($userAgent, 'IntanElyuAPK') !== false) || 
+         (strpos($userAgent, 'Capacitor') !== false) ||
+         isset($_GET['app']) ||
+         isset($_COOKIE['is_intan_elyu_app']) ||
+         (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strpos($_SERVER['HTTP_X_REQUESTED_WITH'], 'com.intan.elyu') !== false);
+
+// WEB BROWSER PROTECTION:
+// If accessed via a normal web browser (like Brave, Chrome, Safari, Edge) and NOT inside the Android APK:
+// The user flow is strictly: Search Intan Elyu -> View Website / Download Page -> Scan QR / Download APK -> Open Mobile App.
+// Web browsers are BLOCKED from accessing mobile app screens (?view=splash, ?view=auth, etc.)
+// and redirected immediately to https://app.intan-elyu.online/?view=download!
+if (!$isApk) {
+    $reqView = $_GET['view'] ?? '';
+    // If not on the download view, redirect immediately to ?view=download
+    if ($reqView !== 'download') {
+        header('Location: index.php?view=download');
+        exit;
+    }
+}
+
+// Inside the APK:
 $rawView = 'splash';
 if (isset($_GET['view'])) {
     $rawView = $_GET['view'];
@@ -50,6 +93,18 @@ if ($view === 'resetpassword') {
     $view = 'reset-password';
 }
 $destinationId = isset($_GET['id']) ? (int) $_GET['id'] : null;
+
+// Standalone Website Handling:
+// If viewing the download page / official tourism website, serve it completely standalone
+// so it is 100% decoupled from the mobile app container, mobile CSS rules, and mobile router.
+if ($view === 'download') {
+    $viewPath = __DIR__ . '/views/download.php';
+    if (file_exists($viewPath)) {
+        include $viewPath;
+        exit;
+    }
+}
+
 $isAjax = (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') || isset($_GET['ajax']);
 
 // If it's an AJAX request, just return the view content
@@ -98,15 +153,42 @@ if ($isAjax) {
                 if (typeof prevOnError === 'function') return prevOnError.apply(this, arguments);
                 return false;
             };
+            var origConsoleError = console.error;
+            console.error = function () {
+                var args = Array.prototype.slice.call(arguments);
+                var fullStr = args.map(function (a) {
+                    return typeof a === 'string' ? a : (a && (a.message || a.stack)) ? (a.message + ' ' + a.stack) : String(a);
+                }).join(' ');
+                if (shouldSuppress(fullStr)) return;
+                return origConsoleError.apply(console, arguments);
+            };
         })();
     </script>
     <meta charset="UTF-8">
     <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
-    <title>Intan Elyu</title>
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=overlays-content">
+    <title>Intan Elyu — Official Tourism Portal & Mobile App | Province of La Union</title>
+    <meta name="description" content="Official smart tourism mobile platform and portal of the Provincial Government of La Union (PGLU). Discover 20 municipalities, attractions, surf spots, discounts, travel fares, and download the Intan Elyu mobile app.">
+    <meta name="keywords" content="Intan Elyu, Intan Elyu mobile, Intan Elyu app, Intan Elyu download, Intan Elyu APK, La Union tourism, Elyu, San Juan surfing, PGLU, LUPTO, PICTO, Tangadan Falls, Balaoan Immuki Island, Luna Pebble Beach, Bauang grapes, La Union travel guide, mobile tourism app, Northern Luzon">
+    <meta name="author" content="Provincial Government of La Union (PGLU)">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow">
+    <meta name="bingbot" content="index, follow">
+    <link rel="canonical" href="https://app.intan-elyu.online/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Intan Elyu">
+    <meta property="og:url" content="https://app.intan-elyu.online/">
+    <meta property="og:title" content="Intan Elyu — Official Tourism Portal & Mobile App | Province of La Union">
+    <meta property="og:description" content="Discover, explore, and experience the whole of La Union with Intan Elyu. Plan itineraries, discover 20 municipalities, view tourist spots, discounts, and earn gamified rewards.">
+    <meta property="og:image" content="https://app.intan-elyu.online/assets/img/logo.png">
+    <meta property="og:locale" content="en_PH">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Intan Elyu — Official Tourism Portal & Mobile App | Province of La Union">
+    <meta name="twitter:description" content="Discover, explore, and experience the whole of La Union with Intan Elyu. Plan itineraries, discover 20 municipalities, view tourist spots, discounts, and earn gamified rewards.">
+    <meta name="twitter:image" content="https://app.intan-elyu.online/assets/img/logo.png">
     <link rel="icon" type="image/png" href="assets/img/logo.png">
     <link rel="apple-touch-icon" href="assets/img/logo.png">
-    <meta name="theme-color" content="#0a0a0e">
+    <meta name="theme-color" content="#1e3a8a">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -135,13 +217,13 @@ if ($isAjax) {
 
 
     <script>
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'capacitor:' || window.location.protocol === 'file:') {
+        if (window.location.pathname.includes('/Intan-Elyu-Tourism-Management-System/')) {
+            window.backendUrl = window.location.protocol + '//' + window.location.host + '/Intan-Elyu-Tourism-Management-System/backend/public';
+        } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'capacitor:' || window.location.protocol === 'file:') {
             if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
                 window.backendUrl = 'https://api.intan-elyu.online';
             } else if (window.location.port === '3000') {
                 window.backendUrl = 'http://localhost:8000';
-            } else if (window.location.pathname.includes('/Intan-Elyu-Tourism-Management-System/')) {
-                window.backendUrl = window.location.protocol + '//' + window.location.host + '/Intan-Elyu-Tourism-Management-System/backend/public';
             } else {
                 window.backendUrl = 'https://api.intan-elyu.online';
             }
@@ -159,6 +241,7 @@ if ($isAjax) {
     <!-- Component Styles -->
     <link rel="stylesheet" href="assets/css/components/header.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/components/bottom_nav.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/components/modals.css?v=<?= time() ?>">
     <!-- View Styles -->
     <link rel="stylesheet" href="assets/css/views/dashboard.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/profile.css?v=<?= time() ?>">
@@ -172,10 +255,14 @@ if ($isAjax) {
     <link rel="stylesheet" href="assets/css/views/splash.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/map.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/itinerary.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/views/puzzles.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/discount.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/trip_map.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/saved_trips.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/views/saved_places.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/views/ar_checkin.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/trending.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/views/user_manual.css?v=<?= time() ?>">
 </head>
 
 <body data-view="<?= htmlspecialchars($view) ?>">
@@ -248,36 +335,17 @@ if ($isAjax) {
             }
             ?>
         </main>
-
-        <?php
-        $noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual'];
-        $navHiddenClass = in_array($view, $noNavViews) ? 'nav-hidden' : '';
-        ?>
-        <div id="bottom-navigation" class="<?= $navHiddenClass ?>">
-            <?php include __DIR__ . '/components/bottom_nav.php'; ?>
-        </div>
-        <style>
-            #bottom-navigation {
-                transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
-            }
-
-            #bottom-navigation.nav-hidden {
-                opacity: 0;
-                pointer-events: none;
-                transform: translateY(20px);
-                visibility: hidden !important;
-            }
-
-            #bottom-navigation.keyboard-hidden,
-            body.keyboard-open #bottom-navigation,
-            html.keyboard-open #bottom-navigation {
-                opacity: 0 !important;
-                pointer-events: none !important;
-                transform: translateY(140px) !important;
-                visibility: hidden !important;
-            }
-        </style>
     </div>
+
+    <?php
+    $noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual', 'download'];
+    $navHiddenClass = in_array($view, $noNavViews) ? 'nav-hidden' : '';
+    ?>
+    <!-- Bottom Navigation Bar (Locked to viewport bottom) -->
+    <div id="bottom-navigation" class="<?= $navHiddenClass ?>">
+        <?php include __DIR__ . '/components/bottom_nav.php'; ?>
+    </div>
+
 </body>
 
 </html>

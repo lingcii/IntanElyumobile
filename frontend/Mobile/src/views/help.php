@@ -14,7 +14,7 @@ $backRoute = 'dashboard';
 })();
 </script>
 
-<div class="help-container has-header animate-slide-up" style="margin-top: 20px;">
+<div class="help-container has-header animate-slide-up">
 
     <div class="help-section">
         <h2 class="help-main-title">Frequently Asked Questions</h2>
@@ -39,12 +39,12 @@ $backRoute = 'dashboard';
     <div class="faq-item" onclick="toggleFaq(this)">
         <div class="faq-question">
             <i class="fa-solid fa-circle-question"></i>
-            <span>How is XP calculated?</span>
+            <span>How are Points earned?</span>
             <i class="fa-solid fa-chevron-down"></i>
         </div>
         <div class="faq-answer-wrapper">
             <div class="faq-answer">
-                Earn XP by checking in at destinations, completing itinerary trips, and solving daily challenges. Collecting XP increases your rank level and unlocks exclusive badges and discounts.
+                Earn Points by checking in at destinations, completing itinerary trips, and solving Game Zone puzzles. Accumulating Points boosts your position on the Leaderboard and allows you to claim rewards.
             </div>
         </div>
     </div>
@@ -86,7 +86,7 @@ $backRoute = 'dashboard';
             <div>
                 <h3 class="support-title">Customer Service</h3>
                 <span class="support-status">
-                    <span class="dot"></span>
+                    <span class="dot" style="box-shadow: none !important; animation: none !important; transform: none !important;"></span>
                     Available 24/7 • Fast Response
                 </span>
             </div>
@@ -107,12 +107,13 @@ $backRoute = 'dashboard';
 
         <!-- Action Buttons -->
         <div class="support-actions">
-            <a href="mailto:support@intan-elyu.online?subject=Customer%20Support%20Inquiry%20-%20Intan%20Elyu" 
+            <button type="button"
+               id="btn-email-support"
                onclick="handleEmailSupport(event)" 
                class="btn-email-support" 
                title="Send email to support@intan-elyu.online">
                 <i class="fa-solid fa-paper-plane"></i> Email Support
-            </a>
+            </button>
             <button id="btn-copy-support" onclick="copySupportEmail(this)" class="btn-copy-support" title="Copy email address">
                 <i class="fa-regular fa-copy"></i> <span>Copy</span>
             </button>
@@ -125,21 +126,51 @@ $backRoute = 'dashboard';
 // Smooth FAQ Accordion Toggle with Elastic Click Feedback
 window.toggleFaq = function(el) {
     if (!el) return;
-    const isAlreadyActive = el.classList.contains('active');
-    
-    // Optional: close other accordion items smoothly if desired, or toggle current
     el.classList.toggle('active');
 };
 
-// Open default mail client for support@intan-elyu.online
+// Safe email client dispatch for Android WebView & browsers (prevents net::ERR_UNKNOWN_URL_SCHEME)
 window.handleEmailSupport = function(e) {
-    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
-    const mailtoUrl = 'mailto:support@intan-elyu.online?subject=Customer%20Support%20Inquiry%20-%20Intan%20Elyu';
-    
+    if (e) {
+        if (typeof e.preventDefault === 'function') e.preventDefault();
+        if (typeof e.stopPropagation === 'function') e.stopPropagation();
+    }
+
+    const email = 'support@intan-elyu.online';
+    const mailtoUrl = 'mailto:' + email + '?subject=' + encodeURIComponent('Customer Support Inquiry - Intan Elyu');
+
+    // 1. Always copy the email address to clipboard as a reliable guarantee
+    copyTextToClipboard(email, function() {
+        if (typeof showToast === 'function') {
+            showToast('Opening mail client... (support@intan-elyu.online copied!) 📋');
+        }
+    });
+
+    // Animate the Email Support button briefly
+    const emailBtn = document.getElementById('btn-email-support');
+    if (emailBtn) {
+        const origHTML = emailBtn.innerHTML;
+        emailBtn.innerHTML = '<i class="fa-solid fa-check" style="color:#ffffff;"></i> Opening...';
+        setTimeout(() => { emailBtn.innerHTML = origHTML; }, 2200);
+    }
+
+    // 2. If running inside native Capacitor wrapper, use App or Browser plugin
+    if (window.Capacitor && window.Capacitor.Plugins) {
+        if (window.Capacitor.Plugins.App && typeof window.Capacitor.Plugins.App.openUrl === 'function') {
+            window.Capacitor.Plugins.App.openUrl({ url: mailtoUrl }).catch(function() {});
+            return;
+        }
+        if (window.Capacitor.Plugins.Browser && typeof window.Capacitor.Plugins.Browser.open === 'function') {
+            window.Capacitor.Plugins.Browser.open({ url: mailtoUrl }).catch(function() {});
+            return;
+        }
+    }
+
+    // 3. Trigger mailto navigation safely
     try {
         window.location.href = mailtoUrl;
     } catch(err) {
-        window.open(mailtoUrl, '_system');
+        console.warn('Could not launch mail client:', err);
     }
 };
 
@@ -162,12 +193,18 @@ window.copySupportEmail = function(btn) {
         }
     }
 
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(email).then(showSuccessUI).catch(() => fallbackCopy(email, showSuccessUI));
-    } else {
-        fallbackCopy(email, showSuccessUI);
-    }
+    copyTextToClipboard(email, showSuccessUI);
 };
+
+function copyTextToClipboard(text, onSuccess) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+            .then(() => { if (typeof onSuccess === 'function') onSuccess(); })
+            .catch(() => fallbackCopy(text, onSuccess));
+    } else {
+        fallbackCopy(text, onSuccess);
+    }
+}
 
 function fallbackCopy(text, onSuccess) {
     try {

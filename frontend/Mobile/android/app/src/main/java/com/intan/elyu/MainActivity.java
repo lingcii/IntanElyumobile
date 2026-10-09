@@ -58,16 +58,51 @@ public class MainActivity extends BridgeActivity {
 
                 // Keep all navigations (auth, google, app) strictly inside this APK WebView
                 webView.setWebViewClient(new BridgeWebViewClient(this.bridge) {
+                    private boolean handleCustomUriOrNavigation(WebView view, String url) {
+                        if (url == null) return false;
+
+                        // Handle mailto: links natively without crashing WebView with ERR_UNKNOWN_URL_SCHEME
+                        if (url.startsWith("mailto:")) {
+                            try {
+                                Intent mailIntent = new Intent(Intent.ACTION_SENDTO);
+                                mailIntent.setData(Uri.parse(url));
+                                startActivity(mailIntent);
+                            } catch (Exception e) {
+                                try {
+                                    Intent chooser = Intent.createChooser(new Intent(Intent.ACTION_VIEW, Uri.parse(url)), "Send Email");
+                                    startActivity(chooser);
+                                } catch (Exception ignored) {}
+                            }
+                            return true;
+                        }
+
+                        // Handle telephone, sms, and map geo links natively
+                        if (url.startsWith("tel:") || url.startsWith("sms:") || url.startsWith("geo:")) {
+                            try {
+                                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                                startActivity(intent);
+                            } catch (Exception ignored) {}
+                            return true;
+                        }
+
+                        // Keep in-app web pages inside the WebView
+                        if (url.startsWith("http://") || url.startsWith("https://")) {
+                            if (url.contains("intan-elyu.online") || 
+                                url.contains("accounts.google.com") || 
+                                url.contains("google.com") || 
+                                url.contains("googleapis.com") ||
+                                url.contains("localhost")) {
+                                view.loadUrl(url);
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    }
+
                     @Override
                     public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                        if (url != null && (
-                            url.contains("intan-elyu.online") || 
-                            url.contains("accounts.google.com") || 
-                            url.contains("google.com") || 
-                            url.contains("googleapis.com") ||
-                            url.contains("localhost")
-                        )) {
-                            view.loadUrl(url);
+                        if (handleCustomUriOrNavigation(view, url)) {
                             return true;
                         }
                         return super.shouldOverrideUrlLoading(view, url);
@@ -77,12 +112,7 @@ public class MainActivity extends BridgeActivity {
                     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                         if (request != null && request.getUrl() != null) {
                             String url = request.getUrl().toString();
-                            if (url.contains("intan-elyu.online") || 
-                                url.contains("accounts.google.com") || 
-                                url.contains("google.com") || 
-                                url.contains("googleapis.com") ||
-                                url.contains("localhost")) {
-                                view.loadUrl(url);
+                            if (handleCustomUriOrNavigation(view, url)) {
                                 return true;
                             }
                         }

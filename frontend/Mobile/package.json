@@ -1,6 +1,6 @@
 {
   "name": "frontend-mobile-android",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -15,7 +15,8 @@
     "@capacitor/camera": "^8.2.1",
     "@capacitor/cli": "^8.4.0",
     "@capacitor/core": "^8.4.0",
-    "@capacitor/geolocation": "^8.2.0"
+    "@capacitor/geolocation": "^8.2.0",
+    "@capacitor/keyboard": "^8.0.5"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5"

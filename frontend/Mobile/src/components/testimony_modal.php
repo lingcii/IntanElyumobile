@@ -1,21 +1,36 @@
 <!-- Global Review Destination Modal Component -->
-<style>
-#testimony-modal.active { opacity: 1 !important; }
-#testimony-modal.active .testimony-card-anim { transform: scale(1) translateY(0) !important; opacity: 1 !important; }
-</style>
+<div id="testimony-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.65); z-index:2147483647; align-items:center; justify-content:center; padding:12px; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); opacity:0; transition:opacity 0.3s ease;">
+    <div class="testimony-card-anim" style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:22px; padding:18px 20px 16px 20px; width:100%; max-width:380px; box-shadow:0 25px 50px rgba(10,25,60,0.45); text-align:left; box-sizing:border-box; transform:scale(0.88) translateY(16px); opacity:0; transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease; scrollbar-width:none; -ms-overflow-style:none;">
+        
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+            <div>
+                <h3 id="testimony-modal-title" style="margin:0 0 2px; color:#ffffff; font-size:17px; font-weight:800; letter-spacing:-0.3px;">Review Destination</h3>
+                <p id="testimony-modal-subtitle" style="margin:0; font-size:11px; color:rgba(255,255,255,0.85); line-height:1.35;">Share your site testimony and policy recommendations to help local tourism.</p>
+            </div>
+            <button type="button" onclick="window.closeWriteTestimonyModal()" style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:#ffffff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; margin-left:8px;">
+                <i class="fa-solid fa-xmark" style="font-size:13px;"></i>
+            </button>
+        </div>
 
-<div id="testimony-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.65); z-index:2147483647; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); opacity:0; transition:opacity 0.3s ease;">
-    <div class="testimony-card-anim" style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:24px; padding:24px; width:100%; max-width:380px; max-height:85vh; overflow-y:auto; box-shadow:0 25px 50px rgba(10,25,60,0.45); text-align:left; box-sizing:border-box; transform:scale(0.88) translateY(16px); opacity:0; transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;">
-        <h3 style="margin:0 0 4px; color:#fff; font-size:18px; font-weight:800;">Review Destination</h3>
-        <p style="font-size:12px; color:rgba(255,255,255,0.7); margin-bottom:16px;">Help the tourism office and fellow travellers by sharing your verified site testimony and policy recommendations.</p>
+        <!-- Rewards Incentive Callout Banner -->
+        <div id="testimony-reward-banner" style="background:rgba(255, 255, 255, 0.14) !important; border:1px solid rgba(255, 255, 255, 0.22) !important; outline:none !important; border-radius:14px; padding:10px 14px; margin-bottom:12px; display:flex; align-items:center; gap:12px; box-shadow:0 4px 14px rgba(0,0,0,0.12); transition:all 0.3s ease;">
+            <div id="testimony-reward-icon" style="width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; color:#fbbf24; font-size:15px; flex-shrink:0;">
+                <i class="fa-solid fa-gift"></i>
+            </div>
+            <div style="flex:1; min-width:0;">
+                <span id="testimony-reward-title" style="display:block; font-size:12.5px; font-weight:800; color:#ffffff; line-height:1.25;">Review & Earn Rewards</span>
+                <span id="testimony-reward-desc" style="font-size:11px; color:rgba(255,255,255,0.92); line-height:1.35; display:block; margin-top:2px;">Submit review to claim rewards</span>
+            </div>
+            <div id="testimony-reward-badges" style="display:none !important;"></div>
+        </div>
 
         <form id="testimony-form" onsubmit="window.submitTestimony(event)">
             <input type="hidden" id="testimony-spot-id">
 
-            <!-- Star Rating selection -->
-            <div style="margin-bottom:14px;">
-                <label style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); text-transform:uppercase; display:block; margin-bottom:6px;">Your Rating (1 to 5 Stars):</label>
-                <div style="display:flex; gap:8px; font-size:24px; color:#f59e0b;">
+            <!-- Star Rating selection (inline compact) -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <label style="font-size:11px; font-weight:800; color:#ffffff; text-transform:uppercase; letter-spacing:0.4px;">Your Rating (1 to 5 Stars):</label>
+                <div style="display:flex; gap:6px; font-size:20px; color:#f59e0b;">
                     <i class="fa-solid fa-star star-btn" data-star="1" style="cursor:pointer;" onclick="window.setStarRating(1)"></i>
                     <i class="fa-solid fa-star star-btn" data-star="2" style="cursor:pointer;" onclick="window.setStarRating(2)"></i>
                     <i class="fa-solid fa-star star-btn" data-star="3" style="cursor:pointer;" onclick="window.setStarRating(3)"></i>
@@ -25,23 +40,23 @@
                 <input type="hidden" id="testimony-rating" value="5">
             </div>
 
-            <!-- Cleanliness, Safety parameters -->
-            <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;">
+            <!-- Cleanliness, Safety parameters (Solid Buttons) -->
+            <div style="display:flex; flex-direction:column; gap:7px; margin-bottom:8px;">
 
                 <!-- Cleanliness -->
                 <div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                        <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.7); text-transform:uppercase;">Cleanliness:</label>
-                        <span id="cleanliness-selected-label" style="font-size:11px; font-weight:700; color:#10b981;">Clean</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+                        <label style="font-size:10.5px; font-weight:700; color:rgba(255,255,255,0.9); text-transform:uppercase;">Cleanliness:</label>
+                        <span id="cleanliness-selected-label" style="font-size:10.5px; font-weight:800; color:#10b981;">Clean</span>
                     </div>
                     <div style="display:flex; gap:6px;">
-                        <button type="button" class="option-pill clean-pill active" data-val="clean" onclick="window.selectCleanliness('clean')" style="flex:1; padding:8px 4px; border-radius:10px; border:none !important; outline:none !important; background:rgba(16,185,129,0.22); color:#10b981; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease; box-shadow:0 0 10px rgba(16,185,129,0.2);">
+                        <button type="button" class="option-pill clean-pill active" data-val="clean" onclick="window.selectCleanliness('clean')" style="flex:1; padding:7px 4px; border-radius:8px; border:none !important; outline:none !important; background:#10b981; color:#ffffff; font-size:11px; font-weight:800; cursor:pointer; transition:all 0.2s ease;">
                             Clean
                         </button>
-                        <button type="button" class="option-pill clean-pill" data-val="moderate" onclick="window.selectCleanliness('moderate')" style="flex:1; padding:8px 4px; border-radius:10px; border:none !important; outline:none !important; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                        <button type="button" class="option-pill clean-pill" data-val="moderate" onclick="window.selectCleanliness('moderate')" style="flex:1; padding:7px 4px; border-radius:8px; border:none !important; outline:none !important; background:rgba(255,255,255,0.15); color:#ffffff; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
                             Moderate
                         </button>
-                        <button type="button" class="option-pill clean-pill" data-val="dirty" onclick="window.selectCleanliness('dirty')" style="flex:1; padding:8px 4px; border-radius:10px; border:none !important; outline:none !important; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                        <button type="button" class="option-pill clean-pill" data-val="dirty" onclick="window.selectCleanliness('dirty')" style="flex:1; padding:7px 4px; border-radius:8px; border:none !important; outline:none !important; background:rgba(255,255,255,0.15); color:#ffffff; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
                             Dirty
                         </button>
                     </div>
@@ -50,18 +65,18 @@
 
                 <!-- Safety -->
                 <div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                        <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.7); text-transform:uppercase;">Safety Level:</label>
-                        <span id="safety-selected-label" style="font-size:11px; font-weight:700; color:#10b981;">Safe</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+                        <label style="font-size:10.5px; font-weight:700; color:rgba(255,255,255,0.9); text-transform:uppercase;">Safety Level:</label>
+                        <span id="safety-selected-label" style="font-size:10.5px; font-weight:800; color:#10b981;">Safe</span>
                     </div>
                     <div style="display:flex; gap:6px;">
-                        <button type="button" class="option-pill safety-pill active" data-val="safe" onclick="window.selectSafety('safe')" style="flex:1; padding:8px 4px; border-radius:10px; border:none !important; outline:none !important; background:rgba(16,185,129,0.22); color:#10b981; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease; box-shadow:0 0 10px rgba(16,185,129,0.2);">
+                        <button type="button" class="option-pill safety-pill active" data-val="safe" onclick="window.selectSafety('safe')" style="flex:1; padding:7px 4px; border-radius:8px; border:none !important; outline:none !important; background:#10b981; color:#ffffff; font-size:11px; font-weight:800; cursor:pointer; transition:all 0.2s ease;">
                             Safe
                         </button>
-                        <button type="button" class="option-pill safety-pill" data-val="moderate" onclick="window.selectSafety('moderate')" style="flex:1; padding:8px 4px; border-radius:10px; border:none !important; outline:none !important; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                        <button type="button" class="option-pill safety-pill" data-val="moderate" onclick="window.selectSafety('moderate')" style="flex:1; padding:7px 4px; border-radius:8px; border:none !important; outline:none !important; background:rgba(255,255,255,0.15); color:#ffffff; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
                             Moderate
                         </button>
-                        <button type="button" class="option-pill safety-pill" data-val="unsafe" onclick="window.selectSafety('unsafe')" style="flex:1; padding:8px 4px; border-radius:10px; border:none !important; outline:none !important; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                        <button type="button" class="option-pill safety-pill" data-val="unsafe" onclick="window.selectSafety('unsafe')" style="flex:1; padding:7px 4px; border-radius:8px; border:none !important; outline:none !important; background:rgba(255,255,255,0.15); color:#ffffff; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
                             Unsafe
                         </button>
                     </div>
@@ -70,42 +85,189 @@
             </div>
 
             <!-- Testimony description -->
-            <div style="margin-bottom:14px;">
-                <label style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); text-transform:uppercase; display:block; margin-bottom:6px;">Your Testimony:</label>
-                <textarea id="testimony-comment" placeholder="Describe your experience during this site visit..." style="width:100%; height:60px; background:rgba(255,255,255,0.05); border:none !important; outline:none !important; border-radius:12px; padding:10px; color:#fff; font-size:12px; font-family:inherit; resize:none; box-sizing:border-box;" required></textarea>
+            <div style="margin-bottom:7px;">
+                <label style="font-size:10.5px; font-weight:800; color:#ffffff; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:3px;">Your Testimony:</label>
+                <textarea id="testimony-comment" placeholder="Describe your experience during this site visit..." style="width:100%; height:52px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; border-radius:10px; padding:8px 10px; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; font-size:12px; font-weight:500; font-family:inherit; resize:none; box-sizing:border-box; line-height:1.4; overflow:hidden !important; scrollbar-width:none; -ms-overflow-style:none;" required></textarea>
             </div>
 
-            <!-- Policy Recommendation -->
-            <div style="margin-bottom:20px;">
-                <label style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); text-transform:uppercase; display:block; margin-bottom:6px;">Policy Recommendations (Optional):</label>
-                <textarea id="testimony-policy" placeholder="Any suggestions or recommendations for safety, cleanliness, or crowd control policies?..." style="width:100%; height:60px; background:rgba(255,255,255,0.05); border:none !important; outline:none !important; border-radius:12px; padding:10px; color:#fff; font-size:12px; font-family:inherit; resize:none; box-sizing:border-box;"></textarea>
+            <!-- Policy Recommendation (No Scrollbar) -->
+            <div style="margin-bottom:10px;">
+                <label style="font-size:10.5px; font-weight:800; color:#ffffff; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:3px;">Policy Recommendations (Optional):</label>
+                <textarea id="testimony-policy" placeholder="Any suggestions or recommendations for safety, cleanliness, or crowd control policies?..." style="width:100%; height:52px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; border-radius:10px; padding:8px 10px; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; font-size:12px; font-weight:500; font-family:inherit; resize:none; box-sizing:border-box; line-height:1.4; overflow:hidden !important; scrollbar-width:none; -ms-overflow-style:none;"></textarea>
             </div>
 
-            <button type="submit" class="btn-primary" style="width:100%; padding:14px; font-size:14px; margin-bottom:10px; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none !important; outline:none !important; color:#fff; border-radius:12px; font-weight:800; cursor:pointer;">
-                Submit Feedback
-            </button>
+            <!-- Action Buttons Inline Row -->
+            <div style="display:flex; gap:8px;">
+                <button type="submit" id="testimony-submit-btn" class="btn-primary" style="flex:1; padding:12px 14px; font-size:13.5px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#fff; border-radius:12px; font-weight:800; cursor:pointer; box-shadow:none; display:flex; align-items:center; justify-content:center; gap:6px;">
+                    <i class="fa-solid fa-paper-plane" style="font-size:11px;"></i> <span id="testimony-submit-text">Submit Review</span>
+                </button>
+                <button type="button" style="padding:12px 16px; border-radius:12px; border:none !important; outline:none !important; background:rgba(255,255,255,0.18); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeWriteTestimonyModal()">Cancel</button>
+            </div>
         </form>
-        <button style="width:100%; padding:12px; border-radius:12px; border:none !important; outline:none !important; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.7); font-size:13px; font-weight:600; cursor:pointer;" onclick="window.closeWriteTestimonyModal()">Cancel</button>
     </div>
 </div>
 
 <script>
-window.openWriteTestimonyModal = function(spotId) {
+// Global Set of Spot IDs already reviewed by the current user
+window.userReviewedSpotIds = window.userReviewedSpotIds || new Set();
+window.userReviewedSpotData = window.userReviewedSpotData || {};
+
+// Classification to Reward Points & Theme configuration
+window.getRewardPointsForClassification = function(status) {
+    const c = String(status || '').toUpperCase().trim();
+    if (c === 'EMERGE' || c === 'EMERGING') {
+        return { label: 'Emerging', points: 100, color: '#ef4444', bg: 'rgba(239, 68, 68, 0.22)', border: 'rgba(239, 68, 68, 0.35)', icon: 'fa-sparkles' };
+    }
+    if (c === 'POTENTIAL') {
+        return { label: 'Potential', points: 75, color: '#10b981', bg: 'rgba(16, 185, 129, 0.22)', border: 'rgba(16, 185, 129, 0.35)', icon: 'fa-compass' };
+    }
+    // Default: EXISTING (Blue)
+    return { label: 'Existing', points: 50, color: '#0284c7', bg: 'rgba(2, 132, 199, 0.22)', border: 'rgba(2, 132, 199, 0.35)', icon: 'fa-circle-check' };
+};
+
+// Fetch spot IDs reviewed by user to keep UI synchronized across Trip Map, Saved Trips, and Trip History
+window.fetchUserReviewedSpots = async function() {
+    const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+    if (!token) return;
+
+    const _backendBase = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+    try {
+        const res = await fetch(_backendBase + '/api/tourist/feedback/user-reviewed-spots', {
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token
+            }
+        });
+        if (res.ok) {
+            const json = await res.json();
+            if (json && json.data && Array.isArray(json.data)) {
+                json.data.forEach(id => window.userReviewedSpotIds.add(Number(id)));
+            }
+            if (json && json.reviews) {
+                window.userReviewedSpotData = Object.assign({}, window.userReviewedSpotData, json.reviews);
+            }
+            if (typeof window.syncReviewedButtons === 'function') {
+                window.syncReviewedButtons();
+            }
+        }
+    } catch (e) {
+        console.warn('Could not fetch user reviewed spots:', e);
+    }
+};
+
+// Sync all buttons on current screen with reviewed state
+window.syncReviewedButtons = function() {
+    if (!window.userReviewedSpotIds) return;
+    document.querySelectorAll('[data-spot-id]').forEach(btn => {
+        const spotId = Number(btn.getAttribute('data-spot-id'));
+        if (spotId && window.userReviewedSpotIds.has(spotId)) {
+            btn.innerHTML = '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed';
+            btn.style.background = 'rgba(255, 255, 255, 0.18)';
+            btn.style.boxShadow = 'none';
+        } else if (btn.getAttribute('data-spot-classification') && !btn.innerHTML.includes('fa-check')) {
+            const cls = btn.getAttribute('data-spot-classification');
+            const meta = (window.getRewardPointsForClassification) ? window.getRewardPointsForClassification(cls) : { points: 50 };
+            btn.innerHTML = `<i class="fa-solid fa-pen" style="font-size:10px; margin-right:4px;"></i> Review (+${meta.points} PTS)`;
+        }
+    });
+};
+
+window.openWriteTestimonyModal = function(spotId, btnEl) {
+    if (btnEl) {
+        window._lastReviewedBtn = btnEl;
+    }
     const targetSpotId = spotId || window.currentSelectedSpotId;
     if (targetSpotId) {
         window.currentSelectedSpotId = targetSpotId;
         const spotInput = document.getElementById('testimony-spot-id');
         if (spotInput) spotInput.value = targetSpotId;
     }
-    
-    if (typeof window.setStarRating === 'function') window.setStarRating(5);
-    if (typeof window.selectCleanliness === 'function') window.selectCleanliness('clean');
-    if (typeof window.selectSafety === 'function') window.selectSafety('safe');
-    
+
+    const isAlreadyReviewed = targetSpotId && window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(targetSpotId));
+    const titleEl = document.getElementById('testimony-modal-title');
+    const subEl = document.getElementById('testimony-modal-subtitle');
+    const bannerEl = document.getElementById('testimony-reward-banner');
+    const iconEl = document.getElementById('testimony-reward-icon');
+    const bannerTitleEl = document.getElementById('testimony-reward-title');
+    const bannerDescEl = document.getElementById('testimony-reward-desc');
+    const bannerBadgesEl = document.getElementById('testimony-reward-badges');
+    const submitTextEl = document.getElementById('testimony-submit-text');
     const commentInput = document.getElementById('testimony-comment');
-    if (commentInput) commentInput.value = '';
     const policyInput = document.getElementById('testimony-policy');
-    if (policyInput) policyInput.value = '';
+
+    // Detect classification status
+    let spotClassification = '';
+    if (btnEl && btnEl.getAttribute('data-spot-classification')) {
+        spotClassification = btnEl.getAttribute('data-spot-classification');
+    } else if (window.currentSelectedLocationData && window.currentSelectedLocationData.classification_status) {
+        spotClassification = window.currentSelectedLocationData.classification_status;
+    } else if (window.allDestinations && Array.isArray(window.allDestinations)) {
+        const found = window.allDestinations.find(s => s.id == targetSpotId);
+        if (found && found.classification_status) spotClassification = found.classification_status;
+    } else if (window.allMapLocations && Array.isArray(window.allMapLocations)) {
+        const found = window.allMapLocations.find(s => s.id == targetSpotId);
+        if (found && found.classification_status) spotClassification = found.classification_status;
+    }
+
+    const classMeta = (window.getRewardPointsForClassification)
+        ? window.getRewardPointsForClassification(spotClassification)
+        : { label: 'Existing', points: 50, color: '#10b981', bg: 'rgba(16, 185, 129, 0.22)', border: 'rgba(16, 185, 129, 0.35)', icon: 'fa-circle-check' };
+
+    if (isAlreadyReviewed) {
+        // Repeated Review state: NO ADDITIONAL REWARDS
+        if (titleEl) titleEl.textContent = 'Update Destination Review';
+        if (subEl) subEl.textContent = 'Modify your site testimony and policy recommendations for this destination.';
+        if (bannerEl) {
+            bannerEl.style.background = 'rgba(255, 255, 255, 0.14)';
+            bannerEl.style.border = '1px solid rgba(255, 255, 255, 0.22)';
+            bannerEl.style.outline = 'none';
+        }
+        if (iconEl) {
+            iconEl.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#10b981;"></i>';
+        }
+        if (bannerTitleEl) bannerTitleEl.innerHTML = '<span style="color:#10b981; font-weight:800;">Review Already Claimed</span>';
+        if (bannerDescEl) bannerDescEl.textContent = 'Rewards are one-time per spot. Updating will not grant additional Points.';
+        if (bannerBadgesEl) {
+            bannerBadgesEl.innerHTML = '';
+            bannerBadgesEl.style.display = 'none';
+        }
+        if (submitTextEl) submitTextEl.textContent = 'Update Review';
+
+        // Pre-fill existing data if available
+        const prevData = window.userReviewedSpotData && window.userReviewedSpotData[targetSpotId];
+        if (prevData) {
+            if (typeof window.setStarRating === 'function') window.setStarRating(prevData.rating || 5);
+            if (typeof window.selectCleanliness === 'function') window.selectCleanliness(prevData.cleanliness_level || 'clean');
+            if (typeof window.selectSafety === 'function') window.selectSafety(prevData.safety_level || 'safe');
+            if (commentInput) commentInput.value = prevData.testimony || '';
+            if (policyInput) policyInput.value = prevData.policy_recommendation || '';
+        }
+    } else {
+        // First Review state: EARN REWARDS based on classification (Existing 50, Emerging 100, Potential 75)
+        if (titleEl) titleEl.textContent = 'Review Destination';
+        if (subEl) subEl.textContent = `Share your site testimony for this ${classMeta.label.toLowerCase()} destination to help local tourism.`;
+        if (bannerEl) {
+            bannerEl.style.background = 'rgba(255, 255, 255, 0.14)';
+            bannerEl.style.border = '1px solid rgba(255, 255, 255, 0.22)';
+            bannerEl.style.outline = 'none';
+        }
+        if (iconEl) {
+            iconEl.innerHTML = `<i class="fa-solid ${classMeta.icon}" style="color:${classMeta.color};"></i>`;
+        }
+        if (bannerTitleEl) bannerTitleEl.innerHTML = `<span style="color:${classMeta.color}; font-weight:800;">${classMeta.label} Site</span> • Earn Rewards`;
+        if (bannerDescEl) bannerDescEl.textContent = `Submit review to claim +${classMeta.points} Points`;
+        if (bannerBadgesEl) {
+            bannerBadgesEl.innerHTML = '';
+            bannerBadgesEl.style.display = 'none';
+        }
+        if (submitTextEl) submitTextEl.textContent = 'Submit Review';
+
+        if (typeof window.setStarRating === 'function') window.setStarRating(5);
+        if (typeof window.selectCleanliness === 'function') window.selectCleanliness('clean');
+        if (typeof window.selectSafety === 'function') window.selectSafety('safe');
+        if (commentInput) commentInput.value = '';
+        if (policyInput) policyInput.value = '';
+    }
 
     const modal = document.getElementById('testimony-modal');
     if (modal) {
@@ -154,7 +316,7 @@ window.selectCleanliness = function(val) {
     if (input) input.value = val;
 
     const labelMap = { clean: 'Clean', moderate: 'Moderate', dirty: 'Dirty' };
-    const colorMap = { clean: '#10b981', moderate: '#f59e0b', dirty: '#f43f5e' };
+    const colorMap = { clean: '#10b981', moderate: '#f59e0b', dirty: '#ef4444' };
     const label = document.getElementById('cleanliness-selected-label');
     if (label) {
         label.textContent = labelMap[val] || val;
@@ -164,14 +326,20 @@ window.selectCleanliness = function(val) {
     document.querySelectorAll('#testimony-modal .clean-pill').forEach(btn => {
         if (btn.dataset.val === val) {
             btn.classList.add('active');
-            btn.style.border = '1px solid ' + (colorMap[val] || '#10b981');
-            btn.style.background = (colorMap[val] || '#10b981') + '2e';
-            btn.style.color = colorMap[val] || '#10b981';
+            btn.style.border = 'none';
+            btn.style.outline = 'none';
+            btn.style.background = colorMap[val] || '#10b981';
+            btn.style.color = '#ffffff';
+            btn.style.fontWeight = '800';
+            btn.style.boxShadow = 'none';
         } else {
             btn.classList.remove('active');
-            btn.style.border = '1px solid rgba(255,255,255,0.1)';
-            btn.style.background = 'rgba(255,255,255,0.04)';
-            btn.style.color = 'rgba(255,255,255,0.7)';
+            btn.style.border = 'none';
+            btn.style.outline = 'none';
+            btn.style.background = 'rgba(255,255,255,0.15)';
+            btn.style.color = '#ffffff';
+            btn.style.fontWeight = '700';
+            btn.style.boxShadow = 'none';
         }
     });
 };
@@ -181,7 +349,7 @@ window.selectSafety = function(val) {
     if (input) input.value = val;
 
     const labelMap = { safe: 'Safe', moderate: 'Moderate', unsafe: 'Unsafe' };
-    const colorMap = { safe: '#10b981', moderate: '#f59e0b', unsafe: '#f43f5e' };
+    const colorMap = { safe: '#10b981', moderate: '#f59e0b', unsafe: '#ef4444' };
     const label = document.getElementById('safety-selected-label');
     if (label) {
         label.textContent = labelMap[val] || val;
@@ -191,14 +359,20 @@ window.selectSafety = function(val) {
     document.querySelectorAll('#testimony-modal .safety-pill').forEach(btn => {
         if (btn.dataset.val === val) {
             btn.classList.add('active');
-            btn.style.border = '1px solid ' + (colorMap[val] || '#10b981');
-            btn.style.background = (colorMap[val] || '#10b981') + '2e';
-            btn.style.color = colorMap[val] || '#10b981';
+            btn.style.border = 'none';
+            btn.style.outline = 'none';
+            btn.style.background = colorMap[val] || '#10b981';
+            btn.style.color = '#ffffff';
+            btn.style.fontWeight = '800';
+            btn.style.boxShadow = 'none';
         } else {
             btn.classList.remove('active');
-            btn.style.border = '1px solid rgba(255,255,255,0.1)';
-            btn.style.background = 'rgba(255,255,255,0.04)';
-            btn.style.color = 'rgba(255,255,255,0.7)';
+            btn.style.border = 'none';
+            btn.style.outline = 'none';
+            btn.style.background = 'rgba(255,255,255,0.15)';
+            btn.style.color = '#ffffff';
+            btn.style.fontWeight = '700';
+            btn.style.boxShadow = 'none';
         }
     });
 };
@@ -212,9 +386,9 @@ window.submitTestimony = async function(event) {
         if (typeof showToast === 'function') showToast("Please log in to submit a review.");
         return;
     }
-    const _backendBase = window.backendUrl || 'https://api.intan-elyu.online';
+    const _backendBase = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
 
-    const submitBtn = document.querySelector('#write-testimony-modal form button[type="submit"]') || document.querySelector('#write-testimony-modal button.submit-btn');
+    const submitBtn = document.querySelector('#testimony-modal button[type="submit"]') || document.querySelector('#write-testimony-modal form button[type="submit"]') || document.querySelector('#write-testimony-modal button.submit-btn');
     const originalText = submitBtn ? submitBtn.innerHTML : '';
 
     const spotId = document.getElementById('testimony-spot-id').value;
@@ -250,16 +424,58 @@ window.submitTestimony = async function(event) {
 
         const data = await response.json();
         if (response.ok) {
-            if (typeof showToast === 'function') showToast("Thank you for your feedback! 🗣️");
             window.closeWriteTestimonyModal();
 
+            const isRewardAwarded = data.reward_awarded === true;
+
+            // Track spot as reviewed in local state
+            if (spotId) {
+                window.userReviewedSpotIds.add(Number(spotId));
+                window.userReviewedSpotData[spotId] = {
+                    rating: rating,
+                    testimony: testimony,
+                    policy_recommendation: policy,
+                    cleanliness_level: cleanliness,
+                    safety_level: safety
+                };
+            }
+
+            if (isRewardAwarded) {
+                const earnedPts = (data && data.earned_points !== undefined) ? parseInt(data.earned_points) : 50;
+                if (window.confetti) {
+                    window.confetti({ particleCount: 85, spread: 70, origin: { y: 0.6 } });
+                }
+                if (typeof showToast === 'function') {
+                    showToast(data.message || `Review submitted! You earned +${earnedPts} Points!`);
+                }
+                // Invalidate cached user profile & dashboard so rewards counters immediately update
+                const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                if (token) {
+                    localStorage.removeItem('user_profile_' + token.substring(0, 10));
+                    localStorage.removeItem('dashboard_data_' + token.substring(0, 10));
+                }
+                window.dispatchEvent(new CustomEvent('user-points-updated', { detail: { points: earnedPts } }));
+                if (typeof window.fetchUserProfile === 'function') {
+                    window.fetchUserProfile(true);
+                }
+            } else {
+                // Repeated review: no points, no confetti
+                if (typeof showToast === 'function') {
+                    showToast(data.message || "Review updated! (Rewards already claimed for this destination)");
+                }
+            }
+
+            // Sync all review buttons on the page
+            if (typeof window.syncReviewedButtons === 'function') {
+                window.syncReviewedButtons();
+            }
+
             if (window._lastReviewedBtn) {
-                window._lastReviewedBtn.disabled = true;
-                window._lastReviewedBtn.style.background = 'rgba(16, 185, 129, 0.18)';
-                window._lastReviewedBtn.style.border = '1px solid rgba(16, 185, 129, 0.4)';
-                window._lastReviewedBtn.style.color = '#10b981';
+                window._lastReviewedBtn.style.background = 'rgba(255, 255, 255, 0.18)';
+                window._lastReviewedBtn.style.border = 'none !important';
+                window._lastReviewedBtn.style.color = '#ffffff';
                 window._lastReviewedBtn.style.boxShadow = 'none';
-                window._lastReviewedBtn.innerHTML = '<i class="fa-solid fa-check" style="font-size:10px;"></i> Reviewed';
+                window._lastReviewedBtn.innerHTML = '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed';
                 window._lastReviewedBtn = null;
             }
 
@@ -268,9 +484,14 @@ window.submitTestimony = async function(event) {
                 completionCloseBtn.textContent = 'Go Back to Saved Trips';
                 completionCloseBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
                 completionCloseBtn.style.color = '#ffffff';
-                completionCloseBtn.style.border = '1px solid rgba(255,255,255,0.2)';
+                completionCloseBtn.style.border = 'none !important';
                 completionCloseBtn.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)';
             }
+
+            // Dispatch global spot-reviewed event
+            window.dispatchEvent(new CustomEvent('spot-reviewed', { 
+                detail: { spotId: spotId, rewardAwarded: isRewardAwarded } 
+            }));
 
             if (typeof fetchTestimonies === 'function') fetchTestimonies(spotId);
         } else {
@@ -287,4 +508,13 @@ window.submitTestimony = async function(event) {
         }
     }
 };
+
+// Automatically fetch user reviewed spots on load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof window.fetchUserReviewedSpots === 'function') window.fetchUserReviewedSpots();
+    });
+} else {
+    if (typeof window.fetchUserReviewedSpots === 'function') window.fetchUserReviewedSpots();
+}
 </script>

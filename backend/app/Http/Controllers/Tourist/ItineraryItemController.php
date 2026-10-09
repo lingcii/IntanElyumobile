@@ -25,13 +25,24 @@ class ItineraryItemController extends Controller
     public function visit(Request $request, int $id): JsonResponse
     {
         try {
+            // Check PHP ini upload error first to provide friendly feedback
+            if (isset($_FILES['image']) && !empty($_FILES['image']['name'])) {
+                $uploadErr = $_FILES['image']['error'] ?? UPLOAD_ERR_OK;
+                if ($uploadErr === UPLOAD_ERR_INI_SIZE || $uploadErr === UPLOAD_ERR_FORM_SIZE) {
+                    return response()->json([
+                        'message' => 'The selected photo is too large for the server. Please select or capture a lighter photo.',
+                        'errors'  => ['image' => ['The photo exceeds the server upload limit.']]
+                    ], 422);
+                }
+            }
+
             $request->validate([
                 'lat' => 'required|numeric|between:-90,90',
                 'lng' => 'required|numeric|between:-180,180',
                 'accuracy' => 'nullable|numeric',
                 'altitude' => 'nullable|numeric',
                 'speed' => 'nullable|numeric',
-                'image' => 'nullable|file|max:10240',
+                'image' => 'nullable|file|max:20480',
             ]);
 
             $user = $request->user();

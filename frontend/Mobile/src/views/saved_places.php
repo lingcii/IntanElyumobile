@@ -22,12 +22,12 @@ if (is_dir($imgDir)) {
 ?>
 <?php include __DIR__ . '/../components/header.php'; ?>
 
-<link rel="stylesheet" href="assets/css/views/trending.css">
 
-<div class="saved-trips-page-container has-header animate-slide-up" style="padding-left: 16px; padding-right: 16px;">
+
+<div id="saved-places-container" class="saved-places-page-container has-header animate-slide-up">
     <div id="saved-places-list" style="margin-top: 16px;">
-        <p style="text-align:center; color:rgba(255,255,255,0.5); margin-top:40px;">
-            <i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i> Loading saved places...
+        <p style="text-align:center; color:#64748b; font-size: 14px; font-weight: 600; margin-top:40px;">
+            <i class="fa-solid fa-spinner fa-spin" style="margin-right:8px; color:#0284c7;"></i> Loading saved places...
         </p>
     </div>
 </div>
@@ -37,6 +37,35 @@ if (is_dir($imgDir)) {
     var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
 
     window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
+
+    function updateScrollviewState() {
+        const container = document.getElementById('saved-places-container');
+        const list = document.getElementById('saved-places-list');
+        if (!container || !list) return;
+
+        const cards = list.querySelectorAll('.trending-card');
+        const hasEmptyState = list.querySelector('.dash-empty-state');
+
+        // If empty state or 0 cards, remove scrollview completely
+        if (hasEmptyState || cards.length === 0) {
+            container.classList.remove('is-scrollable');
+            container.scrollTop = 0;
+            return;
+        }
+
+        // Only show scrollview if too many tourist sites are saved
+        requestAnimationFrame(() => {
+            const isOverflowing = cards.length > 4 || list.scrollHeight > (container.clientHeight - 30);
+            if (isOverflowing) {
+                container.classList.add('is-scrollable');
+            } else {
+                container.classList.remove('is-scrollable');
+                container.scrollTop = 0;
+            }
+        });
+    }
+
+    window.addEventListener('resize', updateScrollviewState);
 
     async function fetchSavedPlaces(forceRefresh = false) {
         const token = localStorage.getItem('intan_elyu_token');
@@ -59,10 +88,11 @@ if (is_dir($imgDir)) {
             },
             (spots) => {
                 if (spots) {
-                    renderSavedPlaces(spots);
+                    renderSavedPlaces((spots || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending'));
                 } else {
                     const list = document.getElementById('saved-places-list');
-                    if (list) list.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">Failed to load saved places.</p>';
+                    if (list) list.innerHTML = '<p style="text-align:center; color:#94a3b8; margin-top:20px;">Failed to load saved places.</p>';
+                    updateScrollviewState();
                 }
             },
             forceRefresh,
@@ -75,24 +105,25 @@ if (is_dir($imgDir)) {
         if (!list) return;
         if (!spots.length) {
             list.innerHTML = `
-                <div class="dash-empty-state" style="margin-top: 24px !important;">
-                    <div class="dash-empty-icon-wrap">
-                        <i class="fa-solid fa-map-location-dot"></i>
+                <div class="dash-empty-state">
+                    <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                        <i class="fa-solid fa-map-location-dot" style="color: #1e3a8a !important;"></i>
                     </div>
                     <div class="dash-empty-title">No Saved Places Yet</div>
-                    <div class="dash-empty-desc">Discover destinations across La Union on the map and tap the heart icon to save them.</div>
+                    <div class="dash-empty-desc">Discover destinations on the map and tap the heart icon to save your favorite spots.</div>
                     <button type="button" onclick="navigateTo('map')" class="dash-empty-btn">
-                        <i class="fa-solid fa-location-arrow"></i> Go to Map
+                        <i class="fa-solid fa-location-arrow"></i> Open Map
                     </button>
                 </div>
             `;
+            updateScrollviewState();
             return;
         }
         let html = '<div class="trending-grid">';
         spots.forEach((dest, i) => {
             const img = window.getDestImage(dest);
-            const badgeColor = dest.classification_status === 'EXIST' ? '#34c759' :
-                (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b');
+            const badgeColor = dest.classification_status === 'EXIST' ? '#0284c7' :
+                (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981');
             const badgeLabel = dest.classification_status === 'EXIST' ? 'EXISTING' :
                 (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL');
             
@@ -101,7 +132,9 @@ if (is_dir($imgDir)) {
             html += `
                 <div class="trending-card" style="animation-delay:${i * 0.08}s" onclick="window.viewTrendingDest(${dest.id}, '${dest.name.replace(/'/g, "\\'")}', '${encodedDest}')">
                     ${dest.classification_status ? `<div class="badge" style="background:${badgeColor};">${badgeLabel}</div>` : ''}
-                    <i class="fa-solid fa-heart fire-icon" style="color: #ff3b30;" onclick="event.stopPropagation(); window.toggleFavLocal(${dest.id}, this)"></i>
+                    <div class="fire-icon" style="position: absolute; top: 8px; right: 8px; z-index: 5; width: 30px; height: 30px; border-radius: 50%; background: #ffffff !important; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.18); cursor: pointer;" onclick="event.stopPropagation(); window.toggleFavLocal(${dest.id}, this)">
+                        <i class="fa-solid fa-heart" style="color: #ff3b30 !important; font-size: 13px;"></i>
+                    </div>
                     <img src="${img}" alt="${dest.name}" onerror="this.onerror=null; this.src=window.noImageFallback;">
                     <div class="overlay">
                         <div class="name">${dest.name}</div>
@@ -112,6 +145,7 @@ if (is_dir($imgDir)) {
         });
         html += '</div>';
         list.innerHTML = html;
+        updateScrollviewState();
     }
 
     window.toggleFavLocal = async function(id, btn) {
@@ -150,6 +184,7 @@ if (is_dir($imgDir)) {
                     card.style.transform = 'scale(0.9)';
                     setTimeout(() => { 
                         card.remove();
+                        updateScrollviewState();
                         if (document.querySelectorAll('.trending-card').length === 0) {
                             fetchSavedPlaces(true); // refresh with forceRefresh to show empty state
                         }

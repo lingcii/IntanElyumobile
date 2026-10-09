@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Intan_Elyu_cache-v7';
+const CACHE_NAME = 'Intan_Elyu_cache-v8';
 const ASSETS = [
     './',
     './assets/css/style.css',

@@ -1,2 +1,131 @@
-/* Header Component Styles */
-.app-header, .mobile-header { width: 100%; position: fixed; top: 0; z-index: 9000 !important; }
+/* ==========================================================================
+   Intan-Elyu Mobile Component: Header & Notification Dropdown Styles
+   Location: frontend/Mobile/src/assets/css/components/header.css
+   ========================================================================== */
+
+:root {
+    --safe-area-top: max(env(safe-area-inset-top, 0px), 40px);
+    --header-content-height: 48px;
+    --header-height: calc(var(--safe-area-top) + var(--header-content-height));
+    --header-gap: 16px;
+    --content-top-padding: calc(var(--header-height) + var(--header-gap));
+}
+
+.app-header,
+.mobile-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: #1e3a8a !important;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: none !important;
+    outline: none !important;
+    border-bottom: none !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 18px;
+    z-index: 9000 !important;
+    /* Ensure Android gets safe padding since safe-area-inset-top is sometimes 0 on Android WebViews */
+    padding-top: max(env(safe-area-inset-top, 0px), 40px);
+    box-shadow: none !important;
+    box-sizing: border-box;
+}
+
+.header-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #ffffff !important;
+    margin: 0;
+    letter-spacing: -0.3px;
+    text-align: center;
+    flex: 1;
+}
+
+.header-icon {
+    color: #1e3a8a !important;
+    font-size: 16px;
+    cursor: pointer;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: #ffffff !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border: none !important;
+    outline: none !important;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.header-icon i {
+    color: #1e3a8a !important;
+}
+
+.header-icon:active {
+    transform: scale(0.92);
+    background: #f1f5f9 !important;
+}
+
+.header-icon .bell-dot {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 9px;
+    height: 9px;
+    background: #0284c7;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px #ffffff;
+    display: none;
+}
+
+.header-icon .bell-dot.show {
+    display: block;
+}
+
+.bell-ring {
+    animation: bell-shake 0.4s ease;
+}
+
+@keyframes bell-shake {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    20% {
+        transform: rotate(15deg);
+    }
+    40% {
+        transform: rotate(-15deg);
+    }
+    60% {
+        transform: rotate(10deg);
+    }
+    80% {
+        transform: rotate(-10deg);
+    }
+}
+
+/* Ensure content below header has proper top padding with consistent 16px gap */
+.has-header {
+    padding-top: calc(max(env(safe-area-inset-top, 0px), 40px) + 64px) !important;
+}
+
+/* Hide scrollbars for Notifications Dropdown and List */
+#notifications-dropdown,
+#notifications-list {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+#notifications-dropdown::-webkit-scrollbar,
+#notifications-list::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}

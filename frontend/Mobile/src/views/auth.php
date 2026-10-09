@@ -1,4 +1,16 @@
 <!-- Auth View (Login, Register & Forgot Password) -->
+<script>
+    (function () {
+        var winH = window.innerHeight || 0;
+        var scrH = (window.screen && window.screen.height) ? window.screen.height : 0;
+        var h = Math.max(winH, scrH > 300 ? scrH : winH);
+        if (h > 0) {
+            var topH = Math.min(330, Math.max(250, Math.round(h * 0.38)));
+            document.documentElement.style.setProperty('--auth-screen-h', h + 'px');
+            document.documentElement.style.setProperty('--auth-top-h', topH + 'px');
+        }
+    })();
+</script>
 
 <div class="auth-container">
     <!-- Top Blue Section -->
@@ -135,9 +147,10 @@
                     
                     <div class="terms-agreement-row">
                         <input type="checkbox" id="reg-privacy-checkbox" class="custom-terms-checkbox">
-                        <label for="reg-privacy-checkbox" id="reg-privacy-label" class="terms-agreement-label">
-                            I agree to the <a href="#" id="link-terms-privacy" onclick="openPrivacyPolicyModal(event)" class="terms-policy-highlight">Terms &amp; Privacy Policy</a>.
-                        </label>
+                        <div class="terms-agreement-text">
+                            <label for="reg-privacy-checkbox" id="reg-privacy-label" class="terms-agreement-label">I agree to the</label>
+                            <button type="button" id="link-terms-privacy" onclick="openPrivacyPolicyModal(event)" class="terms-policy-btn">Terms &amp; Privacy Policy</button><span class="terms-period">.</span>
+                        </div>
                     </div>
                     
                     <button type="submit" id="btn-register" class="btn-circle-submit">
@@ -325,9 +338,9 @@
     </div>
 </div>
 
-<div id="privacy-policy-modal" class="auth-2fa-overlay" style="display: none;">
+<div id="privacy-policy-modal" class="auth-2fa-overlay" style="display: none;" onclick="if(event.target===this) closePrivacyPolicyModal(event);">
     <div class="privacy-modal-card">
-        <button type="button" class="privacy-modal-close" onclick="closePrivacyPolicyModal()" aria-label="Close">
+        <button type="button" class="privacy-modal-close" onclick="closePrivacyPolicyModal(event)" aria-label="Close">
             <i class="fa-solid fa-xmark"></i>
         </button>
         
@@ -337,15 +350,15 @@
             </div>
             <div>
                 <h3 class="privacy-modal-title">Terms &amp; Privacy Policy</h3>
-                <span class="privacy-modal-badge">Data Protection · Step 1 of 2</span>
+                <span class="privacy-modal-badge"><i class="fa-solid fa-shield-halved"></i> RA 10173 Compliant</span>
             </div>
         </div>
 
         <div id="privacy-modal-scroll-body" class="privacy-modal-scroll-body">
             <div class="policy-welcome-banner">
                 <i class="fa-solid fa-circle-info policy-welcome-icon"></i>
-                <p style="margin: 0; font-size: 12px; color: #334155; line-height: 1.55;">
-                    Welcome to <strong>Intan Elyu Tourism Management System</strong>. Please read through our terms of service and privacy practices before activating your account:
+                <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.95); line-height: 1.55;">
+                    Welcome to <strong style="color: #ffffff;">Intan Elyu Tourism Management System</strong>. In strict compliance with the <strong style="color: #38bdf8;">Data Privacy Act of 2012 (Republic Act No. 10173)</strong>, please review our terms of service and personal data protection practices before activating your account:
                 </p>
             </div>
             
@@ -368,9 +381,9 @@
             <div class="policy-item-card">
                 <div class="policy-item-header">
                     <div class="policy-icon-badge"><i class="fa-solid fa-location-dot"></i></div>
-                    <span class="policy-item-title">3. Location &amp; Fair Play XP</span>
+                    <span class="policy-item-title">3. Location &amp; Fair Play Points</span>
                 </div>
-                <p class="policy-item-desc">Device location is accessed strictly during active tourist spot check-ins to verify XP rewards and badge unlocks. We do not track your location in the background.</p>
+                <p class="policy-item-desc">Device location is accessed strictly during active tourist spot check-ins to verify Points rewards and badge unlocks. We do not track your location in the background.</p>
             </div>
             
             <div class="policy-item-card">
@@ -391,319 +404,30 @@
 
             <div class="policy-item-card">
                 <div class="policy-item-header">
-                    <div class="policy-icon-badge"><i class="fa-solid fa-eye-slash"></i></div>
-                    <span class="policy-item-title">6. Privacy Rights &amp; Profile</span>
+                    <div class="policy-icon-badge"><i class="fa-solid fa-user-shield"></i></div>
+                    <span class="policy-item-title">6. Data Subject Rights (RA 10173)</span>
                 </div>
-                <p class="policy-item-desc">Your email remains private. You can toggle your profile to Private mode anytime in App Settings to hide your rank on public leaderboards or request account erasure.</p>
+                <p class="policy-item-desc">Under Republic Act No. 10173, you retain the Right to be Informed, Right to Access, Right to Object, and Right to Erasure. Your email and account credentials remain strictly confidential, and you may request account erasure at any time.</p>
             </div>
         </div>
 
-        <div class="privacy-acceptance-box">
+        <label class="privacy-acceptance-box" for="chk-accept-privacy" id="box-chk-accept-privacy" style="cursor: pointer;">
             <input type="checkbox" id="chk-accept-privacy" class="custom-terms-checkbox" style="cursor: pointer;">
-            <label for="chk-accept-privacy" id="lbl-chk-accept-privacy" style="cursor: pointer; margin: 0; line-height: 1.35; font-size: 11.5px; font-weight: 600; color: #1e293b;">
+            <span id="lbl-chk-accept-privacy" style="cursor: pointer; margin: 0; line-height: 1.35; font-size: 11.5px; font-weight: 600; color: #ffffff;">
                 I have read, understood, and accept the Terms &amp; Privacy Policy.
-            </label>
-        </div>
+            </span>
+        </label>
 
         <div class="privacy-modal-actions">
-            <button type="button" onclick="closePrivacyPolicyModal()" class="btn-privacy-decline">
+            <button type="button" onclick="declinePrivacyPolicy(event)" class="btn-privacy-decline">
                 Decline
             </button>
-            <button type="button" id="btn-accept-policy-proceed" onclick="acceptPolicyAndProceed()" class="btn-privacy-accept">
+            <button type="button" id="btn-accept-policy-proceed" onclick="acceptPolicyAndProceed(event)" class="btn-privacy-accept">
                 Accept
             </button>
         </div>
     </div>
 </div>
-
-<style>
-.login-success-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    z-index: 999999;
-    background: rgba(15, 23, 42, 0.45);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.login-success-overlay.active {
-    opacity: 1;
-    pointer-events: auto;
-}
-.login-success-card {
-    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
-    border: none !important;
-    outline: none !important;
-    border-radius: 26px;
-    padding: 34px 24px 28px 24px;
-    max-width: 310px;
-    width: 86%;
-    text-align: center;
-    box-shadow: 0 15px 35px rgba(10, 25, 60, 0.4), 0 0 25px rgba(63, 125, 183, 0.25);
-    position: relative;
-    transform: scale(0.88) translateY(16px);
-    transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-.login-success-overlay.active .login-success-card {
-    transform: scale(1) translateY(0);
-}
-.success-icon-badge {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.22);
-    border: 2px solid rgba(255, 255, 255, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 16px auto;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
-}
-.success-icon-badge.is-done {
-    background: #ffffff;
-    border-color: #ffffff;
-    box-shadow: 0 8px 25px rgba(15, 23, 42, 0.2);
-}
-.success-modal-title {
-    color: #ffffff !important;
-    font-size: 19px !important;
-    font-weight: 800 !important;
-    margin: 0 0 6px 0 !important;
-    letter-spacing: -0.2px;
-    text-shadow: 0 2px 6px rgba(15, 23, 42, 0.2);
-}
-.success-modal-sub {
-    color: rgba(255, 255, 255, 0.95) !important;
-    font-size: 13.5px !important;
-    margin: 0 !important;
-    font-weight: 500 !important;
-    text-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
-}
-.circular-spinner .spinner-track {
-    stroke: rgba(255, 255, 255, 0.35) !important;
-}
-.circular-spinner .spinner-head {
-    stroke: #ffffff !important;
-}
-.modal-check-mark {
-    color: #0284c7 !important;
-    font-size: 24px !important;
-}
-.auth-2fa-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    z-index: 999999;
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.auth-2fa-overlay.active {
-    opacity: 1;
-    pointer-events: auto;
-}
-.auth-2fa-card {
-    background: rgba(15, 23, 42, 0.96);
-    border: 1.5px solid rgba(56, 189, 248, 0.4);
-    border-radius: 24px;
-    padding: 28px 24px;
-    max-width: 380px;
-    width: 100%;
-    text-align: center;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(56, 189, 248, 0.15);
-    position: relative;
-    transform: scale(0.88) translateY(16px);
-    transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.auth-2fa-overlay.active .auth-2fa-card {
-    transform: scale(1) translateY(0);
-}
-.auth-2fa-close {
-    position: absolute;
-    top: 14px;
-    right: 14px;
-    background: rgba(255, 255, 255, 0.08);
-    border: none;
-    color: rgba(248, 250, 252, 0.7);
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background 0.2s;
-}
-.auth-2fa-close:hover {
-    background: rgba(255, 255, 255, 0.18);
-    color: #fff;
-}
-.auth-2fa-icon-ring {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: rgba(56, 189, 248, 0.15);
-    border: 2px solid #38bdf8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 14px auto;
-    box-shadow: 0 0 22px rgba(56, 189, 248, 0.35);
-    font-size: 28px;
-    color: #38bdf8;
-}
-.auth-2fa-title {
-    font-size: 20px;
-    font-weight: 800;
-    color: #ffffff;
-    margin: 0 0 8px 0;
-    letter-spacing: -0.3px;
-}
-.auth-2fa-desc {
-    font-size: 12px;
-    color: rgba(148, 163, 184, 0.9);
-    line-height: 1.55;
-    margin: 0 0 16px 0;
-}
-.auth-2fa-alert-box {
-    background: rgba(245, 158, 11, 0.08);
-    border: 1px solid rgba(245, 158, 11, 0.35);
-    border-radius: 14px;
-    padding: 12px 14px;
-    margin-bottom: 20px;
-    text-align: left;
-    font-size: 12px;
-    color: #f59e0b;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-}
-.auth-2fa-info-box {
-    background: rgba(56, 189, 248, 0.08);
-    border: 1px solid rgba(56, 189, 248, 0.3);
-    border-radius: 14px;
-    padding: 12px 14px;
-    margin-bottom: 18px;
-    text-align: left;
-    font-size: 12px;
-    color: #38bdf8;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-}
-.auth-2fa-btn-primary {
-    width: 100%;
-    padding: 14px;
-    border-radius: 100px;
-    background: linear-gradient(135deg, #38bdf8, #2563eb);
-    border: none;
-    color: #ffffff;
-    font-weight: 800;
-    font-size: 14px;
-    cursor: pointer;
-    box-shadow: 0 8px 20px rgba(56, 189, 248, 0.35);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.auth-2fa-btn-primary:active {
-    transform: scale(0.97);
-}
-.auth-2fa-btn-success {
-    width: 100%;
-    padding: 14px;
-    border-radius: 100px;
-    background: linear-gradient(135deg, #34c759, #10b981);
-    border: none;
-    color: #ffffff;
-    font-weight: 800;
-    font-size: 14px;
-    cursor: pointer;
-    box-shadow: 0 8px 20px rgba(52, 199, 89, 0.35);
-    transition: transform 0.15s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.auth-2fa-otp-input {
-    width: 100%;
-    text-align: center;
-    font-size: 24px;
-    font-weight: 900;
-    letter-spacing: 8px;
-    padding: 12px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1.5px solid #38bdf8;
-    color: #ffffff;
-    margin-bottom: 16px;
-    outline: none;
-}
-.circular-spinner {
-    width: 38px;
-    height: 38px;
-    animation: spinnerRotate 1.2s linear infinite;
-}
-.spinner-track {
-    stroke: rgba(255, 255, 255, 0.2);
-}
-.spinner-head {
-    stroke: #ffffff;
-    stroke-linecap: round;
-    stroke-dasharray: 80, 200;
-    stroke-dashoffset: 0;
-    animation: spinnerDash 1.4s ease-in-out infinite;
-}
-@keyframes spinnerRotate {
-    100% { transform: rotate(360deg); }
-}
-@keyframes spinnerDash {
-    0% { stroke-dasharray: 1, 200; stroke-dashoffset: 0; }
-    50% { stroke-dasharray: 89, 200; stroke-dashoffset: -35px; }
-    100% { stroke-dasharray: 89, 200; stroke-dashoffset: -124px; }
-}
-.modal-check-mark {
-    font-size: 34px;
-    color: #ffffff;
-    animation: checkPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-@keyframes checkPop {
-    0% { transform: scale(0.2); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
-}
-.success-modal-title {
-    color: #ffffff;
-    font-size: 20px;
-    font-weight: 800;
-    margin: 0 0 6px 0;
-    letter-spacing: -0.3px;
-}
-.success-modal-sub {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 14px;
-    font-weight: 500;
-    margin: 0;
-    line-height: 1.4;
-}
-</style>
 
 <script>
     var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
@@ -975,6 +699,7 @@
             updateTitleWithTransition('Welcome to Elyu');
         }
     }
+    window.toggleAuthMode = toggleAuthMode;
 
     window.showForgotPassword = function(e) {
         if (e) e.preventDefault();
@@ -1200,31 +925,25 @@
     };
 
     window.openPrivacyPolicyModal = function(e) {
-        if (e) e.preventDefault();
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
 
         const modal = document.getElementById('privacy-policy-modal');
         if (!modal) return;
 
         const chk = document.getElementById('chk-accept-privacy');
-        const lblChk = document.getElementById('lbl-chk-accept-privacy');
-        const acceptBtn = document.getElementById('btn-accept-policy-proceed');
+        const box = document.querySelector('.privacy-acceptance-box');
         const scrollBody = document.getElementById('privacy-modal-scroll-body');
 
+        // Always reset modal acceptance checkbox to unchecked on open
         if (chk) { 
             chk.checked = false; 
             chk.disabled = false; 
-            chk.style.opacity = '1'; 
-            chk.style.cursor = 'pointer'; 
         }
-        if (lblChk) { 
-            lblChk.style.cursor = 'pointer'; 
-            lblChk.style.opacity = '1'; 
-        }
-        if (acceptBtn) {
-            acceptBtn.disabled = false;
-            acceptBtn.style.opacity = '1';
-            acceptBtn.style.cursor = 'pointer';
-            acceptBtn.innerHTML = 'Accept';
+        if (box) {
+            box.classList.remove('shake-attention');
         }
 
         if (scrollBody) {
@@ -1236,33 +955,76 @@
             modal.classList.add('active');
             if (scrollBody) {
                 scrollBody.scrollTop = 0;
-                scrollBody.scrollTo(0, 0);
             }
         });
     };
 
-    window.closePrivacyPolicyModal = function() {
+    window.closePrivacyPolicyModal = function(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         const modal = document.getElementById('privacy-policy-modal');
         const scrollBody = document.getElementById('privacy-modal-scroll-body');
         if (modal) modal.classList.remove('active');
         if (scrollBody) {
             scrollBody.scrollTop = 0;
-            scrollBody.scrollTo(0, 0);
         }
         setTimeout(() => {
             if (modal) modal.style.display = 'none';
-        }, 300);
+        }, 280);
     };
 
-    window.acceptPolicyAndProceed = async function() {
-        const chk = document.getElementById('chk-accept-privacy');
-        if (chk) chk.checked = true;
-
+    window.declinePrivacyPolicy = function(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        // Explicitly keep register terms unchecked if declined
         const regChk = document.getElementById('reg-privacy-checkbox');
-        if (regChk) regChk.checked = true;
+        if (regChk) {
+            regChk.checked = false;
+            regChk.dispatchEvent(new Event('change'));
+        }
+        window.closePrivacyPolicyModal();
+    };
 
-        closePrivacyPolicyModal();
-        await window.submitRegistrationAndTrigger2FA();
+    window.togglePrivacyCheckboxFromBox = function(e) {
+        // Handled natively by label for="chk-accept-privacy"
+        const chk = document.getElementById('chk-accept-privacy');
+        const box = document.querySelector('.privacy-acceptance-box');
+        if (box && chk && chk.checked) {
+            box.classList.remove('shake-attention');
+        }
+    };
+
+    window.acceptPolicyAndProceed = async function(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        const chk = document.getElementById('chk-accept-privacy');
+        if (!chk || !chk.checked) {
+            if (typeof showToast === 'function') {
+                showToast('Please check the box to accept the Terms & Privacy Policy first.');
+            }
+            const box = document.querySelector('.privacy-acceptance-box');
+            if (box) {
+                box.classList.remove('shake-attention');
+                void box.offsetWidth;
+                box.classList.add('shake-attention');
+            }
+            return;
+        }
+
+        // Only check the register checkbox when user explicitly clicked ACCEPT with the box checked!
+        const regChk = document.getElementById('reg-privacy-checkbox');
+        if (regChk) {
+            regChk.checked = true;
+            regChk.dispatchEvent(new Event('change'));
+        }
+
+        window.closePrivacyPolicyModal();
     };
 
     window.submitRegistrationAndTrigger2FA = async function() {
@@ -1332,8 +1094,8 @@
             }
 
             // Animate checkmark success in modal
-            if (titleEl) titleEl.textContent = 'Account Registered Successfully!';
-            if (subEl) subEl.textContent = 'Redirecting to your dashboard...';
+            if (titleEl) titleEl.textContent = 'Account Created Successfully!';
+            if (subEl) subEl.textContent = 'Please log in with your credentials...';
             if (spinnerSvg) spinnerSvg.style.display = 'none';
             if (checkmarkIcon) checkmarkIcon.style.display = 'block';
 
@@ -1343,14 +1105,51 @@
                     setTimeout(() => { modal.style.display = 'none'; }, 300);
                 }
 
-                if (data.user) localStorage.setItem('auth_user', JSON.stringify(data.user));
-                if (data.token) localStorage.setItem('intan_elyu_token', data.token);
+                // Ensure user is not auto-logged in, requiring manual login first
+                try {
+                    localStorage.removeItem('intan_elyu_token');
+                    localStorage.removeItem('auth_user');
+                } catch (e) {}
 
                 sessionStorage.setItem('show_onboarding', '1');
                 sessionStorage.setItem('pending_reg_email', data.email || email);
 
-                if (typeof showToast === 'function') showToast('Account created successfully! Welcome to Intan Elyu!');
-                window.location.href = '?view=dashboard';
+                // Reset registration form inputs & validation hints
+                const regForm = document.getElementById('form-register');
+                if (regForm) regForm.reset();
+                const regEmailStatusIcon = document.getElementById('reg-email-status-icon');
+                if (regEmailStatusIcon) regEmailStatusIcon.className = 'fa-solid field-status-icon';
+                const regPwdStatusIcon = document.getElementById('reg-password-status-icon');
+                if (regPwdStatusIcon) regPwdStatusIcon.className = 'fa-solid field-status-icon password-offset';
+                const regEmailHint = document.getElementById('reg-email-hint');
+                if (regEmailHint) regEmailHint.style.display = 'none';
+                const regPwdHint = document.getElementById('reg-password-hint');
+                if (regPwdHint) regPwdHint.style.display = 'none';
+
+                if (btn) {
+                    btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
+                    btn.disabled = false;
+                }
+
+                // Switch back to Login view
+                if (typeof toggleAuthMode === 'function') {
+                    toggleAuthMode(false);
+                }
+
+                // Pre-fill email in Login Credentials
+                const loginEmailEl = document.getElementById('login-email');
+                if (loginEmailEl && email) {
+                    loginEmailEl.value = email;
+                }
+                const loginPwdEl = document.getElementById('login-password');
+                if (loginPwdEl) {
+                    loginPwdEl.value = '';
+                    setTimeout(() => { loginPwdEl.focus(); }, 350);
+                }
+
+                if (typeof showToast === 'function') {
+                    showToast('Account created successfully! Please log in to your account.', 'success', 5000);
+                }
             }, 1800);
 
         } catch (error) {
@@ -2008,5 +1807,48 @@
                 }
             }
         }, { passive: false });
+    })();
+
+    // Freeze and lock Auth viewport height to prevent keyboard squeezing
+    (function freezeAuthLayout() {
+        function applyLockedDimensions() {
+            var winH = window.innerHeight || 0;
+            var scrH = (window.screen && window.screen.height) ? window.screen.height : 0;
+            var storedH = parseInt(sessionStorage.getItem('auth_locked_screen_h') || '0', 10);
+            if (!storedH || winH > storedH) {
+                storedH = Math.max(winH, scrH > 300 ? scrH : winH);
+                try { sessionStorage.setItem('auth_locked_screen_h', storedH); } catch(e) {}
+            }
+            if (storedH > 0) {
+                var topH = Math.min(330, Math.max(250, Math.round(storedH * 0.38)));
+                document.documentElement.style.setProperty('--auth-screen-h', storedH + 'px');
+                document.documentElement.style.setProperty('--auth-top-h', topH + 'px');
+                var container = document.querySelector('.auth-container');
+                if (container) {
+                    container.style.height = storedH + 'px';
+                    container.style.minHeight = storedH + 'px';
+                    container.style.maxHeight = storedH + 'px';
+                }
+                var topEl = document.querySelector('.auth-top');
+                if (topEl) {
+                    topEl.style.height = topH + 'px';
+                    topEl.style.minHeight = topH + 'px';
+                    topEl.style.maxHeight = topH + 'px';
+                }
+            }
+        }
+
+        applyLockedDimensions();
+        window.addEventListener('resize', function() {
+            var currentH = window.innerHeight || 0;
+            var storedH = parseInt(sessionStorage.getItem('auth_locked_screen_h') || '0', 10);
+            if (currentH > storedH) {
+                applyLockedDimensions();
+            }
+        });
+        window.addEventListener('orientationchange', function() {
+            try { sessionStorage.removeItem('auth_locked_screen_h'); } catch(e) {}
+            setTimeout(applyLockedDimensions, 250);
+        });
     })();
 </script>

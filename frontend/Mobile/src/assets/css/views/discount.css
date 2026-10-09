@@ -1,227 +1,146 @@
 /* ============================================================
- * Merch View Styles
- * Intan Elyu Mobile — Premium Redesign
+ * Merch / Discounts View Styles
+ * Intan Elyu Mobile — Pure White Background Redesign
  * ============================================================ */
 
-/* ============================================================
- * 1. View Container
- * ============================================================ */
-.merch-view {
-    width: 100%;
-    min-height: 100vh;
-    background:
-        radial-gradient(ellipse at 85% 5%, rgba(0, 242, 254, 0.35) 0%, transparent 55%),
-        radial-gradient(ellipse at 15% 45%, rgba(56, 189, 248, 0.3) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 80%, rgba(63, 125, 183, 0.4) 0%, transparent 60%),
-        linear-gradient(180deg, #1e3a8a 0%, #3f7db7 30%, #0284c7 65%, #06b6d4 90%, #00f2fe 100%) !important;
-    background-attachment: fixed !important;
-    color: #ffffff;
-    position: relative;
-    padding: env(safe-area-inset-top, 16px) env(safe-area-inset-right, 16px) env(safe-area-inset-bottom, 16px) env(safe-area-inset-left, 16px);
-    box-sizing: border-box;
-    overflow-x: hidden;
+html:has(body[data-view="discount"]),
+body[data-view="discount"] {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
 }
 
-body[data-view="discount"] {
+body[data-view="discount"] #app-container,
+body[data-view="discount"] #main-content {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+}
+
+body[data-view="discount"] .mobile-header,
+.mobile-header {
     background: #1e3a8a !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: none !important;
+    outline: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+
+.merch-view,
+.merch-page-container {
+    width: 100%;
+    min-height: 100vh;
+    padding-top: calc(max(env(safe-area-inset-top, 0px), 40px) + 64px) !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-bottom: 50px !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    position: relative;
+    box-sizing: border-box;
+}
+
+/* Merch Hero Card */
+.merch-hero {
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    border: none !important;
+    outline: none !important;
+    border-radius: 24px;
+    padding: 24px;
+    text-align: center;
+    margin-top: 0 !important;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
     color: #ffffff !important;
 }
 
-/* ============================================================
- * 2. Custom Scrollbar Styling
- * ============================================================ */
-
-/* Webkit (Chrome, Safari, Edge) */
-.merch-view::-webkit-scrollbar {
-    width: 6px;
-}
-
-.merch-view::-webkit-scrollbar-track {
-    background: #1e3a8a;
-}
-
-.merch-view::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #00f2fe 0%, #0284c7 100%);
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 242, 254, 0.25);
-}
-
-/* Firefox */
-* {
-    scrollbar-color: #00f2fe #1e3a8a;
-    scrollbar-width: thin;
-}
-
-/* ============================================================
- * 3. Floating Header (Back to Map)
- * ============================================================ */
-.merch-floating-header {
-    position: absolute;
-    top: env(safe-area-inset-top, 20px);
-    left: 16px;
-    z-index: 900;
-}
-
-.merch-back-btn {
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+/* Category Filter Pills */
+.discount-cat-btn {
+    background: #f1f5f9 !important;
     border: none !important;
     outline: none !important;
-    border-radius: 100px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #f8fafc;
-    font-size: 14px;
+    color: #1e293b !important;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.25s ease;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    white-space: nowrap;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
-.merch-back-btn:active {
-    transform: scale(0.92);
-    background: rgba(0, 242, 254, 0.35);
+.discount-cat-btn:active {
+    transform: scale(0.94);
 }
 
-/* ============================================================
- * 4. "Coming Soon" Banner
- * ============================================================ */
-.merch-coming-soon-banner {
-    margin-top: 80px;
-    padding: 28px 20px;
-    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+.discount-cat-btn.active {
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28) !important;
+}
+
+/* Voucher Cards */
+.voucher-card {
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
     border: none !important;
     outline: none !important;
     border-radius: 20px;
-    text-align: center;
-    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
-    animation: bannerSlideIn 0.6s cubic-bezier(0.25, 1, 0.5, 1) backwards;
-    animation-delay: 0.1s;
-}
-
-@keyframes bannerSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.banner-icon {
-    font-size: 48px;
-    margin-bottom: 12px;
-    animation: iconGlow 3s ease-in-out infinite;
-}
-
-@keyframes iconGlow {
-
-    0%,
-    100% {
-        text-shadow: 0 0 16px rgba(0, 242, 254, 0.5);
-    }
-
-    50% {
-        text-shadow: 0 0 24px rgba(0, 242, 254, 0.8);
-    }
-}
-
-.merch-banner-title {
-    font-size: 18px;
-    font-weight: 800;
-    color: #ffffff;
-    letter-spacing: 0.5px;
-}
-
-.merch-banner-subtitle {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.85);
-    margin-top: 6px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-/* ============================================================
- * 5. Merch Grid Section
- * ============================================================ */
-.merch-grid-section {
-    margin-top: 24px;
-}
-
-.merch-grid-header {
+    padding: 18px;
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    padding: 0 4px;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
+    color: #ffffff !important;
+    transition: transform 0.2s ease;
 }
 
-.merch-grid-title {
-    font-size: 16px;
-    font-weight: 800;
-    color: #ffffff;
+.voucher-card:active {
+    transform: scale(0.98);
 }
 
-.merch-view-all-btn {
+.voucher-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -30%;
+    width: 140px;
+    height: 140px;
+    background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+/* Town Filter Pills */
+.muni-pill {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 5px 12px;
+    border-radius: 100px;
     font-size: 11px;
     font-weight: 700;
-    color: #00f2fe;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: color 0.2s ease;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
 }
 
-.merch-view-all-btn:hover {
-    color: #60a5fa;
+.muni-pill.active {
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    border-color: transparent !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(32, 63, 141, 0.25) !important;
 }
 
-/* The Grid */
-.merch-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 16px;
-}
-
-/* ============================================================
- * 6. Product Card - Theme
- * ============================================================ */
-.product-card {
-    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: none !important;
-    outline: none !important;
-    border-radius: 20px;
-    padding: 14px;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.35s ease;
-    text-decoration: none;
-    color: inherit;
-    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
-    animation: fadeInUp 0.5s ease backwards;
-}
-
-/* Animation delays */
-.product-card:nth-child(1) {
-    animation-delay: 0.2s;
-}
-
-.product-card:nth-child(2) {
-    animation-delay: 0.22s;
-}
-
-.product-card:nth-child
+/* Voucher Detail Modal */
+#voucher-modal.active { opacity: 1 !important; }
+#voucher-modal.active .voucher-card-anim { transform: scale(1) translateY(0) !important; opacity: 1 !important; }
+

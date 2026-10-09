@@ -2,6 +2,23 @@
 $uri = $_SERVER['REQUEST_URI'];
 $path = parse_url($uri, PHP_URL_PATH);
 
+// Health check endpoint for Railway/cloud monitoring
+if ($path === '/up' || $path === '/health') {
+    http_response_code(200);
+    header('Content-Type: text/plain');
+    echo 'OK';
+    exit;
+}
+
+// Canonical Host Redirection:
+// If accessed via default Railway subdomain (*.railway.app),
+// permanently redirect (301) to official custom domain (https://app.intan-elyu.online)
+$httpHost = $_SERVER['HTTP_HOST'] ?? '';
+if (strpos($httpHost, 'railway.app') !== false) {
+    header('Location: https://app.intan-elyu.online' . $uri, true, 301);
+    exit;
+}
+
 // Redirect legacy user_manual_mobile.html to the in-app user manual view
 if (strpos($path, 'user_manual_mobile.html') !== false) {
     header('Location: index.php?view=user_manual');
@@ -10,9 +27,9 @@ if (strpos($path, 'user_manual_mobile.html') !== false) {
 
 // Serve APK binary files directly
 if (strpos($path, 'intan-elyu.apk') !== false || strpos($path, '.apk') !== false) {
-    $apkPath = __DIR__ . '/downloads/intan-elyu.apk';
+    $apkPath = dirname(__DIR__) . '/public/downloads/intan-elyu.apk';
     if (!file_exists($apkPath)) {
-        $apkPath = dirname(__DIR__) . '/public/downloads/intan-elyu.apk';
+        $apkPath = __DIR__ . '/downloads/intan-elyu.apk';
     }
     if (file_exists($apkPath)) {
         while (ob_get_level()) { ob_end_clean(); }
@@ -66,6 +83,8 @@ if (file_exists($localStaticFile) && is_file($localStaticFile)) {
         'ttf' => 'font/ttf',
         'ico' => 'image/x-icon',
         'html' => 'text/html; charset=utf-8',
+        'txt' => 'text/plain; charset=utf-8',
+        'xml' => 'application/xml; charset=utf-8',
     ];
     if ($ext !== 'php' && isset($staticMimeMap[$ext])) {
         header('Content-Type: ' . $staticMimeMap[$ext]);

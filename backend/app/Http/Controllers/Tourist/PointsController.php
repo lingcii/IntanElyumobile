@@ -20,8 +20,9 @@ class PointsController extends Controller
     {
         $user = $request->user();
 
-        // Balance directly from users table
-        $balance = (int) ($user->points ?? 0);
+        // XP and Points balances
+        $userXp = (int) ($user->xp ?? 0);
+        $userPoints = (int) ($user->points ?? 0);
 
         $history = collect();
         try {
@@ -34,7 +35,8 @@ class PointsController extends Controller
                     ->map(function ($log) {
                         return [
                             'id'          => $log->id,
-                            'points'      => (int) (preg_match('/([+-]?\d+)\s*Points?/i', $log->details, $m) ? $m[1] : 0),
+                            'points'      => (int) (preg_match('/([+-]?\d+)\s*(?:Points?|XP)/i', $log->details, $m) ? $m[1] : 0),
+                            'xp'          => (int) (preg_match('/([+-]?\d+)\s*(?:Points?|XP)/i', $log->details, $m) ? $m[1] : 0),
                             'source'      => $log->action,
                             'description' => $log->details,
                             'created_at'  => $log->created_at ? $log->created_at->toIso8601String() : now()->toIso8601String(),
@@ -51,14 +53,35 @@ class PointsController extends Controller
             if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
                 $vouchers = PointRedemption::where('user_id', $user->id)->latest()->get();
             }
+            if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
+                $vouchers = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
+                    ->leftJoin('vouchers', 'voucher_redemptions.voucher_id', '=', 'vouchers.id')
+                    ->where('voucher_redemptions.user_id', $user->id)
+                    ->select(
+                        'voucher_redemptions.id',
+                        \Illuminate\Support\Facades\DB::raw('COALESCE(vouchers.voucher_name, "Voucher") as type'),
+                        'voucher_redemptions.points_used as points_cost',
+                        'voucher_redemptions.redemption_code as voucher_code',
+                        'voucher_redemptions.status',
+                        'voucher_redemptions.created_at',
+                        'vouchers.partner_establishment',
+                        'vouchers.category'
+                    )
+                    ->latest('voucher_redemptions.created_at')
+                    ->get();
+            }
         } catch (\Throwable $e) {
             $vouchers = collect();
         }
 
+        $level = (int) floor(max(0, $userXp) / 1000) + 1;
+
         return response()->json([
             'status' => 'success',
-            'points' => $balance,
-            'earned_total' => $balance,
+            'xp' => $userXp,
+            'points' => $userPoints,
+            'level' => $level,
+            'earned_total' => $userXp,
             'redeemed_total' => $vouchers->sum('points_cost'),
             'history' => $history,
             'vouchers' => $vouchers
@@ -67,7 +90,7 @@ class PointsController extends Controller
 
     /**
      * POST /api/tourist/points/puzzle
-     * Award points for solving the sliding puzzle.
+     * Award XP for solving the sliding puzzle.
      */
     public function awardPuzzlePoints(Request $request): JsonResponse
     {
@@ -96,30 +119,31 @@ class PointsController extends Controller
             ], 429);
         }
 
-        $points = 100;
+        $xp = 100;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
+                $user->increment('xp', $xp);
+            }
+        } catch (\Throwable $e) {}
+
         UserPoint::awardPointsSafely(
             $user->id,
-            $points,
+            $xp,
             'puzzle',
             'Successfully solved a sliding block puzzle'
         );
 
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
-                $user->increment('xp', 25);
-            }
-        } catch (\Throwable $e) {}
-
         return response()->json([
             'status' => 'success',
-            'message' => "Congratulations! You earned {$points} Points!",
-            'points_awarded' => $points
+            'message' => "Congratulations! You earned {$xp} Points!",
+            'xp_awarded' => $xp,
+            'points_awarded' => $xp
         ]);
     }
 
     /**
      * POST /api/tourist/points/trivia
-     * Award points for answering trivia questions correctly.
+     * Award XP for answering trivia questions correctly.
      */
     public function awardTriviaPoints(Request $request): JsonResponse
     {
@@ -148,30 +172,31 @@ class PointsController extends Controller
             ], 429);
         }
 
-        $points = 50;
+        $xp = 50;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
+                $user->increment('xp', $xp);
+            }
+        } catch (\Throwable $e) {}
+
         UserPoint::awardPointsSafely(
             $user->id,
-            $points,
+            $xp,
             'trivia',
             'Answered La Union trivia questions correctly'
         );
 
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
-                $user->increment('xp', 25);
-            }
-        } catch (\Throwable $e) {}
-
         return response()->json([
             'status' => 'success',
-            'message' => "Congratulations! You earned {$points} Points!",
-            'points_awarded' => $points
+            'message' => "Congratulations! You earned {$xp} Points!",
+            'xp_awarded' => $xp,
+            'points_awarded' => $xp
         ]);
     }
 
     /**
      * POST /api/tourist/points/minigame
-     * Award points for mini games (memory_match, word_scramble, etc.)
+     * Award XP for mini games (memory_match, word_scramble, etc.)
      */
     public function awardMiniGamePoints(Request $request): JsonResponse
     {
@@ -207,32 +232,33 @@ class PointsController extends Controller
         }
 
         $gameConfig = [
-            'memory_match' => ['points' => 75, 'desc' => 'Completed La Union Memory Card Match'],
-            'word_scramble' => ['points' => 75, 'desc' => 'Unscrambled La Union Eco Explorer Words'],
-            'puzzle'        => ['points' => 100, 'desc' => 'Successfully solved a sliding block puzzle'],
-            'trivia'        => ['points' => 50, 'desc' => 'Answered La Union trivia questions correctly'],
+            'memory_match'  => ['xp' => 75, 'points' => 75, 'desc' => 'Completed La Union Memory Card Match'],
+            'word_scramble' => ['xp' => 75, 'points' => 75, 'desc' => 'Unscrambled La Union Eco Explorer Words'],
+            'puzzle'        => ['xp' => 100, 'points' => 100, 'desc' => 'Successfully solved a sliding block puzzle'],
+            'trivia'        => ['xp' => 50, 'points' => 50, 'desc' => 'Answered La Union trivia questions correctly'],
         ];
 
-        $config = $gameConfig[$gameType] ?? ['points' => 50, 'desc' => 'Completed Mini Game'];
-        $points = $config['points'];
+        $config = $gameConfig[$gameType] ?? ['xp' => 50, 'points' => 50, 'desc' => 'Completed Mini Game'];
+        $xp = $config['xp'];
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
+                $user->increment('xp', $xp);
+            }
+        } catch (\Throwable $e) {}
 
         UserPoint::awardPointsSafely(
             $user->id,
-            $points,
+            $xp,
             $gameType,
             $config['desc']
         );
 
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
-                $user->increment('xp', 25);
-            }
-        } catch (\Throwable $e) {}
-
         return response()->json([
             'status' => 'success',
-            'message' => "Congratulations! You earned {$points} Points!",
-            'points_awarded' => $points
+            'message' => "Congratulations! You earned {$xp} Points!",
+            'xp_awarded' => $xp,
+            'points_awarded' => $xp
         ]);
     }
 
@@ -242,76 +268,117 @@ class PointsController extends Controller
      */
     public function redeem(Request $request): JsonResponse
     {
-        $request->validate([
-            'type' => 'required|string|in:pasalubong_discount,environmental_fee',
-        ]);
+        try {
+            $request->validate([
+                'type' => 'required|string|in:pasalubong_discount,environmental_fee',
+            ]);
 
-        $user = $request->user();
-        $type = $request->type;
+            $user = $request->user();
+            $type = $request->type;
 
-        // Costs
-        $costs = [
-            'pasalubong_discount' => 100, // 100 points
-            'environmental_fee' => 150, // 150 points
-        ];
+            // Costs
+            $costs = [
+                'pasalubong_discount' => 100, // 100 points
+                'environmental_fee' => 150, // 150 points
+            ];
 
-        $cost = $costs[$type];
+            $cost = $costs[$type];
 
-        // Get points balance directly from users table
-        $balance = (int) ($user->points ?? 0);
+            // Get points balance directly from users table
+            $balance = (int) ($user->points ?? 0);
 
-        if ($balance < $cost) {
-            return response()->json([
-                'status' => 'error',
-                'message' => "Insufficient points. You need {$cost} points to redeem this reward, but you only have {$balance} points."
-            ], 400);
-        }
+            if ($balance < $cost) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "Insufficient points. You need {$cost} Points to redeem this reward, but you only have {$balance} Points."
+                ], 400);
+            }
 
-        // Generate voucher code
-        $prefix = $type === 'pasalubong_discount' ? 'ELYU-PASA-' : 'ELYU-ENV-';
-        $code = $prefix . strtoupper(Str::random(8));
+            // Generate guaranteed unique voucher code
+            $prefix = $type === 'pasalubong_discount' ? 'ELYU-PASA-' : 'ELYU-ENV-';
+            $code = '';
+            $attempts = 0;
+            $letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            do {
+                $suffix = '';
+                for ($i = 0; $i < 4; $i++) {
+                    $suffix .= $letters[random_int(0, 25)];
+                }
+                $code = $prefix . $suffix;
+                $attempts++;
+            } while (PointRedemption::where('voucher_code', $code)->exists() && $attempts < 10);
 
-        // Start transaction
-        $redemption = DB::transaction(function() use ($user, $type, $cost, $code) {
+            // Start transaction
+            $redemption = DB::transaction(function() use ($user, $type, $cost, $code) {
+                try {
+                    if (method_exists($user, 'deductPoints')) {
+                        $user->deductPoints($cost);
+                    } else {
+                        $currentPts = (int) ($user->points ?? 0);
+                        $newPts = max(0, $currentPts - $cost);
+                        if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
+                            $user->points = $newPts;
+                            $user->save();
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    try {
+                        $user->decrement('points', $cost);
+                    } catch (\Throwable $ignored) {}
+                }
+
+                return PointRedemption::create([
+                    'user_id' => $user->id,
+                    'type' => $type,
+                    'points_cost' => $cost,
+                    'voucher_code' => $code,
+                    'status' => 'active'
+                ]);
+            });
+
+            \App\Models\Notification::createSafely(
+                $user->id,
+                'favorite_update',
+                'Voucher Redeemed!',
+                "Redeemed voucher {$code} ({$type}). Present code at merchant checkout!",
+                ['action_url' => '/discount']
+            );
+
             try {
-                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
-                    $user->decrement('points', $cost);
+                if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
+                    $typeLabel = ucwords(str_replace('_', ' ', $type));
+                    \App\Models\ActivityLog::create([
+                        'user_id'    => $user->id,
+                        'action'     => 'Points Redeemed',
+                        'details'    => "Redeemed {$cost} Points for {$typeLabel} (Code: {$code})",
+                        'ip_address' => $request->ip() ?? '127.0.0.1',
+                    ]);
                 }
             } catch (\Throwable $e) {}
 
-            return PointRedemption::create([
-                'user_id' => $user->id,
-                'type' => $type,
-                'points_cost' => $cost,
-                'voucher_code' => $code,
-                'status' => 'active'
+            $newPoints = max(0, $balance - $cost);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Reward redeemed successfully!',
+                'new_balance' => $newPoints,
+                'points' => $newPoints,
+                'xp' => (int) ($user->xp ?? 0),
+                'level' => (int) ($user->level ?? 1),
+                'data' => $redemption
             ]);
-        });
-
-        \App\Models\Notification::createSafely(
-            $user->id,
-            'favorite_update',
-            '🎟️ Voucher Redeemed!',
-            "Redeemed voucher {$code} ({$type}). Present code at merchant checkout!",
-            ['action_url' => '/discount']
-        );
-
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
-                $typeLabel = ucwords(str_replace('_', ' ', $type));
-                \App\Models\ActivityLog::create([
-                    'user_id'    => $user->id,
-                    'action'     => 'Points Redeemed',
-                    'details'    => "Redeemed {$cost} points for {$typeLabel} (Code: {$code})",
-                    'ip_address' => $request->ip() ?? '127.0.0.1',
-                ]);
-            }
-        } catch (\Throwable $e) {}
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Reward redeemed successfully!',
-            'data' => $redemption
-        ]);
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $ve->validator->errors()->first() ?: 'Validation failed.',
+                'errors' => $ve->errors()
+            ], 422);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Point reward redemption error: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to redeem reward. Please try again.'
+            ], 500);
+        }
     }
 }

@@ -21,22 +21,27 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        // XP calculations
-        $xp        = (int) ($user->xp ?? 0);
-        $level     = (int) ($user->level ?? 1);
+        // XP & Level calculations
+        $xp         = (int) ($user->xp ?? $user->points ?? 0);
+        $level      = (int) floor(max(0, $xp) / 1000) + 1;
         $xpPerLevel = 1000;
+
+        // Keep database level column in sync
+        if ((int)($user->level ?? 1) !== $level) {
+            try {
+                $user->level = $level;
+                $user->save();
+            } catch (\Throwable $e) {}
+        }
 
         // Trending: top spots by visits (default 5, configurable via ?limit=)
         // Technique 2: Server-Side Caching — 2 minute TTL for trending spots
         $trendingLimit = min((int) $request->query('limit', 5), 50);
         $trending = Cache::remember("trending:top:{$trendingLimit}", 30, function () use ($trendingLimit) {
-            return TouristSpot::where(function($q) {
-                    $q->whereIn('status', ['approved', 'active', 'published', 'EXIST', 'exist', 'pending'])
-                      ->orWhereNull('status');
-                })
+            return TouristSpot::activeForTourists()
                 ->orderByDesc('visits')
                 ->limit($trendingLimit)
-                ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'classification_status', 'municipality_id'])
+                ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types', 'environmental_fee', 'fee_types', 'classification_status', 'municipality_id', 'status', 'maximum_capacity'])
                 ->map(fn($s) => $this->formatSpot($s))
                 ->toArray();
         });
@@ -55,11 +60,8 @@ class DashboardController extends Controller
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('tourist_spots') && $favoriteIds->isNotEmpty()) {
                 $savedPlaces = TouristSpot::whereIn('id', $favoriteIds)
-                    ->where(function($q) {
-                        $q->whereIn('status', ['approved', 'active', 'published', 'EXIST', 'exist', 'pending'])
-                          ->orWhereNull('status');
-                    })
-                    ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'classification_status', 'municipality_id'])
+                    ->activeForTourists()
+                    ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types', 'environmental_fee', 'fee_types', 'classification_status', 'municipality_id', 'status'])
                     ->map(fn($s) => $this->formatSpot($s));
             }
         } catch (\Throwable $e) {
@@ -74,14 +76,11 @@ class DashboardController extends Controller
         $recommended = collect();
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('tourist_spots')) {
-                $recommendedQuery = TouristSpot::where(function($q) {
-                        $q->whereIn('status', ['approved', 'active', 'published', 'EXIST', 'exist', 'pending'])
-                          ->orWhereNull('status');
-                    })
+                $recommendedQuery = TouristSpot::activeForTourists()
                     ->when($favoriteIds->isNotEmpty(), function($q) use ($favoriteIds) {
                         $q->whereNotIn('id', $favoriteIds);
                     })
-                    ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'rating', 'description', 'entrance_fee', 'classification_status', 'municipality_id']);
+                    ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'rating', 'description', 'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types', 'environmental_fee', 'fee_types', 'classification_status', 'municipality_id', 'status']);
 
                 if ($lat && $lng) {
                     $recommendedQuery = $recommendedQuery->sortBy(function($spot) use ($lat, $lng) {
@@ -97,8 +96,17 @@ class DashboardController extends Controller
             $recommended = collect();
         }
 
-        // Stats — use denormalized counter (Technique 5: Denormalization)
-        $placesVisited = (int) ($user->completed_activities ?? 0);
+        // Stats — Calculate true distinct places visited from itinerary items
+        $placesVisited = (int) DB::table('itinerary_items')
+            ->join('itineraries', 'itinerary_items.itinerary_id', '=', 'itineraries.id')
+            ->where('itineraries.user_id', $user->id)
+            ->where('itinerary_items.is_visited', true)
+            ->whereNotNull('itinerary_items.tourist_spot_id')
+            ->distinct('itinerary_items.tourist_spot_id')
+            ->count('itinerary_items.tourist_spot_id');
+        if ($placesVisited === 0 && ($user->completed_activities ?? 0) > 0) {
+            $placesVisited = min(1, (int) $user->completed_activities);
+        }
 
         // Rank — Technique 2: Server-Side Caching + Technique 6: Materialized Views
         $myRank = Cache::remember("rank:user:{$user->id}", 60, function () use ($user) {
@@ -145,15 +153,21 @@ class DashboardController extends Controller
             $unreadNotifications = 0;
         }
 
+        $touristNumber = method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1;
+
         return response()->json([
             'user' => [
-                'id'     => $user->id,
-                'name'   => $user->name,
-                'email'  => $user->email,
-                'xp'     => $xp,
-                'level'  => $level,
-                'points' => $points,
-                'avatar' => $user->avatar,
+                'id'             => $user->id,
+                'tourist_number' => $touristNumber,
+                'tourist_id'     => $touristNumber,
+                'name'           => $user->name,
+                'email'          => $user->email,
+                'xp'             => $xp,
+                'level'          => $level,
+                'points'         => $points,
+                'avatar'         => $user->avatar,
+                'age'            => $user->age ?? null,
+                'gender'         => $user->gender ?? null,
             ],
             'stats' => [
                 'placesVisited'        => $placesVisited,
@@ -195,6 +209,18 @@ class DashboardController extends Controller
             } catch (\Throwable $e) {}
         }
 
+        // Fallback municipality map in case municipalities table is not yet seeded or lookup fails
+        if (!$muniName && $spot->municipality_id) {
+            $muniFallback = [
+                1 => 'San Fernando City', 2 => 'San Juan', 3 => 'Bauang', 4 => 'Bacnotan',
+                5 => 'Balaoan', 6 => 'Luna', 7 => 'Bangar', 8 => 'Sudipen', 9 => 'Santol',
+                10 => 'San Gabriel', 11 => 'Bagulin', 12 => 'Burgos', 13 => 'Naguilian',
+                14 => 'Caba', 15 => 'Aringay', 16 => 'Agoo', 17 => 'Tubao', 18 => 'Pugo',
+                19 => 'Santo Tomas', 20 => 'Rosario'
+            ];
+            $muniName = $muniFallback[$spot->municipality_id] ?? 'La Union';
+        }
+
         return [
             'id'           => $spot->id,
             'name'         => $spot->name,
@@ -207,10 +233,20 @@ class DashboardController extends Controller
             'rating'       => $spot->rating,
             'visits'       => $spot->visits,
             'description'  => $spot->description,
-            'entrance_fee' => $spot->entrance_fee,
+            'entrance_fee' => (float) ($spot->entrance_fee ?? 0),
+            'adult_fee'    => (float) ($spot->adult_fee ?? 0),
+            'kids_fee'     => (float) ($spot->kids_fee ?? 0),
+            'pwd_fee'      => (float) ($spot->pwd_fee ?? 0),
+            'senior_citizen_fee' => (float) ($spot->senior_citizen_fee ?? 0),
+            'entrance_fee_types' => $spot->entrance_fee_types ?? [],
+            'environmental_fee'  => (float) ($spot->environmental_fee ?? 0),
+            'fee_types'    => $spot->fee_types ?? [],
             'classification_status' => $spot->classification_status,
+            'status'       => $spot->status ?? 'approved',
+            'maximum_capacity' => $spot->maximum_capacity ? (int) $spot->maximum_capacity : null,
             'municipality_id' => $spot->municipality_id,
             'municipality' => $muniName,
+            'location'     => $muniName,
         ];
     }
 }

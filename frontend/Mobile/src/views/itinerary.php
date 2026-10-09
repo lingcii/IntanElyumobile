@@ -14,10 +14,11 @@ try {
             ];
         }
     }
-} catch (\Throwable $e) {}
+} catch (\Throwable $e) {
+}
 ?>
 <script>
-window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
+    window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 </script>
 
 
@@ -25,397 +26,128 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 <!-- Include Header Component -->
 <?php include __DIR__ . '/../components/header.php'; ?>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<style>
-    body {
-        background: var(--bg-primary) !important;
-    }
-
-    .route-toggle-container {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
-        position: relative;
-        background: rgba(10, 25, 60, 0.45);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: none !important;
-        outline: none !important;
-        border-radius: 9999px;
-        padding: 3px;
-        margin-bottom: 14px;
-        width: 240px;
-        max-width: 100%;
-        box-sizing: border-box;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.15);
-        user-select: none;
-        -webkit-tap-highlight-color: transparent;
-        overflow: hidden;
-    }
-
-    .route-toggle-slider {
-        position: absolute;
-        top: 3px;
-        bottom: 3px;
-        left: 3px;
-        width: calc(50% - 3px);
-        border-radius: 9999px;
-        background: linear-gradient(135deg, #00f2fe 0%, #0284c7 60%, #1e3a8a 100%);
-        box-shadow: 0 4px 14px rgba(0, 242, 254, 0.35);
-        transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-        z-index: 1;
-        pointer-events: none;
-        transform: translateX(0);
-    }
-
-    .route-toggle-container.alt-active .route-toggle-slider {
-        transform: translateX(100%) !important;
-    }
-
-    .btn-route-type {
-        position: relative;
-        z-index: 2;
-        background: transparent !important;
-        border: none !important;
-        outline: none !important;
-        color: rgba(255, 255, 255, 0.75) !important;
-        padding: 8px 0 !important;
-        border-radius: 9999px !important;
-        font-size: 12.5px !important;
-        font-weight: 700 !important;
-        cursor: pointer !important;
-        transition: color 0.25s ease, transform 0.15s ease !important;
-        white-space: nowrap !important;
-        text-align: center !important;
-        box-shadow: none !important;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        margin: 0 !important;
-    }
-
-    .btn-route-type:active {
-        transform: scale(0.96);
-    }
-
-    .btn-route-type.active {
-        background: transparent !important;
-        border: none !important;
-        outline: none !important;
-        color: #ffffff !important;
-        font-weight: 800 !important;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-    }
-
-    .hide-scrollbar::-webkit-scrollbar {
-        display: none;
-    }
-
-    /* Itinerary Stops Container & Swap Controls */
-    .itinerary-stops-container {
-        background: rgba(10, 25, 60, 0.38) !important;
-        backdrop-filter: blur(16px) !important;
-        -webkit-backdrop-filter: blur(16px) !important;
-        border: none !important;
-        outline: none !important;
-        border-radius: 26px !important;
-        padding: 14px !important;
-        box-shadow: none !important;
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 8px !important;
-        margin-top: 6px !important;
-        margin-bottom: 20px !important;
-        position: relative !important;
-        box-sizing: border-box !important;
-    }
-
-    .stops-swap-divider {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        position: relative !important;
-        margin: 2px 0 !important;
-        z-index: 6 !important;
-        height: 32px !important;
-    }
-
-    .stops-swap-line {
-        position: absolute !important;
-        left: 20px !important;
-        right: 20px !important;
-        height: 1px !important;
-        background: rgba(255, 255, 255, 0.12) !important;
-        pointer-events: none !important;
-    }
-
-    .btn-swap-pill {
-        position: relative !important;
-        background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
-        color: #ffffff !important;
-        border: none !important;
-        outline: none !important;
-        width: 32px !important;
-        height: 32px !important;
-        border-radius: 50% !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        cursor: pointer !important;
-        box-shadow: none !important;
-        font-size: 12px !important;
-        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
-        z-index: 2 !important;
-    }
-
-    .btn-swap-pill:hover {
-        transform: scale(1.12) !important;
-        box-shadow: none !important;
-    }
-
-    .btn-swap-pill:active {
-        transform: scale(0.9) rotate(180deg) !important;
-        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    }
-
-    .itinerary-stops-container .timeline-item {
-        margin-bottom: 0 !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-        will-change: transform;
-        animation: none !important;
-    }
-
-    .itinerary-stops-container .starting-point-item {
-        margin-bottom: 0 !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-        animation: none !important;
-    }
-
-    .stop-thumbnail-wrapper {
-        width: 72px;
-        height: 72px;
-        border-radius: 16px !important;
-        overflow: hidden !important;
-        flex-shrink: 0 !important;
-        position: relative !important;
-        box-shadow: none !important;
-        background: rgba(15, 23, 42, 0.45) !important;
-        border: none !important;
-        outline: none !important;
-    }
-
-    .stop-thumbnail-wrapper img {
-        width: 100% !important;
-        height: 100% !important;
-        object-fit: cover !important;
-        display: block !important;
-        transition: transform 0.3s ease !important;
-    }
-
-    .stops-leg-chip {
-        background: rgba(255, 255, 255, 0.16) !important;
-        backdrop-filter: blur(12px) !important;
-        -webkit-backdrop-filter: blur(12px) !important;
-        border-radius: 100px !important;
-        padding: 5px 13px !important;
-        font-size: 11px !important;
-        font-weight: 700 !important;
-        color: #ffffff !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        gap: 6px !important;
-        box-shadow: none !important;
-        border: none !important;
-        outline: none !important;
-        user-select: none;
-    }
-
-    .starting-leg-divider {
-        position: relative !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        margin: 12px 0 10px !important;
-        height: 36px !important;
-    }
-
-    .starting-leg-icon-pill {
-        position: relative !important;
-        background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
-        color: #ffffff !important;
-        border: none !important;
-        outline: none !important;
-        width: 32px !important;
-        height: 32px !important;
-        border-radius: 50% !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        box-shadow: none !important;
-        font-size: 11px !important;
-        z-index: 2 !important;
-        flex-shrink: 0 !important;
-        transition: transform 0.2s ease !important;
-    }
-
-    /* Redesigned Route Connector */
-    .timeline-route-connector {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        padding: 6px 0 !important;
-        margin: 0 auto !important;
-        position: relative !important;
-        z-index: 1 !important;
-        background: none !important;
-        width: 100% !important;
-        height: auto !important;
-        opacity: 1 !important;
-    }
-
-    .route-connector-track {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
-        position: relative !important;
-        height: 32px !important;
-        width: 24px !important;
-    }
-
-    .route-connector-line {
-        width: 2.5px !important;
-        flex: 1 !important;
-        background: linear-gradient(to bottom, rgba(0, 242, 254, 0.8), rgba(56, 189, 248, 0.4)) !important;
-        border-radius: 999px !important;
-        box-shadow: none !important;
-    }
-
-    .route-connector-node {
-        width: 20px !important;
-        height: 20px !important;
-        border-radius: 50% !important;
-        background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        color: #ffffff !important;
-        font-size: 9px !important;
-        box-shadow: none !important;
-        margin: 2px 0 !important;
-        border: none !important;
-        outline: none !important;
-    }
-
-    .starting-point-pulse {
-        display: none !important;
-    }
-
-    .hide-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
-
-    .donut-chart {
-        background: conic-gradient(#38bdf8 0% 33%,
-                #34c759 33% 66%,
-                #ff9500 66% 100%);
-        mask: radial-gradient(transparent 50%, black 51%);
-        -webkit-mask: radial-gradient(transparent 50%, black 51%);
-        transition: background 0.4s ease;
-    }
-
-    /* Hide number input spinners */
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-
-    input[type=number] {
-        -moz-appearance: textfield;
-    }
-</style>
 
 <div class="itinerary-container has-header has-bottom-nav animate-slide-up">
 
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px; padding-top: 16px;"
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;"
         class="stagger-1">
-        <h2 style="margin:0; font-size:22px; font-weight:800; letter-spacing:-0.5px;">Draft Plan</h2>
+        <h2 id="itinerary-page-title"
+            style="margin:0; font-size:22px; font-weight:800; letter-spacing:-0.5px; color:#0f172a !important;">Draft
+            Plan</h2>
         <div style="display:flex; align-items:center; gap: 8px;">
             <!-- Saved Trips Button (Small) -->
             <button onclick="navigateTo('saved_trips')"
-                style="background: rgba(30, 58, 138, 0.78); border: none !important; outline: none !important; color: #ffffff; font-weight:700; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; box-sizing: border-box; box-shadow: none;">
+                style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; color: #ffffff !important; font-weight:700; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; box-sizing: border-box; box-shadow: none !important;">
                 <i class="fa-solid fa-bookmark" style="margin-right:6px;"></i> Saved Trips
             </button>
             <span
-                style="background:rgba(255, 255, 255, 0.16); border: none !important; outline: none !important; color:#ffffff; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; font-weight:800; display:flex; align-items:center; box-sizing: border-box;">
+                style="background:#f1f5f9 !important; border: none !important; outline: none !important; color:#1e3a8a !important; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; font-weight:800; display:flex; align-items:center; box-sizing: border-box; box-shadow: none !important;">
                 <span id="itinerary-count" style="margin-right:4px;">0</span> Places
             </span>
         </div>
     </div>
 
-    <!-- Map Visualization Container -->
-    <div id="draft-map-wrapper" style="display:none; margin-top:16px; margin-bottom:20px;" class="stagger-2">
-        <!-- Route Type Container with Smooth Sliding Pill -->
-        <div class="route-toggle-container" id="route-toggle-container">
-            <div class="route-toggle-slider" id="route-toggle-slider"></div>
-            <button class="btn-route-type active" id="btn-route-rec"
-                onclick="setRouteType('recommended', this)">Recommended</button>
-            <button class="btn-route-type" id="btn-route-alt"
-                onclick="setRouteType('alternate', this)">Alternate</button>
-        </div>
-
-        <!-- The Map -->
-        <div id="draft-map-container"
-            style="height: 260px; width:100%; border-radius: 20px; overflow: hidden; border: none !important; outline: none !important; position:relative; background:#cadce4; box-shadow: none;">
-            <div id="itinerary-map" style="width:100%; height:100%;"></div>
-        </div>
-
-        <!-- Map Route Stats -->
-        <div
-            style="display:flex; justify-content:space-around; align-items:center; margin-top:12px; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border: none !important; outline: none !important; border-radius:18px; padding:14px; box-shadow:none !important;">
-            <div style="color:white; font-size:14px; font-weight:700;">
-                <i class="fa-solid fa-route" style="color:#00f2fe; margin-right:6px; font-size:16px;"></i> <span
-                    id="draft-map-dist">0 km</span>
+    <!-- Big Container from Recommended to Save Draft Plan -->
+    <div id="draft-plan-card-wrapper" class="draft-plan-card-wrapper stagger-2 is-hidden" style="display:none;">
+        <!-- Active Editing Trip Banner -->
+        <div id="editing-plan-banner"
+            style="display:none; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color:#ffffff; padding:10px 16px; border-radius:14px; margin-bottom:14px; font-size:12.5px; font-weight:700; border:none !important; outline:none !important; box-shadow:none !important; cursor:pointer;"
+            onclick="window.cancelEditingSavedTrip()">
+            <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
+                <i class="fa-solid fa-pen-to-square" style="color:#38bdf8; font-size:14px;"></i>
+                <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Editing: <strong
+                        id="editing-banner-title">Saved Trip</strong></span>
             </div>
-            <div style="width:1px; height:20px; background:rgba(255,255,255,0.2);"></div>
+            <button type="button" onclick="event.stopPropagation(); window.cancelEditingSavedTrip();"
+                style="background:rgba(255,255,255,0.22); border:none !important; outline:none !important; color:#ffffff; font-size:11.5px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; margin-left:10px; flex-shrink:0; box-shadow:none !important; transition:all 0.2s ease; user-select:none; -webkit-tap-highlight-color:transparent;">
+                <i class="fa-solid fa-xmark" style="margin-right:4px;"></i> Cancel Edit
+            </button>
+        </div>
+
+        <!-- Step 1 Primary Travel Mode Card -->
+        <div id="draft-travel-mode-bar" onclick="window.openTravelModeStarterModal()"
+            style="display:flex; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; color:#ffffff; padding:11px 16px; border-radius:16px; margin-bottom:14px; cursor:pointer; border:none !important; outline:none !important; box-shadow:none !important; transition:all 0.2s ease;">
+            <div style="display:flex; align-items:center; gap:10px; min-width:0; flex:1;">
+                <div id="draft-travel-mode-icon" style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+                    <i class="fa-solid fa-car" style="color:#1e3a8a !important;"></i>
+                </div>
+                <div style="min-width:0; flex:1;">
+                    <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:rgba(255,255,255,0.8);">Trip Transportation</div>
+                    <div id="draft-travel-mode-label" style="font-size:13.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Own Car</div>
+                </div>
+            </div>
+            <span style="font-size:11px; font-weight:800; background:rgba(255,255,255,0.22); color:#ffffff; padding:4px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
+                <i class="fa-solid fa-sliders" style="font-size:10px;"></i> Change
+            </span>
+        </div>
+
+        <!-- Map Visualization Container -->
+        <div id="draft-map-wrapper" style="display:none; margin-top:0; margin-bottom:14px;">
+            <!-- Route Type Container with Smooth Sliding Pill -->
+            <div class="route-toggle-container" id="route-toggle-container">
+                <div class="route-toggle-slider" id="route-toggle-slider"></div>
+                <button class="btn-route-type active" id="btn-route-rec"
+                    onclick="setRouteType('recommended', this)">Recommended</button>
+                <button class="btn-route-type" id="btn-route-alt"
+                    onclick="setRouteType('alternative', this)">Alternative</button>
+            </div>
+
+            <!-- The Map -->
+            <div id="draft-map-container"
+                style="height: 260px; width:100%; border-radius: 20px; overflow: hidden; border: none !important; outline: none !important; position:relative; background:#cadce4; box-shadow: none;">
+                <div id="itinerary-map" style="width:100%; height:100%;"></div>
+            </div>
+
+            <!-- Map Route Stats -->
             <div
-                style="color:white; font-size:14px; font-weight:700; display:flex; flex-direction:column; align-items:center;">
-                <div><i class="fa-solid fa-clock" style="color:#00f2fe; margin-right:6px; font-size:16px;"></i> <span
-                        id="draft-map-time">0 min</span></div>
-                <div id="draft-traffic-warning" style="display:none; margin-top:2px; font-size:10px; font-weight:500;">
+                style="display:flex; justify-content:space-around; align-items:center; margin-top:12px; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border: none !important; outline: none !important; border-radius:18px; padding:14px; box-shadow:none !important;">
+                <div style="color:white; font-size:14px; font-weight:700;">
+                    <i class="fa-solid fa-route" style="color:#00f2fe; margin-right:6px; font-size:16px;"></i> <span
+                        id="draft-map-dist">0 km</span>
+                </div>
+                <div style="width:1px; height:20px; background:rgba(255,255,255,0.2);"></div>
+                <div
+                    style="color:white; font-size:14px; font-weight:700; display:flex; flex-direction:column; align-items:center;">
+                    <div><i class="fa-solid fa-clock" style="color:#00f2fe; margin-right:6px; font-size:16px;"></i>
+                        <span id="draft-map-time">0 min</span></div>
+                    <div id="draft-traffic-warning"
+                        style="display:none; margin-top:2px; font-size:10px; font-weight:500;">
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Dynamic Timeline Container -->
-    <div class="timeline stagger-2" id="itinerary-timeline" style="margin-bottom: 20px;">
-        <!-- Rendered via JS -->
-    </div>
+        <!-- Dynamic Timeline Container -->
+        <div class="timeline" id="itinerary-timeline" style="margin-bottom: 14px;">
+            <!-- Rendered via JS -->
+        </div>
 
-    <!-- Save Itinerary Action -->
-    <button class="btn-primary" id="btn-save-itinerary"
-        style="display:none; width:100%; padding:16px; border-radius:20px; font-weight:900; font-size:16px; margin-bottom:40px; border: none !important; outline: none !important; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; box-shadow:none;"
-        onclick="openSaveModal()">
-        <i class="fa-solid fa-cloud-arrow-up" style="margin-right:8px;"></i> Save Draft Plan
-    </button>
+        <!-- Save Itinerary Action -->
+        <button class="btn-primary" id="btn-save-itinerary"
+            style="display:none; width:100%; padding:16px; border-radius:20px; font-weight:900; font-size:16px; margin-top:4px; margin-bottom:0; border: none !important; outline: none !important; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; color:#ffffff !important; box-shadow: none !important; cursor:pointer;"
+            onclick="window.openSaveModal(event)">
+            <i class="fa-solid fa-cloud-arrow-up" style="margin-right:8px;"></i> Save Draft Plan
+        </button>
+    </div>
 
     <!-- Empty State Card -->
     <div id="itinerary-empty-state" class="empty-state-card is-hidden" style="display:none;">
-        <div class="empty-state-icon">
-            <i class="fa-solid fa-route"></i>
+        <div class="empty-state-icon"
+            style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;">
+            <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
         </div>
         <h3>No plans yet</h3>
-        <p>Go to the Map and tap <strong>"Add to Itinerary"</strong> on a place to start building your trip!</p>
-        <button class="btn-open-map" onclick="navigateTo('map')">
-            <i class="fa-solid fa-location-dot"></i> Open Map
-        </button>
+        <p>Start your itinerary by selecting which vehicle you will use for transportation, then add your stops!</p>
+        <div style="display:flex; flex-direction:column; gap:10px; width:100%; max-width:280px; margin:14px auto 0;">
+            <button class="btn-primary" onclick="window.openTravelModeStarterModal()"
+                style="width:100%; padding:14px 18px; border-radius:18px; font-weight:800; font-size:14px; border:none !important; outline:none !important; background:#ffffff !important; color:#1e3a8a !important; box-shadow:0 4px 14px rgba(0, 0, 0, 0.15) !important; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
+                <i class="fa-solid fa-car-side" style="color:#1e3a8a !important;"></i> Select Vehicle
+            </button>
+            <button class="btn-open-map" onclick="navigateTo('map')" style="width:100%; margin:0; justify-content:center;">
+                <i class="fa-solid fa-location-dot"></i> Browse Map
+            </button>
+        </div>
     </div>
 
 
@@ -425,133 +157,54 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 <!-- Save Trip Modal -->
 <div id="save-trip-modal"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.65); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); z-index:99999; justify-content:center; align-items:center; padding:16px;">
-    
-    <style>
-        #save-trip-modal input,
-        #save-trip-modal button,
-        #save-trip-modal select,
-        #save-trip-modal div {
-            outline: none !important;
-            -webkit-tap-highlight-color: transparent !important;
-            box-sizing: border-box;
-        }
-        #save-trip-modal input[type="text"],
-        #save-trip-modal input[type="tel"],
-        #save-trip-modal input[type="number"] {
-            background: rgba(255, 255, 255, 0.12) !important;
-            border: none !important;
-            outline: none !important;
-            color: #ffffff !important;
-            -webkit-text-fill-color: #ffffff !important;
-            font-weight: 600 !important;
-            font-size: 14px !important;
-            box-shadow: none !important;
-            transition: all 0.2s ease;
-        }
-        #save-trip-modal input[type="text"]:focus,
-        #save-trip-modal input[type="tel"]:focus,
-        #save-trip-modal input[type="number"]:focus {
-            outline: none !important;
-            border: none !important;
-            box-shadow: none !important;
-            background: rgba(255, 255, 255, 0.18) !important;
-        }
-        #save-trip-modal input::placeholder {
-            color: rgba(255, 255, 255, 0.8) !important;
-            -webkit-text-fill-color: rgba(255, 255, 255, 0.8) !important;
-            opacity: 1 !important;
-            font-weight: 500 !important;
-        }
-        #save-trip-modal input::-webkit-input-placeholder {
-            color: rgba(255, 255, 255, 0.8) !important;
-            -webkit-text-fill-color: rgba(255, 255, 255, 0.8) !important;
-            opacity: 1 !important;
-            font-weight: 500 !important;
-        }
-        #save-trip-modal input::-moz-placeholder {
-            color: rgba(255, 255, 255, 0.8) !important;
-            opacity: 1 !important;
-            font-weight: 500 !important;
-        }
-        #save-trip-modal input:-ms-input-placeholder {
-            color: rgba(255, 255, 255, 0.8) !important;
-            font-weight: 500 !important;
-        }
-        #save-trip-modal label {
-            color: #ffffff !important;
-            font-weight: 700 !important;
-            font-size: 13px !important;
-        }
-        #save-trip-modal p {
-            color: rgba(255, 255, 255, 0.9) !important;
-        }
-        #save-trip-modal * {
-            outline: none !important;
-        }
-        #custom-calendar-dropdown {
-            overflow: hidden;
-            max-height: 0;
-            opacity: 0;
-            transform: translateY(-10px) scale(0.98);
-            transition: max-height 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), margin 0.3s ease, padding 0.3s ease !important;
-            background: linear-gradient(135deg, rgba(16, 38, 86, 0.96) 0%, rgba(25, 55, 115, 0.96) 100%) !important;
-            backdrop-filter: blur(24px) !important;
-            -webkit-backdrop-filter: blur(24px) !important;
-            border: none !important;
-            outline: none !important;
-            box-shadow: none !important;
-            border-radius: 20px !important;
-            padding: 0 16px !important;
-            margin-top: 0 !important;
-            margin-bottom: 0 !important;
-            pointer-events: none;
-        }
-        #custom-calendar-dropdown.calendar-open {
-            max-height: 480px !important;
-            opacity: 1 !important;
-            transform: translateY(0) scale(1) !important;
-            padding: 16px !important;
-            margin-top: -8px !important;
-            margin-bottom: 16px !important;
-            pointer-events: auto !important;
-        }
-    </style>
-
-    <div
-        style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none !important; outline:none !important; border-radius:24px; padding:22px; width:100%; max-width:400px; max-height:90vh; overflow-y:auto; box-shadow:none !important;" class="hide-scrollbar">
-        <h3 style="margin-top:0; color:#ffffff; font-size:20px; font-weight:800; display:flex; align-items:center; gap:8px;">
+    <div style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none !important; outline:none !important; border-radius:24px; padding:22px; width:100%; max-width:400px; max-height:90vh; overflow-y:auto; box-shadow:none !important;"
+        class="hide-scrollbar">
+        <h3 id="save-trip-modal-title"
+            style="margin-top:0; color:#ffffff; font-size:20px; font-weight:800; display:flex; align-items:center; gap:8px;">
             <i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8; font-size:18px;"></i> Save Your Trip
         </h3>
-        <p style="font-size:13px; color:rgba(255, 255, 255, 0.9); margin-bottom:18px; line-height:1.4;">Give your awesome adventure a name so you can pull it up later!</p>
+        <p style="font-size:13px; color:rgba(255, 255, 255, 0.9); margin-bottom:18px; line-height:1.4;">Give your
+            awesome adventure a name so you can pull it up later!</p>
 
-        <label style="font-size:13px; color:#ffffff; margin-bottom:6px; display:block; font-weight:700;">Trip Name</label>
+        <label style="font-size:13px; color:#ffffff; margin-bottom:6px; display:block; font-weight:700;">Trip
+            Name</label>
         <input type="text" id="trip-title" placeholder="e.g. La Union Weekend"
             style="width:100%; padding:12px 16px; border-radius:14px; border:none !important; outline:none !important; background:rgba(255,255,255,0.12); color:#ffffff; -webkit-text-fill-color:#ffffff; margin-bottom:16px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; box-shadow:none !important;">
 
         <!-- Custom Designed Calendar Date Picker -->
-        <label style="font-size:13px; color:#ffffff; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; font-weight:700;">
-            <span><i class="fa-regular fa-calendar-days" style="color:#38bdf8; margin-right:5px;"></i> Trip Date (Optional)</span>
-            <span id="calendar-clear-link" onclick="window.customClearDate(event)" style="display:none; font-size:11px; color:#ef4444; cursor:pointer; font-weight:700;">Clear</span>
+        <label
+            style="font-size:13px; color:#ffffff; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; font-weight:700;">
+            <span><i class="fa-regular fa-calendar-days" style="color:#38bdf8; margin-right:5px;"></i> Trip Date
+                (Optional)</span>
+            <span id="calendar-clear-link" onclick="window.customClearDate(event)"
+                style="display:none; font-size:11px; color:#ef4444; cursor:pointer; font-weight:700;">Clear</span>
         </label>
-        
-        <div id="custom-date-trigger" onclick="window.toggleCustomCalendar(event)" style="position:relative; width:100%; padding:11px 16px; border-radius:14px; border:none !important; outline:none !important; background:rgba(255,255,255,0.12); color:white; margin-bottom:16px; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:all 0.25s ease; user-select:none; box-shadow:none !important;">
+
+        <div id="custom-date-trigger" onclick="window.toggleCustomCalendar(event)"
+            style="position:relative; width:100%; padding:11px 16px; border-radius:14px; border:none !important; outline:none !important; background:rgba(255,255,255,0.12); color:white; margin-bottom:16px; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:all 0.25s ease; user-select:none; box-shadow:none !important;">
             <div style="display:flex; align-items:center; gap:10px;">
                 <i class="fa-solid fa-calendar-day" style="color:#38bdf8; font-size:14px;"></i>
-                <span id="custom-date-display" style="color:rgba(255,255,255,0.85); font-weight:600;">Select trip date</span>
+                <span id="custom-date-display" style="color:rgba(255,255,255,0.85); font-weight:600;">Select trip
+                    date</span>
             </div>
-            <i class="fa-solid fa-chevron-down" id="custom-date-arrow" style="font-size:11px; color:rgba(255,255,255,0.8); transition:transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);"></i>
+            <i class="fa-solid fa-chevron-down" id="custom-date-arrow"
+                style="font-size:11px; color:rgba(255,255,255,0.8); transition:transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);"></i>
         </div>
         <input type="hidden" id="trip-date" value="">
 
         <!-- Floating Sleek Custom Calendar Card with Smooth Slide Animation -->
         <div id="custom-calendar-dropdown">
             <!-- Month & Year Navigation -->
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding:0 4px;">
-                <button type="button" onclick="window.changeCalendarMonth(-1)" style="background:rgba(255,255,255,0.12); border:none !important; outline:none !important; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; box-shadow:none !important;">
+            <div
+                style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding:0 4px;">
+                <button type="button" onclick="window.changeCalendarMonth(-1)"
+                    style="background:rgba(255,255,255,0.12); border:none !important; outline:none !important; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; box-shadow:none !important;">
                     <i class="fa-solid fa-chevron-left" style="font-size:11px;"></i>
                 </button>
-                <div id="calendar-month-year" style="font-size:14.5px; font-weight:800; color:#ffffff; letter-spacing:0.3px;"></div>
-                <button type="button" onclick="window.changeCalendarMonth(1)" style="background:rgba(255,255,255,0.12); border:none !important; outline:none !important; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; box-shadow:none !important;">
+                <div id="calendar-month-year"
+                    style="font-size:14.5px; font-weight:800; color:#ffffff; letter-spacing:0.3px;"></div>
+                <button type="button" onclick="window.changeCalendarMonth(1)"
+                    style="background:rgba(255,255,255,0.12); border:none !important; outline:none !important; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; box-shadow:none !important;">
                     <i class="fa-solid fa-chevron-right" style="font-size:11px;"></i>
                 </button>
             </div>
@@ -568,226 +221,95 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             </div>
 
             <!-- Days Grid -->
-            <div id="calendar-days-grid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:3px; text-align:center;">
+            <div id="calendar-days-grid"
+                style="display:grid; grid-template-columns:repeat(7, 1fr); gap:3px; text-align:center;">
                 <!-- Generated dynamically via JS -->
             </div>
 
             <!-- Footer Quick Actions -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.12);">
-                <button type="button" onclick="window.selectTodayDate()" style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:700; padding:6px 14px; border-radius:100px; cursor:pointer; box-shadow:none !important;">
+            <div
+                style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.12);">
+                <button type="button" onclick="window.selectTodayDate()"
+                    style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:700; padding:6px 14px; border-radius:100px; cursor:pointer; box-shadow:none !important;">
                     Today
                 </button>
-                <button type="button" onclick="window.toggleCustomCalendar(null, false)" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 16px; border-radius:100px; cursor:pointer; box-shadow:none !important;">
+                <button type="button" onclick="window.toggleCustomCalendar(null, false)"
+                    style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 16px; border-radius:100px; cursor:pointer; box-shadow:none !important;">
                     Done
                 </button>
             </div>
         </div>
 
-        <label style="font-size:13px; color:#ffffff; margin-bottom:8px; display:block; font-weight:700;">Transport Type</label>
-        <div id="transport-toggle-track"
-            style="position:relative; display:grid; grid-template-columns:1fr 1fr; margin-bottom:16px; background:rgba(0,0,0,0.25); padding:4px; border-radius:14px; border:none !important; outline:none !important; box-shadow:none !important; user-select:none; height:44px; box-sizing:border-box; contain:layout style paint; -webkit-tap-highlight-color:transparent;">
-            <!-- Smooth Sliding Pill Indicator with zero-twitch 3D transform -->
-            <div id="transport-toggle-pill"
-                style="position:absolute; top:4px; bottom:4px; left:4px; width:calc(50% - 4px); background:#ffffff; border-radius:10px; will-change:transform; transform:translate3d(0,0,0); -webkit-transform:translate3d(0,0,0); transition:transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important; pointer-events:none; z-index:1; border:none !important; outline:none !important; box-shadow:none !important; -webkit-backface-visibility:hidden; backface-visibility:hidden;"></div>
-            <button type="button" class="btn-transport-toggle active" id="btn-trans-public" onclick="window.setTransportType('public')"
-                style="position:relative; z-index:2; height:36px; line-height:36px; padding:0; border-radius:10px; border:none !important; outline:none !important; background:transparent !important; font-size:13px; font-weight:800 !important; color:#1e3a8a; transition:color 0.2s ease; cursor:pointer; box-shadow:none !important; text-align:center; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; touch-action:manipulation; user-select:none;">Public</button>
-            <button type="button" class="btn-transport-toggle" id="btn-trans-private" onclick="window.setTransportType('private')"
-                style="position:relative; z-index:2; height:36px; line-height:36px; padding:0; border-radius:10px; border:none !important; outline:none !important; background:transparent !important; font-size:13px; font-weight:800 !important; color:rgba(255,255,255,0.85); transition:color 0.2s ease; cursor:pointer; box-shadow:none !important; text-align:center; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; touch-action:manipulation; user-select:none;">Private</button>
-        </div>
-
-        <div id="transport-slider-wrapper" style="display:block; margin-bottom:16px;">
-            <label id="mode-transport-label"
-                style="font-size:13px; font-weight:700; color:#ffffff; margin-bottom:8px; display:block;">Mode of
-                Transport</label>
-
-            <style>
-                #transport-slider::-webkit-scrollbar {
-                    display: none;
-                }
-
-                .transport-option {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    min-width: 90px;
-                    padding: 14px 10px;
-                    border-radius: 16px;
-                    background: rgba(255, 255, 255, 0.12);
-                    border: none !important;
-                    outline: none !important;
-                    box-shadow: none !important;
-                    cursor: pointer;
-                    transition: 0.2s ease;
-                    color: rgba(255, 255, 255, 0.85);
-                    flex-shrink: 0;
-                }
-
-                .transport-option i {
-                    font-size: 22px;
-                    margin-bottom: 8px;
-                    color: #ffffff;
-                }
-
-                .transport-option span {
-                    font-size: 11px;
-                    font-weight: 700;
-                    text-align: center;
-                    color: #ffffff;
-                    white-space: nowrap;
-                }
-
-                .transport-option.active {
-                    background: rgba(255, 255, 255, 0.28) !important;
-                    color: #ffffff !important;
-                    border: none !important;
-                    outline: none !important;
-                    box-shadow: none !important;
-                }
-
-                .transport-option.active i,
-                .transport-option.active span {
-                    color: #ffffff !important;
-                }
-            </style>
-
-            <input type="hidden" id="trip-transport" value="">
-            <div id="transport-slider"
-                style="display:flex; overflow-x:auto; gap:12px; padding-bottom:8px; margin-bottom:16px; scrollbar-width:none; -ms-overflow-style:none;">
-                <div class="transport-option" data-val="own_car" onclick="window.selectTransportMode(this)">
-                    <i class="fa-solid fa-car"></i>
-                    <span>Own Car</span>
+        <!-- Point-to-Point Route & Transit Summary Card (Tap to view opensheet) -->
+        <input type="hidden" id="trip-transport" value="">
+        <div id="save-p2p-transit-summary"
+            onclick="window.openTransitSummaryOpensheet()"
+            role="button"
+            tabindex="0"
+            title="Tap to view per-destination transit summary"
+            style="background:rgba(255,255,255,0.08); border-radius:16px; padding:14px 16px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; border:1px solid rgba(255,255,255,0.14); cursor:pointer; user-select:none; transition:background 0.2s ease, transform 0.15s ease;"
+            onpointerdown="this.style.transform='scale(0.98)'; this.style.background='rgba(255,255,255,0.14)';"
+            onpointerup="this.style.transform='scale(1)'; this.style.background='rgba(255,255,255,0.08)';"
+            onpointerleave="this.style.transform='scale(1)'; this.style.background='rgba(255,255,255,0.08)';">
+            <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+                <div id="save-p2p-transit-icon" style="width:40px; height:40px; border-radius:12px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+                    <i class="fa-solid fa-car" style="color:#1e3a8a !important; font-size:16px;"></i>
                 </div>
-                <div class="transport-option" data-val="taxi" onclick="window.selectTransportMode(this)">
-                    <i class="fa-solid fa-taxi"></i>
-                    <span>Taxi</span>
+                <div style="min-width:0;">
+                    <div style="font-size:10px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:2px;">Transport Mode</div>
+                    <div id="save-p2p-transit-label" style="font-size:13px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Own Car</div>
+                    <div id="save-p2p-legs-count" style="font-size:11px; color:rgba(255,255,255,0.75); margin-top:1px;">Tap to view destination summary</div>
                 </div>
-                <div class="transport-option" data-val="private_bus" onclick="window.selectTransportMode(this)">
-                    <i class="fa-solid fa-bus"></i>
-                    <span>Private Bus</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <div style="text-align:right; flex-shrink:0;">
+                    <div style="font-size:10px; color:rgba(255,255,255,0.65); font-weight:700; text-transform:uppercase;">Transit Total</div>
+                    <div id="save-p2p-transit-cost" style="font-size:16px; font-weight:800; color:#00f2fe; margin-top:2px;">₱0.00</div>
                 </div>
-                <div class="transport-option" data-val="mini_bus" onclick="window.selectTransportMode(this)">
-                    <i class="fa-solid fa-van-shuttle"></i>
-                    <span>Mini Bus</span>
-                </div>
-                <div class="transport-option" data-val="lutrampco" onclick="window.selectTransportMode(this)">
-                    <i class="fa-solid fa-bus-simple"></i>
-                    <span>LUTRAMPCO</span>
-                </div>
-                <div class="transport-option" data-val="jeepney" onclick="window.selectTransportMode(this)">
-                    <i class="fa-solid fa-truck-pickup"></i>
-                    <span>Jeepney</span>
-                </div>
+                <i class="fa-solid fa-chevron-right" style="color:rgba(255,255,255,0.55); font-size:12px; margin-left:2px;"></i>
             </div>
         </div>
 
         <script>
-            window.selectTransportMode = function (el) {
-                const val = el.getAttribute('data-val');
-                const privateKeys = ['own_car', 'taxi', 'motorcycle', 'van'];
-                const isPrivate = privateKeys.includes(val);
-
-                if (isPrivate) {
-                    // Private: single-select only
-                    document.querySelectorAll('.transport-option').forEach(opt => {
-                        const oVal = opt.getAttribute('data-val');
-                        if (privateKeys.includes(oVal)) {
-                            opt.classList.remove('active');
-                        }
-                    });
-                    el.classList.add('active');
-                    document.getElementById('trip-transport').value = val;
-                } else {
-                    // Public: multi-select allowed
-                    el.classList.toggle('active');
-                    const activePublic = [];
-                    document.querySelectorAll('.transport-option.active').forEach(opt => {
-                        const oVal = opt.getAttribute('data-val');
-                        if (!privateKeys.includes(oVal)) {
-                            activePublic.push(oVal);
-                        }
-                    });
-                    document.getElementById('trip-transport').value = activePublic.join(',');
-                }
-
-                // Show/Hide Fuel details for Own Car
-                const fuelPanel = document.getElementById('own-car-fuel-panel');
-                if (fuelPanel) {
-                    if (val === 'own_car' && el.classList.contains('active')) {
-                        fuelPanel.style.maxHeight = '200px';
-                        fuelPanel.style.opacity = '1';
-                    } else if (isPrivate) {
-                        fuelPanel.style.maxHeight = '0';
-                        fuelPanel.style.opacity = '0';
-                    }
-                }
-
+            // Backward compatibility stubs
+            window.selectNoVehicleMode = function () {
+                document.getElementById('trip-transport').value = 'no_vehicle';
+                if (window.calculateModalBudget) window.calculateModalBudget();
+            };
+            window.selectTransportMode = function () {
                 if (window.calculateModalBudget) window.calculateModalBudget();
             };
         </script>
 
-        <!-- Dynamic Fuel Details Panel for Own Car -->
-        <div id="own-car-fuel-panel"
-            style="max-height:0; opacity:0; overflow:hidden; transition:all 0.3s cubic-bezier(0.16, 1, 0.3, 1); margin-bottom:12px;">
-            <div
-                style="background:rgba(56, 189, 248, 0.05); border:1px solid rgba(56, 189, 248, 0.2); border-radius:12px; padding:12px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <span style="font-size:11px; font-weight:700; color:#38bdf8; text-transform:uppercase;"><i
-                            class="fa-solid fa-gas-pump" style="margin-right:4px;"></i> Estimated Fuel Cost</span>
-                    <span id="fuel-cost-calc" style="font-size:12px; font-weight:700; color:white;">₱0.00</span>
-                </div>
-                <div style="display:flex; gap:10px;">
-                    <div style="flex:1;">
-                        <label
-                            style="font-size:10px; color:white; font-weight:600; display:block; margin-bottom:4px;">Fuel
-                            Price (₱/L)</label>
-                        <input type="number" id="fuel-price" value="65" min="1" oninput="window.calculateModalBudget()"
-                            style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:white; font-family:inherit; font-size:14px;">
-                    </div>
-                    <div style="flex:1;">
-                        <label
-                            style="font-size:10px; color:white; font-weight:600; display:block; margin-bottom:4px;">Fuel
-                            Efficiency (km/L)</label>
-                        <input type="number" id="fuel-efficiency" value="12" min="1"
-                            oninput="window.calculateModalBudget()"
-                            style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:white; font-family:inherit; font-size:14px;">
-                    </div>
-                </div>
-                <p id="fuel-distance-hint" style="font-size:10px; color:white; margin:8px 0 0 0;">Route distance will be
-                    used for calculation.</p>
-            </div>
-        </div>
-
         <div style="position:relative; margin-bottom:12px;">
-            <span style="position:absolute; left:16px; top:14px; color:#38bdf8; font-weight:800; font-size:15px;">₱</span>
+            <span
+                style="position:absolute; left:16px; top:14px; color:#38bdf8; font-weight:800; font-size:15px;">₱</span>
             <input type="tel" id="trip-budget" placeholder="Set a budget (optional)"
                 oninput="this.value=this.value.replace(/\D/g,'');if(this.value.length>5)this.value=this.value.slice(0,5);window.calculateModalBudget()"
                 style="width:100%; padding:12px 16px 12px 34px; border-radius:14px; border:none !important; outline:none !important; background:rgba(255,255,255,0.12); color:#ffffff; -webkit-text-fill-color:#ffffff; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; box-shadow:none !important;">
         </div>
 
         <div id="save-budget-details"
-            style="display:none; background:rgba(255,255,255,0.05); border:none !important; outline:none !important; padding:16px; border-radius:12px; margin-bottom:24px; box-shadow:none !important;">
-            <div style="display:flex; align-items:center; gap:16px;">
+            style="display:block; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12) !important; outline:none !important; padding:14px 16px; border-radius:16px; margin-bottom:20px; box-shadow:0 4px 16px rgba(0,0,0,0.15) !important;">
+            <div style="display:flex; align-items:center; gap:14px;">
                 <div id="modal-donut-wrapper"
-                    style="position:relative; flex-shrink:0; width:0; margin-right:0; height:60px; overflow:hidden; display:flex; align-items:center; justify-content:center; opacity:0; transform:scale(0.7); transition: width 0.45s cubic-bezier(0.34,1.56,0.64,1), margin-right 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease, transform 0.45s cubic-bezier(0.34,1.56,0.64,1);">
+                    style="position:relative; flex-shrink:0; width:58px; height:58px; overflow:hidden; display:flex; align-items:center; justify-content:center; opacity:1; transform:scale(1); transition: width 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease, transform 0.45s cubic-bezier(0.34,1.56,0.64,1);">
                     <div class="donut-chart" id="modal-budget-donut"
-                        style="position:absolute; left:0; top:0; border-radius:50%; width:60px; height:60px; transform:scaleX(-1);">
+                        style="position:absolute; left:0; top:0; border-radius:50%; width:58px; height:58px; transform:scaleX(-1);">
                     </div>
                     <span id="modal-donut-pct"
-                        style="position:relative; font-size:10px; font-weight:800; color:white; white-space:nowrap;"></span>
+                        style="position:relative; font-size:12px; font-weight:900; color:#ffffff; white-space:nowrap; text-shadow:0 1px 4px rgba(0,0,0,0.6);">MET!</span>
                 </div>
-                <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
-                    <div style="display:flex; justify-content:space-between; align-items:baseline;">
-                        <span style="font-size:11px; color:white; font-weight:600; text-transform:uppercase;">Estimated
-                            Cost</span>
-                        <h4 style="margin:0; font-size:16px; color:white; font-weight:800;" id="save-estimated-cost">
-                            ₱0.00</h4>
+                <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:10px; color:rgba(255,255,255,0.7); font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Estimated Cost</span>
+                        <h4 style="margin:0; font-size:15px; color:#ffffff; font-weight:900;" id="save-estimated-cost">₱0.00</h4>
                     </div>
                     <div id="save-budget-remaining-row"
-                        style="display:none; justify-content:space-between; align-items:baseline;">
-                        <span style="font-size:11px; font-weight:600; text-transform:uppercase;"
+                        style="display:none; justify-content:space-between; align-items:center; padding-top:6px; border-top:1px solid rgba(255,255,255,0.08);">
+                        <span style="font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.3px; white-space:nowrap;"
                             id="save-budget-remaining-label">Remaining</span>
-                        <span style="font-size:13px; font-weight:700;" id="save-budget-remaining-val">—</span>
+                        <span style="font-size:13.5px; font-weight:900; white-space:nowrap;" id="save-budget-remaining-val">—</span>
                     </div>
                 </div>
             </div>
@@ -795,10 +317,10 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
         <div style="display:flex; gap:12px; margin-top:20px;">
             <button class="btn-primary"
-                style="flex:1; background:rgba(255,255,255,0.12); border:none !important; outline:none !important; color:#ffffff; padding:12px; border-radius:14px; font-weight:700; font-size:14px; cursor:pointer; box-shadow:none !important;"
+                style="flex:1; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; padding:12px; border-radius:14px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important; transition:transform 0.15s ease;"
                 onclick="closeSaveModal()">Cancel</button>
             <button class="btn-primary"
-                style="flex:1; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:14px; box-shadow:none !important; cursor:pointer;"
+                style="flex:1; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:14px; box-shadow:0 2px 10px rgba(2, 132, 199, 0.35) !important; cursor:pointer; transition:transform 0.15s ease;"
                 onclick="submitItinerary()" id="btn-submit-trip">Save Trip</button>
         </div>
     </div>
@@ -806,22 +328,421 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
 <!-- Confirm Modal -->
 <div id="confirm-modal"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6, 11, 25, 0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:100002 !important; justify-content:center; align-items:center; padding:16px;">
     <div
-        style="background:var(--glass-bg); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid var(--glass-border); border-radius:24px; padding:24px; width:85%; max-width:360px; box-shadow:0 20px 40px rgba(0,0,0,0.2); text-align:center;">
+        style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; backdrop-filter:blur(24px) !important; -webkit-backdrop-filter:blur(24px) !important; border:none !important; outline:none !important; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:0 16px 40px rgba(10, 25, 60, 0.45) !important; text-align:center; color:#ffffff;">
         <div
-            style="width:48px; height:48px; border-radius:50%; background:rgba(245,158,11,0.15); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
-            <i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b; font-size:22px;"></i>
+            style="width:56px; height:56px; border-radius:50%; background:#ffffff !important; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; border:none !important; outline:none !important; box-shadow:none !important;">
+            <i class="fa-solid fa-triangle-exclamation" style="color:#1e3a8a !important; font-size:26px;"></i>
         </div>
-        <h3 style="margin:0 0 8px; color:#f8fafc; font-size:18px;">Missing Details</h3>
+        <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800; letter-spacing:-0.3px;">Missing
+            Details</h3>
         <p id="confirm-modal-msg"
-            style="margin:0 0 24px; color:rgba(148,163,184,0.9); font-size:14px; line-height:1.5;"></p>
+            style="margin:0 0 24px; color:rgba(255,255,255,0.95); font-size:13.5px; line-height:1.55; font-weight:500;">
+        </p>
         <div style="display:flex; gap:12px;">
-            <button class="btn-primary" id="btn-confirm-cancel"
-                style="flex:1; background:transparent; border:1px solid rgba(255,255,255,0.2); color:white;">Cancel</button>
-            <button class="btn-primary" id="btn-confirm-ok"
-                style="flex:1; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none;">Save Anyway</button>
+            <button type="button" class="btn-primary" id="btn-confirm-cancel"
+                style="flex:1; background:rgba(255,255,255,0.22) !important; border:none !important; outline:none !important; color:#ffffff !important; padding:13px; border-radius:14px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:none !important; transition:transform 0.15s ease;">Cancel</button>
+            <button type="button" class="btn-primary" id="btn-confirm-ok"
+                style="flex:1; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; padding:13px; border-radius:14px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:none !important; transition:transform 0.15s ease;">Save
+                Anyway</button>
         </div>
+    </div>
+</div>
+
+<!-- Transit Summary Modal (Opensheet from Save Trip Modal) -->
+<div id="transit-summary-opensheet" onclick="if(event.target===this) window.closeTransitSummaryOpensheet()"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6, 11, 25, 0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:100005 !important; justify-content:center; align-items:flex-end; padding:0;">
+    <div style="background:#ffffff !important; border-radius:28px 28px 0 0; width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; max-height:86vh; display:flex; flex-direction:column; box-sizing:border-box; overflow:hidden; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
+        
+        <!-- Header (Royal Blue Banner) -->
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 18px; color:#ffffff; flex-shrink:0; border:none !important; outline:none !important;">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                        <i class="fa-solid fa-map-location-dot" style="color:#1e3a8a !important; font-size:15px;"></i>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Transit Summary</h3>
+                        <span id="transit-summary-badge" style="font-size:9.5px; font-weight:800; background:rgba(255, 255, 255, 0.2); color:#ffffff; padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">0 Destinations</span>
+                    </div>
+                </div>
+                <button type="button" onclick="window.closeTransitSummaryOpensheet()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink:0; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; font-size:14px;"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Body: Destinations Summary List -->
+        <div style="background:#f8fafc; color:#1e293b; padding:16px 18px 12px 18px; flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box; -webkit-overflow-scrolling:touch;">
+            <div id="transit-summary-items-list" style="display:flex; flex-direction:column; gap:10px;">
+                <!-- Populated dynamically via JS -->
+            </div>
+        </div>
+
+        <!-- Footer: Total Transit Fare Banner -->
+        <div style="flex-shrink:0; padding:14px 18px calc(14px + env(safe-area-inset-bottom, 0px)) 18px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); display:flex; align-items:center; justify-content:space-between; gap:12px; border:none !important; outline:none !important;">
+            <div>
+                <div style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.5px;">Total Transit Fare</div>
+                <div id="transit-summary-total-fare" style="font-size:18px; font-weight:900; color:#ffffff; letter-spacing:-0.2px;">₱0.00</div>
+            </div>
+            <button type="button" onclick="window.closeTransitSummaryOpensheet()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; cursor:pointer; padding:9px 20px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; display:inline-flex; align-items:center; gap:7px; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Done
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- Point-to-Point Leg Transport Selection Modal (Bottom Sheet) -->
+<div id="leg-transport-modal"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6, 11, 25, 0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:100003 !important; justify-content:center; align-items:flex-end; padding:0;">
+    <div style="background:#ffffff !important; border-radius:28px 28px 0 0; width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; max-height:88vh; display:flex; flex-direction:column; box-sizing:border-box; overflow:hidden; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
+        
+        <!-- Header (Royal Blue Banner) -->
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 18px 14px 18px; color:#ffffff; flex-shrink:0; border:none !important; outline:none !important;">
+            <div style="width:36px; height:4px; background:rgba(255,255,255,0.35); border-radius:99px; margin:0 auto 12px auto;"></div>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                        <i class="fa-solid fa-route" style="color:#1e3a8a !important; font-size:15px;"></i>
+                    </div>
+                    <div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Choose Leg Transports</h3>
+                            <span style="font-size:9.5px; font-weight:800; background:rgba(255, 255, 255, 0.2); color:#ffffff; padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">Multi-Select</span>
+                        </div>
+                        <div id="leg-modal-subtitle" style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">
+                            Leg Route Details
+                        </div>
+                    </div>
+                </div>
+                <button type="button" onclick="window.closeLegTransportModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink:0; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; font-size:14px;"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Body Below Header (Pure White Background) -->
+        <div style="background:#ffffff !important; color:#1e293b; padding:16px 18px 12px 18px; flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;">
+            
+            <!-- Multi-Select Selection Info Bar -->
+            <div id="leg-modal-selection-bar" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; background:#f8fafc; padding:8px 12px; border-radius:12px; border:1px solid #e2e8f0;">
+                <span style="font-size:12px; font-weight:700; color:#1e3a8a; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-check-double" style="color:#1e3a8a; font-size:12px;"></i> Select multiple vehicles if needed:
+                </span>
+                <span id="leg-modal-selection-count" style="font-size:10.5px; font-weight:800; background:rgba(30, 58, 138, 0.08); color:#1e3a8a; padding:3px 10px; border-radius:100px;">
+                    1 Selected
+                </span>
+            </div>
+
+            <!-- Warning Notice if destination is inaccessible by private car -->
+            <div id="leg-modal-warning" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:14px; padding:10px 12px; margin-bottom:12px; display:flex; gap:10px; align-items:flex-start;">
+                <i class="fa-solid fa-triangle-exclamation" style="color:#d97706; font-size:14px; margin-top:2px; flex-shrink:0;"></i>
+                <div style="font-size:11.5px; color:#92400e; line-height:1.4;">
+                    <strong>Restricted Access:</strong> <span id="leg-modal-warning-text">This spot is not accessible by private car. Park at Trailhead and hike or take a local tricycle.</span>
+                </div>
+            </div>
+
+            <!-- Transport Options List -->
+            <div id="leg-modal-options-list" style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:9px; padding-right:2px; -webkit-overflow-scrolling:touch; max-height:48vh; margin-bottom:4px;">
+                <!-- Rendered dynamically -->
+            </div>
+
+        </div>
+
+        <!-- Locked Bottom Footer Banner -->
+        <div style="flex-shrink:0; padding:12px 18px calc(14px + env(safe-area-inset-bottom, 0px)) 18px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); display:flex; align-items:center; justify-content:space-between; gap:12px; border:none !important; outline:none !important;">
+            <div id="leg-modal-fare-container">
+                <div style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.5px;">Estimated Leg Fare</div>
+                <div id="leg-modal-total-fare" style="font-size:18px; font-weight:900; color:#ffffff; letter-spacing:-0.2px;">₱0.00</div>
+            </div>
+            <button type="button" id="btn-apply-leg-transport" onclick="window.applyLegVehicleSelection()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; cursor:pointer; padding:9px 18px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; display:inline-flex; align-items:center; gap:7px; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Done
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- Vehicle Selection Modal (Bottom Sheet - Matched to Leg Transport Modal) -->
+<div id="travel-mode-starter-modal" onclick="if(event.target===this) window.closeTravelModeStarterModal()"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6, 11, 25, 0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:100003 !important; justify-content:center; align-items:flex-end; padding:0;">
+    <div style="background:#ffffff !important; border-radius:28px 28px 0 0; width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; max-height:88vh; display:flex; flex-direction:column; box-sizing:border-box; overflow:hidden; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
+        
+        <!-- Header (Royal Blue Banner) -->
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 18px 14px 18px; color:#ffffff; flex-shrink:0; border:none !important; outline:none !important;">
+            <div style="width:36px; height:4px; background:rgba(255,255,255,0.35); border-radius:99px; margin:0 auto 12px auto;"></div>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                        <i class="fa-solid fa-car-side" style="color:#1e3a8a !important; font-size:15px;"></i>
+                    </div>
+                    <div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Choose Your Vehicle</h3>
+                            <span style="font-size:9.5px; font-weight:800; background:rgba(255, 255, 255, 0.2); color:#ffffff; padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">Multi-Select</span>
+                        </div>
+                        <div style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">
+                            Select one or more vehicles for your trip
+                        </div>
+                    </div>
+                </div>
+                <button type="button" onclick="window.closeTravelModeStarterModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink:0; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; font-size:14px;"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Body Below Header (Pure White Background) -->
+        <div style="background:#ffffff !important; color:#1e293b; padding:16px 18px 12px 18px; flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;">
+            
+            <!-- Multi-Select Selection Info Bar -->
+            <div id="starter-modal-selection-bar" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; background:#f8fafc; padding:8px 12px; border-radius:12px; border:1px solid #e2e8f0;">
+                <span style="font-size:12px; font-weight:700; color:#1e3a8a; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-check-double" style="color:#1e3a8a; font-size:12px;"></i> Select multiple vehicles if needed:
+                </span>
+                <span id="starter-modal-selection-count" style="font-size:10.5px; font-weight:800; background:rgba(30, 58, 138, 0.08); color:#1e3a8a; padding:3px 10px; border-radius:100px;">
+                    1 Selected
+                </span>
+            </div>
+
+            <!-- Information Bar -->
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; background:#f8fafc; padding:10px 12px; border-radius:12px; border:1px solid #e2e8f0; font-size:11.5px; color:#475569; line-height:1.4;">
+                <span style="display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-circle-info" style="color:#0284c7; font-size:13px; flex-shrink:0;"></i>
+                    <span>Select multiple vehicles for connecting routes (e.g. Car + Tricycle for trailhead access or Bus + Jeepney).</span>
+                </span>
+            </div>
+
+            <!-- Transport Options List -->
+            <div style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:9px; padding-right:2px; -webkit-overflow-scrolling:touch; max-height:48vh; margin-bottom:4px;">
+                
+                <!-- Category 1: Private Vehicles -->
+                <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:#1e3a8a; letter-spacing:0.6px; margin:4px 0 2px 2px; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-car" style="font-size:11px; color:#1e3a8a;"></i> Private Vehicles
+                </div>
+
+                <!-- Option 1: Own Car -->
+                <div class="travel-starter-card" data-mode="own_car" onclick="window.toggleStarterVehicleMode('own_car')">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
+                        </div>
+                        <div class="travel-starter-icon">
+                            <i class="fa-solid fa-car"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Own Car</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Option 2: Motorcycle -->
+                <div class="travel-starter-card" data-mode="motorcycle" onclick="window.toggleStarterVehicleMode('motorcycle')">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
+                        </div>
+                        <div class="travel-starter-icon">
+                            <i class="fa-solid fa-motorcycle"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Motorcycle</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Option 3: Van -->
+                <div class="travel-starter-card" data-mode="van" onclick="window.toggleStarterVehicleMode('van')">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
+                        </div>
+                        <div class="travel-starter-icon">
+                            <i class="fa-solid fa-van-shuttle"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Van</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Category 2: Public Vehicles -->
+                <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:#1e3a8a; letter-spacing:0.6px; margin:12px 0 2px 2px; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-bus" style="font-size:11px; color:#1e3a8a;"></i> Public Vehicles
+                </div>
+
+                <!-- Option 4: Modern Jeepney (MPUJ) -->
+                <div class="travel-starter-card" data-mode="mpuj" onclick="window.toggleStarterVehicleMode('mpuj')">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
+                        </div>
+                        <div class="travel-starter-icon">
+                            <i class="fa-solid fa-bus-simple"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Modern Jeepney (MPUJ)</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Option 5: Traditional Jeepney (TPUJ) -->
+                <div class="travel-starter-card" data-mode="tpuj" onclick="window.toggleStarterVehicleMode('tpuj')">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
+                        </div>
+                        <div class="travel-starter-icon">
+                            <i class="fa-solid fa-van-shuttle"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Traditional Jeepney (TPUJ)</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Option 6: Tricycle -->
+                <div class="travel-starter-card" data-mode="tricycle" onclick="window.toggleStarterVehicleMode('tricycle')">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
+                        </div>
+                        <div class="travel-starter-icon">
+                            <i class="fa-solid fa-motorcycle"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Tricycle</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Option 7: Taxi -->
+                <div class="travel-starter-card" data-mode="taxi" onclick="window.toggleStarterVehicleMode('taxi')">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
+                        </div>
+                        <div class="travel-starter-icon">
+                            <i class="fa-solid fa-taxi"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Taxi</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Option 8: UV Express (UVE) -->
+                <div class="travel-starter-card" data-mode="uve" onclick="window.toggleStarterVehicleMode('uve')">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
+                        </div>
+                        <div class="travel-starter-icon">
+                            <i class="fa-solid fa-van-shuttle"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">UV Express (UVE)</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Option 9: PUB Regular Bus -->
+                <div class="travel-starter-card" data-mode="pub_regular" onclick="window.toggleStarterVehicleMode('pub_regular')">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
+                        </div>
+                        <div class="travel-starter-icon">
+                            <i class="fa-solid fa-bus"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">PUB Regular (Ordinary Bus)</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Option 10: PUB Aircon Bus -->
+                <div class="travel-starter-card" data-mode="pub_aircon" onclick="window.toggleStarterVehicleMode('pub_aircon')">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
+                        </div>
+                        <div class="travel-starter-icon">
+                            <i class="fa-solid fa-bus"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">PUB Aircon (Aircon Bus)</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Locked Bottom Footer Banner -->
+        <div style="flex-shrink:0; padding:12px 18px calc(14px + env(safe-area-inset-bottom, 0px)) 18px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); display:flex; align-items:center; justify-content:space-between; gap:12px; border:none !important; outline:none !important;">
+            <div style="min-width:0; flex:1;">
+                <div style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.5px;">Trip Travel Mode</div>
+                <div id="starter-modal-current-mode-label" style="font-size:15px; font-weight:900; color:#ffffff; letter-spacing:-0.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Own Car</div>
+            </div>
+            <button type="button" id="btn-apply-starter-transport" onclick="window.applyStarterVehicleSelection()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; cursor:pointer; padding:9px 18px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; display:inline-flex; align-items:center; gap:7px; transition:transform 0.15s ease; flex-shrink:0;" onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Done
+            </button>
+        </div>
+
     </div>
 </div>
 <script>
@@ -868,33 +789,11 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             }
         }
 
-        // Helper to calculate distance and estimated driving travel time
+        // Helper to calculate distance and estimated driving travel time from user GPS to destination
         window.getDistanceAndETA = function (destLat, destLng) {
             const curLat = window.myLat || window.currentGPSLat;
             const curLng = window.myLng || window.currentGPSLng;
-            if (!curLat || !curLng || !destLat || !destLng) return null;
-
-            const lat1 = parseFloat(curLat);
-            const lon1 = parseFloat(curLng);
-            const lat2 = parseFloat(destLat);
-            const lon2 = parseFloat(destLng);
-            if (isNaN(lat1) || isNaN(lon1) || isNaN(lat2) || isNaN(lon2)) return null;
-
-            const p = 0.017453292519943295;
-            const c = Math.cos;
-            const a = 0.5 - c((lat2 - lat1) * p) / 2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2;
-            const distKm = 12742 * Math.asin(Math.sqrt(a));
-
-            // Average realistic province speed ~30 km/h with traffic
-            let durationMin = Math.round((distKm / 30) * 60);
-            if (durationMin < 1) durationMin = 1;
-
-            return {
-                distanceKm: distKm,
-                distanceText: distKm < 1 ? Math.round(distKm * 1000) + ' m' : distKm.toFixed(1) + ' km',
-                durationMin: durationMin,
-                durationText: durationMin >= 60 ? `${Math.floor(durationMin / 60)}h ${durationMin % 60}m` : `${durationMin} mins`
-            };
+            return window.calculateLegETA(curLat, curLng, destLat, destLng);
         };
 
         // Helper to calculate travel distance and time between two consecutive itinerary stops
@@ -907,7 +806,8 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             const p = 0.017453292519943295;
             const c = Math.cos;
             const a = 0.5 - c((l2 - l1) * p) / 2 + c(l1 * p) * c(l2 * p) * (1 - c((o2 - o1) * p)) / 2;
-            const distKm = 12742 * Math.asin(Math.sqrt(a));
+            const straightKm = 12742 * Math.asin(Math.sqrt(a));
+            const distKm = straightKm * 1.215; // Realistic La Union road winding factor (~1.215x straight line)
 
             let durationMin = Math.round((distKm / 30) * 60);
             if (durationMin < 1) durationMin = 1;
@@ -990,67 +890,1678 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     modal.style.display = 'none';
                     btnOk.removeEventListener('click', onOk);
                     btnCancel.removeEventListener('click', onCancel);
+                    modal.removeEventListener('click', onBackdrop);
                 }
                 function onOk() { cleanup(); resolve(true); }
                 function onCancel() { cleanup(); resolve(false); }
+                function onBackdrop(e) { if (e.target === modal) { cleanup(); resolve(false); } }
                 btnOk.addEventListener('click', onOk);
                 btnCancel.addEventListener('click', onCancel);
+                modal.addEventListener('click', onBackdrop);
             });
         };
 
-        // Fetch fare rates and vehicle data from Railway DB
-        fetch(backendUrl + '/api/public/fares', {
-            headers: { 'Accept': 'application/json' }
-        }).then(r => r.json()).then(d => {
-            window.fareData = d.fares || {};
-            window.vehicleData = d.vehicles || [];
-            window.vehicleTypes = d.vehicle_types || [];
-            window.fuelPrice = d.fuel_price || 65.0;
-        }).catch(e => console.error("Fares fetch error:", e));
+        // SWR Caching for Fare Rates & Vehicle Types (Eliminates redundant Railway hits)
+        const FARES_CACHE_KEY = 'public_fare_data';
+        const FARES_CACHE_TTL = 3600000; // 1 hour TTL
+        let cachedFarePayload = null;
+        try {
+            const rawFares = localStorage.getItem(FARES_CACHE_KEY);
+            if (rawFares) {
+                const parsed = (typeof window.safeJsonParse === 'function') ? window.safeJsonParse(rawFares, null) : JSON.parse(rawFares);
+                if (parsed && parsed.data) {
+                    cachedFarePayload = parsed;
+                    window.fareData = parsed.data.fares || {};
+                    window.vehicleData = parsed.data.vehicles || [];
+                    window.vehicleTypes = parsed.data.vehicle_types || [];
+                }
+            }
+        } catch (e) { }
 
-        window.getFareFromMatrix = function (vehicleType, distanceKm) {
+        const now = Date.now();
+        const shouldFetchFreshFares = !cachedFarePayload || !cachedFarePayload.timestamp || (now - cachedFarePayload.timestamp > FARES_CACHE_TTL);
+
+        if (shouldFetchFreshFares) {
+            fetch(backendUrl + '/api/public/fares', {
+                headers: { 'Accept': 'application/json' }
+            }).then(r => r.json()).then(d => {
+                if (d && d.fares) {
+                    window.fareData = d.fares || {};
+                    window.vehicleData = d.vehicles || [];
+                    window.vehicleTypes = d.vehicle_types || [];
+                    try {
+                        localStorage.setItem(FARES_CACHE_KEY, JSON.stringify({ data: d, timestamp: Date.now() }));
+                    } catch (e) { }
+                    if (typeof window.recalculateCosts === 'function') {
+                        window.recalculateCosts();
+                    }
+                }
+            }).catch(e => console.error("Fares fetch error:", e));
+        }
+
+
+
+        window.getFareFromMatrix = function (vehicleType, distanceKm, municipality = null) {
             if (!window.fareData) return null;
-            const keyMap = {
-                'Tricycle': 'tricycle', 'tricycle': 'tricycle',
-                'Jeepney': 'jeepney', 'jeepney': 'jeepney', 'PUJ_Ordinary': 'jeepney',
-                'Bus': 'private_bus', 'bus': 'private_bus', 'private_bus': 'private_bus', 'public_bus': 'private_bus', 'PUB_Aircon': 'private_bus', 'PUB_Ordinary': 'private_bus',
-                'LUTRAMPCO': 'lutrampco', 'lutrampco': 'lutrampco',
-                'Mini Bus': 'mini_bus', 'mini_bus': 'mini_bus', 'van': 'mini_bus', 'Van': 'mini_bus', 'uve': 'mini_bus', 'PUJ_Aircon': 'mini_bus',
-                'Taxi': 'taxi', 'taxi': 'taxi',
-                'Own Car': 'own_car', 'own_car': 'own_car'
-            };
-            const key = keyMap[vehicleType] || (vehicleType ? vehicleType.toLowerCase().replace(/\s+/g, '_') : '');
-            if (!key || key === 'own_car') return null;
 
-            // Search in fareData with fallback keys
-            let fareEntry = window.fareData[key] || window.fareData[vehicleType];
-            if (!fareEntry && (key === 'private_bus' || key === 'bus' || key === 'public_bus')) {
-                fareEntry = window.fareData['private_bus'] || window.fareData['bus'] || window.fareData['PUB_Aircon'] || window.fareData['PUB_Ordinary'];
+            const dKm = parseFloat(distanceKm) || 0;
+            const rawType = (vehicleType || '').toString().toLowerCase().trim();
+            const normType = rawType.replace(/[- ]/g, '_');
+
+            if (['own_car', 'taxi', 'motorcycle', 'car'].includes(normType)) return null;
+            if (['van', 'uve', 'mini_bus'].includes(normType)) return 0;
+
+            let fareEntry = null;
+
+            // 1. Direct match in top-level window.fareData
+            if (window.fareData[normType]) {
+                fareEntry = window.fareData[normType];
             }
-            if (!fareEntry && (key === 'mini_bus' || key === 'van' || key === 'uve')) {
-                fareEntry = window.fareData['mini_bus'] || window.fareData['van'] || window.fareData['PUJ_Aircon'];
+
+            // 2. Municipality lookup for local / inter-municipal guides
+            const cleanMuni = municipality ? municipality.toString().trim().replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '') : '';
+            const muniKey = cleanMuni.toLowerCase().replace(/[^a-z0-9]/g, '_');
+            const muniRaw = cleanMuni.toLowerCase();
+
+            if (!fareEntry && window.fareData.by_municipality) {
+                const muniObj = window.fareData.by_municipality[muniKey] || window.fareData.by_municipality[muniRaw];
+                if (muniObj) {
+                    if (muniObj[normType]) {
+                        fareEntry = muniObj[normType];
+                    } else if ((normType === 'tricycle' || normType === 'trike') && muniObj.tricycle) {
+                        fareEntry = muniObj.tricycle;
+                    } else if ((normType === 'tricycle' || normType === 'trike') && muniObj.default) {
+                        fareEntry = muniObj.default;
+                    }
+                }
             }
-            if (!fareEntry && key === 'lutrampco') {
-                fareEntry = window.fareData['lutrampco'] || window.fareData['PUB_Ordinary'] || window.fareData['jeepney'];
+
+            // 3. Fallbacks and alias matching
+            if (!fareEntry) {
+                if (normType === 'pub_aircon' || normType.includes('aircon')) {
+                    fareEntry = window.fareData['pub_aircon'] || window.fareData['bus'] || window.fareData['private_bus'];
+                } else if (normType === 'pub_ordinary' || normType === 'pub_regular' || normType.includes('ordinary') || normType.includes('regular')) {
+                    fareEntry = window.fareData['pub_ordinary'] || window.fareData['pub_regular'] || window.fareData['bus'];
+                } else if (normType === 'mpuj' || normType.includes('mpuj') || normType.includes('modern')) {
+                    fareEntry = window.fareData['mpuj'] || window.fareData['jeepney'] || window.fareData['lutrampco'];
+                } else if (normType === 'tricycle' || normType === 'trike') {
+                    fareEntry = (cleanMuni && window.fareData?.by_municipality?.[muniKey]?.tricycle)
+                        || (cleanMuni && window.fareData?.by_municipality?.[muniRaw]?.tricycle)
+                        || null;
+                } else if (normType === 'bus' || normType === 'private_bus') {
+                    fareEntry = window.fareData['pub_aircon'] || window.fareData['pub_ordinary'] || window.fareData['bus'];
+                } else if (normType === 'jeepney' || normType === 'lutrampco') {
+                    fareEntry = window.fareData['mpuj'] || window.fareData['tpuj'] || window.fareData['jeepney'];
+                } else if (normType === 'uve' || normType === 'van' || normType === 'mini_bus') {
+                    fareEntry = window.fareData['uve'] || window.fareData['van'] || window.fareData['mini_bus'];
+                }
             }
 
             if (!fareEntry || !fareEntry.rates) return null;
             const rates = Array.isArray(fareEntry.rates) ? fareEntry.rates : Object.values(fareEntry.rates);
             if (!rates || rates.length === 0) return null;
 
-            const dKm = parseFloat(distanceKm) || 0;
+            // Stage ceiling lookup: find first stage bracket where rate.distance_km >= dKm
             let match = null;
-            for (let i = rates.length - 1; i >= 0; i--) {
+            for (let i = 0; i < rates.length; i++) {
                 const r = rates[i];
-                if (r && r.distance_km != null && parseFloat(r.distance_km) <= dKm) {
+                if (r && r.distance_km != null && parseFloat(r.distance_km) >= dKm) {
                     match = r;
                     break;
                 }
             }
-            if (!match) match = rates.find(r => r && r.regular_fare != null) || rates[0];
-            if (!match || match.regular_fare == null) return null;
 
+            // If distance exceeds all matrix steps, calculate from highest bracket
+            if (!match) {
+                const maxRate = rates[rates.length - 1];
+                if (maxRate && maxRate.regular_fare != null) {
+                    const maxD = parseFloat(maxRate.distance_km || 0);
+                    const extra = Math.max(0, dKm - maxD);
+                    const perKm = (normType === 'tricycle' || normType === 'trike') ? 2.0 : 1.8;
+                    return Math.round(parseFloat(maxRate.regular_fare) + (extra * perKm));
+                }
+            }
+
+            if (!match || match.regular_fare == null) return null;
             return parseFloat(match.regular_fare);
+        };
+
+        // ---- Unified Vehicle Normalization & Display Name Engine ----
+        window.normalizeVehicleKey = function (m) {
+            if (!m) return '';
+            let s = String(m).trim().toLowerCase();
+            // Strip leading and trailing underscores, hyphens, and spaces
+            s = s.replace(/^[-_\s]+|[-_\s]+$/g, '');
+            // Collapse internal spaces, hyphens, and multiple underscores into a single underscore
+            s = s.replace(/[- ]+/g, '_').replace(/_+/g, '_');
+
+            if (s === 'car') return 'own_car';
+            if (s === 'motor') return 'motorcycle';
+            if (s === 'pub_ordinary') return 'pub_regular';
+            if (s === 'bus') return 'pub_aircon';
+            if (s === 'trike') return 'tricycle';
+            if (s.startsWith('pub_aircon')) return 'pub_aircon';
+            if (s.startsWith('pub_reg')) return 'pub_regular';
+            if (s.startsWith('own_car')) return 'own_car';
+            return s;
+        };
+
+        window.parseCompositeTransportModes = function (str) {
+            if (!str) return [];
+            if (Array.isArray(str)) {
+                return str.map(s => window.normalizeVehicleKey(s)).filter(Boolean);
+            }
+            // CRITICAL: Split by '+' or ',' FIRST, so whitespace around '+' is NOT converted into underscores!
+            const parts = String(str).split(/[\+,]/);
+            const validModes = ['own_car', 'motorcycle', 'van', 'mpuj', 'tpuj', 'tricycle', 'pub_regular', 'pub_aircon', 'uve', 'taxi'];
+            const res = [];
+            parts.forEach(p => {
+                const norm = window.normalizeVehicleKey(p);
+                if (norm && validModes.includes(norm) && !res.includes(norm)) {
+                    res.push(norm);
+                }
+            });
+            return res;
+        };
+
+        window.getVehicleDisplayName = function (modeKey) {
+            if (!modeKey) return 'Own Car';
+            const subModes = window.parseCompositeTransportModes(modeKey);
+            if (subModes.length > 1) {
+                return `${subModes.length} Vehicles`;
+            }
+
+            const norm = (subModes.length === 1) ? subModes[0] : window.normalizeVehicleKey(modeKey);
+            const map = {
+                'own_car': 'Own Car',
+                'motorcycle': 'Motorcycle',
+                'van': 'Van',
+                'mpuj': 'Modern Jeepney (MPUJ)',
+                'tpuj': 'Traditional Jeepney (TPUJ)',
+                'jeepney': 'Traditional Jeepney (TPUJ)',
+                'tricycle': 'Tricycle',
+                'pub_regular': 'PUB Regular (Ordinary Bus)',
+                'pub_aircon': 'PUB Aircon (Aircon Bus)',
+                'uve': 'UV Express (UVE)',
+                'taxi': 'Taxi'
+            };
+            return map[norm] || norm.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        };
+
+        window.getVehicleShortName = function (modeKey) {
+            if (!modeKey) return 'Own Car';
+            const subModes = window.parseCompositeTransportModes(modeKey);
+            if (subModes.length > 1) {
+                return `${subModes.length} Vehicles`;
+            }
+
+            const norm = (subModes.length === 1) ? subModes[0] : window.normalizeVehicleKey(modeKey);
+            const map = {
+                'own_car': 'Own Car',
+                'motorcycle': 'Motorcycle',
+                'van': 'Van',
+                'mpuj': 'Modern Jeepney',
+                'tpuj': 'Traditional Jeepney',
+                'jeepney': 'Jeepney',
+                'tricycle': 'Tricycle',
+                'pub_regular': 'Regular Bus',
+                'pub_aircon': 'Aircon Bus',
+                'uve': 'UV Express',
+                'taxi': 'Taxi'
+            };
+            return map[norm] || norm.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        };
+
+        window.getVehicleIconHtml = function (modeKey) {
+            const subModes = window.parseCompositeTransportModes(modeKey);
+            if (subModes.length > 1) {
+                return '<i class="fa-solid fa-shuffle" style="color:#00f2fe;"></i>';
+            }
+            const norm = (subModes.length === 1) ? subModes[0] : window.normalizeVehicleKey(modeKey || 'own_car');
+            if (norm === 'motorcycle') return '<i class="fa-solid fa-motorcycle" style="color:#fbbf24;"></i>';
+            if (norm === 'van') return '<i class="fa-solid fa-van-shuttle" style="color:#c084fc;"></i>';
+            if (norm === 'mpuj') return '<i class="fa-solid fa-bus-simple" style="color:#34d399;"></i>';
+            if (norm === 'tpuj' || norm === 'jeepney') return '<i class="fa-solid fa-van-shuttle" style="color:#10b981;"></i>';
+            if (norm === 'tricycle') return '<i class="fa-solid fa-motorcycle" style="color:#22d3ee;"></i>';
+            if (norm === 'pub_regular') return '<i class="fa-solid fa-bus" style="color:#fb923c;"></i>';
+            if (norm === 'pub_aircon') return '<i class="fa-solid fa-bus" style="color:#f87171;"></i>';
+            if (norm === 'uve') return '<i class="fa-solid fa-van-shuttle" style="color:#a855f7;"></i>';
+            if (norm === 'taxi') return '<i class="fa-solid fa-taxi" style="color:#facc15;"></i>';
+            return '<i class="fa-solid fa-car" style="color:#00f2fe;"></i>';
+        };
+
+        // ---- Point-to-Point (P2P) Fare Calculator ----
+        window.calculateSingleLegCost = function (mode, distKm, muniA, muniB) {
+            if (!mode) return 0;
+            const subParts = window.parseCompositeTransportModes(mode);
+            if (subParts.length > 1) {
+                let subSum = 0;
+                subParts.forEach(p => {
+                    subSum += window.calculateSingleLegCost(p, distKm, muniA, muniB);
+                });
+                return Math.round(subSum * 100) / 100;
+            }
+            const norm = (subParts.length === 1) ? subParts[0] : window.normalizeVehicleKey(mode);
+            if (['own_car', 'motorcycle', 'walking', 'walk', 'no_vehicle', 'van', 'uve', 'mini_bus'].includes(norm)) {
+                return 0;
+            }
+            const cleanA = (muniA || '').replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim();
+            const cleanB = (muniB || '').replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim();
+            const isCross = Boolean(cleanA && cleanB && cleanA.toLowerCase() !== cleanB.toLowerCase());
+            const d = parseFloat(distKm) || 1.0;
+
+            if (norm === 'taxi') {
+                return Math.round(40 + (d * 13));
+            }
+
+            if (norm === 'tricycle' || norm === 'trike') {
+                if (isCross) {
+                    const dA = Math.round((d / 2.0) * 100) / 100;
+                    const dB = Math.max(0.1, Math.round((d - dA) * 100) / 100);
+                    let pA = window.getFareFromMatrix('tricycle', dA, cleanA);
+                    if (pA === null || pA === undefined || pA === 0) pA = Math.max(15, Math.round(15 + Math.max(0, dA - 1.5) * 2.0));
+                    let pB = window.getFareFromMatrix('tricycle', dB, cleanB);
+                    if (pB === null || pB === undefined || pB === 0) pB = Math.max(15, Math.round(15 + Math.max(0, dB - 1.5) * 2.0));
+                    return Math.round((pA + pB) * 100) / 100;
+                } else {
+                    let p = window.getFareFromMatrix('tricycle', d, cleanA);
+                    if (p === null || p === undefined || p === 0) p = Math.max(15, Math.round(15 + Math.max(0, d - 1.5) * 2.0));
+                    return Math.round(p * 100) / 100;
+                }
+            }
+
+            // Public transit: Jeepney (MPUJ/TPUJ), PUB Aircon, PUB Ordinary, Van
+            const targetVeh = (norm === 'private_bus') ? 'pub_aircon' : ((norm === 'jeepney') ? 'mpuj' : norm);
+            if (isCross) {
+                const dA = Math.round((d / 2.0) * 100) / 100;
+                let pA = window.getFareFromMatrix(targetVeh, dA, cleanA);
+                let full = window.getFareFromMatrix(targetVeh, d, cleanA);
+                if (pA === null) {
+                    if (norm === 'mpuj' || norm === 'jeepney') pA = Math.max(15, Math.round(15 + Math.max(0, dA - 4) * 2.2));
+                    else if (norm === 'tpuj') pA = Math.max(13, Math.round(13 + Math.max(0, dA - 4) * 1.8));
+                    else if (norm.includes('aircon') || norm.includes('bus')) pA = Math.max(11, Math.round(10.50 + Math.max(0, dA - 5) * 2.2));
+                    else if (norm.includes('ordinary') || norm.includes('regular')) pA = Math.max(11, Math.round(11 + Math.max(0, dA - 5) * 2.0));
+                    else if (norm === 'uve' || norm === 'van' || norm === 'mini_bus') pA = Math.max(25, Math.round(25 + Math.max(0, dA - 4) * 2.5));
+                    else pA = Math.max(15, Math.round(15 + Math.max(0, dA - 4) * 2.0));
+                }
+                if (full === null) {
+                    if (norm === 'mpuj' || norm === 'jeepney') full = Math.max(15, Math.round(15 + Math.max(0, d - 4) * 2.2));
+                    else if (norm === 'tpuj') full = Math.max(13, Math.round(13 + Math.max(0, d - 4) * 1.8));
+                    else if (norm.includes('aircon') || norm.includes('bus')) full = Math.max(11, Math.round(10.50 + Math.max(0, d - 5) * 2.2));
+                    else if (norm.includes('ordinary') || norm.includes('regular')) full = Math.max(11, Math.round(11 + Math.max(0, d - 5) * 2.0));
+                    else if (norm === 'uve' || norm === 'van' || norm === 'mini_bus') full = Math.max(25, Math.round(25 + Math.max(0, d - 4) * 2.5));
+                    else full = Math.max(15, Math.round(15 + Math.max(0, d - 4) * 2.0));
+                }
+                const estB = Math.max(0, full - pA);
+                return Math.round((pA + estB) * 100) / 100;
+            } else {
+                let p = window.getFareFromMatrix(targetVeh, d, cleanA);
+                if (p === null) {
+                    if (norm === 'mpuj' || norm === 'jeepney') p = Math.max(15, Math.round(15 + Math.max(0, d - 4) * 2.2));
+                    else if (norm === 'tpuj') p = Math.max(13, Math.round(13 + Math.max(0, d - 4) * 1.8));
+                    else if (norm.includes('aircon') || norm.includes('bus')) p = Math.max(11, Math.round(10.50 + Math.max(0, d - 5) * 2.2));
+                    else if (norm.includes('ordinary') || norm.includes('regular')) p = Math.max(11, Math.round(11 + Math.max(0, d - 5) * 2.0));
+                    else if (norm === 'uve' || norm === 'van' || norm === 'mini_bus') p = Math.max(25, Math.round(25 + Math.max(0, d - 4) * 2.5));
+                    else p = Math.max(15, Math.round(15 + Math.max(0, d - 4) * 2.0));
+                }
+                return Math.round(p * 100) / 100;
+            }
+        };
+
+        window.resolveLegOptimalTransport = function (fromSpot, toSpot, distKm, globalMode) {
+            const d = parseFloat(distKm) || 1.5;
+            const muniA = fromSpot ? window.getSpotMuniName(fromSpot) : '';
+            const muniB = toSpot ? window.getSpotMuniName(toSpot) : '';
+            const cleanA = muniA.replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim().toLowerCase();
+            const cleanB = muniB.replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim().toLowerCase();
+            const isCross = Boolean(cleanA && cleanB && cleanA !== cleanB);
+
+            const isNonDrivable = Boolean(toSpot && (toSpot.accessible_by_private_vehicle === 0 || toSpot.accessible_by_private_vehicle === false || toSpot.accessible_by_private_vehicle === '0'));
+
+            // Multi-modal global transport support (e.g. "own_car + tricycle", "own_car + motorcycle")
+            const allSubModes = window.parseCompositeTransportModes(globalMode);
+            // Filter global vehicles to only those accessible for this specific leg destination
+            const availSubModes = allSubModes.filter(m => {
+                const chk = window.isVehicleAllowedForSpot(m, toSpot);
+                return chk && chk.allowed;
+            });
+            const subModes = (availSubModes.length > 0) ? availSubModes : allSubModes;
+
+            if (subModes.length > 1) {
+                const cost = window.calculateSingleLegCost(subModes.join(' + '), d, muniA, muniB);
+                const dispName = `${subModes.length} Vehicles`;
+
+                let warningNotice = null;
+                if (isNonDrivable) {
+                    const canTricycleOrMotor = subModes.some(m => ['tricycle', 'motorcycle'].includes(m));
+                    if (canTricycleOrMotor && subModes.some(m => ['own_car', 'van'].includes(m))) {
+                        warningNotice = 'Park car at trailhead; proceed via local tricycle/motorcycle.';
+                    } else if (!canTricycleOrMotor) {
+                        warningNotice = 'Not accessible by selected vehicles (trailhead drop-off only).';
+                    }
+                }
+
+                return {
+                    mode: subModes.join(' + '),
+                    transport_mode: subModes.join(' + '),
+                    transport_modes: subModes,
+                    name: dispName,
+                    full_names: subModes.map(m => window.getVehicleDisplayName(m)).join(', '),
+                    icon: 'fa-shuffle',
+                    cost: cost,
+                    leg_cost: cost,
+                    warning: warningNotice,
+                    is_non_drivable: isNonDrivable
+                };
+            }
+
+            const normGlobal = (subModes.length === 1) ? subModes[0] : window.normalizeVehicleKey(globalMode || 'own_car');
+
+            // 1. If global is Own Car
+            if (normGlobal === 'own_car') {
+                return {
+                    mode: 'own_car',
+                    transport_mode: 'own_car',
+                    transport_modes: ['own_car'],
+                    name: 'Own Car',
+                    icon: 'fa-car',
+                    cost: 0,
+                    warning: isNonDrivable ? 'Not accessible by private car. Park at Trailhead & hike or ride local trike.' : null,
+                    is_non_drivable: isNonDrivable
+                };
+            }
+
+            // 2. If global is Motorcycle
+            if (normGlobal === 'motorcycle') {
+                return {
+                    mode: 'motorcycle',
+                    transport_mode: 'motorcycle',
+                    transport_modes: ['motorcycle'],
+                    name: 'Motorcycle',
+                    icon: 'fa-motorcycle',
+                    cost: 0,
+                    warning: isNonDrivable ? 'Trailhead parking recommended for non-drivable spots.' : null,
+                    is_non_drivable: isNonDrivable
+                };
+            }
+
+            // 3. If global is Van
+            if (normGlobal === 'van') {
+                return {
+                    mode: 'van',
+                    transport_mode: 'van',
+                    transport_modes: ['van'],
+                    name: 'Van',
+                    icon: 'fa-van-shuttle',
+                    cost: 0,
+                    warning: isNonDrivable ? 'Not accessible by private van. Park at Trailhead & hike or ride local trike.' : null,
+                    is_non_drivable: isNonDrivable
+                };
+            }
+
+            // 4. If global is Modern Jeepney (MPUJ)
+            if (normGlobal === 'mpuj') {
+                const cost = window.calculateSingleLegCost('mpuj', d, muniA, muniB);
+                return {
+                    mode: 'mpuj',
+                    transport_mode: 'mpuj',
+                    transport_modes: ['mpuj'],
+                    name: 'Modern Jeepney (MPUJ)',
+                    icon: 'fa-bus-simple',
+                    cost: cost,
+                    warning: isNonDrivable ? 'Requires hike/local ride from highway drop-off.' : null,
+                    is_non_drivable: isNonDrivable
+                };
+            }
+
+            // 5. If global is Traditional Jeepney (TPUJ)
+            if (normGlobal === 'tpuj' || normGlobal === 'jeepney') {
+                const cost = window.calculateSingleLegCost('tpuj', d, muniA, muniB);
+                return {
+                    mode: 'tpuj',
+                    transport_mode: 'tpuj',
+                    transport_modes: ['tpuj'],
+                    name: 'Traditional Jeepney (TPUJ)',
+                    icon: 'fa-van-shuttle',
+                    cost: cost,
+                    warning: isNonDrivable ? 'Requires hike/local ride from highway drop-off.' : null,
+                    is_non_drivable: isNonDrivable
+                };
+            }
+
+            // 6. If global is Tricycle
+            if (normGlobal === 'tricycle') {
+                const cost = window.calculateSingleLegCost('tricycle', d, muniA, muniB);
+                return {
+                    mode: 'tricycle',
+                    transport_mode: 'tricycle',
+                    transport_modes: ['tricycle'],
+                    name: 'Tricycle',
+                    icon: 'fa-motorcycle',
+                    cost: cost,
+                    warning: isNonDrivable ? 'Drop off at trailhead / jump-off point.' : null,
+                    is_non_drivable: isNonDrivable
+                };
+            }
+
+            // 7. If global is PUB Regular (Ordinary Bus)
+            if (normGlobal === 'pub_regular') {
+                const cost = window.calculateSingleLegCost('pub_regular', d, muniA, muniB);
+                return {
+                    mode: 'pub_regular',
+                    transport_mode: 'pub_regular',
+                    transport_modes: ['pub_regular'],
+                    name: 'PUB Regular (Ordinary Bus)',
+                    icon: 'fa-bus',
+                    cost: cost,
+                    warning: isNonDrivable ? 'Drop off along highway; transfer or hike to site.' : null,
+                    is_non_drivable: isNonDrivable
+                };
+            }
+
+            // 8. If global is PUB Aircon (Aircon Bus)
+            if (normGlobal === 'pub_aircon') {
+                const cost = window.calculateSingleLegCost('pub_aircon', d, muniA, muniB);
+                return {
+                    mode: 'pub_aircon',
+                    transport_mode: 'pub_aircon',
+                    transport_modes: ['pub_aircon'],
+                    name: 'PUB Aircon (Aircon Bus)',
+                    icon: 'fa-bus',
+                    cost: cost,
+                    warning: isNonDrivable ? 'Drop off along highway; transfer or hike to site.' : null,
+                    is_non_drivable: isNonDrivable
+                };
+            }
+
+            // 9. If global is UV Express (UVE)
+            if (normGlobal === 'uve') {
+                const cost = window.calculateSingleLegCost('uve', d, muniA, muniB);
+                return {
+                    mode: 'uve',
+                    transport_mode: 'uve',
+                    transport_modes: ['uve'],
+                    name: 'UV Express (UVE)',
+                    icon: 'fa-van-shuttle',
+                    cost: cost,
+                    warning: isNonDrivable ? 'Terminal drop-off; local transfer required.' : null,
+                    is_non_drivable: isNonDrivable
+                };
+            }
+
+            // 10. If global is Taxi
+            if (normGlobal === 'taxi') {
+                const cost = window.calculateSingleLegCost('taxi', d, muniA, muniB);
+                return {
+                    mode: 'taxi',
+                    transport_mode: 'taxi',
+                    transport_modes: ['taxi'],
+                    name: 'Taxi',
+                    icon: 'fa-taxi',
+                    cost: cost,
+                    warning: isNonDrivable ? 'Trailhead drop-off point only.' : null,
+                    is_non_drivable: isNonDrivable
+                };
+            }
+
+            // Default fallback: Own Car
+            return {
+                mode: 'own_car',
+                transport_mode: 'own_car',
+                transport_modes: ['own_car'],
+                name: 'Own Car',
+                icon: 'fa-car',
+                cost: 0,
+                warning: isNonDrivable ? 'Not accessible by private car. Park at Trailhead & hike or ride local trike.' : null,
+                is_non_drivable: isNonDrivable
+            };
+        };
+
+        window.resolveSpotAccessibleVehicles = function (spot) {
+            if (!spot) return [];
+            if (Array.isArray(spot.accessible_vehicles) && spot.accessible_vehicles.length > 0) {
+                return spot.accessible_vehicles;
+            }
+            const spotId = String(spot.id || spot.tourist_spot_id || '');
+            if (window._cachedMapSpots && window._cachedMapSpots[spotId] && Array.isArray(window._cachedMapSpots[spotId].accessible_vehicles) && window._cachedMapSpots[spotId].accessible_vehicles.length > 0) {
+                return window._cachedMapSpots[spotId].accessible_vehicles;
+            }
+            try {
+                const rawMap = localStorage.getItem('public_map_data');
+                if (rawMap) {
+                    const parsed = JSON.parse(rawMap);
+                    const list = parsed?.destinations || parsed?.data?.destinations || [];
+                    const found = list.find(s => String(s?.id) === spotId);
+                    if (found && Array.isArray(found.accessible_vehicles) && found.accessible_vehicles.length > 0) {
+                        return found.accessible_vehicles;
+                    }
+                }
+            } catch (e) {}
+
+            // Standard fallback for spots without explicit custom database assignments
+            const isDrivable = !(spot.accessible_by_private_vehicle === 0 || spot.accessible_by_private_vehicle === false || spot.accessible_by_private_vehicle === '0');
+            if (isDrivable) {
+                return ['Car', 'Motorcycle', 'Van', 'MPUJ', 'TPUJ', 'Tricycle', 'PUB_Regular', 'PUB_Aircon', 'UVE', 'TAXI'];
+            } else {
+                return ['Tricycle', 'Motorcycle'];
+            }
+        };
+
+        window.isVehicleAllowedForSpot = function (mode, spot) {
+            if (!spot) return { allowed: true, reason: '' };
+            const subModes = window.parseCompositeTransportModes(mode);
+            if (subModes.length > 1) {
+                const checks = subModes.map(m => window.isVehicleAllowedForSpot(m, spot));
+                const anyAllowed = checks.some(c => c.allowed);
+                if (anyAllowed) {
+                    return { allowed: true, reason: '' };
+                } else {
+                    return checks[0] || { allowed: false, reason: 'Destination inaccessible by selected vehicles' };
+                }
+            }
+            
+            const norm = (subModes.length === 1) ? subModes[0] : window.normalizeVehicleKey(mode);
+            const isNonDrivable = Boolean(spot.accessible_by_private_vehicle === 0 || spot.accessible_by_private_vehicle === false || spot.accessible_by_private_vehicle === '0');
+
+            if (norm === 'own_car' && isNonDrivable) {
+                return { allowed: false, reason: 'Destination inaccessible by car (trailhead drop-off only)' };
+            }
+            if (norm === 'van' && isNonDrivable) {
+                return { allowed: false, reason: 'Destination inaccessible by van (trailhead drop-off only)' };
+            }
+
+            const rawList = window.resolveSpotAccessibleVehicles(spot);
+            if (!Array.isArray(rawList) || rawList.length === 0) {
+                return { allowed: true, reason: '' };
+            }
+
+            const accList = rawList.map(v => String(v).toLowerCase().trim());
+            let matched = false;
+            if (norm === 'own_car') {
+                matched = accList.some(v => v.includes('car'));
+            } else if (norm === 'motorcycle') {
+                matched = accList.some(v => v.includes('motorcycle') || v.includes('motor'));
+            } else if (norm === 'van') {
+                matched = accList.some(v => v.includes('van'));
+            } else if (norm === 'mpuj') {
+                matched = accList.some(v => v.includes('mpuj') || v.includes('modern') || v.includes('jeep'));
+            } else if (norm === 'tpuj' || norm === 'jeepney') {
+                matched = accList.some(v => v.includes('tpuj') || v.includes('traditional') || v.includes('jeep'));
+            } else if (norm === 'tricycle') {
+                matched = accList.some(v => v.includes('tricycle') || v.includes('trike'));
+            } else if (norm === 'pub_regular') {
+                matched = accList.some(v => v.includes('pub_regular') || v.includes('regular') || v.includes('ordinary') || (v.includes('pub') && !v.includes('aircon')) || v.includes('bus'));
+            } else if (norm === 'pub_aircon') {
+                matched = accList.some(v => v.includes('pub_aircon') || v.includes('aircon') || v.includes('bus'));
+            } else if (norm === 'uve') {
+                matched = accList.some(v => v.includes('uve') || v.includes('uv') || v.includes('van'));
+            } else if (norm === 'taxi') {
+                matched = accList.some(v => v.includes('taxi'));
+            } else {
+                matched = accList.some(v => v.includes(norm));
+            }
+
+            if (!matched) {
+                return { allowed: false, reason: 'Not accessible for this destination' };
+            }
+            return { allowed: true, reason: '' };
+        };
+
+        window.isSpotUnderMaintenance = function (spot) {
+            if (!spot) return false;
+            try {
+                const spotId = String(spot.id || spot.tourist_spot_id || '');
+                if (spotId && spot.is_maintenance === undefined) {
+                    if (window._cachedMapSpots && window._cachedMapSpots[spotId]) {
+                        spot.is_maintenance = window._cachedMapSpots[spotId].is_maintenance;
+                    } else {
+                        const rawMap = localStorage.getItem('public_map_data');
+                        if (rawMap) {
+                            const parsed = JSON.parse(rawMap);
+                            const list = parsed?.destinations || parsed?.data?.destinations || [];
+                            const mapSpot = list.find(s => String(s?.id) === spotId);
+                            if (mapSpot && mapSpot.is_maintenance !== undefined) {
+                                spot.is_maintenance = mapSpot.is_maintenance;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {}
+            return Boolean(
+                spot.is_maintenance === 1 || 
+                spot.is_maintenance === true || 
+                spot.is_maintenance === '1' ||
+                (spot.status && String(spot.status).toLowerCase().includes('maint'))
+            );
+        };
+
+        window.getLegTransportInfo = function (legIdx) {
+            const draft = (typeof window.getEffectiveDraft === 'function')
+                ? window.getEffectiveDraft()
+                : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+
+            if (!draft || draft.length === 0 || legIdx >= draft.length) {
+                return { mode: 'own_car', transport_mode: 'own_car', name: 'Own Car', icon: 'fa-car', cost: 0, leg_cost: 0, distance_km: 0 };
+            }
+
+            const curGlobalTransport = localStorage.getItem('intan_elyu_draft_trip_transport') || document.getElementById('trip-transport')?.value || 'own_car';
+
+            let fromSpot = null;
+            let toSpot = draft[legIdx];
+            let distKm = 2.0;
+            let muniA = '';
+            let muniB = window.getSpotMuniName(toSpot);
+
+            if (legIdx === 0) {
+                const toLat = toSpot.lat || toSpot.latitude;
+                const toLng = toSpot.lng || toSpot.longitude;
+                if (typeof window.getDistanceAndETA === 'function' && toLat && toLng) {
+                    const eta = window.getDistanceAndETA(toLat, toLng);
+                    if (eta && eta.distanceKm) distKm = eta.distanceKm;
+                }
+                muniA = muniB;
+            } else {
+                fromSpot = draft[legIdx - 1];
+                muniA = window.getSpotMuniName(fromSpot);
+                const fromLat = fromSpot.lat || fromSpot.latitude;
+                const fromLng = fromSpot.lng || fromSpot.longitude;
+                const toLat = toSpot.lat || toSpot.latitude;
+                const toLng = toSpot.lng || toSpot.longitude;
+                if (typeof window.calculateLegETA === 'function' && fromLat && fromLng && toLat && toLng) {
+                    const eta = window.calculateLegETA(fromLat, fromLng, toLat, toLng);
+                    if (eta && eta.distanceKm) distKm = eta.distanceKm;
+                }
+            }
+
+            const isSiteUnderMaintenance = window.isSpotUnderMaintenance(toSpot);
+            if (isSiteUnderMaintenance) {
+                return {
+                    mode: 'suspended',
+                    transport_mode: 'suspended',
+                    transport_modes: [],
+                    name: 'Unavailable',
+                    icon: '',
+                    cost: 0,
+                    leg_cost: 0,
+                    distance_km: distKm,
+                    warning: 'Destination temporarily closed / under maintenance',
+                    is_inaccessible: true,
+                    is_non_drivable: true,
+                    is_maintenance: true,
+                    is_custom: false
+                };
+            }
+
+            let overrides = [];
+            try {
+                overrides = JSON.parse(localStorage.getItem('intan_elyu_draft_leg_vehicles') || '[]');
+            } catch (e) { overrides = []; }
+
+            const override = Array.isArray(overrides) ? overrides[legIdx] : null;
+            if (override && (override.transport_mode || override.transport_modes)) {
+                let modes = window.parseCompositeTransportModes(override.transport_modes || override.transport_mode);
+                if (modes.length === 0) modes = ['own_car'];
+
+                // Filter out any vehicles not accessible for this spot only if not an explicit custom leg selection
+                if (!override.is_custom) {
+                    const availModes = modes.filter(m => window.isVehicleAllowedForSpot(m, toSpot).allowed);
+                    if (availModes.length > 0 && availModes.length < modes.length) {
+                        modes = availModes;
+                    }
+                }
+
+                const cost = (override.leg_cost !== null && override.leg_cost !== undefined)
+                    ? parseFloat(override.leg_cost)
+                    : window.calculateSingleLegCost(modes.join(' + '), distKm, muniA, muniB);
+
+                let name = '';
+                let icon = 'fa-car';
+                if (modes.length === 1) {
+                    name = window.getVehicleDisplayName(modes[0]);
+                    icon = (modes[0] === 'motorcycle' || modes[0] === 'tricycle') ? 'fa-motorcycle' : (modes[0].includes('bus') ? 'fa-bus' : 'fa-car');
+                } else {
+                    name = `${modes.length} Vehicles`;
+                    icon = 'fa-shuffle';
+                }
+
+                const isNonDrivable = Boolean(toSpot && (toSpot.accessible_by_private_vehicle === 0 || toSpot.accessible_by_private_vehicle === false || toSpot.accessible_by_private_vehicle === '0'));
+                let hasInaccessible = false;
+                let warningReason = null;
+                modes.forEach(m => {
+                    const check = window.isVehicleAllowedForSpot(m, toSpot);
+                    if (!check.allowed) {
+                        hasInaccessible = true;
+                        warningReason = check.reason;
+                    }
+                });
+
+                return {
+                    mode: modes.join(' + '),
+                    transport_mode: modes.join(' + '),
+                    transport_modes: modes,
+                    name: name,
+                    full_names: modes.map(m => window.getVehicleDisplayName(m)).join(', '),
+                    icon: icon,
+                    cost: cost,
+                    leg_cost: cost,
+                    distance_km: distKm,
+                    warning: !hasInaccessible ? (isNonDrivable && modes.includes('own_car') ? 'Trailhead drop-off only' : null) : warningReason,
+                    is_inaccessible: hasInaccessible,
+                    is_non_drivable: isNonDrivable,
+                    is_custom: true
+                };
+            }
+
+            const resolved = window.resolveLegOptimalTransport(fromSpot, toSpot, distKm, curGlobalTransport);
+            const isNonDrivable = Boolean(toSpot && (toSpot.accessible_by_private_vehicle === 0 || toSpot.accessible_by_private_vehicle === false || toSpot.accessible_by_private_vehicle === '0'));
+            const check = window.isVehicleAllowedForSpot(resolved.mode, toSpot);
+
+            return {
+                ...resolved,
+                transport_mode: resolved.mode,
+                transport_modes: (Array.isArray(resolved.transport_modes) && resolved.transport_modes.length > 0)
+                    ? resolved.transport_modes
+                    : window.parseCompositeTransportModes(resolved.mode),
+                leg_cost: resolved.cost,
+                distance_km: distKm,
+                warning: check.allowed ? resolved.warning : check.reason,
+                is_inaccessible: !check.allowed,
+                is_non_drivable: isNonDrivable,
+                is_custom: false
+            };
+        };
+
+        window.currentLegModalIdx = null;
+        window.currentLegModalDistKm = 2.0;
+        window.currentLegModalMuniA = '';
+        window.currentLegModalMuniB = '';
+        window.currentLegModalSelectedModes = [];
+        window.currentLegEvaluatedCandidates = [];
+
+        window.openLegTransportModal = function (legIdx) {
+            const draft = (typeof window.getEffectiveDraft === 'function')
+                ? window.getEffectiveDraft()
+                : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+
+            if (!draft || draft.length === 0 || legIdx >= draft.length) return;
+
+            const toSpot = draft[legIdx];
+            const fromSpot = (legIdx === 0) ? null : draft[legIdx - 1];
+            const muniA = fromSpot ? window.getSpotMuniName(fromSpot) : '';
+            const muniB = window.getSpotMuniName(toSpot);
+
+            let distKm = 2.0;
+            if (legIdx === 0) {
+                const toLat = toSpot.lat || toSpot.latitude;
+                const toLng = toSpot.lng || toSpot.longitude;
+                if (typeof window.getDistanceAndETA === 'function' && toLat && toLng) {
+                    const eta = window.getDistanceAndETA(toLat, toLng);
+                    if (eta && eta.distanceKm) distKm = eta.distanceKm;
+                }
+            } else {
+                const fromLat = fromSpot.lat || fromSpot.latitude;
+                const fromLng = fromSpot.lng || fromSpot.longitude;
+                const toLat = toSpot.lat || toSpot.latitude;
+                const toLng = toSpot.lng || toSpot.longitude;
+                if (typeof window.calculateLegETA === 'function' && fromLat && fromLng && toLat && toLng) {
+                    const eta = window.calculateLegETA(fromLat, fromLng, toLat, toLng);
+                    if (eta && eta.distanceKm) distKm = eta.distanceKm;
+                }
+            }
+
+            window.currentLegModalIdx = legIdx;
+            window.currentLegModalDistKm = distKm;
+            window.currentLegModalMuniA = muniA;
+            window.currentLegModalMuniB = muniB;
+
+            const fromName = (legIdx === 0) ? 'Your Location' : fromSpot.name;
+            const toName = toSpot.name;
+
+            // Enrich destination spot metadata from public_map_data if cached in localStorage
+            try {
+                const rawMap = localStorage.getItem('public_map_data');
+                if (rawMap) {
+                    const parsedMap = (typeof window.safeJsonParse === 'function') ? window.safeJsonParse(rawMap, null) : JSON.parse(rawMap);
+                    const spotsArr = (parsedMap && parsedMap.data && parsedMap.data.destinations) ? parsedMap.data.destinations : (parsedMap && parsedMap.destinations ? parsedMap.destinations : []);
+                    if (Array.isArray(spotsArr)) {
+                        const spotId = String(toSpot.id || toSpot.tourist_spot_id || '');
+                        const mapSpot = spotsArr.find(s => s && String(s.id) === spotId);
+                        if (mapSpot) {
+                            if (toSpot.accessible_by_private_vehicle === undefined && mapSpot.accessible_by_private_vehicle !== undefined) {
+                                toSpot.accessible_by_private_vehicle = mapSpot.accessible_by_private_vehicle;
+                            }
+                            if ((!toSpot.accessible_vehicles || toSpot.accessible_vehicles.length === 0) && Array.isArray(mapSpot.accessible_vehicles) && mapSpot.accessible_vehicles.length > 0) {
+                                toSpot.accessible_vehicles = mapSpot.accessible_vehicles;
+                            }
+                            if (mapSpot.is_maintenance !== undefined) {
+                                toSpot.is_maintenance = mapSpot.is_maintenance;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {}
+
+            const isNonDrivable = Boolean(toSpot && (toSpot.accessible_by_private_vehicle === 0 || toSpot.accessible_by_private_vehicle === false || toSpot.accessible_by_private_vehicle === '0'));
+            const isSiteUnderMaintenance = Boolean(
+                (toSpot && (toSpot.is_maintenance === 1 || toSpot.is_maintenance === true || toSpot.is_maintenance === '1')) ||
+                (typeof window.getLegTransportInfo === 'function' && window.getLegTransportInfo(legIdx).is_maintenance)
+            );
+            window.currentLegIsSiteUnderMaintenance = isSiteUnderMaintenance;
+
+            // If the destination site is under maintenance, DO NOT show the Choose Leg Transport opensheet modal!
+            if (isSiteUnderMaintenance) {
+                const modal = document.getElementById('leg-transport-modal');
+                if (modal) modal.style.display = 'none';
+                if (typeof showToast === 'function') {
+                    showToast(`${toName || 'This site'} is currently under maintenance or temporarily closed. Vehicle transit is restricted.`);
+                }
+                return;
+            }
+
+            const subEl = document.getElementById('leg-modal-subtitle');
+            if (subEl) {
+                subEl.innerHTML = isSiteUnderMaintenance
+                    ? `<strong>Leg ${legIdx + 1}:</strong> ${fromName} &rarr; ${toName}`
+                    : `<strong>Leg ${legIdx + 1}:</strong> ${fromName} &rarr; ${toName} &bull; ${distKm.toFixed(1)} km`;
+            }
+            const warnEl = document.getElementById('leg-modal-warning');
+            const warnTxtEl = document.getElementById('leg-modal-warning-text');
+            if (warnEl && warnTxtEl) {
+                if (isSiteUnderMaintenance) {
+                    warnEl.style.display = 'flex';
+                    warnTxtEl.textContent = `${toName} is currently under maintenance or temporarily closed. Vehicle transit is restricted.`;
+                } else if (isNonDrivable) {
+                    warnEl.style.display = 'flex';
+                    warnTxtEl.textContent = `${toName} is inaccessible by private vehicles. If choosing Own Car, plan to park at the trailhead and hike or ride a local tricycle.`;
+                } else {
+                    warnEl.style.display = 'none';
+                }
+            }
+
+            const cleanA = muniA.replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim();
+            const cleanB = muniB.replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim();
+            const isCross = Boolean(cleanA && cleanB && cleanA.toLowerCase() !== cleanB.toLowerCase());
+
+            const trikeOptimal = (!isCross && distKm <= 3.5);
+            const mpujOptimal = (isCross || distKm > 3.5);
+
+            const candidates = [
+                // Private Vehicles
+                {
+                    mode: 'own_car',
+                    name: 'Own Car',
+                    desc: isNonDrivable ? 'Trailhead drop-off point only' : 'Direct personal car driving',
+                    icon: 'fa-car',
+                    cost: 0,
+                    isRecommended: false,
+                    category: 'Private'
+                },
+                {
+                    mode: 'motorcycle',
+                    name: 'Motorcycle',
+                    desc: 'Fast two-wheeler personal ride',
+                    icon: 'fa-motorcycle',
+                    cost: 0,
+                    isRecommended: false,
+                    category: 'Private'
+                },
+                {
+                    mode: 'van',
+                    name: 'Van',
+                    desc: isNonDrivable ? 'Trailhead drop-off point only' : 'Family & group private vehicle',
+                    icon: 'fa-van-shuttle',
+                    cost: 0,
+                    isRecommended: false,
+                    category: 'Private'
+                },
+                // Public Vehicles
+                {
+                    mode: 'mpuj',
+                    name: 'MPUJ (Modern Jeepney)',
+                    desc: 'Air-conditioned modern commuter jeepney',
+                    icon: 'fa-bus-simple',
+                    cost: window.calculateSingleLegCost('mpuj', distKm, muniA, muniB),
+                    isRecommended: mpujOptimal,
+                    category: 'Public'
+                },
+                {
+                    mode: 'tpuj',
+                    name: 'TPUJ (Traditional Jeepney)',
+                    desc: 'Classic open-air commuter jeepney',
+                    icon: 'fa-van-shuttle',
+                    cost: window.calculateSingleLegCost('tpuj', distKm, muniA, muniB),
+                    isRecommended: false,
+                    category: 'Public'
+                },
+                {
+                    mode: 'tricycle',
+                    name: 'Tricycle',
+                    desc: (!isCross ? 'Direct point-to-point drop-off' : 'Local town & beach transit'),
+                    icon: 'fa-motorcycle',
+                    cost: window.calculateSingleLegCost('tricycle', distKm, muniA, muniB),
+                    isRecommended: trikeOptimal,
+                    category: 'Public'
+                },
+                {
+                    mode: 'pub_regular',
+                    name: 'PUB Regular (Ordinary Bus)',
+                    desc: 'Provincial highway regular passenger bus',
+                    icon: 'fa-bus',
+                    cost: window.calculateSingleLegCost('pub_regular', distKm, muniA, muniB),
+                    isRecommended: false,
+                    category: 'Public'
+                },
+                {
+                    mode: 'pub_aircon',
+                    name: 'PUB Aircon (Aircon Bus)',
+                    desc: 'Provincial air-conditioned coach bus',
+                    icon: 'fa-bus',
+                    cost: window.calculateSingleLegCost('pub_aircon', distKm, muniA, muniB),
+                    isRecommended: false,
+                    category: 'Public'
+                },
+                {
+                    mode: 'uve',
+                    name: 'UV Express (UVE)',
+                    desc: 'Express inter-town shuttle service',
+                    icon: 'fa-van-shuttle',
+                    cost: window.calculateSingleLegCost('uve', distKm, muniA, muniB),
+                    isRecommended: false,
+                    category: 'Public'
+                },
+                {
+                    mode: 'taxi',
+                    name: 'Taxi',
+                    desc: 'Direct metered air-conditioned taxi',
+                    icon: 'fa-taxi',
+                    cost: window.calculateSingleLegCost('taxi', distKm, muniA, muniB),
+                    isRecommended: false,
+                    category: 'Public'
+                }
+            ];
+
+            let availableCount = 0;
+            window.currentLegEvaluatedCandidates = candidates.map(opt => {
+                let isAvail = true;
+                let unavailReason = '';
+
+                // 1. Site maintenance check
+                if (isSiteUnderMaintenance) {
+                    isAvail = false;
+                    unavailReason = 'Destination currently under maintenance / closed';
+                }
+
+                // 2. Road & Database Accessible Vehicles check
+                if (isAvail) {
+                    const check = window.isVehicleAllowedForSpot(opt.mode, toSpot);
+                    if (!check.allowed) {
+                        isAvail = false;
+                        unavailReason = check.reason;
+                    }
+                }
+
+                // 3. Operational range constraints
+                if (isAvail && opt.mode === 'tricycle' && distKm > 15) {
+                    isAvail = false;
+                    unavailReason = 'Exceeds tricycle service range (> 15 km)';
+                }
+
+                if (isAvail) availableCount++;
+                return { ...opt, isAvail, unavailReason };
+            });
+
+            // Initialize multi-selection from existing saved overrides or leg info
+            let overrides = [];
+            try {
+                overrides = JSON.parse(localStorage.getItem('intan_elyu_draft_leg_vehicles') || '[]');
+            } catch (e) { overrides = []; }
+            const override = Array.isArray(overrides) ? overrides[legIdx] : null;
+
+            let initialModes = [];
+            if (isSiteUnderMaintenance) {
+                initialModes = [];
+            } else if (override && Array.isArray(override.transport_modes) && override.transport_modes.length > 0) {
+                initialModes = window.parseCompositeTransportModes(override.transport_modes);
+            } else if (override && override.transport_mode) {
+                initialModes = window.parseCompositeTransportModes(override.transport_mode);
+            } else {
+                const curLegInfo = window.getLegTransportInfo(legIdx);
+                if (curLegInfo && Array.isArray(curLegInfo.transport_modes) && curLegInfo.transport_modes.length > 0) {
+                    initialModes = window.parseCompositeTransportModes(curLegInfo.transport_modes);
+                } else if (curLegInfo && curLegInfo.transport_mode && curLegInfo.transport_mode !== 'suspended') {
+                    initialModes = window.parseCompositeTransportModes(curLegInfo.transport_mode);
+                } else {
+                    initialModes = window.getNormalizedTripModes();
+                }
+            }
+
+            if (!isSiteUnderMaintenance && initialModes.length === 0) {
+                initialModes = window.getNormalizedTripModes();
+            }
+
+            // Ensure inaccessible vehicles for this spot are not pre-selected in the modal (unless tourist explicitly chose a custom combination)
+            if (!isSiteUnderMaintenance && (!override || !override.is_custom)) {
+                const allowedInitial = initialModes.filter(m => window.isVehicleAllowedForSpot(m, toSpot).allowed);
+                if (allowedInitial.length > 0) {
+                    initialModes = allowedInitial;
+                }
+            }
+            window.currentLegModalSelectedModes = initialModes;
+
+            window.renderLegModalList(availableCount);
+
+            const modal = document.getElementById('leg-transport-modal');
+            if (modal) modal.style.display = 'flex';
+
+            const bottomNav = document.getElementById('bottom-navigation');
+            if (bottomNav) bottomNav.classList.add('nav-hidden');
+        };
+
+        window.renderLegModalList = function (availableCount) {
+            const listEl = document.getElementById('leg-modal-options-list');
+            if (!listEl) return;
+
+            let listHtml = '';
+            const availCount = (availableCount !== undefined) 
+                ? availableCount 
+                : (window.currentLegEvaluatedCandidates || []).filter(c => c.isAvail).length;
+
+            const selectedModes = window.currentLegModalSelectedModes || [];
+
+            let prevCat = '';
+            (window.currentLegEvaluatedCandidates || []).forEach(opt => {
+                if (opt.category && opt.category !== prevCat) {
+                    prevCat = opt.category;
+                    const catIcon = prevCat === 'Private' ? 'fa-car' : 'fa-bus';
+                    listHtml += `
+                    <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:#1e3a8a; letter-spacing:0.6px; margin:8px 0 3px 2px; display:flex; align-items:center; gap:6px;">
+                        <i class="fa-solid ${catIcon}" style="font-size:11px; color:#1e3a8a;"></i> ${prevCat} Transport
+                    </div>`;
+                }
+
+                const optNorm = window.normalizeVehicleKey(opt.mode);
+                const isSelected = selectedModes.some(m => {
+                    return window.normalizeVehicleKey(m) === optNorm;
+                }) && opt.isAvail;
+
+                const costStr = (opt.cost > 0) ? `₱${opt.cost.toFixed(2)}` : '₱0';
+                const costColor = '#ffffff';
+                const disabledClass = !opt.isAvail ? 'disabled-leg-option' : '';
+                const clickHandler = opt.isAvail
+                    ? `onclick="window.toggleLegCandidateMode('${opt.mode}')"`
+                    : `onclick="if(typeof showToast==='function') showToast('Unavailable: ${opt.unavailReason.replace(/'/g, "\\'")}');"`;
+
+                listHtml += `
+                <div class="leg-option-card ${isSelected ? 'active' : ''} ${disabledClass}" ${clickHandler} style="${!opt.isAvail ? 'opacity:0.45; cursor:not-allowed;' : ''}">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <!-- Multi-select checkbox -->
+                        <div style="width:22px; height:22px; border-radius:6px; border:2px solid ${isSelected ? '#ffffff' : 'rgba(255,255,255,0.65)'}; background:${isSelected ? '#ffffff' : 'rgba(255,255,255,0.1)'}; display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            ${isSelected ? '<i class="fa-solid fa-check" style="color:#1e3a8a !important;"></i>' : ''}
+                        </div>
+
+                        <div class="leg-option-icon">
+                            <i class="fa-solid ${opt.icon}"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                <span>${opt.name}</span>
+                                ${opt.isRecommended && opt.isAvail ? '<span style="font-size:9px; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:1px 7px; border-radius:100px; font-weight:800; letter-spacing:0.3px;">OPTIMAL</span>' : ''}
+                                ${!opt.isAvail ? '<span style="font-size:8.5px; background:rgba(239,68,68,0.25); color:#fca5a5; padding:1px 6px; border-radius:100px; font-weight:800; letter-spacing:0.3px;"><i class="fa-solid fa-ban" style="font-size:8px;"></i> UNAVAILABLE</span>' : ''}
+                            </div>
+                            ${!opt.isAvail ? `<div style="font-size:10.5px; color:#fca5a5; font-weight:700; margin-top:3px;"><i class="fa-solid fa-circle-exclamation" style="font-size:9px;"></i> ${opt.unavailReason}</div>` : ''}
+                        </div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                        <div style="font-size:14.5px; font-weight:900; color:${opt.isAvail ? costColor : '#94a3b8'}; letter-spacing:-0.2px;">
+                            ${opt.isAvail ? costStr : '—'}
+                        </div>
+                        ${isSelected ? '<span style="font-size:9.5px; color:#ffffff; font-weight:800;"><i class="fa-solid fa-check"></i> Selected</span>' : ''}
+                    </div>
+                </div>`;
+            });
+
+            listEl.innerHTML = listHtml;
+
+            const isSiteMaint = Boolean(window.currentLegIsSiteUnderMaintenance || availCount === 0);
+
+            // Toggle selection info bar: remove "select multiple vehicles if needed: Site Under Maintenance"
+            const selBar = document.getElementById('leg-modal-selection-bar');
+            if (selBar) {
+                selBar.style.display = isSiteMaint ? 'none' : 'flex';
+            }
+
+            // Update Selection Count Pill
+            const countEl = document.getElementById('leg-modal-selection-count');
+            if (countEl) {
+                const count = selectedModes.length;
+                countEl.textContent = `${count} Selected`;
+                countEl.style.background = 'rgba(30, 58, 138, 0.08)';
+                countEl.style.color = '#1e3a8a';
+                countEl.style.borderColor = 'transparent';
+            }
+
+            // Toggle estimated leg fare container: remove the estimated leg fare if Site Under Maintenance
+            const fareContainer = document.getElementById('leg-modal-fare-container');
+            if (fareContainer) {
+                fareContainer.style.display = isSiteMaint ? 'none' : 'block';
+            }
+
+            // Calculate & Update Total Fare for the Leg
+            let totalLegFare = 0;
+            if (!isSiteMaint) {
+                selectedModes.forEach(m => {
+                    totalLegFare += window.calculateSingleLegCost(m, window.currentLegModalDistKm, window.currentLegModalMuniA, window.currentLegModalMuniB);
+                });
+            }
+            const fareEl = document.getElementById('leg-modal-total-fare');
+            if (fareEl) {
+                fareEl.textContent = (totalLegFare > 0) ? `₱${totalLegFare.toFixed(2)}` : '₱0.00';
+            }
+
+            const btnApply = document.getElementById('btn-apply-leg-transport');
+            if (btnApply) {
+                if (isSiteMaint) {
+                    btnApply.disabled = true;
+                    btnApply.style.opacity = '0.7';
+                    btnApply.style.cursor = 'not-allowed';
+                    btnApply.style.width = '100%';
+                    btnApply.style.justifyContent = 'center';
+                    btnApply.innerHTML = `Unavailable`;
+                } else {
+                    btnApply.disabled = false;
+                    btnApply.style.opacity = '1';
+                    btnApply.style.cursor = 'pointer';
+                    btnApply.style.width = 'auto';
+                    btnApply.style.justifyContent = 'flex-start';
+                    btnApply.innerHTML = `<i class="fa-solid fa-check"></i> Done (${selectedModes.length})`;
+                }
+            }
+        };
+
+        window.toggleLegCandidateMode = function (mode) {
+            const opt = (window.currentLegEvaluatedCandidates || []).find(c => c.mode === mode);
+            if (opt && !opt.isAvail) {
+                if (typeof showToast === 'function') {
+                    showToast('Unavailable: ' + (opt.unavailReason || 'Not permitted for this destination'));
+                }
+                return;
+            }
+
+            const norm = window.normalizeVehicleKey(mode);
+            let list = (window.currentLegModalSelectedModes || []).map(m => window.normalizeVehicleKey(m)).filter(Boolean);
+
+            const idx = list.indexOf(norm);
+            if (idx > -1) {
+                if (list.length === 1) {
+                    if (typeof showToast === 'function') {
+                        showToast('Please keep at least one transport mode selected.');
+                    }
+                    return;
+                }
+                list.splice(idx, 1);
+            } else {
+                list.push(norm);
+            }
+
+            window.currentLegModalSelectedModes = list;
+            window.renderLegModalList();
+        };
+
+        window.applyLegVehicleSelection = function () {
+            const legIdx = window.currentLegModalIdx;
+            if (legIdx === null || legIdx === undefined) return;
+
+            const draft = (typeof window.getEffectiveDraft === 'function')
+                ? window.getEffectiveDraft()
+                : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+            const toSpot = draft[legIdx];
+            const isSiteUnderMaintenance = Boolean(toSpot && (toSpot.is_maintenance === 1 || toSpot.is_maintenance === true || toSpot.is_maintenance === '1'));
+            if (isSiteUnderMaintenance) {
+                if (typeof showToast === 'function') {
+                    showToast('Transit cannot be configured while the destination is under maintenance.');
+                }
+                return;
+            }
+
+            const selectedModes = window.parseCompositeTransportModes(window.currentLegModalSelectedModes || []);
+            if (selectedModes.length === 0) {
+                if (typeof showToast === 'function') showToast('Please select at least one transport mode.');
+                return;
+            }
+
+            let overrides = [];
+            try {
+                overrides = JSON.parse(localStorage.getItem('intan_elyu_draft_leg_vehicles') || '[]');
+            } catch (e) { overrides = []; }
+
+            let totalCost = 0;
+            selectedModes.forEach(m => {
+                totalCost += window.calculateSingleLegCost(m, window.currentLegModalDistKm, window.currentLegModalMuniA, window.currentLegModalMuniB);
+            });
+
+            const displayNames = selectedModes.map(m => window.getVehicleDisplayName(m));
+
+            let displayName = '';
+            if (selectedModes.length === 1) {
+                displayName = displayNames[0];
+            } else {
+                displayName = `${selectedModes.length} Vehicles`;
+            }
+
+            overrides[legIdx] = {
+                transport_mode: selectedModes.join(' + '),
+                transport_modes: selectedModes,
+                leg_cost: parseFloat(totalCost) || 0,
+                leg_distance_km: parseFloat(window.currentLegModalDistKm) || 0,
+                display_name: displayName,
+                full_names: displayNames.join(', '),
+                is_custom: true
+            };
+
+            localStorage.setItem('intan_elyu_draft_leg_vehicles', JSON.stringify(overrides));
+
+            // Leg vehicle configuration is strictly isolated to this leg.
+            // It does NOT overwrite or accumulate into the overall Trip Transportation.
+            window.closeLegTransportModal();
+
+            if (typeof window.renderItinerary === 'function') {
+                window.renderItinerary(true);
+            }
+            if (typeof window.calculateModalBudget === 'function') {
+                window.calculateModalBudget();
+            }
+            if (typeof window.updateDraftBudget === 'function') {
+                window.updateDraftBudget(draft);
+            }
+            if (typeof window.updateDraftTravelModeBar === 'function') {
+                window.updateDraftTravelModeBar();
+            }
+            if (typeof showToast === 'function') {
+                showToast(`Stop ${legIdx + 1} transit set to ${displayName}`);
+            }
+        };
+
+        window.closeLegTransportModal = function () {
+            const modal = document.getElementById('leg-transport-modal');
+            if (modal) modal.style.display = 'none';
+
+            const bottomNav = document.getElementById('bottom-navigation');
+            if (bottomNav) bottomNav.classList.remove('nav-hidden');
+        };
+
+        window.openTransitSummaryOpensheet = function () {
+            const modal = document.getElementById('transit-summary-opensheet');
+            if (!modal) return;
+
+            const listEl = document.getElementById('transit-summary-items-list');
+            const badgeEl = document.getElementById('transit-summary-badge');
+            const totalFareEl = document.getElementById('transit-summary-total-fare');
+
+            const draft = (typeof window.getEffectiveDraft === 'function')
+                ? window.getEffectiveDraft()
+                : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+
+            if (!draft || draft.length === 0) {
+                if (listEl) {
+                    listEl.innerHTML = `
+                        <div style="text-align:center; padding:32px 16px; color:#64748b;">
+                            <i class="fa-regular fa-compass" style="font-size:32px; color:#94a3b8; margin-bottom:8px;"></i>
+                            <div style="font-size:14px; font-weight:700; color:#334155;">No Destinations Added</div>
+                            <div style="font-size:12px; color:#94a3b8; margin-top:2px;">Add spots to your itinerary to view transit breakdowns.</div>
+                        </div>
+                    `;
+                }
+                if (badgeEl) badgeEl.textContent = '0 Destinations';
+                if (totalFareEl) totalFareEl.textContent = '₱0.00';
+                modal.style.display = 'flex';
+                return;
+            }
+
+            if (badgeEl) {
+                badgeEl.textContent = `${draft.length} Destination${draft.length > 1 ? 's' : ''}`;
+            }
+
+            let grandTotal = 0;
+            let cardsHtml = '';
+
+            draft.forEach((dest, idx) => {
+                const info = (typeof window.getLegTransportInfo === 'function')
+                    ? window.getLegTransportInfo(idx)
+                    : { mode: 'own_car', name: 'Own Car', cost: 0, distance_km: 2.0 };
+
+                const isMaintenance = Boolean(info && info.is_maintenance);
+                const cost = (info && !isMaintenance) ? parseFloat(info.cost || info.leg_cost || 0) : 0;
+                grandTotal += cost;
+
+                const fromName = (idx === 0) ? 'Your Starting Location' : (draft[idx - 1].name || `Stop ${idx}`);
+                const toName = dest.name || `Destination ${idx + 1}`;
+                const muni = (typeof window.getSpotMuniName === 'function') ? window.getSpotMuniName(dest) : '';
+                const distKm = (info && info.distance_km != null) ? parseFloat(info.distance_km).toFixed(1) : '—';
+
+                // Vehicle badge / icon (Unavailable has NO icon as requested)
+                let transportMarkup = '';
+                if (isMaintenance) {
+                    transportMarkup = `
+                        <span style="display:inline-flex; align-items:center; background:#ef4444; color:#ffffff; font-size:11px; font-weight:800; padding:4px 10px; border-radius:100px; border:none !important; outline:none !important;">
+                            Unavailable
+                        </span>
+                    `;
+                } else {
+                    const iconClass = (info && info.icon) ? info.icon : 'fa-car';
+                    const vehicleLabel = (info && (info.full_names || info.name)) ? (info.full_names || info.name) : 'Own Car';
+                    transportMarkup = `
+                        <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.16); color:#ffffff; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:100px; border:1px solid rgba(255,255,255,0.22);">
+                            <i class="fa-solid ${iconClass}" style="color:#00f2fe; font-size:12px;"></i>
+                            <span style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${vehicleLabel}</span>
+                        </div>
+                    `;
+                }
+
+                // Fare display
+                let fareMarkup = '';
+                if (isMaintenance) {
+                    fareMarkup = `<span style="font-size:14px; font-weight:800; color:rgba(255,255,255,0.6);">₱0.00</span>`;
+                } else if (cost === 0) {
+                    fareMarkup = `<span style="font-size:13.5px; font-weight:800; color:#34d399;">₱0.00</span> <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.72);">(Free)</span>`;
+                } else {
+                    fareMarkup = `<span style="font-size:15px; font-weight:900; color:#00f2fe;">₱${cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>`;
+                }
+
+                // Warning or note
+                let noteMarkup = '';
+                if (isMaintenance) {
+                    noteMarkup = `
+                        <div style="margin-top:6px; font-size:11px; font-weight:600; color:#fee2e2; background:rgba(239,68,68,0.25); padding:6px 10px; border-radius:8px; border:1px solid rgba(239,68,68,0.4); display:flex; align-items:center; gap:6px;">
+                            <i class="fa-solid fa-triangle-exclamation" style="font-size:11px; color:#fca5a5;"></i>
+                            <span>Destination temporarily closed / under maintenance</span>
+                        </div>
+                    `;
+                } else if (info && info.warning) {
+                    noteMarkup = `
+                        <div style="margin-top:6px; font-size:11px; font-weight:600; color:#fef3c7; background:rgba(245,158,11,0.25); padding:6px 10px; border-radius:8px; border:1px solid rgba(245,158,11,0.4); display:flex; align-items:center; gap:6px;">
+                            <i class="fa-solid fa-circle-info" style="font-size:11px; color:#fcd34d;"></i>
+                            <span>${info.warning}</span>
+                        </div>
+                    `;
+                }
+
+                cardsHtml += `
+                    <div style="background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border-radius:16px; padding:13px 15px; border:none !important; outline:none !important; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important; display:flex; flex-direction:column; gap:8px; color:#ffffff;">
+                        <!-- Header: Stop Badge + Distance -->
+                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                            <span style="font-size:11px; font-weight:800; color:#ffffff; background:rgba(255,255,255,0.2); padding:3px 10px; border-radius:100px; border:none !important; outline:none !important;">
+                                Stop ${idx + 1}
+                            </span>
+                            <span style="font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.9); display:inline-flex; align-items:center; gap:4px;">
+                                <i class="fa-solid fa-route" style="font-size:10.5px; color:#00f2fe;"></i> ${distKm} km
+                            </span>
+                        </div>
+
+                        <!-- Route Segment: From -> To -->
+                        <div style="display:flex; flex-direction:column; gap:4px; padding:2px 0;">
+                            <div style="display:flex; align-items:center; gap:7px; font-size:11.5px; color:rgba(255,255,255,0.78); font-weight:600;">
+                                <i class="fa-regular fa-circle-dot" style="font-size:9.5px; color:#38bdf8; flex-shrink:0;"></i>
+                                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${fromName}</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:7px; font-size:13px; color:#ffffff; font-weight:800;">
+                                <i class="fa-solid fa-location-dot" style="font-size:11px; color:#00f2fe; flex-shrink:0;"></i>
+                                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${toName}</span>
+                                ${muni ? `<span style="font-size:10px; font-weight:700; color:#00f2fe; background:rgba(0, 242, 254, 0.2); padding:1px 6px; border-radius:4px; border:none !important; outline:none !important; flex-shrink:0;">${muni}</span>` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Footer: Transport Mode & Price -->
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding-top:6px; border-top:1px dashed rgba(255,255,255,0.22); margin-top:2px;">
+                            <div>${transportMarkup}</div>
+                            <div style="text-align:right;">
+                                <div style="font-size:9.5px; font-weight:700; color:rgba(255,255,255,0.72); text-transform:uppercase;">Estimated Fare</div>
+                                <div>${fareMarkup}</div>
+                            </div>
+                        </div>
+
+                        ${noteMarkup}
+                    </div>
+                `;
+            });
+
+            if (listEl) listEl.innerHTML = cardsHtml;
+            if (totalFareEl) {
+                totalFareEl.textContent = '₱' + grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+
+            modal.style.display = 'flex';
+        };
+
+        window.closeTransitSummaryOpensheet = function () {
+            const modal = document.getElementById('transit-summary-opensheet');
+            if (modal) modal.style.display = 'none';
+        };
+
+        window.selectLegVehicle = function (legIdx, mode, cost, distKm) {
+            window.currentLegModalIdx = legIdx;
+            window.currentLegModalDistKm = distKm;
+            window.currentLegModalSelectedModes = window.parseCompositeTransportModes(mode);
+            window.applyLegVehicleSelection();
+        };
+
+        window.getNormalizedTripModes = function () {
+            let modes = [];
+            try {
+                const rawArr = localStorage.getItem('intan_elyu_draft_trip_transports');
+                if (rawArr) {
+                    const parsed = JSON.parse(rawArr);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        modes = window.parseCompositeTransportModes(parsed);
+                    }
+                }
+            } catch (e) {}
+
+            if (modes.length === 0) {
+                const raw = localStorage.getItem('intan_elyu_draft_trip_transport') || 'own_car';
+                modes = window.parseCompositeTransportModes(raw);
+            }
+
+            if (modes.length === 0) {
+                modes = ['own_car'];
+            }
+
+            // Auto-heal legacy or corrupted localStorage entries (e.g. "own_car_ + _motorcycle" or missing array)
+            try {
+                const cleanComposite = (modes.length === 1) ? modes[0] : modes.join(' + ');
+                const storedRaw = localStorage.getItem('intan_elyu_draft_trip_transport');
+                if (storedRaw !== cleanComposite) {
+                    localStorage.setItem('intan_elyu_draft_trip_transport', cleanComposite);
+                    localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(modes));
+                }
+            } catch (e) {}
+
+            return modes;
+        };
+
+        window.updateDraftTravelModeBar = function () {
+            const bar = document.getElementById('draft-travel-mode-bar');
+            if (!bar) return;
+            const iconEl = document.getElementById('draft-travel-mode-icon');
+            const labelEl = document.getElementById('draft-travel-mode-label');
+
+            const tripModes = window.getNormalizedTripModes();
+
+            if (tripModes.length === 1) {
+                const mode = tripModes[0];
+                if (iconEl) {
+                    let html = window.getVehicleIconHtml(mode);
+                    iconEl.innerHTML = html.replace(/color:[^;"]+/g, 'color:#1e3a8a !important');
+                }
+                if (labelEl) labelEl.textContent = window.getVehicleDisplayName(mode);
+            } else {
+                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-route" style="color:#1e3a8a !important;"></i>';
+                if (labelEl) labelEl.textContent = `${tripModes.length} Vehicles`;
+            }
+        };
+
+        window.starterModalSelectedModes = [];
+
+        window.openTravelModeStarterModal = function () {
+            const modal = document.getElementById('travel-mode-starter-modal');
+            if (!modal) return;
+
+            const initialModes = window.getNormalizedTripModes();
+            window.starterModalSelectedModes = [...initialModes];
+            window.renderStarterModalCards();
+
+            modal.style.display = 'flex';
+            const bottomNav = document.getElementById('bottom-navigation');
+            if (bottomNav) bottomNav.classList.add('nav-hidden');
+
+            setTimeout(() => {
+                const firstSelected = modal.querySelector('.travel-starter-card.active');
+                if (firstSelected) {
+                    firstSelected.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }, 60);
+        };
+
+        window.renderStarterModalCards = function () {
+            const modal = document.getElementById('travel-mode-starter-modal');
+            if (!modal) return;
+
+            const selected = (window.starterModalSelectedModes || ['own_car']).map(m => window.normalizeVehicleKey(m));
+
+            const cards = modal.querySelectorAll('.travel-starter-card');
+            cards.forEach(card => {
+                const mode = window.normalizeVehicleKey(card.getAttribute('data-mode') || '');
+                const badge = card.querySelector('.starter-active-badge');
+                const checkIcon = card.querySelector('.starter-check-icon');
+                const checkBox = card.querySelector('.starter-check-box');
+                const isSelected = selected.includes(mode);
+
+                if (isSelected) {
+                    card.classList.add('active');
+                    if (badge) badge.style.display = 'inline-block';
+                    if (checkIcon) {
+                        checkIcon.style.display = 'inline-block';
+                        checkIcon.style.color = '#1e3a8a';
+                    }
+                    if (checkBox) {
+                        checkBox.style.background = '#ffffff';
+                        checkBox.style.borderColor = '#ffffff';
+                    }
+                } else {
+                    card.classList.remove('active');
+                    if (badge) badge.style.display = 'none';
+                    if (checkIcon) checkIcon.style.display = 'none';
+                    if (checkBox) {
+                        checkBox.style.background = 'rgba(255,255,255,0.1)';
+                        checkBox.style.borderColor = 'rgba(255,255,255,0.65)';
+                    }
+                }
+            });
+
+            // Update selection count badge
+            const countEl = document.getElementById('starter-modal-selection-count');
+            if (countEl) {
+                countEl.textContent = `${selected.length} Selected`;
+            }
+
+            // Update footer label with proper display names
+            const labelEl = document.getElementById('starter-modal-current-mode-label');
+            if (labelEl) {
+                if (selected.length === 1) {
+                    labelEl.textContent = window.getVehicleDisplayName(selected[0]);
+                } else {
+                    labelEl.textContent = `${selected.length} Vehicles`;
+                }
+            }
+
+            // Update Done button with prominent checkmark icon
+            const btn = document.getElementById('btn-apply-starter-transport');
+            if (btn) {
+                btn.innerHTML = `<i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Done (${selected.length})`;
+            }
+        };
+
+        window.toggleStarterVehicleMode = function (mode) {
+            const norm = window.normalizeVehicleKey(mode);
+            let list = (window.starterModalSelectedModes || []).map(m => window.normalizeVehicleKey(m)).filter(Boolean);
+
+            const idx = list.indexOf(norm);
+            if (idx > -1) {
+                if (list.length === 1) {
+                    if (typeof showToast === 'function') {
+                        showToast('Please keep at least one vehicle selected.');
+                    }
+                    return;
+                }
+                list.splice(idx, 1);
+            } else {
+                list.push(norm);
+            }
+
+            window.starterModalSelectedModes = list;
+            window.renderStarterModalCards();
+        };
+
+        window.applyStarterVehicleSelection = function () {
+            const selected = window.parseCompositeTransportModes(window.starterModalSelectedModes || []);
+            if (selected.length === 0) {
+                if (typeof showToast === 'function') showToast('Please select at least one vehicle.');
+                return;
+            }
+
+            const compositeMode = (selected.length === 1) ? selected[0] : selected.join(' + ');
+
+            localStorage.setItem('intan_elyu_draft_trip_transport', compositeMode);
+            localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(selected));
+
+            // Reset per-leg overrides so the whole itinerary cleanly inherits the newly chosen trip vehicle(s)
+            localStorage.removeItem('intan_elyu_draft_leg_vehicles');
+
+            const transInput = document.getElementById('trip-transport');
+            if (transInput) transInput.value = compositeMode;
+
+            window.updateDraftTravelModeBar();
+            window.closeTravelModeStarterModal();
+
+            if (typeof window.renderItinerary === 'function') {
+                window.renderItinerary(true);
+            }
+            if (typeof window.calculateModalBudget === 'function') {
+                window.calculateModalBudget();
+            }
+
+            const draft = (typeof window.getEffectiveDraft === 'function')
+                ? window.getEffectiveDraft()
+                : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+            if (typeof window.updateDraftBudget === 'function') {
+                window.updateDraftBudget(draft);
+            }
+
+            const chosenName = (selected.length === 1)
+                ? window.getVehicleDisplayName(selected[0])
+                : `${selected.length} Vehicles`;
+
+            if (draft.length === 0) {
+                if (typeof showToast === 'function') {
+                    showToast(`Vehicles set: ${chosenName}! Now add spots from the Map.`);
+                }
+            } else {
+                if (typeof showToast === 'function') {
+                    showToast(`Trip transportation set to ${chosenName}`);
+                }
+            }
+        };
+
+        window.closeTravelModeStarterModal = function () {
+            const modal = document.getElementById('travel-mode-starter-modal');
+            if (!modal) return;
+            modal.style.display = 'none';
+            const bottomNav = document.getElementById('bottom-navigation');
+            if (bottomNav) bottomNav.classList.remove('nav-hidden');
+        };
+
+        window.selectTripTravelMode = function (mode) {
+            window.starterModalSelectedModes = [mode];
+            window.applyStarterVehicleSelection();
         };
 
         window.currentRouteType = window.currentRouteType || 'recommended';
@@ -1129,6 +2640,16 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 localStorage.setItem('intan_elyu_draft_itinerary', JSON.stringify(draft));
                 window.currentRouteType = 'recommended';
 
+                try {
+                    let overrides = JSON.parse(localStorage.getItem('intan_elyu_draft_leg_vehicles') || '[]');
+                    if (Array.isArray(overrides) && overrides.length > Math.max(i, j)) {
+                        const tempLeg = overrides[i];
+                        overrides[i] = overrides[j];
+                        overrides[j] = tempLeg;
+                        localStorage.setItem('intan_elyu_draft_leg_vehicles', JSON.stringify(overrides));
+                    }
+                } catch (e) {}
+
                 const container = document.getElementById('route-toggle-container');
                 if (container) container.classList.remove('alt-active');
                 const recBtn = document.getElementById('btn-route-rec');
@@ -1157,10 +2678,61 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
         window.getEffectiveDraft = function () {
             let draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
-            if (draft.length > 1 && window.currentRouteType === 'alternate') {
+            if (!draft || draft.length <= 1) return draft || [];
+
+            const isAlt = (window.currentRouteType === 'alternative' || window.currentRouteType === 'alternate');
+            if (!isAlt) return draft;
+
+            if (draft.length === 2) {
                 return [...draft].reverse();
             }
-            return draft;
+
+            // For 3+ spots: Compute distinct Alternative Exploration Sequence
+            // (Furthest-Anchor First: start with the farthest destination anchor, then explore intermediate spots on return)
+            const startLat = window.myLat || parseFloat(draft[0].lat || draft[0].latitude || 0);
+            const startLng = window.myLng || parseFloat(draft[0].lng || draft[0].longitude || 0);
+
+            const calcDist = (lat1, lon1, lat2, lon2) => {
+                const p = 0.017453292519943295;
+                const c = Math.cos;
+                const a = 0.5 - c((lat2 - lat1) * p) / 2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2;
+                return 12742 * Math.asin(Math.sqrt(a));
+            };
+
+            const scoredDraft = draft.map((item, idx) => {
+                const lat = parseFloat(item.lat || item.latitude || 0);
+                const lng = parseFloat(item.lng || item.longitude || 0);
+                const d = (startLat && startLng) ? calcDist(startLat, startLng, lat, lng) : idx;
+                return { item, d, originalIdx: idx };
+            });
+
+            scoredDraft.sort((a, b) => b.d - a.d);
+            const anchor = scoredDraft[0];
+            const remaining = scoredDraft.slice(1);
+
+            const altSequence = [anchor.item];
+            let currLat = parseFloat(anchor.item.lat || anchor.item.latitude || 0);
+            let currLng = parseFloat(anchor.item.lng || anchor.item.longitude || 0);
+
+            while (remaining.length > 0) {
+                let nearestIdx = 0;
+                let nearestDist = Infinity;
+                for (let i = 0; i < remaining.length; i++) {
+                    const rLat = parseFloat(remaining[i].item.lat || remaining[i].item.latitude || 0);
+                    const rLng = parseFloat(remaining[i].item.lng || remaining[i].item.longitude || 0);
+                    const dist = calcDist(currLat, currLng, rLat, rLng);
+                    if (dist < nearestDist) {
+                        nearestDist = dist;
+                        nearestIdx = i;
+                    }
+                }
+                const nextItem = remaining.splice(nearestIdx, 1)[0];
+                altSequence.push(nextItem.item);
+                currLat = parseFloat(nextItem.item.lat || nextItem.item.latitude || 0);
+                currLng = parseFloat(nextItem.item.lng || nextItem.item.longitude || 0);
+            }
+
+            return altSequence;
         };
 
         window.renderItinerary = function (skipMap = false) {
@@ -1170,10 +2742,24 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             const emptyState = document.getElementById('itinerary-empty-state');
             const fab = document.getElementById('btn-save-itinerary');
             const mapWrapper = document.getElementById('draft-map-wrapper');
+            const draftPlanCard = document.getElementById('draft-plan-card-wrapper');
 
             document.getElementById('itinerary-count').innerText = rawDraft.length;
 
             if (rawDraft.length === 0) {
+                if (draftPlanCard) {
+                    draftPlanCard.classList.add('is-hidden');
+                    draftPlanCard.style.setProperty('display', 'none', 'important');
+                }
+                const pageTitleEl = document.getElementById('itinerary-page-title');
+                const editBannerEl = document.getElementById('editing-plan-banner');
+                if (editBannerEl) editBannerEl.style.setProperty('display', 'none', 'important');
+                if (pageTitleEl) pageTitleEl.textContent = 'Draft Plan';
+                sessionStorage.removeItem('editing_itinerary_id');
+                sessionStorage.removeItem('editing_trip_title');
+                sessionStorage.removeItem('editing_trip_date');
+                sessionStorage.removeItem('editing_trip_budget');
+                sessionStorage.removeItem('editing_trip_transport');
                 timeline.innerHTML = '';
                 emptyState.style.setProperty('display', 'flex', 'important');
                 emptyState.classList.remove('is-hidden');
@@ -1187,8 +2773,57 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             emptyState.style.setProperty('display', 'none', 'important');
             emptyState.classList.add('is-hidden');
+            if (draftPlanCard) {
+                draftPlanCard.classList.remove('is-hidden');
+                draftPlanCard.style.setProperty('display', 'flex', 'important');
+            }
             fab.style.setProperty('display', 'flex', 'important');
+            const isEditingPlan = Boolean(sessionStorage.getItem('editing_itinerary_id'));
+            const pageTitleEl = document.getElementById('itinerary-page-title');
+            const editBannerEl = document.getElementById('editing-plan-banner');
+            const editBannerTitleEl = document.getElementById('editing-banner-title');
+            const savedTitle = sessionStorage.getItem('editing_trip_title') || '';
+
+            if (isEditingPlan) {
+                if (pageTitleEl) pageTitleEl.textContent = 'Edit Saved Trip';
+                if (editBannerEl) {
+                    editBannerEl.style.display = 'flex';
+                    if (editBannerTitleEl) editBannerTitleEl.textContent = savedTitle || 'Saved Trip';
+                }
+                fab.innerHTML = '<i class="fa-solid fa-pen-to-square" style="margin-right:8px;"></i> Update Saved Trip';
+
+                const editingTransport = sessionStorage.getItem('editing_trip_transport');
+                if (editingTransport && !sessionStorage.getItem('editing_transport_initialized')) {
+                    sessionStorage.setItem('editing_transport_initialized', 'true');
+                    localStorage.setItem('intan_elyu_draft_trip_transport', editingTransport);
+                    const modes = (typeof window.parseCompositeTransportModes === 'function')
+                        ? window.parseCompositeTransportModes(editingTransport)
+                        : [editingTransport];
+                    localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(modes.length > 0 ? modes : [editingTransport]));
+                    const transInput = document.getElementById('trip-transport');
+                    if (transInput) transInput.value = editingTransport;
+                }
+            } else {
+                sessionStorage.removeItem('editing_transport_initialized');
+                if (pageTitleEl) pageTitleEl.textContent = 'Draft Plan';
+                if (editBannerEl) editBannerEl.style.display = 'none';
+                fab.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:8px;"></i> Save Draft Plan';
+            }
             if (mapWrapper) mapWrapper.style.display = 'block';
+
+            if (typeof window.updateDraftTravelModeBar === 'function') {
+                window.updateDraftTravelModeBar();
+            }
+
+            // Step 1: If tourist has items in draft but hasn't picked a vehicle yet, prompt once
+            if (rawDraft.length > 0 && !localStorage.getItem('intan_elyu_draft_trip_transport') && !sessionStorage.getItem('editing_itinerary_id') && !sessionStorage.getItem('intan_elyu_starter_prompted')) {
+                sessionStorage.setItem('intan_elyu_starter_prompted', 'true');
+                setTimeout(() => {
+                    if (typeof window.openTravelModeStarterModal === 'function') {
+                        window.openTravelModeStarterModal();
+                    }
+                }, 400);
+            }
 
             // Sync active class on route toggle buttons
             const recBtn = document.getElementById('btn-route-rec');
@@ -1196,7 +2831,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             const toggleContainer = document.getElementById('route-toggle-container');
             const toggleSlider = document.getElementById('route-toggle-slider');
             if (recBtn && altBtn) {
-                const isAlt = (window.currentRouteType === 'alternate');
+                const isAlt = (window.currentRouteType === 'alternative' || window.currentRouteType === 'alternate');
                 if (isAlt) {
                     recBtn.classList.remove('active');
                     altBtn.classList.add('active');
@@ -1225,17 +2860,41 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 const firstLng = firstStop.lng || firstStop.longitude;
                 const startEta = window.getDistanceAndETA(firstLat, firstLng);
 
-                const startLegText = startEta
-                    ? `${startEta.distanceText} to Stop 1 &bull; ~${startEta.durationText} drive`
-                    : `Route to Stop 1 &bull; ${firstStop.name}`;
+                const leg0Info = (typeof window.getLegTransportInfo === 'function')
+                    ? window.getLegTransportInfo(0)
+                    : { mode: 'own_car', name: 'Own Car', icon: 'fa-car', cost: 0 };
+
+                const startDistText = startEta ? `${startEta.distanceText} &bull; ~${startEta.durationText}` : 'Start Leg';
+                const fareBadge = leg0Info.is_maintenance
+                    ? ''
+                    : ((leg0Info.cost > 0)
+                        ? `<span class="leg-fare-tag">₱${leg0Info.cost.toFixed(2)}</span>`
+                        : `<span class="leg-fare-tag" style="color:#059669; background:rgba(16,185,129,0.1);">₱0</span>`);
+
+                const leg0ChipClass = leg0Info.is_maintenance ? 'p2p-leg-chip leg-maintenance' : 'p2p-leg-chip';
+                const leg0IconColor = leg0Info.is_maintenance ? '#ffffff' : '#0284c7';
+                const leg0NameStyle = leg0Info.is_maintenance ? 'color:#ffffff; font-weight:800;' : '';
+                const leg0DestName = (draft[0] && draft[0].name) ? draft[0].name.replace(/'/g, "\\'") : 'Destination';
+                const leg0ClickAction = leg0Info.is_maintenance
+                    ? `if(typeof showToast==='function') showToast('${leg0DestName} is currently under maintenance or temporarily closed. Vehicle transit is restricted.');`
+                    : `window.openLegTransportModal(0)`;
+                const leg0LeadingIcon = (leg0Info.is_maintenance || !leg0Info.icon)
+                    ? ''
+                    : `<i class="fa-solid ${leg0Info.icon}" style="color:${leg0IconColor}; font-size:11px; flex-shrink:0;"></i>`;
+                const leg0TrailingIcon = leg0Info.is_maintenance
+                    ? ''
+                    : `<i class="fa-solid fa-chevron-right leg-action-edit" style="flex-shrink:0;"></i>`;
 
                 startingLegHtml = `
             <div class="stops-swap-divider starting-leg-divider">
                 <div class="stops-swap-line"></div>
                 <div class="stops-leg-wrapper" style="display:flex; align-items:center; gap:8px; z-index:3;">
-                    <div class="stops-leg-chip">
-                        <i class="fa-solid fa-car-side" style="color:#00f2fe; font-size:10px;"></i>
-                        <span>${startLegText}</span>
+                    <div class="${leg0ChipClass}" style="display:none !important;" onclick="${leg0ClickAction}" title="${leg0Info.is_maintenance ? 'Destination is under maintenance. Transport options are disabled.' : 'Selected: ' + (leg0Info.full_names || leg0Info.name)}">
+                        ${leg0LeadingIcon}
+                        <span class="leg-chip-name" style="${leg0NameStyle}">${leg0Info.name}</span>
+                        ${fareBadge}
+                        ${leg0Info.is_maintenance ? '' : `<span class="leg-dist-text">&bull; ${startDistText}</span>`}
+                        ${leg0TrailingIcon}
                     </div>
                     <div class="starting-leg-icon-pill" title="Start of Itinerary Route">
                         <i class="fa-solid fa-arrow-down"></i>
@@ -1276,23 +2935,29 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     let nextStopBadge = '';
                     let nextStopEtaHtml = '';
 
+                    const isMaint = Boolean(place.is_maintenance === 1 || place.is_maintenance === true || place.is_maintenance === '1');
+
                     if (isNextStop) {
                         nextStopBadge = `<span class="badge-next-stop" style="border:none !important; outline:none !important; box-shadow:none !important;"><i class="fa-solid fa-location-dot"></i> NEXT STOP</span>`;
-                        const lat = place.lat || place.latitude;
-                        const lng = place.lng || place.longitude;
-                        const eta = window.getDistanceAndETA(lat, lng);
-                        if (eta) {
-                            nextStopEtaHtml = `
-                        <div class="next-stop-distance-chip" id="itinerary-next-eta" style="border:none !important; outline:none !important; box-shadow:none !important;">
-                            <i class="fa-solid fa-route" style="color:#00f2fe;"></i> 
-                            <span>${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>
-                        </div>`;
-                        } else {
-                            nextStopEtaHtml = `
-                        <div class="next-stop-distance-chip" id="itinerary-next-eta" style="border:none !important; outline:none !important; box-shadow:none !important;">
-                            <i class="fa-solid fa-location-arrow" style="color:#00f2fe;"></i> 
-                            <span>First destination on your itinerary route</span>
-                        </div>`;
+                        if (!isMaint) {
+                            const lat = place.lat || place.latitude;
+                            const lng = place.lng || place.longitude;
+                            const placeKey = String(place.id || place.name);
+                            const hasCachedOSRM = window._cachedNextStopOSRM && window._cachedNextStopOSRM.spotKey === placeKey;
+                            const eta = hasCachedOSRM ? window._cachedNextStopOSRM : window.getDistanceAndETA(lat, lng);
+                            if (eta) {
+                                nextStopEtaHtml = `
+                            <div class="next-stop-distance-chip" id="itinerary-next-eta" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; border-radius:100px !important; padding:5px 13px !important; font-size:11px !important; font-weight:700 !important; display:inline-flex !important; align-items:center !important; gap:7px !important; margin-top:8px !important; box-shadow:0 2px 6px rgba(0,0,0,0.12) !important;">
+                                <i class="fa-solid fa-route" style="color:#0284c7 !important; font-size:11px;"></i> 
+                                <span style="color:#1e3a8a !important; font-weight:700; font-size:11px;">${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>
+                            </div>`;
+                            } else {
+                                nextStopEtaHtml = `
+                            <div class="next-stop-distance-chip" id="itinerary-next-eta" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; border-radius:100px !important; padding:5px 13px !important; font-size:11px !important; font-weight:700 !important; display:inline-flex !important; align-items:center !important; gap:7px !important; margin-top:8px !important; box-shadow:0 2px 6px rgba(0,0,0,0.12) !important;">
+                                <i class="fa-solid fa-location-arrow" style="color:#0284c7 !important; font-size:11px;"></i> 
+                                <span style="color:#1e3a8a !important; font-weight:700; font-size:11px;">First destination on your itinerary route</span>
+                            </div>`;
+                            }
                         }
                     }
 
@@ -1304,15 +2969,42 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                         const curLng = place.lng || place.longitude;
                         const legEta = window.calculateLegETA(prevLat, prevLng, curLat, curLng);
 
+                        const legInfo = (typeof window.getLegTransportInfo === 'function')
+                            ? window.getLegTransportInfo(index)
+                            : { mode: 'mpuj', name: 'Modern Jeepney', icon: 'fa-van-shuttle', cost: 0 };
+
+                        const legDistText = legEta ? `${legEta.distanceText} &bull; ~${legEta.durationText}` : 'Leg Route';
+                        const fareBadge = legInfo.is_maintenance
+                            ? ''
+                            : ((legInfo.cost > 0)
+                                ? `<span class="leg-fare-tag">₱${legInfo.cost.toFixed(2)}</span>`
+                                : `<span class="leg-fare-tag" style="color:#059669; background:rgba(16,185,129,0.1);">₱0</span>`);
+
+                        const legChipClass = legInfo.is_maintenance ? 'p2p-leg-chip leg-maintenance' : 'p2p-leg-chip';
+                        const legIconColor = legInfo.is_maintenance ? '#ffffff' : '#0284c7';
+                        const legNameStyle = legInfo.is_maintenance ? 'color:#ffffff; font-weight:800;' : '';
+                        const legDestName = (place && place.name) ? place.name.replace(/'/g, "\\'") : 'Destination';
+                        const legClickAction = legInfo.is_maintenance
+                            ? `if(typeof showToast==='function') showToast('${legDestName} is currently under maintenance or temporarily closed. Vehicle transit is restricted.');`
+                            : `window.openLegTransportModal(${index})`;
+                        const legLeadingIcon = (legInfo.is_maintenance || !legInfo.icon)
+                            ? ''
+                            : `<i class="fa-solid ${legInfo.icon}" style="color:${legIconColor}; font-size:11px; flex-shrink:0;"></i>`;
+                        const legTrailingIcon = legInfo.is_maintenance
+                            ? ''
+                            : `<i class="fa-solid fa-chevron-right leg-action-edit" style="flex-shrink:0;"></i>`;
+
                         html += `
                         <div class="stops-swap-divider">
                             <div class="stops-swap-line"></div>
                             <div class="stops-leg-wrapper" style="display:flex; align-items:center; gap:8px; z-index:3;">
-                                ${legEta ? `
-                                <div class="stops-leg-chip">
-                                    <i class="fa-solid fa-car-side" style="color:#00f2fe; font-size:10px;"></i>
-                                    <span>${legEta.distanceText} &bull; ~${legEta.durationText} drive</span>
-                                </div>` : ''}
+                                <div class="${legChipClass}" style="display:none !important;" onclick="${legClickAction}" title="${legInfo.is_maintenance ? 'Destination is under maintenance. Transport options are disabled.' : 'Selected: ' + (legInfo.full_names || legInfo.name)}">
+                                    ${legLeadingIcon}
+                                    <span class="leg-chip-name" style="${legNameStyle}">${legInfo.name}</span>
+                                    ${fareBadge}
+                                    ${legInfo.is_maintenance ? '' : `<span class="leg-dist-text">&bull; ${legDistText}</span>`}
+                                    ${legTrailingIcon}
+                                </div>
                                 <button type="button" class="btn-swap-pill" onclick="event.stopPropagation(); window.swapDraftStops(${index - 1}, ${index});" title="Swap Stop ${index} and Stop ${index + 1}" aria-label="Swap order">
                                     <i class="fa-solid fa-arrows-up-down"></i>
                                 </button>
@@ -1331,7 +3023,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                         <div class="swipe-content" style="position:relative; z-index:2; transition:transform 0.2s ease; border-radius:20px !important; padding:16px 18px; border:none !important; outline:none !important; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; box-shadow:none !important;">
                             <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;">
                                 <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                                    <span class="time-label" style="border:none !important; outline:none !important; box-shadow:none !important;">Stop ${index + 1} &bull; Approx ${timeStr}</span>
+                                    <span class="time-label" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; padding:4px 11px !important; border-radius:100px !important; font-size:11px !important; font-weight:800 !important; letter-spacing:0.4px !important; text-transform:uppercase !important; box-shadow:0 2px 6px rgba(0,0,0,0.12) !important; display:inline-flex !important; align-items:center !important;">Stop ${index + 1} &bull; Approx ${timeStr}</span>
                                     ${nextStopBadge}
                                 </div>
                                 <div style="display:flex; align-items:center; gap:6px;">
@@ -1340,13 +3032,16 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                             </div>
                             <div style="display:flex; gap:14px; align-items:flex-start;">
                                 <div class="stop-thumbnail-wrapper">
-                                    <img src="${r2ThumbUrl}" alt="${place.name}" loading="lazy" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a686f4d0f48b.jpg';">
+                                    <img src="${r2ThumbUrl}" alt="${place.name}" loading="lazy" onerror="this.onerror=null; this.src='assets/img/no_image.svg';">
                                 </div>
                                 <div style="flex:1; min-width:0;">
                                     <h3 class="place-name" style="margin:0 0 3px 0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px; line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${place.name}</h3>
-                                    <div style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; margin-bottom:4px; display:flex; align-items:center; gap:5px;">
-                                        <i class="fa-solid fa-tag" style="color:#38bdf8; font-size:10px;"></i>
-                                        <span>${place.category && place.category !== 'null' ? place.category : 'Tourist Destination'}</span>
+                                    <div style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; margin-bottom:4px; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                        <div style="display:flex; align-items:center; gap:5px;">
+                                            <i class="fa-solid fa-tag" style="color:#38bdf8; font-size:10px;"></i>
+                                            <span>${place.category && place.category !== 'null' ? place.category : 'Tourist Destination'}</span>
+                                        </div>
+                                        ${place.classification_status ? `<span style="padding: 2px 7px; border-radius: 100px; font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${place.classification_status === 'EXIST' ? '#0284c7' : (place.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; border: none !important; outline: none !important;">${place.classification_status === 'EXIST' ? 'EXISTING' : (place.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
                                     </div>
                                     <div class="place-details" style="font-size:12px; color:rgba(255,255,255,0.75); display:flex; align-items:center; gap:5px;">
                                         <i class="fa-solid fa-location-dot" style="color:#00f2fe; font-size:11px; flex-shrink:0;"></i>
@@ -1357,7 +3052,33 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                                 </div>
                             </div>
                             ${nextStopEtaHtml}
-                            ${place.selected_vehicles && place.selected_vehicles.length > 0 ? `<div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:8px;">${place.selected_vehicles.map(v => `<span style="padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; background:rgba(56,189,248,0.15); color:#38bdf8; border:none !important; outline:none !important;"><i class="fa-solid fa-car" style="margin-right:3px;font-size:9px;"></i>${v}</span>`).join('')}</div>` : ''}
+                            ${(() => {
+                            const isNonDrivable = (place.accessible_by_private_vehicle === 0 || place.accessible_by_private_vehicle === false || place.accessible_by_private_vehicle === '0');
+                            const isMaint = Boolean(place.is_maintenance === 1 || place.is_maintenance === true || place.is_maintenance === '1');
+                            const acc = Array.isArray(place.accessible_vehicles) ? place.accessible_vehicles : [];
+                            if (isMaint) {
+                                return `<div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
+                                        <span style="padding:3px 9px; border-radius:100px; font-size:10px; font-weight:800; background:#ef4444 !important; color:#ffffff !important; border:none !important; outline:none !important; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 6px rgba(239, 68, 68, 0.3);">
+                                            <i class="fa-solid fa-triangle-exclamation" style="font-size:9.5px; color:#ffffff;"></i> Site Under Maintenance
+                                        </span>
+                                    </div>`;
+                            }
+                            if (isNonDrivable) {
+                                return `<div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
+                                        <span style="padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; background:rgba(245,158,11,0.2); color:#fbbf24; border:none !important; outline:none !important; display:inline-flex; align-items:center; gap:4px;">
+                                            <i class="fa-solid fa-triangle-exclamation" style="font-size:9px; color:#fbbf24;"></i> Trailhead Only (Non-Drivable)
+                                        </span>
+                                    </div>`;
+                            }
+                            if (acc.length > 0) {
+                                return `<div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
+                                        <span style="padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; background:rgba(56,189,248,0.18); color:#7dd3fc; border:none !important; outline:none !important; display:inline-flex; align-items:center; gap:4px;">
+                                            <i class="fa-solid fa-van-shuttle" style="font-size:9px; color:#38bdf8;"></i> ${acc.length} Available Vehicle${acc.length > 1 ? 's' : ''}
+                                        </span>
+                                    </div>`;
+                            }
+                            return '';
+                        })()}
                         </div>
                     </div>
                 </div>`;
@@ -1367,6 +3088,10 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             timeline.innerHTML = html;
             setupDragAndDrop(draft);
+
+            if (typeof window.updateDraftBudget === 'function') {
+                window.updateDraftBudget(draft);
+            }
 
             if (!skipMap) {
                 window._renderTimeout = setTimeout(() => {
@@ -1518,14 +3243,25 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
         window.removeItineraryItem = function (id) {
             let draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+            const oldIdx = draft.findIndex(item => item.id.toString() === id.toString());
             draft = draft.filter(item => item.id.toString() !== id.toString());
             localStorage.setItem('intan_elyu_draft_itinerary', JSON.stringify(draft));
+
+            try {
+                let overrides = JSON.parse(localStorage.getItem('intan_elyu_draft_leg_vehicles') || '[]');
+                if (Array.isArray(overrides) && oldIdx >= 0) {
+                    overrides.splice(oldIdx, 1);
+                    localStorage.setItem('intan_elyu_draft_leg_vehicles', JSON.stringify(overrides));
+                }
+            } catch (e) {}
+
             window.renderItinerary();
             if (typeof showToast === 'function') showToast("Destination removed from itinerary");
         };
 
         window.clearAllItinerary = function () {
             localStorage.removeItem('intan_elyu_draft_itinerary');
+            localStorage.removeItem('intan_elyu_draft_leg_vehicles');
             window.renderItinerary();
             if (typeof showToast === 'function') showToast("Itinerary cleared");
         };
@@ -1585,9 +3321,12 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             }
         };
 
-        // Real-time dynamic GPS listener
+        // Real-time dynamic GPS listener (Singleton listener to prevent duplicates)
         let _gpsUpdateTimeout = null;
-        document.addEventListener('gpsUpdated', function (e) {
+        if (window._itineraryGpsHandler) {
+            document.removeEventListener('gpsUpdated', window._itineraryGpsHandler);
+        }
+        window._itineraryGpsHandler = function (e) {
             const lat = e.detail.lat;
             const lng = e.detail.lng;
             window.myLat = lat;
@@ -1605,12 +3344,21 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
             if (draft.length > 0) {
                 const nextPlace = draft[0];
-                const pLat = nextPlace.lat || nextPlace.latitude;
-                const pLng = nextPlace.lng || nextPlace.longitude;
-                const eta = window.getDistanceAndETA(pLat, pLng);
+                const isMaint = Boolean(nextPlace.is_maintenance === 1 || nextPlace.is_maintenance === true || nextPlace.is_maintenance === '1');
                 const nextEtaEl = document.getElementById('itinerary-next-eta');
-                if (nextEtaEl && eta) {
-                    nextEtaEl.innerHTML = `<i class="fa-solid fa-route" style="color:#38bdf8;"></i> <span>${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>`;
+                if (nextEtaEl) {
+                    if (isMaint) {
+                        nextEtaEl.remove();
+                    } else {
+                        const pLat = nextPlace.lat || nextPlace.latitude;
+                        const pLng = nextPlace.lng || nextPlace.longitude;
+                        const placeKey = String(nextPlace.id || nextPlace.name);
+                        const hasCachedOSRM = window._cachedNextStopOSRM && window._cachedNextStopOSRM.spotKey === placeKey;
+                        const eta = hasCachedOSRM ? window._cachedNextStopOSRM : window.getDistanceAndETA(pLat, pLng);
+                        if (eta) {
+                            nextEtaEl.innerHTML = `<i class="fa-solid fa-route" style="color:#0284c7 !important; font-size:11px;"></i> <span style="color:#1e3a8a !important; font-weight:700; font-size:11px;">${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>`;
+                        }
+                    }
                 }
             }
 
@@ -1619,13 +3367,18 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     // Smoothly animate the marker to the new physical coordinate
                     window.myDraftMarker.setLatLng([lat, lng]);
                 } else {
-                    // Dynamically create and inject the glowing GPS user marker
+                    // Ensure any old GPS markers are cleanly removed
+                    draftMap.eachLayer(layer => {
+                        if (layer._isUserGps) {
+                            try { draftMap.removeLayer(layer); } catch (err) { }
+                        }
+                    });
+
+                    // Dynamically create and inject the clean blue GPS location dot
                     const myIconHtml = `
                     <div class="gps-user-marker-icon">
                         <div class="gps-user-marker-wave"></div>
-                        <div class="gps-user-marker-inner">
-                            <i class="fa-solid fa-location-crosshairs" style="font-size:14px;"></i>
-                        </div>
+                        <div class="gps-user-marker-inner"></div>
                     </div>
                 `;
                     const myIcon = L.divIcon({
@@ -1637,6 +3390,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     window.myDraftMarker = L.marker([lat, lng], { icon: myIcon, zIndexOffset: 1000 })
                         .addTo(draftMap)
                         .bindPopup('<b>📍 Your Current Location</b><br><span style="font-size:11px;color:#64748b;">Starting Point of Itinerary</span>');
+                    window.myDraftMarker._isUserGps = true;
                     if (typeof draftMarkers !== 'undefined') draftMarkers.push(window.myDraftMarker);
                 }
 
@@ -1647,7 +3401,8 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     if (window.initDraftMap) window.initDraftMap(currentDraft, false);
                 }, 2000);
             }
-        });
+        };
+        document.addEventListener('gpsUpdated', window._itineraryGpsHandler);
 
         window.routeToPlace = function (id) {
             const mapContainer = document.getElementById('draft-map-wrapper');
@@ -1673,13 +3428,13 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         let _donutAnimFrame = null;
         let _currentDonutPct = 0;
 
-        function animateDonut(targetPct, color) {
+        function animateDonut(targetPct, color, customLabel) {
             if (_donutAnimFrame) cancelAnimationFrame(_donutAnimFrame);
             const donutEl = document.getElementById('modal-budget-donut');
             const pctEl = document.getElementById('modal-donut-pct');
             const startPct = _currentDonutPct;
             const startTime = performance.now();
-            const duration = 700; // ms
+            const duration = 650; // ms
 
             function step(now) {
                 const elapsed = now - startTime;
@@ -1690,16 +3445,27 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 _currentDonutPct = pct;
 
                 if (donutEl) {
+                    const fillPct = Math.min(Math.max(pct, 0), 100);
                     donutEl.style.background = `conic-gradient(
-                    ${color} 0% ${pct}%,
-                    rgba(255,255,255,0.08) ${pct}% 100%
+                    ${color} 0% ${fillPct}%,
+                    rgba(255,255,255,0.08) ${fillPct}% 100%
                 )`;
-                    donutEl.style.mask = 'radial-gradient(transparent 50%, black 51%)';
-                    donutEl.style.webkitMask = 'radial-gradient(transparent 50%, black 51%)';
+                    donutEl.style.mask = 'radial-gradient(transparent 58%, black 59%)';
+                    donutEl.style.webkitMask = 'radial-gradient(transparent 58%, black 59%)';
                 }
                 if (pctEl) {
-                    pctEl.textContent = Math.round(pct) + '%';
-                    pctEl.style.color = color;
+                    if (customLabel !== undefined && customLabel !== null) {
+                        pctEl.textContent = customLabel;
+                    } else if (Math.round(pct) === 100 || targetPct === 100) {
+                        pctEl.textContent = 'MET!';
+                    } else if (pct > 999) {
+                        pctEl.textContent = '>999%';
+                    } else if (targetPct > 0 && targetPct < 1 && pct < 1) {
+                        pctEl.textContent = '<1%';
+                    } else {
+                        pctEl.textContent = Math.round(pct) + '%';
+                    }
+                    pctEl.style.color = '#ffffff';
                 }
 
                 if (progress < 1) {
@@ -1707,191 +3473,247 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 }
             }
             _donutAnimFrame = requestAnimationFrame(step);
-        }
+        };
 
-        window.calculateModalBudget = function () {
-            const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
-            if (draft.length === 0) return;
+        window.getSpotMuniName = function (p) {
+            if (!p) return '';
+            if (typeof p.municipality === 'string') return p.municipality.trim();
+            if (p.municipality && typeof p.municipality.name === 'string') return p.municipality.name.trim();
+            if (typeof p.city === 'string') return p.city.trim();
+            if (p.city && typeof p.city.name === 'string') return p.city.name.trim();
+            return '';
+        };
 
-            const transport = document.getElementById('trip-transport').value;
-            const detailsDiv = document.getElementById('save-budget-details');
+        window.computeItineraryTransCost = function (draft, transport) {
+            if (!draft || draft.length === 0) return 0;
 
-            if (!transport) {
-                detailsDiv.style.display = 'none';
-                detailsDiv.classList.remove('animate-smooth-reveal');
-                return;
+            let overrides = [];
+            try {
+                overrides = JSON.parse(localStorage.getItem('intan_elyu_draft_leg_vehicles') || '[]');
+            } catch (e) { overrides = []; }
+            const hasOverrides = Array.isArray(overrides) && overrides.some(o => o && (o.transport_mode || o.transport_modes));
+
+            const isNoVeh = !hasOverrides && (!transport || transport.toLowerCase().includes('no_vehicle') || transport.toLowerCase().includes('no vehicle'));
+            if (isNoVeh) {
+                window._draftBoundaryBreakdown = [];
+                return 0;
             }
 
-            // Transport cost — sum across all selected modes with realistic commuter rates
-            let transCost = 0;
-            const modes = transport ? transport.split(',').filter(Boolean) : [];
-            let distKm = window._draftDistanceKm || 0;
-            if (distKm <= 0 && draft.length > 0) {
-                let totalD = 0;
-                const pts = [];
-                if (window.myLat && window.myLng) pts.push([parseFloat(window.myLat), parseFloat(window.myLng)]);
-                draft.forEach(p => {
-                    const lat = parseFloat(p.lat || p.latitude);
-                    const lng = parseFloat(p.lng || p.longitude);
-                    if (!isNaN(lat) && !isNaN(lng)) pts.push([lat, lng]);
+            window._draftBoundaryBreakdown = [];
+            let totalTransit = 0;
+
+            draft.forEach((place, idx) => {
+                const legInfo = (typeof window.getLegTransportInfo === 'function')
+                    ? window.getLegTransportInfo(idx)
+                    : { mode: 'own_car', cost: 0, distance_km: 2.0 };
+
+                const legCost = (legInfo && !legInfo.is_maintenance)
+                    ? parseFloat(legInfo.cost || legInfo.leg_cost || 0)
+                    : 0;
+                totalTransit += legCost;
+
+                const fromName = (idx === 0) ? 'Your Location' : draft[idx - 1].name;
+                const toName = place.name;
+                const distKm = parseFloat(legInfo.distance_km || 2.0);
+
+                window._draftBoundaryBreakdown.push({
+                    legIndex: idx + 1,
+                    from: fromName,
+                    to: toName,
+                    distKm: distKm,
+                    legTotal: legCost,
+                    mode: legInfo.mode || legInfo.transport_mode || 'mpuj',
+                    warning: legInfo.warning || null
                 });
-                for (let i = 0; i < pts.length - 1; i++) {
-                    const lat1 = pts[i][0], lon1 = pts[i][1];
-                    const lat2 = pts[i + 1][0], lon2 = pts[i + 1][1];
-                    const p = 0.017453292519943295;
-                    const a = 0.5 - Math.cos((lat2 - lat1) * p) / 2 + Math.cos(lat1 * p) * Math.cos(lat2 * p) * (1 - Math.cos((lon2 - lon1) * p)) / 2;
-                    totalD += (12742 * Math.asin(Math.sqrt(a))) * 1.25;
-                }
-                distKm = Math.max(1, totalD);
-            }
-            modes.forEach(mode => {
-                if (mode === 'own_car') {
-                    const fuelPrice = parseFloat(document.getElementById('fuel-price')?.value) || 65;
-                    const fuelEffic = parseFloat(document.getElementById('fuel-efficiency')?.value) || 12;
-                    const litersNeeded = distKm / fuelEffic;
-                    const cost = Math.ceil(litersNeeded * fuelPrice);
-                    transCost += cost;
-
-                    const hint = document.getElementById('fuel-distance-hint');
-                    if (hint && distKm > 0) {
-                        hint.textContent = `Route: ${distKm.toFixed(1)} km • ~${litersNeeded.toFixed(2)} L needed`;
-                        hint.style.color = 'rgba(255,255,255,0.5)';
-                    } else if (hint) {
-                        hint.textContent = 'Open the Map first to get an accurate route distance.';
-                        hint.style.color = '#FF9500';
-                        transCost += Math.ceil((1 * fuelPrice) / fuelEffic);
-                    }
-                }
-                else if (mode === 'private_bus' || mode === 'bus') {
-                    const dbFare = window.getFareFromMatrix('bus', distKm) || window.getFareFromMatrix('private_bus', distKm);
-                    if (dbFare !== null) {
-                        transCost += Math.round(dbFare);
-                    } else {
-                        // Standard Provincial Commuter Bus fare: ₱15 base (first 5 km) + ₱2.20/km
-                        transCost += Math.max(15, Math.round(15 + (Math.max(0, distKm - 5) * 2.2)));
-                    }
-                }
-                else if (mode === 'mini_bus' || mode === 'van' || mode === 'uve') {
-                    const dbFare = window.getFareFromMatrix('mini_bus', distKm) || window.getFareFromMatrix('van', distKm);
-                    if (dbFare !== null) {
-                        transCost += Math.round(dbFare);
-                    } else {
-                        // Standard UV Express / Mini Bus fare: ₱25 base (first 4 km) + ₱2.50/km
-                        transCost += Math.max(25, Math.round(25 + (Math.max(0, distKm - 4) * 2.5)));
-                    }
-                }
-                else if (mode === 'lutrampco') {
-                    const dbFare = window.getFareFromMatrix('lutrampco', distKm);
-                    if (dbFare !== null) {
-                        transCost += Math.round(dbFare);
-                    } else {
-                        // Standard LUTRAMPCO Modernized Jeepney fare: ₱14 base (first 4 km) + ₱2.20/km
-                        transCost += Math.max(14, Math.round(14 + (Math.max(0, distKm - 4) * 2.2)));
-                    }
-                }
-                else if (mode === 'jeepney') {
-                    const dbFare = window.getFareFromMatrix('jeepney', distKm);
-                    if (dbFare !== null) {
-                        transCost += Math.round(dbFare);
-                    } else {
-                        // Traditional Jeepney fare: ₱13 base (first 4 km) + ₱1.80/km
-                        transCost += Math.max(13, Math.round(13 + (Math.max(0, distKm - 4) * 1.8)));
-                    }
-                }
-                else if (mode === 'tricycle') {
-                    const dbFare = window.getFareFromMatrix('tricycle', distKm);
-                    if (dbFare !== null) {
-                        transCost += Math.round(dbFare);
-                    } else {
-                        transCost += Math.max(15, Math.round(15 + (Math.max(0, distKm - 2) * 5)));
-                    }
-                }
-                else if (mode === 'taxi') {
-                    transCost += Math.max(50, Math.round(45 + (distKm * 15)));
-                }
-                else {
-                    const dbFare = window.getFareFromMatrix(mode, distKm);
-                    if (dbFare !== null) transCost += Math.round(dbFare);
-                    else transCost += 30;
-                }
             });
 
+            return Math.round(totalTransit * 100) / 100;
+        };
+
+        window.calculateModalBudget = function () {
+            const draft = (typeof window.getEffectiveDraft === 'function')
+                ? window.getEffectiveDraft()
+                : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+
+            const currentGlobalTransport = localStorage.getItem('intan_elyu_draft_trip_transport') || 'own_car';
+
+            // Calculate Point-to-Point transit from draft legs using active transport mode
+            const transCost = window.computeItineraryTransCost(draft, currentGlobalTransport);
+
+            // Update Transport Mode summary card in the Save modal
+            const p2pLabelEl = document.getElementById('save-p2p-transit-label');
+            const p2pLegsEl = document.getElementById('save-p2p-legs-count');
+            const p2pCostEl = document.getElementById('save-p2p-transit-cost');
+            const p2pIconEl = document.getElementById('save-p2p-transit-icon');
+            const transInput = document.getElementById('trip-transport');
+
+            const legInfos = draft.map((_, i) => (typeof window.getLegTransportInfo === 'function') ? window.getLegTransportInfo(i) : null).filter(Boolean);
+
+            let tripModes = (typeof window.getNormalizedTripModes === 'function')
+                ? window.getNormalizedTripModes()
+                : [currentGlobalTransport || 'own_car'];
+
+            const compositeTripTransport = (tripModes.length === 1) ? tripModes[0] : tripModes.join(' + ');
+            if (transInput) transInput.value = compositeTripTransport;
+
+            if (p2pCostEl) {
+                p2pCostEl.textContent = '₱' + transCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+            if (p2pLegsEl) {
+                p2pLegsEl.textContent = `${draft.length} Destination${draft.length > 1 ? 's' : ''} • Tap to view summary`;
+            }
+
+            if (p2pLabelEl) {
+                if (tripModes.length === 1) {
+                    p2pLabelEl.textContent = (typeof window.getVehicleDisplayName === 'function')
+                        ? window.getVehicleDisplayName(tripModes[0])
+                        : tripModes[0].replace(/_/g, ' ').toUpperCase();
+                } else {
+                    p2pLabelEl.textContent = `${tripModes.length} Vehicles`;
+                }
+            }
+
+            // Sync icon in Save modal
+            if (p2pIconEl) {
+                p2pIconEl.style.background = '#ffffff';
+                if (tripModes.length === 1 && typeof window.getVehicleIconHtml === 'function') {
+                    let iconHtml = window.getVehicleIconHtml(tripModes[0]);
+                    p2pIconEl.innerHTML = iconHtml.replace(/color:[^;"]+/g, 'color:#1e3a8a !important');
+                } else if (tripModes.length > 1) {
+                    p2pIconEl.innerHTML = '<i class="fa-solid fa-route" style="color:#1e3a8a !important; font-size:16px;"></i>';
+                } else {
+                    p2pIconEl.innerHTML = '<i class="fa-solid fa-car" style="color:#1e3a8a !important; font-size:16px;"></i>';
+                }
+            }
+
             // Sum Entrance Fees & Environmental Fees across all destinations in draft
+            // NOTE: Sites under maintenance are closed/restricted and do NOT charge entrance or environmental fees (₱0.00).
+            // Sites that are simply Closed by operating hours (e.g. 6am - 5pm outside operating hours) STILL get their site fees, option fees, and category.
             let feesTotal = 0;
             draft.forEach(p => {
-                const entrance = parseFloat(p.entrance_fee || p.entranceFee || p.fee || 0);
+                if (typeof window.isSpotUnderMaintenance === 'function' && window.isSpotUnderMaintenance(p)) {
+                    return; // Exclude Under Maintenance
+                }
+                const adultFee = parseFloat(p.adult_fee || p.adultFee || 0);
+                const generalEntrance = parseFloat(p.entrance_fee || p.entranceFee || p.fee || 0);
+                const entrance = adultFee > 0 ? adultFee : generalEntrance;
                 const env = parseFloat(p.environmental_fee || p.environmentalFee || p.envFee || 0);
                 feesTotal += (isNaN(entrance) ? 0 : entrance) + (isNaN(env) ? 0 : env);
             });
 
             const estimatedCost = transCost + feesTotal;
 
-            // Show the card
-            if (detailsDiv.style.display !== 'block') {
+            // Ensure save-budget-details is immediately shown when modal opens
+            const detailsDiv = document.getElementById('save-budget-details');
+            if (detailsDiv) {
                 detailsDiv.style.display = 'block';
-                detailsDiv.classList.add('animate-smooth-reveal');
             }
 
             const costEl = document.getElementById('save-estimated-cost');
-            costEl.textContent = '₱' + estimatedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (costEl) {
+                costEl.textContent = '₱' + estimatedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
 
-            const budgetInput = document.getElementById('trip-budget').value;
+            const budgetInput = document.getElementById('trip-budget') ? document.getElementById('trip-budget').value : '';
             const budget = parseFloat(budgetInput);
             const remainingRow = document.getElementById('save-budget-remaining-row');
             const remainingLabel = document.getElementById('save-budget-remaining-label');
             const remainingVal = document.getElementById('save-budget-remaining-val');
             const donutWrapper = document.getElementById('modal-donut-wrapper');
+            const pillGreen = document.getElementById('legend-pill-green');
+            const pillOrange = document.getElementById('legend-pill-orange');
+            const pillRed = document.getElementById('legend-pill-red');
 
-            if (!budgetInput || isNaN(budget) || budget <= 0) {
-                // No budget — collapse donut out (slides left)
-                if (donutWrapper) {
-                    donutWrapper.style.opacity = '0';
-                    donutWrapper.style.transform = 'scale(0.7)';
-                    donutWrapper.style.width = '0';
-                    donutWrapper.style.marginRight = '0';
-                }
-                if (_donutAnimFrame) { cancelAnimationFrame(_donutAnimFrame); _donutAnimFrame = null; }
-                _currentDonutPct = 0;
-                if (remainingRow) remainingRow.style.display = 'none';
-                return;
-            }
+            const setLegendStatus = (activeTier) => {
+                if (!pillGreen || !pillOrange || !pillRed) return;
+                pillGreen.style.opacity = (activeTier === 'green') ? '1' : '0.45';
+                pillGreen.style.transform = (activeTier === 'green') ? 'scale(1.05)' : 'scale(1)';
+                pillGreen.style.fontWeight = (activeTier === 'green') ? '800' : '600';
 
-            // Budget is set — expand donut in (slides right)
+                pillOrange.style.opacity = (activeTier === 'orange') ? '1' : '0.45';
+                pillOrange.style.transform = (activeTier === 'orange') ? 'scale(1.05)' : 'scale(1)';
+                pillOrange.style.fontWeight = (activeTier === 'orange') ? '800' : '600';
+
+                pillRed.style.opacity = (activeTier === 'red') ? '1' : '0.45';
+                pillRed.style.transform = (activeTier === 'red') ? 'scale(1.05)' : 'scale(1)';
+                pillRed.style.fontWeight = (activeTier === 'red') ? '800' : '600';
+            };
+
+            // Donut automatically shows when the modal is open
             if (donutWrapper) {
-                donutWrapper.style.width = '60px'; // 60px donut
-                donutWrapper.style.marginRight = '16px'; // 16px gap
+                donutWrapper.style.width = '58px';
+                donutWrapper.style.marginRight = '0';
                 donutWrapper.style.opacity = '1';
                 donutWrapper.style.transform = 'scale(1)';
             }
 
-            const percentage = Math.min((budget / estimatedCost) * 100, 100);
-            const remaining = budget - estimatedCost;
-
-            let fillColor = '#FF3B30'; // Red — budget covers little
-            let remainingLabelText = 'Need more budget';
-            let remainingLabelColor = '#FF3B30';
-
-            if (percentage >= 100) {
-                fillColor = '#34C759';
-                remainingLabelText = "You're good to go!";
-                remainingLabelColor = '#34C759';
-            } else if (percentage >= 80) {
-                fillColor = '#FF9500';
-                remainingLabelText = 'Almost there';
-                remainingLabelColor = '#FF9500';
+            if (!budgetInput || isNaN(budget) || budget <= 0) {
+                // No budget entered yet — show cyan ring outline with dash
+                animateDonut(100, '#00f2fe', '—');
+                if (remainingRow) remainingRow.style.display = 'none';
+                if (pillGreen) { pillGreen.style.opacity = '0.6'; pillGreen.style.transform = 'scale(1)'; pillGreen.style.fontWeight = '700'; }
+                if (pillOrange) { pillOrange.style.opacity = '0.6'; pillOrange.style.transform = 'scale(1)'; pillOrange.style.fontWeight = '700'; }
+                if (pillRed) { pillRed.style.opacity = '0.6'; pillRed.style.transform = 'scale(1)'; pillRed.style.fontWeight = '700'; }
+                return;
             }
 
-            // Animate donut fill smoothly
-            animateDonut(percentage, fillColor);
+            const remaining = budget - estimatedCost;
+            const absRemaining = Math.abs(remaining);
+            const formattedRemaining = '₱' + absRemaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            let fillColor = '#10b981';
+            let remainingColor = '#10b981';
+            let remainingLabelHtml = '<i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Remaining';
+            let remainingValueText = (remaining === 0) ? '₱0.00' : '+' + formattedRemaining;
+            let activeTier = 'green';
+            let donutPct = 100;
+
+            if (estimatedCost > budget) {
+                // Shortfall: Cost exceeds budget
+                const shortfall = estimatedCost - budget;
+                const formattedShortfall = '₱' + shortfall.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const coveragePct = (estimatedCost > 0) ? Math.max(0, Math.min(99, Math.round((budget / estimatedCost) * 100))) : 0;
+                donutPct = coveragePct;
+
+                if (coveragePct >= 80) {
+                    // YELLOW: 80% - 99% covered (Nearing estimated cost, close to target!)
+                    fillColor = '#f59e0b';
+                    remainingColor = '#f59e0b';
+                    remainingLabelHtml = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:4px;"></i> Nearing';
+                    remainingValueText = '-' + formattedShortfall;
+                    activeTier = 'orange';
+                } else {
+                    // RED: Under 80% covered (Cost exceeds budget significantly!)
+                    fillColor = '#ef4444';
+                    remainingColor = '#ef4444';
+                    remainingLabelHtml = '<i class="fa-solid fa-circle-xmark" style="margin-right:4px;"></i> Exceeded';
+                    remainingValueText = '-' + formattedShortfall;
+                    activeTier = 'red';
+                }
+            } else {
+                // Budget meets or exceeds estimated cost (100% MET!)
+                donutPct = 100;
+                fillColor = '#10b981';
+                remainingColor = '#10b981';
+                remainingLabelHtml = (remaining === 0)
+                    ? '<i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> MET!'
+                    : '<i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Remaining';
+                remainingValueText = (remaining === 0) ? '₱0.00' : '+' + formattedRemaining;
+                activeTier = 'green';
+            }
+
+            setLegendStatus(activeTier);
+
+            // Animate donut fill smoothly with color-coded status (if 100% make it MET!)
+            animateDonut(donutPct, fillColor, (donutPct === 100 ? 'MET!' : undefined));
 
             // Update remaining row
             if (remainingRow) {
                 remainingRow.style.display = 'flex';
-                remainingLabel.textContent = remainingLabelText;
-                remainingLabel.style.color = remainingLabelColor;
-                remainingVal.style.color = remainingLabelColor;
-                const absRemaining = Math.abs(remaining);
-                remainingVal.textContent = (remaining < 0 ? '-' : '') + '₱' + absRemaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                remainingLabel.innerHTML = remainingLabelHtml;
+                remainingLabel.style.color = remainingColor;
+                remainingVal.style.color = remainingColor;
+                remainingVal.textContent = remainingValueText;
             }
         };
 
@@ -2067,71 +3889,180 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             }
         };
 
-        window.openSaveModal = function () {
-            const draft = window.getEffectiveDraft();
+        window.resetSaveModalInputs = function () {
+            const titleInput = document.getElementById('trip-title');
+            if (titleInput) titleInput.value = '';
+            window.customClearDate();
+            window.toggleCustomCalendar(null, false);
+            const transInput = document.getElementById('trip-transport');
+            if (transInput) transInput.value = '';
+            const budgetInput = document.getElementById('trip-budget');
+            if (budgetInput) budgetInput.value = '';
+            const remainingRow = document.getElementById('save-budget-remaining-row');
+            if (remainingRow) remainingRow.style.display = 'none';
+            const pillGreen = document.getElementById('legend-pill-green');
+            const pillOrange = document.getElementById('legend-pill-orange');
+            const pillRed = document.getElementById('legend-pill-red');
+            if (pillGreen) { pillGreen.style.opacity = '0.6'; pillGreen.style.transform = 'scale(1)'; pillGreen.style.fontWeight = '700'; }
+            if (pillOrange) { pillOrange.style.opacity = '0.6'; pillOrange.style.transform = 'scale(1)'; pillOrange.style.fontWeight = '700'; }
+            if (pillRed) { pillRed.style.opacity = '0.6'; pillRed.style.transform = 'scale(1)'; pillRed.style.fontWeight = '700'; }
+            if (_donutAnimFrame) { cancelAnimationFrame(_donutAnimFrame); _donutAnimFrame = null; }
+            _currentDonutPct = 0;
+            document.querySelectorAll('.transport-option').forEach(opt => opt.classList.remove('active'));
+            const wrapper = document.getElementById('transport-slider-wrapper');
+            if (wrapper) wrapper.style.display = 'none';
 
-            // Populate dynamic fuel price from Railway DB
-            const fuelInput = document.getElementById('fuel-price');
-            if (fuelInput && window.fuelPrice) {
-                fuelInput.value = window.fuelPrice;
-            }
+            sessionStorage.removeItem('editing_itinerary_id');
+            sessionStorage.removeItem('editing_trip_title');
+            sessionStorage.removeItem('editing_trip_date');
+            sessionStorage.removeItem('editing_trip_budget');
+            sessionStorage.removeItem('editing_trip_transport');
+            sessionStorage.removeItem('editing_transport_initialized');
+        };
 
-            // Auto-detect transport type from selected vehicles, default to 'public'
-            const veh = draft.find(p => p.transport_type);
-            const initialTransport = veh ? veh.transport_type : 'public';
-            window.setTransportType(initialTransport);
+        window.cancelEditingSavedTrip = function () {
+            // Check if there was an existing draft with added spots before entering edit mode
+            const backupDraftRaw = localStorage.getItem('intan_elyu_pre_edit_backup_draft') || sessionStorage.getItem('intan_elyu_pre_edit_backup_draft');
+            let restored = false;
 
-            const vehicles = [...new Set(draft.flatMap(p => p.selected_vehicles || []).filter(Boolean))];
-            if (vehicles.length > 0) {
-                document.querySelectorAll('.transport-option').forEach(opt => {
-                    if (vehicles.includes(opt.dataset.val)) {
-                        opt.classList.add('active');
+            if (backupDraftRaw) {
+                try {
+                    const parsed = JSON.parse(backupDraftRaw);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        localStorage.setItem('intan_elyu_draft_itinerary', backupDraftRaw);
+                        restored = true;
+                    } else {
+                        localStorage.removeItem('intan_elyu_draft_itinerary');
                     }
-                });
+                } catch (e) {
+                    localStorage.removeItem('intan_elyu_draft_itinerary');
+                }
+            } else {
+                // If there were no prior added spots in itinerary, go back to empty state!
+                localStorage.removeItem('intan_elyu_draft_itinerary');
             }
 
-            // Initialize calendar to current month
-            const today = new Date();
-            window.calendarState.currentYear = today.getFullYear();
-            window.calendarState.currentMonth = today.getMonth();
-            window.renderCalendarGrid();
+            // Clean up pre-edit backup
+            localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+            sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
 
-            document.getElementById('save-trip-modal').style.display = 'flex';
-            window.calculateModalBudget();
+            // Clear editing trip session keys
+            sessionStorage.removeItem('editing_itinerary_id');
+            sessionStorage.removeItem('editing_trip_title');
+            sessionStorage.removeItem('editing_trip_date');
+            sessionStorage.removeItem('editing_trip_budget');
+            sessionStorage.removeItem('editing_trip_transport');
+            sessionStorage.removeItem('editing_transport_initialized');
 
-            // Hide bottom nav while modal is open (prevents keyboard pushing it up)
-            const bottomNav = document.getElementById('bottom-navigation');
-            if (bottomNav) bottomNav.classList.add('nav-hidden');
+            if (typeof showToast === 'function') {
+                showToast(restored ? "Restored your draft itinerary." : "Exited trip edit mode.");
+            }
+
+            window.renderItinerary();
+        };
+
+        window.openSaveModal = function (e) {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            try {
+                const draft = window.getEffectiveDraft ? window.getEffectiveDraft() : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+
+                // Check if in edit mode
+                const editingId = sessionStorage.getItem('editing_itinerary_id');
+                const modalTitleEl = document.getElementById('save-trip-modal-title');
+                const submitBtn = document.getElementById('btn-submit-trip');
+
+                if (editingId) {
+                    if (modalTitleEl) {
+                        modalTitleEl.innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:#38bdf8; font-size:18px;"></i> Edit Your Trip';
+                    }
+                    if (submitBtn) {
+                        submitBtn.textContent = 'Update Trip';
+                    }
+                    const savedTitle = sessionStorage.getItem('editing_trip_title');
+                    const savedDate = sessionStorage.getItem('editing_trip_date');
+                    const savedBudget = sessionStorage.getItem('editing_trip_budget');
+                    const savedTransport = sessionStorage.getItem('editing_trip_transport');
+
+                    const titleInput = document.getElementById('trip-title');
+                    if (titleInput && savedTitle !== null && savedTitle !== undefined) {
+                        titleInput.value = savedTitle;
+                    }
+                    const dateInput = document.getElementById('trip-date');
+                    if (dateInput) {
+                        dateInput.value = savedDate || '';
+                        const display = document.getElementById('custom-date-display') || document.getElementById('trip-date-display');
+                        if (display) {
+                            const formatted = savedDate ? new Date(savedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : 'Select trip date';
+                            if ('value' in display) display.value = formatted;
+                            display.textContent = formatted;
+                        }
+                        const clearLink = document.getElementById('calendar-clear-link');
+                        if (clearLink) clearLink.style.display = savedDate ? 'inline' : 'none';
+                    }
+                    const budgetInput = document.getElementById('trip-budget');
+                    if (budgetInput) {
+                        budgetInput.value = (savedBudget !== null && savedBudget !== undefined && savedBudget !== '') ? savedBudget : '';
+                    }
+                    if (savedTransport) {
+                        const transEl = document.getElementById('trip-transport');
+                        const isNoVeh = savedTransport.toLowerCase().includes('no_vehicle') || savedTransport.toLowerCase().includes('no vehicle');
+                        if (transEl) transEl.value = isNoVeh ? '' : savedTransport;
+                    }
+                } else {
+                    if (modalTitleEl) {
+                        modalTitleEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8; font-size:18px;"></i> Save Your Trip';
+                    }
+                    if (submitBtn) {
+                        submitBtn.textContent = 'Save Trip';
+                    }
+                }
+
+
+                // Calculate Point-to-Point transit budget and populate summary card
+                if (typeof window.calculateModalBudget === 'function') {
+                    window.calculateModalBudget();
+                }
+
+                // Initialize calendar to current month
+                const today = new Date();
+                if (window.calendarState) {
+                    window.calendarState.currentYear = today.getFullYear();
+                    window.calendarState.currentMonth = today.getMonth();
+                }
+                if (typeof window.renderCalendarGrid === 'function') {
+                    window.renderCalendarGrid();
+                }
+
+                const modal = document.getElementById('save-trip-modal');
+                if (modal) modal.style.display = 'flex';
+
+                if (typeof window.calculateModalBudget === 'function') {
+                    window.calculateModalBudget();
+                }
+
+                // Hide bottom nav while modal is open
+                const bottomNav = document.getElementById('bottom-navigation');
+                if (bottomNav) bottomNav.classList.add('nav-hidden');
+            } catch (err) {
+                console.error("Error in openSaveModal:", err);
+                const modal = document.getElementById('save-trip-modal');
+                if (modal) modal.style.display = 'flex';
+            }
         };
 
         window.closeSaveModal = function () {
             document.getElementById('save-trip-modal').style.display = 'none';
+            if (typeof window.closeTransitSummaryOpensheet === 'function') {
+                window.closeTransitSummaryOpensheet();
+            }
 
             // Restore bottom nav
             const bottomNav = document.getElementById('bottom-navigation');
             if (bottomNav) bottomNav.classList.remove('nav-hidden');
-            document.getElementById('trip-title').value = '';
-            window.customClearDate();
+
+            // Close calendar dropdown without clearing date or input values
             window.toggleCustomCalendar(null, false);
-            document.getElementById('trip-transport').value = '';
-            document.getElementById('trip-budget').value = '';
-            document.getElementById('save-budget-details').style.display = 'none';
-            const pctEl = document.getElementById('modal-donut-pct');
-            const remainingRow = document.getElementById('save-budget-remaining-row');
-            const donutWrapper = document.getElementById('modal-donut-wrapper');
-            if (pctEl) pctEl.textContent = '';
-            if (remainingRow) remainingRow.style.display = 'none';
-            if (donutWrapper) { donutWrapper.style.opacity = '0'; donutWrapper.style.transform = 'scale(0.7)'; donutWrapper.style.width = '0'; donutWrapper.style.marginRight = '0'; }
-            if (_donutAnimFrame) { cancelAnimationFrame(_donutAnimFrame); _donutAnimFrame = null; }
-            _currentDonutPct = 0;
-            // Reset transport mode UI
-            document.querySelectorAll('.transport-option').forEach(opt => opt.classList.remove('active'));
-            const wrapper = document.getElementById('transport-slider-wrapper');
-            if (wrapper) wrapper.style.display = 'none';
-            const btnPublic = document.getElementById('btn-trans-public');
-            const btnPrivate = document.getElementById('btn-trans-private');
-            if (btnPublic) { btnPublic.style.background = 'transparent'; btnPublic.style.color = 'rgba(255,255,255,0.7)'; btnPublic.style.boxShadow = 'none'; }
-            if (btnPrivate) { btnPrivate.style.background = 'transparent'; btnPrivate.style.color = 'rgba(255,255,255,0.7)'; btnPrivate.style.boxShadow = 'none'; }
+            // All draft inputs (#trip-title, #trip-date, #trip-budget, #trip-transport) remain intact on cancel!
         };
 
         window.submitItinerary = async function () {
@@ -2145,128 +4076,59 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             if (draft.length === 0) return showToast("Your itinerary is empty!");
 
             const transport = document.getElementById('trip-transport').value;
-
-            // Warn if no transport or budget is set — confirm before saving
-            if (!transport || !budgetStr) {
-                let msg = "You haven't set ";
-                const missing = [];
-                if (!transport) missing.push('a transport type');
-                if (!budgetStr) missing.push('a budget');
-                msg += missing.join(' or ');
-                if (!(await window.showConfirmModal(msg))) return;
-            }
+            const isNoVeh = !transport || !transport.trim() || transport.toLowerCase().includes('no_vehicle') || transport.toLowerCase().includes('no vehicle');
+            const effectiveTransport = isNoVeh ? 'No Vehicle Selected' : transport.trim();
 
             const btn = document.getElementById('btn-submit-trip');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+            const editingId = sessionStorage.getItem('editing_itinerary_id');
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${editingId ? 'Updating...' : 'Saving...'}`;
             btn.disabled = true;
 
-            let totalTransCost = 0;
-            const modes = transport ? transport.split(',').filter(Boolean) : [];
-            let distKm = window._draftDistanceKm || 0;
-            if (distKm <= 0 && draft.length > 0) {
-                let totalD = 0;
-                const pts = [];
-                if (window.myLat && window.myLng) pts.push([parseFloat(window.myLat), parseFloat(window.myLng)]);
-                draft.forEach(p => {
-                    const lat = parseFloat(p.lat || p.latitude);
-                    const lng = parseFloat(p.lng || p.longitude);
-                    if (!isNaN(lat) && !isNaN(lng)) pts.push([lat, lng]);
-                });
-                for (let i = 0; i < pts.length - 1; i++) {
-                    const lat1 = pts[i][0], lon1 = pts[i][1];
-                    const lat2 = pts[i + 1][0], lon2 = pts[i + 1][1];
-                    const p = 0.017453292519943295;
-                    const a = 0.5 - Math.cos((lat2 - lat1) * p) / 2 + Math.cos(lat1 * p) * Math.cos(lat2 * p) * (1 - Math.cos((lon2 - lon1) * p)) / 2;
-                    totalD += (12742 * Math.asin(Math.sqrt(a))) * 1.25;
-                }
-                distKm = Math.max(1, totalD);
-            }
-            modes.forEach(mode => {
-                if (mode === 'own_car') {
-                    const fuelPrice = parseFloat(document.getElementById('fuel-price')?.value) || 65;
-                    const fuelEffic = parseFloat(document.getElementById('fuel-efficiency')?.value) || 12;
-                    const litersNeeded = distKm / fuelEffic;
-                    let cost = Math.ceil(litersNeeded * fuelPrice);
-                    if (distKm <= 0) cost = Math.ceil((1 * fuelPrice) / fuelEffic);
-                    totalTransCost += cost;
-                }
-                else if (mode === 'private_bus' || mode === 'bus') {
-                    const dbFare = window.getFareFromMatrix('bus', distKm) || window.getFareFromMatrix('private_bus', distKm);
-                    if (dbFare !== null) {
-                        totalTransCost += Math.round(dbFare);
-                    } else {
-                        // Standard Provincial Commuter Bus fare: ₱15 base (first 5 km) + ₱2.20/km
-                        totalTransCost += Math.max(15, Math.round(15 + (Math.max(0, distKm - 5) * 2.2)));
-                    }
-                }
-                else if (mode === 'mini_bus' || mode === 'van' || mode === 'uve') {
-                    const dbFare = window.getFareFromMatrix('mini_bus', distKm) || window.getFareFromMatrix('van', distKm);
-                    if (dbFare !== null) {
-                        totalTransCost += Math.round(dbFare);
-                    } else {
-                        // Standard UV Express / Mini Bus fare: ₱25 base (first 4 km) + ₱2.50/km
-                        totalTransCost += Math.max(25, Math.round(25 + (Math.max(0, distKm - 4) * 2.5)));
-                    }
-                }
-                else if (mode === 'lutrampco') {
-                    const dbFare = window.getFareFromMatrix('lutrampco', distKm);
-                    if (dbFare !== null) {
-                        totalTransCost += Math.round(dbFare);
-                    } else {
-                        // Standard LUTRAMPCO Modernized Jeepney fare: ₱14 base (first 4 km) + ₱2.20/km
-                        totalTransCost += Math.max(14, Math.round(14 + (Math.max(0, distKm - 4) * 2.2)));
-                    }
-                }
-                else if (mode === 'jeepney') {
-                    const dbFare = window.getFareFromMatrix('jeepney', distKm);
-                    if (dbFare !== null) {
-                        totalTransCost += Math.round(dbFare);
-                    } else {
-                        // Traditional Jeepney fare: ₱13 base (first 4 km) + ₱1.80/km
-                        totalTransCost += Math.max(13, Math.round(13 + (Math.max(0, distKm - 4) * 1.8)));
-                    }
-                }
-                else if (mode === 'tricycle') {
-                    const dbFare = window.getFareFromMatrix('tricycle', distKm);
-                    if (dbFare !== null) {
-                        totalTransCost += Math.round(dbFare);
-                    } else {
-                        totalTransCost += Math.max(15, Math.round(15 + (Math.max(0, distKm - 2) * 5)));
-                    }
-                }
-                else if (mode === 'taxi') {
-                    totalTransCost += Math.max(50, Math.round(45 + (distKm * 15)));
-                }
-                else {
-                    const dbFare = window.getFareFromMatrix(mode, distKm);
-                    if (dbFare !== null) totalTransCost += Math.round(dbFare);
-                    else totalTransCost += 30;
-                }
-            });
-
-            const transCostPerPlace = transport ? (totalTransCost / draft.length) : null;
-
-            const destinations = draft.map(place => place.id);
+            const destinations = draft.map(place => parseInt(place.id || place.tourist_spot_id || 0)).filter(id => id > 0);
 
             try {
-                const activeRouteType = document.querySelector('.btn-route-type.active')?.innerText || (window.currentRouteType === 'alternate' ? 'Alternate' : 'Recommended');
+                const activeRouteType = document.querySelector('.btn-route-type.active')?.innerText || ((window.currentRouteType === 'alternative' || window.currentRouteType === 'alternate') ? 'Alternative' : 'Recommended');
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
                 if (!token) {
-                    btn.innerHTML = 'Save Trip';
+                    btn.innerHTML = editingId ? 'Update Trip' : 'Save Trip';
                     btn.disabled = false;
                     showToast("Session expired. Please log in to save your trip.");
                     navigateTo('auth');
                     return;
                 }
 
-                const response = await fetch(backendUrl + '/api/tourist/itineraries', {
-                    method: 'POST',
+                const url = editingId ? `${backendUrl}/api/tourist/itineraries/${editingId}` : `${backendUrl}/api/tourist/itineraries`;
+                const method = editingId ? 'PUT' : 'POST';
+
+                const legTransports = draft.map((place, idx) => {
+                    const legInfo = (typeof window.getLegTransportInfo === 'function')
+                        ? window.getLegTransportInfo(idx)
+                        : { mode: effectiveTransport, cost: 0, distance_km: 0 };
+                    return {
+                        leg_index: idx + 1,
+                        to_spot_id: parseInt(place.id || place.tourist_spot_id || 0),
+                        transport_mode: legInfo.mode || legInfo.transport_mode || effectiveTransport,
+                        leg_cost: parseFloat(legInfo.cost || legInfo.leg_cost || 0),
+                        leg_distance_km: parseFloat(legInfo.distance_km || 0)
+                    };
+                });
+
+                const response = await fetch(url, {
+                    method: method,
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
                         'Authorization': 'Bearer ' + token
                     },
-                    body: JSON.stringify({ title: title, trip_date: date, budget: budget, destinations: destinations, route_type: activeRouteType, transport_mode: transport })
+                    body: JSON.stringify({
+                        title: title,
+                        trip_date: date || null,
+                        budget: budget,
+                        destinations: destinations,
+                        route_type: activeRouteType,
+                        transport_mode: effectiveTransport,
+                        leg_transports: legTransports
+                    })
                 });
 
                 if (response.status === 401) {
@@ -2280,50 +4142,58 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 const data = await response.json();
 
                 if (response.ok) {
-                    // Optimistically inject the new trip into the saved trips cache so it appears with 0ms latency
-                    const cacheKey = 'saved_trips_' + token.substring(0, 10);
-                    const dashCacheKey = 'dashboard_trips_' + token.substring(0, 10);
-                    localStorage.removeItem(dashCacheKey);
+                    // Invalidate caches
+                    const tokenKey = token.substring(0, 10);
+                    localStorage.removeItem('saved_trips_' + tokenKey);
+                    localStorage.removeItem('dashboard_trips_' + tokenKey);
+                    localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
+                    if (typeof window._cachedSavedTrips !== 'undefined') {
+                        window._cachedSavedTrips = null;
+                    }
 
-                    if (data.itinerary) {
+                    const savedId = String(editingId || data.itinerary_id || (data.itinerary && data.itinerary.id) || '');
+                    if (savedId) {
+                        sessionStorage.setItem('just_saved_trip_id', savedId);
+                        sessionStorage.setItem('active_trip_transport_' + savedId, effectiveTransport);
+                        localStorage.setItem('selected_trip_vehicle_' + savedId, effectiveTransport);
+                    }
+
+                    showToast(editingId ? "Trip updated successfully!" : "Trip saved successfully!");
+
+                    // If the user updated an edited trip, restore their original pre-edit draft (if any was saved)
+                    const backupDraftRaw = localStorage.getItem('intan_elyu_pre_edit_backup_draft') || sessionStorage.getItem('intan_elyu_pre_edit_backup_draft');
+                    if (editingId && backupDraftRaw) {
                         try {
-                            const rawCached = localStorage.getItem(cacheKey);
-                            let existingTrips = [];
-                            if (rawCached) {
-                                const parsed = window.safeJsonParse(rawCached, null);
-                                if (parsed && Array.isArray(parsed.data)) {
-                                    existingTrips = parsed.data;
-                                }
+                            const parsed = JSON.parse(backupDraftRaw);
+                            if (Array.isArray(parsed) && parsed.length > 0) {
+                                localStorage.setItem('intan_elyu_draft_itinerary', backupDraftRaw);
+                            } else {
+                                localStorage.removeItem('intan_elyu_draft_itinerary');
                             }
-                            const updatedTrips = [data.itinerary, ...existingTrips.filter(t => t.id !== data.itinerary.id)];
-                            localStorage.setItem(cacheKey, JSON.stringify({
-                                data: updatedTrips,
-                                timestamp: Date.now()
-                            }));
                         } catch (e) {
-                            localStorage.removeItem(cacheKey);
+                            localStorage.removeItem('intan_elyu_draft_itinerary');
                         }
                     } else {
-                        localStorage.removeItem(cacheKey);
+                        localStorage.removeItem('intan_elyu_draft_itinerary');
                     }
+                    localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                    sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                    localStorage.removeItem('intan_elyu_draft_leg_vehicles');
 
-                    if (data.itinerary_id || (data.itinerary && data.itinerary.id)) {
-                        sessionStorage.setItem('just_saved_trip_id', String(data.itinerary_id || data.itinerary.id));
-                    }
-
-                    showToast("Trip saved successfully!");
-                    localStorage.removeItem('intan_elyu_draft_itinerary');
-                    closeSaveModal();
+                    window.resetSaveModalInputs();
+                    document.getElementById('save-trip-modal').style.display = 'none';
+                    const bottomNav = document.getElementById('bottom-navigation');
+                    if (bottomNav) bottomNav.classList.remove('nav-hidden');
                     window.renderItinerary();
                     navigateTo('saved_trips');
                 } else {
-                    throw new Error(data.message || "Failed to save trip");
+                    throw new Error(data.message || (editingId ? "Failed to update trip" : "Failed to save trip"));
                 }
             } catch (error) {
                 console.error("Save Error:", error);
                 showToast(error.message || "Failed to save. Check connection.");
             } finally {
-                btn.innerHTML = 'Save Trip';
+                btn.innerHTML = editingId ? 'Update Trip' : 'Save Trip';
                 btn.disabled = false;
             }
         };
@@ -2360,9 +4230,9 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                     boxZoom: true,
                     keyboard: true
                 });
-                L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     maxZoom: 19,
-                    subdomains: ['a', 'b'],
+                    subdomains: ['a', 'b', 'c'],
                     detectRetina: true,
                     keepBuffer: 4,
                     updateWhenZooming: true,
@@ -2378,26 +4248,28 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 });
             });
 
-            // clear old markers and routes
-            draftMarkers.forEach(m => draftMap.removeLayer(m));
-            if (draftRouteLineBg) draftMap.removeLayer(draftRouteLineBg);
-            if (draftRouteLine) draftMap.removeLayer(draftRouteLine);
-            if (window.myDraftMarker && draftMap) draftMap.removeLayer(window.myDraftMarker);
+            // Clear ALL previous markers, overlays, and routes from draftMap (leaving only base tiles)
+            if (draftMap) {
+                draftMap.eachLayer(layer => {
+                    if (!(layer instanceof L.TileLayer)) {
+                        try { draftMap.removeLayer(layer); } catch (e) { }
+                    }
+                });
+            }
+            draftRouteLineBg = null;
+            draftRouteLine = null;
             window.myDraftMarker = null;
             draftMarkers = [];
 
             let latlngs = [];
 
-            // Add a global 'My Location' indicator.
-            // We strictly rely on real-time GPS locks.
+            // Add single GPS Location indicator
             if (window.myLat && window.myLng) {
                 latlngs.push([window.myLat, window.myLng]);
                 const myIconHtml = `
                 <div class="gps-user-marker-icon">
                     <div class="gps-user-marker-wave"></div>
-                    <div class="gps-user-marker-inner">
-                        <i class="fa-solid fa-location-crosshairs" style="font-size:14px;"></i>
-                    </div>
+                    <div class="gps-user-marker-inner"></div>
                 </div>
             `;
                 const myIcon = L.divIcon({
@@ -2409,6 +4281,7 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 window.myDraftMarker = L.marker([window.myLat, window.myLng], { icon: myIcon, zIndexOffset: 1000 })
                     .addTo(draftMap)
                     .bindPopup('<b>📍 Your Current Location</b><br><span style="font-size:11px;color:#64748b;">Starting Point of Itinerary</span>');
+                window.myDraftMarker._isUserGps = true;
                 draftMarkers.push(window.myDraftMarker);
             }
 
@@ -2454,151 +4327,218 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             if (latlngs.length > 1) {
                 const activeRouteEl = document.querySelector('.btn-route-type.active');
-                const activeRoute = (activeRouteEl ? activeRouteEl.innerText.trim() : (window.currentRouteType === 'alternate' ? 'Alternate' : 'Recommended'));
-                let routeColor = '#38bdf8'; // Recommended = Blue
-                let shadowColor = '#0f172a';
+                const isAlt = (window.currentRouteType === 'alternative' || window.currentRouteType === 'alternate' || activeRouteEl?.innerText.trim() === 'Alternative' || activeRouteEl?.innerText.trim() === 'Alternate');
+                const activeRoute = isAlt ? 'Alternative' : 'Recommended';
 
-                if (activeRoute === 'Alternate') { routeColor = '#ffb703'; shadowColor = '#78350f'; } // Vibrant Gold/Yellow
-                if (activeRoute === 'Scenic Route') { routeColor = '#ff3b30'; shadowColor = '#450a0a'; }
+                let routeColor = isAlt ? '#f59e0b' : '#38bdf8'; // Alternative = Vibrant Amber/Gold, Recommended = Cyan/Blue
+                let shadowColor = isAlt ? '#78350f' : '#0f172a';
 
-                // We strictly use the original authenticated coordinates from the database.
                 let fetchLatLngs = [...latlngs];
-
                 const coordString = fetchLatLngs.map(ll => `${ll[1]},${ll[0]}`).join(';');
 
                 if (shouldFitBounds) {
                     draftMap.fitBounds(L.latLngBounds(latlngs), { padding: [30, 30] });
                 }
 
-                // Execute the real-time dynamic scan using the OSRM engine
-                let osrmService = 'route';
-                let osrmQuery = '?overview=full&geometries=geojson&alternatives=true';
+                // If Alternative and multiple stops: query leg-by-leg alternative corridors or multi-point route
+                const fetchRoutePromise = (async () => {
+                    if (isAlt && fetchLatLngs.length >= 2) {
+                        // Fetch leg by leg with alternative option for each leg
+                        try {
+                            const legGeometries = [];
+                            const legList = [];
+                            let totalDist = 0;
+                            let totalDur = 0;
 
-                // To provide the absolute fastest way for Recommended routes with 3+ waypoints, use TSP solver
-                if (activeRoute === 'Recommended' && fetchLatLngs.length >= 3) {
-                    osrmService = 'trip';
-                    osrmQuery = '?overview=full&geometries=geojson&source=first&destination=last&roundtrip=false';
-                }
+                            for (let k = 0; k < fetchLatLngs.length - 1; k++) {
+                                const p1 = `${fetchLatLngs[k][1]},${fetchLatLngs[k][0]}`;
+                                const p2 = `${fetchLatLngs[k + 1][1]},${fetchLatLngs[k + 1][0]}`;
+                                const legUrl = `https://router.project-osrm.org/route/v1/driving/${p1};${p2}?overview=full&geometries=geojson&alternatives=3&continue_straight=true`;
+                                const legRes = await fetch(legUrl);
+                                const legData = await legRes.json();
 
-                const osrmUrl = `https://router.project-osrm.org/${osrmService}/v1/driving/${coordString}${osrmQuery}`;
-
-                fetch(osrmUrl)
-                    .then(res => res.json())
-                    .then(async data => {
-                        let routeData = null;
-
-                        if (data.code === 'Ok') {
-                            if (activeRoute === 'Alternate') {
-                                // If OSRM returned multiple driving routes, select the distinct alternate corridor!
-                                if (data.routes && data.routes.length > 1) {
-                                    routeData = data.routes[1];
-                                } else if (data.routes && data.routes.length > 0) {
-                                    // If single highway, query secondary road network (bike/secondary profile) for distinct route
-                                    try {
-                                        const altRes = await fetch(`https://router.project-osrm.org/route/v1/bike/${coordString}?overview=full&geometries=geojson`);
-                                        const altData = await altRes.json();
-                                        if (altData.code === 'Ok' && altData.routes && altData.routes[0]) {
-                                            routeData = altData.routes[0];
-                                        } else {
-                                            routeData = data.routes[0];
-                                        }
-                                    } catch (e) {
-                                        routeData = data.routes[0];
-                                    }
+                                if (legData.code === 'Ok' && legData.routes && legData.routes.length > 0) {
+                                    // Choose genuine secondary route if returned by OSRM road network, otherwise follow direct road
+                                    const chosen = (legData.routes.length > 1) ? legData.routes[1] : legData.routes[0];
+                                    legGeometries.push(chosen.geometry);
+                                    totalDist += chosen.distance;
+                                    totalDur += chosen.duration;
+                                    legList.push({ distance: chosen.distance, duration: chosen.duration });
                                 }
-                            } else {
-                                routeData = data.routes ? data.routes[0] : (data.trips ? data.trips[0] : null);
                             }
+
+                            if (legGeometries.length > 0) {
+                                return {
+                                    code: 'Ok',
+                                    distance: totalDist,
+                                    duration: totalDur,
+                                    geometry: {
+                                        type: 'FeatureCollection',
+                                        features: legGeometries.map(g => ({
+                                            type: 'Feature',
+                                            geometry: g
+                                        }))
+                                    },
+                                    legs: legList
+                                };
+                            }
+                        } catch (e) {
+                            console.warn("Alternative leg query fallback:", e);
                         }
+                    }
 
-                        if (routeData) {
-                            if (draftRouteLineBg) draftMap.removeLayer(draftRouteLineBg);
-                            if (draftRouteLine) draftMap.removeLayer(draftRouteLine);
+                    // Standard OSRM query
+                    let osrmService = 'route';
+                    let osrmQuery = '?overview=full&geometries=geojson&alternatives=true';
+                    if (!isAlt && fetchLatLngs.length >= 3) {
+                        osrmService = 'trip';
+                        osrmQuery = '?overview=full&geometries=geojson&source=first&destination=last&roundtrip=false';
+                    }
 
-                            const geojson = routeData.geometry;
+                    const osrmUrl = `https://router.project-osrm.org/${osrmService}/v1/driving/${coordString}${osrmQuery}`;
+                    const res = await fetch(osrmUrl);
+                    const data = await res.json();
 
-                            draftRouteLineBg = L.geoJSON(geojson, {
-                                style: { color: shadowColor, weight: 6, opacity: 0.35, lineJoin: 'round', lineCap: 'round' }
-                            }).addTo(draftMap);
-
-                            draftRouteLine = L.geoJSON(geojson, {
-                                style: {
-                                    color: routeColor,
-                                    weight: 4,
-                                    opacity: 1,
-                                    lineJoin: 'round',
-                                    lineCap: 'round',
-                                    dashArray: activeRoute === 'Alternate' ? '7, 5' : null
-                                }
-                            }).addTo(draftMap);
-
-                            let distanceKm = routeData.distance / 1000;
-                            let durationMin = routeData.duration / 60;
-
-                            if (activeRoute === 'Scenic Route') {
-                                durationMin *= 1.5;
-                                distanceKm *= 1.4;
-                            } else if (activeRoute === 'Alternate') {
-                                durationMin *= 1.25;
-                                distanceKm *= 1.15;
-                            }
-
-                            // OSRM assumes perfect driving at the speed limit.
-                            // Apply a dynamic realism multiplier:
-                            let baseMultiplier = 1.6;
-                            if (distanceKm <= 3) baseMultiplier = 2.5;
-                            else if (distanceKm <= 7) baseMultiplier = 2.0;
-
-                            durationMin *= baseMultiplier;
-
-                            // Traffic Buffer Logic
-                            const currentHour = new Date().getHours();
-                            const isRushHour = (currentHour >= 7 && currentHour <= 9) || (currentHour >= 16 && currentHour <= 19);
-                            const warningDiv = document.getElementById('draft-traffic-warning');
-
-                            if (isRushHour) {
-                                durationMin *= 1.4;
-                                if (warningDiv) {
-                                    warningDiv.style.display = 'block';
-                                    warningDiv.style.color = '#FF9500';
-                                    warningDiv.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Heavy traffic expected at this hour';
-                                }
-                            } else {
-                                if (warningDiv) {
-                                    warningDiv.style.display = 'block';
-                                    warningDiv.style.color = 'rgba(255,255,255,0.4)';
-                                    warningDiv.innerHTML = activeRoute === 'Alternate' ? '<i class="fa-solid fa-route" style="color:#ffb703; margin-right:4px;"></i> Alternate Road Corridor' : 'Typical traffic conditions';
-                                }
-                            }
-
-                            // Store globally so the Save modal can use it for fuel cost
-                            window._draftDistanceKm = distanceKm;
-
-                            window.setTxt('draft-map-dist', distanceKm.toFixed(1) + ' km');
-                            window.setTxt('draft-map-time', Math.round(durationMin) + ' min');
-
-                            // Dynamically scale line width on zoom
-                            const updateRouteScale = () => {
-                                if (!draftMap) return;
-                                const z = draftMap.getZoom();
-                                const w = z >= 17 ? 12 : (z >= 15 ? 8 : (z >= 13 ? 5 : 3));
-                                const bgw = w + 4;
-                                if (draftRouteLine) draftRouteLine.setStyle({ weight: w });
-                                if (draftRouteLineBg) draftRouteLineBg.setStyle({ weight: bgw });
+                    if (data.code === 'Ok') {
+                        let chosenRoute = null;
+                        if (isAlt && data.routes && data.routes.length > 1) {
+                            chosenRoute = data.routes[1];
+                        } else {
+                            chosenRoute = data.routes ? data.routes[0] : (data.trips ? data.trips[0] : null);
+                        }
+                        if (chosenRoute) {
+                            return {
+                                code: 'Ok',
+                                distance: chosenRoute.distance,
+                                duration: chosenRoute.duration,
+                                geometry: chosenRoute.geometry,
+                                legs: chosenRoute.legs || []
                             };
-                            draftMap.off('zoom', updateRouteScale);
-                            draftMap.on('zoom', updateRouteScale);
-                            updateRouteScale();
                         }
-                    })
-                    .catch(err => console.error("OSRM Routing failed.", err));
+                    }
+                    return null;
+                })();
+
+                fetchRoutePromise.then(routeData => {
+                    if (routeData && routeData.code === 'Ok') {
+                        if (draftRouteLineBg) draftMap.removeLayer(draftRouteLineBg);
+                        if (draftRouteLine) draftMap.removeLayer(draftRouteLine);
+
+                        const geojson = routeData.geometry;
+
+                        draftRouteLineBg = L.geoJSON(geojson, {
+                            style: { color: shadowColor, weight: 7, opacity: 0.4, lineJoin: 'round', lineCap: 'round' }
+                        }).addTo(draftMap);
+
+                        draftRouteLine = L.geoJSON(geojson, {
+                            style: {
+                                color: routeColor,
+                                weight: 4.5,
+                                opacity: 1,
+                                lineJoin: 'round',
+                                lineCap: 'round',
+                                dashArray: isAlt ? '8, 6' : null
+                            }
+                        }).addTo(draftMap);
+
+                        let distanceKm = routeData.distance / 1000;
+                        let durationMin = routeData.duration / 60;
+
+                        if (isAlt) {
+                            durationMin *= 1.25;
+                            distanceKm *= 1.12;
+                        }
+
+                        let baseMultiplier = 1.6;
+                        if (distanceKm <= 3) baseMultiplier = 2.5;
+                        else if (distanceKm <= 7) baseMultiplier = 2.0;
+                        durationMin *= baseMultiplier;
+
+                        // Traffic Buffer Logic
+                        const currentHour = new Date().getHours();
+                        const isRushHour = (currentHour >= 7 && currentHour <= 9) || (currentHour >= 16 && currentHour <= 19);
+                        const warningDiv = document.getElementById('draft-traffic-warning');
+
+                        if (isRushHour) {
+                            durationMin *= 1.35;
+                            if (warningDiv) {
+                                warningDiv.style.display = 'block';
+                                warningDiv.style.color = '#FF9500';
+                                warningDiv.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Heavy traffic expected at this hour';
+                            }
+                        } else {
+                            if (warningDiv) {
+                                warningDiv.style.display = 'block';
+                                warningDiv.style.color = 'rgba(255,255,255,0.7)';
+                                warningDiv.innerHTML = isAlt ? '<i class="fa-solid fa-route" style="color:#f59e0b; margin-right:4px;"></i> Alternative Road Corridor' : 'Typical traffic conditions';
+                            }
+                        }
+
+                        window._draftDistanceKm = distanceKm;
+                        window.setTxt('draft-map-dist', distanceKm.toFixed(1) + ' km');
+                        window.setTxt('draft-map-time', Math.round(durationMin) + ' min');
+
+                        // Synchronize Next Stop (Stop 1) distance and drive duration chip with real OSRM road calculation
+                        let leg0DistKm = distanceKm;
+                        let leg0DurMin = durationMin;
+                        if (routeData.legs && routeData.legs.length > 0) {
+                            let lDist = (routeData.legs[0].distance || 0) / 1000;
+                            let lDur = (routeData.legs[0].duration || 0) / 60;
+                            if (isAlt) {
+                                lDist *= 1.12;
+                                lDur *= 1.25;
+                            }
+                            let lMult = 1.6;
+                            if (lDist <= 3) lMult = 2.5;
+                            else if (lDist <= 7) lMult = 2.0;
+                            lDur *= lMult;
+                            if (isRushHour) lDur *= 1.35;
+                            leg0DistKm = lDist;
+                            leg0DurMin = lDur;
+                        }
+
+                        const leg0DistText = leg0DistKm < 1 ? Math.round(leg0DistKm * 1000) + ' m' : leg0DistKm.toFixed(1) + ' km';
+                        const leg0DurMinRound = Math.max(1, Math.round(leg0DurMin));
+                        const leg0DurText = leg0DurMinRound >= 60
+                            ? `${Math.floor(leg0DurMinRound / 60)}h ${leg0DurMinRound % 60}m`
+                            : `${leg0DurMinRound} mins`;
+
+                        const firstPlace = (typeof draft !== 'undefined' && Array.isArray(draft) && draft[0]) ? draft[0] : null;
+                        const firstKey = firstPlace ? String(firstPlace.id || firstPlace.name) : null;
+
+                        window._cachedNextStopOSRM = {
+                            distanceKm: leg0DistKm,
+                            distanceText: leg0DistText,
+                            durationMin: leg0DurMinRound,
+                            durationText: leg0DurText,
+                            spotKey: firstKey
+                        };
+
+                        const nextEtaEl = document.getElementById('itinerary-next-eta');
+                        if (nextEtaEl) {
+                            nextEtaEl.innerHTML = `
+                                <i class="fa-solid fa-route" style="color:#0284c7 !important; font-size:11px;"></i> 
+                                <span style="color:#1e3a8a !important; font-weight:700; font-size:11px;">${leg0DistText} away &bull; ~${leg0DurText} drive from your location</span>
+                            `;
+                        }
+
+                        const updateRouteScale = () => {
+                            if (!draftMap) return;
+                            const z = draftMap.getZoom();
+                            const w = z >= 17 ? 12 : (z >= 15 ? 8 : (z >= 13 ? 5 : 3));
+                            const bgw = w + 4;
+                            if (draftRouteLine) draftRouteLine.setStyle({ weight: w });
+                            if (draftRouteLineBg) draftRouteLineBg.setStyle({ weight: bgw });
+                        };
+                        draftMap.off('zoom', updateRouteScale);
+                        draftMap.on('zoom', updateRouteScale);
+                        updateRouteScale();
+                    }
+                }).catch(err => console.error("OSRM Routing failed.", err));
             } else if (latlngs.length === 1) {
-                // Only 1 spot: no route to draw, but we MUST set the map view so it renders!
                 if (shouldFitBounds) {
                     draftMap.setView(latlngs[0], 15);
                 }
-
-                // Reset stats
                 window.setTxt('draft-map-dist', '0 km');
                 window.setTxt('draft-map-time', '0 min');
                 const warnEl = document.getElementById('draft-traffic-warning');
@@ -2607,25 +4547,23 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         };
 
         window.setRouteType = function (type, btn) {
-            // Cancel any pending render timeout to prevent it from overriding user interaction
             if (window._renderTimeout) {
                 clearTimeout(window._renderTimeout);
                 window._renderTimeout = null;
             }
-            window.currentRouteType = type;
+            window.currentRouteType = (type === 'alternate' || type === 'alternative') ? 'alternative' : 'recommended';
             document.querySelectorAll('.btn-route-type').forEach(el => el.classList.remove('active'));
             let activeBtn = btn;
             if (btn) {
                 btn.classList.add('active');
             } else {
-                activeBtn = document.getElementById(type === 'alternate' ? 'btn-route-alt' : 'btn-route-rec');
+                activeBtn = document.getElementById(window.currentRouteType === 'alternative' ? 'btn-route-alt' : 'btn-route-rec');
                 if (activeBtn) activeBtn.classList.add('active');
             }
 
-            // Smooth slider animation via CSS alt-active class
             const container = document.getElementById('route-toggle-container');
             if (container) {
-                if (type === 'alternate') {
+                if (window.currentRouteType === 'alternative') {
                     container.classList.add('alt-active');
                 } else {
                     container.classList.remove('alt-active');
@@ -2634,28 +4572,23 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             window.animateTimelineSwap(() => {
                 const draft = window.getEffectiveDraft();
-
-                // Render stops with skipMap = true so map doesn't re-init mid-animation
                 window.renderItinerary(true);
 
-                // Save user's viewport before re-rendering map
                 var _savedCenter = null, _savedZoom = null;
                 if (typeof draftMap !== 'undefined' && draftMap) {
                     _savedCenter = draftMap.getCenter();
                     _savedZoom = draftMap.getZoom();
                 }
 
-                // Re-render map with the new route sequence
                 window.initDraftMap(draft, false);
 
-                // Restore user's viewport
                 if (_savedCenter !== null && _savedZoom !== null && typeof draftMap !== 'undefined' && draftMap) {
                     draftMap.setView(_savedCenter, _savedZoom, { animate: false });
                 }
             });
 
             if (typeof showToast === 'function') {
-                showToast(type === 'alternate' ? "Switched to Alternate Route — Stop sequence reversed" : "Switched to Recommended Route — Optimal stop sequence");
+                showToast(window.currentRouteType === 'alternative' ? "Switched to Alternative Route — Farthest-anchor exploration sequence" : "Switched to Recommended Route — Optimal stop sequence");
             }
         };
 
@@ -2683,18 +4616,36 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
         };
 
         window.updateDraftBudget = function (draft) {
+            if (!draft) draft = (typeof window.getEffectiveDraft === 'function') ? window.getEffectiveDraft() : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
             let actCost = 0, foodCost = 0, transCost = 0;
+            // NOTE: Sites under maintenance are closed/restricted and do NOT charge entrance, activity or food fees (₱0.00).
+            // Sites that are simply Closed by operating hours (e.g. 6am - 5pm outside operating hours) STILL get their site fees, option fees, and category.
             draft.forEach(item => {
-                actCost += parseFloat(item.entrance_fee) || 50;
+                if (typeof window.isSpotUnderMaintenance === 'function' && window.isSpotUnderMaintenance(item)) {
+                    return; // Exclude Under Maintenance
+                }
+                const adult = parseFloat(item.adult_fee || item.adultFee || 0);
+                const gen = parseFloat(item.entrance_fee || item.fee || 0);
+                actCost += (adult > 0 ? adult : gen);
                 foodCost += parseFloat(item.avg_food_cost) || 150;
-                transCost += parseFloat(item.avg_transport_cost) || 30;
             });
+
+            // Calculate dynamic transit cost based on current draft sequence and selected transport
+            const curTransport = localStorage.getItem('intan_elyu_draft_trip_transport') || document.getElementById('trip-transport')?.value || 'own_car';
+
+            if (typeof window.computeItineraryTransCost === 'function') {
+                transCost = window.computeItineraryTransCost(draft, curTransport);
+            } else {
+                draft.forEach(item => {
+                    transCost += parseFloat(item.avg_transport_cost) || 0;
+                });
+            }
 
             const total = actCost + foodCost + transCost;
             window.setTxt('main-budget-total', '₱' + total.toLocaleString(undefined, { minimumFractionDigits: 2 }));
-            window.setTxt('main-cost-trans', '₱' + transCost);
-            window.setTxt('main-cost-food', '₱' + foodCost);
-            window.setTxt('main-cost-act', '₱' + actCost);
+            window.setTxt('main-cost-trans', '₱' + transCost.toFixed(2));
+            window.setTxt('main-cost-food', '₱' + foodCost.toFixed(2));
+            window.setTxt('main-cost-act', '₱' + actCost.toFixed(2));
 
             window.updateDonutChart('main-budget-donut', transCost, foodCost, actCost);
         };
@@ -2704,95 +4655,81 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
             if (!slider) return;
 
             let optionsList = [];
+            const draft = window.getEffectiveDraft ? window.getEffectiveDraft() : [];
 
-            if (window.vehicleTypes && Array.isArray(window.vehicleTypes) && window.vehicleTypes.length > 0) {
-                const isPrivate = type === 'private';
-                const privateNames = ['Car', 'Motorcycle', 'Van', 'TAXI'];
-                const matchedTypes = window.vehicleTypes.filter(vt => {
-                    const isPriv = privateNames.includes(vt.name);
-                    return isPrivate ? isPriv : !isPriv;
-                });
+            // Helper to determine if a vehicle type is allowed for a spot's accessible vehicles
+            // If no vehicles are added to a site, motorized vehicles are restricted/unavailable
+            const isVehAllowed = (vehKey, vehVal, accVehicles) => {
+                if (!Array.isArray(accVehicles) || accVehicles.length === 0) return false;
+                const list = accVehicles.map(v => String(v).toLowerCase().trim());
+                if (vehVal === 'own_car' || vehKey === 'car') return list.some(v => v.includes('car'));
+                if (vehVal === 'taxi' || vehKey === 'taxi') return list.some(v => v.includes('taxi'));
+                if (vehVal === 'van' || vehKey === 'van') return list.some(v => v.includes('van'));
+                if (vehVal === 'motorcycle' || vehKey === 'motorcycle') return list.some(v => v.includes('motorcycle') || v.includes('motor'));
+                if (vehVal === 'mpuj' || vehKey === 'mpuj') return list.some(v => v.includes('mpuj') || (v.includes('modern') && v.includes('jeep')));
+                if (vehVal === 'tpuj' || vehKey === 'tpuj') return list.some(v => v.includes('tpuj') || v.includes('traditional') || (v.includes('jeep') && !v.includes('modern')));
+                if (vehVal === 'pub_aircon' || vehKey === 'pub_aircon') return list.some(v => v.includes('pub_aircon') || v.includes('aircon') || v.includes('bus'));
+                if (vehVal === 'pub_ordinary' || vehKey === 'pub_regular') return list.some(v => v.includes('pub_regular') || v.includes('ordinary') || v.includes('regular') || v.includes('bus'));
+                if (vehVal === 'tricycle' || vehKey === 'tricycle') return list.some(v => v.includes('tricycle') || v.includes('trike'));
+                if (vehVal === 'uve' || vehKey === 'uve') return list.some(v => v.includes('uve') || v.includes('van'));
+                return list.some(v => v.includes(vehKey) || v.includes(vehVal));
+            };
 
-                const iconMap = {
-                    'TAXI': 'fa-taxi',
-                    'UVE': 'fa-van-shuttle',
-                    'PUB_Regular': 'fa-bus',
-                    'PUB_Aircon': 'fa-bus-simple',
-                    'MPUJ': 'fa-bus',
-                    'TPUJ': 'fa-truck-pickup',
-                    'Tricycle': 'fa-motorcycle',
-                    'Car': 'fa-car',
-                    'Motorcycle': 'fa-motorcycle',
-                    'Van': 'fa-shuttle-van'
+            const resolveSpotVehicleInfo = (p) => {
+                const spotId = String(p.id || p.tourist_spot_id || '');
+                const cachedSpot = (window._cachedMapSpots && window._cachedMapSpots[spotId]) ? window._cachedMapSpots[spotId] : null;
+
+                let accVeh = (Array.isArray(p.accessible_vehicles) && p.accessible_vehicles.length > 0)
+                    ? p.accessible_vehicles
+                    : (cachedSpot && Array.isArray(cachedSpot.accessible_vehicles) ? cachedSpot.accessible_vehicles : (p.accessible_vehicles || []));
+
+                let hasVeh = (p.has_available_vehicles !== undefined)
+                    ? p.has_available_vehicles
+                    : (cachedSpot && cachedSpot.has_available_vehicles !== undefined ? cachedSpot.has_available_vehicles : (Array.isArray(accVeh) && accVeh.length > 0));
+
+                return {
+                    accessible_vehicles: accVeh,
+                    has_available_vehicles: Boolean(hasVeh) && Array.isArray(accVeh) && accVeh.length > 0
                 };
+            };
 
-                const keyMap = {
-                    'TAXI': 'taxi',
-                    'UVE': 'mini_bus',
-                    'PUB_Regular': 'private_bus',
-                    'PUB_Aircon': 'private_bus',
-                    'MPUJ': 'jeepney',
-                    'TPUJ': 'jeepney',
-                    'Tricycle': 'tricycle',
-                    'Car': 'own_car',
-                    'Motorcycle': 'motorcycle',
-                    'Van': 'mini_bus'
-                };
+            const hasNonDrivableSpot = draft.some(p => p && (p.accessible_by_private_vehicle === 0 || p.accessible_by_private_vehicle === false || p.accessible_by_private_vehicle === '0'));
 
-                const labelMap = {
-                    'TAXI': 'Taxi',
-                    'UVE': 'UV Express',
-                    'PUB_Regular': 'Regular Bus',
-                    'PUB_Aircon': 'Aircon Bus',
-                    'MPUJ': 'Modern Jeepney',
-                    'TPUJ': 'Traditional Jeepney',
-                    'Tricycle': 'Tricycle',
-                    'Car': 'Own Car',
-                    'Motorcycle': 'Motorcycle',
-                    'Van': 'Van'
-                };
+            if (type === 'private') {
+                optionsList = [
+                    { 
+                        val: 'own_car', 
+                        name: 'Own Car', 
+                        icon: 'fa-car', 
+                        key: 'car', 
+                        available: true,
+                        badgeHtml: hasNonDrivableSpot ? '<span style="padding:1px 6px; border-radius:100px; font-size:8px; font-weight:800; background:rgba(245,158,11,0.25); color:#fbbf24;">Trailhead</span>' : ''
+                    },
+                    { val: 'motorcycle', name: 'Motorcycle', icon: 'fa-motorcycle', key: 'motorcycle', available: true },
+                    { val: 'van', name: 'Van', icon: 'fa-shuttle-van', key: 'van', available: true },
+                    { val: 'tricycle', name: 'Tricycle', icon: 'fa-motorcycle', key: 'tricycle', available: true }
+                ];
+            } else {
+                const rawMunis = draft.map(p => (typeof window.getSpotMuniName === 'function' ? window.getSpotMuniName(p) : ((typeof p.municipality === 'string' ? p.municipality : p.municipality?.name) || ''))).filter(Boolean);
+                const uniqueMunis = [...new Set(rawMunis.map(m => m.replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim().toLowerCase()))];
+                const isInterMunicipal = uniqueMunis.length > 1;
 
-                optionsList = matchedTypes.map(vt => ({
-                    val: keyMap[vt.name] || vt.name.toLowerCase(),
-                    name: labelMap[vt.name] || vt.name,
-                    icon: iconMap[vt.name] || 'fa-car'
-                }));
-            } else if (window.vehicleData && Array.isArray(window.vehicleData) && window.vehicleData.length > 0) {
-                const isPrivate = type === 'private';
-                const privateNames = ['Private Car', 'Taxi', 'Motorcycle', 'Van'];
-                optionsList = window.vehicleData.filter(v => {
-                    const isPriv = privateNames.includes(v.name);
-                    return isPrivate ? isPriv : !isPriv;
-                }).map(v => {
-                    const keyMap = {
-                        'Tricycle': 'tricycle', 'Jeepney': 'jeepney', 'Bus': 'private_bus',
-                        'Van': 'mini_bus', 'Taxi': 'taxi', 'Motorcycle': 'motorcycle', 'Private Car': 'own_car'
-                    };
-                    return {
-                        val: keyMap[v.name] || v.name.toLowerCase().replace(/\s+/g, '_'),
-                        name: v.name,
-                        icon: v.icon || 'fa-car'
-                    };
-                });
-            }
-
-            if (optionsList.length === 0) {
-                if (type === 'private') {
-                    optionsList = [
-                        { val: 'own_car', name: 'Own Car', icon: 'fa-car' },
-                        { val: 'taxi', name: 'Taxi', icon: 'fa-taxi' },
-                        { val: 'van', name: 'Van', icon: 'fa-shuttle-van' },
-                        { val: 'motorcycle', name: 'Motorcycle', icon: 'fa-motorcycle' }
-                    ];
-                } else {
-                    optionsList = [
-                        { val: 'private_bus', name: 'Bus', icon: 'fa-bus' },
-                        { val: 'mini_bus', name: 'Mini Bus / UVE', icon: 'fa-van-shuttle' },
-                        { val: 'lutrampco', name: 'LUTRAMPCO', icon: 'fa-bus-simple' },
-                        { val: 'jeepney', name: 'Jeepney', icon: 'fa-truck-pickup' },
-                        { val: 'tricycle', name: 'Tricycle', icon: 'fa-motorcycle' }
-                    ];
-                }
+                optionsList = [
+                    { val: 'mpuj', name: 'Modern Jeepney (MPUJ)', icon: 'fa-van-shuttle', available: true, key: 'mpuj' },
+                    { val: 'tpuj', name: 'Traditional Jeepney (TPUJ)', icon: 'fa-van-shuttle', available: true, key: 'tpuj' },
+                    { val: 'pub_aircon', name: 'Aircon Bus (PUB)', icon: 'fa-bus', available: true, key: 'pub_aircon' },
+                    { val: 'pub_ordinary', name: 'Ordinary Bus (PUB)', icon: 'fa-bus-simple', available: true, key: 'pub_regular' },
+                    { 
+                        val: 'tricycle', 
+                        name: 'Tricycle', 
+                        icon: 'fa-motorcycle', 
+                        available: true, 
+                        key: 'tricycle',
+                        badgeHtml: isInterMunicipal ? '<span style="padding:1px 6px; border-radius:100px; font-size:8px; font-weight:800; background:rgba(56,189,248,0.25); color:#7dd3fc;">Local Legs</span>' : ''
+                    },
+                    { val: 'uve', name: 'UV Express / Van', icon: 'fa-shuttle-van', available: true, key: 'uve' },
+                    { val: 'taxi', name: 'Taxi', icon: 'fa-taxi', available: true, key: 'taxi' }
+                ];
             }
 
             const unique = [];
@@ -2804,22 +4741,64 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 }
             });
 
-            const currentSelected = (document.getElementById('trip-transport').value || '').split(',').filter(Boolean);
+            // Sort: Available first, Unavailable second
+            unique.sort((a, b) => {
+                const aAvail = a.available !== false ? 1 : 0;
+                const bAvail = b.available !== false ? 1 : 0;
+                return bAvail - aAvail;
+            });
+
+            // Add No Vehicle as the first, explicit choice
+            unique.unshift({
+                val: 'no_vehicle',
+                name: 'No Vehicle',
+                icon: 'fa-ban',
+                available: true
+            });
+
+            let currentSelected = (document.getElementById('trip-transport').value || '').split(',').filter(Boolean);
+            currentSelected = currentSelected.map(v => {
+                if (v === 'jeepney') return 'mpuj';
+                if (v === 'private_bus' || v === 'bus') return 'pub_aircon';
+                return v;
+            });
+
+            const isNoVehCurrent = currentSelected.length === 0 || currentSelected.some(v => v.includes('no_vehicle') || v.includes('no vehicle'));
+
+            // Clean trip-transport to drop any vehicle that is now unavailable
+            const availKeys = unique.filter(o => o.available !== false).map(o => o.val);
+            const validSelected = isNoVehCurrent
+                ? ['no_vehicle']
+                : currentSelected.filter(v => availKeys.includes(v) && v !== 'no_vehicle');
+
+            if (isNoVehCurrent) {
+                document.getElementById('trip-transport').value = '';
+            } else if (validSelected.length !== currentSelected.length) {
+                document.getElementById('trip-transport').value = validSelected.join(',');
+            }
 
             let html = '';
             unique.forEach(opt => {
-                const isActive = currentSelected.includes(opt.val) ? 'active' : '';
+                const isAvail = opt.available !== false;
+                const isActive = (isAvail && validSelected.includes(opt.val)) ? 'active' : '';
+                const disabledClass = !isAvail ? 'disabled-transport' : '';
+                const badgeHtml = !isAvail ? '<span class="trans-badge-unavailable">Unavailable</span>' : (opt.badgeHtml || '');
+
                 html += `
-            <div class="transport-option ${isActive}" data-val="${opt.val}" onclick="window.selectTransportMode(this)">
+            <div class="transport-option ${isActive} ${disabledClass}" 
+                 data-val="${opt.val}" 
+                 data-available="${isAvail ? '1' : '0'}"
+                 onclick="window.selectTransportMode(this)">
                 <i class="fa-solid ${opt.icon}"></i>
                 <span>${opt.name}</span>
+                ${badgeHtml}
             </div>`;
             });
 
             slider.innerHTML = html;
         };
 
-        window.setTransportType = function (type) {
+        window.setTransportType = function (type, shouldReset = false) {
             const btnPublic = document.getElementById('btn-trans-public');
             const btnPrivate = document.getElementById('btn-trans-private');
             const pill = document.getElementById('transport-toggle-pill');
@@ -2851,13 +4830,23 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
                 wrapper.style.display = 'block';
             }
 
+            // Reset transport selection if button clicked
+            if (shouldReset) {
+                const transInput = document.getElementById('trip-transport');
+                if (transInput) transInput.value = '';
+                document.querySelectorAll('.transport-option').forEach(opt => opt.classList.remove('active'));
+
+                const fuelCalc = document.getElementById('fuel-cost-calc');
+                if (fuelCalc) fuelCalc.textContent = '₱0.00';
+            }
+
             // Dynamically render vehicle options from Railway DB!
             window.renderRailwayVehicleOptions(type);
 
             const fuelPanel = document.getElementById('own-car-fuel-panel');
             const isCarSelected = (document.getElementById('trip-transport').value || '').includes('own_car');
             if (fuelPanel) {
-                if (isCarSelected) {
+                if (isCarSelected && !shouldReset) {
                     fuelPanel.style.maxHeight = '200px';
                     fuelPanel.style.opacity = '1';
                 } else {
@@ -2868,6 +4857,15 @@ window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
 
             if (window.calculateModalBudget) window.calculateModalBudget();
         };
+
+        // Attach direct click listener to Save Draft Plan button
+        const fabBtn = document.getElementById('btn-save-itinerary');
+        if (fabBtn) {
+            fabBtn.addEventListener('click', function (e) {
+                if (e) e.preventDefault();
+                window.openSaveModal(e);
+            });
+        }
 
         // Initial render on load
         if (window.renderItinerary) {

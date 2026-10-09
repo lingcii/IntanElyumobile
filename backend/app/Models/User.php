@@ -29,6 +29,8 @@ class User extends Authenticatable
         'phone',
         'home_location',
         'bio',
+        'age',
+        'gender',
         'travel_preferences',
         'is_leaderboard_private',
         'last_gps_lat',
@@ -45,6 +47,7 @@ class User extends Authenticatable
     protected $casts = [
         'xp'                => 'integer',
         'points'            => 'integer',
+        'age'               => 'integer',
         'email_verified_at' => 'datetime',
         'last_activity'     => 'datetime',
         'created_at'        => 'datetime',
@@ -95,5 +98,81 @@ class User extends Authenticatable
     public function itineraries()
     {
         return $this->hasMany(Itinerary::class);
+    }
+
+    /**
+     * Recalculate and persist user level based on current XP.
+     */
+    public function recalculateLevel(): int
+    {
+        $xp = (int) ($this->xp ?? $this->points ?? 0);
+        $level = (int) floor(max(0, $xp) / 1000) + 1;
+        if ((int)($this->level ?? 1) !== $level) {
+            $this->level = $level;
+            $this->save();
+        }
+        return $level;
+    }
+
+    /**
+     * Deduct Points for vouchers/rewards without reducing XP or Level.
+     */
+    public function deductPoints(int $amount): int
+    {
+        $currentPoints = (int) ($this->points ?? 0);
+        $newPoints = max(0, $currentPoints - $amount);
+        $this->points = $newPoints;
+        $this->save();
+
+        return $newPoints;
+    }
+
+    /**
+     * Deduct XP and re-derive the level.
+     */
+    public function deductXp(int $amount): int
+    {
+        $currentXp = (int) ($this->xp ?? 0);
+        $newXp = max(0, $currentXp - $amount);
+        $newLevel = (int) floor($newXp / 1000) + 1;
+
+        $this->xp = $newXp;
+        $this->level = $newLevel;
+        $this->save();
+
+        return $newXp;
+    }
+
+    /**
+     * Add XP and re-derive the level.
+     */
+    public function addXp(int $amount): int
+    {
+        $currentXp = (int) ($this->xp ?? 0);
+        $newXp = $currentXp + $amount;
+        $newLevel = (int) floor($newXp / 1000) + 1;
+
+        $this->xp = $newXp;
+        $this->level = $newLevel;
+        $this->save();
+
+        return $newXp;
+    }
+
+    /**
+     * Get sequential tourist number strictly starting from 1 for tourists.
+     */
+    public function getTouristNumber(): int
+    {
+        $count = static::where('role', 'tourist')
+            ->where('id', '<=', $this->id)
+            ->count();
+
+        return $count > 0 ? $count : 1;
+    }
+
+    public function getTouristNumberAttribute(): int
+    {
+        return $this->getTouristNumber();
     }
 }

@@ -4,29 +4,29 @@ $backRoute = 'dashboard';
 include __DIR__ . '/../components/header.php';
 ?>
 
-<div class="puzzles-container has-header animate-slide-up" style="padding-left: 16px; padding-right: 16px; padding-bottom: 40px; min-height: 100vh; box-sizing: border-box; background: radial-gradient(ellipse at 85% 5%, rgba(0, 242, 254, 0.35) 0%, transparent 55%), radial-gradient(ellipse at 15% 45%, rgba(56, 189, 248, 0.3) 0%, transparent 60%), radial-gradient(ellipse at 80% 80%, rgba(63, 125, 183, 0.4) 0%, transparent 60%), linear-gradient(180deg, #1e3a8a 0%, #3f7db7 30%, #0284c7 65%, #06b6d4 90%, #00f2fe 100%) !important; background-attachment: fixed !important; color: #ffffff;">
+<div class="puzzles-container has-header animate-slide-up">
     
     <!-- Points Status Header -->
-    <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; margin-top: 16px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;">
+    <div style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
         <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(56, 189, 248, 0.2); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #ffffff; border: none !important; outline: none !important;">
-                <i class="fa-solid fa-gamepad"></i>
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: #ffffff !important; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #203f8d !important; border: none !important; outline: none !important; box-shadow: 0 2px 8px rgba(0,0,0,0.12);">
+                <i class="fa-solid fa-gamepad" style="color: #203f8d !important;"></i>
             </div>
             <div>
-                <h4 style="margin: 0 0 2px 0; font-size: 13px; color: rgba(226, 232, 240, 0.85); font-weight: 600;">Your Points Balance</h4>
+                <h4 style="margin: 0 0 2px 0; font-size: 13px; color: rgba(255, 255, 255, 0.85); font-weight: 600;">Your Total Points</h4>
                 <div style="display: flex; align-items: baseline; gap: 6px;">
                     <span id="game-points-val" style="font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">--</span>
-                    <span style="font-size: 12px; color: rgba(226, 232, 240, 0.7); font-weight: 700;">PTS</span>
+                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.75); font-weight: 700;">PTS</span>
                 </div>
             </div>
         </div>
-        <button onclick="navigateTo('discount')" style="background: rgba(255,255,255,0.18) !important; border: none !important; outline: none !important; color: #fff; padding: 8px 16px; border-radius: 100px; font-size: 12px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; box-shadow: none !important;">
-            Redeem <i class="fa-solid fa-arrow-right" style="font-size: 10px;"></i>
+        <button onclick="navigateTo('discount')" style="background: #ffffff !important; border: none !important; outline: none !important; color: #203f8d !important; padding: 8px 16px; border-radius: 100px; font-size: 12px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.12) !important;">
+            Redeem <i class="fa-solid fa-arrow-right" style="font-size: 10px; color: #203f8d !important;"></i>
         </button>
     </div>
 
     <!-- Tab Selector with Sliding Pill Indicator -->
-    <div id="game-tab-selector-bar" style="position: relative; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; background: rgba(15, 23, 42, 0.4) !important; border: none !important; outline: none !important; padding: 5px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.12) !important;">
+    <div id="game-tab-selector-bar" style="position: relative; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; background: #f1f5f9 !important; border: none !important; outline: none !important; padding: 5px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;">
         <div id="game-tab-indicator"></div>
         <button id="tab-btn-puzzle" onclick="switchGameTab('puzzle')" class="game-nav-tab active">
             <i class="fa-solid fa-puzzle-piece"></i> Slide Puzzle
@@ -41,72 +41,82 @@ include __DIR__ . '/../components/header.php';
 
     <!-- SLIDING PUZZLE TAB -->
     <div id="game-tab-puzzle" class="game-tab-content">
-        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 18px 20px; margin-bottom: 16px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;">
+        <div style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 18px 20px; margin-bottom: 16px; text-align: center; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
             <h3 id="puzzle-title" style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800; color: #ffffff;">Slide Puzzle</h3>
-            <p id="puzzle-desc" style="margin: 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.4;">
-                Rearrange the tiles to reveal the crystal clear lagoons of Immuki Island in Balaoan! Solve to earn <strong style="color: #00f2fe;">+100 Points</strong>.
+            <p id="puzzle-desc" style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.9); line-height: 1.4;">
+                Rearrange the tiles to reveal the crystal clear lagoons of Immuki Island in Balaoan! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.
             </p>
 
             <!-- Target Reference Image Preview -->
-            <div id="puzzle-target-container" style="margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(0,0,0,0.2) !important; border: none !important; outline: none !important; border-radius: 12px; padding: 6px 12px; width: fit-content; margin-left: auto; margin-right: auto;">
-                <span style="font-size: 11px; color: rgba(226,232,240,0.9); font-weight: 700;">Target Goal:</span>
+            <div id="puzzle-target-container" style="margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(0,0,0,0.18) !important; border: none !important; outline: none !important; border-radius: 12px; padding: 6px 12px; width: fit-content; margin-left: auto; margin-right: auto;">
+                <span style="font-size: 11px; color: rgba(255,255,255,0.9); font-weight: 700;">Target Goal:</span>
                 <img id="puzzle-target-img" src="https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a686f4d0f48b.jpg" alt="Target" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover; border: none !important; outline: none !important; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
             </div>
             
             <!-- Moves and Timer info -->
             <div id="puzzle-stats-container" style="display: flex; justify-content: center; gap: 20px; margin-top: 14px;">
-                <div style="font-size: 13px; color: rgba(255,255,255,0.75);">Moves: <span id="puzzle-moves" style="font-weight: 800; color: #fff;">0</span></div>
-                <div style="font-size: 13px; color: rgba(255,255,255,0.75);">Time: <span id="puzzle-timer" style="font-weight: 800; color: #fff;">00:00</span></div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.85);">Moves: <span id="puzzle-moves" style="font-weight: 800; color: #fff;">0</span></div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.85);">Time: <span id="puzzle-timer" style="font-weight: 800; color: #fff;">00:00</span></div>
             </div>
 
             <!-- Finished Banner -->
             <div id="puzzle-finished-banner" style="display: none; margin: 0; padding: 22px 16px; background: rgba(0,0,0,0.2); border-radius: 16px; text-align: center;">
-                <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(56,189,248,0.2); color: #38bdf8; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 12px;">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,0.2); color: #38bdf8; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 12px;">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
                 <p style="margin: 0; font-size: 15px; font-weight: 800; color: #ffffff; line-height: 1.5;">
                     You have finished this mode please come back tomorrow.
                 </p>
+                <div style="margin-top: 14px; display: flex; justify-content: center;">
+                    <button type="button" onclick="playInPracticeMode('puzzle')" style="background: rgba(255,255,255,0.18) !important; border: 1px solid rgba(255,255,255,0.3) !important; outline: none !important; color: #ffffff !important; padding: 8px 16px; border-radius: 100px; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-gamepad" style="color: #38bdf8;"></i> Play Practice Mode
+                    </button>
+                </div>
             </div>
         </div>
 
         <!-- Puzzle Board Container -->
         <div id="puzzle-board-wrapper" style="display: flex; justify-content: center; margin-bottom: 20px;">
-            <div id="puzzle-board" style="width: 308px; height: 308px; background: #0c1a30; border: 3px solid rgba(255, 255, 255, 0.45) !important; outline: 2px solid rgba(56, 189, 248, 0.6) !important; border-radius: 18px; position: relative; overflow: hidden; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 4px; padding: 4px; box-sizing: border-box; box-shadow: 0 15px 35px rgba(10, 25, 60, 0.5), 0 0 25px rgba(56, 189, 248, 0.25);">
+            <div id="puzzle-board" style="width: 308px; height: 308px; background: #0c1a30; border: 3px solid rgba(255, 255, 255, 0.45) !important; outline: 2px solid rgba(32, 63, 141, 0.6) !important; border-radius: 18px; position: relative; overflow: hidden; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 4px; padding: 4px; box-sizing: border-box; box-shadow: 0 10px 28px rgba(32, 63, 141, 0.25);">
                 <!-- 9 Grid items dynamic -->
             </div>
         </div>
 
         <div id="puzzle-controls" style="display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap;">
-            <button onclick="promptResetPuzzle()" style="background: rgba(255,255,255,0.18) !important; border: none !important; outline: none !important; color: #fff; padding: 10px 18px; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; box-shadow: none !important;">
-                <i class="fa-solid fa-arrows-rotate"></i> Reset Puzzle
+            <button onclick="promptResetPuzzle()" style="background: #f1f5f9 !important; border: none !important; outline: none !important; color: #203f8d !important; padding: 10px 18px; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; box-shadow: 0 2px 6px rgba(0,0,0,0.06) !important;">
+                <i class="fa-solid fa-arrows-rotate" style="color: #203f8d !important;"></i> Reset Puzzle
             </button>
-            <button onclick="promptChangePuzzle()" style="background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important; border: none !important; outline: none !important; color: #ffffff !important; padding: 10px 18px; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; box-shadow: 0 4px 15px rgba(0,242,254,0.3) !important;">
-                <i class="fa-solid fa-shuffle"></i> Change Puzzle
+            <button onclick="promptChangePuzzle()" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; color: #ffffff !important; padding: 10px 18px; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
+                <i class="fa-solid fa-shuffle" style="color: #ffffff !important;"></i> Change Puzzle
             </button>
         </div>
     </div>
 
     <!-- MEMORY MATCH TAB -->
     <div id="game-tab-memory" class="game-tab-content" style="display: none;">
-        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 18px 20px; margin-bottom: 16px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;">
+        <div style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 18px 20px; margin-bottom: 16px; text-align: center; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
             <h3 id="memory-title" style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800; color: #ffffff;">Elyu Spot Memory Match</h3>
-            <p id="memory-desc" style="margin: 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.4;">
-                Flip cards and match all 6 pairs of famous La Union landmarks & activities to earn <strong style="color: #00f2fe;">+75 Points</strong>!
+            <p id="memory-desc" style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.9); line-height: 1.4;">
+                Flip cards and match all 6 pairs of famous La Union landmarks & activities to earn <strong style="color: #38bdf8;">+75 Points</strong>!
             </p>
             <div id="memory-stats-container" style="display: flex; justify-content: center; gap: 20px; margin-top: 14px;">
-                <div style="font-size: 13px; color: rgba(255,255,255,0.75);">Flips: <span id="memory-flips" style="font-weight: 800; color: #fff;">0</span></div>
-                <div style="font-size: 13px; color: rgba(255,255,255,0.75);">Pairs: <span id="memory-pairs" style="font-weight: 800; color: #fff;">0/6</span></div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.85);">Flips: <span id="memory-flips" style="font-weight: 800; color: #fff;">0</span></div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.85);">Pairs: <span id="memory-pairs" style="font-weight: 800; color: #fff;">0/6</span></div>
             </div>
 
             <!-- Finished Banner -->
             <div id="memory-finished-banner" style="display: none; margin: 0; padding: 22px 16px; background: rgba(0,0,0,0.2); border-radius: 16px; text-align: center;">
-                <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(56,189,248,0.2); color: #38bdf8; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 12px;">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,0.2); color: #38bdf8; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 12px;">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
                 <p style="margin: 0; font-size: 15px; font-weight: 800; color: #ffffff; line-height: 1.5;">
                     You have finished this mode please come back tomorrow.
                 </p>
+                <div style="margin-top: 14px; display: flex; justify-content: center;">
+                    <button type="button" onclick="playInPracticeMode('memory_match')" style="background: rgba(255,255,255,0.18) !important; border: 1px solid rgba(255,255,255,0.3) !important; outline: none !important; color: #ffffff !important; padding: 8px 16px; border-radius: 100px; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-gamepad" style="color: #38bdf8;"></i> Play Practice Mode
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -115,7 +125,7 @@ include __DIR__ . '/../components/header.php';
         </div>
 
         <div id="memory-controls" style="display: flex; justify-content: center;">
-            <button onclick="initMemoryGame()" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; color: #fff; padding: 10px 20px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 15px rgba(10, 25, 60, 0.2) !important;">
+            <button onclick="initMemoryGame()" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; color: #fff; padding: 10px 20px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
                 <i class="fa-solid fa-arrows-rotate"></i> Reset Game
             </button>
         </div>
@@ -123,20 +133,51 @@ include __DIR__ . '/../components/header.php';
 
     <!-- WORD SCRAMBLE TAB -->
     <div id="game-tab-scramble" class="game-tab-content" style="display: none;">
-        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 18px 20px; margin-bottom: 16px; text-align: center; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;">
+        <div style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 18px 20px; margin-bottom: 16px; text-align: center; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
             <h3 id="scramble-title" style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800; color: #ffffff;">La Union Eco Explorer Scramble</h3>
-            <p id="scramble-desc" style="margin: 0; font-size: 12px; color: rgba(226, 232, 240, 0.9); line-height: 1.4;">
-                Unscramble all 4 La Union municipal & landmark names to earn <strong style="color: #00f2fe;">+75 Points</strong>!
+            <p id="scramble-desc" style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.9); line-height: 1.4;">
+                Unscramble all 4 La Union municipal & landmark names to earn <strong style="color: #38bdf8;">+75 Points</strong>!
             </p>
 
             <!-- Finished Banner -->
             <div id="scramble-finished-banner" style="display: none; margin: 0; padding: 22px 16px; background: rgba(0,0,0,0.2); border-radius: 16px; text-align: center;">
-                <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(56,189,248,0.2); color: #38bdf8; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 12px;">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,0.2); color: #38bdf8; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 12px;">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
                 <p style="margin: 0; font-size: 15px; font-weight: 800; color: #ffffff; line-height: 1.5;">
                     You have finished this mode please come back tomorrow.
                 </p>
+                <div style="margin-top: 14px; display: flex; justify-content: center;">
+                    <button type="button" onclick="playInPracticeMode('word_scramble')" style="background: rgba(255,255,255,0.18) !important; border: 1px solid rgba(255,255,255,0.3) !important; outline: none !important; color: #ffffff !important; padding: 8px 16px; border-radius: 100px; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-gamepad" style="color: #38bdf8;"></i> Play Practice Mode
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Scramble Live Progress & Action Controls -->
+        <div id="scramble-stats-bar" style="background: rgba(30, 58, 138, 0.4); border-radius: 18px; padding: 14px 16px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 4px 14px rgba(32, 63, 141, 0.2);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-chart-pie" style="color: #00f2fe;"></i> Challenge Progress
+                </span>
+                <span id="scramble-solved-badge" style="font-size: 11.5px; font-weight: 800; color: #00f2fe; background: rgba(0, 242, 254, 0.18); padding: 3px 10px; border-radius: 100px;">
+                    0 / 4 Solved
+                </span>
+            </div>
+            <!-- Progress Fill Bar -->
+            <div style="width: 100%; height: 8px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; margin-bottom: 12px;">
+                <div id="scramble-progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #00f2fe, #34d399); border-radius: 10px; transition: width 0.35s ease;"></div>
+            </div>
+            <!-- Randomize & Reset Action Buttons -->
+            <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+                <button type="button" onclick="randomizeScrambleWords()" style="border: none !important; outline: none !important; background: #ffffff !important; color: #1e3a8a !important; padding: 8px 15px; border-radius: 11px; font-weight: 800; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); transition: all 0.2s ease;">
+                    <i class="fa-solid fa-shuffle"></i> Randomize Words
+                </button>
+                <button type="button" onclick="resetScrambleInputs()" style="border: none !important; outline: none !important; background: rgba(255,255,255,0.15) !important; color: #ffffff !important; padding: 8px 13px; border-radius: 11px; font-weight: 700; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s ease;">
+                    <i class="fa-solid fa-eraser"></i> Clear
+                </button>
             </div>
         </div>
 
@@ -144,24 +185,24 @@ include __DIR__ . '/../components/header.php';
             <!-- 4 Scrambled Words -->
         </div>
 
-        <button id="scramble-submit-btn" onclick="submitScrambleAnswers()" style="width: 100%; border: none !important; outline: none !important; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important; color: white; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 8px 24px rgba(2, 132, 199, 0.35);">
+        <button id="scramble-submit-btn" onclick="submitScrambleAnswers()" style="width: 100%; border: none !important; outline: none !important; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; color: white; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
             Submit Answers
         </button>
     </div>
 
     <!-- Confirm Modal popup -->
-    <div id="game-confirm-modal" style="display: none; position: fixed; inset: 0; z-index: 10002; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(10px);">
-        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 24px; width: 100%; max-width: 350px; padding: 28px 20px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6) !important; transform: scale(0.9); animation: modalEnter 0.3s forwards cubic-bezier(0.34, 1.56, 0.64, 1);">
-            <div id="confirm-modal-icon-bg" style="width: 64px; height: 64px; border-radius: 50%; background: rgba(56,189,248,0.2); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #38bdf8; margin: 0 auto 16px;">
-                <i id="confirm-modal-icon" class="fa-solid fa-arrows-rotate"></i>
+    <div id="game-confirm-modal" style="display: none; position: fixed; inset: 0; z-index: 10002; background: rgba(15,23,42,0.65); align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+        <div style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 24px; width: 100%; max-width: 350px; padding: 28px 20px; text-align: center; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; transform: scale(0.9); animation: modalEnter 0.3s forwards cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <div id="confirm-modal-icon-bg" style="width: 64px; height: 64px; border-radius: 50%; background: #ffffff !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #203f8d !important; margin: 0 auto 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                <i id="confirm-modal-icon" class="fa-solid fa-arrows-rotate" style="color: #203f8d !important;"></i>
             </div>
             <h2 id="confirm-modal-title" style="margin: 0 0 10px; font-size: 20px; font-weight: 800; color: #fff;">Reset Puzzle?</h2>
-            <p id="confirm-modal-msg" style="margin: 0 0 24px; font-size: 13px; color: rgba(226,232,240,0.9); line-height: 1.5;">Are you sure you want to reset puzzle?</p>
+            <p id="confirm-modal-msg" style="margin: 0 0 24px; font-size: 13px; color: rgba(255,255,255,0.9); line-height: 1.5;">Are you sure you want to reset puzzle?</p>
             <div style="display: flex; gap: 10px;">
                 <button onclick="closeGameConfirm()" style="flex: 1; border: none !important; outline: none !important; background: rgba(255,255,255,0.18); color: #ffffff; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer;">
                     Cancel
                 </button>
-                <button id="confirm-modal-action-btn" onclick="executeGameConfirm()" style="flex: 1; border: none !important; outline: none !important; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color: #ffffff; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 242, 254, 0.3);">
+                <button id="confirm-modal-action-btn" onclick="executeGameConfirm()" style="flex: 1; border: none !important; outline: none !important; background: #ffffff; color: #203f8d; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.12);">
                     Yes, Reset
                 </button>
             </div>
@@ -169,27 +210,27 @@ include __DIR__ . '/../components/header.php';
     </div>
 
     <!-- Success Modal popup -->
-    <div id="game-success-modal" style="display: none; position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(10px);">
-        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 24px; width: 100%; max-width: 350px; padding: 30px 20px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6) !important; transform: scale(0.9); animation: modalEnter 0.3s forwards cubic-bezier(0.34, 1.56, 0.64, 1);">
-            <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(34,197,94,0.2); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #22c55e; margin: 0 auto 20px;">
-                <i class="fa-solid fa-circle-check"></i>
+    <div id="game-success-modal" style="display: none; position: fixed; inset: 0; z-index: 10000; background: rgba(15,23,42,0.65); align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+        <div style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 24px; width: 100%; max-width: 350px; padding: 30px 20px; text-align: center; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; transform: scale(0.9); animation: modalEnter 0.3s forwards cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <div style="width: 72px; height: 72px; border-radius: 50%; background: #ffffff !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #16a34a !important; margin: 0 auto 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                <i class="fa-solid fa-circle-check" style="color: #16a34a !important;"></i>
             </div>
             <h2 style="margin: 0 0 10px; font-size: 22px; font-weight: 800; color: #fff;">Awesome Job!</h2>
-            <p id="success-points-msg" style="margin: 0 0 24px; font-size: 14px; color: rgba(226,232,240,0.9); line-height: 1.5;">You solved the game and claimed your points!</p>
-            <button onclick="closeGameSuccess()" style="width: 100%; border: none !important; outline: none !important; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color: #ffffff; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 242, 254, 0.3);">
+            <p id="success-points-msg" style="margin: 0 0 24px; font-size: 14px; color: rgba(255,255,255,0.9); line-height: 1.5;">You solved the game and earned Points!</p>
+            <button onclick="closeGameSuccess()" style="width: 100%; border: none !important; outline: none !important; background: #ffffff; color: #203f8d; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.12);">
                 Awesome!
             </button>
         </div>
     </div>
 
-    <div id="game-alert-modal" style="display: none; position: fixed; inset: 0; z-index: 10001; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(10px);">
-        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; border-radius: 24px; width: 100%; max-width: 350px; padding: 30px 20px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6) !important; transform: scale(0.9); animation: modalEnter 0.3s forwards cubic-bezier(0.34, 1.56, 0.64, 1);">
-            <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(250,204,21,0.2); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #facc15; margin: 0 auto 20px;">
-                <i class="fa-solid fa-clock"></i>
+    <div id="game-alert-modal" style="display: none; position: fixed; inset: 0; z-index: 10001; background: rgba(15,23,42,0.65); align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+        <div style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 24px; width: 100%; max-width: 350px; padding: 30px 20px; text-align: center; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; transform: scale(0.9); animation: modalEnter 0.3s forwards cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <div style="width: 72px; height: 72px; border-radius: 50%; background: #ffffff !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #d97706 !important; margin: 0 auto 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                <i class="fa-solid fa-clock" style="color: #d97706 !important;"></i>
             </div>
             <h2 style="margin: 0 0 10px; font-size: 22px; font-weight: 800; color: #fff;">Already Done!</h2>
-            <p id="alert-points-msg" style="margin: 0 0 24px; font-size: 14px; color: rgba(226,232,240,0.9); line-height: 1.5;">You already completed this game today!</p>
-            <button onclick="closeGameAlert()" style="width: 100%; border: none !important; outline: none !important; background: linear-gradient(135deg, #facc15 0%, #eab308 100%); color: #000; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 14px rgba(250, 204, 21, 0.3);">
+            <p id="alert-points-msg" style="margin: 0 0 24px; font-size: 14px; color: rgba(255,255,255,0.9); line-height: 1.5;">You already completed this game today!</p>
+            <button onclick="closeGameAlert()" style="width: 100%; border: none !important; outline: none !important; background: #ffffff; color: #203f8d; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.12);">
                 Got it!
             </button>
         </div>
@@ -197,266 +238,6 @@ include __DIR__ . '/../components/header.php';
 
 </div>
 
-<style>
-@keyframes modalEnter {
-    to { transform: scale(1); }
-}
-.game-nav-tab {
-    border: none !important;
-    outline: none !important;
-    background: transparent !important;
-    color: rgba(255, 255, 255, 0.7);
-    padding: 10px 4px;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 12px;
-    cursor: pointer;
-    transition: color 0.25s ease, opacity 0.25s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    position: relative;
-    z-index: 2;
-}
-.game-nav-tab:active {
-    transform: scale(0.96);
-}
-.game-nav-tab.active {
-    color: #ffffff !important;
-    font-weight: 800;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-    background: transparent !important;
-    box-shadow: none !important;
-    border: none !important;
-    outline: none !important;
-}
-
-#game-tab-indicator {
-    position: absolute;
-    top: 5px;
-    bottom: 5px;
-    left: 5px;
-    width: calc((100% - 10px) / 3);
-    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 60%, #1e3a8a 100%) !important;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(2, 132, 199, 0.35);
-    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-    pointer-events: none;
-    z-index: 1;
-}
-
-.game-tab-content {
-    will-change: transform, opacity;
-}
-.game-tab-animate {
-    animation: tabSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes tabSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(14px) scale(0.97);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-.puzzle-tile {
-    width: 100%;
-    height: 100%;
-    background-size: 300px 300px;
-    background-repeat: no-repeat;
-    cursor: pointer;
-    border-radius: 10px;
-    border: 2px solid rgba(255, 255, 255, 0.7) !important;
-    outline: 1.5px solid rgba(30, 58, 138, 0.5) !important;
-    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.4), 0 3px 8px rgba(0, 0, 0, 0.3) !important;
-    transition: transform 0.15s ease, filter 0.2s, border-color 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-}
-.puzzle-tile:hover, .puzzle-tile:active {
-    filter: brightness(1.15);
-    transform: scale(0.97);
-    border-color: #00f2fe !important;
-}
-.puzzle-empty {
-    background: rgba(12, 26, 48, 0.7) !important;
-    cursor: default;
-    box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.8) !important;
-    border: 2px dashed rgba(56, 189, 248, 0.5) !important;
-    outline: none !important;
-    border-radius: 10px;
-}
-.trivia-card, .scramble-card {
-    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
-    border: none !important;
-    outline: none !important;
-    border-radius: 18px !important;
-    padding: 16px !important;
-    box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25) !important;
-}
-.trivia-q-text, .scramble-q-text {
-    margin: 0 0 12px;
-    font-size: 14px;
-    font-weight: 700;
-    line-height: 1.4;
-    color: #fff;
-}
-.trivia-options {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-.trivia-option-btn {
-    width: 100%;
-    text-align: left;
-    background: rgba(255,255,255,0.15) !important;
-    border: none !important;
-    outline: none !important;
-    color: #ffffff !important;
-    padding: 10px 14px;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.trivia-option-btn:hover {
-    background: rgba(255,255,255,0.22) !important;
-}
-.trivia-option-btn.selected {
-    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
-    border: none !important;
-    outline: none !important;
-    color: #ffffff !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 242, 254, 0.3);
-}
-
-/* General Button Smooth Animations */
-button, .game-nav-tab, .trivia-option-btn {
-    border: none !important;
-    outline: none !important;
-    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, filter 0.15s ease !important;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-}
-
-button:active, .trivia-option-btn:active {
-    transform: scale(0.93) translateY(1px) !important;
-    filter: brightness(1.2);
-}
-
-@keyframes btnPulse {
-    0% { transform: scale(1); }
-    40% { transform: scale(0.92); }
-    75% { transform: scale(1.03); }
-    100% { transform: scale(1); }
-}
-
-.btn-click-effect {
-    animation: btnPulse 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* Memory Match Styles */
-.memory-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    max-width: 320px;
-    margin: 0 auto 20px;
-}
-.memory-card {
-    height: 85px;
-    perspective: 1000px;
-    cursor: pointer;
-}
-.memory-card-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    text-align: center;
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    transform-style: preserve-3d;
-    border-radius: 14px;
-}
-.memory-card.flipped .memory-card-inner, .memory-card.matched .memory-card-inner {
-    transform: rotateY(180deg);
-}
-.memory-card-front, .memory-card-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    border-radius: 14px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-}
-.memory-card-front {
-    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
-    border: none !important;
-    outline: none !important;
-    box-shadow: 0 4px 14px rgba(10, 25, 60, 0.25) !important;
-    color: #ffffff;
-    font-size: 24px;
-}
-.memory-card-back {
-    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
-    border: none !important;
-    outline: none !important;
-    color: #ffffff;
-    transform: rotateY(180deg);
-    padding: 6px;
-}
-.memory-card.matched .memory-card-back {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-    border: none !important;
-    outline: none !important;
-}
-.scramble-input {
-    width: 100% !important;
-    background: rgba(255, 255, 255, 0.2) !important;
-    border: none !important;
-    outline: none !important;
-    border-radius: 14px !important;
-    padding: 14px 16px !important;
-    color: #ffffff !important;
-    font-size: 15px !important;
-    font-weight: 800 !important;
-    letter-spacing: 1.5px !important;
-    box-sizing: border-box !important;
-    text-transform: uppercase !important;
-    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2) !important;
-    -webkit-text-fill-color: #ffffff !important;
-}
-.scramble-input::placeholder {
-    color: rgba(255, 255, 255, 0.8) !important;
-    -webkit-text-fill-color: rgba(255, 255, 255, 0.8) !important;
-    font-weight: 700 !important;
-    letter-spacing: 1px !important;
-    opacity: 1 !important;
-}
-.scramble-input:focus {
-    outline: none !important;
-    border: none !important;
-    background: rgba(255, 255, 255, 0.28) !important;
-    color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
-    box-shadow: 0 0 16px rgba(0, 242, 254, 0.35), inset 0 2px 6px rgba(0, 0, 0, 0.2) !important;
-}
-</style>
 
 <script>
 (function() {
@@ -471,26 +252,46 @@ async function loadGamePoints() {
         const d = await r.json();
         if (d.status === 'success') {
             const ptsEl = document.getElementById('game-points-val');
-            if (ptsEl) ptsEl.textContent = d.points;
+            const userPoints = d.points ?? d.xp ?? 0;
+            if (ptsEl) ptsEl.textContent = Number(userPoints).toLocaleString();
             if (window.updateProfilePointsDisplay) {
-                window.updateProfilePointsDisplay(d.points);
+                window.updateProfilePointsDisplay(userPoints);
             }
-            // Check history for today's completed games
+            // Reconcile today's completed games with actual server history using local date matching
+            const todayLocalStr = new Date().toDateString();
+            const serverCompletedToday = {
+                puzzle: false,
+                memory_match: false,
+                word_scramble: false,
+                trivia: false
+            };
+
             if (d.history && Array.isArray(d.history)) {
-                const todayStr = new Date().toDateString();
-                const nowIsoDate = new Date().toISOString().slice(0, 10);
                 d.history.forEach(item => {
-                    const itemDate = item.created_at ? item.created_at.slice(0, 10) : '';
-                    if (itemDate === nowIsoDate) {
+                    if (!item.created_at) return;
+                    const itemDate = new Date(item.created_at);
+                    if (!isNaN(itemDate.getTime()) && itemDate.toDateString() === todayLocalStr) {
                         const desc = (item.description || '').toLowerCase();
-                        if (desc.includes('puzzle')) localStorage.setItem('game_done_puzzle', todayStr);
-                        if (desc.includes('memory')) localStorage.setItem('game_done_memory_match', todayStr);
-                        if (desc.includes('scramble')) localStorage.setItem('game_done_word_scramble', todayStr);
-                        if (desc.includes('trivia')) localStorage.setItem('game_done_trivia', todayStr);
+                        if (desc.includes('puzzle')) serverCompletedToday.puzzle = true;
+                        if (desc.includes('memory')) serverCompletedToday.memory_match = true;
+                        if (desc.includes('scramble')) serverCompletedToday.word_scramble = true;
+                        if (desc.includes('trivia')) serverCompletedToday.trivia = true;
                     }
                 });
-                updateAllGamesFinishedUI();
             }
+
+            // Sync localStorage with verified server data:
+            // If the server confirms completed today, retain; otherwise clear stale lock
+            ['puzzle', 'memory_match', 'word_scramble', 'trivia'].forEach(gameType => {
+                const key = 'game_done_' + gameType;
+                if (serverCompletedToday[gameType]) {
+                    localStorage.setItem(key, todayLocalStr);
+                } else {
+                    localStorage.removeItem(key);
+                }
+            });
+
+            updateAllGamesFinishedUI();
         }
     } catch (e) {
         console.error("Points load error:", e);
@@ -645,8 +446,28 @@ function shuffleTiles() {
     } while (!isSolvable(tiles));
 }
 
+window._practiceModes = window._practiceModes || {};
+
+function playInPracticeMode(gameType) {
+    window._practiceModes = window._practiceModes || {};
+    window._practiceModes[gameType] = true;
+
+    if (gameType === 'puzzle') {
+        initPuzzle(true);
+    } else if (gameType === 'memory_match') {
+        initMemoryGame();
+    } else if (gameType === 'word_scramble') {
+        initScrambleGame();
+    }
+}
+
 function isGameDoneToday(gameType) {
+    if (window._practiceModes && window._practiceModes[gameType]) {
+        return false;
+    }
     try {
+        const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token');
+        if (!token) return false;
         return localStorage.getItem('game_done_' + gameType) === new Date().toDateString();
     } catch (e) {
         return false;
@@ -735,6 +556,8 @@ function updateScrambleInfoUI() {
     const containerEl = document.getElementById('scramble-container');
     const submitBtn = document.getElementById('scramble-submit-btn');
     const finishedBanner = document.getElementById('scramble-finished-banner');
+    const mechanicsEl = document.getElementById('scramble-mechanics-wrapper');
+    const statsBarEl = document.getElementById('scramble-stats-bar');
 
     const isDone = isGameDoneToday('word_scramble');
 
@@ -743,6 +566,8 @@ function updateScrambleInfoUI() {
         if (descEl) descEl.style.display = 'none';
         if (containerEl) containerEl.style.display = 'none';
         if (submitBtn) submitBtn.style.display = 'none';
+        if (mechanicsEl) mechanicsEl.style.display = 'none';
+        if (statsBarEl) statsBarEl.style.display = 'none';
         if (finishedBanner) finishedBanner.style.display = 'block';
     } else {
         if (titleEl) titleEl.style.display = 'block';
@@ -752,6 +577,8 @@ function updateScrambleInfoUI() {
         }
         if (containerEl) containerEl.style.display = 'flex';
         if (submitBtn) submitBtn.style.display = 'block';
+        if (mechanicsEl) mechanicsEl.style.display = 'block';
+        if (statsBarEl) statsBarEl.style.display = 'block';
         if (finishedBanner) finishedBanner.style.display = 'none';
     }
 }
@@ -1130,106 +957,284 @@ function flipMemoryCard(index) {
 
 
 // ----------------------------------------------------
-// WORD SCRAMBLE GAME LOGIC
+// WORD SCRAMBLE GAME LOGIC (Dynamic Randomization Engine)
 // ----------------------------------------------------
-const scrambleData = [
-    {
-        id: 1,
-        scrambled: "UNAJ NAS",
-        answer: "SAN JUAN",
-        hint: "Surfing Capital of Northern Luzon"
-    },
-    {
-        id: 2,
-        scrambled: "GABERIL NAS",
-        answer: "SAN GABRIEL",
-        hint: "Known for scenic mountain trails and highland nature"
-    },
-    {
-        id: 3,
-        scrambled: "AGUANB",
-        answer: "BAUANG",
-        hint: "Famous for its lush grape farms & winemaking"
-    },
-    {
-        id: 4,
-        scrambled: "ALURATBE",
-        answer: "BALUARTE",
-        hint: "Historic Spanish-era watchtower in Luna"
-    }
+const laUnionWordPool = [
+    { answer: "SAN JUAN", hint: "Surfing Capital of Northern Luzon & Urbiztondo Beach" },
+    { answer: "SAN GABRIEL", hint: "Home to the famous Tangadan Falls and highland cold streams" },
+    { answer: "BAUANG", hint: "Famous for lush grape picking farms and sunset beach resorts" },
+    { answer: "BALUARTE", hint: "Historic 400-year-old Spanish brick watchtower standing in Luna" },
+    { answer: "TANGADAN", hint: "Majestic two-tiered waterfall in San Gabriel with natural swimming pools" },
+    { answer: "IMMUKI", hint: "Enchanting mangrove lagoon and emerald tidal pools in Balaoan" },
+    { answer: "BALAOAN", hint: "Coastal municipality home to Immuki Island and crystal clear waters" },
+    { answer: "AGOO", hint: "Historic town with Basilica of Our Lady of Charity & Eco Fun World" },
+    { answer: "LUNA", hint: "Municipality known for stone handcrafts, Baluarte, and pebble beaches" },
+    { answer: "BACNOTAN", hint: "Center of beekeeping, sericulture, and Quirino Protected Landscape" },
+    { answer: "SAN FERNANDO", hint: "Provincial capital of La Union, home to Pindangan Ruins & Ma-Cho Temple" },
+    { answer: "PINDANGAN", hint: "Historic 18th-century Spanish church ruins made of coral stone" },
+    { answer: "MA CHO TEMPLE", hint: "Iconic Taoist temple built in 1975 overlooking San Fernando Bay" },
+    { answer: "ARINGAY", hint: "Coastal town celebrated for dried fish, artisanal salt-making, and river trails" },
+    { answer: "CABA", hint: "Birthplace of hero Diego Silang, known for bamboo crafts and rice fields" },
+    { answer: "TUBAO", hint: "Lush inland valley town celebrated for fresh sweet pineapples & tobacco" },
+    { answer: "PUGO", hint: "Southern highland gateway known for Tapuacan River and adventure eco-parks" },
+    { answer: "ROSARIO", hint: "Southern gateway of La Union connecting major mountain trail expressways" },
+    { answer: "BAGULIN", hint: "Highland indigenous eco-tourism town with Kedlap Cave & Loslosi Falls" },
+    { answer: "BURGOS", hint: "Scenic highland town tucked in foothills featuring Bolikewkew Falls" },
+    { answer: "SANTO TOMAS", hint: "Famous coastal fishing municipality known for sun-dried daing" },
+    { answer: "SUDIPEN", hint: "Northern border town with the scenic Amburayan River & hanging bridge" },
+    { answer: "SANTOL", hint: "Mountain peaks, cool highland climate, and pristine Simminublan Falls" },
+    { answer: "TAPUACAN", hint: "Known as the cleanest inland river in Region 1, located in Pugo" },
+    { answer: "PEBBLE BEACH", hint: "Luna's world-famous picturesque shoreline covered in multi-colored stones" },
+    { answer: "GRAPE FARM", hint: "Bauang's popular agritourism attraction where visitors harvest fresh sweet grapes" }
 ];
 
-function initScrambleGame() {
+let currentScrambleWords = [];
+
+// Helper to scramble a single word token (Fisher-Yates)
+function shuffleLetters(token) {
+    if (!token || token.length <= 1) return token;
+    const chars = token.split('');
+    let shuffled = token;
+    let attempts = 0;
+    while (shuffled === token && attempts < 25) {
+        for (let i = chars.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [chars[i], chars[j]] = [chars[j], chars[i]];
+        }
+        shuffled = chars.join('');
+        attempts++;
+    }
+    return shuffled;
+}
+
+// Scramble a phrase (handles multi-word names while keeping spaces recognizable)
+function scramblePhrase(phrase) {
+    return phrase
+        .split(' ')
+        .map(token => shuffleLetters(token))
+        .join(' ');
+}
+
+// Normalize strings for user-friendly comparison (ignores spaces, hyphens, and case)
+function normalizeScrambleText(str) {
+    return (str || '').toString().trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+
+// Toggle game mechanics accordion
+function toggleScrambleMechanics() {
+    const content = document.getElementById('scramble-mechanics-content');
+    const icon = document.getElementById('scramble-mechanics-icon');
+    if (!content) return;
+
+    if (content.style.display === 'none' || content.style.display === '') {
+        content.style.display = 'flex';
+        if (icon) icon.style.transform = 'rotate(180deg)';
+    } else {
+        content.style.display = 'none';
+        if (icon) icon.style.transform = 'rotate(0deg)';
+    }
+}
+
+// Draw 4 random locations from the pool and scramble them
+function randomizeScrambleWords() {
     if (isGameDoneToday('word_scramble')) {
         updateScrambleInfoUI();
         return;
     }
+
+    // Pick 4 unique items
+    const poolCopy = [...laUnionWordPool];
+    for (let i = poolCopy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [poolCopy[i], poolCopy[j]] = [poolCopy[j], poolCopy[i]];
+    }
+
+    const selected = poolCopy.slice(0, 4);
+    currentScrambleWords = selected.map((item, idx) => {
+        let scrambled = scramblePhrase(item.answer);
+        if (scrambled === item.answer && item.answer.replace(/\s+/g, '').length > 1) {
+            scrambled = scramblePhrase(item.answer);
+        }
+        return {
+            id: idx + 1,
+            answer: item.answer,
+            scrambled: scrambled,
+            hint: item.hint
+        };
+    });
+
+    renderScrambleCards();
+    updateScrambleProgress();
+}
+
+// Render the 4 scramble cards to the DOM
+function renderScrambleCards() {
     const container = document.getElementById('scramble-container');
     if (!container) return;
     container.innerHTML = '';
 
-    scrambleData.forEach((item, index) => {
+    currentScrambleWords.forEach((item, index) => {
         const card = document.createElement('div');
         card.className = 'scramble-card';
+        card.id = `scramble-card-${index}`;
 
         card.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <span style="font-size:12px; font-weight:800; color:#00f2fe; text-transform:uppercase; letter-spacing:0.8px;">Word #${index + 1}</span>
-                <span id="scramble-status-${index}" style="font-size:14px; color:rgba(255,255,255,0.4);"><i class="fa-solid fa-pen"></i></span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="font-size: 12px; font-weight: 800; color: #00f2fe; text-transform: uppercase; letter-spacing: 0.8px;">
+                    Word #${index + 1}
+                </span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button type="button" class="scramble-reshuffle-btn" onclick="reshuffleWordLetters(${index})" title="Reshuffle scrambled letters">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                    </button>
+                    <span id="scramble-status-${index}" style="font-size: 14px; color: rgba(255,255,255,0.4);">
+                        <i class="fa-solid fa-pen"></i>
+                    </span>
+                </div>
             </div>
-            <div style="font-size:22px; font-weight:900; color:#ffffff !important; letter-spacing:3px; margin-bottom:10px; text-align:center; background:rgba(0,0,0,0.25) !important; padding:12px; border-radius:14px; border:none !important; outline:none !important; text-shadow:0 2px 4px rgba(0,0,0,0.4);">
+            <div id="scramble-word-display-${index}" style="font-size: 21px; font-weight: 900; color: #ffffff !important; letter-spacing: 3px; margin-bottom: 10px; text-align: center; background: rgba(0,0,0,0.25) !important; padding: 12px; border-radius: 14px; border: none !important; outline: none !important; text-shadow: 0 2px 4px rgba(0,0,0,0.4); user-select: none;">
                 ${item.scrambled}
             </div>
-            <p style="margin:0 0 12px 0; font-size:12.5px; color:#ffffff !important; font-weight:600; text-shadow:0 1px 2px rgba(0,0,0,0.4); line-height:1.4;">
-                <span style="color:#facc15; font-size:13px; font-weight:800;">💡 Hint:</span> <span style="color:#ffffff !important; font-weight:700;">${item.hint}</span>
+            <p style="margin: 0 0 12px 0; font-size: 12px; color: #ffffff !important; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.4); line-height: 1.45;">
+                <span style="color: #facc15; font-size: 12.5px; font-weight: 800;">💡 Hint:</span> <span style="color: #ffffff !important; font-weight: 700;">${item.hint}</span>
             </p>
-            <input type="text" id="scramble-input-${index}" class="scramble-input" placeholder="TYPE ANSWER HERE..." oninput="checkScrambleWord(${index})" style="color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; border:none !important; outline:none !important;">
+            <input type="text" id="scramble-input-${index}" class="scramble-input" placeholder="TYPE ANSWER HERE..." oninput="checkScrambleWord(${index})" autocomplete="off" autocapitalize="characters" spellcheck="false" style="color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; border: none !important; outline: none !important;">
         `;
 
         container.appendChild(card);
     });
 }
 
+// Reshuffle just one word's letters if the user wants another perspective
+function reshuffleWordLetters(index) {
+    if (!currentScrambleWords[index]) return;
+    const item = currentScrambleWords[index];
+    const prev = item.scrambled;
+    let next = scramblePhrase(item.answer);
+    let attempts = 0;
+    while (next === prev && attempts < 10) {
+        next = scramblePhrase(item.answer);
+        attempts++;
+    }
+    item.scrambled = next;
+    const displayEl = document.getElementById(`scramble-word-display-${index}`);
+    if (displayEl) {
+        displayEl.style.transform = 'scale(0.95)';
+        displayEl.style.transition = 'transform 0.15s ease';
+        setTimeout(() => {
+            displayEl.textContent = next;
+            displayEl.style.transform = 'scale(1)';
+        }, 150);
+    }
+}
+
+// Validate input against answer
 function checkScrambleWord(index) {
     const input = document.getElementById(`scramble-input-${index}`);
     const status = document.getElementById(`scramble-status-${index}`);
-    if (!input || !status) return;
+    const card = document.getElementById(`scramble-card-${index}`);
+    if (!input || !status || !currentScrambleWords[index]) return;
 
-    const val = input.value.trim().toUpperCase();
-    if (val === scrambleData[index].answer) {
-        status.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#34d399; font-size:18px;"></i>';
+    const val = normalizeScrambleText(input.value);
+    const expected = normalizeScrambleText(currentScrambleWords[index].answer);
+
+    if (val.length > 0 && val === expected) {
+        status.innerHTML = '<i class="fa-solid fa-circle-check" style="color: #34d399; font-size: 18px;"></i>';
         input.style.border = 'none';
         input.style.outline = 'none';
-        input.style.background = 'rgba(52, 211, 153, 0.3)';
+        input.style.background = 'rgba(52, 211, 153, 0.28)';
         input.style.color = '#ffffff';
         input.style.webkitTextFillColor = '#ffffff';
+        if (card) card.classList.add('is-correct');
     } else {
-        status.innerHTML = '<i class="fa-solid fa-pen" style="color:rgba(255,255,255,0.4); font-size:14px;"></i>';
+        status.innerHTML = '<i class="fa-solid fa-pen" style="color: rgba(255,255,255,0.4); font-size: 14px;"></i>';
         input.style.border = 'none';
         input.style.outline = 'none';
         input.style.background = 'rgba(255, 255, 255, 0.2)';
         input.style.color = '#ffffff';
         input.style.webkitTextFillColor = '#ffffff';
+        if (card) card.classList.remove('is-correct');
+    }
+    updateScrambleProgress();
+}
+
+// Update the progress bar and counter
+function updateScrambleProgress() {
+    let solved = 0;
+    currentScrambleWords.forEach((item, index) => {
+        const input = document.getElementById(`scramble-input-${index}`);
+        if (input && normalizeScrambleText(input.value) === normalizeScrambleText(item.answer)) {
+            solved++;
+        }
+    });
+
+    const badge = document.getElementById('scramble-solved-badge');
+    const fill = document.getElementById('scramble-progress-fill');
+    if (badge) {
+        if (solved === 4) {
+            badge.textContent = '4 / 4 Solved! 🎉';
+            badge.style.color = '#34d399';
+            badge.style.background = 'rgba(52, 211, 153, 0.25)';
+        } else {
+            badge.textContent = `${solved} / 4 Solved`;
+            badge.style.color = '#00f2fe';
+            badge.style.background = 'rgba(0, 242, 254, 0.18)';
+        }
+    }
+    if (fill) {
+        fill.style.width = `${(solved / 4) * 100}%`;
     }
 }
 
-async function submitScrambleAnswers() {
-    let allCorrect = true;
-
-    scrambleData.forEach((item, index) => {
+// Reset all 4 inputs back to empty
+function resetScrambleInputs() {
+    currentScrambleWords.forEach((_, index) => {
         const input = document.getElementById(`scramble-input-${index}`);
-        const val = input ? input.value.trim().toUpperCase() : '';
-        if (val !== item.answer) {
+        const status = document.getElementById(`scramble-status-${index}`);
+        const card = document.getElementById(`scramble-card-${index}`);
+        if (input) {
+            input.value = '';
+            input.style.background = 'rgba(255, 255, 255, 0.2)';
+        }
+        if (status) {
+            status.innerHTML = '<i class="fa-solid fa-pen" style="color: rgba(255,255,255,0.4); font-size: 14px;"></i>';
+        }
+        if (card) card.classList.remove('is-correct');
+    });
+    updateScrambleProgress();
+}
+
+// Submit answers and claim points
+async function submitScrambleAnswers() {
+    if (currentScrambleWords.length === 0) return;
+
+    let allCorrect = true;
+    currentScrambleWords.forEach((item, index) => {
+        const input = document.getElementById(`scramble-input-${index}`);
+        const val = input ? normalizeScrambleText(input.value) : '';
+        if (val !== normalizeScrambleText(item.answer)) {
             allCorrect = false;
         }
     });
 
     if (!allCorrect) {
-        alert("Some words are still incorrect or incomplete. Use the hints to help unscramble all 4 words!");
+        openGameAlert("Some words are still incorrect or incomplete. Use the hints or tap Reshuffle to help unscramble all 4 words!", "Not Quite Finished");
         return;
     }
 
     claimMiniGamePoints('word_scramble');
+}
+
+// Initialize Scramble Game
+function initScrambleGame() {
+    if (isGameDoneToday('word_scramble')) {
+        updateScrambleInfoUI();
+        return;
+    }
+    updateScrambleInfoUI();
+    if (currentScrambleWords.length === 0) {
+        randomizeScrambleWords();
+    }
 }
 
 
@@ -1238,6 +1243,11 @@ async function submitScrambleAnswers() {
 // ----------------------------------------------------
 async function claimMiniGamePoints(gameType) {
     try {
+        if (window._practiceModes && window._practiceModes[gameType]) {
+            openGameSuccess("Awesome practice run! You have already claimed today's daily points. Come back tomorrow for new reward points!");
+            return;
+        }
+
         const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token');
         const _baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
 
@@ -1404,8 +1414,14 @@ window.executeGameConfirm = executeGameConfirm;
 window.closeGameSuccess = closeGameSuccess;
 window.submitTriviaAnswers = submitTriviaAnswers;
 window.initMemoryGame = initMemoryGame;
+window.initScrambleGame = initScrambleGame;
 window.submitScrambleAnswers = submitScrambleAnswers;
 window.checkScrambleWord = checkScrambleWord;
+window.randomizeScrambleWords = randomizeScrambleWords;
+window.resetScrambleInputs = resetScrambleInputs;
+window.reshuffleWordLetters = reshuffleWordLetters;
+window.toggleScrambleMechanics = toggleScrambleMechanics;
 window.closeGameAlert = closeGameAlert;
+window.playInPracticeMode = playInPracticeMode;
 })();
 </script>

@@ -1,37 +1,35 @@
 /* ============================================================
  * Saved Trips View Styles - saved_trips.css
- * Intan Elyu Mobile — Ultra-Premium Coastal Wave Theme
+ * Intan Elyu Mobile — Clean Pure White Theme with Royal Blue Cards
  * ============================================================ */
 
-/* Main Container with Header Clearances & Adjusted Spacing */
-.saved-trips-page-container {
-    width: 100%;
-    min-height: 100vh;
-    padding-top: calc(var(--header-height, 90px) + 24px) !important;
-    padding-left: 18px !important;
-    padding-right: 18px !important;
-    padding-bottom: 110px !important;
-    box-sizing: border-box;
-    background:
-        radial-gradient(ellipse at 85% 5%, rgba(0, 242, 254, 0.35) 0%, transparent 55%),
-        radial-gradient(ellipse at 15% 45%, rgba(56, 189, 248, 0.3) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 80%, rgba(63, 125, 183, 0.4) 0%, transparent 60%),
-        linear-gradient(180deg, #1e3a8a 0%, #3f7db7 30%, #0284c7 65%, #06b6d4 90%, #00f2fe 100%) !important;
-    background-attachment: fixed !important;
-    color: #ffffff !important;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+/* Full Page White Background */
+html:has(body[data-view="saved_trips"]),
+body[data-view="saved_trips"],
+html:has(.saved-trips-page-container),
+body:has(.saved-trips-page-container) {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
 }
 
-body[data-view="saved_trips"] {
-    background-color: #1e3a8a !important;
-    color: #ffffff !important;
+body[data-view="saved_trips"] #app-container,
+body[data-view="saved_trips"] #main-content,
+body:has(.saved-trips-page-container) #app-container,
+body:has(.saved-trips-page-container) #main-content {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
 }
 
 body[data-view="saved_trips"] .mobile-header {
-    background: rgba(30, 58, 138, 0.88) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
+    background: #1e3a8a !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: none !important;
+    outline: none !important;
+    border-bottom: none !important;
     box-shadow: none !important;
 }
 
@@ -41,13 +39,49 @@ body[data-view="saved_trips"] .mobile-header .header-title {
 }
 
 body[data-view="saved_trips"] .mobile-header .header-icon {
-    color: #ffffff !important;
+    color: #1e3a8a !important;
+    background: #ffffff !important;
+    border: none !important;
+    outline: none !important;
+}
+
+body[data-view="saved_trips"] .mobile-header .header-icon i {
+    color: #1e3a8a !important;
+}
+
+/* Main Container: Pure White Background */
+.saved-trips-page-container {
+    width: 100%;
+    min-height: 100vh;
+    padding-top: calc(max(env(safe-area-inset-top, 0px), 40px) + 64px) !important;
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+    padding-bottom: 110px !important;
+    box-sizing: border-box;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
 }
 
 /* Headings & Section Titles */
-.saved-trips-page-container h2, 
-.saved-trips-page-container h3, 
-.saved-trips-page-container h4 {
+.saved-trips-page-container > h2, 
+.saved-trips-page-container > h3, 
+.saved-trips-page-container > h4,
+.saved-trips-page-container > div > h2,
+.saved-trips-page-container > div > h3,
+.saved-trips-page-container > div > h4 {
+    color: #0f172a !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.4px !important;
+}
+
+.saved-trips-page-container .trip-swipe-content h2, 
+.saved-trips-page-container .trip-swipe-content h3, 
+.saved-trips-page-container .trip-swipe-content h4,
+.saved-trips-page-container .empty-state-card h2, 
+.saved-trips-page-container .empty-state-card h3, 
+.saved-trips-page-container .empty-state-card h4 {
     color: #ffffff !important;
     font-weight: 900 !important;
     letter-spacing: -0.4px !important;
@@ -104,12 +138,12 @@ body[data-view="saved_trips"] .mobile-header .header-icon {
 .trip-swipe-content {
     position: relative;
     z-index: 2;
-    background: #6196c8 !important;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
     border: none !important;
     outline: none !important;
-    border-radius: 24px;
+    border-radius: 24px !important;
     padding: 22px 20px;
-    box-shadow: none !important;
+    box-shadow: 0 10px 28px rgba(10, 25, 60, 0.28) !important;
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease !important;
 }
 
@@ -154,33 +188,94 @@ body[data-view="saved_trips"] .mobile-header .header-icon {
 /* Timeline Destination Card Items */
 .timeline-content {
     padding: 16px !important;
-    background: rgba(255, 255, 255, 0.08) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 18px !important;
     display: flex !important;
     flex-direction: column !important;
     gap: 10px !important;
+    box-shadow: none !important;
     transition: background 0.2s ease !important;
 }
 
 .timeline-content:hover {
-    background: rgba(255, 255, 255, 0.14) !important;
+    background: rgba(255, 255, 255, 0.16) !important;
+    border: none !important;
+    outline: none !important;
 }
 
-/* Empty State Card */
+/* Ensure no child elements inside trip cards have outlines or borders */
+.saved-trips-page-container .trip-swipe-content,
+.saved-trips-page-container .trip-swipe-content *,
+.saved-trips-page-container .timeline-content,
+.saved-trips-page-container .timeline-content * {
+    outline: none !important;
+}
+
+.saved-trips-page-container .timeline-content button,
+.saved-trips-page-container .timeline-content span,
+.saved-trips-page-container .timeline-content img {
+    border-color: transparent !important;
+    outline: none !important;
+}
+
+/* Empty State Card (Matches Coastal Ocean Theme) */
 .saved-trips-page-container .empty-state-card {
-    background: rgba(30, 75, 135, 0.58) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    border: none !important;
+    outline: none !important;
     border-radius: 24px !important;
-    padding: 32px 24px !important;
+    padding: 36px 24px !important;
     text-align: center !important;
-    box-shadow: none !important;
+    box-shadow: 0 10px 28px rgba(10, 25, 60, 0.28) !important;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+}
+
+.saved-trips-page-container .empty-state-icon {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: #ffffff !important;
+    border: none !important;
+    outline: none !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1e3a8a !important;
+    -webkit-text-fill-color: #1e3a8a !important;
+    font-size: 28px;
+    margin: 0 auto 12px auto;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;
+}
+
+.saved-trips-page-container .empty-state-icon i {
+    color: #1e3a8a !important;
+    -webkit-text-fill-color: #1e3a8a !important;
+    font-size: 28px !important;
+}
+
+.saved-trips-page-container .btn-open-map {
+    background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 13px 30px !important;
+    border-radius: 100px !important;
+    font-weight: 800 !important;
+    font-size: 14px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    box-shadow: none !important;
+    cursor: pointer !important;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.saved-trips-page-container .btn-open-map:active {
+    transform: scale(0.95) !important;
 }
 
 /* Buttons Micro-Interactions */
@@ -207,8 +302,41 @@ body[data-view="saved_trips"] .mobile-header .header-icon {
 #complete-trip-modal > div,
 #delete-trip-modal > div {
     background: linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
-    box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45) !important;
     color: #ffffff !important;
     border-radius: 26px !important;
 }
+
+/* Timeline and Start Collapsible Controls */
+.timeline-collapsible {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease, margin-top 0.4s ease;
+}
+
+.timeline-collapsible.expanded {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    margin-top: 16px;
+}
+
+.timeline-inner {
+    overflow: hidden;
+}
+
+.start-collapsible {
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease;
+    display: flex;
+}
+
+.start-collapsible.expanded {
+    max-width: 200px;
+    opacity: 1;
+}
+

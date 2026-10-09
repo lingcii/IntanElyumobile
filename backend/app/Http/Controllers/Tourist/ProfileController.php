@@ -56,17 +56,40 @@ class ProfileController extends Controller
             }
         });
 
-        // 2. Places Visited — use denormalized counter (Technique 5)
-        $placesVisited = (int) ($user->completed_activities ?? 0);
+        // 2. Places Visited — Calculate true distinct tourist spots visited
+        $placesVisited = (int) DB::table('itinerary_items')
+            ->join('itineraries', 'itinerary_items.itinerary_id', '=', 'itineraries.id')
+            ->where('itineraries.user_id', $user->id)
+            ->where('itinerary_items.is_visited', true)
+            ->whereNotNull('itinerary_items.tourist_spot_id')
+            ->distinct('itinerary_items.tourist_spot_id')
+            ->count('itinerary_items.tourist_spot_id');
+        if ($placesVisited === 0 && ($user->completed_activities ?? 0) > 0) {
+            $placesVisited = min(1, (int) $user->completed_activities);
+        }
 
-        // 3. Completed Trips (Trip History) — Technique 2: Server-Side Caching
-        $completedTrips = Cache::remember("profile:trips:{$user->id}", 120, function () use ($user) {
+        // 3. Completed Trips (Trip History) — Filter out any with 0 visited destinations
+        $completedTrips = Cache::remember("profile:trips:v2:{$user->id}", 60, function () use ($user) {
             return Itinerary::where('user_id', $user->id)
                 ->where('status', 'completed')
-                ->with(['items.destination:id,name,photo_url,latitude,longitude,entrance_fee'])
+                ->whereHas('items')
+                ->with(['items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee'])
                 ->orderByDesc('updated_at')
                 ->get()
+                ->filter(function ($trip) {
+                    $totalItems = $trip->items->count();
+                    $visitedItems = $trip->items->filter(function ($item) {
+                        return (bool) $item->is_visited;
+                    })->count();
+                    $effectiveVisited = $visitedItems > 0 ? $visitedItems : $totalItems;
+                    return $effectiveVisited > 0;
+                })
+                ->values()
                 ->map(function ($trip) {
+                    $visitedCount = $trip->items->filter(function ($item) {
+                        return (bool) $item->is_visited;
+                    })->count() ?: $trip->items->count();
+
                     return [
                         'id' => $trip->id,
                         'title' => $trip->title,
@@ -76,19 +99,25 @@ class ProfileController extends Controller
                         'status' => $trip->status,
                         'route_type' => $trip->route_type,
                         'transport_mode' => $trip->transport_mode,
+                        'destinations_visited' => $visitedCount,
                         'items' => $trip->items->map(function ($item) {
                             $dest = $item->destination;
                             return [
                                 'id' => $item->id,
                                 'tourist_spot_id' => $item->tourist_spot_id,
-                                'is_visited' => $item->is_visited,
+                                'is_visited' => (bool) $item->is_visited,
                                 'proof_image' => $item->proof_image,
                                 'visited_at' => $item->visited_at,
                                 'destination' => $dest ? [
                                     'id' => $dest->id,
                                     'name' => $dest->name,
                                     'image' => $dest->photo_url,
-                                    'entrance_fee' => $dest->entrance_fee,
+                                    'entrance_fee' => (float) ($dest->entrance_fee ?? 0),
+                                    'adult_fee' => (float) ($dest->adult_fee ?? 0),
+                                    'kids_fee' => (float) ($dest->kids_fee ?? 0),
+                                    'pwd_fee' => (float) ($dest->pwd_fee ?? 0),
+                                    'senior_citizen_fee' => (float) ($dest->senior_citizen_fee ?? 0),
+                                    'environmental_fee' => (float) ($dest->environmental_fee ?? 0),
                                 ] : null,
                             ];
                         }),
@@ -100,6 +129,8 @@ class ProfileController extends Controller
         $hasPhone = Schema::hasColumn('users', 'phone');
         $hasLocation = Schema::hasColumn('users', 'home_location');
         $hasBio = Schema::hasColumn('users', 'bio');
+        $hasAge = Schema::hasColumn('users', 'age');
+        $hasGender = Schema::hasColumn('users', 'gender');
         $hasPrefs = Schema::hasColumn('users', 'travel_preferences');
         $hasPrivacy = Schema::hasColumn('users', 'is_leaderboard_private');
         $has2FA = Schema::hasColumn('users', 'two_factor_enabled');
@@ -225,15 +256,21 @@ class ProfileController extends Controller
             'success' => true,
             'user' => [
                 'id' => $user->id,
+                'tourist_number' => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
+                'tourist_id' => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone' => $hasPhone ? $user->phone : null,
                 'home_location' => $hasLocation ? $user->home_location : null,
                 'bio' => $hasBio ? $user->bio : null,
+                'age' => $hasAge ? $user->age : null,
+                'gender' => $hasGender ? $user->gender : null,
                 'travel_preferences' => $hasPrefs ? $user->travel_preferences : null,
                 'is_leaderboard_private' => $hasPrivacy ? (bool) $user->is_leaderboard_private : false,
                 'two_factor_enabled' => (bool) $is2FAEnabled,
                 'xp' => (int) ($user->xp ?? 0),
+                'points' => (int) ($user->points ?? $user->xp ?? 0),
+                'level' => (int) floor(max(0, (int) ($user->xp ?? 0)) / 1000) + 1,
                 'avatar' => $user->avatar
             ],
             'places_visited' => $placesVisited,
@@ -258,32 +295,43 @@ class ProfileController extends Controller
             'phone' => 'nullable|string|max:50',
             'home_location' => 'nullable|string|max:255',
             'bio' => 'nullable|string|max:500',
+            'age' => 'nullable|integer|min:1|max:120',
+            'gender' => 'nullable|string|max:50',
             'travel_preferences' => 'nullable|string|max:255',
             'avatar' => 'sometimes|file|mimes:jpeg,png,jpg,gif,webp,heic,heif|max:10240',
-            'is_leaderboard_private' => 'sometimes|boolean',
         ]);
 
-        if ($request->has('name')) {
+        if ($request->exists('name') && $request->filled('name')) {
             $user->name = $request->input('name');
         }
 
-        if ($request->filled('email')) {
+        if ($request->exists('email') && $request->filled('email')) {
             $user->email = strtolower(trim($request->input('email')));
         }
 
-        if ($request->has('phone') && Schema::hasColumn('users', 'phone')) {
+        if ($request->exists('phone') && Schema::hasColumn('users', 'phone')) {
             $user->phone = $request->input('phone');
         }
 
-        if ($request->has('home_location') && Schema::hasColumn('users', 'home_location')) {
+        if ($request->exists('home_location') && Schema::hasColumn('users', 'home_location')) {
             $user->home_location = $request->input('home_location');
         }
 
-        if ($request->has('bio') && Schema::hasColumn('users', 'bio')) {
+        if ($request->exists('bio') && Schema::hasColumn('users', 'bio')) {
             $user->bio = $request->input('bio');
         }
 
-        if ($request->has('travel_preferences') && Schema::hasColumn('users', 'travel_preferences')) {
+        if ($request->exists('age') && Schema::hasColumn('users', 'age')) {
+            $ageVal = $request->input('age');
+            $user->age = ($ageVal !== null && $ageVal !== '') ? (int) $ageVal : null;
+        }
+
+        if ($request->exists('gender') && Schema::hasColumn('users', 'gender')) {
+            $genderVal = $request->input('gender');
+            $user->gender = ($genderVal !== null && trim($genderVal) !== '') ? trim($genderVal) : null;
+        }
+
+        if ($request->exists('travel_preferences') && Schema::hasColumn('users', 'travel_preferences')) {
             $user->travel_preferences = $request->input('travel_preferences');
         }
 
@@ -315,11 +363,6 @@ class ProfileController extends Controller
             } catch (\Throwable $err) {
                 \Illuminate\Support\Facades\Log::error("Avatar upload failed: " . $err->getMessage());
             }
-        }
-
-        if ($request->has('is_leaderboard_private') && Schema::hasColumn('users', 'is_leaderboard_private')) {
-            $user->is_leaderboard_private = $request->boolean('is_leaderboard_private');
-            Cache::flush();
         }
 
         try {
@@ -415,4 +458,43 @@ class ProfileController extends Controller
             'message' => 'Two-factor authentication successfully activated!'
         ]);
     }
+
+    /**
+     * POST /api/tourist/change-password
+     * Change tourist password with strict policy validation
+     */
+    public function changePassword(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|different:current_password|confirmed',
+        ]);
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->input('current_password'), $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The current password you entered is incorrect.'
+            ], 422);
+        }
+
+        $newPassword = $request->input('new_password');
+
+        if (!preg_match('/[A-Za-z]/', $newPassword) || !preg_match('/[0-9]/', $newPassword)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'New password must be at least 8 characters and contain both letters and numbers.'
+            ], 422);
+        }
+
+        $user->password = \Illuminate\Support\Facades\Hash::make($newPassword);
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password updated successfully!'
+        ]);
+    }
 }
+

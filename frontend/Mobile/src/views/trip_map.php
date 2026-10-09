@@ -1,25 +1,8 @@
-<style>
-    .maplibregl-ctrl-bottom-right {
-        bottom: 190px !important;
-        right: 16px !important;
-        z-index: 999;
-    }
-    .maplibregl-ctrl-group {
-        box-shadow: none !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    }
-    .hide-scrollbar::-webkit-scrollbar {
-        display: none;
-    }
-    .hide-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
-</style>
 <?php
 $pageTitle = "Trip Route";
 $backRoute = "saved_trips";
 require_once __DIR__ . '/../components/header.php';
+include_once __DIR__ . '/../components/testimony_modal.php';
 ?>
 
 <div id="trip-map" style="width: 100%; height: 100vh; background: #0a0f1c;"></div>
@@ -28,17 +11,18 @@ require_once __DIR__ . '/../components/header.php';
 <div id="trip-conveyor-wrapper" style="position: absolute; bottom: max(env(safe-area-inset-bottom), 16px); left: 0; right: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 12px; pointer-events: none; width: 100%; box-sizing: border-box; overflow: hidden;">
     
     <!-- Trip Overview Summary Header Pill -->
-    <div id="trip-summary-pill" style="align-self: center; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 100px; padding: 8px 18px; display: flex; align-items: center; gap: 14px; box-shadow: none; pointer-events: auto;">
+    <div id="trip-summary-pill" style="align-self: center; background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: none !important; outline: none !important; border-radius: 100px; padding: 7px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 28px rgba(10, 25, 60, 0.35); pointer-events: auto;">
         <div style="display:flex; align-items:center; gap:6px; color:#ffffff; font-size:12px; font-weight:800;">
-            <i class="fa-solid fa-route" style="color:#38bdf8;"></i> <span id="trip-info-distance">-- km</span>
+            <i class="fa-solid fa-route" style="color:#67e8f9;"></i> <span id="trip-info-distance">-- km</span>
         </div>
-        <div style="width:1px; height:12px; background:rgba(255,255,255,0.2);"></div>
+        <div style="width:1px; height:12px; background:rgba(255,255,255,0.25);"></div>
         <div style="display:flex; align-items:center; gap:6px; color:#ffffff; font-size:12px; font-weight:800;">
             <i class="fa-solid fa-stopwatch" style="color:#34d399;"></i> <span id="trip-info-time">-- mins</span>
         </div>
-        <div style="width:1px; height:12px; background:rgba(255,255,255,0.2);"></div>
-        <div style="display:flex; align-items:center; gap:6px; color:#ffffff; font-size:12px; font-weight:800;">
-            <i id="trip-info-vehicle-icon" class="fa-solid fa-car" style="color:#f59e0b;"></i> <span id="trip-info-vehicle-name">Own Car</span>
+        <div style="width:1px; height:12px; background:rgba(255,255,255,0.25);"></div>
+        <div id="trip-info-vehicle-badge" style="display:flex; align-items:center; gap:6px; color:#ffffff; font-size:12px; font-weight:800; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; border-radius:100px; padding:4px 10px;">
+            <i id="trip-info-vehicle-icon" class="fa-solid fa-car" style="color:#f59e0b;"></i>
+            <span id="trip-info-vehicle-name">Own Car</span>
         </div>
     </div>
 
@@ -48,53 +32,37 @@ require_once __DIR__ . '/../components/header.php';
     </div>
 </div>
 
-<!-- Prompt Card when within 300m -->
-<div id="checkin-prompt-card" style="position: absolute; top: calc(max(env(safe-area-inset-top), 40px) + 54px); left: 16px; right: 16px; z-index: 1001; background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); border: 1.5px solid rgba(56,189,248,0.4); border-radius: 20px; padding: 14px 18px; box-shadow: 0 12px 36px rgba(0,0,0,0.6), 0 0 20px rgba(56,189,248,0.2); display: none; align-items: center; justify-content: space-between; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
-    <div style="display:flex; align-items:center; gap:12px;">
-        <div style="width:40px; height:40px; border-radius:12px; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-            <i class="fa-solid fa-location-dot" style="color:#38bdf8; font-size:18px;"></i>
-        </div>
-        <div style="text-align: left;">
-            <h5 style="margin:0 0 2px; font-size:14px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">You've arrived!</h5>
-            <p id="checkin-prompt-dest-name" style="margin:0; font-size:12px; color:rgba(226,232,240,0.8); font-weight:600;"></p>
-        </div>
-    </div>
-    <button onclick="window.triggerMapCheckinModal()" style="background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); color:#ffffff; border:1px solid rgba(255,255,255,0.2); padding:9px 18px; border-radius:12px; font-weight:800; font-size:12px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.4); display:flex; align-items:center; gap:6px; flex-shrink:0; transition:transform 0.15s ease;">
-        <i class="fa-solid fa-camera" style="font-size:11px;"></i> Check In
-    </button>
-</div>
-
 <!-- Check-in Verification Modal (GPS and Photo Proof) -->
-<div id="checkin-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.78); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:99999; justify-content:center; align-items:center;">
-    <div style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(56, 189, 248, 0.3); border-radius:24px; padding:28px 24px; width:90%; max-width:380px; box-shadow:0 24px 60px rgba(0,0,0,0.6), 0 0 30px rgba(56,189,248,0.15); text-align:center;">
-        <div style="width:58px; height:58px; border-radius:50%; background:rgba(56,189,248,0.15); border:1.5px solid rgba(56,189,248,0.35); display:flex; align-items:center; justify-content:center; margin:0 auto 14px;">
-            <i class="fa-solid fa-camera" style="font-size:26px; color:#38bdf8;"></i>
+<div id="checkin-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:99999; justify-content:center; align-items:center;">
+    <div style="background:linear-gradient(145deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none !important; outline:none !important; border-radius:24px; padding:28px 24px; width:90%; max-width:380px; box-shadow:0 24px 60px rgba(10,25,60,0.55); text-align:center;">
+        <div style="width:58px; height:58px; border-radius:50%; background:rgba(255,255,255,0.2); border:none !important; display:flex; align-items:center; justify-content:center; margin:0 auto 14px;">
+            <i class="fa-solid fa-camera" style="font-size:26px; color:#ffffff;"></i>
         </div>
-        <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Claim Your Reward</h3>
-        <p style="font-size:13px; color:rgba(226, 232, 240, 0.85); margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination to verify your visit and earn <strong style="color:#38bdf8; font-weight:800;">+50 XP</strong> & <strong style="color:#38bdf8; font-weight:800;">+50 Points</strong>.</p>
+        <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Submit Visit Proof</h3>
+        <p style="font-size:13px; color:rgba(255, 255, 255, 0.85); margin-bottom:20px; line-height:1.5;">Take a selfie or capture a photo at this destination. Your submission will be submitted for review and approval before earning <strong style="color:#67e8f9; font-weight:800;">+50 Points</strong>.</p>
 
         <input type="hidden" id="checkin-item-id">
         
         <!-- Step 1: Photo Proof -->
         <div style="margin-bottom: 16px; text-align: left;">
-            <label style="font-size:11px; font-weight:800; color:#38bdf8; margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Step 1: Photo Proof (Required)</label>
+            <label style="font-size:11px; font-weight:800; color:#67e8f9; margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Step 1: Photo Proof (Required)</label>
             <input type="file" id="checkin-proof-image" accept="image/*" style="display:none;" onchange="window.handlePhotoSelected(this)">
-            <button type="button" onclick="window.openCheckinImagePickerModal()" id="btn-select-photo" style="width:100%; padding:14px; background:rgba(56,189,248,0.1); border:1.5px dashed rgba(56,189,248,0.4); border-radius:14px; color:#38bdf8; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:all 0.2s ease;">
+            <button type="button" onclick="window.openCheckinImagePickerModal()" id="btn-select-photo" style="width:100%; padding:14px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; border-radius:14px; color:#ffffff; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:all 0.2s ease;">
                 <i class="fa-solid fa-camera" style="font-size:16px;"></i> <span id="photo-status-text">Take or Choose Photo</span>
             </button>
 
             <!-- Picture Preview Container (Displays actual picture preview instead of filename string) -->
-            <div id="checkin-photo-preview-container" style="display:none; margin-top:12px; position:relative; border-radius:16px; overflow:hidden; border:1.5px solid rgba(56,189,248,0.4); background:rgba(15,23,42,0.8); box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+            <div id="checkin-photo-preview-container" style="display:none; margin-top:12px; position:relative; border-radius:16px; overflow:hidden; border:none !important; outline:none !important; background:rgba(10,25,60,0.8); box-shadow:0 8px 24px rgba(0,0,0,0.3);">
                 <img id="checkin-photo-preview-img" src="" alt="Proof Preview" style="width:100%; max-height:180px; object-fit:cover; display:block;">
                 <div style="position:absolute; top:8px; right:8px; display:flex; gap:6px;">
-                    <button type="button" onclick="window.openCheckinImagePickerModal()" title="Change Picture" style="background:rgba(15,23,42,0.85); color:#38bdf8; border:1px solid rgba(56,189,248,0.4); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; backdrop-filter:blur(6px);">
+                    <button type="button" onclick="window.openCheckinImagePickerModal()" title="Change Picture" style="background:rgba(10,25,60,0.85); color:#ffffff; border:none; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; backdrop-filter:blur(6px);">
                         <i class="fa-solid fa-arrows-rotate" style="font-size:13px;"></i>
                     </button>
-                    <button type="button" onclick="window.removeCheckinPhoto()" title="Remove Picture" style="background:rgba(239,68,68,0.85); color:#ffffff; border:none; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; backdrop-filter:blur(6px);">
+                    <button type="button" onclick="window.removeCheckinPhoto()" title="Remove Picture" style="background:rgba(239,68,68,0.9); color:#ffffff; border:none; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; backdrop-filter:blur(6px);">
                         <i class="fa-solid fa-xmark" style="font-size:14px;"></i>
                     </button>
                 </div>
-                <div style="padding:6px 10px; background:rgba(15,23,42,0.9); font-size:10px; font-weight:700; color:#38bdf8; text-transform:uppercase; text-align:center; border-top:1px solid rgba(255,255,255,0.08);">
+                <div style="padding:6px 10px; background:rgba(10,25,60,0.9); font-size:10px; font-weight:700; color:#67e8f9; text-transform:uppercase; text-align:center; border:none !important;">
                     <i class="fa-solid fa-circle-check" style="margin-right:4px; color:#34c759;"></i> Picture Proof Attached
                 </div>
             </div>
@@ -102,47 +70,43 @@ require_once __DIR__ . '/../components/header.php';
 
         <!-- Step 2: Location Verification -->
         <div style="margin-bottom: 12px; text-align: left;">
-            <label style="font-size:11px; font-weight:800; color:#38bdf8; margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Step 2: Location Check-in</label>
-            <button class="btn-primary" id="btn-verify-gps" style="width:100%; padding:14px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); border:1px solid rgba(255,255,255,0.25); color:#ffffff; border-radius:14px; box-shadow:0 4px 16px rgba(56,189,248,0.4); cursor:pointer;" onclick="verifyGpsCheckIn()">
+            <label style="font-size:11px; font-weight:800; color:#67e8f9; margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Step 2: Location Check-in</label>
+            <button class="btn-primary" id="btn-verify-gps" style="width:100%; padding:14px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; border-radius:14px; box-shadow:0 4px 16px rgba(2,132,199,0.4); cursor:pointer;" onclick="verifyGpsCheckIn()">
                 <i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Submit
             </button>
         </div>
 
-        <button style="width:100%; padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#e2e8f0; font-size:13px; font-weight:700; cursor:pointer;" onclick="closeCheckinModal()">Cancel</button>
+        <button style="width:100%; padding:12px; border-radius:14px; border:none !important; outline:none !important; background:rgba(255,255,255,0.12); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;" onclick="closeCheckinModal()">Cancel</button>
     </div>
 </div>
 
 <!-- Check-in Image Picker Choice Modal -->
-<div id="checkin-image-picker-modal" onclick="if(event.target===this) window.closeCheckinImagePickerModal()" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:999999; align-items:flex-end; justify-content:center; padding:0; margin:0; box-sizing:border-box;">
-    <div style="background:linear-gradient(135deg, rgba(30,41,59,0.98) 0%, rgba(15,23,42,1) 100%); border-top:1px solid rgba(56,189,248,0.3); border-radius:28px 28px 0 0; width:100%; max-width:500px; padding:26px 22px; box-shadow:0 -10px 45px rgba(0,0,0,0.8); animation:slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); box-sizing:border-box;">
+<div id="checkin-image-picker-modal" onclick="if(event.target===this) window.closeCheckinImagePickerModal()" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100vw; height:100vh; background:rgba(6,11,25,0.75); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:999999; align-items:flex-end; justify-content:center; padding:0; margin:0; box-sizing:border-box;">
+    <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:28px 28px 0 0; width:100%; max-width:500px; padding:26px 22px; box-shadow:0 -10px 45px rgba(10,25,60,0.6); animation:slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); box-sizing:border-box;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h3 style="margin:0; font-size:17px; font-weight:800; color:#f8fafc; display:flex; align-items:center; gap:10px;">
-                <i class="fa-solid fa-camera" style="color:#38bdf8; font-size:18px;"></i> Attach Proof Photo
+            <h3 style="margin:0; font-size:17px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:10px;">
+                <i class="fa-solid fa-camera" style="color:#67e8f9; font-size:18px;"></i> Attach Proof Photo
             </h3>
-            <button type="button" onclick="window.closeCheckinImagePickerModal()" style="background:rgba(255,255,255,0.08); border:none; color:#94a3b8; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+            <button type="button" onclick="window.closeCheckinImagePickerModal()" style="background:rgba(255,255,255,0.15); border:none; color:#ffffff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
                 <i class="fa-solid fa-xmark" style="font-size:15px;"></i>
             </button>
         </div>
         <div style="display:flex; flex-direction:column; gap:12px;">
-            <button type="button" onclick="window.selectCheckinImageSource('camera')" style="width:100%; padding:15px; background:linear-gradient(135deg, rgba(56,189,248,0.18) 0%, rgba(37,99,235,0.22) 100%); border:1px solid rgba(56,189,248,0.35); border-radius:18px; color:#38bdf8; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:transform 0.15s ease, box-shadow 0.15s ease;">
+            <button type="button" onclick="window.selectCheckinImageSource('camera')" style="width:100%; padding:15px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; border-radius:18px; color:#ffffff; font-size:14px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; box-shadow:0 4px 14px rgba(2,132,199,0.35); transition:transform 0.15s ease;">
                 <i class="fa-solid fa-camera" style="font-size:17px;"></i> Take Photo with Camera
             </button>
-            <button type="button" onclick="window.selectCheckinImageSource('gallery')" style="width:100%; padding:15px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:18px; color:#f8fafc; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:transform 0.15s ease, background 0.15s ease;">
-                <i class="fa-solid fa-images" style="font-size:17px; color:#38bdf8;"></i> Choose from Photo Gallery
+            <button type="button" onclick="window.selectCheckinImageSource('gallery')" style="width:100%; padding:15px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; border-radius:18px; color:#ffffff; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:transform 0.15s ease, background 0.15s ease;">
+                <i class="fa-solid fa-images" style="font-size:17px; color:#67e8f9;"></i> Choose from Photo Gallery
             </button>
-            <button type="button" onclick="window.closeCheckinImagePickerModal()" style="width:100%; padding:12px; background:transparent; border:none; color:#94a3b8; font-size:13px; font-weight:600; cursor:pointer; margin-top:4px;">
+            <button type="button" onclick="window.closeCheckinImagePickerModal()" style="width:100%; padding:12px; background:transparent; border:none; color:rgba(255,255,255,0.8); font-size:13px; font-weight:600; cursor:pointer; margin-top:4px;">
                 Cancel
             </button>
         </div>
     </div>
 </div>
 
-<style>
-@keyframes slideDown {
-    from { transform: translateY(-20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-</style>
+
+
 
 <script>
 (function() {
@@ -188,8 +152,9 @@ require_once __DIR__ . '/../components/header.php';
                 "osm": {
                     "type": "raster",
                     "tiles": [
-                        "https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
-                        "https://b.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+                        "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                        "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                        "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     ],
                     "tileSize": 256
                 },
@@ -233,22 +198,341 @@ require_once __DIR__ . '/../components/header.php';
         });
     }
 
+    const VEHICLE_CATALOG = [
+        { key: 'own_car', name: 'Own Car', icon: 'fa-car', color: '#f59e0b', desc: 'Private automobile', speedKmH: 38 },
+        { key: 'mpuj', name: 'Modern Jeepney (MPUJ)', icon: 'fa-van-shuttle', color: '#10b981', desc: 'Aircon modern utility jeepney', speedKmH: 26 },
+        { key: 'tpuj', name: 'Traditional Jeepney (TPUJ)', icon: 'fa-van-shuttle', color: '#f59e0b', desc: 'Traditional open-air jeepney', speedKmH: 24 },
+        { key: 'pub_aircon', name: 'PUB Aircon Bus', icon: 'fa-bus', color: '#38bdf8', desc: 'Aircon provincial commuter bus', speedKmH: 34 },
+        { key: 'pub_ordinary', name: 'PUB Ordinary Bus', icon: 'fa-bus-simple', color: '#06b6d4', desc: 'Regular provincial commuter bus', speedKmH: 30 },
+        { key: 'tricycle', name: 'Tricycle', icon: 'fa-motorcycle', color: '#10b981', desc: 'Local tricycle', speedKmH: 20 },
+        { key: 'taxi', name: 'Taxi', icon: 'fa-taxi', color: '#eab308', desc: 'Metered or chartered taxi', speedKmH: 36 },
+        { key: 'uve', name: 'UV Express / Van', icon: 'fa-van-shuttle', color: '#a855f7', desc: 'UV Express shuttle van', speedKmH: 32 },
+        { key: 'motorcycle', name: 'Motorcycle', icon: 'fa-motorcycle', color: '#f97316', desc: 'Motorcycle', speedKmH: 36 },
+        { key: 'jeepney', name: 'Jeepney', icon: 'fa-van-shuttle', color: '#10b981', desc: 'Public Utility Jeepney', speedKmH: 24, hiddenFromModal: true },
+        { key: 'bus', name: 'Bus', icon: 'fa-bus', color: '#38bdf8', desc: 'Provincial bus', speedKmH: 32, hiddenFromModal: true },
+        { key: 'private_bus', name: 'Aircon Bus', icon: 'fa-bus', color: '#38bdf8', desc: 'Aircon bus', speedKmH: 34, hiddenFromModal: true },
+        { key: 'walking', name: 'Walking', icon: 'fa-person-walking', color: '#22c55e', desc: 'On-foot navigation', speedKmH: 4.5 }
+    ];
+
+    function resolveTripVehicle(trip, tripId) {
+        // Strictly use the vehicle selected when saving the trip
+        let raw = (trip ? trip.transport_mode : null);
+        
+        if (!raw && tripId) {
+            try {
+                const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                if (token) {
+                    const cacheKey = 'saved_trips_' + token.substring(0, 10);
+                    const rawCached = localStorage.getItem(cacheKey);
+                    if (rawCached) {
+                        const parsed = typeof window.safeJsonParse === 'function' ? window.safeJsonParse(rawCached, null) : JSON.parse(rawCached);
+                        if (parsed && Array.isArray(parsed.data)) {
+                            const cachedTrip = parsed.data.find(t => t.id == tripId);
+                            if (cachedTrip && cachedTrip.transport_mode) {
+                                raw = cachedTrip.transport_mode;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+
+        if (!raw) {
+            const urlParams = new URLSearchParams(window.location.search);
+            raw = urlParams.get('transport');
+        }
+
+        if (!raw && trip && trip.items && trip.items.length > 0) {
+            for (let item of trip.items) {
+                if (item.transport_type) { raw = item.transport_type; break; }
+                if (item.destination && item.destination.transport_type) { raw = item.destination.transport_type; break; }
+            }
+        }
+
+        if (!raw || raw.toLowerCase().includes('no_vehicle') || raw.toLowerCase().includes('no vehicle')) {
+            return {
+                key: 'no_vehicle',
+                name: 'No Vehicle Selected',
+                icon: 'fa-ban',
+                color: '#f87171',
+                desc: 'No vehicle selected for this trip',
+                speedKmH: 25
+            };
+        }
+
+        const parts = raw.split(/[,+]|\band\b/i).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+        if (parts.length > 1) {
+            return {
+                key: 'mixed',
+                name: `${parts.length} Vehicles`,
+                icon: 'fa-route',
+                color: '#38bdf8',
+                desc: `${parts.length} vehicles selected`,
+                speedKmH: 30
+            };
+        }
+        const firstRawKey = parts[0] || 'own_car';
+        let found = VEHICLE_CATALOG.find(v => v.key === firstRawKey) ||
+                    VEHICLE_CATALOG.find(v => firstRawKey.includes(v.key)) ||
+                    (firstRawKey.includes('aircon') ? VEHICLE_CATALOG.find(v => v.key === 'pub_aircon') : null) ||
+                    (firstRawKey.includes('ordinary') || firstRawKey.includes('regular') ? VEHICLE_CATALOG.find(v => v.key === 'pub_ordinary') : null) ||
+                    (firstRawKey.includes('mpuj') ? VEHICLE_CATALOG.find(v => v.key === 'mpuj') : null) ||
+                    (firstRawKey.includes('tpuj') ? VEHICLE_CATALOG.find(v => v.key === 'tpuj') : null) ||
+                    (firstRawKey.includes('car') ? VEHICLE_CATALOG[0] : null) ||
+                    (firstRawKey.includes('jeep') ? VEHICLE_CATALOG.find(v => v.key === 'mpuj') : null) ||
+                    (firstRawKey.includes('tri') ? VEHICLE_CATALOG.find(v => v.key === 'tricycle') : null) ||
+                    (firstRawKey.includes('bus') ? VEHICLE_CATALOG.find(v => v.key === 'pub_aircon') : null) ||
+                    (firstRawKey.includes('motor') ? VEHICLE_CATALOG.find(v => v.key === 'motorcycle') : null) ||
+                    VEHICLE_CATALOG[0];
+
+        let displayName = found.name;
+
+        return {
+            key: found.key,
+            name: displayName,
+            icon: found.icon,
+            color: found.color,
+            speedKmH: found.speedKmH
+        };
+    }
+
+    function applyVehicleToUI(vehicle) {
+        if (!vehicle) return;
+        window.currentActiveVehicle = vehicle;
+        const vehicleNameEl = document.getElementById('trip-info-vehicle-name');
+        const vehicleIconEl = document.getElementById('trip-info-vehicle-icon');
+        if (vehicleNameEl) vehicleNameEl.textContent = vehicle.name;
+        if (vehicleIconEl) {
+            vehicleIconEl.className = 'fa-solid ' + vehicle.icon;
+            vehicleIconEl.style.color = vehicle.color || '#f59e0b';
+        }
+    }
+
+    // Immediate frame-0 vehicle initialization so there is zero flicker of "Own Car"
+    (function initImmediateVehicle() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tripId = urlParams.get('trip_id') || sessionStorage.getItem('active_trip_id') || window.currentTripId;
+        if (tripId) {
+            const v = resolveTripVehicle(null, tripId);
+            applyVehicleToUI(v);
+        }
+    })();
+
+    // Stubs for modal removal to avoid errors if triggered anywhere
+    window.openVehicleSelectorModal = function() {};
+    window.closeVehicleSelectorModal = function() {};
+    window.selectTripVehicle = function() {};
+
+    function calcCoordDistMeters(lat1, lon1, lat2, lon2) {
+        if (!lat1 || !lon1 || !lat2 || !lon2) return 999999;
+        const p = 0.017453292519943295;
+        const c = Math.cos;
+        const a = 0.5 - c((lat2 - lat1) * p)/2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p))/2;
+        return 12742000 * Math.asin(Math.sqrt(a));
+    }
+
+    function renderConveyorCards(items, activeIndex) {
+        const conveyorScroll = document.getElementById('conveyor-cards-scroll');
+        if (!conveyorScroll) return;
+
+        // If conveyor is already rendered for this trip and count matches, only update active status
+        const existingCards = conveyorScroll.querySelectorAll('.conveyor-card');
+        if (existingCards.length === items.length && window._conveyorRenderedTripId === window.currentTripId) {
+            items.forEach((item, idx) => {
+                const card = document.getElementById(`conveyor-card-${idx}`);
+                if (!card) return;
+                const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
+                const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
+                const isRejected = (item.proof_status === 'rejected');
+                const isActive = idx === activeIndex;
+                if (isActive) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+                const badgeEl = card.querySelector('.conveyor-status-badge');
+                if (badgeEl) {
+                    if (isVisited) {
+                        badgeEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Visited';
+                        badgeEl.style.background = 'rgba(52, 199, 89, 0.25)';
+                    } else if (isPending) {
+                        badgeEl.innerHTML = '<i class="fa-solid fa-clock"></i> Pending Review';
+                        badgeEl.style.background = 'rgba(245, 158, 11, 0.25)';
+                    } else if (isRejected) {
+                        badgeEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Rejected';
+                        badgeEl.style.background = 'rgba(239, 68, 68, 0.25)';
+                    } else if (isActive) {
+                        badgeEl.innerHTML = `Stop ${idx + 1} of ${items.length} • NEXT`;
+                        badgeEl.style.background = 'rgba(255, 255, 255, 0.25)';
+                    } else {
+                        badgeEl.innerHTML = `Stop ${idx + 1} of ${items.length}`;
+                        badgeEl.style.background = 'rgba(255, 255, 255, 0.15)';
+                    }
+                }
+            });
+            return;
+        }
+
+        window._conveyorRenderedTripId = window.currentTripId;
+        let conveyorHtml = '';
+        items.forEach((item, idx) => {
+            const dest = item.destination;
+            if (!dest) return;
+            const lat = parseFloat(dest.lat || dest.latitude);
+            const lng = parseFloat(dest.lng || dest.longitude);
+            const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
+            const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
+            const isRejected = (item.proof_status === 'rejected');
+            const isActive = idx === activeIndex;
+
+            let badgeHtml = '';
+            if (isVisited) {
+                badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(52,199,89,0.25); border:none !important; outline:none !important; color:#ffffff; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-circle-check"></i> Visited</span>`;
+            } else if (isPending) {
+                badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#ffffff; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-clock"></i> Pending Review</span>`;
+            } else if (isRejected) {
+                badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(239,68,68,0.25); border:none !important; outline:none !important; color:#ffffff; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
+            } else if (isActive) {
+                badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(255,255,255,0.25); border:none !important; outline:none !important; color:#ffffff; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;">Stop ${idx + 1} of ${items.length} • NEXT</span>`;
+            } else {
+                badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:rgba(255,255,255,0.85); padding:4px 12px; border-radius:100px; font-size:10px; font-weight:700; flex-shrink:0;">Stop ${idx + 1} of ${items.length}</span>`;
+            }
+
+            let proofThumbnail = '';
+            if (item.proof_image) {
+                let pUrl = item.proof_image;
+                if (!pUrl.startsWith('http') && !pUrl.startsWith('data:') && !pUrl.startsWith('blob:')) {
+                    let b = (window.backendUrl || '').replace(/\/+$/, '');
+                    pUrl = b + '/' + pUrl.replace(/^\//, '');
+                }
+                let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + item.proof_image.replace(/^\//, '');
+                proofThumbnail = `<img src="${pUrl}" onerror="if(this.src!=='${fallbackUrl}'){this.src='${fallbackUrl}';}" alt="Proof" style="width:34px; height:34px; border-radius:8px; object-fit:cover; border:none !important; box-shadow:none !important; flex-shrink:0;">`;
+            }
+
+            let actionBtnHtml = '';
+            if (isVisited) {
+                const sId = item.tourist_spot_id || (item.destination ? item.destination.id : '');
+                const isReviewed = sId && window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(sId));
+                const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
+                const sMeta = (window.getRewardPointsForClassification) ? window.getRewardPointsForClassification(sClass) : { points: 50 };
+                actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                    ${proofThumbnail}
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <span style="background:rgba(52,199,89,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:10.5px; padding:3px 7px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Visited</span>
+                        <button type="button" data-spot-id="${sId}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${sId}', this)" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; font-size:10px; font-weight:700; padding:3px 8px; border-radius:100px; cursor:pointer; width:fit-content;">
+                            ${isReviewed ? '<i class="fa-solid fa-check" style="margin-right:2px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="margin-right:2px;"></i> Review (+${sMeta.points} PTS)`}
+                        </button>
+                    </div>
+                </div>`;
+            } else if (isRejected) {
+                actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                    ${proofThumbnail}
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <span style="background:rgba(239,68,68,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:10.5px; padding:3px 7px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>
+                        <button onclick="event.stopPropagation(); window.currentCheckinItemId='${item.id}'; window.triggerMapCheckinModal()" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:#ffffff; border:none !important; outline:none !important; padding:4px 8px; border-radius:100px; font-weight:800; font-size:10px; cursor:pointer;"><i class="fa-solid fa-camera" style="margin-right:2px;"></i> Re-upload</button>
+                    </div>
+                </div>`;
+            } else if (isPending) {
+                actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                    ${proofThumbnail}
+                    <span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:10.5px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-clock"></i> Under Review</span>
+                </div>`;
+            } else if (isActive) {
+                actionBtnHtml = `<button onclick="event.stopPropagation(); window.currentCheckinItemId='${item.id}'; window.triggerMapCheckinModal()" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; border:none !important; outline:none !important; padding:8px 14px; border-radius:100px; font-weight:800; font-size:11px; box-shadow:none !important; cursor:pointer;"><i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In (+50 PTS)</button>`;
+            } else {
+                actionBtnHtml = `<span style="color:rgba(255,255,255,0.6); font-size:12px; font-weight:700;"><i class="fa-solid fa-lock"></i> Locked</span>`;
+            }
+
+            const classBadge = dest.classification_status ? `<span style="padding: 3px 8px; border-radius: 100px; font-size: 8px; font-weight: 800; text-transform: uppercase; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; border:none !important; outline:none !important; flex-shrink:0;">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : '';
+
+            let legTransitHtml = '';
+            if (item.transport_mode) {
+                const legParts = String(item.transport_mode).split(/[,+]|\band\b/i).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+                let vIcon = 'fa-van-shuttle';
+                let vName = item.transport_mode;
+                
+                if (legParts.length > 1) {
+                    vIcon = 'fa-route';
+                    vName = `${legParts.length} Vehicles`;
+                } else if (legParts.length === 1) {
+                    const single = legParts[0];
+                    if (single === 'own_car' || single === 'car') { vIcon = 'fa-car'; vName = 'Own Car'; }
+                    else if (single === 'motorcycle') { vIcon = 'fa-motorcycle'; vName = 'Motorcycle'; }
+                    else if (single === 'tricycle' || single === 'trike') { vIcon = 'fa-motorcycle'; vName = 'Tricycle'; }
+                    else if (single === 'mpuj') { vIcon = 'fa-bus-simple'; vName = 'Modern Jeepney'; }
+                    else if (single === 'tpuj') { vIcon = 'fa-van-shuttle'; vName = 'Traditional Jeepney'; }
+                    else if (single === 'pub_aircon' || single.includes('aircon')) { vIcon = 'fa-bus'; vName = 'Aircon Bus'; }
+                    else if (single === 'pub_regular' || single === 'pub_ordinary' || single.includes('ordinary') || single.includes('regular')) { vIcon = 'fa-bus-simple'; vName = 'Ordinary Bus'; }
+                    else if (single === 'uve') { vIcon = 'fa-van-shuttle'; vName = 'UV Express'; }
+                    else if (single === 'van') { vIcon = 'fa-van-shuttle'; vName = 'Van'; }
+                    else if (single === 'taxi') { vIcon = 'fa-taxi'; vName = 'Taxi'; }
+                    else if (single === 'bus' || single === 'private_bus') { vIcon = 'fa-bus'; vName = 'Bus'; }
+                    else if (single === 'walking' || single === 'walk') { vIcon = 'fa-person-walking'; vName = 'Walk / Hike'; }
+                    else {
+                        vName = single.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    }
+                }
+
+                const cNum = parseFloat(item.leg_cost || 0);
+                const cStr = (cNum > 0) ? `&bull; ₱${cNum.toFixed(2)}` : (legParts.length === 1 && ['own_car', 'motorcycle', 'walking'].includes(legParts[0]) ? '&bull; ₱0' : '');
+
+                legTransitHtml = `<div style="display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap;">
+                    <span style="background:rgba(255,255,255,0.18); color:#e0f2fe; padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
+                        <i class="fa-solid ${vIcon}" style="color:#00f2fe; font-size:9px;"></i> ${vName} ${cStr}
+                    </span>
+                    ${(dest && (dest.accessible_by_private_vehicle === 0 || dest.accessible_by_private_vehicle === false || dest.accessible_by_private_vehicle === '0')) ? `<span style="background:rgba(245,158,11,0.22); color:#fef3c7; padding:2px 7px; border-radius:100px; font-size:9px; font-weight:800; display:inline-flex; align-items:center; gap:3px;"><i class="fa-solid fa-triangle-exclamation" style="color:#fbbf24;"></i> Trailhead</span>` : ''}
+                </div>`;
+            }
+
+            conveyorHtml += `
+            <div id="conveyor-card-${idx}" class="conveyor-card ${isActive ? 'active' : ''}" onclick="window.flyToConveyorSpot(${lng}, ${lat}, ${idx})" style="scroll-snap-align: center; flex: 0 0 calc(100vw - 64px); max-width: 320px; min-width: 250px; box-sizing: border-box; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: none !important; outline: none !important; border-radius: 24px; padding: 16px 18px; box-shadow: none !important; overflow: hidden !important; cursor: pointer; transition: transform 0.25s ease;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px;">
+                    ${badgeHtml}
+                    ${classBadge}
+                </div>
+                <h4 style="margin:0 0 4px 0; font-size:16px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${dest.name}">${dest.name}</h4>
+                <p style="margin:0 0 8px 0; font-size:12px; color:rgba(255,255,255,0.85); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-location-dot" style="color:#67e8f9; margin-right:5px;"></i>${dest.municipality || 'La Union'}</p>
+                ${legTransitHtml}
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; min-width:0;">
+                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.75); flex-shrink:0;"><i class="fa-solid fa-compass" style="color:#67e8f9;"></i> Tap to view</span>
+                    <div style="flex-shrink:0; max-width:68%;">${actionBtnHtml}</div>
+                </div>
+            </div>`;
+        });
+
+        conveyorScroll.innerHTML = conveyorHtml;
+        if (typeof window.syncReviewedButtons === 'function') {
+            window.syncReviewedButtons();
+        }
+        setTimeout(() => {
+            const targetCard = document.querySelector('.conveyor-card.active') || document.getElementById('conveyor-card-0');
+            if (targetCard) {
+                targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+        }, 120);
+    }
+
     function loadTripData() {
         const urlParams = new URLSearchParams(window.location.search);
-        const tripId = urlParams.get('trip_id');
+        const tripId = urlParams.get('trip_id') || sessionStorage.getItem('active_trip_id') || window.currentTripId;
+        window.currentTripId = tripId;
         
         if (!tripId) {
             if (typeof showToast === 'function') showToast("No trip ID provided.");
             return;
         }
 
-        const token = localStorage.getItem('intan_elyu_token');
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
         if (!token) return;
 
         if (typeof showToast === 'function') showToast("Loading trip route...");
 
         fetch(backendUrl + '/api/tourist/itineraries', {
-            headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
+            headers: { 
+                'Accept': 'application/json',
+                'ngrok-skip-browser-warning': 'true',
+                'Authorization': 'Bearer ' + token 
+            }
         })
         .then(r => r.json())
         .then(data => {
@@ -257,6 +541,7 @@ require_once __DIR__ . '/../components/header.php';
             if (data.itineraries) {
                 const trip = data.itineraries.find(t => t.id == tripId);
                 if (trip) {
+                    window.currentTrip = trip;
                     const headerTitleEl = document.querySelector('.header-title');
                     if (headerTitleEl) headerTitleEl.textContent = trip.title;
                     const nameEl = document.getElementById('trip-info-name');
@@ -268,24 +553,9 @@ require_once __DIR__ . '/../components/header.php';
                         const routeTypeEl = document.getElementById('trip-info-route-type');
                         if (routeTypeEl) routeTypeEl.textContent = trip.route_type || 'Recommended';
                         
-                        const tMap = {
-                            'own_car': { name: 'Own Car', icon: 'fa-car' },
-                            'taxi': { name: 'Taxi', icon: 'fa-taxi' },
-                            'jeepney': { name: 'Jeepney', icon: 'fa-van-shuttle' },
-                            'private_bus': { name: 'Private Bus', icon: 'fa-bus' },
-                            'mini_bus': { name: 'Mini Bus', icon: 'fa-bus-simple' },
-                            'lutrampco': { name: 'LUTRAMPCO', icon: 'fa-van-shuttle' }
-                        };
-                        const trans = tMap[trip.transport_mode];
-                        const vehicleNameEl = document.getElementById('trip-info-vehicle-name');
-                        const vehicleIconEl = document.getElementById('trip-info-vehicle-icon');
-                        if (trans) {
-                            if (vehicleNameEl) vehicleNameEl.textContent = trans.name;
-                            if (vehicleIconEl) vehicleIconEl.className = 'fa-solid ' + trans.icon;
-                        } else {
-                            if (vehicleNameEl) vehicleNameEl.textContent = 'Own Car';
-                            if (vehicleIconEl) vehicleIconEl.className = 'fa-solid fa-car';
-                        }
+                        // Resolve selected vehicle dynamically from trip / session / storage
+                        const vehicleInfo = resolveTripVehicle(trip, tripId);
+                        applyVehicleToUI(vehicleInfo);
                         
                         const conveyorWrapper = document.getElementById('trip-conveyor-wrapper');
                         if (conveyorWrapper) conveyorWrapper.style.display = 'flex';
@@ -302,61 +572,19 @@ require_once __DIR__ . '/../components/header.php';
     }
 
     function plotTrip(items, routeType = 'Recommended') {
-        // Real-Time Live Navigation Optimization Algorithm
-        if (window.myLat && window.myLng && items.length > 1) {
-            let sorted = [];
-            let currentLat = window.myLat;
-            let currentLng = window.myLng;
-            let remaining = [...items];
-            
-            const calcDist = (lat1, lon1, lat2, lon2) => {
-                const p = 0.017453292519943295;
-                const c = Math.cos;
-                const a = 0.5 - c((lat2 - lat1) * p)/2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p))/2;
-                return 12742 * Math.asin(Math.sqrt(a));
-            };
+        if (!items || items.length === 0) return;
 
-            if (routeType === 'Recommended' || routeType === 'Alternate') {
-                while(remaining.length > 0) {
-                    let targetIdx = 0;
-                    let targetDist = routeType === 'Recommended' ? Infinity : -1;
-                    
-                    for (let i = 0; i < remaining.length; i++) {
-                        let dest = remaining[i].destination;
-                        if (!dest) continue;
-                        let lat = parseFloat(dest.lat || dest.latitude);
-                        let lng = parseFloat(dest.lng || dest.longitude);
-                        let d = calcDist(currentLat, currentLng, lat, lng);
-                        if ((routeType === 'Recommended' && d < targetDist) || (routeType === 'Alternate' && d > targetDist)) {
-                            targetDist = d;
-                            targetIdx = i;
-                        }
-                    }
-                    let nextSpot = remaining.splice(targetIdx, 1)[0];
-                    sorted.push(nextSpot);
-                    currentLat = parseFloat(nextSpot.destination.lat || nextSpot.destination.latitude);
-                    currentLng = parseFloat(nextSpot.destination.lng || nextSpot.destination.longitude);
-                }
-            } else if (routeType === 'Scenic Route') {
-                let avgLat = remaining.reduce((sum, spot) => sum + parseFloat(spot.destination.lat || spot.destination.latitude), 0) / remaining.length;
-                if (window.myLat > avgLat) {
-                    sorted = remaining.sort((a, b) => parseFloat(b.destination.lat || b.destination.latitude) - parseFloat(a.destination.lat || a.destination.latitude));
-                } else {
-                    sorted = remaining.sort((a, b) => parseFloat(a.destination.lat || a.destination.latitude) - parseFloat(b.destination.lat || b.destination.latitude));
-                }
-            }
-            items = sorted;
-        }
-
+        // NOTE: We preserve the saved sequence of items without dynamic distance re-sorting
+        // to prevent erratic stop order flipping ("fluctuating codes") as the user moves!
         const coords = [];
         const markerPoints = [];
         const bounds = new maplibregl.LngLatBounds();
         
-        // Clear old markers before re-drawing real-time sequences
+        // Clear old destination markers before re-drawing
         if (window.tripMarkers) window.tripMarkers.forEach(m => m.remove());
         window.tripMarkers = [];
 
-        const activeIndex = items.findIndex(i => !(i.is_visited || i.proof_status === 'approved' || i.proof_image));
+        const activeIndex = items.findIndex(i => !(i.is_visited || i.proof_status === 'approved'));
 
         items.forEach((item, idx) => {
             const dest = item.destination;
@@ -364,7 +592,7 @@ require_once __DIR__ . '/../components/header.php';
                 const lat = parseFloat(dest.lat || dest.latitude);
                 const lng = parseFloat(dest.lng || dest.longitude);
                 if (!isNaN(lat) && !isNaN(lng)) {
-                    // Route Rendering Optimization: Only draw the route to the active destination!
+                    // Only draw routing segment to the next active destination
                     if (idx === activeIndex || (!window.myLat && !window.myLng)) {
                         coords.push(`${lng},${lat}`);
                     }
@@ -372,29 +600,55 @@ require_once __DIR__ . '/../components/header.php';
                     bounds.extend([lng, lat]);
 
                     let iconHtml = '';
-                    const isVisited = Boolean(item.is_visited || item.proof_status === 'approved' || item.proof_image);
+                    const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
+                    const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
+                    const isRejected = (item.proof_status === 'rejected');
 
                     if (isVisited) {
-                        // VISITED - Green Checkmark + Glassmorphic Tag
+                        // VISITED - Green Checkmark + Royal Blue Tag without outline
                         iconHtml = `
                             <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
                                 <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(16,185,129,0.4); z-index: 2;">
                                     <i class="fa-solid fa-check"></i>
                                 </div>
-                                <div style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); z-index: 1;">
-                                    <span style="color: rgba(226, 232, 240, 0.7); font-size: 11px; font-weight: 600; text-decoration: line-through;">${dest.name}</span>
+                                <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(10,25,60,0.3); z-index: 1;">
+                                    <span style="color: rgba(255, 255, 255, 0.75); font-size: 11px; font-weight: 600; text-decoration: line-through;">${dest.name}</span>
+                                </div>
+                            </div>
+                        `;
+                    } else if (isPending) {
+                        // PENDING REVIEW - Orange Clock
+                        iconHtml = `
+                            <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+                                <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(245,158,11,0.4); z-index: 2;">
+                                    <i class="fa-solid fa-clock"></i>
+                                </div>
+                                <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(10,25,60,0.3); z-index: 1;">
+                                    <span style="color: #fde68a; font-size: 10px; font-weight: 700;">Pending Review</span>
+                                </div>
+                            </div>
+                        `;
+                    } else if (isRejected) {
+                        // REJECTED - Red X
+                        iconHtml = `
+                            <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+                                <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(239,68,68,0.4); z-index: 2;">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </div>
+                                <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(10,25,60,0.3); z-index: 1;">
+                                    <span style="color: #fca5a5; font-size: 10px; font-weight: 700;">Re-upload</span>
                                 </div>
                             </div>
                         `;
                     } else if (idx === activeIndex) {
-                        // ACTIVE - Glowing Blue Number + Next Stop Tag
+                        // ACTIVE - Vibrant Cyan/Blue Pin + Royal Blue Next Stop Tag without outline
                         iconHtml = `
                             <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
-                                <div style="background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); color: #ffffff; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px; border: 2.5px solid #ffffff; box-shadow: 0 0 20px rgba(56, 189, 248, 0.65); z-index: 2;">
+                                <div style="background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color: #ffffff; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px; border: 2.5px solid #ffffff; box-shadow: 0 4px 16px rgba(2, 132, 199, 0.5); z-index: 2;">
                                     ${idx + 1}
                                 </div>
-                                <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.96) 0%, rgba(15, 23, 42, 0.98) 100%); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1.5px solid rgba(56, 189, 248, 0.4); border-radius: 12px; padding: 5px 10px; margin-top: 6px; display: flex; align-items: center; gap: 6px; box-shadow: 0 8px 20px rgba(0,0,0,0.5); z-index: 1;">
-                                    <span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.4px;">Next</span>
+                                <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: none !important; outline: none !important; border-radius: 12px; padding: 5px 10px; margin-top: 6px; display: flex; align-items: center; gap: 6px; box-shadow: 0 8px 20px rgba(10,25,60,0.4); z-index: 1;">
+                                    <span style="background: rgba(255, 255, 255, 0.22); color: #ffffff; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.4px;">Next</span>
                                     <span style="color: #ffffff; font-size: 12px; font-weight: 700; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${dest.name}</span>
                                 </div>
                             </div>
@@ -402,12 +656,12 @@ require_once __DIR__ . '/../components/header.php';
                     } else {
                         // LOCKED - Grey Padlock + Stop Number
                         iconHtml = `
-                            <div style="display: flex; flex-direction: column; align-items: center; opacity: 0.85; cursor: pointer;">
-                                <div style="background: #475569; color: #ffffff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; border: 2px solid rgba(255,255,255,0.4); box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 2;">
+                            <div style="display: flex; flex-direction: column; align-items: center; opacity: 0.88; cursor: pointer;">
+                                <div style="background: #475569; color: #ffffff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; border: 2px solid rgba(255,255,255,0.6); box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 2;">
                                     <i class="fa-solid fa-lock" style="font-size: 10px;"></i>
                                 </div>
-                                <div style="background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 8px; padding: 3px 8px; margin-top: 4px; z-index: 1;">
-                                    <span style="color: rgba(148, 163, 184, 0.9); font-size: 10px; font-weight: 600;">Stop ${idx + 1}</span>
+                                <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.92) 0%, rgba(63, 125, 183, 0.90) 100%); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: none !important; outline: none !important; border-radius: 8px; padding: 3px 8px; margin-top: 4px; z-index: 1;">
+                                    <span style="color: rgba(255, 255, 255, 0.85); font-size: 10px; font-weight: 600;">Stop ${idx + 1}</span>
                                 </div>
                             </div>
                         `;
@@ -428,93 +682,8 @@ require_once __DIR__ . '/../components/header.php';
             }
         });
 
-        // Build Conveyor Cards HTML
-        let conveyorHtml = '';
-        items.forEach((item, idx) => {
-            const dest = item.destination;
-            if (!dest) return;
-            const lat = parseFloat(dest.lat || dest.latitude);
-            const lng = parseFloat(dest.lng || dest.longitude);
-            const isVisited = Boolean(item.is_visited || item.proof_status === 'approved' || item.proof_image);
-            const isActive = idx === activeIndex;
-
-            let badgeHtml = '';
-            if (isVisited) {
-                badgeHtml = `<span style="background:rgba(52,199,89,0.15); border:1px solid rgba(52,199,89,0.4); color:#34c759; padding:3px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-circle-check"></i> Visited</span>`;
-            } else if (isActive) {
-                badgeHtml = `<span style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.4); color:#38bdf8; padding:3px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;">Stop ${idx + 1} of ${items.length} • NEXT</span>`;
-            } else {
-                badgeHtml = `<span style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:rgba(226,232,240,0.7); padding:3px 10px; border-radius:100px; font-size:10px; font-weight:700; flex-shrink:0;">Stop ${idx + 1} of ${items.length}</span>`;
-            }
-
-            let proofThumbnail = '';
-            if (item.proof_image) {
-                let pUrl = item.proof_image;
-                if (!pUrl.startsWith('http') && !pUrl.startsWith('data:') && !pUrl.startsWith('blob:')) {
-                    let b = (window.backendUrl || '').replace(/\/+$/, '');
-                    pUrl = b + '/' + pUrl.replace(/^\//, '');
-                }
-                let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + item.proof_image.replace(/^\//, '');
-                proofThumbnail = `<img src="${pUrl}" onerror="if(this.src!=='${fallbackUrl}'){this.src='${fallbackUrl}';}" alt="Proof" style="width:40px; height:40px; border-radius:8px; object-fit:cover; border:1px solid rgba(52,199,89,0.5); box-shadow:0 2px 8px rgba(0,0,0,0.3); flex-shrink:0;">`;
-            }
-
-            let actionBtnHtml = '';
-            if (isVisited || item.proof_status === 'approved') {
-                actionBtnHtml = `<div style="display:flex; align-items:center; gap:10px;">
-                    ${proofThumbnail}
-                    <div style="display:flex; flex-direction:column; gap:2px;">
-                        <span style="background:rgba(52,199,89,0.15); border:1px solid rgba(52,199,89,0.35); color:#34c759; font-weight:800; font-size:11px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Visited & Verified</span>
-                        <button type="button" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (item.destination ? item.destination.id : '')}')" style="background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px; cursor:pointer; width:fit-content; margin-top:2px;">
-                            <i class="fa-solid fa-pen" style="margin-right:4px;"></i> Review Site
-                        </button>
-                    </div>
-                </div>`;
-            } else if (item.proof_status === 'rejected') {
-                actionBtnHtml = `<div style="display:flex; align-items:center; gap:8px;">
-                    ${proofThumbnail}
-                    <div style="display:flex; flex-direction:column; gap:4px;">
-                        <span style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.35); color:#ef4444; font-weight:800; font-size:11px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>
-                        <button onclick="event.stopPropagation(); window.currentCheckinItemId='${item.id}'; window.triggerMapCheckinModal()" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:#ffffff; border:none; padding:6px 10px; border-radius:100px; font-weight:800; font-size:10px; cursor:pointer;"><i class="fa-solid fa-camera" style="margin-right:4px;"></i> Re-upload Proof</button>
-                    </div>
-                </div>`;
-            } else if (item.proof_image && (item.proof_status === 'pending' || !item.proof_status)) {
-                actionBtnHtml = `<div style="display:flex; align-items:center; gap:8px;">
-                    ${proofThumbnail}
-                    <span style="background:rgba(255,149,0,0.15); border:1px solid rgba(255,149,0,0.35); color:#FF9500; font-weight:800; font-size:11px; padding:4px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-clock"></i> Pending Validation</span>
-                </div>`;
-            } else if (isActive) {
-                actionBtnHtml = `<button onclick="event.stopPropagation(); window.currentCheckinItemId='${item.id}'; window.triggerMapCheckinModal()" style="background:linear-gradient(135deg, #38bdf8, #2563eb); color:#ffffff; border:none; padding:10px 16px; border-radius:100px; font-weight:800; font-size:12px; box-shadow:none; cursor:pointer;"><i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In (+50 XP)</button>`;
-            } else {
-                actionBtnHtml = `<span style="color:rgba(226,232,240,0.5); font-size:12px; font-weight:700;"><i class="fa-solid fa-lock"></i> Locked</span>`;
-            }
-
-            const classBadge = dest.classification_status ? `<span style="padding: 2px 7px; border-radius: 100px; font-size: 8px; font-weight: 800; text-transform: uppercase; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#34c759' : (dest.classification_status === 'EMERGE' ? '#38bdf8' : '#f59e0b')}; flex-shrink:0;">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : '';
-
-            conveyorHtml += `
-            <div id="conveyor-card-${idx}" class="conveyor-card ${isActive ? 'active' : ''}" onclick="window.flyToConveyorSpot(${lng}, ${lat}, ${idx})" style="scroll-snap-align: center; flex: 0 0 calc(100vw - 64px); max-width: 320px; min-width: 250px; box-sizing: border-box; background: rgba(15, 23, 42, 0.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid ${isActive ? 'rgba(56, 189, 248, 0.6)' : 'rgba(255, 255, 255, 0.15)'}; border-radius: 24px; padding: 16px 18px; box-shadow: none; cursor: pointer; transition: transform 0.25s ease, border-color 0.25s ease;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px;">
-                    ${badgeHtml}
-                    ${classBadge}
-                </div>
-                <h4 style="margin:0 0 4px 0; font-size:15px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${dest.name}">${dest.name}</h4>
-                <p style="margin:0 0 12px 0; font-size:12px; color:rgba(226,232,240,0.8); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i>${dest.municipality || 'La Union'}</p>
-                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-                    <span style="font-size:11px; font-weight:700; color:rgba(226,232,240,0.6); flex-shrink:0;"><i class="fa-solid fa-compass" style="color:#38bdf8;"></i> Tap to view</span>
-                    <div style="flex-shrink:0;">${actionBtnHtml}</div>
-                </div>
-            </div>`;
-        });
-
-        const conveyorScroll = document.getElementById('conveyor-cards-scroll');
-        if (conveyorScroll) {
-            conveyorScroll.innerHTML = conveyorHtml;
-            setTimeout(() => {
-                const targetCard = document.querySelector('.conveyor-card.active') || document.getElementById('conveyor-card-0');
-                if (targetCard) {
-                    targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                }
-            }, 100);
-        }
+        // Stable conveyor card rendering without jumpy DOM destruction
+        renderConveyorCards(items, activeIndex);
 
         window.flyToConveyorSpot = function(lng, lat, idx) {
             if (tripMap && !isNaN(lng) && !isNaN(lat)) {
@@ -537,16 +706,18 @@ require_once __DIR__ . '/../components/header.php';
             window.tripGpsMarker = null;
         }
 
-        // Dynamically connect the physical GPS location as the starting point of the route!
+        // Dynamically connect the physical GPS location as the starting point of the route
         if (window.myLat && window.myLng) {
             coords.unshift(`${window.myLng},${window.myLat}`);
             markerPoints.unshift([window.myLng, window.myLat]);
             bounds.extend([window.myLng, window.myLat]);
             
             const gpsEl = document.createElement('div');
+            gpsEl.className = 'user-gps-tracking-marker';
             gpsEl.innerHTML = `
-                <div style="width: 32px; height: 32px; background-color: #FFFFFF; border: 2px solid #ff9500; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ff9500; box-shadow: 0 4px 8px rgba(0,0,0,0.15);">
-                    <i class="fa-solid fa-location-crosshairs" style="font-size:14px;"></i>
+                <div style="position:relative; width:24px; height:24px; display:flex; align-items:center; justify-content:center;">
+                    <div style="position:absolute; width:40px; height:40px; border-radius:50%; background:rgba(56,189,248,0.38); animation:markerPulse 2s infinite ease-out; pointer-events:none;"></div>
+                    <div style="position:relative; background:#0284c7; width:20px; height:20px; border-radius:50%; border:2.5px solid #ffffff; box-shadow:0 2px 8px rgba(2,132,199,0.6); z-index:2;"></div>
                 </div>
             `;
             window.tripGpsMarker = new maplibregl.Marker({ element: gpsEl, anchor: 'center' })
@@ -556,14 +727,22 @@ require_once __DIR__ . '/../components/header.php';
 
         if (markerPoints.length > 0) {
             if (coords.length > 1) {
-                let osrmProfile = 'driving';
-                let routeColor = '#38bdf8';
+                if (activeIndex >= 0 && items[activeIndex] && items[activeIndex].transport_mode) {
+                    const legModeKey = items[activeIndex].transport_mode.toLowerCase().replace(/[- ]/g, '_');
+                    const foundVeh = VEHICLE_CATALOG.find(v => v.key === legModeKey || legModeKey.includes(v.key));
+                    if (foundVeh) {
+                        window.currentActiveVehicle = foundVeh;
+                    }
+                }
+                const activeVehicle = window.currentActiveVehicle || VEHICLE_CATALOG[0];
+                let osrmProfile = activeVehicle.key === 'walking' ? 'walking' : 'driving';
+                let routeColor = '#00f2fe';
+                const isAlternative = (routeType === 'Alternative' || routeType === 'Alternate');
                 
-                if (routeType === 'Alternate') {
-                    osrmProfile = 'walking';
-                    routeColor = '#ffcc00';
+                if (isAlternative) {
+                    routeColor = '#f59e0b';
                 } else if (routeType === 'Scenic Route') {
-                    routeColor = '#ff3b30';
+                    routeColor = '#38bdf8';
                 }
 
                 fetch(`https://router.project-osrm.org/route/v1/${osrmProfile}/${coords.join(';')}?overview=full&geometries=geojson`)
@@ -576,72 +755,59 @@ require_once __DIR__ . '/../components/header.php';
                         const geojson = route.geometry;
                         
                         let distanceKm = route.distance / 1000;
-                        let durationMin = route.duration / 60;
+                        let baseDurationMin = route.duration / 60;
                         
-                        // Simulate heavy traffic load in the province
-                        durationMin *= 5.0;
-                        
-                        // Mathematically adjust walking back to slow car times
-                        if (osrmProfile === 'walking') {
-                            durationMin = distanceKm * 3.5;
-                        }
+                        // Realistic, stable speed calculation based on selected vehicle
+                        const speed = activeVehicle.speedKmH || 35;
+                        let durationMin = Math.max(baseDurationMin * 1.25, (distanceKm / speed) * 60);
                         
                         if (routeType === 'Scenic Route') {
-                            durationMin *= 1.5; distanceKm *= 1.4;
-                        } else if (routeType === 'Alternate') {
-                            durationMin *= 1.2; distanceKm *= 1.15;
+                            durationMin *= 1.3; distanceKm *= 1.25;
+                        } else if (isAlternative) {
+                            durationMin *= 1.15; distanceKm *= 1.1;
                         }
                         
                         window.setTxt('trip-info-distance', distanceKm.toFixed(1) + ' km');
                         window.setTxt('trip-info-time', Math.round(durationMin) + ' mins');
 
-                        // NEW MECHANIC: Real-time Dynamic Google-Maps-Style Floating ETA Box!
+                        // Floating ETA Box on map with royal blue gradient and dynamic vehicle icon
                         if (window.etaMarker) window.etaMarker.remove();
                         if (coords.length > 1) {
-                            // Find the midpoint between the GPS (or start point) and the very first destination
                             const startLngLat = coords[0].split(',').map(Number);
                             const nextLngLat = coords[1].split(',').map(Number);
                             const midLng = (startLngLat[0] + nextLngLat[0]) / 2;
                             const midLat = (startLngLat[1] + nextLngLat[1]) / 2;
                             
-                            // Grab the OSRM duration of the FIRST leg (the drive to the next stop)
                             let leg = route.legs ? route.legs[0] : null;
                             let legDistKm = leg ? (leg.distance / 1000) : distanceKm;
-                            let legDurMin = leg ? (leg.duration / 60) : (durationMin / 5.0); // raw OSRM minutes
+                            let legBaseDurMin = leg ? (leg.duration / 60) : baseDurationMin;
+                            let legDurMin = Math.max(legBaseDurMin * 1.25, (legDistKm / speed) * 60);
                             
-                            // Apply the same heavy traffic load multiplier to the current leg
-                            legDurMin *= 5.0;
+                            if (routeType === 'Scenic Route') { legDurMin *= 1.3; legDistKm *= 1.25; }
+                            else if (isAlternative) { legDurMin *= 1.15; legDistKm *= 1.1; }
                             
-                            if (osrmProfile === 'walking') legDurMin = legDistKm * 3.5;
-                            if (routeType === 'Scenic Route') { legDurMin *= 1.5; legDistKm *= 1.4; }
-                            else if (routeType === 'Alternate') { legDurMin *= 1.2; legDistKm *= 1.15; }
-                            
-                            let iconHtml = '<i class="fa-solid fa-car"></i>';
-                            if (osrmProfile === 'walking') iconHtml = '<i class="fa-solid fa-person-walking"></i>';
-
                             const etaEl = document.createElement('div');
                             etaEl.innerHTML = `
-                                <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.96) 0%, rgba(15, 23, 42, 0.98) 100%); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1.5px solid rgba(56, 189, 248, 0.4); padding: 6px 12px; border-radius: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 16px rgba(56,189,248,0.2); display: flex; align-items: center; gap: 8px; color: #ffffff; white-space: nowrap; pointer-events: none; transform: translateY(-4px);">
-                                    <div style="width: 26px; height: 26px; border-radius: 8px; background: rgba(56, 189, 248, 0.18); border: 1px solid rgba(56, 189, 248, 0.35); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 12px; flex-shrink: 0;">
-                                        ${iconHtml}
+                                <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: none !important; outline: none !important; padding: 7px 13px; border-radius: 16px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.45); display: flex; align-items: center; gap: 8px; color: #ffffff; white-space: nowrap; pointer-events: none; transform: translateY(-4px);">
+                                    <div style="width: 28px; height: 28px; border-radius: 10px; background: rgba(255, 255, 255, 0.2); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 13px; flex-shrink: 0;">
+                                        <i class="fa-solid ${activeVehicle.icon}"></i>
                                     </div>
                                     <div style="display: flex; flex-direction: column; line-height: 1.15;">
                                         <div style="display: flex; align-items: baseline; gap: 3px;">
-                                            <span style="font-size: 13px; font-weight: 800; color: #ffffff;">${Math.round(legDurMin)}</span>
-                                            <span style="font-size: 10px; font-weight: 700; color: #38bdf8;">min</span>
+                                            <span style="font-size: 14px; font-weight: 800; color: #ffffff;">${Math.round(legDurMin)}</span>
+                                            <span style="font-size: 10px; font-weight: 700; color: #67e8f9;">min</span>
                                         </div>
-                                        <span style="font-size: 10px; font-weight: 600; color: rgba(226, 232, 240, 0.75);">${legDistKm < 1 ? Math.round(legDistKm * 1000) + ' m' : legDistKm.toFixed(1) + ' km'}</span>
+                                        <span style="font-size: 10px; font-weight: 600; color: rgba(255, 255, 255, 0.85);">${legDistKm < 1 ? Math.round(legDistKm * 1000) + ' m' : legDistKm.toFixed(1) + ' km'}</span>
                                     </div>
                                 </div>
                             `;
                             
-                            // Place the floating ETA box directly on the map route
                             window.etaMarker = new maplibregl.Marker({ element: etaEl, anchor: 'center' })
                                 .setLngLat([midLng, midLat])
                                 .addTo(tripMap);
                         }
 
-                        // Safely update or add MapLibre sources/layers to prevent "already exists" errors during live navigation
+                        // Safely update or add MapLibre sources/layers
                         if (tripMap.getSource('route')) {
                             tripMap.getSource('route').setData(geojson);
                             tripMap.getSource('route-bg').setData(geojson);
@@ -653,7 +819,7 @@ require_once __DIR__ . '/../components/header.php';
                                 'type': 'line',
                                 'source': 'route',
                                 'layout': { 'line-join': 'round', 'line-cap': 'round' },
-                                'paint': { 'line-color': routeColor, 'line-width': 5, 'line-opacity': 0.8 }
+                                'paint': { 'line-color': routeColor, 'line-width': 5, 'line-opacity': 0.85 }
                             });
                             
                             tripMap.addSource('route-bg', { 'type': 'geojson', 'data': geojson });
@@ -662,10 +828,9 @@ require_once __DIR__ . '/../components/header.php';
                                 'type': 'line',
                                 'source': 'route-bg',
                                 'layout': { 'line-join': 'round', 'line-cap': 'round' },
-                                'paint': { 'line-color': '#1E3A8A', 'line-width': 8, 'line-opacity': 0.5 }
+                                'paint': { 'line-color': '#1e3a8a', 'line-width': 8, 'line-opacity': 0.6 }
                             }, 'route-line');
                         }
-                        
                     }
                 }).catch(e => {
                     console.error("Trip routing error", e);
@@ -702,6 +867,52 @@ require_once __DIR__ . '/../components/header.php';
         if (modal) modal.style.display = 'none';
     };
 
+    window.compressImageFile = async function(fileOrBlob, maxDimension = 1280, quality = 0.8) {
+        return new Promise((resolve) => {
+            if (!fileOrBlob || !fileOrBlob.type || !fileOrBlob.type.startsWith('image/')) {
+                return resolve(fileOrBlob);
+            }
+            const img = new Image();
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxDimension || height > maxDimension) {
+                        if (width > height) {
+                            height = Math.round((height * maxDimension) / width);
+                            width = maxDimension;
+                        } else {
+                            width = Math.round((width * maxDimension) / height);
+                            height = maxDimension;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob((blob) => {
+                        if (!blob) {
+                            resolve(fileOrBlob);
+                            return;
+                        }
+                        const name = (fileOrBlob.name || 'proof_' + Date.now() + '.jpg').replace(/\.[^/.]+$/, "") + ".jpg";
+                        const compressedFile = new File([blob], name, { type: 'image/jpeg', lastModified: Date.now() });
+                        resolve(compressedFile);
+                    }, 'image/jpeg', quality);
+                };
+                img.onerror = () => resolve(fileOrBlob);
+                img.src = e.target.result;
+            };
+            reader.onerror = () => resolve(fileOrBlob);
+            reader.readAsDataURL(fileOrBlob);
+        });
+    };
+
     window.selectCheckinImageSource = async function(mode) {
         window.closeCheckinImagePickerModal();
         const input = document.getElementById('checkin-proof-image');
@@ -718,7 +929,9 @@ require_once __DIR__ . '/../components/header.php';
             try {
                 const cameraPlugin = window.Capacitor.Plugins.Camera;
                 const image = await cameraPlugin.getPhoto({
-                    quality: 85,
+                    quality: 80,
+                    width: 1280,
+                    height: 1280,
                     allowEditing: false,
                     resultType: 'dataUrl',
                     source: mode === 'camera' ? 'CAMERA' : 'PHOTOS'
@@ -727,8 +940,9 @@ require_once __DIR__ . '/../components/header.php';
                 if (image && image.dataUrl) {
                     const res = await fetch(image.dataUrl);
                     const blob = await res.blob();
-                    const file = new File([blob], 'proof_' + Date.now() + '.jpg', { type: blob.type || 'image/jpeg' });
-                    window.selectedCheckinImageFile = file;
+                    const rawFile = new File([blob], 'proof_' + Date.now() + '.jpg', { type: blob.type || 'image/jpeg' });
+                    const compressed = await window.compressImageFile(rawFile, 1280, 0.8);
+                    window.selectedCheckinImageFile = compressed;
                     window.updateCheckinPhotoPreview(image.dataUrl);
                 }
             } catch (err) {
@@ -745,15 +959,25 @@ require_once __DIR__ . '/../components/header.php';
         }
     };
 
-    window.handlePhotoSelected = function(input) {
+    window.handlePhotoSelected = async function(input) {
         if (input.files && input.files[0]) {
-            const file = input.files[0];
-            window.selectedCheckinImageFile = file;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                window.updateCheckinPhotoPreview(e.target.result);
-            };
-            reader.readAsDataURL(file);
+            const rawFile = input.files[0];
+            try {
+                const compressed = await window.compressImageFile(rawFile, 1280, 0.8);
+                window.selectedCheckinImageFile = compressed;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    window.updateCheckinPhotoPreview(e.target.result);
+                };
+                reader.readAsDataURL(compressed);
+            } catch (err) {
+                window.selectedCheckinImageFile = rawFile;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    window.updateCheckinPhotoPreview(e.target.result);
+                };
+                reader.readAsDataURL(rawFile);
+            }
         }
     };
 
@@ -806,7 +1030,7 @@ require_once __DIR__ . '/../components/header.php';
     };
 
     window.verifyGpsCheckIn = async function() {
-        const imageFile = window.selectedCheckinImageFile || (document.getElementById('checkin-proof-image') ? document.getElementById('checkin-proof-image').files[0] : null);
+        let imageFile = window.selectedCheckinImageFile || (document.getElementById('checkin-proof-image') ? document.getElementById('checkin-proof-image').files[0] : null);
         if (!imageFile) {
             if (typeof showToast === 'function') showToast('Please select or capture a photo proof first.');
             return;
@@ -819,7 +1043,15 @@ require_once __DIR__ . '/../components/header.php';
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i> Verifying...';
         btn.disabled = true;
 
-        const token = localStorage.getItem('intan_elyu_token');
+        if (imageFile && (imageFile.size > 1024 * 1024 || !imageFile.type)) {
+            try {
+                imageFile = await window.compressImageFile(imageFile, 1280, 0.8);
+            } catch (e) {
+                console.warn('Check-in pre-compression failed:', e);
+            }
+        }
+
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
         const formData = new FormData();
         formData.append('lat', window.myLat || 16.6159);
         formData.append('lng', window.myLng || 120.3186);
@@ -862,6 +1094,9 @@ require_once __DIR__ . '/../components/header.php';
 
     // Real-time GPS Listener for live navigation mode on Saved Trips
     window._tripGpsTimeout = window._tripGpsTimeout || null;
+    window._lastRouteLat = window._lastRouteLat || null;
+    window._lastRouteLng = window._lastRouteLng || null;
+
     document.addEventListener('gpsUpdated', (e) => {
         window.myLat = e.detail.lat;
         window.myLng = e.detail.lng;
@@ -870,44 +1105,16 @@ require_once __DIR__ . '/../components/header.php';
             window.tripGpsMarker.setLngLat([window.myLng, window.myLat]);
         }
 
-        // VISITED CHECK-IN PROMPT LOGIC
-        if (window.currentTripItems) {
-            const activeItem = window.currentTripItems.find(i => !i.is_visited);
-            if (activeItem && activeItem.destination) {
-                const destLat = parseFloat(activeItem.destination.lat || activeItem.destination.latitude);
-                const destLng = parseFloat(activeItem.destination.lng || activeItem.destination.longitude);
-                
-                if (!isNaN(destLat) && !isNaN(destLng)) {
-                    const p = 0.017453292519943295;
-                    const c = Math.cos;
-                    const a = 0.5 - c((destLat - window.myLat) * p)/2 + c(window.myLat * p) * c(destLat * p) * (1 - c((destLng - window.myLng) * p))/2;
-                    const distKm = 12742 * Math.asin(Math.sqrt(a));
-                    
-                    // If within 300 meters (0.3 km)
-                    if (distKm <= 0.3) {
-                        window.currentCheckinItemId = activeItem.id;
-                        const promptCard = document.getElementById('checkin-prompt-card');
-                        const destNameEl = document.getElementById('checkin-prompt-dest-name');
-                        if (promptCard && destNameEl) {
-                            destNameEl.textContent = activeItem.destination.name;
-                            promptCard.style.display = 'flex';
-                        }
-                    } else {
-                        const promptCard = document.getElementById('checkin-prompt-card');
-                        if (promptCard) promptCard.style.display = 'none';
-                    }
-                }
-            } else {
-                const promptCard = document.getElementById('checkin-prompt-card');
-                if (promptCard) promptCard.style.display = 'none';
-            }
+        // Stabilize: Only recalculate route if user moved at least 30 meters
+        const distMoved = calcCoordDistMeters(window._lastRouteLat, window._lastRouteLng, window.myLat, window.myLng);
+        if (distMoved >= 30) {
+            clearTimeout(_tripGpsTimeout);
+            _tripGpsTimeout = setTimeout(() => {
+                window._lastRouteLat = window.myLat;
+                window._lastRouteLng = window.myLng;
+                if (window.currentTripItems) plotTrip(window.currentTripItems, window.currentRouteType);
+            }, 1500);
         }
-        
-        // Debounce route recalculation to prevent OSRM spam while moving
-        clearTimeout(_tripGpsTimeout);
-        _tripGpsTimeout = setTimeout(() => {
-            if (window.currentTripItems) plotTrip(window.currentTripItems, window.currentRouteType);
-        }, 2000);
     });
 
     window.locateTripUser = async function() {

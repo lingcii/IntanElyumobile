@@ -15,6 +15,11 @@ class TouristSpot extends Model
         'barangay',
         'category',
         'entrance_fee',
+        'adult_fee',
+        'kids_fee',
+        'pwd_fee',
+        'senior_citizen_fee',
+        'entrance_fee_types',
         'environmental_fee',
         'fee_types',
         'route_guide',
@@ -26,23 +31,32 @@ class TouristSpot extends Model
         'longitude',
         'opening_time',
         'closing_time',
+        'is_open_24_hours',
         'is_maintenance',
         'status',
         'classification_status',
         'visits',
         'rating',
+        'maximum_capacity',
     ];
 
     protected $casts = [
         'entrance_fee'                  => 'float',
+        'adult_fee'                     => 'float',
+        'kids_fee'                      => 'float',
+        'pwd_fee'                       => 'float',
+        'senior_citizen_fee'            => 'float',
+        'entrance_fee_types'            => 'array',
         'environmental_fee'             => 'float',
         'fee_types'                     => 'array',
         'accessible_by_private_vehicle' => 'boolean',
         'latitude'                      => 'float',
         'longitude'                     => 'float',
+        'is_open_24_hours'              => 'boolean',
         'is_maintenance'                => 'boolean',
         'visits'                        => 'integer',
         'rating'                        => 'float',
+        'maximum_capacity'              => 'integer',
     ];
 
     public static array $VALID_CATEGORIES = [
@@ -115,4 +129,43 @@ class TouristSpot extends Model
     {
         return $this->hasMany(SiteFeedback::class, 'tourist_spot_id');
     }
+
+    /**
+     * Scope query to only include active/approved spots visible to tourists.
+     * Strictly excludes 'pending', 'rejected', and 'draft' spots.
+     */
+    public function scopeActiveForTourists($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereIn('status', ['approved', 'active', 'published', 'EXIST', 'exist'])
+              ->orWhereNull('status');
+        })->where(function ($q) {
+            $q->whereNotIn('status', ['pending', 'rejected', 'draft'])
+              ->orWhereNull('status');
+        });
+    }
+
+    public static function clearSpotCaches(): void
+    {
+        \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+        \Illuminate\Support\Facades\Cache::forget('map:public:spots:v8');
+        \Illuminate\Support\Facades\Cache::forget('map:public:spots:v4');
+        \Illuminate\Support\Facades\Cache::forget('map:public:municipalities');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:5');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:10');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:20');
+        \Illuminate\Support\Facades\Cache::forget('trending:top:50');
+    }
+
+    protected static function booted()
+    {
+        static::saved(function () {
+            self::clearSpotCaches();
+        });
+
+        static::deleted(function () {
+            self::clearSpotCaches();
+        });
+    }
 }
+

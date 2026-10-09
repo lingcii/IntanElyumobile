@@ -6,87 +6,7 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
 
 <?php include __DIR__ . '/../components/header.php'; ?>
 
-<style>
-    body { background: #000 !important; overflow: hidden; }
-    
-    #camera-container {
-        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-        z-index: 1; background: #000;
-    }
-    #camera-view {
-        width: 100%; height: 100%; object-fit: cover;
-    }
 
-    /* UI Overlay */
-    .ar-overlay {
-        position: fixed; inset: 0; z-index: 10;
-        pointer-events: none; display: flex; flex-direction: column;
-        justify-content: space-between; padding: 20px;
-    }
-    
-    .ar-header {
-        pointer-events: all; margin-top: env(safe-area-inset-top, 40px);
-        display: flex; justify-content: space-between; align-items: flex-start;
-    }
-    
-    .btn-close-ar {
-        width: 44px; height: 44px; border-radius: 50%;
-        background: rgba(0,0,0,0.5); backdrop-filter: blur(8px);
-        display: flex; align-items: center; justify-content: center;
-        color: #fff; border: 1px solid rgba(255,255,255,0.2);
-        cursor: pointer;
-    }
-
-    .status-pill {
-        background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
-        padding: 8px 16px; border-radius: 20px;
-        color: #fff; font-size: 12px; font-weight: 700;
-        border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 8px;
-    }
-
-    /* Target Reticle */
-    .ar-reticle {
-        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        width: 250px; height: 250px; border: 2px dashed rgba(255,255,255,0.4);
-        border-radius: 20px; z-index: 5; transition: all 0.3s;
-    }
-    .ar-reticle.active { border-color: #34d399; background: rgba(52,211,153,0.1); }
-
-    /* Action Area */
-    .ar-footer { pointer-events: all; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
-    
-    .btn-scan {
-        width: 70px; height: 70px; border-radius: 50%; margin: 0 auto;
-        background: rgba(255,255,255,0.2); border: 4px solid #fff;
-        display: flex; align-items: center; justify-content: center;
-        cursor: pointer; backdrop-filter: blur(4px); transition: all 0.2s;
-    }
-    .btn-scan:active { transform: scale(0.9); background: rgba(255,255,255,0.4); }
-
-    /* Trivia Modal */
-    .trivia-card {
-        background: rgba(15,23,42,0.9); backdrop-filter: blur(12px);
-        border: 1px solid rgba(56,189,248,0.3); border-radius: 24px;
-        padding: 24px; text-align: center; color: #fff;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-    }
-    .trivia-options { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-    .trivia-btn {
-        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-        padding: 14px; border-radius: 14px; color: #fff; font-size: 14px;
-        font-weight: 600; cursor: pointer; transition: all 0.2s;
-    }
-    .trivia-btn:hover { background: rgba(255,255,255,0.1); }
-    .trivia-btn.correct { background: rgba(52,211,153,0.2); border-color: #34d399; color: #34d399; }
-    .trivia-btn.wrong { background: rgba(239,68,68,0.2); border-color: #ef4444; color: #ef4444; }
-
-    /* Success Screen */
-    .success-screen {
-        text-align: center; color: #fff; padding: 30px 20px;
-        background: radial-gradient(circle, rgba(52,211,153,0.2) 0%, transparent 70%);
-    }
-
-</style>
 
 <div id="camera-container">
     <video id="camera-view" autoplay playsinline></video>
@@ -131,7 +51,7 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
         <div id="result-state" style="display:none;">
             <div id="result-icon" style="font-size:48px; margin-bottom:16px;">🎉</div>
             <h3 id="result-title" style="margin:0 0 8px;font-size:20px;font-weight:800;">Correct!</h3>
-            <div id="result-xp" style="font-size:24px; font-weight:900; color:#fbbf24; margin-bottom:12px;">+150 XP</div>
+            <div id="result-points" style="font-size:24px; font-weight:900; color:#fbbf24; margin-bottom:12px;">+150 Points</div>
             <p id="result-message" style="font-size:13px;color:rgba(255,255,255,0.7);margin:0 0 20px;"></p>
             
             <button onclick="history.back()" style="width:100%;padding:14px;border-radius:14px;background:linear-gradient(135deg,#6366f1,#38bdf8);border:none;color:#fff;font-weight:800;font-size:14px;cursor:pointer;">
@@ -210,10 +130,10 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
             }
             
             if (data.status === 'success' || data.success) {
-                alert(data.message || '🎉 GPS Check-in Verified! XP awarded!');
+                alert(data.message || '🎉 GPS Check-in Verified! Points awarded!');
                 history.back();
             } else {
-                alert(data.message || '🎉 GPS Check-in Verified! XP awarded!');
+                alert(data.message || '🎉 GPS Check-in Verified! Points awarded!');
                 history.back();
             }
         } catch(e) {
@@ -230,7 +150,7 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
             });
             localStorage.setItem('offline_checkin_queue', JSON.stringify(queue));
             
-            alert('📡 Low Signal / Offline Area Detected:\n\nYour GPS check-in was saved locally! XP will sync automatically as soon as internet connection is restored.');
+            alert('📡 Low Signal / Offline Area Detected:\n\nYour GPS check-in was saved locally! Points will sync automatically as soon as internet connection is restored.');
             history.back();
         }
     };
@@ -289,7 +209,9 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
                 document.getElementById('result-title').style.color = '#ef4444';
             }
             
-            document.getElementById('result-xp').textContent = `+${data.xp_earned} XP`;
+            const ptsEarned = data.points_earned || data.xp_earned || 50;
+            const resPtsEl = document.getElementById('result-points') || document.getElementById('result-xp');
+            if (resPtsEl) resPtsEl.textContent = `+${ptsEarned} Points`;
             document.getElementById('result-message').innerHTML = 
                 (data.fun_fact ? `<strong>Did you know?</strong> ${data.fun_fact}` : data.message);
                 

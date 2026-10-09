@@ -126,6 +126,12 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/puzzles/spots', [PuzzleController::cl
 Route::get('/vouchers', [\App\Http\Controllers\VoucherController::class, 'index']);
 Route::get('/public/vouchers', [\App\Http\Controllers\VoucherController::class, 'index']);
 
+// Partner Merchants & Hubs (Public)
+Route::get('/partner-merchants', [\App\Http\Controllers\PartnerMerchantController::class, 'index']);
+Route::get('/public/partner-merchants', [\App\Http\Controllers\PartnerMerchantController::class, 'index']);
+Route::get('/public/partner-merchants/{id}', [\App\Http\Controllers\PartnerMerchantController::class, 'show']);
+Route::get('/public/redemptions/{code}/status', [\App\Http\Controllers\VoucherController::class, 'checkRedemptionStatus']);
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  Auth (public)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -300,6 +306,13 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
             'municipality_id' => 'nullable|integer',
             'category' => 'nullable|string',
             'entrance_fee' => 'nullable|numeric',
+            'adult_fee' => 'nullable|numeric',
+            'kids_fee' => 'nullable|numeric',
+            'pwd_fee' => 'nullable|numeric',
+            'senior_citizen_fee' => 'nullable|numeric',
+            'entrance_fee_types' => 'nullable',
+            'environmental_fee' => 'nullable|numeric',
+            'fee_types' => 'nullable',
             'description' => 'nullable|string',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
@@ -350,6 +363,13 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
             'municipality_id' => 'required|integer',
             'category' => 'required|string',
             'entrance_fee' => 'nullable|numeric',
+            'adult_fee' => 'nullable|numeric',
+            'kids_fee' => 'nullable|numeric',
+            'pwd_fee' => 'nullable|numeric',
+            'senior_citizen_fee' => 'nullable|numeric',
+            'entrance_fee_types' => 'nullable',
+            'environmental_fee' => 'nullable|numeric',
+            'fee_types' => 'nullable',
             'description' => 'nullable|string',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
@@ -393,8 +413,7 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
             }
         }
 
-        \Illuminate\Support\Facades\Cache::forget('map:public:spots');
-        \Illuminate\Support\Facades\Cache::forget('trending:top:5');
+        \App\Models\TouristSpot::clearSpotCaches();
 
         return response()->json([
             'success' => true,
@@ -467,9 +486,13 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
             'reviewed_at' => now(),
         ]);
 
+        $item->loadMissing('destination');
+        $rewardPoints = \App\Models\Classification::getPointsForStatus($item->destination?->classification_status);
+        $canonical = \App\Models\Classification::normalizeStatus($item->destination?->classification_status);
+
         return response()->json([
             'success' => true,
-            'message' => 'Proof check-in approved successfully! XP & Points awarded to tourist.',
+            'message' => "Proof check-in approved successfully! +{$rewardPoints} Points ({$canonical}) awarded to tourist.",
             'item' => $item,
         ]);
     });
@@ -496,7 +519,7 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
             \App\Models\Notification::createSafely(
                 $tourist->id,
                 'checkin_rejected',
-                'Photo Check-in Not Approved ❌',
+                'Photo Check-in Not Approved',
                 "Your photo proof check-in at " . ($spot->name ?? 'destination') . " was not approved. Reason: {$reason}"
             );
         }
@@ -530,7 +553,7 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
             $totalUsers = \App\Models\User::count();
             $totalVisits = (int) $spots->sum('visits');
             $ratedSpots = $spots->where('rating', '>', 0);
-            $avgRating = $ratedSpots->count() > 0 ? round((float) $ratedSpots->avg('rating'), 1) : 5.0;
+            $avgRating = $ratedSpots->count() > 0 ? round((float) $ratedSpots->avg('rating'), 1) : 0.0;
 
             $pendingApprovals = 0;
             try {
@@ -580,6 +603,13 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
                 'municipality_id' => 'required|integer',
                 'category' => 'required|string',
                 'entrance_fee' => 'nullable|numeric',
+                'adult_fee' => 'nullable|numeric',
+                'kids_fee' => 'nullable|numeric',
+                'pwd_fee' => 'nullable|numeric',
+                'senior_citizen_fee' => 'nullable|numeric',
+                'entrance_fee_types' => 'nullable',
+                'environmental_fee' => 'nullable|numeric',
+                'fee_types' => 'nullable',
                 'description' => 'nullable|string',
                 'latitude' => 'required|numeric',
                 'longitude' => 'required|numeric',
@@ -604,8 +634,7 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
             }
 
             $spot = \App\Models\TouristSpot::create($data);
-            \Illuminate\Support\Facades\Cache::forget('map:public:spots');
-            \Illuminate\Support\Facades\Cache::forget('trending:top:5');
+            \App\Models\TouristSpot::clearSpotCaches();
 
             return response()->json([
                 'success' => true,
@@ -744,49 +773,55 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
         Route::get('/leaderboard', [LeaderboardController::class, 'index']);
 
         Route::get('/archive/stats', function () {
+            $fareCount = \App\Models\FareGuide::count();
+            $userCount = \App\Models\User::count();
+            $spotCount = \App\Models\TouristSpot::count();
             return response()->json([
                 'success' => true,
                 'stats' => [
-                    'fares' => 0,
-                    'users' => 0,
-                    'spots' => 0,
-                    'total' => 0
+                    'fares' => $fareCount,
+                    'users' => $userCount,
+                    'spots' => $spotCount,
+                    'total' => $fareCount + $userCount + $spotCount
                 ]
             ]);
         });
 
         Route::get('/archive/fares', function () {
+            $archived = \App\Models\FareGuide::where('is_archived', true)->orWhere('status', 'archived')->with('matrices')->get();
             return response()->json([
                 'success' => true,
-                'fares' => [],
-                'data' => []
+                'fares' => $archived,
+                'data' => $archived
             ]);
         });
 
         Route::get('/archive', function () {
+            $fareCount = \App\Models\FareGuide::count();
+            $userCount = \App\Models\User::count();
+            $spotCount = \App\Models\TouristSpot::count();
             return response()->json([
                 'success' => true,
                 'archive' => [],
                 'fares' => [],
-                'stats' => ['fares' => 0, 'users' => 0, 'spots' => 0, 'total' => 0]
+                'stats' => ['fares' => $fareCount, 'users' => $userCount, 'spots' => $spotCount, 'total' => $fareCount + $userCount + $spotCount]
             ]);
         });
 
         Route::any('/archive/{any}', function () {
+            $fareCount = \App\Models\FareGuide::count();
+            $userCount = \App\Models\User::count();
+            $spotCount = \App\Models\TouristSpot::count();
             return response()->json([
                 'success' => true,
                 'archive' => [],
                 'fares' => [],
-                'stats' => ['fares' => 0, 'users' => 0, 'spots' => 0, 'total' => 0]
+                'stats' => ['fares' => $fareCount, 'users' => $userCount, 'spots' => $spotCount, 'total' => $fareCount + $userCount + $spotCount]
             ]);
         })->where('any', '.*');
 
-        Route::get('/fare-data', function () {
-            return response()->json([
-                'success' => true,
-                'fare_data' => []
-            ]);
-        });
+        Route::get('/fare-data', [MapController::class, 'publicFares']);
+        Route::get('/fares', [MapController::class, 'publicFares']);
 
         Route::get('/activity-logs', function (\Illuminate\Http\Request $request) {
             $dbLogs = \App\Models\ActivityLog::with('user:id,name,email,avatar')->latest()->limit(100)->get();
@@ -896,21 +931,26 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
 
         Route::post('/dashboard/approve-spot', function (\Illuminate\Http\Request $request) {
             $spot = \App\Models\TouristSpot::find($request->input('id'));
-            if ($spot)
+            if ($spot) {
                 $spot->update(['status' => 'approved']);
+            }
+            \App\Models\TouristSpot::clearSpotCaches();
             return response()->json(['success' => true]);
         });
 
         Route::post('/dashboard/reject-spot', function (\Illuminate\Http\Request $request) {
             $spot = \App\Models\TouristSpot::find($request->input('id'));
-            if ($spot)
+            if ($spot) {
                 $spot->update(['status' => 'rejected']);
+            }
+            \App\Models\TouristSpot::clearSpotCaches();
             return response()->json(['success' => true]);
         });
 
         Route::post('/dashboard/batch-approve-spots', function (\Illuminate\Http\Request $request) {
             $ids = $request->input('ids', []);
             \App\Models\TouristSpot::whereIn('id', $ids)->update(['status' => 'approved']);
+            \App\Models\TouristSpot::clearSpotCaches();
             return response()->json(['success' => true]);
         });
 
@@ -968,9 +1008,13 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
                 'reviewed_at' => now(),
             ]);
 
+            $item->loadMissing('destination');
+            $rewardPoints = \App\Models\Classification::getPointsForStatus($item->destination?->classification_status);
+            $canonical = \App\Models\Classification::normalizeStatus($item->destination?->classification_status);
+
             return response()->json([
                 'success' => true,
-                'message' => 'Proof check-in approved successfully! XP & Points awarded to tourist.',
+                'message' => "Proof check-in approved successfully! +{$rewardPoints} Points ({$canonical}) awarded to tourist.",
                 'item' => $item,
             ]);
         });
@@ -993,7 +1037,7 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
                 \App\Models\Notification::createSafely(
                     $tourist->id,
                     'checkin_rejected',
-                    'Photo Check-in Not Approved ❌',
+                    'Photo Check-in Not Approved',
                     "Your photo proof check-in at " . ($spot->name ?? 'destination') . " was not approved. Reason: {$reason}"
                 );
             }
@@ -1020,9 +1064,14 @@ Route::prefix('public')->group(function () {
     Route::get('/municipalities', [MapController::class, 'publicMunicipalities']);
     Route::get('/leaderboard', [LeaderboardController::class, 'index']);
     Route::get('/feedback', [FeedbackController::class, 'index']);
+    Route::get('/feedback/user-reviewed-spots', [FeedbackController::class, 'userReviewedSpots']);
     Route::get('/vouchers', [\App\Http\Controllers\VoucherController::class, 'index']);
     Route::get('/weather', [WeatherController::class, 'getWeather']);
+    Route::get('/amenities', [MapController::class, 'publicAmenities']);
 });
+Route::get('/amenities', [MapController::class, 'publicAmenities']);
+Route::get('/fares', [MapController::class, 'publicFares']);
+Route::get('/fare-data', [MapController::class, 'publicFares']);
 Route::get('/vehicles', [VehicleController::class, 'index']);
 Route::get('/vouchers', [\App\Http\Controllers\VoucherController::class, 'index']);
 Route::get('/weather', [WeatherController::class, 'getWeather']);
@@ -1034,6 +1083,7 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     Route::get('/dashboard', [TouristDashboardController::class, 'index']);
     Route::get('/profile', [TouristProfileController::class, 'show']);
     Route::post('/profile', [TouristProfileController::class, 'update']);
+    Route::post('/change-password', [TouristProfileController::class, 'changePassword']);
     Route::post('/2fa/toggle', [TouristProfileController::class, 'toggle2FA']);
     Route::post('/2fa/verify', [TouristProfileController::class, 'verify2FA']);
     Route::get('/leaderboard', [LeaderboardController::class, 'index']);
@@ -1041,12 +1091,22 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     Route::post('/destinations/{id}/favorite', [FavoriteController::class, 'toggle']);
     Route::post('/destinations/{id}/rate', function (Illuminate\Http\Request $request, int $id) {
         $request->validate(['rating' => 'required|integer|min:1|max:5']);
-        $spot = TouristSpot::findOrFail($id);
+        $spot = TouristSpot::activeForTourists()->find($id);
+        if (!$spot) {
+            return response()->json(['message' => 'This tourist spot is not available for rating.'], 404);
+        }
         $user = $request->user();
+
+        $alreadyReviewed = false;
+        if ($user) {
+            $alreadyReviewed = \App\Models\SiteFeedback::where('user_id', $user->id)
+                ->where('tourist_spot_id', $id)
+                ->exists();
+        }
 
         // Create or update feedback rating for this user & spot
         \App\Models\SiteFeedback::updateOrCreate(
-            ['user_id' => $user->id, 'tourist_spot_id' => $id],
+            ['user_id' => $user ? $user->id : null, 'tourist_spot_id' => $id],
             ['rating' => $request->rating]
         );
 
@@ -1064,20 +1124,38 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
         \Illuminate\Support\Facades\Cache::forget('trending:top:10');
         \Illuminate\Support\Facades\Cache::forget('trending:top:50');
 
-        // Award gamification points (+25 XP, +25 points)
-        try {
-            $user->increment('xp', 25);
-            \App\Models\UserPoint::awardPointsSafely(
-                $user->id,
-                25,
-                'rating',
-                "Rated {$spot->name} {$request->rating} stars"
-            );
-        } catch (\Throwable $e) {
+        // Award gamification points based on spot classification ONLY IF FIRST TIME
+        $rewardPoints = \App\Models\Classification::getPointsForStatus($spot->classification_status);
+        $canonical = \App\Models\Classification::normalizeStatus($spot->classification_status);
+
+        $rewardAwarded = false;
+        if ($user && !$alreadyReviewed) {
+            try {
+                $user->increment('xp', $rewardPoints);
+                $user->increment('completed_activities');
+                \App\Models\UserPoint::awardPointsSafely(
+                    $user->id,
+                    $rewardPoints,
+                    'rating',
+                    "Rated {$spot->name} {$request->rating} stars ({$canonical})",
+                    $spot->id
+                );
+                $newXp = (int) ($user->fresh()->xp ?? 0);
+                $newLevel = (int) floor($newXp / 1000) + 1;
+                if ($user->level !== $newLevel) {
+                    $user->update(['level' => $newLevel]);
+                }
+                $rewardAwarded = true;
+            } catch (\Throwable $e) {
+            }
         }
 
         return response()->json([
-            'message' => 'Rating submitted successfully!',
+            'message' => $rewardAwarded ? "Rating submitted successfully! (+{$rewardPoints} Points earned — {$canonical})" : 'Rating updated successfully!',
+            'reward_awarded' => $rewardAwarded,
+            'earned_xp' => $rewardAwarded ? $rewardPoints : 0,
+            'earned_points' => $rewardAwarded ? $rewardPoints : 0,
+            'classification' => $canonical,
             'spot_rating' => $spot->rating
         ]);
     });
@@ -1096,34 +1174,47 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
+    Route::delete('/notifications', [NotificationController::class, 'clearAll']);
+    Route::post('/notifications/clear-all', [NotificationController::class, 'clearAll']);
 
     // Site Testimonies & Policy Recommendations
+    Route::get('/feedback/user-reviewed-spots', [FeedbackController::class, 'userReviewedSpots']);
     Route::get('/feedback', [FeedbackController::class, 'index']);
     Route::post('/feedback', [FeedbackController::class, 'store']);
 
     // AR and Instant GPS Check-in
     Route::post('/points/ar-checkin', function (\Illuminate\Http\Request $request) {
         $spotId = $request->input('spot_id');
-        $spot = TouristSpot::find($spotId);
+        $spot = TouristSpot::activeForTourists()->find($spotId);
         if (!$spot) {
-            return response()->json(['status' => 'error', 'message' => 'Tourist destination not found.'], 404);
+            return response()->json(['status' => 'error', 'message' => 'Tourist destination not found or not active.'], 404);
         }
 
         // Increment spot visits count in database
         $spot->increment('visits');
 
+        $rewardPoints = \App\Models\Classification::getPointsForStatus($spot->classification_status);
+        $canonical = \App\Models\Classification::normalizeStatus($spot->classification_status);
+
         $user = $request->user();
         if ($user) {
             try {
-                $user->increment('xp', 50);
+                $user->increment('xp', $rewardPoints);
                 $user->increment('completed_activities');
                 \App\Models\UserPoint::awardPointsSafely(
                     $user->id,
-                    50,
+                    $rewardPoints,
                     'ar_checkin',
-                    "AR/GPS Check-in at {$spot->name}",
+                    "AR/GPS Check-in at {$spot->name} ({$canonical})",
                     $spot->id
                 );
+
+                $newXp = (int) ($user->fresh()->xp ?? 0);
+                $newLevel = (int) floor($newXp / 1000) + 1;
+                if ($user->level !== $newLevel) {
+                    $user->update(['level' => $newLevel]);
+                }
             } catch (\Throwable $e) {
             }
         }
@@ -1136,30 +1227,43 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
         return response()->json([
             'status' => 'success',
             'success' => true,
-            'message' => "🎉 Check-in Verified at {$spot->name}! Earned +50 XP & +50 Points!",
+            'message' => "🎉 Check-in Verified at {$spot->name}! Earned +{$rewardPoints} Points ({$canonical})!",
             'visits' => (int) $spot->fresh()->visits,
-            'xp_earned' => 50,
-            'points_earned' => 50,
+            'xp_earned' => $rewardPoints,
+            'points_earned' => $rewardPoints,
+            'classification' => $canonical,
         ]);
     });
 
     // Direct Destination Check-in
     Route::post('/destinations/{id}/check-in', function (\Illuminate\Http\Request $request, int $id) {
-        $spot = TouristSpot::findOrFail($id);
+        $spot = TouristSpot::activeForTourists()->find($id);
+        if (!$spot) {
+            return response()->json(['status' => 'error', 'message' => 'Tourist destination not found or not active.'], 404);
+        }
         $spot->increment('visits');
+
+        $rewardPoints = \App\Models\Classification::getPointsForStatus($spot->classification_status);
+        $canonical = \App\Models\Classification::normalizeStatus($spot->classification_status);
 
         $user = $request->user();
         if ($user) {
             try {
-                $user->increment('xp', 50);
+                $user->increment('xp', $rewardPoints);
                 $user->increment('completed_activities');
                 \App\Models\UserPoint::awardPointsSafely(
                     $user->id,
-                    50,
+                    $rewardPoints,
                     'check_in',
-                    "Direct Check-in at {$spot->name}",
+                    "Direct Check-in at {$spot->name} ({$canonical})",
                     $spot->id
                 );
+
+                $newXp = (int) ($user->fresh()->xp ?? 0);
+                $newLevel = (int) floor($newXp / 1000) + 1;
+                if ($user->level !== $newLevel) {
+                    $user->update(['level' => $newLevel]);
+                }
             } catch (\Throwable $e) {
             }
         }
@@ -1171,10 +1275,11 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
         return response()->json([
             'status' => 'success',
             'success' => true,
-            'message' => "🎉 Check-in completed at {$spot->name}! Earned +50 XP & +50 Points!",
+            'message' => "🎉 Check-in completed at {$spot->name}! Earned +{$rewardPoints} Points ({$canonical})!",
             'visits' => (int) $spot->fresh()->visits,
-            'xp_earned' => 50,
-            'points_earned' => 50,
+            'xp_earned' => $rewardPoints,
+            'points_earned' => $rewardPoints,
+            'classification' => $canonical,
         ]);
     });
 
@@ -1188,6 +1293,7 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     Route::post('/points/minigame', [PointsController::class, 'awardMiniGamePoints']);
     Route::post('/points/redeem', [PointsController::class, 'redeem']);
     Route::post('/points/redeem-voucher', [\App\Http\Controllers\VoucherController::class, 'redeemVoucher']);
+    Route::get('/redemptions/{code}/status', [\App\Http\Controllers\VoucherController::class, 'checkRedemptionStatus']);
 
     // Puzzle Tourist Spot Images from Database
     Route::match(['GET', 'POST', 'OPTIONS'], '/puzzles/spots', [PuzzleController::class, 'spots']);
@@ -1213,18 +1319,61 @@ Route::prefix('analytics')->group(function () {
 
 // Top-level Public Check-in and Rating aliases
 Route::post('/public/destinations/{id}/check-in', function (\Illuminate\Http\Request $request, int $id) {
-    $spot = TouristSpot::findOrFail($id);
+    $spot = TouristSpot::activeForTourists()->find($id);
+    if (!$spot) {
+        return response()->json(['status' => 'error', 'message' => 'Tourist destination not found or not active.'], 404);
+    }
     $spot->increment('visits');
     \Illuminate\Support\Facades\Cache::forget('map:public:spots');
     \Illuminate\Support\Facades\Cache::forget('trending:top:5');
-    return response()->json(['status' => 'success', 'success' => true, 'visits' => (int) $spot->fresh()->visits]);
+
+    $rewardPoints = \App\Models\Classification::getPointsForStatus($spot->classification_status);
+    $canonical = \App\Models\Classification::normalizeStatus($spot->classification_status);
+
+    $user = $request->user();
+    if ($user) {
+        try {
+            $user->increment('xp', $rewardPoints);
+            $user->increment('completed_activities');
+            \App\Models\UserPoint::awardPointsSafely($user->id, $rewardPoints, 'check_in', "Check-in at {$spot->name} ({$canonical})", $spot->id);
+        } catch (\Throwable $e) {}
+    }
+
+    return response()->json([
+        'status' => 'success',
+        'success' => true,
+        'visits' => (int) $spot->fresh()->visits,
+        'xp_earned' => $rewardPoints,
+        'points_earned' => $rewardPoints,
+        'classification' => $canonical,
+    ]);
 });
 Route::post('/destinations/{id}/check-in', function (\Illuminate\Http\Request $request, int $id) {
     $spot = TouristSpot::findOrFail($id);
     $spot->increment('visits');
     \Illuminate\Support\Facades\Cache::forget('map:public:spots');
     \Illuminate\Support\Facades\Cache::forget('trending:top:5');
-    return response()->json(['status' => 'success', 'success' => true, 'visits' => (int) $spot->fresh()->visits]);
+
+    $rewardPoints = \App\Models\Classification::getPointsForStatus($spot->classification_status);
+    $canonical = \App\Models\Classification::normalizeStatus($spot->classification_status);
+
+    $user = $request->user();
+    if ($user) {
+        try {
+            $user->increment('xp', $rewardPoints);
+            $user->increment('completed_activities');
+            \App\Models\UserPoint::awardPointsSafely($user->id, $rewardPoints, 'check_in', "Check-in at {$spot->name} ({$canonical})", $spot->id);
+        } catch (\Throwable $e) {}
+    }
+
+    return response()->json([
+        'status' => 'success',
+        'success' => true,
+        'visits' => (int) $spot->fresh()->visits,
+        'xp_earned' => $rewardPoints,
+        'points_earned' => $rewardPoints,
+        'classification' => $canonical,
+    ]);
 });
 Route::post('/points/ar-checkin', function (\Illuminate\Http\Request $request) {
     $spotId = $request->input('spot_id');
@@ -1234,7 +1383,27 @@ Route::post('/points/ar-checkin', function (\Illuminate\Http\Request $request) {
     $spot->increment('visits');
     \Illuminate\Support\Facades\Cache::forget('map:public:spots');
     \Illuminate\Support\Facades\Cache::forget('trending:top:5');
-    return response()->json(['status' => 'success', 'success' => true, 'visits' => (int) $spot->fresh()->visits]);
+
+    $rewardPoints = \App\Models\Classification::getPointsForStatus($spot->classification_status);
+    $canonical = \App\Models\Classification::normalizeStatus($spot->classification_status);
+
+    $user = $request->user();
+    if ($user) {
+        try {
+            $user->increment('xp', $rewardPoints);
+            $user->increment('completed_activities');
+            \App\Models\UserPoint::awardPointsSafely($user->id, $rewardPoints, 'ar_checkin', "AR Check-in at {$spot->name} ({$canonical})", $spot->id);
+        } catch (\Throwable $e) {}
+    }
+
+    return response()->json([
+        'status' => 'success',
+        'success' => true,
+        'visits' => (int) $spot->fresh()->visits,
+        'xp_earned' => $rewardPoints,
+        'points_earned' => $rewardPoints,
+        'classification' => $canonical,
+    ]);
 });
 Route::post('/feedback', [FeedbackController::class, 'store']);
 Route::post('/destinations/{id}/rate', function (\Illuminate\Http\Request $request, int $id) {

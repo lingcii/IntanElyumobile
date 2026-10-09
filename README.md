@@ -6,7 +6,7 @@ Welcome to the **Intan-Elyu Tourism Management System**! This platform is design
 
 ## 🏗️ System Architecture
 
-The project is structured into three main components:
+The project is structured into two main components:
 
 ### 1. 📱 Mobile App (Frontend)
 Located in `frontend/Mobile/src/`
@@ -18,11 +18,7 @@ Located in `frontend/Mobile/src/`
   - 🛍️ **Merch Store**: Browse and redeem tourism merchandise.
   - 🏆 **Leaderboards**: Compete with other tourists based on XP earned from visiting spots.
 
-### 2. 🍎 iOS Native Wrapper (Frontend)
-Located in `frontend/iOS/`
-- **Purpose**: Native iOS container wrapping the mobile web interface with native capabilities.
-
-### 3. ⚙️ Backend API
+### 2. ⚙️ Backend API
 Located in `backend/`
 - **Purpose**: The core engine powering the mobile application, built with **Laravel**.
 - **Key Features**:
