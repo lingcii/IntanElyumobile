@@ -43,9 +43,9 @@ $backRoute = 'profile';
     <!-- Sliced Floating Droplists: Left = Category Deals | Right = Municipalities -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; position: relative; z-index: 95;">
         <!-- Left: Category Deals Floating Drop List -->
-        <div id="floating-cat-wrapper" style="position: relative;">
+        <div id="floating-cat-wrapper" style="position: relative; z-index: 1;">
             <!-- Floating Trigger Card -->
-            <div id="floating-cat-trigger" onclick="toggleFloatingCategoryDropdown()" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 16px; padding: 11px 12px; box-shadow: 0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div id="floating-cat-trigger" onclick="event.stopPropagation(); toggleFloatingCategoryDropdown()" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 16px; padding: 11px 12px; box-shadow: 0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
                 <div style="display: flex; align-items: center; min-width: 0; flex: 1;">
                     <span id="floating-cat-selected-label" style="font-size: 12.5px; font-weight: 800; color: #1e3a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">All Deals</span>
                 </div>
@@ -77,9 +77,9 @@ $backRoute = 'profile';
         </div>
 
         <!-- Right: Municipalities Floating Drop List -->
-        <div id="floating-muni-wrapper" style="position: relative;">
+        <div id="floating-muni-wrapper" style="position: relative; z-index: 1;">
             <!-- Floating Trigger Card -->
-            <div id="floating-muni-trigger" onclick="toggleFloatingMunicipalityDropdown()" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 16px; padding: 11px 12px; box-shadow: 0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div id="floating-muni-trigger" onclick="event.stopPropagation(); toggleFloatingMunicipalityDropdown()" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 16px; padding: 11px 12px; box-shadow: 0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
                 <div style="display: flex; align-items: center; min-width: 0; flex: 1;">
                     <span id="floating-muni-selected-label" style="font-size: 12.5px; font-weight: 800; color: #1e3a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">All Towns</span>
                 </div>
@@ -243,6 +243,15 @@ $backRoute = 'profile';
 const VOUCHERS_CACHE_KEY = 'intan_elyu_cached_vouchers';
 const VOUCHERS_CACHE_TTL = 900000; // 15 mins
 
+let activeCategory = 'All';
+let activeMunicipality = 'All';
+let searchQuery = '';
+let vouchersData = [];
+let currentVoucherId = null;
+let userPointsBalance = 0;
+let isCatDropdownOpen = false;
+let isMuniDropdownOpen = false;
+
 // ── Instant Synchronous Profile Hydration (0ms, Zero Latency) ──
 function hydrateDiscountUser() {
     try {
@@ -308,13 +317,6 @@ function getVoucherImageUrl(v) {
 
     return `${r2Base}/logo/LUPTO.png`;
 }
-
-let activeCategory = 'All';
-let activeMunicipality = 'All';
-let searchQuery = '';
-let vouchersData = [];
-let currentVoucherId = null;
-let userPointsBalance = 0;
 
 function getExpiryInfo(dateStr, isExpiredExplicit, isUpcomingExplicit, validFromStr, validFromFormatted, isNoExpiration, expirationType) {
     if (isExpiredExplicit === true) {
@@ -1406,9 +1408,9 @@ function populateCategoryDropdown() {
         floatingList.innerHTML = categoriesList.map(c => {
             const isSelected = currentVal.toLowerCase() === c.value.toLowerCase();
             return `
-                <div onclick="selectFloatingCategory('${c.value.replace(/'/g, "\\'")}')" role="button" tabindex="0" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 12px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1); ${isSelected ? 'background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; font-weight: 800; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);' : 'background: transparent; color: #1e293b; font-weight: 700;'}" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
-                    <span style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 6px;">${c.label}</span>
-                    <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                <div onclick="event.stopPropagation(); selectFloatingCategory('${c.value.replace(/'/g, "\\'")}')" role="button" tabindex="0" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 12px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1); ${isSelected ? 'background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; font-weight: 800; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);' : 'background: transparent; color: #1e293b; font-weight: 700;'}" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <span style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 6px; pointer-events: none;">${c.label}</span>
+                    <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; pointer-events: none;">
                         <span style="font-size: 10.5px; font-weight: 800; padding: 2px 7px; border-radius: 100px; ${isSelected ? 'background: rgba(255, 255, 255, 0.22); color: #ffffff;' : 'background: #f1f5f9; color: #475569;'}">${c.count}</span>
                         ${isSelected ? '<span style="font-size: 13px; font-weight: 900; line-height: 1;">✓</span>' : ''}
                     </div>
@@ -1486,9 +1488,9 @@ function populateMunicipalityDropdown() {
     floatingMuniList.innerHTML = muniList.map(m => {
         const isSelected = currentMuni.toLowerCase() === m.value.toLowerCase();
         return `
-            <div onclick="selectFloatingMunicipality('${m.value.replace(/'/g, "\\'")}')" role="button" tabindex="0" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 12px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1); ${isSelected ? 'background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; font-weight: 800; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);' : 'background: transparent; color: #1e293b; font-weight: 700;'}" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
-                <span style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 6px;">${m.label}</span>
-                <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+            <div onclick="event.stopPropagation(); selectFloatingMunicipality('${m.value.replace(/'/g, "\\'")}')" role="button" tabindex="0" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 12px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1); ${isSelected ? 'background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; font-weight: 800; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);' : 'background: transparent; color: #1e293b; font-weight: 700;'}" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                <span style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 6px; pointer-events: none;">${m.label}</span>
+                <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; pointer-events: none;">
                     <span style="font-size: 10.5px; font-weight: 800; padding: 2px 7px; border-radius: 100px; ${isSelected ? 'background: rgba(255, 255, 255, 0.22); color: #ffffff;' : 'background: #f1f5f9; color: #475569;'}">${m.count}</span>
                     ${isSelected ? '<span style="font-size: 13px; font-weight: 900; line-height: 1;">✓</span>' : ''}
                 </div>
@@ -1504,28 +1506,70 @@ function populateMunicipalityDropdown() {
     if (triggerBadge && activeItem) triggerBadge.textContent = activeItem.count;
 }
 
+function closeFloatingCategory() {
+    isCatDropdownOpen = false;
+    const menu = document.getElementById('floating-cat-menu');
+    const chevron = document.getElementById('floating-cat-chevron');
+    const trigger = document.getElementById('floating-cat-trigger');
+    const wrapper = document.getElementById('floating-cat-wrapper');
+    if (!menu) return;
+
+    menu.style.opacity = '0';
+    menu.style.transform = 'translateY(-8px) scale(0.98)';
+    menu.style.pointerEvents = 'none';
+    if (chevron) chevron.style.transform = 'rotate(0deg)';
+    if (trigger) {
+        trigger.style.borderColor = '#cbd5e1';
+        trigger.style.boxShadow = '0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05)';
+    }
+    if (wrapper) wrapper.style.zIndex = '1';
+    setTimeout(() => {
+        if (!isCatDropdownOpen) {
+            menu.style.display = 'none';
+        }
+    }, 150);
+}
+
+function closeFloatingMunicipality() {
+    isMuniDropdownOpen = false;
+    const menu = document.getElementById('floating-muni-menu');
+    const chevron = document.getElementById('floating-muni-chevron');
+    const trigger = document.getElementById('floating-muni-trigger');
+    const wrapper = document.getElementById('floating-muni-wrapper');
+    if (!menu) return;
+
+    menu.style.opacity = '0';
+    menu.style.transform = 'translateY(-8px) scale(0.98)';
+    menu.style.pointerEvents = 'none';
+    if (chevron) chevron.style.transform = 'rotate(0deg)';
+    if (trigger) {
+        trigger.style.borderColor = '#cbd5e1';
+        trigger.style.boxShadow = '0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05)';
+    }
+    if (wrapper) wrapper.style.zIndex = '1';
+    setTimeout(() => {
+        if (!isMuniDropdownOpen) {
+            menu.style.display = 'none';
+        }
+    }, 150);
+}
+
 function toggleFloatingCategoryDropdown(forceClose = false) {
     const menu = document.getElementById('floating-cat-menu');
     const chevron = document.getElementById('floating-cat-chevron');
     const trigger = document.getElementById('floating-cat-trigger');
+    const wrapper = document.getElementById('floating-cat-wrapper');
     if (!menu) return;
 
-    const isCurrentlyOpen = (menu.style.display === 'block') && !forceClose;
-    if (isCurrentlyOpen) {
-        menu.style.opacity = '0';
-        menu.style.transform = 'translateY(-8px) scale(0.98)';
-        if (chevron) chevron.style.transform = 'rotate(0deg)';
-        if (trigger) {
-            trigger.style.borderColor = '#cbd5e1';
-            trigger.style.boxShadow = '0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05)';
-        }
-        setTimeout(() => {
-            menu.style.display = 'none';
-        }, 180);
+    if (forceClose === true || isCatDropdownOpen) {
+        closeFloatingCategory();
     } else {
-        toggleFloatingMunicipalityDropdown(true);
+        closeFloatingMunicipality();
 
+        isCatDropdownOpen = true;
+        if (wrapper) wrapper.style.zIndex = '1001';
         menu.style.display = 'block';
+        menu.style.pointerEvents = 'auto';
         if (chevron) chevron.style.transform = 'rotate(180deg)';
         if (trigger) {
             trigger.style.borderColor = '#2563eb';
@@ -1539,7 +1583,7 @@ function toggleFloatingCategoryDropdown(forceClose = false) {
 }
 
 function selectFloatingCategory(catValue) {
-    toggleFloatingCategoryDropdown(true);
+    closeFloatingCategory();
     filterDiscounts(catValue);
 }
 
@@ -1547,24 +1591,18 @@ function toggleFloatingMunicipalityDropdown(forceClose = false) {
     const menu = document.getElementById('floating-muni-menu');
     const chevron = document.getElementById('floating-muni-chevron');
     const trigger = document.getElementById('floating-muni-trigger');
+    const wrapper = document.getElementById('floating-muni-wrapper');
     if (!menu) return;
 
-    const isCurrentlyOpen = (menu.style.display === 'block') && !forceClose;
-    if (isCurrentlyOpen) {
-        menu.style.opacity = '0';
-        menu.style.transform = 'translateY(-8px) scale(0.98)';
-        if (chevron) chevron.style.transform = 'rotate(0deg)';
-        if (trigger) {
-            trigger.style.borderColor = '#cbd5e1';
-            trigger.style.boxShadow = '0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05)';
-        }
-        setTimeout(() => {
-            menu.style.display = 'none';
-        }, 180);
+    if (forceClose === true || isMuniDropdownOpen) {
+        closeFloatingMunicipality();
     } else {
-        toggleFloatingCategoryDropdown(true);
+        closeFloatingCategory();
 
+        isMuniDropdownOpen = true;
+        if (wrapper) wrapper.style.zIndex = '1001';
         menu.style.display = 'block';
+        menu.style.pointerEvents = 'auto';
         if (chevron) chevron.style.transform = 'rotate(180deg)';
         if (trigger) {
             trigger.style.borderColor = '#2563eb';
@@ -1578,21 +1616,37 @@ function toggleFloatingMunicipalityDropdown(forceClose = false) {
 }
 
 function selectFloatingMunicipality(muniValue) {
-    toggleFloatingMunicipalityDropdown(true);
+    closeFloatingMunicipality();
     filterMunicipality(muniValue);
 }
 
 // Click outside listener to dismiss floating dropdowns
 document.addEventListener('click', function(e) {
     const catWrapper = document.getElementById('floating-cat-wrapper');
-    if (catWrapper && !catWrapper.contains(e.target)) {
-        toggleFloatingCategoryDropdown(true);
+    if (isCatDropdownOpen && catWrapper && !catWrapper.contains(e.target)) {
+        closeFloatingCategory();
     }
     const muniWrapper = document.getElementById('floating-muni-wrapper');
-    if (muniWrapper && !muniWrapper.contains(e.target)) {
-        toggleFloatingMunicipalityDropdown(true);
+    if (isMuniDropdownOpen && muniWrapper && !muniWrapper.contains(e.target)) {
+        closeFloatingMunicipality();
     }
 });
+
+// Bind explicit click event listeners to trigger elements
+const catTriggerEl = document.getElementById('floating-cat-trigger');
+if (catTriggerEl) {
+    catTriggerEl.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleFloatingCategoryDropdown();
+    });
+}
+const muniTriggerEl = document.getElementById('floating-muni-trigger');
+if (muniTriggerEl) {
+    muniTriggerEl.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleFloatingMunicipalityDropdown();
+    });
+}
 
 // Expose global functions
 window.filterDiscounts = filterDiscounts;
@@ -1608,8 +1662,14 @@ window.toggleFloatingCategoryDropdown = toggleFloatingCategoryDropdown;
 window.selectFloatingCategory = selectFloatingCategory;
 window.toggleFloatingMunicipalityDropdown = toggleFloatingMunicipalityDropdown;
 window.selectFloatingMunicipality = selectFloatingMunicipality;
+window.closeFloatingCategory = closeFloatingCategory;
+window.closeFloatingMunicipality = closeFloatingMunicipality;
 window.populateCategoryDropdown = populateCategoryDropdown;
 window.populateMunicipalityDropdown = populateMunicipalityDropdown;
+
+// Synchronously populate default dropdown items right away
+populateCategoryDropdown();
+populateMunicipalityDropdown();
 
 fetchLiveDatabaseVouchers();
 fetchUserPointsAndRedemptions();
