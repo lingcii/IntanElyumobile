@@ -1,7 +1,7 @@
 <!-- Top App Header Component -->
 <div class="mobile-header">
     <?php if (isset($backRoute) && $backRoute): ?>
-        <div class="header-icon" onclick="navigateTo('<?php echo htmlspecialchars($backRoute); ?>')" title="Back">
+        <div class="header-icon" onclick="typeof window.navigateBack === 'function' ? window.navigateBack('<?php echo htmlspecialchars($backRoute); ?>') : navigateTo('<?php echo htmlspecialchars($backRoute); ?>')" title="Back">
             <i class="fa-solid fa-arrow-left"></i>
         </div>
     <?php else: ?>

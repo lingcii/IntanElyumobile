@@ -500,15 +500,20 @@ function renderDiscounts() {
     const claimed = getClaimedVouchers();
     let filtered = [...vouchersData];
 
-    // 1. Category Filter
+    // 1. Category Filter & Claimed Exclusion
     if (activeCategory === 'Claimed') {
         filtered = filtered.filter(v => claimed.includes(v.id));
-    } else if (activeCategory === 'Upcoming') {
-        filtered = filtered.filter(v => (v.is_upcoming || (v.status && v.status.toLowerCase() === 'upcoming')) && !v.is_expired);
-    } else if (activeCategory === 'Mabanag Hall') {
-        filtered = filtered.filter(v => v.is_mabanag || (v.partner && v.partner.toLowerCase().includes('mabanag')) || (v.location && v.location.toLowerCase().includes('mabanag')));
-    } else if (activeCategory !== 'All') {
-        filtered = filtered.filter(v => v.category === activeCategory);
+    } else {
+        // Claimed vouchers are excluded from All Deals and category browsing, showing in My Vouchers
+        filtered = filtered.filter(v => !claimed.includes(v.id));
+
+        if (activeCategory === 'Upcoming') {
+            filtered = filtered.filter(v => (v.is_upcoming || (v.status && v.status.toLowerCase() === 'upcoming')) && !v.is_expired);
+        } else if (activeCategory === 'Mabanag Hall') {
+            filtered = filtered.filter(v => v.is_mabanag || (v.partner && v.partner.toLowerCase().includes('mabanag')) || (v.location && v.location.toLowerCase().includes('mabanag')));
+        } else if (activeCategory !== 'All') {
+            filtered = filtered.filter(v => v.category === activeCategory);
+        }
     }
 
     // 2. Municipality Filter
@@ -531,18 +536,16 @@ function renderDiscounts() {
     }
 
     // 4. Sort order for browsing:
-    // Available unredeemed vouchers first, then upcoming, then already claimed, then out-of-stock/expired
+    // Available unredeemed vouchers first, then upcoming, then out-of-stock/expired
     if (activeCategory !== 'Claimed') {
         filtered.sort((a, b) => {
-            const aClaimed = claimed.includes(a.id) ? 1 : 0;
-            const bClaimed = claimed.includes(b.id) ? 1 : 0;
             const aExpired = (a.is_expired || a.status === 'expired') ? 2 : (a.is_out_of_stock ? 1 : 0);
             const bExpired = (b.is_expired || b.status === 'expired') ? 2 : (b.is_out_of_stock ? 1 : 0);
             const aUpcoming = (a.is_upcoming || a.status === 'upcoming') ? 1 : 0;
             const bUpcoming = (b.is_upcoming || b.status === 'upcoming') ? 1 : 0;
 
-            const aPriority = aExpired > 0 ? (10 + aExpired) : (aClaimed ? 5 : (aUpcoming ? 2 : 0));
-            const bPriority = bExpired > 0 ? (10 + bExpired) : (bClaimed ? 5 : (bUpcoming ? 2 : 0));
+            const aPriority = aExpired > 0 ? (10 + aExpired) : (aUpcoming ? 2 : 0);
+            const bPriority = bExpired > 0 ? (10 + bExpired) : (bUpcoming ? 2 : 0);
 
             return aPriority - bPriority;
         });
@@ -554,8 +557,10 @@ function renderDiscounts() {
             msg = 'No discounts or vouchers are currently available. Check back soon for exciting deals!';
         } else if (activeCategory === 'Claimed') {
             msg = 'You have not claimed any vouchers yet. Redeem your Points to store vouchers here!';
+        } else if (activeCategory === 'All' && claimed.length > 0) {
+            msg = '🎉 You have claimed all available deals! Tap "My Vouchers" above to view your claimed discounts and QR codes.';
         } else if (activeCategory === 'Mabanag Hall') {
-            msg = 'No vouchers found for Mabanag Hall right now. Check "My Vouchers" if already claimed!';
+            msg = 'No unredeemed vouchers for Mabanag Hall right now. Check "My Vouchers" if already claimed!';
         } else if (activeCategory === 'Upcoming') {
             msg = 'No upcoming promotions scheduled right now. Check back soon for new discounts!';
         } else if (searchQuery) {
@@ -845,22 +850,23 @@ function openVoucherModal(id) {
                 redeemBtn.disabled = true;
                 redeemBtn.style.opacity = '0.6';
                 redeemBtn.style.cursor = 'not-allowed';
-                if (redeemLabel) redeemLabel.innerHTML = '<i class="fa-solid fa-lock"></i> Voucher Expired';
+                redeemBtn.innerHTML = '<i class="fa-solid fa-lock" style="color: #1e3a8a !important;"></i> <span id="modal-redeem-btn-label">Voucher Expired</span>';
             } else if (isOutOfStock) {
                 redeemBtn.disabled = true;
                 redeemBtn.style.opacity = '0.6';
                 redeemBtn.style.cursor = 'not-allowed';
-                if (redeemLabel) redeemLabel.innerHTML = '<i class="fa-solid fa-ban"></i> Fully Claimed';
+                redeemBtn.innerHTML = '<i class="fa-solid fa-ban" style="color: #1e3a8a !important;"></i> <span id="modal-redeem-btn-label">Fully Claimed</span>';
             } else if (isUpcoming) {
                 redeemBtn.disabled = true;
                 redeemBtn.style.opacity = '0.7';
                 redeemBtn.style.cursor = 'not-allowed';
-                if (redeemLabel) redeemLabel.innerHTML = `<i class="fa-regular fa-clock"></i> Starts on ${item.valid_from_formatted || 'Soon'}`;
+                redeemBtn.innerHTML = `<i class="fa-regular fa-clock" style="color: #1e3a8a !important;"></i> <span id="modal-redeem-btn-label">Starts on ${item.valid_from_formatted || 'Soon'}</span>`;
             } else {
                 redeemBtn.disabled = false;
                 redeemBtn.style.opacity = '1';
                 redeemBtn.style.cursor = 'pointer';
-                if (redeemLabel) redeemLabel.textContent = `Redeem for ${item.pointsCost || item.required_points || 100} Points`;
+                const cost = item.pointsCost || item.required_points || 100;
+                redeemBtn.innerHTML = `<i class="fa-solid fa-gift" style="color: #1e3a8a !important;"></i> <span id="modal-redeem-btn-label">Redeem for ${cost} Points</span>`;
             }
         }
     }
@@ -875,6 +881,12 @@ function openVoucherModal(id) {
 
 function closeVoucherModal() {
     stopLiveRedemptionSync();
+    const btn = document.getElementById('modal-redeem-btn');
+    if (btn) {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.innerHTML = '<i class="fa-solid fa-gift" style="color: #1e3a8a !important;"></i> <span id="modal-redeem-btn-label">Redeem Points</span>';
+    }
     const modal = document.getElementById('voucher-modal');
     if (modal) {
         modal.classList.remove('active');
@@ -1072,7 +1084,11 @@ async function handleModalRedeem() {
                     qrImg.style.display = 'block';
                 }
             }
-            if (btn) btn.style.display = 'none';
+            if (btn) {
+                btn.innerHTML = `<i class="fa-solid fa-gift"></i> <span id="modal-redeem-btn-label">Redeem for ${cost} Points</span>`;
+                btn.disabled = false;
+                btn.style.display = 'none';
+            }
             const footerBanner = document.getElementById('modal-footer-banner');
             if (footerBanner) footerBanner.style.display = 'none';
 

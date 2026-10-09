@@ -16,10 +16,11 @@
     <!-- Top Blue Section -->
     <div class="auth-top">
         <div class="logo-container">
-            <img id="auth-logo-img" src="assets/img/logo.png" alt="Intan Elyu Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%; display: block;">
+            <img id="auth-logo-img" src="assets/img/logo.png" alt="Intan Elyu Logo"
+                style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%; display: block;">
         </div>
         <h1 id="auth-title" style="color: #ffffff; font-weight: 800;">Welcome to Elyu</h1>
-        
+
         <!-- Animated Seamless SVG Wave -->
         <div class="wave-bottom">
             <svg viewBox="0 0 2000 100" preserveAspectRatio="none">
@@ -39,13 +40,19 @@
                         <stop offset="100%" stop-color="#74a3cf" stop-opacity="1" />
                     </linearGradient>
                 </defs>
-                <path class="wave-layer wave-1" fill="url(#authWaveGrad1)" d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 C1150,100 1350,0 1500,50 C1650,100 1850,0 2000,50 L2000,160 L0,160 Z"></path>
-                <path class="wave-layer wave-2" fill="url(#authWaveGrad2)" d="M0,60 C200,110 300,10 500,60 C700,110 800,10 1000,60 C1200,110 1300,10 1500,60 C1700,110 1800,10 2000,60 L2000,160 L0,160 Z"></path>
-                <path class="wave-layer wave-3" fill="#74a3cf" d="M0,70 C250,120 250,20 500,70 C750,120 750,20 1000,70 C1250,120 1250,20 1500,70 C1750,120 1750,20 2000,70 L2000,160 L0,160 Z"></path>
+                <path class="wave-layer wave-1" fill="url(#authWaveGrad1)"
+                    d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 C1150,100 1350,0 1500,50 C1650,100 1850,0 2000,50 L2000,160 L0,160 Z">
+                </path>
+                <path class="wave-layer wave-2" fill="url(#authWaveGrad2)"
+                    d="M0,60 C200,110 300,10 500,60 C700,110 800,10 1000,60 C1200,110 1300,10 1500,60 C1700,110 1800,10 2000,60 L2000,160 L0,160 Z">
+                </path>
+                <path class="wave-layer wave-3" fill="#74a3cf"
+                    d="M0,70 C250,120 250,20 500,70 C750,120 750,20 1000,70 C1250,120 1250,20 1500,70 C1750,120 1750,20 2000,70 L2000,160 L0,160 Z">
+                </path>
             </svg>
         </div>
     </div>
-    
+
     <!-- Bottom White Section -->
     <div class="auth-bottom">
         <div class="auth-tabs" id="auth-tabs">
@@ -53,9 +60,9 @@
             <div class="auth-tab" id="tab-register" onclick="toggleAuthMode(true)">Register</div>
             <div class="tab-gooey-glider" id="tab-gooey-glider"></div>
         </div>
-        
+
         <div class="forms-wrapper" id="forms-wrapper">
-            
+
             <!-- Panel 1: Login -->
             <div class="form-panel login-form">
                 <form id="form-login" onsubmit="handleLogin(event)">
@@ -66,7 +73,8 @@
                     <div class="input-group">
                         <i class="fa-solid fa-lock"></i>
                         <input type="password" id="login-password" class="auth-input" placeholder="Password" required>
-                        <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('login-password', this)"></i>
+                        <i class="fa-regular fa-eye password-toggle"
+                            onclick="togglePasswordVisibility('login-password', this)"></i>
                     </div>
                     <div class="auth-options-row">
                         <label class="remember-me-label" for="login-remember">
@@ -75,7 +83,7 @@
                         </label>
                         <a href="#" class="forgot-pwd" onclick="showForgotPassword(event)">Forgot Password?</a>
                     </div>
-                    
+
                     <button type="submit" id="btn-login" class="btn-circle-submit">
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
@@ -84,75 +92,100 @@
                 <div class="auth-social-section">
                     <div style="width:100%; display:flex; align-items:center; gap:8px; margin-bottom:12px;">
                         <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.25);">
-                        <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.8); text-transform:uppercase; letter-spacing:1px;">Or Connect With</span>
+                        <span
+                            style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.8); text-transform:uppercase; letter-spacing:1px;">Or
+                            Connect With</span>
                         <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.25);">
                     </div>
-                    <button type="button" class="btn-google" onclick="window.triggerGoogleLogin(event)" style="width:100%; padding:10.5px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:white; font-size:13.5px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:background 0.2s, transform 0.1s;">
+                    <button type="button" class="btn-google" onclick="window.triggerGoogleLogin(event)"
+                        style="width:100%; padding:10.5px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:white; font-size:13.5px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:background 0.2s, transform 0.1s;">
                         <svg viewBox="0 0 24 24" width="18" height="18" style="flex-shrink:0;">
-                            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.53-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.7c0-.18-.01-.35-.05-.47z"/>
-                            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.11 0-5.74-2.11-6.68-4.96H1.21v3.15C3.18 21.88 7.31 24 12 24z"/>
-                            <path fill="#FBBC05" d="M5.32 14.24A7.16 7.16 0 0 1 5 12c0-.79.13-1.57.32-2.31V6.54H1.21A11.96 11.96 0 0 0 0 12c0 1.92.45 3.74 1.21 5.38l4.11-3.14z"/>
-                            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.18 2.12 1.21 5.46l4.11 3.22c.94-2.85 3.57-4.93 6.68-4.93z"/>
+                            <path fill="#4285F4"
+                                d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.53-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.7c0-.18-.01-.35-.05-.47z" />
+                            <path fill="#34A853"
+                                d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.11 0-5.74-2.11-6.68-4.96H1.21v3.15C3.18 21.88 7.31 24 12 24z" />
+                            <path fill="#FBBC05"
+                                d="M5.32 14.24A7.16 7.16 0 0 1 5 12c0-.79.13-1.57.32-2.31V6.54H1.21A11.96 11.96 0 0 0 0 12c0 1.92.45 3.74 1.21 5.38l4.11-3.14z" />
+                            <path fill="#EA4335"
+                                d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.18 2.12 1.21 5.46l4.11 3.22c.94-2.85 3.57-4.93 6.68-4.93z" />
                         </svg>
                         <span>Sign in with Google</span>
                     </button>
                     <p class="auth-switch-prompt">
-                        Don't have an account? <a href="#" onclick="toggleAuthMode(true); return false;" class="auth-switch-link">Register now</a>
+                        Don't have an account? <a href="#" onclick="toggleAuthMode(true); return false;"
+                            class="auth-switch-link">Register now</a>
                     </p>
                 </div>
             </div>
-            
+
             <!-- Panel 2: Register -->
             <div class="form-panel register-form">
                 <form id="form-register" onsubmit="handleRegisterSubmit(event)">
                     <div class="input-group">
                         <i class="fa-regular fa-user"></i>
-                        <input type="text" id="reg-first-name" class="auth-input" placeholder="First Name" required oninput="validateRegisterFormInline()">
+                        <input type="text" id="reg-first-name" class="auth-input" placeholder="First Name" required
+                            oninput="validateRegisterFormInline()">
                     </div>
                     <div class="input-group">
                         <i class="fa-regular fa-user"></i>
-                        <input type="text" id="reg-last-name" class="auth-input" placeholder="Last Name" required oninput="validateRegisterFormInline()">
+                        <input type="text" id="reg-last-name" class="auth-input" placeholder="Last Name" required
+                            oninput="validateRegisterFormInline()">
                     </div>
                     <div class="input-group">
                         <i class="fa-solid fa-mobile-screen"></i>
-                        <input type="email" id="reg-email" class="auth-input" placeholder="Email Address" required oninput="validateRegisterFormInline()">
+                        <input type="email" id="reg-email" class="auth-input" placeholder="Email Address" required
+                            oninput="validateRegisterFormInline()">
                         <i id="reg-email-status-icon" class="fa-solid field-status-icon"></i>
                     </div>
                     <div id="reg-email-hint" class="input-field-hint" style="display: none;"></div>
 
                     <div class="input-group">
                         <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="reg-password" class="auth-input" placeholder="Create Password" required oninput="validateRegisterFormInline()">
+                        <input type="password" id="reg-password" class="auth-input" placeholder="Create Password"
+                            required oninput="validateRegisterFormInline()">
                         <i id="reg-password-status-icon" class="fa-solid field-status-icon password-offset"></i>
-                        <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('reg-password', this)"></i>
+                        <i class="fa-regular fa-eye password-toggle"
+                            onclick="togglePasswordVisibility('reg-password', this)"></i>
                     </div>
-                    <div id="pwd-strength-container" class="pwd-strength-wrapper" style="display: none; margin-top: 6px; margin-bottom: 12px;" data-score="0">
+                    <div id="pwd-strength-container" class="pwd-strength-wrapper"
+                        style="display: none; margin-top: 6px; margin-bottom: 12px;" data-score="0">
                         <div class="pwd-strength-segments">
                             <div class="pwd-segment seg-1"></div>
                             <div class="pwd-segment seg-2"></div>
                             <div class="pwd-segment seg-3"></div>
                             <div class="pwd-segment seg-4"></div>
                         </div>
-                        <div style="display: flex; align-items: center; justify-space-between; margin-top: 6px; font-size: 11px; font-weight: 700;">
-                            <span id="pwd-strength-label" style="color: #94a3b8; transition: color 0.2s ease;">Password Strength</span>
-                            <span id="pwd-strength-score" style="color: rgba(148, 163, 184, 0.7); font-size: 10px;">0/4</span>
+                        <div
+                            style="display: flex; align-items: center; justify-space-between; margin-top: 6px; font-size: 11px; font-weight: 700;">
+                            <span id="pwd-strength-label" style="color: #94a3b8; transition: color 0.2s ease;">Password
+                                Strength</span>
+                            <span id="pwd-strength-score"
+                                style="color: rgba(148, 163, 184, 0.7); font-size: 10px;">0/4</span>
                         </div>
-                        <div class="pwd-checklist" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; font-size: 10.5px; font-weight: 600;">
-                            <span id="chk-len8" class="pwd-chk-item"><i class="fa-solid fa-circle" style="font-size: 6px; vertical-align: middle;"></i> 8+ chars</span>
-                            <span id="chk-num" class="pwd-chk-item"><i class="fa-solid fa-circle" style="font-size: 6px; vertical-align: middle;"></i> a number</span>
-                            <span id="chk-cap" class="pwd-chk-item"><i class="fa-solid fa-circle" style="font-size: 6px; vertical-align: middle;"></i> a capital</span>
-                            <span id="chk-sym" class="pwd-chk-item"><i class="fa-solid fa-circle" style="font-size: 6px; vertical-align: middle;"></i> a symbol</span>
+                        <div class="pwd-checklist"
+                            style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; font-size: 10.5px; font-weight: 600;">
+                            <span id="chk-len8" class="pwd-chk-item"><i class="fa-solid fa-circle"
+                                    style="font-size: 6px; vertical-align: middle;"></i> 8+ chars</span>
+                            <span id="chk-num" class="pwd-chk-item"><i class="fa-solid fa-circle"
+                                    style="font-size: 6px; vertical-align: middle;"></i> a number</span>
+                            <span id="chk-cap" class="pwd-chk-item"><i class="fa-solid fa-circle"
+                                    style="font-size: 6px; vertical-align: middle;"></i> a capital</span>
+                            <span id="chk-sym" class="pwd-chk-item"><i class="fa-solid fa-circle"
+                                    style="font-size: 6px; vertical-align: middle;"></i> a symbol</span>
                         </div>
                     </div>
-                    
+
                     <div class="terms-agreement-row">
                         <input type="checkbox" id="reg-privacy-checkbox" class="custom-terms-checkbox">
                         <div class="terms-agreement-text">
-                            <label for="reg-privacy-checkbox" id="reg-privacy-label" class="terms-agreement-label">I agree to the</label>
-                            <button type="button" id="link-terms-privacy" onclick="openPrivacyPolicyModal(event)" class="terms-policy-btn">Terms &amp; Privacy Policy</button><span class="terms-period">.</span>
+                            <label for="reg-privacy-checkbox" id="reg-privacy-label" class="terms-agreement-label">I
+                                agree to the</label>
+                            <button type="button" id="link-terms-privacy" onclick="openPrivacyPolicyModal(event)"
+                                class="terms-policy-btn">Terms &amp; Privacy Policy</button><span
+                                class="terms-period">.</span>
                         </div>
                     </div>
-                    
+
                     <button type="submit" id="btn-register" class="btn-circle-submit">
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
@@ -161,20 +194,28 @@
                 <div class="auth-social-section">
                     <div style="width:100%; display:flex; align-items:center; gap:8px; margin-bottom:12px;">
                         <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.15);">
-                        <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px;">Or Connect With</span>
+                        <span
+                            style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px;">Or
+                            Connect With</span>
                         <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.15);">
                     </div>
-                    <button type="button" class="btn-google" onclick="window.triggerGoogleLogin(event)" style="width:100%; padding:10.5px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:white; font-size:13.5px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:background 0.2s, transform 0.1s;">
+                    <button type="button" class="btn-google" onclick="window.triggerGoogleLogin(event)"
+                        style="width:100%; padding:10.5px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:white; font-size:13.5px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:background 0.2s, transform 0.1s;">
                         <svg viewBox="0 0 24 24" width="18" height="18" style="flex-shrink:0;">
-                            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.53-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.7c0-.18-.01-.35-.05-.47z"/>
-                            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.11 0-5.74-2.11-6.68-4.96H1.21v3.15C3.18 21.88 7.31 24 12 24z"/>
-                            <path fill="#FBBC05" d="M5.32 14.24A7.16 7.16 0 0 1 5 12c0-.79.13-1.57.32-2.31V6.54H1.21A11.96 11.96 0 0 0 0 12c0 1.92.45 3.74 1.21 5.38l4.11-3.14z"/>
-                            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.18 2.12 1.21 5.46l4.11 3.22c.94-2.85 3.57-4.93 6.68-4.93z"/>
+                            <path fill="#4285F4"
+                                d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.53-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.7c0-.18-.01-.35-.05-.47z" />
+                            <path fill="#34A853"
+                                d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.11 0-5.74-2.11-6.68-4.96H1.21v3.15C3.18 21.88 7.31 24 12 24z" />
+                            <path fill="#FBBC05"
+                                d="M5.32 14.24A7.16 7.16 0 0 1 5 12c0-.79.13-1.57.32-2.31V6.54H1.21A11.96 11.96 0 0 0 0 12c0 1.92.45 3.74 1.21 5.38l4.11-3.14z" />
+                            <path fill="#EA4335"
+                                d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.18 2.12 1.21 5.46l4.11 3.22c.94-2.85 3.57-4.93 6.68-4.93z" />
                         </svg>
                         <span>Sign up with Google</span>
                     </button>
                     <p class="auth-switch-prompt">
-                        Already have an account? <a href="#" onclick="toggleAuthMode(false); return false;" class="auth-switch-link">Log in</a>
+                        Already have an account? <a href="#" onclick="toggleAuthMode(false); return false;"
+                            class="auth-switch-link">Log in</a>
                     </p>
                 </div>
             </div>
@@ -197,7 +238,7 @@
                             <i class="fa-solid fa-mobile-screen"></i>
                             <input type="email" id="fp-email" class="auth-input" placeholder="Email Address" required>
                         </div>
-                        
+
                         <button type="submit" id="fp-btn" class="btn-circle-submit">
                             <i class="fa-solid fa-arrow-right"></i>
                         </button>
@@ -206,52 +247,79 @@
 
                 <!-- Step 2: Enter 6-Digit Code -->
                 <div id="fp-code-state" style="display: none; text-align: center; padding: 10px 0;">
-                    <h3 style="margin: 0 0 8px 0; color: #ffffff; font-size: 20px; font-weight: 800;">Reset Code Sent</h3>
-                    <p style="color: rgba(255, 255, 255, 0.95); font-size: 13.5px; margin: 0 0 20px 0; font-weight: 500; line-height: 1.5;">We sent a 6-digit reset code to <br><strong id="fp-target-email" style="color: #ffffff; font-weight: 800; font-size: 14px; background: rgba(0, 0, 0, 0.18); padding: 3px 10px; border-radius: 6px; display: inline-block; margin-top: 5px;"></strong></p>
+                    <h3 style="margin: 0 0 8px 0; color: #ffffff; font-size: 20px; font-weight: 800;">Reset Code Sent
+                    </h3>
+                    <p
+                        style="color: rgba(255, 255, 255, 0.95); font-size: 13.5px; margin: 0 0 20px 0; font-weight: 500; line-height: 1.5;">
+                        We sent a 6-digit reset code to <br><strong id="fp-target-email"
+                            style="color: #ffffff; font-weight: 800; font-size: 14px; background: rgba(0, 0, 0, 0.18); padding: 3px 10px; border-radius: 6px; display: inline-block; margin-top: 5px;"></strong>
+                    </p>
 
                     <form id="form-fp-verify-code" onsubmit="handleVerifyFpCode(event)">
                         <!-- 6 Individual Digit Input Boxes -->
                         <div class="otp-boxes-container" style="margin: 18px 0 20px 0;">
-                            <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" oninput="handleFpOtpBoxInput(this, 0)" onkeydown="handleFpOtpBoxKeydown(this, event, 0)" onpaste="handleFpOtpPaste(event)">
-                            <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleFpOtpBoxInput(this, 1)" onkeydown="handleFpOtpBoxKeydown(this, event, 1)" onpaste="handleFpOtpPaste(event)">
-                            <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleFpOtpBoxInput(this, 2)" onkeydown="handleFpOtpBoxKeydown(this, event, 2)" onpaste="handleFpOtpPaste(event)">
-                            <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleFpOtpBoxInput(this, 3)" onkeydown="handleFpOtpBoxKeydown(this, event, 3)" onpaste="handleFpOtpPaste(event)">
-                            <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleFpOtpBoxInput(this, 4)" onkeydown="handleFpOtpBoxKeydown(this, event, 4)" onpaste="handleFpOtpPaste(event)">
-                            <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleFpOtpBoxInput(this, 5)" onkeydown="handleFpOtpBoxKeydown(this, event, 5)" onpaste="handleFpOtpPaste(event)">
+                            <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric"
+                                pattern="[0-9]*" autocomplete="one-time-code" oninput="handleFpOtpBoxInput(this, 0)"
+                                onkeydown="handleFpOtpBoxKeydown(this, event, 0)" onpaste="handleFpOtpPaste(event)">
+                            <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric"
+                                pattern="[0-9]*" oninput="handleFpOtpBoxInput(this, 1)"
+                                onkeydown="handleFpOtpBoxKeydown(this, event, 1)" onpaste="handleFpOtpPaste(event)">
+                            <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric"
+                                pattern="[0-9]*" oninput="handleFpOtpBoxInput(this, 2)"
+                                onkeydown="handleFpOtpBoxKeydown(this, event, 2)" onpaste="handleFpOtpPaste(event)">
+                            <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric"
+                                pattern="[0-9]*" oninput="handleFpOtpBoxInput(this, 3)"
+                                onkeydown="handleFpOtpBoxKeydown(this, event, 3)" onpaste="handleFpOtpPaste(event)">
+                            <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric"
+                                pattern="[0-9]*" oninput="handleFpOtpBoxInput(this, 4)"
+                                onkeydown="handleFpOtpBoxKeydown(this, event, 4)" onpaste="handleFpOtpPaste(event)">
+                            <input type="text" class="otp-box fp-otp-box" maxlength="1" inputmode="numeric"
+                                pattern="[0-9]*" oninput="handleFpOtpBoxInput(this, 5)"
+                                onkeydown="handleFpOtpBoxKeydown(this, event, 5)" onpaste="handleFpOtpPaste(event)">
                         </div>
 
                         <button type="submit" id="fp-verify-btn" class="btn-circle-submit" style="margin-bottom: 14px;">
                             <i class="fa-solid fa-arrow-right"></i>
                         </button>
 
-                        <div style="font-size: 13px; color: rgba(255, 255, 255, 0.95); margin-top: 14px; font-weight: 500;">
-                            Didn't receive email? 
-                            <button type="button" id="fp-resend-btn" onclick="handleResendFpEmail(event)" style="background: none; border: none; color: #ffffff; font-weight: 800; cursor: pointer; text-decoration: underline; padding: 0;">
+                        <div
+                            style="font-size: 13px; color: rgba(255, 255, 255, 0.95); margin-top: 14px; font-weight: 500;">
+                            Didn't receive email?
+                            <button type="button" id="fp-resend-btn" onclick="handleResendFpEmail(event)"
+                                style="background: none; border: none; color: #ffffff; font-weight: 800; cursor: pointer; text-decoration: underline; padding: 0;">
                                 Resend Code
                             </button>
-                            <span id="fp-countdown-text" style="display: none; color: #fef08a; font-weight: 700;"> (Resend in <span id="fp-countdown-sec">45</span>s)</span>
+                            <span id="fp-countdown-text" style="display: none; color: #fef08a; font-weight: 700;">
+                                (Resend in <span id="fp-countdown-sec">45</span>s)</span>
                         </div>
                     </form>
                 </div>
 
                 <!-- Step 3: Enter New Password -->
                 <div id="fp-password-state" style="display: none; text-align: center; padding: 10px 0;">
-                    <h3 style="margin: 0 0 6px 0; color: white; font-size: 19px; font-weight: 800;">Create New Password</h3>
-                    <p style="color: rgba(255, 255, 255, 0.9); font-size: 13px; margin: 0 0 20px 0; font-weight: 500;">Enter your new password below.</p>
+                    <h3 style="margin: 0 0 6px 0; color: white; font-size: 19px; font-weight: 800;">Create New Password
+                    </h3>
+                    <p style="color: rgba(255, 255, 255, 0.9); font-size: 13px; margin: 0 0 20px 0; font-weight: 500;">
+                        Enter your new password below.</p>
 
                     <form id="form-fp-password" onsubmit="handleResetPasswordSubmit(event)">
                         <div class="input-group" style="margin-bottom: 16px;">
                             <i class="fa-solid fa-lock"></i>
-                            <input type="password" id="fp-new-password" class="auth-input" placeholder="New Password (min 8 chars)" minlength="8" required>
-                            <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('fp-new-password', this)"></i>
+                            <input type="password" id="fp-new-password" class="auth-input"
+                                placeholder="New Password (min 8 chars)" minlength="8" required>
+                            <i class="fa-regular fa-eye password-toggle"
+                                onclick="togglePasswordVisibility('fp-new-password', this)"></i>
                         </div>
                         <div class="input-group" style="margin-bottom: 20px;">
                             <i class="fa-solid fa-lock"></i>
-                            <input type="password" id="fp-confirm-password" class="auth-input" placeholder="Confirm New Password" minlength="8" required>
-                            <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('fp-confirm-password', this)"></i>
+                            <input type="password" id="fp-confirm-password" class="auth-input"
+                                placeholder="Confirm New Password" minlength="8" required>
+                            <i class="fa-regular fa-eye password-toggle"
+                                onclick="togglePasswordVisibility('fp-confirm-password', this)"></i>
                         </div>
 
-                        <button type="submit" id="fp-password-btn" class="btn-circle-submit" style="margin-bottom: 10px;">
+                        <button type="submit" id="fp-password-btn" class="btn-circle-submit"
+                            style="margin-bottom: 10px;">
                             <i class="fa-solid fa-check"></i>
                         </button>
                     </form>
@@ -260,35 +328,51 @@
 
             <!-- Panel 4: Email OTP Verification -->
             <div class="form-panel otp-form" id="panel-otp" style="padding: 0 10px;">
-                <a href="#" class="back-link" onclick="hideOtpPanel(event)" style="display: inline-flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 16px; transition: color 0.2s;">
+                <a href="#" class="back-link" onclick="hideOtpPanel(event)"
+                    style="display: inline-flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 16px; transition: color 0.2s;">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </a>
 
                 <div style="text-align: center; margin-bottom: 16px;">
-                    <div style="width: 54px; height: 54px; border-radius: 16px; background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 22px; margin: 0 auto 10px auto;">
+                    <div
+                        style="width: 54px; height: 54px; border-radius: 16px; background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 22px; margin: 0 auto 10px auto;">
                         <i class="fa-solid fa-envelope-circle-check"></i>
                     </div>
-                    <h3 style="margin: 0 0 4px 0; color: white; font-size: 20px; font-weight: 800;">Verify Your Email</h3>
-                    <p style="color: rgba(255,255,255,0.7); font-size: 13px; margin: 0;">We sent a 6-digit code to <br><strong id="otp-target-email" style="color: #38bdf8; font-family: monospace;"></strong></p>
+                    <h3 style="margin: 0 0 4px 0; color: white; font-size: 20px; font-weight: 800;">Verify Your Email
+                    </h3>
+                    <p style="color: rgba(255,255,255,0.7); font-size: 13px; margin: 0;">We sent a 6-digit code to
+                        <br><strong id="otp-target-email" style="color: #38bdf8; font-family: monospace;"></strong></p>
                 </div>
 
                 <form id="form-otp" onsubmit="handleVerifyOtp(event)">
                     <!-- 6 Individual Digit Input Boxes -->
                     <div class="otp-boxes-container">
-                        <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" oninput="handleOtpBoxInput(this, 0)" onkeydown="handleOtpBoxKeydown(this, event, 0)" onpaste="handleOtpPaste(event)">
-                        <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleOtpBoxInput(this, 1)" onkeydown="handleOtpBoxKeydown(this, event, 1)" onpaste="handleOtpPaste(event)">
-                        <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleOtpBoxInput(this, 2)" onkeydown="handleOtpBoxKeydown(this, event, 2)" onpaste="handleOtpPaste(event)">
-                        <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleOtpBoxInput(this, 3)" onkeydown="handleOtpBoxKeydown(this, event, 3)" onpaste="handleOtpPaste(event)">
-                        <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleOtpBoxInput(this, 4)" onkeydown="handleOtpBoxKeydown(this, event, 4)" onpaste="handleOtpPaste(event)">
-                        <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleOtpBoxInput(this, 5)" onkeydown="handleOtpBoxKeydown(this, event, 5)" onpaste="handleOtpPaste(event)">
+                        <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                            autocomplete="one-time-code" oninput="handleOtpBoxInput(this, 0)"
+                            onkeydown="handleOtpBoxKeydown(this, event, 0)" onpaste="handleOtpPaste(event)">
+                        <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                            oninput="handleOtpBoxInput(this, 1)" onkeydown="handleOtpBoxKeydown(this, event, 1)"
+                            onpaste="handleOtpPaste(event)">
+                        <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                            oninput="handleOtpBoxInput(this, 2)" onkeydown="handleOtpBoxKeydown(this, event, 2)"
+                            onpaste="handleOtpPaste(event)">
+                        <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                            oninput="handleOtpBoxInput(this, 3)" onkeydown="handleOtpBoxKeydown(this, event, 3)"
+                            onpaste="handleOtpPaste(event)">
+                        <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                            oninput="handleOtpBoxInput(this, 4)" onkeydown="handleOtpBoxKeydown(this, event, 4)"
+                            onpaste="handleOtpPaste(event)">
+                        <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                            oninput="handleOtpBoxInput(this, 5)" onkeydown="handleOtpBoxKeydown(this, event, 5)"
+                            onpaste="handleOtpPaste(event)">
                     </div>
-                    
+
                     <button type="submit" id="btn-otp" class="btn-circle-submit" style="margin-top: 10px;">
                         <i class="fa-solid fa-check"></i>
                     </button>
                 </form>
             </div>
-            
+
         </div>
     </div>
 </div>
@@ -315,35 +399,41 @@
 <!-- Google Auth Cancelled / Exit Modal -->
 <div id="auth-cancel-modal" class="auth-2fa-overlay" style="display: none;">
     <div class="auth-2fa-card">
-        <button type="button" class="auth-2fa-close" onclick="closeAuthCancelModal()"><i class="fa-solid fa-xmark"></i></button>
-        
-        <div class="auth-2fa-icon-ring" style="border-color: #f59e0b; color: #f59e0b; background: rgba(245, 158, 11, 0.15); box-shadow: 0 0 22px rgba(245, 158, 11, 0.35);">
+        <button type="button" class="auth-2fa-close" onclick="closeAuthCancelModal()"><i
+                class="fa-solid fa-xmark"></i></button>
+
+        <div class="auth-2fa-icon-ring"
+            style="border-color: #f59e0b; color: #f59e0b; background: rgba(245, 158, 11, 0.15); box-shadow: 0 0 22px rgba(245, 158, 11, 0.35);">
             <i class="fa-solid fa-triangle-exclamation"></i>
         </div>
-        
+
         <h3 class="auth-2fa-title">Sign-In Cancelled</h3>
-        
+
         <p class="auth-2fa-desc" id="auth-cancel-modal-msg">
-            You exited the Google account chooser without logging in or signing up. Please choose an account to continue or sign in with your email.
+            You exited the Google account chooser without logging in or signing up. Please choose an account to continue
+            or sign in with your email.
         </p>
-        
+
         <div class="auth-2fa-alert-box" style="margin-bottom: 20px;">
-            <i class="fa-solid fa-shield-halved" style="color: #f59e0b; font-size: 14px; margin-right: 8px; flex-shrink: 0;"></i>
+            <i class="fa-solid fa-shield-halved"
+                style="color: #f59e0b; font-size: 14px; margin-right: 8px; flex-shrink: 0;"></i>
             <span>No changes were made to your account.</span>
         </div>
 
-        <button type="button" onclick="closeAuthCancelModal()" class="auth-2fa-btn-primary" style="background: linear-gradient(135deg, #38bdf8, #2563eb);">
+        <button type="button" onclick="closeAuthCancelModal()" class="auth-2fa-btn-primary"
+            style="background: linear-gradient(135deg, #38bdf8, #2563eb);">
             <i class="fa-solid fa-check" style="margin-right: 8px;"></i>Got it
         </button>
     </div>
 </div>
 
-<div id="privacy-policy-modal" class="auth-2fa-overlay" style="display: none;" onclick="if(event.target===this) closePrivacyPolicyModal(event);">
+<div id="privacy-policy-modal" class="auth-2fa-overlay" style="display: none;"
+    onclick="if(event.target===this) closePrivacyPolicyModal(event);">
     <div class="privacy-modal-card">
         <button type="button" class="privacy-modal-close" onclick="closePrivacyPolicyModal(event)" aria-label="Close">
             <i class="fa-solid fa-xmark"></i>
         </button>
-        
+
         <div class="privacy-modal-header">
             <div class="privacy-modal-icon-ring">
                 <i class="fa-solid fa-shield-halved"></i>
@@ -358,16 +448,20 @@
             <div class="policy-welcome-banner">
                 <i class="fa-solid fa-circle-info policy-welcome-icon"></i>
                 <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.95); line-height: 1.55;">
-                    Welcome to <strong style="color: #ffffff;">Intan Elyu Tourism Management System</strong>. In strict compliance with the <strong style="color: #38bdf8;">Data Privacy Act of 2012 (Republic Act No. 10173)</strong>, please review our terms of service and personal data protection practices before activating your account:
+                    Welcome to <strong style="color: #ffffff;">Intan Elyu Tourism Management System</strong>. In strict
+                    compliance with the <strong style="color: #38bdf8;">Data Privacy Act of 2012 (Republic Act No.
+                        10173)</strong>, please review our terms of service and personal data protection practices
+                    before activating your account:
                 </p>
             </div>
-            
+
             <div class="policy-item-card">
                 <div class="policy-item-header">
                     <div class="policy-icon-badge"><i class="fa-solid fa-user-check"></i></div>
                     <span class="policy-item-title">1. Account &amp; Registration</span>
                 </div>
-                <p class="policy-item-desc">By registering, you confirm that personal details provided (Full Name, Email) are accurate and belong to you. You are responsible for safeguarding your credentials.</p>
+                <p class="policy-item-desc">By registering, you confirm that personal details provided (Full Name,
+                    Email) are accurate and belong to you. You are responsible for safeguarding your credentials.</p>
             </div>
 
             <div class="policy-item-card">
@@ -375,23 +469,27 @@
                     <div class="policy-icon-badge"><i class="fa-solid fa-lock"></i></div>
                     <span class="policy-item-title">2. Information &amp; Encryption</span>
                 </div>
-                <p class="policy-item-desc">We store your name, email, and Bcrypt-encrypted password hashes to personalize your Elyu itinerary. We never sell or share your data with unauthorized third parties.</p>
+                <p class="policy-item-desc">We store your name, email, and Bcrypt-encrypted password hashes to
+                    personalize your Elyu itinerary. We never sell or share your data with unauthorized third parties.
+                </p>
             </div>
-            
+
             <div class="policy-item-card">
                 <div class="policy-item-header">
                     <div class="policy-icon-badge"><i class="fa-solid fa-location-dot"></i></div>
                     <span class="policy-item-title">3. Location &amp; Fair Play Points</span>
                 </div>
-                <p class="policy-item-desc">Device location is accessed strictly during active tourist spot check-ins to verify Points rewards and badge unlocks. We do not track your location in the background.</p>
+                <p class="policy-item-desc">Device location is accessed strictly during active tourist spot check-ins to
+                    verify Points rewards and badge unlocks. We do not track your location in the background.</p>
             </div>
-            
+
             <div class="policy-item-card">
                 <div class="policy-item-header">
                     <div class="policy-icon-badge"><i class="fa-solid fa-shield-halved"></i></div>
                     <span class="policy-item-title">4. 2-Factor Email Security (2FA)</span>
                 </div>
-                <p class="policy-item-desc">After accepting these terms, a 6-digit verification code will be dispatched to your email address to confirm identity before account activation.</p>
+                <p class="policy-item-desc">After accepting these terms, a 6-digit verification code will be dispatched
+                    to your email address to confirm identity before account activation.</p>
             </div>
 
             <div class="policy-item-card">
@@ -399,7 +497,8 @@
                     <div class="policy-icon-badge"><i class="fa-solid fa-leaf"></i></div>
                     <span class="policy-item-title">5. Responsible Tourism</span>
                 </div>
-                <p class="policy-item-desc">As a registered tourist on Intan Elyu, you agree to respect local La Union heritage, avoid littering, preserve coastal beaches, and follow local municipal guidelines.</p>
+                <p class="policy-item-desc">As a registered tourist on Intan Elyu, you agree to respect local La Union
+                    heritage, avoid littering, preserve coastal beaches, and follow local municipal guidelines.</p>
             </div>
 
             <div class="policy-item-card">
@@ -407,13 +506,17 @@
                     <div class="policy-icon-badge"><i class="fa-solid fa-user-shield"></i></div>
                     <span class="policy-item-title">6. Data Subject Rights (RA 10173)</span>
                 </div>
-                <p class="policy-item-desc">Under Republic Act No. 10173, you retain the Right to be Informed, Right to Access, Right to Object, and Right to Erasure. Your email and account credentials remain strictly confidential, and you may request account erasure at any time.</p>
+                <p class="policy-item-desc">Under Republic Act No. 10173, you retain the Right to be Informed, Right to
+                    Access, Right to Object, and Right to Erasure. Your email and account credentials remain strictly
+                    confidential, and you may request account erasure at any time.</p>
             </div>
         </div>
 
-        <label class="privacy-acceptance-box" for="chk-accept-privacy" id="box-chk-accept-privacy" style="cursor: pointer;">
+        <label class="privacy-acceptance-box" for="chk-accept-privacy" id="box-chk-accept-privacy"
+            style="cursor: pointer;">
             <input type="checkbox" id="chk-accept-privacy" class="custom-terms-checkbox" style="cursor: pointer;">
-            <span id="lbl-chk-accept-privacy" style="cursor: pointer; margin: 0; line-height: 1.35; font-size: 11.5px; font-weight: 600; color: #ffffff;">
+            <span id="lbl-chk-accept-privacy"
+                style="cursor: pointer; margin: 0; line-height: 1.35; font-size: 11.5px; font-weight: 600; color: #ffffff;">
                 I have read, understood, and accept the Terms &amp; Privacy Policy.
             </span>
         </label>
@@ -422,7 +525,8 @@
             <button type="button" onclick="declinePrivacyPolicy(event)" class="btn-privacy-decline">
                 Decline
             </button>
-            <button type="button" id="btn-accept-policy-proceed" onclick="acceptPolicyAndProceed(event)" class="btn-privacy-accept">
+            <button type="button" id="btn-accept-policy-proceed" onclick="acceptPolicyAndProceed(event)"
+                class="btn-privacy-accept">
                 Accept
             </button>
         </div>
@@ -432,7 +536,7 @@
 <script>
     var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
 
-    window.openAuthCancelModal = function(msg) {
+    window.openAuthCancelModal = function (msg) {
         const modal = document.getElementById('auth-cancel-modal');
         if (!modal) return;
         if (msg) {
@@ -445,7 +549,7 @@
         });
     };
 
-    window.closeAuthCancelModal = function() {
+    window.closeAuthCancelModal = function () {
         const modal = document.getElementById('auth-cancel-modal');
         if (modal) modal.classList.remove('active');
         setTimeout(() => {
@@ -453,13 +557,13 @@
         }, 300);
     };
 
-    window.openAuth2FAModal = function(user) {
+    window.openAuth2FAModal = function (user) {
         const modal = document.getElementById('auth-2fa-modal');
         if (!modal) {
             if (typeof navigateTo === 'function') navigateTo('dashboard');
             return;
         }
-        
+
         document.getElementById('auth-2fa-step-disabled').style.display = 'block';
         document.getElementById('auth-2fa-step-verify').style.display = 'none';
 
@@ -469,7 +573,7 @@
         });
     };
 
-    window.closeAuth2FAModal = function() {
+    window.closeAuth2FAModal = function () {
         const modal = document.getElementById('auth-2fa-modal');
         if (modal) modal.classList.remove('active');
         setTimeout(() => {
@@ -478,7 +582,7 @@
         }, 300);
     };
 
-    window.handleAuthInitiate2FA = async function() {
+    window.handleAuthInitiate2FA = async function () {
         const btn = document.getElementById('btn-auth-enable-2fa');
         if (btn) {
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="margin-right: 6px;"></i> Sending Code...';
@@ -517,7 +621,7 @@
         }
     };
 
-    window.handleAuth2FAOtpBoxInput = function(el, index) {
+    window.handleAuth2FAOtpBoxInput = function (el, index) {
         el.value = el.value.replace(/[^0-9]/g, '');
         const boxes = document.querySelectorAll('.auth-2fa-otp-box');
         if (el.value && index < boxes.length - 1) {
@@ -525,14 +629,14 @@
         }
     };
 
-    window.handleAuth2FAOtpBoxKeydown = function(el, e, index) {
+    window.handleAuth2FAOtpBoxKeydown = function (el, e, index) {
         const boxes = document.querySelectorAll('.auth-2fa-otp-box');
         if (e.key === 'Backspace' && !el.value && index > 0) {
             boxes[index - 1].focus();
         }
     };
 
-    window.handleAuth2FAOtpPaste = function(e) {
+    window.handleAuth2FAOtpPaste = function (e) {
         e.preventDefault();
         const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
         const boxes = document.querySelectorAll('.auth-2fa-otp-box');
@@ -544,7 +648,7 @@
         }
     };
 
-    window.handleAuthVerify2FA = async function(e) {
+    window.handleAuthVerify2FA = async function (e) {
         e.preventDefault();
         const boxes = document.querySelectorAll('.auth-2fa-otp-box');
         const code = Array.from(boxes).map(b => b.value).join('');
@@ -588,7 +692,7 @@
         }
     };
 
-    window.showLoginSuccessModal = function(user) {
+    window.showLoginSuccessModal = function (user) {
         const modal = document.getElementById('login-success-modal');
         const badge = document.getElementById('modal-badge');
         const spinner = document.getElementById('modal-spinner-svg');
@@ -686,7 +790,7 @@
         tabsContainer.style.display = 'flex';
         wrapper.classList.remove('show-forgot', 'show-otp');
         positionTabGlider(isRegister, true);
-        
+
         if (isRegister) {
             wrapper.classList.add('show-register');
             tabLogin.classList.remove('active');
@@ -701,12 +805,12 @@
     }
     window.toggleAuthMode = toggleAuthMode;
 
-    window.showForgotPassword = function(e) {
+    window.showForgotPassword = function (e) {
         if (e) e.preventDefault();
-        
+
         // Hide tabs
         if (tabsContainer) tabsContainer.style.display = 'none';
-        
+
         // Reset forgot form steps
         const formState = document.getElementById('fp-form-state');
         const codeState = document.getElementById('fp-code-state');
@@ -717,7 +821,7 @@
         if (codeState) codeState.style.display = 'none';
         if (pwdState) pwdState.style.display = 'none';
         if (emailInput) emailInput.value = '';
-        
+
         const btn = document.getElementById('fp-btn');
         if (btn) {
             btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
@@ -733,7 +837,7 @@
         }
     };
 
-    window.hideForgotPassword = function(e) {
+    window.hideForgotPassword = function (e) {
         if (e) e.preventDefault();
         // Restore tabs
         if (tabsContainer) tabsContainer.style.display = 'flex';
@@ -758,7 +862,7 @@
         }
     }
 
-    window.handleLogin = async function(e) {
+    window.handleLogin = async function (e) {
         e.preventDefault();
         const btn = document.getElementById('btn-login');
         btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
@@ -775,9 +879,9 @@
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({ email: email, password: password, remember: remember })
             });
-            
+
             const data = await response.json();
-            
+
             if (!response.ok) {
                 throw new Error(data.error || data.message || 'Invalid login credentials.');
             }
@@ -792,7 +896,7 @@
 
             localStorage.setItem('auth_user', JSON.stringify(data.user));
             localStorage.setItem('intan_elyu_token', data.token);
-            
+
             showLoginSuccessModal(data.user);
         } catch (error) {
             console.error('Login Error:', error);
@@ -802,7 +906,7 @@
         }
     };
 
-    window.validateRegisterFormInline = function() {
+    window.validateRegisterFormInline = function () {
         const emailEl = document.getElementById('reg-email');
         const emailIcon = document.getElementById('reg-email-status-icon');
         const emailHint = document.getElementById('reg-email-hint');
@@ -866,7 +970,7 @@
                 // Label and status icon update
                 const labels = ['Weak', 'Weak', 'Fair', 'Good', 'Strong'];
                 const colors = ['#f87171', '#f87171', '#fb923c', '#facc15', '#34d399'];
-                
+
                 if (label) {
                     label.textContent = labels[score] || 'Password Strength';
                     label.style.color = colors[score] || '#94a3b8';
@@ -881,7 +985,7 @@
         }
     };
 
-    window.handleRegisterSubmit = async function(e) {
+    window.handleRegisterSubmit = async function (e) {
         if (e) e.preventDefault();
         window.validateRegisterFormInline();
         const pwd = document.getElementById('reg-password')?.value || '';
@@ -924,7 +1028,7 @@
         await window.submitRegistrationAndTrigger2FA();
     };
 
-    window.openPrivacyPolicyModal = function(e) {
+    window.openPrivacyPolicyModal = function (e) {
         if (e) {
             e.preventDefault();
             e.stopPropagation();
@@ -938,9 +1042,9 @@
         const scrollBody = document.getElementById('privacy-modal-scroll-body');
 
         // Always reset modal acceptance checkbox to unchecked on open
-        if (chk) { 
-            chk.checked = false; 
-            chk.disabled = false; 
+        if (chk) {
+            chk.checked = false;
+            chk.disabled = false;
         }
         if (box) {
             box.classList.remove('shake-attention');
@@ -959,7 +1063,7 @@
         });
     };
 
-    window.closePrivacyPolicyModal = function(e) {
+    window.closePrivacyPolicyModal = function (e) {
         if (e) {
             e.preventDefault();
             e.stopPropagation();
@@ -975,7 +1079,7 @@
         }, 280);
     };
 
-    window.declinePrivacyPolicy = function(e) {
+    window.declinePrivacyPolicy = function (e) {
         if (e) {
             e.preventDefault();
             e.stopPropagation();
@@ -989,7 +1093,7 @@
         window.closePrivacyPolicyModal();
     };
 
-    window.togglePrivacyCheckboxFromBox = function(e) {
+    window.togglePrivacyCheckboxFromBox = function (e) {
         // Handled natively by label for="chk-accept-privacy"
         const chk = document.getElementById('chk-accept-privacy');
         const box = document.querySelector('.privacy-acceptance-box');
@@ -998,7 +1102,7 @@
         }
     };
 
-    window.acceptPolicyAndProceed = async function(e) {
+    window.acceptPolicyAndProceed = async function (e) {
         if (e) {
             e.preventDefault();
             e.stopPropagation();
@@ -1027,7 +1131,7 @@
         window.closePrivacyPolicyModal();
     };
 
-    window.submitRegistrationAndTrigger2FA = async function() {
+    window.submitRegistrationAndTrigger2FA = async function () {
         const pwd = document.getElementById('reg-password')?.value || '';
         const firstName = (document.getElementById('reg-first-name')?.value || '').trim();
         const lastName = (document.getElementById('reg-last-name')?.value || '').trim();
@@ -1062,17 +1166,17 @@
             const response = await fetch(backendUrl + '/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     first_name: firstName,
                     last_name: lastName,
-                    name: name, 
-                    email: email, 
-                    password: pwd, 
-                    password_confirmation: pwd 
+                    name: name,
+                    email: email,
+                    password: pwd,
+                    password_confirmation: pwd
                 })
             });
             const data = await response.json();
-            
+
             if (!response.ok) {
                 let errMsg = 'Registration failed';
                 if (data.errors && data.errors.email && data.errors.email[0]) {
@@ -1109,7 +1213,7 @@
                 try {
                     localStorage.removeItem('intan_elyu_token');
                     localStorage.removeItem('auth_user');
-                } catch (e) {}
+                } catch (e) { }
 
                 sessionStorage.setItem('show_onboarding', '1');
                 sessionStorage.setItem('pending_reg_email', data.email || email);
@@ -1168,7 +1272,7 @@
         }
     };
 
-    window.hideOtpPanel = function(e) {
+    window.hideOtpPanel = function (e) {
         if (e) e.preventDefault();
         tabsContainer.style.display = 'flex';
         wrapper.classList.remove('show-forgot', 'show-otp');
@@ -1178,7 +1282,7 @@
         updateTitleWithTransition('Start your Journey');
     };
 
-    window.handleOtpBoxInput = function(el, index) {
+    window.handleOtpBoxInput = function (el, index) {
         el.value = el.value.replace(/[^0-9]/g, '');
         const boxes = document.querySelectorAll('.otp-box');
         if (el.value && index < boxes.length - 1) {
@@ -1187,14 +1291,14 @@
         checkAutoSubmitOtp();
     };
 
-    window.handleOtpBoxKeydown = function(el, e, index) {
+    window.handleOtpBoxKeydown = function (el, e, index) {
         const boxes = document.querySelectorAll('.otp-box');
         if (e.key === 'Backspace' && !el.value && index > 0) {
             boxes[index - 1].focus();
         }
     };
 
-    window.handleOtpPaste = function(e) {
+    window.handleOtpPaste = function (e) {
         e.preventDefault();
         const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
         const boxes = document.querySelectorAll('.otp-box');
@@ -1219,7 +1323,7 @@
         }
     }
 
-    window.handleVerifyOtp = async function(e) {
+    window.handleVerifyOtp = async function (e) {
         e.preventDefault();
         const email = document.getElementById('otp-target-email').textContent;
         const boxes = document.querySelectorAll('.otp-box');
@@ -1241,8 +1345,8 @@
                     method: 'POST',
                     credentials: 'include',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                    body: JSON.stringify({ 
-                        email: window._pending2FALogin.email, 
+                    body: JSON.stringify({
+                        email: window._pending2FALogin.email,
                         password: window._pending2FALogin.password,
                         two_factor_code: otp
                     })
@@ -1316,7 +1420,7 @@
         }, 1000);
     }
 
-    window.handleForgotPassword = async function(e) {
+    window.handleForgotPassword = async function (e) {
         if (e) e.preventDefault();
         const btn = document.getElementById('fp-btn');
         const oldHtml = btn ? btn.innerHTML : '';
@@ -1357,7 +1461,7 @@
                 body: JSON.stringify({ email: email })
             });
             const data = await response.json();
-            
+
             if (!response.ok) {
                 if (data.is_google_user) {
                     if (modal) {
@@ -1391,7 +1495,7 @@
                     modal.classList.remove('active');
                     setTimeout(() => { modal.style.display = 'none'; }, 300);
                 }
-                
+
                 const targetEmailEl = document.getElementById('fp-target-email');
                 if (targetEmailEl) targetEmailEl.textContent = data.email || email;
 
@@ -1400,7 +1504,7 @@
                 document.getElementById('fp-code-state').style.display = 'block';
                 if (typeof showToast === 'function') showToast('Security reset code sent to ' + (data.email || email));
                 startFpResendTimer();
-                
+
                 const fpBoxes = document.querySelectorAll('.fp-otp-box');
                 fpBoxes.forEach(b => b.value = '');
                 if (fpBoxes[0]) fpBoxes[0].focus();
@@ -1423,7 +1527,7 @@
 
     window._verifiedFpOtp = '';
 
-    window.handleFpBack = function(e) {
+    window.handleFpBack = function (e) {
         if (e) e.preventDefault();
         const pwdState = document.getElementById('fp-password-state');
         const codeState = document.getElementById('fp-code-state');
@@ -1440,7 +1544,7 @@
         }
     };
 
-    window.handleFpOtpBoxInput = function(el, index) {
+    window.handleFpOtpBoxInput = function (el, index) {
         el.value = el.value.replace(/[^0-9]/g, '');
         const boxes = document.querySelectorAll('.fp-otp-box');
         if (el.value && index < boxes.length - 1) {
@@ -1448,14 +1552,14 @@
         }
     };
 
-    window.handleFpOtpBoxKeydown = function(el, e, index) {
+    window.handleFpOtpBoxKeydown = function (el, e, index) {
         const boxes = document.querySelectorAll('.fp-otp-box');
         if (e.key === 'Backspace' && !el.value && index > 0) {
             boxes[index - 1].focus();
         }
     };
 
-    window.handleFpOtpPaste = function(e) {
+    window.handleFpOtpPaste = function (e) {
         e.preventDefault();
         const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
         const boxes = document.querySelectorAll('.fp-otp-box');
@@ -1467,12 +1571,12 @@
         }
     };
 
-    window.handleResendFpEmail = function(e) {
+    window.handleResendFpEmail = function (e) {
         if (e) e.preventDefault();
         window.handleForgotPassword(null);
     };
 
-    window.handleVerifyFpCode = async function(e) {
+    window.handleVerifyFpCode = async function (e) {
         if (e) e.preventDefault();
         const email = document.getElementById('fp-target-email').textContent || document.getElementById('fp-email').value;
         const boxes = document.querySelectorAll('.fp-otp-box');
@@ -1507,7 +1611,7 @@
 
             document.getElementById('fp-code-state').style.display = 'none';
             document.getElementById('fp-password-state').style.display = 'block';
-            
+
             const newPwdInput = document.getElementById('fp-new-password');
             if (newPwdInput) {
                 newPwdInput.value = '';
@@ -1527,7 +1631,7 @@
         }
     };
 
-    window.handleResetPasswordSubmit = async function(e) {
+    window.handleResetPasswordSubmit = async function (e) {
         if (e) e.preventDefault();
         const email = document.getElementById('fp-target-email').textContent || document.getElementById('fp-email').value;
         const otp = window._verifiedFpOtp || Array.from(document.querySelectorAll('.fp-otp-box')).map(b => b.value).join('');
@@ -1665,7 +1769,7 @@
         }
     };
 
-    window.triggerGoogleLogin = function(event) {
+    window.triggerGoogleLogin = function (event) {
         if (event && event.preventDefault) event.preventDefault();
 
         if (typeof window.showGoogleOAuthModal === 'function') {
@@ -1707,11 +1811,11 @@
         const stateObj = { timestamp: Date.now(), returnView: 'auth' };
         const stateStr = encodeURIComponent(JSON.stringify(stateObj));
         const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile%20openid&prompt=select_account&state=${stateStr}`;
-        
+
         window.location.href = googleAuthUrl;
     };
 
-    window.handleCredentialResponse = async function(response, onDone) {
+    window.handleCredentialResponse = async function (response, onDone) {
         const googleBtns = document.querySelectorAll('.btn-google');
         try {
             let payloadData = {};
@@ -1740,18 +1844,18 @@
                 console.error('Non-JSON response from Google auth endpoint:', text.substring(0, 200));
                 throw new Error('Invalid response from server. Please try again.');
             }
-            
+
             if (!fetchRes.ok) {
                 throw new Error(data.message || data.error || 'Google login failed');
             }
-            
+
             localStorage.setItem('auth_user', JSON.stringify(data.user));
             localStorage.setItem('intan_elyu_token', data.token);
             if (window.AppStorage) {
                 window.AppStorage.setItem('auth_user', data.user);
                 window.AppStorage.setItem('intan_elyu_token', data.token);
             }
-            
+
             showLoginSuccessModal(data.user);
         } catch (error) {
             console.error('Google Auth Error:', error);
@@ -1798,7 +1902,7 @@
 
     // Lock scroll on login page to ensure completely fixed layout
     (function preventLoginScroll() {
-        document.addEventListener('touchmove', function(e) {
+        document.addEventListener('touchmove', function (e) {
             const wrapper = document.getElementById('forms-wrapper');
             if (wrapper && !wrapper.classList.contains('show-register') && !wrapper.classList.contains('show-forgot') && !wrapper.classList.contains('show-otp')) {
                 // On login page - prevent bounce/scrolling
@@ -1817,7 +1921,7 @@
             var storedH = parseInt(sessionStorage.getItem('auth_locked_screen_h') || '0', 10);
             if (!storedH || winH > storedH) {
                 storedH = Math.max(winH, scrH > 300 ? scrH : winH);
-                try { sessionStorage.setItem('auth_locked_screen_h', storedH); } catch(e) {}
+                try { sessionStorage.setItem('auth_locked_screen_h', storedH); } catch (e) { }
             }
             if (storedH > 0) {
                 var topH = Math.min(330, Math.max(250, Math.round(storedH * 0.38)));
@@ -1839,15 +1943,15 @@
         }
 
         applyLockedDimensions();
-        window.addEventListener('resize', function() {
+        window.addEventListener('resize', function () {
             var currentH = window.innerHeight || 0;
             var storedH = parseInt(sessionStorage.getItem('auth_locked_screen_h') || '0', 10);
             if (currentH > storedH) {
                 applyLockedDimensions();
             }
         });
-        window.addEventListener('orientationchange', function() {
-            try { sessionStorage.removeItem('auth_locked_screen_h'); } catch(e) {}
+        window.addEventListener('orientationchange', function () {
+            try { sessionStorage.removeItem('auth_locked_screen_h'); } catch (e) { }
             setTimeout(applyLockedDimensions, 250);
         });
     })();

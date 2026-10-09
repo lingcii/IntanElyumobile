@@ -12,29 +12,43 @@ $backRoute = 'settings';
     <div class="manual-hero">
         <div class="manual-hero-badge"><i class="fa-solid fa-book-open"></i> User Manual Guide</div>
         <h1>Intan Elyu <span>User Manual</span></h1>
-        <p>Complete step-by-step guide for exploring La Union, Philippines &mdash; from trip planning to earning Points, completing AR check-ins, playing games, and redeeming local vouchers.</p>
-        
+        <p>Complete step-by-step guide for exploring La Union, Philippines &mdash; from trip planning to earning Points,
+            completing AR check-ins, playing games, and redeeming local vouchers.</p>
+
         <!-- Search Box -->
         <div class="manual-search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="manual-search" placeholder="Search guide (e.g. Map, Points, Check-in, Vouchers, 2FA)..." onkeyup="filterManual(this.value)">
+            <input type="text" id="manual-search"
+                placeholder="Search guide (e.g. Map, Points, Check-in, Vouchers, 2FA)..."
+                onkeyup="filterManual(this.value)">
         </div>
 
         <!-- Section Navigation Chips -->
         <div class="manual-nav-chips">
             <button type="button" onclick="selectManualChip('', this)" class="manual-chip active">Overview</button>
-            <button type="button" onclick="selectManualChip('Splash Screen', this)" class="manual-chip">1. Splash</button>
-            <button type="button" onclick="selectManualChip('Login & Registration', this)" class="manual-chip">2. Login</button>
-            <button type="button" onclick="selectManualChip('Dashboard', this)" class="manual-chip">3. Dashboard</button>
+            <button type="button" onclick="selectManualChip('Splash Screen', this)" class="manual-chip">1.
+                Splash</button>
+            <button type="button" onclick="selectManualChip('Login & Registration', this)" class="manual-chip">2.
+                Login</button>
+            <button type="button" onclick="selectManualChip('Dashboard', this)" class="manual-chip">3.
+                Dashboard</button>
             <button type="button" onclick="selectManualChip('Explore Map', this)" class="manual-chip">4. Map</button>
-            <button type="button" onclick="selectManualChip('Itinerary Planner', this)" class="manual-chip">5. Itinerary</button>
-            <button type="button" onclick="selectManualChip('AR Check-In', this)" class="manual-chip">6. AR Check-In</button>
-            <button type="button" onclick="selectManualChip('GameZone Mini-Games', this)" class="manual-chip">7. Games</button>
-            <button type="button" onclick="selectManualChip('Leaderboard & Ranks', this)" class="manual-chip">8. Leaderboard</button>
-            <button type="button" onclick="selectManualChip('Discounts & Vouchers', this)" class="manual-chip">9. Vouchers</button>
-            <button type="button" onclick="selectManualChip('My Profile', this)" class="manual-chip">10. Profile</button>
-            <button type="button" onclick="selectManualChip('Settings & Security', this)" class="manual-chip">11. Settings</button>
-            <button type="button" onclick="selectManualChip('Quick Reference', this)" class="manual-chip">Points Guide</button>
+            <button type="button" onclick="selectManualChip('Itinerary Planner', this)" class="manual-chip">5.
+                Itinerary</button>
+            <button type="button" onclick="selectManualChip('AR Check-In', this)" class="manual-chip">6. AR
+                Check-In</button>
+            <button type="button" onclick="selectManualChip('GameZone Mini-Games', this)" class="manual-chip">7.
+                Games</button>
+            <button type="button" onclick="selectManualChip('Leaderboard & Ranks', this)" class="manual-chip">8.
+                Leaderboard</button>
+            <button type="button" onclick="selectManualChip('Discounts & Vouchers', this)" class="manual-chip">9.
+                Vouchers</button>
+            <button type="button" onclick="selectManualChip('My Profile', this)" class="manual-chip">10.
+                Profile</button>
+            <button type="button" onclick="selectManualChip('Settings & Security', this)" class="manual-chip">11.
+                Settings</button>
+            <button type="button" onclick="selectManualChip('Quick Reference', this)" class="manual-chip">Points
+                Guide</button>
         </div>
     </div>
 
@@ -48,15 +62,34 @@ $backRoute = 'settings';
             </div>
         </div>
         <p style="font-size: 13px; color: rgba(148,163,184,0.9); line-height: 1.5; margin-bottom: 12px;">
-            Intan Elyu provides smart interactive maps, AI-assisted itinerary planning, AR location verification, mini-games, and local merchant voucher rewards.
+            Intan Elyu provides smart interactive maps, AI-assisted itinerary planning, AR location verification,
+            mini-games, and local merchant voucher rewards.
         </p>
         <div class="grid-cards">
-            <div class="grid-card-item"><h4>Explore Map</h4><p>Discover spots, beaches, and heritage sites with GPS navigation.</p></div>
-            <div class="grid-card-item"><h4>Itinerary Planner</h4><p>Build trips with live transport fares and route optimization.</p></div>
-            <div class="grid-card-item"><h4>AR Check-In</h4><p>Scan your location & photo proof to earn +50 Points per spot.</p></div>
-            <div class="grid-card-item"><h4>GameZone</h4><p>Play Slide Puzzle, Memory Match, and Word Scramble for Points.</p></div>
-            <div class="grid-card-item"><h4>Leaderboard</h4><p>Compete across La Union and claim top explorer title.</p></div>
-            <div class="grid-card-item"><h4>Vouchers</h4><p>Redeem Points for local dining, surf, and hotel discounts.</p></div>
+            <div class="grid-card-item">
+                <h4>Explore Map</h4>
+                <p>Discover spots, beaches, and heritage sites with GPS navigation.</p>
+            </div>
+            <div class="grid-card-item">
+                <h4>Itinerary Planner</h4>
+                <p>Build trips with live transport fares and route optimization.</p>
+            </div>
+            <div class="grid-card-item">
+                <h4>AR Check-In</h4>
+                <p>Scan your location & photo proof to earn +50 Points per spot.</p>
+            </div>
+            <div class="grid-card-item">
+                <h4>GameZone</h4>
+                <p>Play Slide Puzzle, Memory Match, and Word Scramble for Points.</p>
+            </div>
+            <div class="grid-card-item">
+                <h4>Leaderboard</h4>
+                <p>Compete across La Union and claim top explorer title.</p>
+            </div>
+            <div class="grid-card-item">
+                <h4>Vouchers</h4>
+                <p>Redeem Points for local dining, surf, and hotel discounts.</p>
+            </div>
         </div>
     </div>
 
@@ -103,21 +136,24 @@ $backRoute = 'settings';
             <div class="step-num">1</div>
             <div class="step-content">
                 <div class="step-title">Register New Account</div>
-                <div class="step-desc">Tap the <strong>Register</strong> tab, enter your First Name, Last Name, Email, and password, then accept the Terms.</div>
+                <div class="step-desc">Tap the <strong>Register</strong> tab, enter your First Name, Last Name, Email,
+                    and password, then accept the Terms.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">2</div>
             <div class="step-content">
                 <div class="step-title">Sign In</div>
-                <div class="step-desc">Enter your email and password on the <strong>Login</strong> tab, then tap the arrow button to log in.</div>
+                <div class="step-desc">Enter your email and password on the <strong>Login</strong> tab, then tap the
+                    arrow button to log in.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">3</div>
             <div class="step-content">
                 <div class="step-title">Google One-Tap Auth</div>
-                <div class="step-desc">Tap <strong>Sign in with Google</strong> for instant authentication without password creation.</div>
+                <div class="step-desc">Tap <strong>Sign in with Google</strong> for instant authentication without
+                    password creation.</div>
             </div>
         </div>
     </div>
@@ -167,21 +203,24 @@ $backRoute = 'settings';
             <div class="step-num">1</div>
             <div class="step-content">
                 <div class="step-title">Browse Map Markers</div>
-                <div class="step-desc">Tap any destination pin on the map to open the detail sheet with entrance fees, descriptions, and photos.</div>
+                <div class="step-desc">Tap any destination pin on the map to open the detail sheet with entrance fees,
+                    descriptions, and photos.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">2</div>
             <div class="step-content">
                 <div class="step-title">Filter by Category</div>
-                <div class="step-desc">Filter spots by <strong>Beaches</strong>, <strong>Surfing</strong>, <strong>Food &amp; Dining</strong>, <strong>Heritage</strong>, or <strong>Waterfalls</strong>.</div>
+                <div class="step-desc">Filter spots by <strong>Beaches</strong>, <strong>Surfing</strong>, <strong>Food
+                        &amp; Dining</strong>, <strong>Heritage</strong>, or <strong>Waterfalls</strong>.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">3</div>
             <div class="step-content">
                 <div class="step-title">Add to Itinerary</div>
-                <div class="step-desc">Tap <strong>Add to Itinerary</strong> on any spot to queue it in your draft trip planner.</div>
+                <div class="step-desc">Tap <strong>Add to Itinerary</strong> on any spot to queue it in your draft trip
+                    planner.</div>
             </div>
         </div>
     </div>
@@ -206,14 +245,18 @@ $backRoute = 'settings';
             <div class="step-num">2</div>
             <div class="step-content">
                 <div class="step-title">Select Route &amp; Transport Mode</div>
-                <div class="step-desc">Choose <strong>Recommended</strong>, <strong>Alternative</strong>, or <strong>Scenic Route</strong>, and pick your transport (Own Car, Taxi, Bus, Jeepney, Tricycle).</div>
+                <div class="step-desc">Choose <strong>Recommended</strong>, <strong>Alternative</strong>, or
+                    <strong>Scenic Route</strong>, and pick your transport (Own Car, Taxi, Bus, Jeepney, Tricycle).
+                </div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">3</div>
             <div class="step-content">
                 <div class="step-title">Calculate Budget &amp; Save Trip</div>
-                <div class="step-desc">Set your travel budget to view the automated color-coded budget pie chart (Green for within budget, Orange for nearing limit, and Red for over budget). Tap <strong>Save Trip</strong> to store under <strong>My Saved Trips</strong>.</div>
+                <div class="step-desc">Set your travel budget to view the automated color-coded budget pie chart (Green
+                    for within budget, Orange for nearing limit, and Red for over budget). Tap <strong>Save
+                        Trip</strong> to store under <strong>My Saved Trips</strong>.</div>
             </div>
         </div>
     </div>
@@ -231,21 +274,25 @@ $backRoute = 'settings';
             <div class="step-num">1</div>
             <div class="step-content">
                 <div class="step-title">Arrive at Destination</div>
-                <div class="step-desc">Visit the tourist spot in your planned trip and open your trip route or saved trip stops.</div>
+                <div class="step-desc">Visit the tourist spot in your planned trip and open your trip route or saved
+                    trip stops.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">2</div>
             <div class="step-content">
                 <div class="step-title">Attach Photo Proof &amp; Verify GPS</div>
-                <div class="step-desc">Capture a photo or selfie at the spot, then tap <strong>Verify Location &amp; Submit</strong>. Check-in is an explicit verification process rather than automatic detection.</div>
+                <div class="step-desc">Capture a photo or selfie at the spot, then tap <strong>Verify Location &amp;
+                        Submit</strong>. Check-in is an explicit verification process rather than automatic detection.
+                </div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">3</div>
             <div class="step-content">
                 <div class="step-title">Review &amp; Reward</div>
-                <div class="step-desc">Your check-in is set to <strong>Pending</strong>. Once reviewed and approved by tourism officers, you will be awarded <strong>+50 Points</strong>!</div>
+                <div class="step-desc">Your check-in is set to <strong>Pending</strong>. Once reviewed and approved by
+                    tourism officers, you will be awarded <strong>+50 Points</strong>!</div>
             </div>
         </div>
     </div>
@@ -263,7 +310,8 @@ $backRoute = 'settings';
             <div class="step-num">1</div>
             <div class="step-content">
                 <div class="step-title">Slide Puzzle (+100 Points)</div>
-                <div class="step-desc">Rearrange image tiles of iconic La Union landmarks into their complete picture.</div>
+                <div class="step-desc">Rearrange image tiles of iconic La Union landmarks into their complete picture.
+                </div>
             </div>
         </div>
         <div class="step-card">
@@ -277,7 +325,8 @@ $backRoute = 'settings';
             <div class="step-num">3</div>
             <div class="step-content">
                 <div class="step-title">Word Scramble (+75 Points)</div>
-                <div class="step-desc">Unscramble letters to spell La Union municipalities, attractions, and beaches.</div>
+                <div class="step-desc">Unscramble letters to spell La Union municipalities, attractions, and beaches.
+                </div>
             </div>
         </div>
     </div>
@@ -295,14 +344,16 @@ $backRoute = 'settings';
             <div class="step-num">1</div>
             <div class="step-content">
                 <div class="step-title">Check Your Rank</div>
-                <div class="step-desc">View your global rank among all tourists and explorers travelling across La Union.</div>
+                <div class="step-desc">View your global rank among all tourists and explorers travelling across La
+                    Union.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">2</div>
             <div class="step-content">
                 <div class="step-title">Unlock Explorer Titles</div>
-                <div class="step-desc">Earn higher rank titles: *Novice Explorer* &rarr; *Beach Wanderer* &rarr; *Master Explorer of Elyu*.</div>
+                <div class="step-desc">Earn higher rank titles: *Novice Explorer* &rarr; *Beach Wanderer* &rarr; *Master
+                    Explorer of Elyu*.</div>
             </div>
         </div>
     </div>
@@ -320,21 +371,24 @@ $backRoute = 'settings';
             <div class="step-num">1</div>
             <div class="step-content">
                 <div class="step-title">Browse Merchant Deals</div>
-                <div class="step-desc">Explore available vouchers from local partner restaurants, surf camps, cafes, and hotels.</div>
+                <div class="step-desc">Explore available vouchers from local partner restaurants, surf camps, cafes, and
+                    hotels.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">2</div>
             <div class="step-content">
                 <div class="step-title">Redeem Points for Vouchers</div>
-                <div class="step-desc">Use accumulated reward points from AR check-ins and GameZone mini-games to unlock active promo discounts.</div>
+                <div class="step-desc">Use accumulated reward points from AR check-ins and GameZone mini-games to unlock
+                    active promo discounts.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">3</div>
             <div class="step-content">
                 <div class="step-title">Copy Code &amp; Claim Discount</div>
-                <div class="step-desc">Copy your unique voucher discount code or present the QR code directly to the merchant upon payment.</div>
+                <div class="step-desc">Copy your unique voucher discount code or present the QR code directly to the
+                    merchant upon payment.</div>
             </div>
         </div>
     </div>
@@ -352,21 +406,24 @@ $backRoute = 'settings';
             <div class="step-num">1</div>
             <div class="step-content">
                 <div class="step-title">Edit Details &amp; Preferences</div>
-                <div class="step-desc">Tap <strong>Edit Profile</strong> to customize your avatar, bio, and travel preference tags with seamless auto-scroll to top.</div>
+                <div class="step-desc">Tap <strong>Edit Profile</strong> to customize your avatar, bio, and travel
+                    preference tags with seamless auto-scroll to top.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">2</div>
             <div class="step-content">
                 <div class="step-title">Review Visits &amp; Badges</div>
-                <div class="step-desc">Track completed destination visits, check-in history, earned Points milestones, and unlocked badges.</div>
+                <div class="step-desc">Track completed destination visits, check-in history, earned Points milestones,
+                    and unlocked badges.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">3</div>
             <div class="step-content">
                 <div class="step-title">Secure Sign Out</div>
-                <div class="step-desc">End your tourist session safely anytime by tapping <strong>Log Out</strong> at the bottom of the Profile menu.</div>
+                <div class="step-desc">End your tourist session safely anytime by tapping <strong>Log Out</strong> at
+                    the bottom of the Profile menu.</div>
             </div>
         </div>
     </div>
@@ -377,28 +434,32 @@ $backRoute = 'settings';
             <div class="manual-section-icon red"><i class="fa-solid fa-sliders"></i></div>
             <div>
                 <h2 class="manual-section-title">Step 11 &mdash; Settings &amp; Security</h2>
-                <p class="manual-section-sub">Account security, two-factor authentication, user guide, and cache maintenance</p>
+                <p class="manual-section-sub">Account security, two-factor authentication, user guide, and cache
+                    maintenance</p>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">1</div>
             <div class="step-content">
                 <div class="step-title">Profile Details &amp; Password Security</div>
-                <div class="step-desc">Jump straight to <strong>Edit Profile Details</strong> to adjust your name, bio, and preferences, or tap <strong>Change Password</strong> to update your login password.</div>
+                <div class="step-desc">Jump straight to <strong>Edit Profile Details</strong> to adjust your name, bio,
+                    and preferences, or tap <strong>Change Password</strong> to update your login password.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">2</div>
             <div class="step-content">
                 <div class="step-title">Two-Factor Authentication (2FA)</div>
-                <div class="step-desc">Protect your account by enabling <strong>Two-Factor Authentication (2FA)</strong> with instant OTP email verification codes upon signing in.</div>
+                <div class="step-desc">Protect your account by enabling <strong>Two-Factor Authentication (2FA)</strong>
+                    with instant OTP email verification codes upon signing in.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">3</div>
             <div class="step-content">
                 <div class="step-title">Documentation &amp; Storage Maintenance</div>
-                <div class="step-desc">Access the in-app <strong>User Manual</strong>, clear temporary cache memory with <strong>Clear Storage Cache</strong>, and check the latest app version.</div>
+                <div class="step-desc">Access the in-app <strong>User Manual</strong>, clear temporary cache memory with
+                    <strong>Clear Storage Cache</strong>, and check the latest app version.</div>
             </div>
         </div>
     </div>
@@ -453,45 +514,45 @@ $backRoute = 'settings';
 </div>
 
 <script>
-(function() {
-    var backBtn = document.querySelector('.header-icon .fa-arrow-left');
-    if (backBtn) {
-        backBtn.closest('.header-icon').onclick = function() {
-            if (typeof navigateTo === 'function') {
-                navigateTo('settings');
-            } else {
-                history.back();
+    (function () {
+        var backBtn = document.querySelector('.header-icon .fa-arrow-left');
+        if (backBtn) {
+            backBtn.closest('.header-icon').onclick = function () {
+                if (typeof navigateTo === 'function') {
+                    navigateTo('settings');
+                } else {
+                    history.back();
+                }
+            };
+        }
+    })();
+
+    window.selectManualChip = function (keyword, btn) {
+        if (btn) {
+            document.querySelectorAll('.manual-chip').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+        }
+        const searchInput = document.getElementById('manual-search');
+        if (searchInput) {
+            searchInput.value = keyword;
+        }
+        window.filterManual(keyword);
+    };
+
+    window.filterManual = function (query) {
+        const q = (query || '').toLowerCase().trim();
+        const sections = document.querySelectorAll('.manual-section');
+        sections.forEach(sec => {
+            if (!q) {
+                sec.style.display = 'block';
+                return;
             }
-        };
-    }
-})();
-
-window.selectManualChip = function(keyword, btn) {
-    if (btn) {
-        document.querySelectorAll('.manual-chip').forEach(c => c.classList.remove('active'));
-        btn.classList.add('active');
-    }
-    const searchInput = document.getElementById('manual-search');
-    if (searchInput) {
-        searchInput.value = keyword;
-    }
-    window.filterManual(keyword);
-};
-
-window.filterManual = function(query) {
-    const q = (query || '').toLowerCase().trim();
-    const sections = document.querySelectorAll('.manual-section');
-    sections.forEach(sec => {
-        if (!q) {
-            sec.style.display = 'block';
-            return;
-        }
-        const text = sec.innerText.toLowerCase();
-        if (text.includes(q)) {
-            sec.style.display = 'block';
-        } else {
-            sec.style.display = 'none';
-        }
-    });
-};
+            const text = sec.innerText.toLowerCase();
+            if (text.includes(q)) {
+                sec.style.display = 'block';
+            } else {
+                sec.style.display = 'none';
+            }
+        });
+    };
 </script>

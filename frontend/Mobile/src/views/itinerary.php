@@ -69,15 +69,21 @@ try {
         <div id="draft-travel-mode-bar" onclick="window.openTravelModeStarterModal()"
             style="display:flex; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; color:#ffffff; padding:11px 16px; border-radius:16px; margin-bottom:14px; cursor:pointer; border:none !important; outline:none !important; box-shadow:none !important; transition:all 0.2s ease;">
             <div style="display:flex; align-items:center; gap:10px; min-width:0; flex:1;">
-                <div id="draft-travel-mode-icon" style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+                <div id="draft-travel-mode-icon"
+                    style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
                     <i class="fa-solid fa-car" style="color:#1e3a8a !important;"></i>
                 </div>
                 <div style="min-width:0; flex:1;">
-                    <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:rgba(255,255,255,0.8);">Trip Transportation</div>
-                    <div id="draft-travel-mode-label" style="font-size:13.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Own Car</div>
+                    <div
+                        style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:rgba(255,255,255,0.8);">
+                        Trip Transportation</div>
+                    <div id="draft-travel-mode-label"
+                        style="font-size:13.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        Own Car</div>
                 </div>
             </div>
-            <span style="font-size:11px; font-weight:800; background:rgba(255,255,255,0.22); color:#ffffff; padding:4px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
+            <span
+                style="font-size:11px; font-weight:800; background:rgba(255,255,255,0.22); color:#ffffff; padding:4px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
                 <i class="fa-solid fa-sliders" style="font-size:10px;"></i> Change
             </span>
         </div>
@@ -110,7 +116,8 @@ try {
                 <div
                     style="color:white; font-size:14px; font-weight:700; display:flex; flex-direction:column; align-items:center;">
                     <div><i class="fa-solid fa-clock" style="color:#00f2fe; margin-right:6px; font-size:16px;"></i>
-                        <span id="draft-map-time">0 min</span></div>
+                        <span id="draft-map-time">0 min</span>
+                    </div>
                     <div id="draft-traffic-warning"
                         style="display:none; margin-top:2px; font-size:10px; font-weight:500;">
                     </div>
@@ -144,7 +151,8 @@ try {
                 style="width:100%; padding:14px 18px; border-radius:18px; font-weight:800; font-size:14px; border:none !important; outline:none !important; background:#ffffff !important; color:#1e3a8a !important; box-shadow:0 4px 14px rgba(0, 0, 0, 0.15) !important; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
                 <i class="fa-solid fa-car-side" style="color:#1e3a8a !important;"></i> Select Vehicle
             </button>
-            <button class="btn-open-map" onclick="navigateTo('map')" style="width:100%; margin:0; justify-content:center;">
+            <button class="btn-open-map" onclick="navigateTo('map')"
+                style="width:100%; margin:0; justify-content:center;">
                 <i class="fa-solid fa-location-dot"></i> Browse Map
             </button>
         </div>
@@ -242,31 +250,38 @@ try {
 
         <!-- Point-to-Point Route & Transit Summary Card (Tap to view opensheet) -->
         <input type="hidden" id="trip-transport" value="">
-        <div id="save-p2p-transit-summary"
-            onclick="window.openTransitSummaryOpensheet()"
-            role="button"
-            tabindex="0"
+        <div id="save-p2p-transit-summary" onclick="window.openTransitSummaryOpensheet()" role="button" tabindex="0"
             title="Tap to view per-destination transit summary"
             style="background:rgba(255,255,255,0.08); border-radius:16px; padding:14px 16px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; border:1px solid rgba(255,255,255,0.14); cursor:pointer; user-select:none; transition:background 0.2s ease, transform 0.15s ease;"
             onpointerdown="this.style.transform='scale(0.98)'; this.style.background='rgba(255,255,255,0.14)';"
             onpointerup="this.style.transform='scale(1)'; this.style.background='rgba(255,255,255,0.08)';"
             onpointerleave="this.style.transform='scale(1)'; this.style.background='rgba(255,255,255,0.08)';">
             <div style="display:flex; align-items:center; gap:12px; min-width:0;">
-                <div id="save-p2p-transit-icon" style="width:40px; height:40px; border-radius:12px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+                <div id="save-p2p-transit-icon"
+                    style="width:40px; height:40px; border-radius:12px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.15);">
                     <i class="fa-solid fa-car" style="color:#1e3a8a !important; font-size:16px;"></i>
                 </div>
                 <div style="min-width:0;">
-                    <div style="font-size:10px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:2px;">Transport Mode</div>
-                    <div id="save-p2p-transit-label" style="font-size:13px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Own Car</div>
-                    <div id="save-p2p-legs-count" style="font-size:11px; color:rgba(255,255,255,0.75); margin-top:1px;">Tap to view destination summary</div>
+                    <div
+                        style="font-size:10px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:2px;">
+                        Transport Mode</div>
+                    <div id="save-p2p-transit-label"
+                        style="font-size:13px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        Own Car</div>
+                    <div id="save-p2p-legs-count" style="font-size:11px; color:rgba(255,255,255,0.75); margin-top:1px;">
+                        Tap to view destination summary</div>
                 </div>
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
                 <div style="text-align:right; flex-shrink:0;">
-                    <div style="font-size:10px; color:rgba(255,255,255,0.65); font-weight:700; text-transform:uppercase;">Transit Total</div>
-                    <div id="save-p2p-transit-cost" style="font-size:16px; font-weight:800; color:#00f2fe; margin-top:2px;">₱0.00</div>
+                    <div
+                        style="font-size:10px; color:rgba(255,255,255,0.65); font-weight:700; text-transform:uppercase;">
+                        Transit Total</div>
+                    <div id="save-p2p-transit-cost"
+                        style="font-size:16px; font-weight:800; color:#00f2fe; margin-top:2px;">₱0.00</div>
                 </div>
-                <i class="fa-solid fa-chevron-right" style="color:rgba(255,255,255,0.55); font-size:12px; margin-left:2px;"></i>
+                <i class="fa-solid fa-chevron-right"
+                    style="color:rgba(255,255,255,0.55); font-size:12px; margin-left:2px;"></i>
             </div>
         </div>
 
@@ -302,14 +317,19 @@ try {
                 </div>
                 <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-size:10px; color:rgba(255,255,255,0.7); font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Estimated Cost</span>
-                        <h4 style="margin:0; font-size:15px; color:#ffffff; font-weight:900;" id="save-estimated-cost">₱0.00</h4>
+                        <span
+                            style="font-size:10px; color:rgba(255,255,255,0.7); font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Estimated
+                            Cost</span>
+                        <h4 style="margin:0; font-size:15px; color:#ffffff; font-weight:900;" id="save-estimated-cost">
+                            ₱0.00</h4>
                     </div>
                     <div id="save-budget-remaining-row"
                         style="display:none; justify-content:space-between; align-items:center; padding-top:6px; border-top:1px solid rgba(255,255,255,0.08);">
-                        <span style="font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.3px; white-space:nowrap;"
+                        <span
+                            style="font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.3px; white-space:nowrap;"
                             id="save-budget-remaining-label">Remaining</span>
-                        <span style="font-size:13.5px; font-weight:900; white-space:nowrap;" id="save-budget-remaining-val">—</span>
+                        <span style="font-size:13.5px; font-weight:900; white-space:nowrap;"
+                            id="save-budget-remaining-val">—</span>
                     </div>
                 </div>
             </div>
@@ -353,40 +373,55 @@ try {
 <!-- Transit Summary Modal (Opensheet from Save Trip Modal) -->
 <div id="transit-summary-opensheet" onclick="if(event.target===this) window.closeTransitSummaryOpensheet()"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6, 11, 25, 0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:100005 !important; justify-content:center; align-items:flex-end; padding:0;">
-    <div style="background:#ffffff !important; border-radius:28px 28px 0 0; width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; max-height:86vh; display:flex; flex-direction:column; box-sizing:border-box; overflow:hidden; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
-        
+    <div
+        style="background:#ffffff !important; border-radius:28px 28px 0 0; width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; max-height:86vh; display:flex; flex-direction:column; box-sizing:border-box; overflow:hidden; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
+
         <!-- Header (Royal Blue Banner) -->
-        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 18px; color:#ffffff; flex-shrink:0; border:none !important; outline:none !important;">
+        <div
+            style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 18px; color:#ffffff; flex-shrink:0; border:none !important; outline:none !important;">
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <div style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                    <div
+                        style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
                         <i class="fa-solid fa-map-location-dot" style="color:#1e3a8a !important; font-size:15px;"></i>
                     </div>
                     <div style="display:flex; align-items:center; gap:6px;">
-                        <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Transit Summary</h3>
-                        <span id="transit-summary-badge" style="font-size:9.5px; font-weight:800; background:rgba(255, 255, 255, 0.2); color:#ffffff; padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">0 Destinations</span>
+                        <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">
+                            Transit Summary</h3>
+                        <span id="transit-summary-badge"
+                            style="font-size:9.5px; font-weight:800; background:rgba(255, 255, 255, 0.2); color:#ffffff; padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">0
+                            Destinations</span>
                     </div>
                 </div>
-                <button type="button" onclick="window.closeTransitSummaryOpensheet()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink:0; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                <button type="button" onclick="window.closeTransitSummaryOpensheet()"
+                    style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink:0; transition:transform 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
                     <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; font-size:14px;"></i>
                 </button>
             </div>
         </div>
 
         <!-- Body: Destinations Summary List -->
-        <div style="background:#f8fafc; color:#1e293b; padding:16px 18px 12px 18px; flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box; -webkit-overflow-scrolling:touch;">
+        <div
+            style="background:#f8fafc; color:#1e293b; padding:16px 18px 12px 18px; flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box; -webkit-overflow-scrolling:touch;">
             <div id="transit-summary-items-list" style="display:flex; flex-direction:column; gap:10px;">
                 <!-- Populated dynamically via JS -->
             </div>
         </div>
 
         <!-- Footer: Total Transit Fare Banner -->
-        <div style="flex-shrink:0; padding:14px 18px calc(14px + env(safe-area-inset-bottom, 0px)) 18px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); display:flex; align-items:center; justify-content:space-between; gap:12px; border:none !important; outline:none !important;">
+        <div
+            style="flex-shrink:0; padding:14px 18px calc(14px + env(safe-area-inset-bottom, 0px)) 18px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); display:flex; align-items:center; justify-content:space-between; gap:12px; border:none !important; outline:none !important;">
             <div>
-                <div style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.5px;">Total Transit Fare</div>
-                <div id="transit-summary-total-fare" style="font-size:18px; font-weight:900; color:#ffffff; letter-spacing:-0.2px;">₱0.00</div>
+                <div
+                    style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.5px;">
+                    Total Transit Fare</div>
+                <div id="transit-summary-total-fare"
+                    style="font-size:18px; font-weight:900; color:#ffffff; letter-spacing:-0.2px;">₱0.00</div>
             </div>
-            <button type="button" onclick="window.closeTransitSummaryOpensheet()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; cursor:pointer; padding:9px 20px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; display:inline-flex; align-items:center; gap:7px; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
+            <button type="button" onclick="window.closeTransitSummaryOpensheet()"
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; cursor:pointer; padding:9px 20px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; display:inline-flex; align-items:center; gap:7px; transition:transform 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
                 <i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Done
             </button>
         </div>
@@ -397,67 +432,93 @@ try {
 <!-- Point-to-Point Leg Transport Selection Modal (Bottom Sheet) -->
 <div id="leg-transport-modal"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6, 11, 25, 0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:100003 !important; justify-content:center; align-items:flex-end; padding:0;">
-    <div style="background:#ffffff !important; border-radius:28px 28px 0 0; width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; max-height:88vh; display:flex; flex-direction:column; box-sizing:border-box; overflow:hidden; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
-        
+    <div
+        style="background:#ffffff !important; border-radius:28px 28px 0 0; width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; max-height:88vh; display:flex; flex-direction:column; box-sizing:border-box; overflow:hidden; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
+
         <!-- Header (Royal Blue Banner) -->
-        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 18px 14px 18px; color:#ffffff; flex-shrink:0; border:none !important; outline:none !important;">
-            <div style="width:36px; height:4px; background:rgba(255,255,255,0.35); border-radius:99px; margin:0 auto 12px auto;"></div>
+        <div
+            style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 18px 14px 18px; color:#ffffff; flex-shrink:0; border:none !important; outline:none !important;">
+            <div
+                style="width:36px; height:4px; background:rgba(255,255,255,0.35); border-radius:99px; margin:0 auto 12px auto;">
+            </div>
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <div style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                    <div
+                        style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
                         <i class="fa-solid fa-route" style="color:#1e3a8a !important; font-size:15px;"></i>
                     </div>
                     <div>
                         <div style="display:flex; align-items:center; gap:6px;">
-                            <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Choose Leg Transports</h3>
-                            <span style="font-size:9.5px; font-weight:800; background:rgba(255, 255, 255, 0.2); color:#ffffff; padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">Multi-Select</span>
+                            <h3
+                                style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">
+                                Choose Leg Transports</h3>
+                            <span
+                                style="font-size:9.5px; font-weight:800; background:rgba(255, 255, 255, 0.2); color:#ffffff; padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">Multi-Select</span>
                         </div>
-                        <div id="leg-modal-subtitle" style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">
+                        <div id="leg-modal-subtitle"
+                            style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">
                             Leg Route Details
                         </div>
                     </div>
                 </div>
-                <button type="button" onclick="window.closeLegTransportModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink:0; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                <button type="button" onclick="window.closeLegTransportModal()"
+                    style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink:0; transition:transform 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
                     <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; font-size:14px;"></i>
                 </button>
             </div>
         </div>
 
         <!-- Body Below Header (Pure White Background) -->
-        <div style="background:#ffffff !important; color:#1e293b; padding:16px 18px 12px 18px; flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;">
-            
+        <div
+            style="background:#ffffff !important; color:#1e293b; padding:16px 18px 12px 18px; flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;">
+
             <!-- Multi-Select Selection Info Bar -->
-            <div id="leg-modal-selection-bar" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; background:#f8fafc; padding:8px 12px; border-radius:12px; border:1px solid #e2e8f0;">
-                <span style="font-size:12px; font-weight:700; color:#1e3a8a; display:flex; align-items:center; gap:6px;">
-                    <i class="fa-solid fa-check-double" style="color:#1e3a8a; font-size:12px;"></i> Select multiple vehicles if needed:
+            <div id="leg-modal-selection-bar"
+                style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; background:#f8fafc; padding:8px 12px; border-radius:12px; border:1px solid #e2e8f0;">
+                <span
+                    style="font-size:12px; font-weight:700; color:#1e3a8a; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-check-double" style="color:#1e3a8a; font-size:12px;"></i> Select multiple
+                    vehicles if needed:
                 </span>
-                <span id="leg-modal-selection-count" style="font-size:10.5px; font-weight:800; background:rgba(30, 58, 138, 0.08); color:#1e3a8a; padding:3px 10px; border-radius:100px;">
+                <span id="leg-modal-selection-count"
+                    style="font-size:10.5px; font-weight:800; background:rgba(30, 58, 138, 0.08); color:#1e3a8a; padding:3px 10px; border-radius:100px;">
                     1 Selected
                 </span>
             </div>
 
             <!-- Warning Notice if destination is inaccessible by private car -->
-            <div id="leg-modal-warning" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:14px; padding:10px 12px; margin-bottom:12px; display:flex; gap:10px; align-items:flex-start;">
-                <i class="fa-solid fa-triangle-exclamation" style="color:#d97706; font-size:14px; margin-top:2px; flex-shrink:0;"></i>
+            <div id="leg-modal-warning"
+                style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:14px; padding:10px 12px; margin-bottom:12px; display:flex; gap:10px; align-items:flex-start;">
+                <i class="fa-solid fa-triangle-exclamation"
+                    style="color:#d97706; font-size:14px; margin-top:2px; flex-shrink:0;"></i>
                 <div style="font-size:11.5px; color:#92400e; line-height:1.4;">
-                    <strong>Restricted Access:</strong> <span id="leg-modal-warning-text">This spot is not accessible by private car. Park at Trailhead and hike or take a local tricycle.</span>
+                    <strong>Restricted Access:</strong> <span id="leg-modal-warning-text">This spot is not accessible by
+                        private car. Park at Trailhead and hike or take a local tricycle.</span>
                 </div>
             </div>
 
             <!-- Transport Options List -->
-            <div id="leg-modal-options-list" style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:9px; padding-right:2px; -webkit-overflow-scrolling:touch; max-height:48vh; margin-bottom:4px;">
+            <div id="leg-modal-options-list"
+                style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:9px; padding-right:2px; -webkit-overflow-scrolling:touch; max-height:48vh; margin-bottom:4px;">
                 <!-- Rendered dynamically -->
             </div>
 
         </div>
 
         <!-- Locked Bottom Footer Banner -->
-        <div style="flex-shrink:0; padding:12px 18px calc(14px + env(safe-area-inset-bottom, 0px)) 18px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); display:flex; align-items:center; justify-content:space-between; gap:12px; border:none !important; outline:none !important;">
+        <div
+            style="flex-shrink:0; padding:12px 18px calc(14px + env(safe-area-inset-bottom, 0px)) 18px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); display:flex; align-items:center; justify-content:space-between; gap:12px; border:none !important; outline:none !important;">
             <div id="leg-modal-fare-container">
-                <div style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.5px;">Estimated Leg Fare</div>
-                <div id="leg-modal-total-fare" style="font-size:18px; font-weight:900; color:#ffffff; letter-spacing:-0.2px;">₱0.00</div>
+                <div
+                    style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.5px;">
+                    Estimated Leg Fare</div>
+                <div id="leg-modal-total-fare"
+                    style="font-size:18px; font-weight:900; color:#ffffff; letter-spacing:-0.2px;">₱0.00</div>
             </div>
-            <button type="button" id="btn-apply-leg-transport" onclick="window.applyLegVehicleSelection()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; cursor:pointer; padding:9px 18px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; display:inline-flex; align-items:center; gap:7px; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
+            <button type="button" id="btn-apply-leg-transport" onclick="window.applyLegVehicleSelection()"
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; cursor:pointer; padding:9px 18px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; display:inline-flex; align-items:center; gap:7px; transition:transform 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
                 <i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Done
             </button>
         </div>
@@ -468,66 +529,88 @@ try {
 <!-- Vehicle Selection Modal (Bottom Sheet - Matched to Leg Transport Modal) -->
 <div id="travel-mode-starter-modal" onclick="if(event.target===this) window.closeTravelModeStarterModal()"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6, 11, 25, 0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:100003 !important; justify-content:center; align-items:flex-end; padding:0;">
-    <div style="background:#ffffff !important; border-radius:28px 28px 0 0; width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; max-height:88vh; display:flex; flex-direction:column; box-sizing:border-box; overflow:hidden; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
-        
+    <div
+        style="background:#ffffff !important; border-radius:28px 28px 0 0; width:100%; max-width:480px; box-shadow:0 -10px 40px rgba(10, 25, 60, 0.5) !important; max-height:88vh; display:flex; flex-direction:column; box-sizing:border-box; overflow:hidden; animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);">
+
         <!-- Header (Royal Blue Banner) -->
-        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 18px 14px 18px; color:#ffffff; flex-shrink:0; border:none !important; outline:none !important;">
-            <div style="width:36px; height:4px; background:rgba(255,255,255,0.35); border-radius:99px; margin:0 auto 12px auto;"></div>
+        <div
+            style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 18px 14px 18px; color:#ffffff; flex-shrink:0; border:none !important; outline:none !important;">
+            <div
+                style="width:36px; height:4px; background:rgba(255,255,255,0.35); border-radius:99px; margin:0 auto 12px auto;">
+            </div>
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <div style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                    <div
+                        style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
                         <i class="fa-solid fa-car-side" style="color:#1e3a8a !important; font-size:15px;"></i>
                     </div>
                     <div>
                         <div style="display:flex; align-items:center; gap:6px;">
-                            <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Choose Your Vehicle</h3>
-                            <span style="font-size:9.5px; font-weight:800; background:rgba(255, 255, 255, 0.2); color:#ffffff; padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">Multi-Select</span>
+                            <h3
+                                style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">
+                                Choose Your Vehicle</h3>
+                            <span
+                                style="font-size:9.5px; font-weight:800; background:rgba(255, 255, 255, 0.2); color:#ffffff; padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">Multi-Select</span>
                         </div>
                         <div style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">
                             Select one or more vehicles for your trip
                         </div>
                     </div>
                 </div>
-                <button type="button" onclick="window.closeTravelModeStarterModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink:0; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                <button type="button" onclick="window.closeTravelModeStarterModal()"
+                    style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink:0; transition:transform 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
                     <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; font-size:14px;"></i>
                 </button>
             </div>
         </div>
 
         <!-- Body Below Header (Pure White Background) -->
-        <div style="background:#ffffff !important; color:#1e293b; padding:16px 18px 12px 18px; flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;">
-            
+        <div
+            style="background:#ffffff !important; color:#1e293b; padding:16px 18px 12px 18px; flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;">
+
             <!-- Multi-Select Selection Info Bar -->
-            <div id="starter-modal-selection-bar" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; background:#f8fafc; padding:8px 12px; border-radius:12px; border:1px solid #e2e8f0;">
-                <span style="font-size:12px; font-weight:700; color:#1e3a8a; display:flex; align-items:center; gap:6px;">
-                    <i class="fa-solid fa-check-double" style="color:#1e3a8a; font-size:12px;"></i> Select multiple vehicles if needed:
+            <div id="starter-modal-selection-bar"
+                style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; background:#f8fafc; padding:8px 12px; border-radius:12px; border:1px solid #e2e8f0;">
+                <span
+                    style="font-size:12px; font-weight:700; color:#1e3a8a; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-check-double" style="color:#1e3a8a; font-size:12px;"></i> Select multiple
+                    vehicles if needed:
                 </span>
-                <span id="starter-modal-selection-count" style="font-size:10.5px; font-weight:800; background:rgba(30, 58, 138, 0.08); color:#1e3a8a; padding:3px 10px; border-radius:100px;">
+                <span id="starter-modal-selection-count"
+                    style="font-size:10.5px; font-weight:800; background:rgba(30, 58, 138, 0.08); color:#1e3a8a; padding:3px 10px; border-radius:100px;">
                     1 Selected
                 </span>
             </div>
 
             <!-- Information Bar -->
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; background:#f8fafc; padding:10px 12px; border-radius:12px; border:1px solid #e2e8f0; font-size:11.5px; color:#475569; line-height:1.4;">
+            <div
+                style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; background:#f8fafc; padding:10px 12px; border-radius:12px; border:1px solid #e2e8f0; font-size:11.5px; color:#475569; line-height:1.4;">
                 <span style="display:flex; align-items:center; gap:8px;">
                     <i class="fa-solid fa-circle-info" style="color:#0284c7; font-size:13px; flex-shrink:0;"></i>
-                    <span>Select multiple vehicles for connecting routes (e.g. Car + Tricycle for trailhead access or Bus + Jeepney).</span>
+                    <span>Select multiple vehicles for connecting routes (e.g. Car + Tricycle for trailhead access or
+                        Bus + Jeepney).</span>
                 </span>
             </div>
 
             <!-- Transport Options List -->
-            <div style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:9px; padding-right:2px; -webkit-overflow-scrolling:touch; max-height:48vh; margin-bottom:4px;">
-                
+            <div
+                style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:9px; padding-right:2px; -webkit-overflow-scrolling:touch; max-height:48vh; margin-bottom:4px;">
+
                 <!-- Category 1: Private Vehicles -->
-                <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:#1e3a8a; letter-spacing:0.6px; margin:4px 0 2px 2px; display:flex; align-items:center; gap:6px;">
+                <div
+                    style="font-size:11px; font-weight:800; text-transform:uppercase; color:#1e3a8a; letter-spacing:0.6px; margin:4px 0 2px 2px; display:flex; align-items:center; gap:6px;">
                     <i class="fa-solid fa-car" style="font-size:11px; color:#1e3a8a;"></i> Private Vehicles
                 </div>
 
                 <!-- Option 1: Own Car -->
-                <div class="travel-starter-card" data-mode="own_car" onclick="window.toggleStarterVehicleMode('own_car')">
+                <div class="travel-starter-card" data-mode="own_car"
+                    onclick="window.toggleStarterVehicleMode('own_car')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
+                        <div class="starter-check-box"
+                            style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon"
+                                style="color:#1e3a8a !important; display:none;"></i>
                         </div>
                         <div class="travel-starter-icon">
                             <i class="fa-solid fa-car"></i>
@@ -537,17 +620,21 @@ try {
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                        <span class="starter-active-badge"
+                            style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
                             <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
                         </span>
                     </div>
                 </div>
 
                 <!-- Option 2: Motorcycle -->
-                <div class="travel-starter-card" data-mode="motorcycle" onclick="window.toggleStarterVehicleMode('motorcycle')">
+                <div class="travel-starter-card" data-mode="motorcycle"
+                    onclick="window.toggleStarterVehicleMode('motorcycle')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
+                        <div class="starter-check-box"
+                            style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon"
+                                style="color:#1e3a8a !important; display:none;"></i>
                         </div>
                         <div class="travel-starter-icon">
                             <i class="fa-solid fa-motorcycle"></i>
@@ -557,7 +644,8 @@ try {
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                        <span class="starter-active-badge"
+                            style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
                             <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
                         </span>
                     </div>
@@ -566,8 +654,10 @@ try {
                 <!-- Option 3: Van -->
                 <div class="travel-starter-card" data-mode="van" onclick="window.toggleStarterVehicleMode('van')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
+                        <div class="starter-check-box"
+                            style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon"
+                                style="color:#1e3a8a !important; display:none;"></i>
                         </div>
                         <div class="travel-starter-icon">
                             <i class="fa-solid fa-van-shuttle"></i>
@@ -577,22 +667,26 @@ try {
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                        <span class="starter-active-badge"
+                            style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
                             <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
                         </span>
                     </div>
                 </div>
 
                 <!-- Category 2: Public Vehicles -->
-                <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:#1e3a8a; letter-spacing:0.6px; margin:12px 0 2px 2px; display:flex; align-items:center; gap:6px;">
+                <div
+                    style="font-size:11px; font-weight:800; text-transform:uppercase; color:#1e3a8a; letter-spacing:0.6px; margin:12px 0 2px 2px; display:flex; align-items:center; gap:6px;">
                     <i class="fa-solid fa-bus" style="font-size:11px; color:#1e3a8a;"></i> Public Vehicles
                 </div>
 
                 <!-- Option 4: Modern Jeepney (MPUJ) -->
                 <div class="travel-starter-card" data-mode="mpuj" onclick="window.toggleStarterVehicleMode('mpuj')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
+                        <div class="starter-check-box"
+                            style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon"
+                                style="color:#1e3a8a !important; display:none;"></i>
                         </div>
                         <div class="travel-starter-icon">
                             <i class="fa-solid fa-bus-simple"></i>
@@ -602,7 +696,8 @@ try {
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                        <span class="starter-active-badge"
+                            style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
                             <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
                         </span>
                     </div>
@@ -611,28 +706,35 @@ try {
                 <!-- Option 5: Traditional Jeepney (TPUJ) -->
                 <div class="travel-starter-card" data-mode="tpuj" onclick="window.toggleStarterVehicleMode('tpuj')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
+                        <div class="starter-check-box"
+                            style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon"
+                                style="color:#1e3a8a !important; display:none;"></i>
                         </div>
                         <div class="travel-starter-icon">
                             <i class="fa-solid fa-van-shuttle"></i>
                         </div>
                         <div style="flex:1; min-width:0;">
-                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Traditional Jeepney (TPUJ)</div>
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Traditional Jeepney (TPUJ)
+                            </div>
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                        <span class="starter-active-badge"
+                            style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
                             <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
                         </span>
                     </div>
                 </div>
 
                 <!-- Option 6: Tricycle -->
-                <div class="travel-starter-card" data-mode="tricycle" onclick="window.toggleStarterVehicleMode('tricycle')">
+                <div class="travel-starter-card" data-mode="tricycle"
+                    onclick="window.toggleStarterVehicleMode('tricycle')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
+                        <div class="starter-check-box"
+                            style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon"
+                                style="color:#1e3a8a !important; display:none;"></i>
                         </div>
                         <div class="travel-starter-icon">
                             <i class="fa-solid fa-motorcycle"></i>
@@ -642,7 +744,8 @@ try {
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                        <span class="starter-active-badge"
+                            style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
                             <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
                         </span>
                     </div>
@@ -651,8 +754,10 @@ try {
                 <!-- Option 7: Taxi -->
                 <div class="travel-starter-card" data-mode="taxi" onclick="window.toggleStarterVehicleMode('taxi')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
+                        <div class="starter-check-box"
+                            style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon"
+                                style="color:#1e3a8a !important; display:none;"></i>
                         </div>
                         <div class="travel-starter-icon">
                             <i class="fa-solid fa-taxi"></i>
@@ -662,7 +767,8 @@ try {
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                        <span class="starter-active-badge"
+                            style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
                             <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
                         </span>
                     </div>
@@ -671,8 +777,10 @@ try {
                 <!-- Option 8: UV Express (UVE) -->
                 <div class="travel-starter-card" data-mode="uve" onclick="window.toggleStarterVehicleMode('uve')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
+                        <div class="starter-check-box"
+                            style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon"
+                                style="color:#1e3a8a !important; display:none;"></i>
                         </div>
                         <div class="travel-starter-icon">
                             <i class="fa-solid fa-van-shuttle"></i>
@@ -682,37 +790,46 @@ try {
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                        <span class="starter-active-badge"
+                            style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
                             <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
                         </span>
                     </div>
                 </div>
 
                 <!-- Option 9: PUB Regular Bus -->
-                <div class="travel-starter-card" data-mode="pub_regular" onclick="window.toggleStarterVehicleMode('pub_regular')">
+                <div class="travel-starter-card" data-mode="pub_regular"
+                    onclick="window.toggleStarterVehicleMode('pub_regular')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
+                        <div class="starter-check-box"
+                            style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon"
+                                style="color:#1e3a8a !important; display:none;"></i>
                         </div>
                         <div class="travel-starter-icon">
                             <i class="fa-solid fa-bus"></i>
                         </div>
                         <div style="flex:1; min-width:0;">
-                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">PUB Regular (Ordinary Bus)</div>
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">PUB Regular (Ordinary Bus)
+                            </div>
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                        <span class="starter-active-badge"
+                            style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
                             <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
                         </span>
                     </div>
                 </div>
 
                 <!-- Option 10: PUB Aircon Bus -->
-                <div class="travel-starter-card" data-mode="pub_aircon" onclick="window.toggleStarterVehicleMode('pub_aircon')">
+                <div class="travel-starter-card" data-mode="pub_aircon"
+                    onclick="window.toggleStarterVehicleMode('pub_aircon')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-check-box" style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-check-icon" style="color:#1e3a8a !important; display:none;"></i>
+                        <div class="starter-check-box"
+                            style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
+                            <i class="fa-solid fa-check starter-check-icon"
+                                style="color:#1e3a8a !important; display:none;"></i>
                         </div>
                         <div class="travel-starter-icon">
                             <i class="fa-solid fa-bus"></i>
@@ -722,7 +839,8 @@ try {
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge" style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
+                        <span class="starter-active-badge"
+                            style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
                             <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
                         </span>
                     </div>
@@ -733,12 +851,19 @@ try {
         </div>
 
         <!-- Locked Bottom Footer Banner -->
-        <div style="flex-shrink:0; padding:12px 18px calc(14px + env(safe-area-inset-bottom, 0px)) 18px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); display:flex; align-items:center; justify-content:space-between; gap:12px; border:none !important; outline:none !important;">
+        <div
+            style="flex-shrink:0; padding:12px 18px calc(14px + env(safe-area-inset-bottom, 0px)) 18px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); display:flex; align-items:center; justify-content:space-between; gap:12px; border:none !important; outline:none !important;">
             <div style="min-width:0; flex:1;">
-                <div style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.5px;">Trip Travel Mode</div>
-                <div id="starter-modal-current-mode-label" style="font-size:15px; font-weight:900; color:#ffffff; letter-spacing:-0.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Own Car</div>
+                <div
+                    style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.5px;">
+                    Trip Travel Mode</div>
+                <div id="starter-modal-current-mode-label"
+                    style="font-size:15px; font-weight:900; color:#ffffff; letter-spacing:-0.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    Own Car</div>
             </div>
-            <button type="button" id="btn-apply-starter-transport" onclick="window.applyStarterVehicleSelection()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; cursor:pointer; padding:9px 18px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; display:inline-flex; align-items:center; gap:7px; transition:transform 0.15s ease; flex-shrink:0;" onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
+            <button type="button" id="btn-apply-starter-transport" onclick="window.applyStarterVehicleSelection()"
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; cursor:pointer; padding:9px 18px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; display:inline-flex; align-items:center; gap:7px; transition:transform 0.15s ease; flex-shrink:0;"
+                onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
                 <i class="fa-solid fa-check" style="color:#1e3a8a !important; font-size:12px;"></i> Done
             </button>
         </div>
@@ -1436,7 +1561,7 @@ try {
                         return found.accessible_vehicles;
                     }
                 }
-            } catch (e) {}
+            } catch (e) { }
 
             // Standard fallback for spots without explicit custom database assignments
             const isDrivable = !(spot.accessible_by_private_vehicle === 0 || spot.accessible_by_private_vehicle === false || spot.accessible_by_private_vehicle === '0');
@@ -1459,7 +1584,7 @@ try {
                     return checks[0] || { allowed: false, reason: 'Destination inaccessible by selected vehicles' };
                 }
             }
-            
+
             const norm = (subModes.length === 1) ? subModes[0] : window.normalizeVehicleKey(mode);
             const isNonDrivable = Boolean(spot.accessible_by_private_vehicle === 0 || spot.accessible_by_private_vehicle === false || spot.accessible_by_private_vehicle === '0');
 
@@ -1526,10 +1651,10 @@ try {
                         }
                     }
                 }
-            } catch (e) {}
+            } catch (e) { }
             return Boolean(
-                spot.is_maintenance === 1 || 
-                spot.is_maintenance === true || 
+                spot.is_maintenance === 1 ||
+                spot.is_maintenance === true ||
                 spot.is_maintenance === '1' ||
                 (spot.status && String(spot.status).toLowerCase().includes('maint'))
             );
@@ -1739,7 +1864,7 @@ try {
                         }
                     }
                 }
-            } catch (e) {}
+            } catch (e) { }
 
             const isNonDrivable = Boolean(toSpot && (toSpot.accessible_by_private_vehicle === 0 || toSpot.accessible_by_private_vehicle === false || toSpot.accessible_by_private_vehicle === '0'));
             const isSiteUnderMaintenance = Boolean(
@@ -1962,8 +2087,8 @@ try {
             if (!listEl) return;
 
             let listHtml = '';
-            const availCount = (availableCount !== undefined) 
-                ? availableCount 
+            const availCount = (availableCount !== undefined)
+                ? availableCount
                 : (window.currentLegEvaluatedCandidates || []).filter(c => c.isAvail).length;
 
             const selectedModes = window.currentLegModalSelectedModes || [];
@@ -2354,7 +2479,7 @@ try {
                         modes = window.parseCompositeTransportModes(parsed);
                     }
                 }
-            } catch (e) {}
+            } catch (e) { }
 
             if (modes.length === 0) {
                 const raw = localStorage.getItem('intan_elyu_draft_trip_transport') || 'own_car';
@@ -2373,7 +2498,7 @@ try {
                     localStorage.setItem('intan_elyu_draft_trip_transport', cleanComposite);
                     localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(modes));
                 }
-            } catch (e) {}
+            } catch (e) { }
 
             return modes;
         };
@@ -2648,7 +2773,7 @@ try {
                         overrides[j] = tempLeg;
                         localStorage.setItem('intan_elyu_draft_leg_vehicles', JSON.stringify(overrides));
                     }
-                } catch (e) {}
+                } catch (e) { }
 
                 const container = document.getElementById('route-toggle-container');
                 if (container) container.classList.remove('alt-active');
@@ -3253,7 +3378,7 @@ try {
                     overrides.splice(oldIdx, 1);
                     localStorage.setItem('intan_elyu_draft_leg_vehicles', JSON.stringify(overrides));
                 }
-            } catch (e) {}
+            } catch (e) { }
 
             window.renderItinerary();
             if (typeof showToast === 'function') showToast("Destination removed from itinerary");
@@ -4697,11 +4822,11 @@ try {
 
             if (type === 'private') {
                 optionsList = [
-                    { 
-                        val: 'own_car', 
-                        name: 'Own Car', 
-                        icon: 'fa-car', 
-                        key: 'car', 
+                    {
+                        val: 'own_car',
+                        name: 'Own Car',
+                        icon: 'fa-car',
+                        key: 'car',
                         available: true,
                         badgeHtml: hasNonDrivableSpot ? '<span style="padding:1px 6px; border-radius:100px; font-size:8px; font-weight:800; background:rgba(245,158,11,0.25); color:#fbbf24;">Trailhead</span>' : ''
                     },
@@ -4719,11 +4844,11 @@ try {
                     { val: 'tpuj', name: 'Traditional Jeepney (TPUJ)', icon: 'fa-van-shuttle', available: true, key: 'tpuj' },
                     { val: 'pub_aircon', name: 'Aircon Bus (PUB)', icon: 'fa-bus', available: true, key: 'pub_aircon' },
                     { val: 'pub_ordinary', name: 'Ordinary Bus (PUB)', icon: 'fa-bus-simple', available: true, key: 'pub_regular' },
-                    { 
-                        val: 'tricycle', 
-                        name: 'Tricycle', 
-                        icon: 'fa-motorcycle', 
-                        available: true, 
+                    {
+                        val: 'tricycle',
+                        name: 'Tricycle',
+                        icon: 'fa-motorcycle',
+                        available: true,
                         key: 'tricycle',
                         badgeHtml: isInterMunicipal ? '<span style="padding:1px 6px; border-radius:100px; font-size:8px; font-weight:800; background:rgba(56,189,248,0.25); color:#7dd3fc;">Local Legs</span>' : ''
                     },

@@ -28,11 +28,11 @@ if (is_dir($imgDir)) {
 
     window.getFareBoundaryEstimate = function (vehicleType, distanceKm, municipality = null, isPrivate = null) {
         if (!window.fareData) return null;
-        
+
         const dKm = parseFloat(distanceKm) || 0;
         const rawType = (vehicleType || '').toString().toLowerCase().trim();
         const normType = rawType.replace(/[- ]/g, '_');
-        
+
         // Private vehicles (Personal / Own vehicle - No Fare Required)
         if (normType === 'own_car' || normType === 'car' || normType === 'private_car') {
             return {
@@ -186,7 +186,7 @@ if (is_dir($imgDir)) {
                 isPassedBoundary: passed,
                 isExceedingMax: false,
                 isPrivate: false,
-                boundaryLabel: passed 
+                boundaryLabel: passed
                     ? `Passed ${prevKm.toFixed(1)} km boundary &bull; Next boundary: ${boundaryKm.toFixed(1)} km`
                     : `Within ${boundaryKm.toFixed(1)} km boundary stage`,
                 title: fareEntry.title || fareEntry.vehicle_type
@@ -242,62 +242,93 @@ if (is_dir($imgDir)) {
     </div>
 
     <!-- Classification Toggle Button & Popover (Vertical on Left Side Corner) -->
-    <div class="btn-classification-wrapper" id="btn-classification-wrapper" style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); left: 10px; z-index: 895; transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease, visibility 0.38s ease;">
+    <div class="btn-classification-wrapper" id="btn-classification-wrapper"
+        style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); left: 10px; z-index: 895; transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease, visibility 0.38s ease;">
         <!-- Popover showing the 3 Types of Classification (Solid Opaque Theme) -->
-        <div id="classification-popover" style="display: none; position: absolute; bottom: 0; left: calc(100% + 10px); transform-origin: bottom left; transform: scale(0.95); opacity: 0; width: 270px; background: #ffffff !important; border-radius: 22px; box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45) !important; border: none !important; outline: none !important; overflow: hidden; transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none; z-index: 1000;">
+        <div id="classification-popover"
+            style="display: none; position: absolute; bottom: 0; left: calc(100% + 10px); transform-origin: bottom left; transform: scale(0.95); opacity: 0; width: 270px; background: #ffffff !important; border-radius: 22px; box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45) !important; border: none !important; outline: none !important; overflow: hidden; transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none; z-index: 1000;">
             <!-- Header Banner -->
-            <div style="background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; border: none !important; outline: none !important;">
+            <div
+                style="background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; border: none !important; outline: none !important;">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 28px; height: 28px; border-radius: 8px; background: #ffffff !important; display: flex; align-items: center; justify-content: center; color: #1e3a8a !important; font-size: 13px; box-shadow: 0 2px 6px rgba(0,0,0,0.18); flex-shrink: 0;">
+                    <div
+                        style="width: 28px; height: 28px; border-radius: 8px; background: #ffffff !important; display: flex; align-items: center; justify-content: center; color: #1e3a8a !important; font-size: 13px; box-shadow: 0 2px 6px rgba(0,0,0,0.18); flex-shrink: 0;">
                         <i class="fa-solid fa-tags" style="color: #1e3a8a !important;"></i>
                     </div>
-                    <span style="font-size: 13.5px; font-weight: 800; color: #ffffff; letter-spacing: -0.2px;">Classifications</span>
+                    <span
+                        style="font-size: 13.5px; font-weight: 800; color: #ffffff; letter-spacing: -0.2px;">Classifications</span>
                 </div>
-                <button type="button" onclick="window.toggleClassificationMenu(false)" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                <button type="button" onclick="window.toggleClassificationMenu(false)"
+                    style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0; transition: transform 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
                     <i class="fa-solid fa-xmark" style="color: #1e3a8a !important; font-size: 12px;"></i>
                 </button>
             </div>
 
             <!-- Body List (Solid royal blue gradient cards on pure white) -->
-            <div style="background: #ffffff !important; padding: 10px 10px 12px 10px; display: flex; flex-direction: column; gap: 7px;">
+            <div
+                style="background: #ffffff !important; padding: 10px 10px 12px 10px; display: flex; flex-direction: column; gap: 7px;">
                 <!-- 1. Existing -->
-                <div class="classification-item-chip" onclick="window.filterByClassification('EXIST')" style="cursor: pointer; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 3px 10px rgba(32, 63, 141, 0.22) !important; border: none !important; outline: none !important; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
+                <div class="classification-item-chip" onclick="window.filterByClassification('EXIST')"
+                    style="cursor: pointer; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 3px 10px rgba(32, 63, 141, 0.22) !important; border: none !important; outline: none !important; transition: transform 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
                         <div style="display: flex; align-items: center; gap: 6px;">
-                            <span style="width: 7.5px; height: 7.5px; border-radius: 50%; background: #00f2fe; flex-shrink: 0; box-shadow: 0 0 6px #00f2fe; display: inline-block;"></span>
+                            <span
+                                style="width: 7.5px; height: 7.5px; border-radius: 50%; background: #00f2fe; flex-shrink: 0; box-shadow: 0 0 6px #00f2fe; display: inline-block;"></span>
                             <span style="font-size: 12.5px; font-weight: 800; color: #ffffff;">Existing</span>
                         </div>
-                        <span id="count-exist" style="font-size: 10px; font-weight: 800; color: #00f2fe; background: rgba(0, 242, 254, 0.18); padding: 2px 8px; border-radius: 100px;">Site</span>
+                        <span id="count-exist"
+                            style="font-size: 10px; font-weight: 800; color: #00f2fe; background: rgba(0, 242, 254, 0.18); padding: 2px 8px; border-radius: 100px;">Site</span>
                     </div>
-                    <div style="font-size: 10.5px; color: rgba(255,255,255,0.85); font-weight: 500; line-height: 1.35; padding-left: 13.5px;">Fully developed spots & facilities</div>
+                    <div
+                        style="font-size: 10.5px; color: rgba(255,255,255,0.85); font-weight: 500; line-height: 1.35; padding-left: 13.5px;">
+                        Fully developed spots & facilities</div>
                 </div>
 
                 <!-- 2. Potential -->
-                <div class="classification-item-chip" onclick="window.filterByClassification('POTENTIAL')" style="cursor: pointer; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 3px 10px rgba(32, 63, 141, 0.22) !important; border: none !important; outline: none !important; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
+                <div class="classification-item-chip" onclick="window.filterByClassification('POTENTIAL')"
+                    style="cursor: pointer; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 3px 10px rgba(32, 63, 141, 0.22) !important; border: none !important; outline: none !important; transition: transform 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
                         <div style="display: flex; align-items: center; gap: 6px;">
-                            <span style="width: 7.5px; height: 7.5px; border-radius: 50%; background: #34d399; flex-shrink: 0; box-shadow: 0 0 6px #34d399; display: inline-block;"></span>
+                            <span
+                                style="width: 7.5px; height: 7.5px; border-radius: 50%; background: #34d399; flex-shrink: 0; box-shadow: 0 0 6px #34d399; display: inline-block;"></span>
                             <span style="font-size: 12.5px; font-weight: 800; color: #ffffff;">Potential</span>
                         </div>
-                        <span id="count-potential" style="font-size: 10px; font-weight: 800; color: #34d399; background: rgba(52, 211, 153, 0.18); padding: 2px 8px; border-radius: 100px;">Site</span>
+                        <span id="count-potential"
+                            style="font-size: 10px; font-weight: 800; color: #34d399; background: rgba(52, 211, 153, 0.18); padding: 2px 8px; border-radius: 100px;">Site</span>
                     </div>
-                    <div style="font-size: 10.5px; color: rgba(255,255,255,0.85); font-weight: 500; line-height: 1.35; padding-left: 13.5px;">Unspoiled spots with high promise</div>
+                    <div
+                        style="font-size: 10.5px; color: rgba(255,255,255,0.85); font-weight: 500; line-height: 1.35; padding-left: 13.5px;">
+                        Unspoiled spots with high promise</div>
                 </div>
 
                 <!-- 3. Emerging -->
-                <div class="classification-item-chip" onclick="window.filterByClassification('EMERGE')" style="cursor: pointer; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 3px 10px rgba(32, 63, 141, 0.22) !important; border: none !important; outline: none !important; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
+                <div class="classification-item-chip" onclick="window.filterByClassification('EMERGE')"
+                    style="cursor: pointer; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 3px 10px rgba(32, 63, 141, 0.22) !important; border: none !important; outline: none !important; transition: transform 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
                         <div style="display: flex; align-items: center; gap: 6px;">
-                            <span style="width: 7.5px; height: 7.5px; border-radius: 50%; background: #f87171; flex-shrink: 0; box-shadow: 0 0 6px #f87171; display: inline-block;"></span>
+                            <span
+                                style="width: 7.5px; height: 7.5px; border-radius: 50%; background: #f87171; flex-shrink: 0; box-shadow: 0 0 6px #f87171; display: inline-block;"></span>
                             <span style="font-size: 12.5px; font-weight: 800; color: #ffffff;">Emerging</span>
                         </div>
-                        <span id="count-emerge" style="font-size: 10px; font-weight: 800; color: #f87171; background: rgba(248, 113, 113, 0.18); padding: 2px 8px; border-radius: 100px;">Site</span>
+                        <span id="count-emerge"
+                            style="font-size: 10px; font-weight: 800; color: #f87171; background: rgba(248, 113, 113, 0.18); padding: 2px 8px; border-radius: 100px;">Site</span>
                     </div>
-                    <div style="font-size: 10.5px; color: rgba(255,255,255,0.85); font-weight: 500; line-height: 1.35; padding-left: 13.5px;">Rising attractions gaining visitors</div>
+                    <div
+                        style="font-size: 10.5px; color: rgba(255,255,255,0.85); font-weight: 500; line-height: 1.35; padding-left: 13.5px;">
+                        Rising attractions gaining visitors</div>
                 </div>
 
                 <!-- Show All Classifications Button -->
-                <div onclick="window.filterByClassification('ALL')" style="cursor: pointer; margin-top: 3px; text-align: center; font-size: 11.5px; font-weight: 800; color: #1e3a8a; padding: 9px 12px; border-radius: 12px; background: #f1f5f9; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                <div onclick="window.filterByClassification('ALL')"
+                    style="cursor: pointer; margin-top: 3px; text-align: center; font-size: 11.5px; font-weight: 800; color: #1e3a8a; padding: 9px 12px; border-radius: 12px; background: #f1f5f9; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                     <i class="fa-solid fa-list-check" style="font-size: 11px; color: #1e3a8a;"></i>
                     Show All Classifications
                 </div>
@@ -307,13 +338,17 @@ if (is_dir($imgDir)) {
         <!-- The Classification Button (Exact 44px x 44px matching other map buttons) -->
         <button type="button" id="btn-classification-toggle" onclick="window.toggleClassificationMenu()"
             style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%) !important; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 12px; border: none !important; outline: none !important; color: #ffffff; box-shadow: 0 8px 20px rgba(10, 25, 60, 0.3); cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);"
-            onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'"
-            title="Classifications">
+            onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'"
+            onpointercancel="this.style.transform='scale(1)'" title="Classifications">
             <!-- 3 Vertical Classification Dots: Existing (top), Potential (middle), Emerging (bottom) -->
-            <span style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
-                <span id="dot-exist" style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #0284c7; box-shadow: none !important; transition: transform 0.2s ease, opacity 0.2s ease;"></span>
-                <span id="dot-potential" style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #10b981; box-shadow: none !important; transition: transform 0.2s ease, opacity 0.2s ease;"></span>
-                <span id="dot-emerge" style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #ef4444; box-shadow: none !important; transition: transform 0.2s ease, opacity 0.2s ease;"></span>
+            <span
+                style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
+                <span id="dot-exist"
+                    style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #0284c7; box-shadow: none !important; transition: transform 0.2s ease, opacity 0.2s ease;"></span>
+                <span id="dot-potential"
+                    style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #10b981; box-shadow: none !important; transition: transform 0.2s ease, opacity 0.2s ease;"></span>
+                <span id="dot-emerge"
+                    style="width: 6.5px; height: 6.5px; border-radius: 50%; background: #ef4444; box-shadow: none !important; transition: transform 0.2s ease, opacity 0.2s ease;"></span>
             </span>
         </button>
     </div>
@@ -474,7 +509,8 @@ if (is_dir($imgDir)) {
                 style="display:flex; flex-direction:column; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; border-radius:16px; padding:12px 14px; margin-bottom:10px; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important;">
                 <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <div class="dest-fee-icon-box" style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; color:#1e3a8a !important; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                        <div class="dest-fee-icon-box"
+                            style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; color:#1e3a8a !important; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
                             <i class="fa-solid fa-ticket" style="color:#1e3a8a !important;"></i>
                         </div>
                         <div style="display:flex; flex-direction:column;">
@@ -485,60 +521,74 @@ if (is_dir($imgDir)) {
                                 Admission</span>
                         </div>
                     </div>
-                    <div id="sheet-fee-breakdown-tags" style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                    <div id="sheet-fee-breakdown-tags"
+                        style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
                         <!-- Injected via JS: e.g. Entrance: ₱50 | Environmental: ₱20 -->
                     </div>
                 </div>
 
                 <!-- Fee Options Breakdown Grid (Adult, Child, PWD, Senior Citizen, Envi Fee) -->
-                <div id="sheet-fee-options-container" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.18); display:flex; flex-direction:column; gap:6px; width:100%;">
+                <div id="sheet-fee-options-container"
+                    style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.18); display:flex; flex-direction:column; gap:6px; width:100%;">
                     <!-- Dynamically populated in JavaScript with Adult, Child, PWD, Senior Citizen, Envi Fee -->
                 </div>
             </div>
 
             <!-- Site Attributes & Operating Status (Tour Guide Needed, Open 24 Hours, Under Maintenance) -->
-            <div id="sheet-attributes-container" style="display:none; flex-direction:column; gap:8px; margin-bottom:12px;">
+            <div id="sheet-attributes-container"
+                style="display:none; flex-direction:column; gap:8px; margin-bottom:12px;">
 
                 <!-- Tour Guide Needed Card -->
                 <div id="sheet-tour-guide-card"
                     style="display:none; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important;">
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#1e3a8a !important; font-size:16px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                        <div
+                            style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#1e3a8a !important; font-size:16px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
                             <i class="fa-solid fa-person-hiking" style="color:#1e3a8a !important;"></i>
                         </div>
                         <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Tour Guide Needed</span>
-                            <span style="font-size:10.5px; color:rgba(255,255,255,0.85); font-weight:600;" id="sheet-tour-guide-detail">Certified guide required</span>
+                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Tour
+                                Guide Needed</span>
+                            <span style="font-size:10.5px; color:rgba(255,255,255,0.85); font-weight:600;"
+                                id="sheet-tour-guide-detail">Certified guide required</span>
                         </div>
                     </div>
-                    <span style="font-size:10px; font-weight:800; padding:4px 10px; border-radius:100px; background:rgba(255,255,255,0.2); color:#ffffff; text-transform:uppercase; letter-spacing:0.5px;">Required</span>
+                    <span
+                        style="font-size:10px; font-weight:800; padding:4px 10px; border-radius:100px; background:rgba(255,255,255,0.2); color:#ffffff; text-transform:uppercase; letter-spacing:0.5px;">Required</span>
                 </div>
 
                 <!-- Maximum Capacity Card -->
                 <div id="sheet-capacity-card"
                     style="display:none; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important;">
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#1e3a8a !important; font-size:16px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                        <div
+                            style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#1e3a8a !important; font-size:16px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
                             <i class="fa-solid fa-users" style="color:#1e3a8a !important;"></i>
                         </div>
                         <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Maximum Capacity</span>
-                            <span style="font-size:10.5px; color:rgba(255,255,255,0.85); font-weight:600;" id="sheet-capacity-detail">Max visitors allowed</span>
+                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Maximum
+                                Capacity</span>
+                            <span style="font-size:10.5px; color:rgba(255,255,255,0.85); font-weight:600;"
+                                id="sheet-capacity-detail">Max visitors allowed</span>
                         </div>
                     </div>
-                    <span id="sheet-capacity-badge" style="font-size:10.5px; font-weight:800; padding:4px 10px; border-radius:100px; background:rgba(0,242,254,0.2); color:#00f2fe; letter-spacing:0.3px;">--</span>
+                    <span id="sheet-capacity-badge"
+                        style="font-size:10.5px; font-weight:800; padding:4px 10px; border-radius:100px; background:rgba(0,242,254,0.2); color:#00f2fe; letter-spacing:0.3px;">--</span>
                 </div>
 
                 <!-- Open 24 Hours Card -->
                 <div id="sheet-24h-card"
                     style="display:none; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important;">
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#1e3a8a !important; font-size:16px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                        <div
+                            style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#1e3a8a !important; font-size:16px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
                             <i class="fa-regular fa-clock" style="color:#1e3a8a !important;"></i>
                         </div>
                         <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Open 24 Hours</span>
-                            <span style="font-size:10.5px; color:rgba(255,255,255,0.85); font-weight:600;">Always accessible</span>
+                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Open 24
+                                Hours</span>
+                            <span style="font-size:10.5px; color:rgba(255,255,255,0.85); font-weight:600;">Always
+                                accessible</span>
                         </div>
                     </div>
                     <span style="font-size:11px; font-weight:700; color:#ffffff;">Available all day</span>
@@ -548,15 +598,19 @@ if (is_dir($imgDir)) {
                 <div id="sheet-maint-card"
                     style="display:none; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important;">
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#ef4444 !important; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                        <div
+                            style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#ef4444 !important; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
                             <i class="fa-solid fa-wrench" style="color:#ef4444 !important;"></i>
                         </div>
                         <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Under Maintenance</span>
-                            <span style="font-size:10.5px; color:rgba(255,255,255,0.85); font-weight:600;">Site temporarily closed for maintenance</span>
+                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Under
+                                Maintenance</span>
+                            <span style="font-size:10.5px; color:rgba(255,255,255,0.85); font-weight:600;">Site
+                                temporarily closed for maintenance</span>
                         </div>
                     </div>
-                    <span style="font-size:10px; font-weight:800; padding:4px 10px; border-radius:100px; background:rgba(239,68,68,0.35); color:#ffffff; text-transform:uppercase; letter-spacing:0.5px;">Temporary</span>
+                    <span
+                        style="font-size:10px; font-weight:800; padding:4px 10px; border-radius:100px; background:rgba(239,68,68,0.35); color:#ffffff; text-transform:uppercase; letter-spacing:0.5px;">Temporary</span>
                 </div>
 
             </div>
@@ -566,20 +620,25 @@ if (is_dir($imgDir)) {
                 style="display:none; flex-direction:column; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; border-radius:18px; padding:14px 16px; margin-bottom:12px; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important;">
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#1e3a8a !important; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                        <div
+                            style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#1e3a8a !important; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
                             <i class="fa-solid fa-van-shuttle" style="color:#1e3a8a !important;"></i>
                         </div>
                         <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.8); text-transform:uppercase; letter-spacing:0.5px;">Transportation</span>
+                            <span
+                                style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.8); text-transform:uppercase; letter-spacing:0.5px;">Transportation</span>
                             <span style="font-size:13px; font-weight:800; color:#ffffff;">Available Vehicles</span>
                         </div>
                     </div>
-                    <span id="sheet-vehicles-count-badge" style="font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; background:rgba(255,255,255,0.2); color:#ffffff;">--</span>
+                    <span id="sheet-vehicles-count-badge"
+                        style="font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; background:rgba(255,255,255,0.2); color:#ffffff;">--</span>
                 </div>
 
                 <!-- Private Vehicle Access -->
-                <div style="margin-bottom:8px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:12px; padding:9px 12px;">
-                    <div style="font-size:11px; font-weight:800; color:#00f2fe; margin-bottom:5px; display:flex; align-items:center; gap:5px;">
+                <div
+                    style="margin-bottom:8px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:12px; padding:9px 12px;">
+                    <div
+                        style="font-size:11px; font-weight:800; color:#00f2fe; margin-bottom:5px; display:flex; align-items:center; gap:5px;">
                         <i class="fa-solid fa-car" style="font-size:10px; color:#00f2fe;"></i> Private Vehicle
                     </div>
                     <div id="sheet-private-vehicles-list" style="display:flex; flex-wrap:wrap; gap:6px;">
@@ -588,8 +647,10 @@ if (is_dir($imgDir)) {
                 </div>
 
                 <!-- Public Vehicle Access -->
-                <div style="margin-bottom:12px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:12px; padding:9px 12px;">
-                    <div style="font-size:11px; font-weight:800; color:#fed7aa; margin-bottom:5px; display:flex; align-items:center; gap:5px;">
+                <div
+                    style="margin-bottom:12px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:12px; padding:9px 12px;">
+                    <div
+                        style="font-size:11px; font-weight:800; color:#fed7aa; margin-bottom:5px; display:flex; align-items:center; gap:5px;">
                         <i class="fa-solid fa-bus" style="font-size:10px; color:#fb923c;"></i> Public Vehicle
                     </div>
                     <div id="sheet-public-vehicles-list" style="display:flex; flex-wrap:wrap; gap:6px;">
@@ -607,7 +668,8 @@ if (is_dir($imgDir)) {
             <!-- About This Location & Travel Details -->
             <div id="sheet-desc-container" class="dest-info-card" style="display:none;">
                 <div id="vehicle-accessibility-warning" class="dest-warning-card" style="display:none;">
-                    <div class="dest-warning-icon-box" style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; color:#ef4444 !important; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                    <div class="dest-warning-icon-box"
+                        style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; color:#ef4444 !important; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
                         <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444 !important;"></i>
                     </div>
                     <div>
@@ -624,7 +686,8 @@ if (is_dir($imgDir)) {
 
                     <p id="sheet-desc-short" class="dest-desc-text"></p>
                     <p id="sheet-desc-full" class="dest-desc-text" style="display:none;"></p>
-                    <button id="btn-view-details" class="dest-toggle-btn" onclick="window.toggleFullDetails()" style="display:none; margin:8px 0 14px;">
+                    <button id="btn-view-details" class="dest-toggle-btn" onclick="window.toggleFullDetails()"
+                        style="display:none; margin:8px 0 14px;">
                         <span id="details-btn-text">Read More</span>
                         <i class="fa-solid fa-chevron-down" id="details-chevron"
                             style="transition:transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);"></i>
@@ -649,8 +712,10 @@ if (is_dir($imgDir)) {
                                         <i class="fa-solid fa-map-pin"></i>
                                     </span>
                                     <div>
-                                        <div style="font-size:12px; font-weight:800; color:#ffffff; line-height:1.2;">Nearby Amenities</div>
-                                        <div style="font-size:10px; color:rgba(255,255,255,0.75);">Distance from this tourist site</div>
+                                        <div style="font-size:12px; font-weight:800; color:#ffffff; line-height:1.2;">
+                                            Nearby Amenities</div>
+                                        <div style="font-size:10px; color:rgba(255,255,255,0.75);">Distance from this
+                                            tourist site</div>
                                     </div>
                                 </div>
                                 <span id="sheet-amenities-count-badge" class="dest-amenities-count-badge">--</span>
@@ -660,9 +725,11 @@ if (is_dir($imgDir)) {
                             <div id="sheet-amenities-list" class="dest-amenities-list"></div>
 
                             <!-- Expand / Collapse Button when > 4 amenities -->
-                            <button type="button" id="sheet-amenities-toggle-btn" class="dest-amenities-toggle-btn" style="display:none;" onclick="window.toggleSheetAmenities()">
+                            <button type="button" id="sheet-amenities-toggle-btn" class="dest-amenities-toggle-btn"
+                                style="display:none;" onclick="window.toggleSheetAmenities()">
                                 <span id="sheet-amenities-toggle-text">Show All</span>
-                                <i class="fa-solid fa-chevron-down" id="sheet-amenities-chevron" style="transition:transform 0.25s ease;"></i>
+                                <i class="fa-solid fa-chevron-down" id="sheet-amenities-chevron"
+                                    style="transition:transform 0.25s ease;"></i>
                             </button>
                         </div>
 
@@ -671,7 +738,8 @@ if (is_dir($imgDir)) {
                             <div class="dest-support-header">
                                 <span
                                     style="font-size:12.5px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:6px;">
-                                    <i class="fa-solid fa-headset" style="color:#00f2fe;"></i> Tourist Support & Service Centers
+                                    <i class="fa-solid fa-headset" style="color:#00f2fe;"></i> Tourist Support & Service
+                                    Centers
                                 </span>
                                 <span class="dest-support-badge" id="sheet-support-badge">Service Centers</span>
                             </div>
@@ -681,7 +749,8 @@ if (is_dir($imgDir)) {
                         </div>
 
                         <!-- Testimonies Section -->
-                        <div id="sheet-testimonies-section" class="dest-support-box" style="display:none; margin-top:14px;">
+                        <div id="sheet-testimonies-section" class="dest-support-box"
+                            style="display:none; margin-top:14px;">
                             <div class="dest-support-header">
                                 <span
                                     style="font-size:12.5px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:6px;">
@@ -691,7 +760,8 @@ if (is_dir($imgDir)) {
                             </div>
                             <div id="testimonies-summary-metrics" style="display:none; margin-bottom:10px;"></div>
                             <div id="testimonies-list-container" style="display:flex; flex-direction:column; gap:8px;">
-                                <div style="font-size:12.5px; color:rgba(255,255,255,0.8); font-weight:500; text-align:center; padding:12px 0;">
+                                <div
+                                    style="font-size:12.5px; color:rgba(255,255,255,0.8); font-weight:500; text-align:center; padding:12px 0;">
                                     Loading reviews...</div>
                             </div>
                         </div>
@@ -743,36 +813,51 @@ if (is_dir($imgDir)) {
 <!-- Spot Available Vehicles & Boundary Fares Modal -->
 <div id="spot-vehicles-modal" onclick="if(event.target===this)window.closeSpotVehiclesModal()"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:999999; align-items:flex-end; justify-content:center; background:rgba(6,11,25,0.78); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); box-sizing:border-box;">
-    <div style="background:#ffffff !important; border-radius:28px 28px 0 0; width:100%; max-width:540px; max-height:86vh; display:flex; flex-direction:column; box-shadow:0 -10px 40px rgba(0,0,0,0.5); text-align:left; box-sizing:border-box; overflow:hidden;">
-        
+    <div
+        style="background:#ffffff !important; border-radius:28px 28px 0 0; width:100%; max-width:540px; max-height:86vh; display:flex; flex-direction:column; box-shadow:0 -10px 40px rgba(0,0,0,0.5); text-align:left; box-sizing:border-box; overflow:hidden;">
+
         <!-- Header (Royal Blue Banner) -->
-        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 18px 14px 18px; color:#ffffff; flex-shrink:0; border:none !important; outline:none !important;">
-            <div style="width:36px; height:4px; background:rgba(255,255,255,0.35); border-radius:99px; margin:0 auto 12px auto;"></div>
+        <div
+            style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 18px 14px 18px; color:#ffffff; flex-shrink:0; border:none !important; outline:none !important;">
+            <div
+                style="width:36px; height:4px; background:rgba(255,255,255,0.35); border-radius:99px; margin:0 auto 12px auto;">
+            </div>
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <div style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#1e3a8a !important; font-size:16px; box-shadow:0 2px 6px rgba(0,0,0,0.18); flex-shrink:0;">
+                    <div
+                        style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#1e3a8a !important; font-size:16px; box-shadow:0 2px 6px rgba(0,0,0,0.18); flex-shrink:0;">
                         <i class="fa-solid fa-van-shuttle" style="color:#1e3a8a !important;"></i>
                     </div>
                     <div>
-                        <h4 id="spot-veh-modal-title" style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">Available Vehicles</h4>
-                        <span id="spot-veh-modal-subtitle" style="font-size:11.5px; font-weight:600; color:rgba(255,255,255,0.85);">--</span>
+                        <h4 id="spot-veh-modal-title"
+                            style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">
+                            Available Vehicles</h4>
+                        <span id="spot-veh-modal-subtitle"
+                            style="font-size:11.5px; font-weight:600; color:rgba(255,255,255,0.85);">--</span>
                     </div>
                 </div>
-                <button type="button" onclick="window.closeSpotVehiclesModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink:0; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                <button type="button" onclick="window.closeSpotVehiclesModal()"
+                    style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink:0; transition:transform 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
                     <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; font-size:14px;"></i>
                 </button>
             </div>
         </div>
 
         <!-- Body Below Header (Pure White Background) -->
-        <div style="background:#ffffff !important; color:#1e293b; padding:16px 20px calc(24px + env(safe-area-inset-bottom)); flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;">
+        <div
+            style="background:#ffffff !important; color:#1e293b; padding:16px 20px calc(24px + env(safe-area-inset-bottom)); flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;">
             <!-- Distance & Boundary Step Info Banner -->
-            <div id="spot-veh-modal-dist-banner" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:10px 14px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between;">
+            <div id="spot-veh-modal-dist-banner"
+                style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:10px 14px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between;">
                 <div style="display:flex; align-items:center; gap:8px;">
                     <i class="fa-solid fa-location-crosshairs" style="color:#1e3a8a; font-size:14px;"></i>
-                    <span id="spot-veh-modal-dist-text" style="font-size:12.5px; font-weight:700; color:#1e293b;">Calculating distance...</span>
+                    <span id="spot-veh-modal-dist-text"
+                        style="font-size:12.5px; font-weight:700; color:#1e293b;">Calculating distance...</span>
                 </div>
-                <span style="font-size:10px; font-weight:800; text-transform:uppercase; background:rgba(0, 242, 254, 0.18); color:#0284c7; padding:3px 9px; border-radius:100px;">Fare Matrix</span>
+                <span
+                    style="font-size:10px; font-weight:800; text-transform:uppercase; background:rgba(0, 242, 254, 0.18); color:#0284c7; padding:3px 9px; border-radius:100px;">Fare
+                    Matrix</span>
             </div>
 
             <!-- Vehicles Grid / List (Royal Blue Cards) -->
@@ -801,15 +886,15 @@ if (is_dir($imgDir)) {
         if (window.mountedMarkersMap) {
             try {
                 window.mountedMarkersMap.forEach(m => {
-                    try { m.remove(); } catch (e) {}
+                    try { m.remove(); } catch (e) { }
                 });
-            } catch (e) {}
+            } catch (e) { }
             window.mountedMarkersMap.clear();
         }
         window.mountedMarkersMap = new Map();
 
         if (window.userMarker) {
-            try { window.userMarker.remove(); } catch (e) {}
+            try { window.userMarker.remove(); } catch (e) { }
             window.userMarker = null;
         }
 
@@ -839,7 +924,7 @@ if (is_dir($imgDir)) {
                         cachedMapData = parsed.data;
                     }
                 }
-            } catch (e) {}
+            } catch (e) { }
 
             const mapDataPromise = (async () => {
                 if (cachedMapData && cachedMapData.destinations && cachedMapData.destinations.length > 0) {
@@ -849,7 +934,7 @@ if (is_dir($imgDir)) {
                             .then(fresh => {
                                 if (fresh && fresh.destinations) {
                                     fresh.destinations = (fresh.destinations || []).filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
-                                    try { localStorage.setItem(mapCacheKey, JSON.stringify({ data: fresh, timestamp: Date.now() })); } catch (e) {}
+                                    try { localStorage.setItem(mapCacheKey, JSON.stringify({ data: fresh, timestamp: Date.now() })); } catch (e) { }
                                     const oldIds = (cachedMapData.destinations || []).map(d => Number(d.id)).sort((a, b) => a - b).join(',');
                                     const freshIds = (fresh.destinations || []).map(d => Number(d.id)).sort((a, b) => a - b).join(',');
                                     if (oldIds !== freshIds || (cachedMapData.destinations || []).length !== fresh.destinations.length) {
@@ -857,7 +942,7 @@ if (is_dir($imgDir)) {
                                         if (typeof window.updateVisibleMarkers === 'function') window.updateVisibleMarkers();
                                     }
                                 }
-                            }).catch(() => {});
+                            }).catch(() => { });
                     }, 800);
                     return cachedMapData;
                 }
@@ -865,7 +950,7 @@ if (is_dir($imgDir)) {
                 const fresh = await res.json();
                 if (fresh && fresh.destinations) {
                     fresh.destinations = (fresh.destinations || []).filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
-                    try { localStorage.setItem(mapCacheKey, JSON.stringify({ data: fresh, timestamp: Date.now() })); } catch (e) {}
+                    try { localStorage.setItem(mapCacheKey, JSON.stringify({ data: fresh, timestamp: Date.now() })); } catch (e) { }
                 }
                 return fresh;
             })();
@@ -886,7 +971,7 @@ if (is_dir($imgDir)) {
                         window.vehicleData = parsedF.data.vehicles || [];
                     }
                 }
-            } catch (e) {}
+            } catch (e) { }
 
             const shouldRevalidateFares = !cachedFares || !cachedFares.timestamp || (Date.now() - cachedFares.timestamp > FARES_CACHE_TTL);
             if (shouldRevalidateFares) {
@@ -898,7 +983,7 @@ if (is_dir($imgDir)) {
                         window.vehicleData = d.vehicles || [];
                         try {
                             localStorage.setItem(FARES_CACHE_KEY, JSON.stringify({ data: d, timestamp: Date.now() }));
-                        } catch (e) {}
+                        } catch (e) { }
                     }
                 }).catch(e => console.error("Fares fetch error:", e));
             }
@@ -1347,7 +1432,7 @@ if (is_dir($imgDir)) {
                 if (!locations.length) {
                     if (window.mountedMarkersMap) {
                         window.mountedMarkersMap.forEach(m => {
-                            try { m.remove(); } catch (e) {}
+                            try { m.remove(); } catch (e) { }
                         });
                         window.mountedMarkersMap.clear();
                     }
@@ -1388,7 +1473,7 @@ if (is_dir($imgDir)) {
 
                         if (!isMountedInCurrentMap) {
                             if (existingMarker) {
-                                try { existingMarker.remove(); } catch (e) {}
+                                try { existingMarker.remove(); } catch (e) { }
                                 window.mountedMarkersMap.delete(markerKey);
                             }
 
@@ -1478,7 +1563,7 @@ if (is_dir($imgDir)) {
                 // ── RECONCILE: REMOVE MARKERS NO LONGER DESIRED ──
                 for (const [key, marker] of window.mountedMarkersMap.entries()) {
                     if (!desiredKeys.has(key)) {
-                        try { marker.remove(); } catch (e) {}
+                        try { marker.remove(); } catch (e) { }
                         window.mountedMarkersMap.delete(key);
                     }
                 }
@@ -1526,7 +1611,7 @@ if (is_dir($imgDir)) {
         window.clearAmenityMarkers = function () {
             if (window.activeAmenityMarkers && window.activeAmenityMarkers.length > 0) {
                 window.activeAmenityMarkers.forEach(m => {
-                    try { m.remove(); } catch (e) {}
+                    try { m.remove(); } catch (e) { }
                 });
                 window.activeAmenityMarkers = [];
             }
@@ -1811,67 +1896,67 @@ if (is_dir($imgDir)) {
 
             // 2. Beach, Coastal & Surfing
             if (t.includes('beach') || t.includes('surf') || t.includes('coastal') || t.includes('island')) {
-                return combined.includes('beach') || combined.includes('surf') || combined.includes('coastal') || 
-                       combined.includes('island') || combined.includes('seascape') || combined.includes('water sports');
+                return combined.includes('beach') || combined.includes('surf') || combined.includes('coastal') ||
+                    combined.includes('island') || combined.includes('seascape') || combined.includes('water sports');
             }
 
             // 3. Nature, Eco-Parks & Town Plazas
             if (t.includes('nature') || t.includes('park')) {
-                return c.includes('nature') || c.includes('park') || n.includes('park') || 
-                       n.includes('plaza') || c.includes('agro-forestry') || c.includes('tree') ||
-                       n.includes('mangrove') || n.includes('lagoon') || n.includes('baywalk');
+                return c.includes('nature') || c.includes('park') || n.includes('park') ||
+                    n.includes('plaza') || c.includes('agro-forestry') || c.includes('tree') ||
+                    n.includes('mangrove') || n.includes('lagoon') || n.includes('baywalk');
             }
 
             // 4. Waterfalls, Rivers, Lakes & Springs
             if (t.includes('water') || t.includes('fall') || t.includes('lake') || t.includes('river')) {
-                return c.includes('waterfall') || c.includes('river') || c.includes('lake') || 
-                       n.includes('fall') || n.includes('river') || n.includes('lake') || n.includes('dam') || n.includes('spring');
+                return c.includes('waterfall') || c.includes('river') || c.includes('lake') ||
+                    n.includes('fall') || n.includes('river') || n.includes('lake') || n.includes('dam') || n.includes('spring');
             }
 
             // 5. Mountains, Hiking & View Decks
             if (t.includes('mountain') || t.includes('hiking') || t.includes('trail') || t.includes('view')) {
-                return c.includes('mountain') || c.includes('hiking') || n.includes('trail') || 
-                       n.includes('peak') || n.includes('view deck') || n.includes('viewdeck') || n.includes('terrace') || n.includes('mt.') || n.includes('mountain');
+                return c.includes('mountain') || c.includes('hiking') || n.includes('trail') ||
+                    n.includes('peak') || n.includes('view deck') || n.includes('viewdeck') || n.includes('terrace') || n.includes('mt.') || n.includes('mountain');
             }
 
             // 6. Cultural Heritage, Historical, Monuments & Museums
             if (t.includes('cultural') || t.includes('heritage') || t.includes('historical') || t.includes('monument') || t.includes('museum')) {
-                return c.includes('cultural') || c.includes('heritage') || c.includes('historical') || 
-                       c.includes('monument') || c.includes('museum') || n.includes('watchtower') || 
-                       n.includes('tunnel') || n.includes('marker') || n.includes('station') || 
-                       n.includes('memorial') || n.includes('ancestral') || n.includes('museum');
+                return c.includes('cultural') || c.includes('heritage') || c.includes('historical') ||
+                    c.includes('monument') || c.includes('museum') || n.includes('watchtower') ||
+                    n.includes('tunnel') || n.includes('marker') || n.includes('station') ||
+                    n.includes('memorial') || n.includes('ancestral') || n.includes('museum');
             }
 
             // 7. Churches & Religious
             if (t.includes('religious') || t.includes('church') || t.includes('shrine')) {
-                return c.includes('religious') || n.includes('church') || n.includes('parish') || 
-                       n.includes('basilica') || n.includes('shrine') || n.includes('grotto') || n.includes('chapel');
+                return c.includes('religious') || n.includes('church') || n.includes('parish') ||
+                    n.includes('basilica') || n.includes('shrine') || n.includes('grotto') || n.includes('chapel');
             }
 
             // 8. Landmarks
             if (t.includes('landmark')) {
-                return c.includes('landmark') || n.includes('arc') || n.includes('center') || 
-                       n.includes('bridge') || n.includes('tree house') || n.includes('port') || 
-                       n.includes('srdi') || n.includes('building') || n.includes('institute');
+                return c.includes('landmark') || n.includes('arc') || n.includes('center') ||
+                    n.includes('bridge') || n.includes('tree house') || n.includes('port') ||
+                    n.includes('srdi') || n.includes('building') || n.includes('institute');
             }
 
             // 9. Food & Dining
             if (t.includes('food') || t.includes('dining') || t.includes('restaurant')) {
-                return c.includes('food') || combined.includes('restaurant') || combined.includes('seafood') || 
-                       combined.includes('dining') || combined.includes('eatery') || combined.includes('cafe') || 
-                       combined.includes('bistro') || combined.includes('grill');
+                return c.includes('food') || combined.includes('restaurant') || combined.includes('seafood') ||
+                    combined.includes('dining') || combined.includes('eatery') || combined.includes('cafe') ||
+                    combined.includes('bistro') || combined.includes('grill');
             }
 
             // 10. Arts, Crafts & Weaving
             if (t.includes('art') || t.includes('craft') || t.includes('weaving')) {
-                return c.includes('arts') || combined.includes('weaving') || combined.includes('pottery') || 
-                       combined.includes('gallery') || combined.includes('craft') || combined.includes('paper');
+                return c.includes('arts') || combined.includes('weaving') || combined.includes('pottery') ||
+                    combined.includes('gallery') || combined.includes('craft') || combined.includes('paper');
             }
 
             // 11. Farms & Agriculture
             if (t.includes('farm') || t.includes('agro') || t.includes('plant')) {
-                return c.includes('farm') || combined.includes('plantation') || combined.includes('grapes') || 
-                       combined.includes('mushroom') || combined.includes('fishery') || combined.includes('agri');
+                return c.includes('farm') || combined.includes('plantation') || combined.includes('grapes') ||
+                    combined.includes('mushroom') || combined.includes('fishery') || combined.includes('agri');
             }
 
             // 12. Recreation & Resorts
@@ -1886,8 +1971,8 @@ if (is_dir($imgDir)) {
 
             // 14. Nightlife
             if (t === 'nightlife' || t.includes('nightlife')) {
-                return c.includes('nightlife') || combined.includes('nightlife') || 
-                       /\b(nightclub|night club|pub|pubs|disco|discotheque|restobar|resto-bar|sports bar|comedy bar|karaoke bar|lounge bar)\b/i.test(combined);
+                return c.includes('nightlife') || combined.includes('nightlife') ||
+                    /\b(nightclub|night club|pub|pubs|disco|discotheque|restobar|resto-bar|sports bar|comedy bar|karaoke bar|lounge bar)\b/i.test(combined);
             }
 
             return false;
@@ -2422,7 +2507,7 @@ if (is_dir($imgDir)) {
                                 window.userMarker.setLngLat([lng, lat]);
                             } else {
                                 if (window.userMarker) {
-                                    try { window.userMarker.remove(); } catch(err) {}
+                                    try { window.userMarker.remove(); } catch (err) { }
                                     window.userMarker = null;
                                 }
                                 const el = document.createElement('div');
@@ -2472,7 +2557,7 @@ if (is_dir($imgDir)) {
                         window.userMarker.setLngLat([lng, lat]);
                     } else {
                         if (window.userMarker) {
-                            try { window.userMarker.remove(); } catch (err) {}
+                            try { window.userMarker.remove(); } catch (err) { }
                             window.userMarker = null;
                         }
                         const el = document.createElement('div');
@@ -4241,8 +4326,8 @@ if (is_dir($imgDir)) {
                     const dLat = (lat2 - lat1) * Math.PI / 180;
                     const dLon = (lon2 - lon1) * Math.PI / 180;
                     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                        Math.sin(dLon / 2) * Math.sin(dLon / 2);
                     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
                     distKm = R * c;
                 } else {

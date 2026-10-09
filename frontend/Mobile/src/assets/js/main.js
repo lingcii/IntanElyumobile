@@ -230,7 +230,7 @@ window.executeScripts = executeScripts;
 if ('scrollRestoration' in history) {
     try {
         history.scrollRestoration = 'manual';
-    } catch (e) {}
+    } catch (e) { }
 }
 
 function resetAppScrollTop() {
@@ -311,21 +311,29 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     }
 
     try {
-        // Fetch new view via AJAX (with strict cache buster & query parameters)
-        let fetchUrl = `index.php?view=${encodeURIComponent(targetView)}&ajax=1&_t=${Date.now()}`;
-        extraParams.forEach((val, key) => {
-            fetchUrl += `&${encodeURIComponent(key)}=${encodeURIComponent(val)}`;
-        });
+        // In-memory view template cache to prevent re-fetching the same view HTML on back/tab switch
+        window._viewHtmlCache = window._viewHtmlCache || {};
+        let html = (!extraParams.size && window._viewHtmlCache[targetView]) ? window._viewHtmlCache[targetView] : null;
 
-        const response = await fetch(fetchUrl, {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
+        if (!html) {
+            let fetchUrl = `index.php?view=${encodeURIComponent(targetView)}&ajax=1&_t=${Date.now()}`;
+            extraParams.forEach((val, key) => {
+                fetchUrl += `&${encodeURIComponent(key)}=${encodeURIComponent(val)}`;
+            });
+
+            const response = await fetch(fetchUrl, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) throw new Error('Network response was not ok');
+
+            html = await response.text();
+            if (!extraParams.size) {
+                window._viewHtmlCache[targetView] = html;
             }
-        });
-
-        if (!response.ok) throw new Error('Network response was not ok');
-
-        const html = await response.text();
+        }
 
         const updateContent = () => {
             try {
@@ -354,12 +362,12 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     try {
                         if (window.mountedMarkersMap) {
                             window.mountedMarkersMap.forEach(m => {
-                                try { m.remove(); } catch (e) {}
+                                try { m.remove(); } catch (e) { }
                             });
                             window.mountedMarkersMap.clear();
                         }
                         if (window.userMarker) {
-                            try { window.userMarker.remove(); } catch (e) {}
+                            try { window.userMarker.remove(); } catch (e) { }
                             window.userMarker = null;
                         }
                         if (window._mapGpsHandler) {
@@ -367,7 +375,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                             window._mapGpsHandler = null;
                         }
                         window.mapInstance.remove();
-                    } catch (e) {}
+                    } catch (e) { }
                     window.mapInstance = null;
                 }
 
@@ -434,88 +442,122 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         if (fade && mainContent) mainContent.classList.remove('view-transitioning');
         state.isNavigating = false;
     }
-}
-window.navigateTo = navigateTo;
+    window.navigateTo = navigateTo;
 
-/**
- * Global Google OAuth 2.0 Direct Handler
- * Handles access_token / id_token returned via Google OAuth redirect across all views & platforms (APK / Web)
- */
-window._isProcessingGoogleOAuth = false;
+    window.navigateBack = function (fallbackRoute = 'dashboard') {
+        const openModals = Array.from(document.querySelectorAll(
+            '#full-history-modal, #trip-details-modal, #full-vouchers-modal, #reward-details-modal, #active-voucher-qr-modal, #voucher-modal, #testimony-modal, .modal'
+        )).filter(el => {
+            const style = window.getComputedStyle(el);
+            return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+        });
 
-window.initGoogleOAuthHandler = function () {
-    const rawHash = window.location.hash || '';
-    const rawSearch = window.location.search || '';
-
-    // 1. Check for direct token handoff (?token=...&user=...) from mobile browser to APK
-    const searchParams = new URLSearchParams(rawSearch.startsWith('?') ? rawSearch.substring(1) : rawSearch);
-    const directToken = searchParams.get('token');
-    const directUser = searchParams.get('user');
-
-    if (directToken) {
-        localStorage.setItem('intan_elyu_token', directToken);
-        if (directUser) {
-            try {
-                const parsedUser = typeof directUser === 'object' ? directUser : JSON.parse(directUser);
-                localStorage.setItem('auth_user', JSON.stringify(parsedUser));
-                if (window.AppStorage) window.AppStorage.setItem('auth_user', parsedUser);
-            } catch (e) { }
+        if (openModals.length > 0) {
+            const modalToClose = openModals[openModals.length - 1];
+            if (typeof window.closeTripDetailsModal === 'function' && modalToClose.id === 'trip-details-modal') {
+                window.closeTripDetailsModal();
+            } else if (typeof window.closeFullHistoryModal === 'function' && modalToClose.id === 'full-history-modal') {
+                window.closeFullHistoryModal();
+            } else if (typeof window.closeFullVouchersModal === 'function' && modalToClose.id === 'full-vouchers-modal') {
+                window.closeFullVouchersModal();
+            } else if (typeof window.closeRewardDetailsModal === 'function' && modalToClose.id === 'reward-details-modal') {
+                window.closeRewardDetailsModal();
+            } else if (typeof window.closeActiveVoucherQrModal === 'function' && modalToClose.id === 'active-voucher-qr-modal') {
+                window.closeActiveVoucherQrModal();
+            } else if (typeof window.closeVoucherModal === 'function' && modalToClose.id === 'voucher-modal') {
+                window.closeVoucherModal();
+            } else {
+                modalToClose.style.display = 'none';
+            }
+            return;
         }
-        if (window.AppStorage) window.AppStorage.setItem('intan_elyu_token', directToken);
 
+        if (window.history.state && window.history.state.view && window.history.length > 1) {
+            window.history.back();
+        } else {
+            navigateTo(fallbackRoute);
+        }
+    };
+
+    /**
+     * Global Google OAuth 2.0 Direct Handler
+     * Handles access_token / id_token returned via Google OAuth redirect across all views & platforms (APK / Web)
+     */
+    window._isProcessingGoogleOAuth = false;
+
+    window.initGoogleOAuthHandler = function () {
+        const rawHash = window.location.hash || '';
+        const rawSearch = window.location.search || '';
+
+        // 1. Check for direct token handoff (?token=...&user=...) from mobile browser to APK
+        const searchParams = new URLSearchParams(rawSearch.startsWith('?') ? rawSearch.substring(1) : rawSearch);
+        const directToken = searchParams.get('token');
+        const directUser = searchParams.get('user');
+
+        if (directToken) {
+            localStorage.setItem('intan_elyu_token', directToken);
+            if (directUser) {
+                try {
+                    const parsedUser = typeof directUser === 'object' ? directUser : JSON.parse(directUser);
+                    localStorage.setItem('auth_user', JSON.stringify(parsedUser));
+                    if (window.AppStorage) window.AppStorage.setItem('auth_user', parsedUser);
+                } catch (e) { }
+            }
+            if (window.AppStorage) window.AppStorage.setItem('intan_elyu_token', directToken);
+
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState({}, document.title, window.location.pathname + '?view=dashboard');
+            }
+            if (typeof showToast === 'function') showToast('Logged in successfully!', 'success');
+            navigateTo('dashboard', true, true);
+            return;
+        }
+
+        const hasAccessToken = rawHash.includes('access_token=') || rawSearch.includes('access_token=');
+        const hasIdToken = rawHash.includes('id_token=') || rawSearch.includes('id_token=');
+        const hasError = rawHash.includes('error=') || rawSearch.includes('error=');
+
+        if (!hasAccessToken && !hasIdToken && !hasError) {
+            return;
+        }
+
+        if (window._isProcessingGoogleOAuth) return;
+        window._isProcessingGoogleOAuth = true;
+
+        const rawParams = rawHash.startsWith('#') ? rawHash.substring(1) : (rawSearch.startsWith('?') ? rawSearch.substring(1) : (rawHash || rawSearch));
+        const params = new URLSearchParams(rawParams);
+
+        // Clean hash from URL so the raw access token is not retained in browser history
         if (window.history && window.history.replaceState) {
-            window.history.replaceState({}, document.title, window.location.pathname + '?view=dashboard');
+            window.history.replaceState({}, document.title, window.location.pathname + '?view=auth');
         }
-        if (typeof showToast === 'function') showToast('Logged in successfully!', 'success');
-        navigateTo('dashboard', true, true);
-        return;
-    }
 
-    const hasAccessToken = rawHash.includes('access_token=') || rawSearch.includes('access_token=');
-    const hasIdToken = rawHash.includes('id_token=') || rawSearch.includes('id_token=');
-    const hasError = rawHash.includes('error=') || rawSearch.includes('error=');
-
-    if (!hasAccessToken && !hasIdToken && !hasError) {
-        return;
-    }
-
-    if (window._isProcessingGoogleOAuth) return;
-    window._isProcessingGoogleOAuth = true;
-
-    const rawParams = rawHash.startsWith('#') ? rawHash.substring(1) : (rawSearch.startsWith('?') ? rawSearch.substring(1) : (rawHash || rawSearch));
-    const params = new URLSearchParams(rawParams);
-
-    // Clean hash from URL so the raw access token is not retained in browser history
-    if (window.history && window.history.replaceState) {
-        window.history.replaceState({}, document.title, window.location.pathname + '?view=auth');
-    }
-
-    if (hasError) {
-        window._isProcessingGoogleOAuth = false;
-        const errorDesc = params.get('error_description') || params.get('error') || 'Google sign-in was cancelled.';
-        console.warn('Google OAuth returned error:', errorDesc);
-        if (typeof showToast === 'function') showToast(errorDesc, 'error');
-        navigateTo('auth', true, false);
-        return;
-    }
-
-    const accessToken = params.get('access_token');
-    const idToken = params.get('id_token');
-
-    if (!accessToken && !idToken) {
-        window._isProcessingGoogleOAuth = false;
-        return;
-    }
-
-    // Display global full-screen OAuth loader styled with the 3 colors (#00f2fe, #38bdf8, #74a3cf)
-    const showOverlay = (title = 'Logging in with Google...', subtitle = 'Authenticating your account, please wait') => {
-        let overlay = document.getElementById('global-oauth-overlay');
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.id = 'global-oauth-overlay';
-            document.body ? document.body.appendChild(overlay) : document.addEventListener('DOMContentLoaded', () => document.body.appendChild(overlay));
+        if (hasError) {
+            window._isProcessingGoogleOAuth = false;
+            const errorDesc = params.get('error_description') || params.get('error') || 'Google sign-in was cancelled.';
+            console.warn('Google OAuth returned error:', errorDesc);
+            if (typeof showToast === 'function') showToast(errorDesc, 'error');
+            navigateTo('auth', true, false);
+            return;
         }
-        overlay.innerHTML = `
+
+        const accessToken = params.get('access_token');
+        const idToken = params.get('id_token');
+
+        if (!accessToken && !idToken) {
+            window._isProcessingGoogleOAuth = false;
+            return;
+        }
+
+        // Display global full-screen OAuth loader styled with the 3 colors (#00f2fe, #38bdf8, #74a3cf)
+        const showOverlay = (title = 'Logging in with Google...', subtitle = 'Authenticating your account, please wait') => {
+            let overlay = document.getElementById('global-oauth-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'global-oauth-overlay';
+                document.body ? document.body.appendChild(overlay) : document.addEventListener('DOMContentLoaded', () => document.body.appendChild(overlay));
+            }
+            overlay.innerHTML = `
             <div class="oauth-modal-content" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; box-shadow: 0 15px 35px rgba(10, 25, 60, 0.4), 0 0 25px rgba(63, 125, 183, 0.25) !important;">
                 <div class="oauth-spinner-circle">
                     <div class="oauth-spinner-ring"></div>
@@ -524,70 +566,70 @@ window.initGoogleOAuthHandler = function () {
                 <p class="oauth-modal-subtitle">${subtitle}</p>
             </div>
         `;
-        return overlay;
-    };
+            return overlay;
+        };
 
-    window.showGoogleOAuthModal = showOverlay;
-    window.hideGoogleOAuthModal = () => {
-        const ov = document.getElementById('global-oauth-overlay');
-        if (ov) {
-            ov.style.transition = 'opacity 0.3s ease';
-            ov.style.opacity = '0';
-            setTimeout(() => ov.remove(), 300);
-        }
-    };
-
-    const overlay = showOverlay();
-
-    // Retrieve profile info using OAuth access token
-    const fetchProfile = accessToken
-        ? fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${accessToken}` } }).then(r => r.json())
-        : Promise.resolve(null);
-
-    fetchProfile
-        .then(profile => {
-            let payload = {};
-            if (profile && profile.email) {
-                payload = {
-                    email: profile.email,
-                    name: profile.name || (profile.given_name + ' ' + (profile.family_name || '')).trim(),
-                    google_id: 'g_' + profile.sub,
-                    avatar: profile.picture
-                };
-            } else if (idToken) {
-                payload = { credential: idToken };
-            } else {
-                throw new Error('Unable to retrieve profile from Google.');
+        window.showGoogleOAuthModal = showOverlay;
+        window.hideGoogleOAuthModal = () => {
+            const ov = document.getElementById('global-oauth-overlay');
+            if (ov) {
+                ov.style.transition = 'opacity 0.3s ease';
+                ov.style.opacity = '0';
+                setTimeout(() => ov.remove(), 300);
             }
+        };
 
-            const backend = (typeof window.getBackendUrl === 'function') ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online');
-            return fetch(backend + '/api/auth/google', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-        })
-        .then(async res => {
-            const text = await res.text();
-            let data;
-            try {
-                data = JSON.parse(text);
-            } catch (e) {
-                console.error('Non-JSON response from Google auth endpoint:', text.substring(0, 200));
-                throw new Error('Invalid response from server. Please try again.');
-            }
-            if (!res.ok) throw new Error(data.error || data.message || 'Google authentication failed.');
+        const overlay = showOverlay();
 
-            localStorage.setItem('auth_user', JSON.stringify(data.user));
-            localStorage.setItem('intan_elyu_token', data.token);
-            if (window.AppStorage) {
-                window.AppStorage.setItem('auth_user', data.user);
-                window.AppStorage.setItem('intan_elyu_token', data.token);
-            }
+        // Retrieve profile info using OAuth access token
+        const fetchProfile = accessToken
+            ? fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${accessToken}` } }).then(r => r.json())
+            : Promise.resolve(null);
 
-            const currentOverlay = document.getElementById('global-oauth-overlay');
-            if (currentOverlay) {
-                currentOverlay.innerHTML = `
+        fetchProfile
+            .then(profile => {
+                let payload = {};
+                if (profile && profile.email) {
+                    payload = {
+                        email: profile.email,
+                        name: profile.name || (profile.given_name + ' ' + (profile.family_name || '')).trim(),
+                        google_id: 'g_' + profile.sub,
+                        avatar: profile.picture
+                    };
+                } else if (idToken) {
+                    payload = { credential: idToken };
+                } else {
+                    throw new Error('Unable to retrieve profile from Google.');
+                }
+
+                const backend = (typeof window.getBackendUrl === 'function') ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online');
+                return fetch(backend + '/api/auth/google', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            })
+            .then(async res => {
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    console.error('Non-JSON response from Google auth endpoint:', text.substring(0, 200));
+                    throw new Error('Invalid response from server. Please try again.');
+                }
+                if (!res.ok) throw new Error(data.error || data.message || 'Google authentication failed.');
+
+                localStorage.setItem('auth_user', JSON.stringify(data.user));
+                localStorage.setItem('intan_elyu_token', data.token);
+                if (window.AppStorage) {
+                    window.AppStorage.setItem('auth_user', data.user);
+                    window.AppStorage.setItem('intan_elyu_token', data.token);
+                }
+
+                const currentOverlay = document.getElementById('global-oauth-overlay');
+                if (currentOverlay) {
+                    currentOverlay.innerHTML = `
                     <div class="oauth-modal-content" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; box-shadow: 0 15px 35px rgba(10, 25, 60, 0.4), 0 0 25px rgba(63, 125, 183, 0.25) !important;">
                         <div class="oauth-success-circle">
                             <i class="fa-solid fa-check" style="font-size:28px; color:#1e3a8a;"></i>
@@ -596,416 +638,452 @@ window.initGoogleOAuthHandler = function () {
                         <p class="oauth-modal-subtitle">Redirecting to dashboard...</p>
                     </div>
                 `;
-            }
-
-            setTimeout(() => {
-                const ov = document.getElementById('global-oauth-overlay');
-                if (ov) {
-                    ov.style.transition = 'opacity 0.3s ease';
-                    ov.style.opacity = '0';
-                    setTimeout(() => ov.remove(), 300);
                 }
+
+                setTimeout(() => {
+                    const ov = document.getElementById('global-oauth-overlay');
+                    if (ov) {
+                        ov.style.transition = 'opacity 0.3s ease';
+                        ov.style.opacity = '0';
+                        setTimeout(() => ov.remove(), 300);
+                    }
+                    window._isProcessingGoogleOAuth = false;
+                    navigateTo('dashboard', true, true);
+                }, 1200);
+            })
+            .catch(err => {
+                console.error('Google OAuth Handshake Error:', err);
                 window._isProcessingGoogleOAuth = false;
-                navigateTo('dashboard', true, true);
-            }, 1200);
-        })
-        .catch(err => {
-            console.error('Google OAuth Handshake Error:', err);
-            window._isProcessingGoogleOAuth = false;
-            const ov = document.getElementById('global-oauth-overlay');
-            if (ov) ov.remove();
-            if (typeof showToast === 'function') showToast(err.message || 'Google sign-in failed.', 'error');
-            navigateTo('auth', true, false);
-        });
-};
+                const ov = document.getElementById('global-oauth-overlay');
+                if (ov) ov.remove();
+                if (typeof showToast === 'function') showToast(err.message || 'Google sign-in failed.', 'error');
+                navigateTo('auth', true, false);
+            });
+    };
 
-// Check for Google OAuth token immediately on script execution
-window.initGoogleOAuthHandler();
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Check again once DOM is ready if not already handled
+    // Check for Google OAuth token immediately on script execution
     window.initGoogleOAuthHandler();
 
-    // Auto-invalidate stale caches from previous builds
-    const CACHE_VER = 'v1.0.6_state_order';
-    if (localStorage.getItem('intan_elyu_cache_ver') !== CACHE_VER) {
-        Object.keys(localStorage).forEach(k => {
-            if (k.startsWith('dashboard_') || k.startsWith('trending_') || k.startsWith('map_') || k.startsWith('spots_') || k.startsWith('destinations_') || k.includes('cache')) {
-                localStorage.removeItem(k);
-            }
-        });
-        localStorage.setItem('intan_elyu_cache_ver', CACHE_VER);
-    }
+    document.addEventListener('DOMContentLoaded', () => {
+        // Check again once DOM is ready if not already handled
+        window.initGoogleOAuthHandler();
 
-    // Global Auth Enforcement for Initial Direct Load (skip if OAuth handshake in progress)
-    if (!window._isProcessingGoogleOAuth) {
-        const publicViews = ['splash', 'auth', 'download', 'reset-password'];
-        if (!publicViews.includes(state.currentView) && !localStorage.getItem('intan_elyu_token')) {
-            navigateTo('auth');
-            return;
-        }
-    }
-
-    // Initialize history state for the initial load so the back button works correctly
-    if (!window.history.state) {
-        const url = new URL(window.location);
-        url.searchParams.set('view', state.currentView);
-        window.history.replaceState({ view: state.currentView }, '', url);
-    }
-    // Initialize dark theme if saved
-    if (localStorage.getItem('intan_elyu_theme') === 'dark') {
-        document.body.classList.add('dark-theme');
-    }
-
-    // Check if we need to initialize any views on load
-    if (typeof initCurrentView === 'function') initCurrentView();
-});
-
-// Handle Browser Back Button
-window.addEventListener('popstate', (e) => {
-    if (e.state && e.state.view) {
-        navigateTo(e.state.view, false);
-    } else {
-        // Fallback if state is missing but URL has a view param
-        const view = new URLSearchParams(window.location.search).get('view') || 'splash';
-        navigateTo(view, false);
-    }
-});
-
-/**
- * Toast Notification System
- */
-window.showToast = function showToast(message, type = 'info', duration = 3200) {
-    if (typeof type === 'number') {
-        duration = type;
-        type = 'info';
-    }
-
-    let container = document.getElementById('toast-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toast-container';
-        document.body.appendChild(container);
-    }
-
-    // Determine icon and color variant
-    let iconHTML = '<i class="fa-solid fa-circle-info" style="color:#38bdf8; font-size:16px;"></i>';
-    let borderColor = 'rgba(56, 189, 248, 0.35)';
-
-    const lowerMsg = String(message).toLowerCase();
-    if (type === 'success' || lowerMsg.includes('success') || lowerMsg.includes('deleted') || lowerMsg.includes('checked in') || lowerMsg.includes('completed') || lowerMsg.includes('added') || lowerMsg.includes('saved')) {
-        iconHTML = '<i class="fa-solid fa-circle-check" style="color:#34c759; font-size:16px;"></i>';
-        borderColor = 'rgba(52, 199, 89, 0.4)';
-    } else if (type === 'error' || lowerMsg.includes('error') || lowerMsg.includes('failed') || lowerMsg.includes('invalid') || lowerMsg.includes('inaccessible') || lowerMsg.includes('timeout')) {
-        iconHTML = '<i class="fa-solid fa-circle-exclamation" style="color:#ef4444; font-size:16px;"></i>';
-        borderColor = 'rgba(239, 68, 68, 0.4)';
-    } else if (type === 'warning' || lowerMsg.includes('warning') || lowerMsg.includes('select') || lowerMsg.includes('capture')) {
-        iconHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b; font-size:16px;"></i>';
-        borderColor = 'rgba(245, 158, 11, 0.4)';
-    }
-
-    const toast = document.createElement('div');
-    toast.className = 'toast-card';
-    toast.style.borderColor = borderColor;
-    toast.innerHTML = `<div style="display:flex; align-items:center; gap:10px;">${iconHTML}<span style="font-size:13px; font-weight:700; color:#ffffff; line-height:1.3;">${message}</span></div>`;
-
-    container.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.animation = 'toastOut 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards';
-        setTimeout(() => {
-            toast.remove();
-            if (container && container.children.length === 0) {
-                container.remove();
-            }
-        }, 280);
-    }, duration);
-};
-var showToast = window.showToast;
-
-/**
- * Universal Cross-Browser / Mobile Clipboard Copy Helper
- * Handles HTTPS, HTTP (LAN/XAMPP IP), WebViews, iOS/Android, and Desktop
- */
-window.copyToClipboard = function(text, onSuccess, onError) {
-    if (!text) {
-        if (typeof onError === 'function') onError(new Error('No text provided to copy'));
-        return;
-    }
-
-    const trimmed = String(text).trim();
-
-    // 1. Try modern Async Clipboard API if supported and in secure context
-    if (navigator.clipboard && window.isSecureContext && typeof navigator.clipboard.writeText === 'function') {
-        navigator.clipboard.writeText(trimmed).then(() => {
-            if (typeof onSuccess === 'function') onSuccess(trimmed);
-        }).catch((err) => {
-            console.warn('Clipboard writeText failed, trying execCommand fallback:', err);
-            fallbackExecCopy(trimmed, onSuccess, onError);
-        });
-        return;
-    }
-
-    // 2. Fallback using document.execCommand('copy')
-    fallbackExecCopy(trimmed, onSuccess, onError);
-};
-
-function fallbackExecCopy(text, onSuccess, onError) {
-    let ta = null;
-    try {
-        ta = document.createElement('textarea');
-        ta.value = text;
-        ta.setAttribute('readonly', '');
-        ta.style.position = 'fixed';
-        ta.style.top = '0';
-        ta.style.left = '-9999px';
-        ta.style.width = '2em';
-        ta.style.height = '2em';
-        ta.style.padding = '0';
-        ta.style.border = 'none';
-        ta.style.outline = 'none';
-        ta.style.boxShadow = 'none';
-        ta.style.background = 'transparent';
-        ta.style.opacity = '0.01';
-        ta.style.zIndex = '-9999';
-        ta.style.pointerEvents = 'none';
-
-        document.body.appendChild(ta);
-        ta.focus();
-        ta.select();
-        ta.setSelectionRange(0, ta.value.length);
-
-        const successful = document.execCommand('copy');
-        document.body.removeChild(ta);
-        ta = null;
-
-        if (successful) {
-            if (typeof onSuccess === 'function') onSuccess(text);
-        } else {
-            throw new Error('execCommand returned false');
-        }
-    } catch (e) {
-        if (ta && ta.parentNode) {
-            ta.parentNode.removeChild(ta);
-        }
-        console.warn('Fallback execCommand copy error:', e);
-        if (typeof onError === 'function') {
-            onError(e);
-        } else if (typeof showToast === 'function') {
-            showToast('Unable to copy automatically. Code: ' + text);
-        }
-    }
-}
-
-/**
- * Execute scripts injected via innerHTML
- */
-function executeScripts(container) {
-    const scripts = container.querySelectorAll('script');
-    scripts.forEach(oldScript => {
-        const newScript = document.createElement('script');
-        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-        if (oldScript.parentNode) {
-            oldScript.parentNode.replaceChild(newScript, oldScript);
-        }
-    });
-}
-
-/**
- * Initialize logic specific to the current view
- */
-function initCurrentView() {
-    // Update Magic Nav
-    updateMagicNav(state.currentView);
-
-    // Dispatch a custom event so individual views can listen for load
-    document.dispatchEvent(new CustomEvent('viewLoaded', { detail: { view: state.currentView } }));
-}
-
-/**
- * Handle Magic Navigation Bar Indicator and Visibility
- */
-function updateMagicNav(viewName) {
-    const nav = document.getElementById('magic-nav');
-    if (!nav) return;
-
-    const items = nav.querySelectorAll('.magic-nav-item');
-    const indicator = document.getElementById('magic-indicator');
-    const indicatorCircle = document.querySelector('.magic-indicator-circle');
-
-    const isMainNav = Array.from(items).some(item => item.dataset.view === viewName);
-    if (!isMainNav) return;
-
-    let activeColor = '#38bdf8';
-    let activeIndex = 0;
-
-    items.forEach(item => {
-        if (item.dataset.view === viewName) {
-            item.classList.add('active');
-            activeColor = item.dataset.color || activeColor;
-            activeIndex = parseInt(item.dataset.index);
-        } else {
-            item.classList.remove('active');
-        }
-    });
-
-    // Update Magic Indicator Position
-    // Center is at 10%, 30%, 50%, 70%, 90%
-    const percent = 10 + (activeIndex * 20);
-    if (indicator) {
-        indicator.style.left = `${percent}%`;
-        indicator.style.background = `radial-gradient(circle at 38% 32%, ${activeColor}ed, ${activeColor}ba)`;
-        indicator.style.boxShadow = `0 4px 22px ${activeColor}90, inset 0 2px 4px rgba(255,255,255,0.3)`;
-    }
-
-    // Update SVG Path Notch
-    const notchCX = (percent / 100) * 448; // ViewBox width is 448
-    const { fullPath, topEdge } = buildNavPath(notchCX);
-
-    const pathBase = document.getElementById('magic-nav-path-base');
-    const pathTint = document.getElementById('magic-nav-path-tint');
-    const pathEdge = document.getElementById('magic-nav-path-edge');
-
-    if (pathBase) pathBase.setAttribute('d', fullPath);
-    if (pathTint) {
-        pathTint.setAttribute('d', fullPath);
-        pathTint.setAttribute('fill', activeColor);
-    }
-    if (pathEdge) pathEdge.setAttribute('d', topEdge);
-}
-
-function buildNavPath(cx) {
-    const W = 448;
-    const H = 66;
-    const w = 64;
-    const d = 48;
-    const c1x = 36;
-    const c2x = 44;
-
-    const topEdge = [
-        `M 0 0`,
-        `H ${cx - w}`,
-        `C ${cx - c1x} 0, ${cx - c2x} ${d}, ${cx} ${d}`,
-        `C ${cx + c2x} ${d}, ${cx + c1x} 0, ${cx + w} 0`,
-        `H ${W}`,
-    ].join(" ");
-
-    const fullPath = [topEdge, `V ${H}`, `H 0`, `Z`].join(" ");
-
-    return { fullPath, topEdge };
-}
-
-
-
-/**
- * Handle Logout
- */
-async function handleLogout(e) {
-    if (e) e.preventDefault();
-    showToast('Logging out...', 1000);
-
-    try {
-        const token = localStorage.getItem('intan_elyu_token');
-        if (token) {
-            await fetch(window.backendUrl + '/api/auth/logout', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-
-                    'Authorization': 'Bearer ' + token
+        // Auto-invalidate stale caches from previous builds
+        const CACHE_VER = 'v1.0.6_state_order';
+        if (localStorage.getItem('intan_elyu_cache_ver') !== CACHE_VER) {
+            Object.keys(localStorage).forEach(k => {
+                if (k.startsWith('dashboard_') || k.startsWith('trending_') || k.startsWith('map_') || k.startsWith('spots_') || k.startsWith('destinations_') || k.includes('cache')) {
+                    localStorage.removeItem(k);
                 }
             });
+            localStorage.setItem('intan_elyu_cache_ver', CACHE_VER);
         }
-    } catch (err) {
-        console.warn('Backend logout failed', err);
-    }
 
-    localStorage.removeItem('intan_elyu_token');
-    localStorage.removeItem('auth_user');
-
-    setTimeout(() => {
-        // Hard reset the URL to clear Capacitor saved state and show splash
-        window.location.replace('index.php?view=splash');
-    }, 1000);
-}
-
-/**
- * Pull to Refresh Logic
- */
-let startY = 0;
-let currentY = 0;
-let isPulling = false;
-let isRefreshing = false;
-
-
-// Global Dark Mode Controller
-window.toggleDarkMode = function (isDark) {
-    if (isDark) {
-        document.body.classList.add('dark-theme');
-        localStorage.setItem('intan_elyu_theme', 'dark');
-    } else {
-        document.body.classList.remove('dark-theme');
-        localStorage.setItem('intan_elyu_theme', 'light');
-    }
-};
-
-// Initialize the dark mode toggle switch every time a view loads
-document.addEventListener('viewLoaded', (e) => {
-    // Sync CSS wave animations to global time so they don't jump horizontally on view transition
-    const timePassed = performance.now() / 1000;
-    const waves = document.querySelectorAll('.wave-layer');
-    waves.forEach(wave => {
-        if (!wave.dataset.synced) {
-            wave.style.animationDelay = `-${timePassed}s`;
-            wave.dataset.synced = 'true';
+        // Global Auth Enforcement for Initial Direct Load (skip if OAuth handshake in progress)
+        if (!window._isProcessingGoogleOAuth) {
+            const publicViews = ['splash', 'auth', 'download', 'reset-password'];
+            if (!publicViews.includes(state.currentView) && !localStorage.getItem('intan_elyu_token')) {
+                navigateTo('auth');
+                return;
+            }
         }
+
+        // Initialize history state for the initial load so the back button works correctly
+        if (!window.history.state) {
+            const url = new URL(window.location);
+            url.searchParams.set('view', state.currentView);
+            window.history.replaceState({ view: state.currentView }, '', url);
+        }
+        // Initialize dark theme if saved
+        if (localStorage.getItem('intan_elyu_theme') === 'dark') {
+            document.body.classList.add('dark-theme');
+        }
+
+        // Check if we need to initialize any views on load
+        if (typeof initCurrentView === 'function') initCurrentView();
     });
 
-    if (e.detail.view === 'settings') {
-        const toggle = document.getElementById('dark-mode-toggle');
-        if (toggle) {
-            // Set initial state
-            toggle.checked = document.body.classList.contains('dark-theme');
+    // Handle Browser Back Button & Android System Back
+    window.addEventListener('popstate', (e) => {
+        // 1. Check if any active modal or sheet is currently open
+        const openModals = Array.from(document.querySelectorAll(
+            '#full-history-modal, #trip-details-modal, #full-vouchers-modal, #reward-details-modal, #active-voucher-qr-modal, #voucher-modal, #testimony-modal, .modal'
+        )).filter(el => {
+            const style = window.getComputedStyle(el);
+            return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+        });
 
-            // Attach event listener natively to bypass inline execution issues on webviews
-            toggle.addEventListener('change', function () {
-                window.toggleDarkMode(this.checked);
-            });
+        if (openModals.length > 0) {
+            const modalToClose = openModals[openModals.length - 1];
+            if (typeof window.closeTripDetailsModal === 'function' && modalToClose.id === 'trip-details-modal') {
+                window.closeTripDetailsModal();
+            } else if (typeof window.closeFullHistoryModal === 'function' && modalToClose.id === 'full-history-modal') {
+                window.closeFullHistoryModal();
+            } else if (typeof window.closeFullVouchersModal === 'function' && modalToClose.id === 'full-vouchers-modal') {
+                window.closeFullVouchersModal();
+            } else if (typeof window.closeRewardDetailsModal === 'function' && modalToClose.id === 'reward-details-modal') {
+                window.closeRewardDetailsModal();
+            } else if (typeof window.closeActiveVoucherQrModal === 'function' && modalToClose.id === 'active-voucher-qr-modal') {
+                window.closeActiveVoucherQrModal();
+            } else if (typeof window.closeVoucherModal === 'function' && modalToClose.id === 'voucher-modal') {
+                window.closeVoucherModal();
+            } else {
+                modalToClose.style.display = 'none';
+            }
+            window.history.pushState({ view: state.currentView }, '', window.location.href);
+            return;
         }
-    }
-});
 
-// --- Push Notifications & Location Services ---
+        const targetView = (e.state && e.state.view) || new URLSearchParams(window.location.search).get('view') || 'splash';
+        if (targetView === state.currentView) {
+            return;
+        }
+        navigateTo(targetView, false);
+    });
 
-window.intanElyuLocationWatchId = null;
-
-// Initialize Service Worker
-if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-    window.addEventListener('load', function () {
+    // Hook into Capacitor Android hardware back button
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App && typeof window.Capacitor.Plugins.App.addListener === 'function') {
         try {
-            // Resolve sw.js relative to document.baseURI to support clean routes and sub-directories without 404
-            const swUrl = document.baseURI ? new URL('sw.js', document.baseURI).href : 'sw.js';
-            navigator.serviceWorker.register(swUrl).then(function (registration) {
-                console.log('ServiceWorker registration successful with scope: ', registration.scope);
-            }).catch(function (err) {
-                console.warn('ServiceWorker registration note: ', err);
+            window.Capacitor.Plugins.App.addListener('backButton', () => {
+                window.navigateBack('dashboard');
             });
+        } catch(e) {}
+    }
+
+    /**
+     * Toast Notification System
+     */
+    window.showToast = function showToast(message, type = 'info', duration = 3200) {
+        if (typeof type === 'number') {
+            duration = type;
+            type = 'info';
+        }
+
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            document.body.appendChild(container);
+        }
+
+        // Determine icon and color variant
+        let iconHTML = '<i class="fa-solid fa-circle-info" style="color:#38bdf8; font-size:16px;"></i>';
+        let borderColor = 'rgba(56, 189, 248, 0.35)';
+
+        const lowerMsg = String(message).toLowerCase();
+        if (type === 'success' || lowerMsg.includes('success') || lowerMsg.includes('deleted') || lowerMsg.includes('checked in') || lowerMsg.includes('completed') || lowerMsg.includes('added') || lowerMsg.includes('saved')) {
+            iconHTML = '<i class="fa-solid fa-circle-check" style="color:#34c759; font-size:16px;"></i>';
+            borderColor = 'rgba(52, 199, 89, 0.4)';
+        } else if (type === 'error' || lowerMsg.includes('error') || lowerMsg.includes('failed') || lowerMsg.includes('invalid') || lowerMsg.includes('inaccessible') || lowerMsg.includes('timeout')) {
+            iconHTML = '<i class="fa-solid fa-circle-exclamation" style="color:#ef4444; font-size:16px;"></i>';
+            borderColor = 'rgba(239, 68, 68, 0.4)';
+        } else if (type === 'warning' || lowerMsg.includes('warning') || lowerMsg.includes('select') || lowerMsg.includes('capture')) {
+            iconHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b; font-size:16px;"></i>';
+            borderColor = 'rgba(245, 158, 11, 0.4)';
+        }
+
+        const toast = document.createElement('div');
+        toast.className = 'toast-card';
+        toast.style.borderColor = borderColor;
+        toast.innerHTML = `<div style="display:flex; align-items:center; gap:10px;">${iconHTML}<span style="font-size:13px; font-weight:700; color:#ffffff; line-height:1.3;">${message}</span></div>`;
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.animation = 'toastOut 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+            setTimeout(() => {
+                toast.remove();
+                if (container && container.children.length === 0) {
+                    container.remove();
+                }
+            }, 280);
+        }, duration);
+    };
+    var showToast = window.showToast;
+
+    /**
+     * Universal Cross-Browser / Mobile Clipboard Copy Helper
+     * Handles HTTPS, HTTP (LAN/XAMPP IP), WebViews, iOS/Android, and Desktop
+     */
+    window.copyToClipboard = function (text, onSuccess, onError) {
+        if (!text) {
+            if (typeof onError === 'function') onError(new Error('No text provided to copy'));
+            return;
+        }
+
+        const trimmed = String(text).trim();
+
+        // 1. Try modern Async Clipboard API if supported and in secure context
+        if (navigator.clipboard && window.isSecureContext && typeof navigator.clipboard.writeText === 'function') {
+            navigator.clipboard.writeText(trimmed).then(() => {
+                if (typeof onSuccess === 'function') onSuccess(trimmed);
+            }).catch((err) => {
+                console.warn('Clipboard writeText failed, trying execCommand fallback:', err);
+                fallbackExecCopy(trimmed, onSuccess, onError);
+            });
+            return;
+        }
+
+        // 2. Fallback using document.execCommand('copy')
+        fallbackExecCopy(trimmed, onSuccess, onError);
+    };
+
+    function fallbackExecCopy(text, onSuccess, onError) {
+        let ta = null;
+        try {
+            ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.top = '0';
+            ta.style.left = '-9999px';
+            ta.style.width = '2em';
+            ta.style.height = '2em';
+            ta.style.padding = '0';
+            ta.style.border = 'none';
+            ta.style.outline = 'none';
+            ta.style.boxShadow = 'none';
+            ta.style.background = 'transparent';
+            ta.style.opacity = '0.01';
+            ta.style.zIndex = '-9999';
+            ta.style.pointerEvents = 'none';
+
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            ta.setSelectionRange(0, ta.value.length);
+
+            const successful = document.execCommand('copy');
+            document.body.removeChild(ta);
+            ta = null;
+
+            if (successful) {
+                if (typeof onSuccess === 'function') onSuccess(text);
+            } else {
+                throw new Error('execCommand returned false');
+            }
         } catch (e) {
-            console.warn('ServiceWorker init skipped: ', e);
+            if (ta && ta.parentNode) {
+                ta.parentNode.removeChild(ta);
+            }
+            console.warn('Fallback execCommand copy error:', e);
+            if (typeof onError === 'function') {
+                onError(e);
+            } else if (typeof showToast === 'function') {
+                showToast('Unable to copy automatically. Code: ' + text);
+            }
+        }
+    }
+
+    /**
+     * Execute scripts injected via innerHTML
+     */
+    function executeScripts(container) {
+        const scripts = container.querySelectorAll('script');
+        scripts.forEach(oldScript => {
+            const newScript = document.createElement('script');
+            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+            if (oldScript.parentNode) {
+                oldScript.parentNode.replaceChild(newScript, oldScript);
+            }
+        });
+    }
+
+    /**
+     * Initialize logic specific to the current view
+     */
+    function initCurrentView() {
+        // Update Magic Nav
+        updateMagicNav(state.currentView);
+
+        // Dispatch a custom event so individual views can listen for load
+        document.dispatchEvent(new CustomEvent('viewLoaded', { detail: { view: state.currentView } }));
+    }
+
+    /**
+     * Handle Magic Navigation Bar Indicator and Visibility
+     */
+    function updateMagicNav(viewName) {
+        const nav = document.getElementById('magic-nav');
+        if (!nav) return;
+
+        const items = nav.querySelectorAll('.magic-nav-item');
+        const indicator = document.getElementById('magic-indicator');
+        const indicatorCircle = document.querySelector('.magic-indicator-circle');
+
+        const isMainNav = Array.from(items).some(item => item.dataset.view === viewName);
+        if (!isMainNav) return;
+
+        let activeColor = '#38bdf8';
+        let activeIndex = 0;
+
+        items.forEach(item => {
+            if (item.dataset.view === viewName) {
+                item.classList.add('active');
+                activeColor = item.dataset.color || activeColor;
+                activeIndex = parseInt(item.dataset.index);
+            } else {
+                item.classList.remove('active');
+            }
+        });
+
+        // Update Magic Indicator Position
+        // Center is at 10%, 30%, 50%, 70%, 90%
+        const percent = 10 + (activeIndex * 20);
+        if (indicator) {
+            indicator.style.left = `${percent}%`;
+            indicator.style.background = `radial-gradient(circle at 38% 32%, ${activeColor}ed, ${activeColor}ba)`;
+            indicator.style.boxShadow = `0 4px 22px ${activeColor}90, inset 0 2px 4px rgba(255,255,255,0.3)`;
+        }
+
+        // Update SVG Path Notch
+        const notchCX = (percent / 100) * 448; // ViewBox width is 448
+        const { fullPath, topEdge } = buildNavPath(notchCX);
+
+        const pathBase = document.getElementById('magic-nav-path-base');
+        const pathTint = document.getElementById('magic-nav-path-tint');
+        const pathEdge = document.getElementById('magic-nav-path-edge');
+
+        if (pathBase) pathBase.setAttribute('d', fullPath);
+        if (pathTint) {
+            pathTint.setAttribute('d', fullPath);
+            pathTint.setAttribute('fill', activeColor);
+        }
+        if (pathEdge) pathEdge.setAttribute('d', topEdge);
+    }
+
+    function buildNavPath(cx) {
+        const W = 448;
+        const H = 66;
+        const w = 64;
+        const d = 48;
+        const c1x = 36;
+        const c2x = 44;
+
+        const topEdge = [
+            `M 0 0`,
+            `H ${cx - w}`,
+            `C ${cx - c1x} 0, ${cx - c2x} ${d}, ${cx} ${d}`,
+            `C ${cx + c2x} ${d}, ${cx + c1x} 0, ${cx + w} 0`,
+            `H ${W}`,
+        ].join(" ");
+
+        const fullPath = [topEdge, `V ${H}`, `H 0`, `Z`].join(" ");
+
+        return { fullPath, topEdge };
+    }
+
+
+
+    /**
+     * Handle Logout
+     */
+    async function handleLogout(e) {
+        if (e) e.preventDefault();
+        showToast('Logging out...', 1000);
+
+        try {
+            const token = localStorage.getItem('intan_elyu_token');
+            if (token) {
+                await fetch(window.backendUrl + '/api/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+            }
+        } catch (err) {
+            console.warn('Backend logout failed', err);
+        }
+
+        localStorage.removeItem('intan_elyu_token');
+        localStorage.removeItem('auth_user');
+
+        setTimeout(() => {
+            // Hard reset the URL to clear Capacitor saved state and show splash
+            window.location.replace('index.php?view=splash');
+        }, 1000);
+    }
+
+    /**
+     * Pull to Refresh Logic
+     */
+    let startY = 0;
+    let currentY = 0;
+    let isPulling = false;
+    let isRefreshing = false;
+
+
+    // Global Dark Mode Controller
+    window.toggleDarkMode = function (isDark) {
+        if (isDark) {
+            document.body.classList.add('dark-theme');
+            localStorage.setItem('intan_elyu_theme', 'dark');
+        } else {
+            document.body.classList.remove('dark-theme');
+            localStorage.setItem('intan_elyu_theme', 'light');
+        }
+    };
+
+    // Initialize the dark mode toggle switch every time a view loads
+    document.addEventListener('viewLoaded', (e) => {
+        // Sync CSS wave animations to global time so they don't jump horizontally on view transition
+        const timePassed = performance.now() / 1000;
+        const waves = document.querySelectorAll('.wave-layer');
+        waves.forEach(wave => {
+            if (!wave.dataset.synced) {
+                wave.style.animationDelay = `-${timePassed}s`;
+                wave.dataset.synced = 'true';
+            }
+        });
+
+        if (e.detail.view === 'settings') {
+            const toggle = document.getElementById('dark-mode-toggle');
+            if (toggle) {
+                // Set initial state
+                toggle.checked = document.body.classList.contains('dark-theme');
+
+                // Attach event listener natively to bypass inline execution issues on webviews
+                toggle.addEventListener('change', function () {
+                    window.toggleDarkMode(this.checked);
+                });
+            }
         }
     });
-}
 
-// --- Custom In-App Notifications for WebViews ---
+    // --- Push Notifications & Location Services ---
 
-window.showInAppNotification = function (title, message, iconUrl = '') {
-    let modal = document.getElementById('notif-modal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'notif-modal';
-        modal.style.cssText = 'position:fixed; inset:0; z-index:999999; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); opacity:0; transition:opacity 0.3s;';
-        modal.innerHTML = `
+    window.intanElyuLocationWatchId = null;
+
+    // Initialize Service Worker
+    if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        window.addEventListener('load', function () {
+            try {
+                // Resolve sw.js relative to document.baseURI to support clean routes and sub-directories without 404
+                const swUrl = document.baseURI ? new URL('sw.js', document.baseURI).href : 'sw.js';
+                navigator.serviceWorker.register(swUrl).then(function (registration) {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }).catch(function (err) {
+                    console.warn('ServiceWorker registration note: ', err);
+                });
+            } catch (e) {
+                console.warn('ServiceWorker init skipped: ', e);
+            }
+        });
+    }
+
+    // --- Custom In-App Notifications for WebViews ---
+
+    window.showInAppNotification = function (title, message, iconUrl = '') {
+        let modal = document.getElementById('notif-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'notif-modal';
+            modal.style.cssText = 'position:fixed; inset:0; z-index:999999; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); opacity:0; transition:opacity 0.3s;';
+            modal.innerHTML = `
             <div style="background:rgba(28,28,30,0.95); backdrop-filter:blur(20px); border-radius:20px; padding:28px 24px 20px; width:300px; max-width:85vw; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.08); transform:scale(0.9); transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);">
                 <div id="notif-modal-icon" style="width:56px; height:56px; border-radius:16px; background:var(--primary-color); display:flex; align-items:center; justify-content:center; color:white; font-size:26px; margin:0 auto 14px;"><i class="fa-solid fa-bell"></i></div>
                 <h3 id="notif-modal-title" style="margin:0 0 8px; color:white; font-size:17px; font-weight:700;">${title}</h3>
@@ -1013,372 +1091,372 @@ window.showInAppNotification = function (title, message, iconUrl = '') {
                 <button id="notif-modal-btn" style="background:var(--primary-color); color:white; border:none; padding:12px 24px; border-radius:100px; font-size:14px; font-weight:700; cursor:pointer; width:100%;">Got it</button>
             </div>
         `;
-        document.body.appendChild(modal);
+            document.body.appendChild(modal);
 
-        const inner = modal.querySelector('div > div');
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) window.closeNotifModal();
+            const inner = modal.querySelector('div > div');
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) window.closeNotifModal();
+            });
+            modal.querySelector('#notif-modal-btn').addEventListener('click', window.closeNotifModal);
+        }
+
+        const iconDiv = modal.querySelector('#notif-modal-icon');
+        if (iconUrl) {
+            iconDiv.innerHTML = `<img src="${iconUrl}" style="width:56px; height:56px; border-radius:16px; object-fit:cover;">`;
+        } else {
+            iconDiv.innerHTML = '<i class="fa-solid fa-bell"></i>';
+        }
+        modal.querySelector('#notif-modal-title').textContent = title;
+        modal.querySelector('#notif-modal-msg').textContent = message;
+
+        modal.style.display = 'flex';
+        requestAnimationFrame(() => {
+            modal.style.opacity = '1';
+            modal.querySelector('div > div').style.transform = 'scale(1)';
         });
-        modal.querySelector('#notif-modal-btn').addEventListener('click', window.closeNotifModal);
-    }
+    };
 
-    const iconDiv = modal.querySelector('#notif-modal-icon');
-    if (iconUrl) {
-        iconDiv.innerHTML = `<img src="${iconUrl}" style="width:56px; height:56px; border-radius:16px; object-fit:cover;">`;
-    } else {
-        iconDiv.innerHTML = '<i class="fa-solid fa-bell"></i>';
-    }
-    modal.querySelector('#notif-modal-title').textContent = title;
-    modal.querySelector('#notif-modal-msg').textContent = message;
+    window.closeNotifModal = function () {
+        const modal = document.getElementById('notif-modal');
+        if (!modal) return;
+        modal.style.opacity = '0';
+        modal.querySelector('div > div').style.transform = 'scale(0.9)';
+        setTimeout(() => { modal.style.display = 'none'; }, 300);
+    };
 
-    modal.style.display = 'flex';
-    requestAnimationFrame(() => {
-        modal.style.opacity = '1';
-        modal.querySelector('div > div').style.transform = 'scale(1)';
-    });
-};
+    window.togglePushNotifications = async function (enabled) {
+        localStorage.setItem('intan_elyu_push_enabled', enabled);
+        if (enabled) {
+            showToast("In-App Notifications enabled!");
+            window.showInAppNotification("Intan Elyu", "Notifications are now active! You will be alerted when near a destination.");
+        } else {
+            showToast("In-App Notifications disabled");
+        }
+    };
 
-window.closeNotifModal = function () {
-    const modal = document.getElementById('notif-modal');
-    if (!modal) return;
-    modal.style.opacity = '0';
-    modal.querySelector('div > div').style.transform = 'scale(0.9)';
-    setTimeout(() => { modal.style.display = 'none'; }, 300);
-};
+    window.toggleLocationServices = function (enabled) {
+        localStorage.setItem('intan_elyu_loc_enabled', enabled);
+        if (enabled) {
+            showToast("Location Services enabled!");
+            window.startLocationWatch();
+        } else {
+            showToast("Location Services disabled");
+            if (window.intanElyuLocationWatchId) {
+                navigator.geolocation.clearWatch(window.intanElyuLocationWatchId);
+                window.intanElyuLocationWatchId = null;
+            }
+        }
+    };
 
-window.togglePushNotifications = async function (enabled) {
-    localStorage.setItem('intan_elyu_push_enabled', enabled);
-    if (enabled) {
-        showToast("In-App Notifications enabled!");
-        window.showInAppNotification("Intan Elyu", "Notifications are now active! You will be alerted when near a destination.");
-    } else {
-        showToast("In-App Notifications disabled");
-    }
-};
+    window.startLocationWatch = function () {
+        if (!navigator.geolocation) return;
 
-window.toggleLocationServices = function (enabled) {
-    localStorage.setItem('intan_elyu_loc_enabled', enabled);
-    if (enabled) {
-        showToast("Location Services enabled!");
-        window.startLocationWatch();
-    } else {
-        showToast("Location Services disabled");
         if (window.intanElyuLocationWatchId) {
+            navigator.geolocation.clearWatch(window.intanElyuLocationWatchId);
+        }
+
+        let lastAlertedItems = JSON.parse(localStorage.getItem('intan_elyu_alerted_items') || '{}');
+        let lastGpsProcessTime = 0;
+
+        const onPos = (position) => {
+            const currentLat = position.coords.latitude;
+            const currentLng = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
+            const altitude = position.coords.altitude;
+            const speed = position.coords.speed;
+
+            // Mark as real verified GPS
+            window.currentGPSSource = 'gps';
+            window.currentGPSLat = currentLat;
+            window.currentGPSLng = currentLng;
+            window.myLat = currentLat;
+            window.myLng = currentLng;
+            window.currentGPSAccuracy = accuracy;
+            window.currentGPSAltitude = altitude;
+            window.currentGPSSpeed = speed;
+
+            // Broadcast dynamic update for real-time map tracking
+            requestAnimationFrame(() => {
+                document.dispatchEvent(new CustomEvent('gpsUpdated', { detail: { lat: currentLat, lng: currentLng, accuracy, altitude, speed, source: 'gps' } }));
+            });
+
+            // Proximity auto check-in is intentionally disabled as check-in requires explicit photo proof submission and pending review.
+        };
+
+        const onErr = (error) => {
+            if (error.code === 2 || error.code === 3) {
+                if (window.intanElyuLocationWatchId) {
+                    navigator.geolocation.clearWatch(window.intanElyuLocationWatchId);
+                    window.intanElyuLocationWatchId = navigator.geolocation.watchPosition(
+                        onPos,
+                        (e2) => { if (e2.code !== 3 && e2.code !== 1) console.warn("Network location watch error:", e2); },
+                        { enableHighAccuracy: false, maximumAge: 10000, timeout: 20000 }
+                    );
+                }
+            } else if (error.code === 1) {
+                console.warn("Location permission denied by browser. Please allow location in browser site settings.");
+                localStorage.setItem('intan_elyu_loc_enabled', 'false');
+                localStorage.setItem('Intan_Elyu_loc_enabled', 'false');
+                const locToggle = document.getElementById('location-service-toggle');
+                if (locToggle) locToggle.checked = false;
+                document.dispatchEvent(new CustomEvent('locationStatusChanged', { detail: { enabled: false, error } }));
+            }
+        };
+
+        window.intanElyuLocationWatchId = navigator.geolocation.watchPosition(
+            onPos,
+            onErr,
+            { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
+        );
+    };
+
+    window.stopLocationWatch = function () {
+        if (window.intanElyuLocationWatchId && navigator.geolocation) {
             navigator.geolocation.clearWatch(window.intanElyuLocationWatchId);
             window.intanElyuLocationWatchId = null;
         }
-    }
-};
-
-window.startLocationWatch = function () {
-    if (!navigator.geolocation) return;
-
-    if (window.intanElyuLocationWatchId) {
-        navigator.geolocation.clearWatch(window.intanElyuLocationWatchId);
-    }
-
-    let lastAlertedItems = JSON.parse(localStorage.getItem('intan_elyu_alerted_items') || '{}');
-    let lastGpsProcessTime = 0;
-
-    const onPos = (position) => {
-        const currentLat = position.coords.latitude;
-        const currentLng = position.coords.longitude;
-        const accuracy = position.coords.accuracy;
-        const altitude = position.coords.altitude;
-        const speed = position.coords.speed;
-
-        // Mark as real verified GPS
-        window.currentGPSSource = 'gps';
-        window.currentGPSLat = currentLat;
-        window.currentGPSLng = currentLng;
-        window.myLat = currentLat;
-        window.myLng = currentLng;
-        window.currentGPSAccuracy = accuracy;
-        window.currentGPSAltitude = altitude;
-        window.currentGPSSpeed = speed;
-
-        // Broadcast dynamic update for real-time map tracking
-        requestAnimationFrame(() => {
-            document.dispatchEvent(new CustomEvent('gpsUpdated', { detail: { lat: currentLat, lng: currentLng, accuracy, altitude, speed, source: 'gps' } }));
-        });
-
-        // Proximity auto check-in is intentionally disabled as check-in requires explicit photo proof submission and pending review.
+        window.currentGPSSource = null;
+        document.dispatchEvent(new CustomEvent('locationStatusChanged', { detail: { enabled: false } }));
     };
 
-    const onErr = (error) => {
-        if (error.code === 2 || error.code === 3) {
-            if (window.intanElyuLocationWatchId) {
-                navigator.geolocation.clearWatch(window.intanElyuLocationWatchId);
-                window.intanElyuLocationWatchId = navigator.geolocation.watchPosition(
-                    onPos,
-                    (e2) => { if (e2.code !== 3 && e2.code !== 1) console.warn("Network location watch error:", e2); },
-                    { enableHighAccuracy: false, maximumAge: 10000, timeout: 20000 }
-                );
-            }
-        } else if (error.code === 1) {
-            console.warn("Location permission denied by browser. Please allow location in browser site settings.");
-            localStorage.setItem('intan_elyu_loc_enabled', 'false');
-            localStorage.setItem('Intan_Elyu_loc_enabled', 'false');
-            const locToggle = document.getElementById('location-service-toggle');
-            if (locToggle) locToggle.checked = false;
-            document.dispatchEvent(new CustomEvent('locationStatusChanged', { detail: { enabled: false, error } }));
+    // Request high-accuracy hardware GPS location from the device with Progressive Fallback
+    window.requestPreciseLocation = async function (forceFresh = false) {
+        // 0. If we already have a real verified GPS fix and not forcing cold fresh, return it immediately
+        if (!forceFresh && window.currentGPSSource === 'gps' && window.currentGPSLat && window.currentGPSLng) {
+            return { lat: window.currentGPSLat, lng: window.currentGPSLng, source: 'gps', accuracy: window.currentGPSAccuracy || 10 };
         }
-    };
 
-    window.intanElyuLocationWatchId = navigator.geolocation.watchPosition(
-        onPos,
-        onErr,
-        { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
-    );
-};
-
-window.stopLocationWatch = function () {
-    if (window.intanElyuLocationWatchId && navigator.geolocation) {
-        navigator.geolocation.clearWatch(window.intanElyuLocationWatchId);
-        window.intanElyuLocationWatchId = null;
-    }
-    window.currentGPSSource = null;
-    document.dispatchEvent(new CustomEvent('locationStatusChanged', { detail: { enabled: false } }));
-};
-
-// Request high-accuracy hardware GPS location from the device with Progressive Fallback
-window.requestPreciseLocation = async function (forceFresh = false) {
-    // 0. If we already have a real verified GPS fix and not forcing cold fresh, return it immediately
-    if (!forceFresh && window.currentGPSSource === 'gps' && window.currentGPSLat && window.currentGPSLng) {
-        return { lat: window.currentGPSLat, lng: window.currentGPSLng, source: 'gps', accuracy: window.currentGPSAccuracy || 10 };
-    }
-
-    // 1. If running under Capacitor native runtime, use Capacitor Geolocation plugin
-    if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
-        try {
-            const Geolocation = (window.Capacitor.Plugins && window.Capacitor.Plugins.Geolocation) ||
-                (window.Capacitor.registerPlugin ? window.Capacitor.registerPlugin('Geolocation') : null);
-            if (Geolocation) {
-                const perm = await Geolocation.checkPermissions();
-                if (perm.location !== 'granted') {
-                    const req = await Geolocation.requestPermissions();
-                    if (req.location !== 'granted') throw new Error('Permission denied');
+        // 1. If running under Capacitor native runtime, use Capacitor Geolocation plugin
+        if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+            try {
+                const Geolocation = (window.Capacitor.Plugins && window.Capacitor.Plugins.Geolocation) ||
+                    (window.Capacitor.registerPlugin ? window.Capacitor.registerPlugin('Geolocation') : null);
+                if (Geolocation) {
+                    const perm = await Geolocation.checkPermissions();
+                    if (perm.location !== 'granted') {
+                        const req = await Geolocation.requestPermissions();
+                        if (req.location !== 'granted') throw new Error('Permission denied');
+                    }
+                    const pos = await Geolocation.getCurrentPosition({
+                        enableHighAccuracy: true,
+                        timeout: 20000,
+                        maximumAge: 10000
+                    });
+                    if (pos && pos.coords) {
+                        const lat = pos.coords.latitude;
+                        const lng = pos.coords.longitude;
+                        const accuracy = pos.coords.accuracy || 10;
+                        window.currentGPSLat = lat;
+                        window.currentGPSLng = lng;
+                        window.myLat = lat;
+                        window.myLng = lng;
+                        window.currentGPSSource = 'gps';
+                        window.currentGPSAccuracy = accuracy;
+                        document.dispatchEvent(new CustomEvent('gpsUpdated', {
+                            detail: { lat, lng, accuracy, source: 'gps', altitude: pos.coords.altitude, speed: pos.coords.speed }
+                        }));
+                        return { lat, lng, source: 'gps', accuracy };
+                    }
                 }
-                const pos = await Geolocation.getCurrentPosition({
-                    enableHighAccuracy: true,
-                    timeout: 20000,
-                    maximumAge: 10000
-                });
-                if (pos && pos.coords) {
-                    const lat = pos.coords.latitude;
-                    const lng = pos.coords.longitude;
-                    const accuracy = pos.coords.accuracy || 10;
-                    window.currentGPSLat = lat;
-                    window.currentGPSLng = lng;
-                    window.myLat = lat;
-                    window.myLng = lng;
-                    window.currentGPSSource = 'gps';
-                    window.currentGPSAccuracy = accuracy;
-                    document.dispatchEvent(new CustomEvent('gpsUpdated', {
-                        detail: { lat, lng, accuracy, source: 'gps', altitude: pos.coords.altitude, speed: pos.coords.speed }
-                    }));
-                    return { lat, lng, source: 'gps', accuracy };
-                }
+            } catch (e) {
+                console.warn("Capacitor precise geolocation error:", e);
             }
-        } catch (e) {
-            console.warn("Capacitor precise geolocation error:", e);
         }
-    }
 
-    // 2. Standard HTML5 Geolocation API with Progressive Fallback (Warm Cache -> High Accuracy -> Network)
-    if (navigator.geolocation) {
-        const getPositionPromise = (options) => new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, options);
-        });
-
-        let pos = null;
-
-        // Pass 1: Try quick warm cache (instant if device recently had a fix)
-        try {
-            pos = await getPositionPromise({
-                enableHighAccuracy: true,
-                timeout: 2500,
-                maximumAge: 60000
+        // 2. Standard HTML5 Geolocation API with Progressive Fallback (Warm Cache -> High Accuracy -> Network)
+        if (navigator.geolocation) {
+            const getPositionPromise = (options) => new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, options);
             });
-        } catch (e) {
-            // Warm cache not available, proceed to live request
-        }
 
-        // Pass 2: Request high-accuracy GPS with generous 20-second timeout
-        if (!pos) {
+            let pos = null;
+
+            // Pass 1: Try quick warm cache (instant if device recently had a fix)
             try {
                 pos = await getPositionPromise({
                     enableHighAccuracy: true,
-                    timeout: 20000,
-                    maximumAge: 10000
+                    timeout: 2500,
+                    maximumAge: 60000
                 });
-            } catch (err2) {
-                // Pass 3: If high accuracy timed out or is weak indoors, fallback to network/cell/Wi-Fi positioning
-                if (err2.code === 2 || err2.code === 3) {
-                    console.log("High accuracy GPS timed out, trying network/Wi-Fi positioning...");
-                    try {
-                        pos = await getPositionPromise({
-                            enableHighAccuracy: false,
-                            timeout: 20000,
-                            maximumAge: 30000
-                        });
-                    } catch (err3) {
-                        // If all timed out but we have a previous GPS in memory, use it
-                        if (window.currentGPSLat && window.currentGPSLng) {
-                            return { lat: window.currentGPSLat, lng: window.currentGPSLng, source: window.currentGPSSource || 'gps', accuracy: window.currentGPSAccuracy || 20 };
+            } catch (e) {
+                // Warm cache not available, proceed to live request
+            }
+
+            // Pass 2: Request high-accuracy GPS with generous 20-second timeout
+            if (!pos) {
+                try {
+                    pos = await getPositionPromise({
+                        enableHighAccuracy: true,
+                        timeout: 20000,
+                        maximumAge: 10000
+                    });
+                } catch (err2) {
+                    // Pass 3: If high accuracy timed out or is weak indoors, fallback to network/cell/Wi-Fi positioning
+                    if (err2.code === 2 || err2.code === 3) {
+                        console.log("High accuracy GPS timed out, trying network/Wi-Fi positioning...");
+                        try {
+                            pos = await getPositionPromise({
+                                enableHighAccuracy: false,
+                                timeout: 20000,
+                                maximumAge: 30000
+                            });
+                        } catch (err3) {
+                            // If all timed out but we have a previous GPS in memory, use it
+                            if (window.currentGPSLat && window.currentGPSLng) {
+                                return { lat: window.currentGPSLat, lng: window.currentGPSLng, source: window.currentGPSSource || 'gps', accuracy: window.currentGPSAccuracy || 20 };
+                            }
+                            throw err3;
                         }
-                        throw err3;
+                    } else {
+                        throw err2;
                     }
-                } else {
-                    throw err2;
                 }
             }
-        }
 
-        if (pos && pos.coords) {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            const accuracy = pos.coords.accuracy || 15;
-            window.currentGPSLat = lat;
-            window.currentGPSLng = lng;
-            window.myLat = lat;
-            window.myLng = lng;
-            window.currentGPSSource = 'gps';
-            window.currentGPSAccuracy = accuracy;
-            document.dispatchEvent(new CustomEvent('gpsUpdated', {
-                detail: { lat, lng, accuracy, source: 'gps', altitude: pos.coords.altitude, speed: pos.coords.speed }
-            }));
-            return { lat, lng, source: 'gps', accuracy };
-        }
-    }
-
-    throw new Error('Geolocation not supported by device');
-};
-
-// Fast-track location: returns real GPS if available, else requests it
-window.fastLocation = function () {
-    if (window.currentGPSSource === 'gps' && window.currentGPSLat && window.currentGPSLng) {
-        return Promise.resolve({ lat: window.currentGPSLat, lng: window.currentGPSLng, source: 'gps' });
-    }
-    return window.resolveUserLocation(false);
-};
-
-// Pure real location resolver (No fake mock locations)
-window.resolveUserLocation = async function (forceFresh = false) {
-    // If we already have a real verified GPS fix and not forcing fresh, return it
-    if (!forceFresh && window.currentGPSSource === 'gps' && window.currentGPSLat && window.currentGPSLng) {
-        return { lat: window.currentGPSLat, lng: window.currentGPSLng, source: 'gps' };
-    }
-
-    // Try real hardware GPS
-    try {
-        const precise = await window.requestPreciseLocation(forceFresh);
-        if (precise && precise.lat && precise.lng) {
-            return precise;
-        }
-    } catch (e) {
-        console.warn("Live GPS acquisition error:", e && e.message);
-    }
-
-    // Check if user manually saved a location
-    try {
-        const manualLocStr = localStorage.getItem('intan_elyu_manual_loc');
-        if (manualLocStr) {
-            const manual = JSON.parse(manualLocStr);
-            if (manual && manual.lat && manual.lng) {
-                window.currentGPSLat = manual.lat;
-                window.currentGPSLng = manual.lng;
-                window.myLat = manual.lat;
-                window.myLng = manual.lng;
-                window.currentGPSSource = 'manual';
+            if (pos && pos.coords) {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                const accuracy = pos.coords.accuracy || 15;
+                window.currentGPSLat = lat;
+                window.currentGPSLng = lng;
+                window.myLat = lat;
+                window.myLng = lng;
+                window.currentGPSSource = 'gps';
+                window.currentGPSAccuracy = accuracy;
                 document.dispatchEvent(new CustomEvent('gpsUpdated', {
-                    detail: { lat: manual.lat, lng: manual.lng, accuracy: 10, source: 'manual', name: manual.name }
+                    detail: { lat, lng, accuracy, source: 'gps', altitude: pos.coords.altitude, speed: pos.coords.speed }
                 }));
-                return { lat: manual.lat, lng: manual.lng, source: 'manual', name: manual.name };
+                return { lat, lng, source: 'gps', accuracy };
             }
         }
-    } catch (e) { }
 
-    return null;
-};
+        throw new Error('Geolocation not supported by device');
+    };
 
-// La Union towns catalog for instant manual location picking (All 20 Municipalities & City)
-window.LA_UNION_TOWNS = [
-    { name: 'San Juan (Surfing Capital)', lat: 16.671123, lng: 120.338487, icon: 'fa-person-surfing', desc: 'Urbiztondo Beach, Surf Breaks & Cafes' },
-    { name: 'San Fernando City (Capitol)', lat: 16.6159, lng: 120.3167, icon: 'fa-landmark-dome', desc: 'City Center, Capitol, Poro Point & Malls' },
-    { name: 'Bauang', lat: 16.5319, lng: 120.3298, icon: 'fa-wine-bottle', desc: 'Grape Farms, Beaches & Resorts' },
-    { name: 'Bacnotan', lat: 16.7202, lng: 120.3353, icon: 'fa-cubes-stacked', desc: 'Apiary, Surfing & Coastal Views' },
-    { name: 'Balaoan', lat: 16.8228, lng: 120.4005, icon: 'fa-gem', desc: 'Immuki Island & Coral Lagoons' },
-    { name: 'Luna', lat: 16.8554, lng: 120.3758, icon: 'fa-chess-rook', desc: 'Pebble Beach, Baluarte & Ruins' },
-    { name: 'Bangar', lat: 16.8942, lng: 120.4245, icon: 'fa-shirt', desc: 'Abel Loom Weaving & Cultural Heritage' },
-    { name: 'Sudipen', lat: 16.9031, lng: 120.4700, icon: 'fa-bridge-water', desc: 'Amburayan River & Northern Gateway' },
-    { name: 'Santol', lat: 16.7686, lng: 120.4578, icon: 'fa-mountain', desc: 'Highland Waterfalls & Mountain Vistas' },
-    { name: 'San Gabriel', lat: 16.6711, lng: 120.4050, icon: 'fa-water-ladder', desc: 'Tangadan Falls Jump-off & Eco Nature' },
-    { name: 'Bagulin', lat: 16.6072, lng: 120.4422, icon: 'fa-campground', desc: 'Loslosi Hills, Bamboo Craft & Nature' },
-    { name: 'Burgos', lat: 16.5183, lng: 120.4578, icon: 'fa-mountain-sun', desc: 'Highland Ridge Trails & Basi Legacy' },
-    { name: 'Naguilian', lat: 16.5366, lng: 120.3926, icon: 'fa-bottle-droplet', desc: 'Basi Wine, Woodcraft & Foothills' },
-    { name: 'Aringay', lat: 16.3958, lng: 120.3325, icon: 'fa-train-subway', desc: 'Centennial Tunnel & Eco Tourism' },
-    { name: 'Caba', lat: 16.4292, lng: 120.3344, icon: 'fa-basket-shopping', desc: 'Bamboo Crafts & Agri-Tourism' },
-    { name: 'Agoo', lat: 16.3217, lng: 120.3667, icon: 'fa-church', desc: 'Basilica Minore & Eco-Fun Park' },
-    { name: 'Tubao', lat: 16.3470, lng: 120.4126, icon: 'fa-place-of-worship', desc: 'Mount Franciscan & Heritage Grotto' },
-    { name: 'Pugo', lat: 16.3167, lng: 120.4667, icon: 'fa-person-hiking', desc: 'Pugad Adventure & Tapuakan River' },
-    { name: 'Santo Tomas', lat: 16.2842, lng: 120.3861, icon: 'fa-fish', desc: 'Daing Capital & Marine Sanctuaries' },
-    { name: 'Rosario', lat: 16.2286, lng: 120.4850, icon: 'fa-archway', desc: 'Gateway to Ilocandia & Tree Canopy' }
-];
-
-window.setManualLocation = function (lat, lng, name) {
-    const pLat = parseFloat(lat);
-    const pLng = parseFloat(lng);
-    if (isNaN(pLat) || isNaN(pLng)) return;
-
-    window.currentGPSLat = pLat;
-    window.currentGPSLng = pLng;
-    window.myLat = pLat;
-    window.myLng = pLng;
-    window.currentGPSSource = 'manual';
-
-    localStorage.setItem('intan_elyu_manual_loc', JSON.stringify({ lat: pLat, lng: pLng, name: name || 'Selected Location' }));
-
-    document.dispatchEvent(new CustomEvent('gpsUpdated', {
-        detail: { lat: pLat, lng: pLng, accuracy: 10, source: 'manual', name: name || 'Selected Location' }
-    }));
-
-    if (typeof showToast === 'function') {
-        showToast(`📍 Location set to ${name || 'Selected Spot'}`);
-    }
-
-    if (window.mapInstance) {
-        window.mapInstance.flyTo({ center: [pLng, pLat], zoom: 14, duration: 1000 });
-        if (window.userMarker) {
-            window.userMarker.setLngLat([pLng, pLat]);
+    // Fast-track location: returns real GPS if available, else requests it
+    window.fastLocation = function () {
+        if (window.currentGPSSource === 'gps' && window.currentGPSLat && window.currentGPSLng) {
+            return Promise.resolve({ lat: window.currentGPSLat, lng: window.currentGPSLng, source: 'gps' });
         }
-    }
-    if (typeof draftMap !== 'undefined' && draftMap) {
-        draftMap.flyTo([pLat, pLng], 15);
-        if (window.myDraftMarker) {
-            window.myDraftMarker.setLatLng([pLat, pLng]);
+        return window.resolveUserLocation(false);
+    };
+
+    // Pure real location resolver (No fake mock locations)
+    window.resolveUserLocation = async function (forceFresh = false) {
+        // If we already have a real verified GPS fix and not forcing fresh, return it
+        if (!forceFresh && window.currentGPSSource === 'gps' && window.currentGPSLat && window.currentGPSLng) {
+            return { lat: window.currentGPSLat, lng: window.currentGPSLng, source: 'gps' };
         }
-    }
-    if (typeof tripMap !== 'undefined' && tripMap) {
-        tripMap.flyTo({ center: [pLng, pLat], zoom: 15 });
-        if (window.tripGpsMarker) {
-            window.tripGpsMarker.setLngLat([pLng, pLat]);
+
+        // Try real hardware GPS
+        try {
+            const precise = await window.requestPreciseLocation(forceFresh);
+            if (precise && precise.lat && precise.lng) {
+                return precise;
+            }
+        } catch (e) {
+            console.warn("Live GPS acquisition error:", e && e.message);
         }
-    }
-    window.closeLocationPickerModal();
-};
 
-window.openLocationPickerModal = function () {
-    let modal = document.getElementById('location-picker-modal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'location-picker-modal';
-        modal.style.cssText = "position:fixed; top:0; left:0; right:0; bottom:0; z-index:11000; background:rgba(0,0,0,0.65); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; padding:16px; opacity:0; transition:opacity 0.25s ease;";
+        // Check if user manually saved a location
+        try {
+            const manualLocStr = localStorage.getItem('intan_elyu_manual_loc');
+            if (manualLocStr) {
+                const manual = JSON.parse(manualLocStr);
+                if (manual && manual.lat && manual.lng) {
+                    window.currentGPSLat = manual.lat;
+                    window.currentGPSLng = manual.lng;
+                    window.myLat = manual.lat;
+                    window.myLng = manual.lng;
+                    window.currentGPSSource = 'manual';
+                    document.dispatchEvent(new CustomEvent('gpsUpdated', {
+                        detail: { lat: manual.lat, lng: manual.lng, accuracy: 10, source: 'manual', name: manual.name }
+                    }));
+                    return { lat: manual.lat, lng: manual.lng, source: 'manual', name: manual.name };
+                }
+            }
+        } catch (e) { }
 
-        const content = document.createElement('div');
-        content.style.cssText = "background:linear-gradient(135deg, rgba(15,23,42,0.98), rgba(30,41,59,0.98)); border:1px solid rgba(56,189,248,0.3); border-radius:24px; width:100%; max-width:420px; max-height:85vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7);";
+        return null;
+    };
 
-        content.innerHTML = `
+    // La Union towns catalog for instant manual location picking (All 20 Municipalities & City)
+    window.LA_UNION_TOWNS = [
+        { name: 'San Juan (Surfing Capital)', lat: 16.671123, lng: 120.338487, icon: 'fa-person-surfing', desc: 'Urbiztondo Beach, Surf Breaks & Cafes' },
+        { name: 'San Fernando City (Capitol)', lat: 16.6159, lng: 120.3167, icon: 'fa-landmark-dome', desc: 'City Center, Capitol, Poro Point & Malls' },
+        { name: 'Bauang', lat: 16.5319, lng: 120.3298, icon: 'fa-wine-bottle', desc: 'Grape Farms, Beaches & Resorts' },
+        { name: 'Bacnotan', lat: 16.7202, lng: 120.3353, icon: 'fa-cubes-stacked', desc: 'Apiary, Surfing & Coastal Views' },
+        { name: 'Balaoan', lat: 16.8228, lng: 120.4005, icon: 'fa-gem', desc: 'Immuki Island & Coral Lagoons' },
+        { name: 'Luna', lat: 16.8554, lng: 120.3758, icon: 'fa-chess-rook', desc: 'Pebble Beach, Baluarte & Ruins' },
+        { name: 'Bangar', lat: 16.8942, lng: 120.4245, icon: 'fa-shirt', desc: 'Abel Loom Weaving & Cultural Heritage' },
+        { name: 'Sudipen', lat: 16.9031, lng: 120.4700, icon: 'fa-bridge-water', desc: 'Amburayan River & Northern Gateway' },
+        { name: 'Santol', lat: 16.7686, lng: 120.4578, icon: 'fa-mountain', desc: 'Highland Waterfalls & Mountain Vistas' },
+        { name: 'San Gabriel', lat: 16.6711, lng: 120.4050, icon: 'fa-water-ladder', desc: 'Tangadan Falls Jump-off & Eco Nature' },
+        { name: 'Bagulin', lat: 16.6072, lng: 120.4422, icon: 'fa-campground', desc: 'Loslosi Hills, Bamboo Craft & Nature' },
+        { name: 'Burgos', lat: 16.5183, lng: 120.4578, icon: 'fa-mountain-sun', desc: 'Highland Ridge Trails & Basi Legacy' },
+        { name: 'Naguilian', lat: 16.5366, lng: 120.3926, icon: 'fa-bottle-droplet', desc: 'Basi Wine, Woodcraft & Foothills' },
+        { name: 'Aringay', lat: 16.3958, lng: 120.3325, icon: 'fa-train-subway', desc: 'Centennial Tunnel & Eco Tourism' },
+        { name: 'Caba', lat: 16.4292, lng: 120.3344, icon: 'fa-basket-shopping', desc: 'Bamboo Crafts & Agri-Tourism' },
+        { name: 'Agoo', lat: 16.3217, lng: 120.3667, icon: 'fa-church', desc: 'Basilica Minore & Eco-Fun Park' },
+        { name: 'Tubao', lat: 16.3470, lng: 120.4126, icon: 'fa-place-of-worship', desc: 'Mount Franciscan & Heritage Grotto' },
+        { name: 'Pugo', lat: 16.3167, lng: 120.4667, icon: 'fa-person-hiking', desc: 'Pugad Adventure & Tapuakan River' },
+        { name: 'Santo Tomas', lat: 16.2842, lng: 120.3861, icon: 'fa-fish', desc: 'Daing Capital & Marine Sanctuaries' },
+        { name: 'Rosario', lat: 16.2286, lng: 120.4850, icon: 'fa-archway', desc: 'Gateway to Ilocandia & Tree Canopy' }
+    ];
+
+    window.setManualLocation = function (lat, lng, name) {
+        const pLat = parseFloat(lat);
+        const pLng = parseFloat(lng);
+        if (isNaN(pLat) || isNaN(pLng)) return;
+
+        window.currentGPSLat = pLat;
+        window.currentGPSLng = pLng;
+        window.myLat = pLat;
+        window.myLng = pLng;
+        window.currentGPSSource = 'manual';
+
+        localStorage.setItem('intan_elyu_manual_loc', JSON.stringify({ lat: pLat, lng: pLng, name: name || 'Selected Location' }));
+
+        document.dispatchEvent(new CustomEvent('gpsUpdated', {
+            detail: { lat: pLat, lng: pLng, accuracy: 10, source: 'manual', name: name || 'Selected Location' }
+        }));
+
+        if (typeof showToast === 'function') {
+            showToast(`📍 Location set to ${name || 'Selected Spot'}`);
+        }
+
+        if (window.mapInstance) {
+            window.mapInstance.flyTo({ center: [pLng, pLat], zoom: 14, duration: 1000 });
+            if (window.userMarker) {
+                window.userMarker.setLngLat([pLng, pLat]);
+            }
+        }
+        if (typeof draftMap !== 'undefined' && draftMap) {
+            draftMap.flyTo([pLat, pLng], 15);
+            if (window.myDraftMarker) {
+                window.myDraftMarker.setLatLng([pLat, pLng]);
+            }
+        }
+        if (typeof tripMap !== 'undefined' && tripMap) {
+            tripMap.flyTo({ center: [pLng, pLat], zoom: 15 });
+            if (window.tripGpsMarker) {
+                window.tripGpsMarker.setLngLat([pLng, pLat]);
+            }
+        }
+        window.closeLocationPickerModal();
+    };
+
+    window.openLocationPickerModal = function () {
+        let modal = document.getElementById('location-picker-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'location-picker-modal';
+            modal.style.cssText = "position:fixed; top:0; left:0; right:0; bottom:0; z-index:11000; background:rgba(0,0,0,0.65); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; padding:16px; opacity:0; transition:opacity 0.25s ease;";
+
+            const content = document.createElement('div');
+            content.style.cssText = "background:linear-gradient(135deg, rgba(15,23,42,0.98), rgba(30,41,59,0.98)); border:1px solid rgba(56,189,248,0.3); border-radius:24px; width:100%; max-width:420px; max-height:85vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7);";
+
+            content.innerHTML = `
             <div style="padding:18px 20px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
                 <div>
                     <h3 style="margin:0; font-size:16px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
@@ -1414,400 +1492,400 @@ window.openLocationPickerModal = function () {
                 `).join('')}
             </div>
         `;
-        modal.appendChild(content);
-        document.body.appendChild(modal);
-    }
-    modal.style.display = 'flex';
-    requestAnimationFrame(() => { modal.style.opacity = '1'; });
-};
-
-window.closeLocationPickerModal = function () {
-    const modal = document.getElementById('location-picker-modal');
-    if (modal) {
-        modal.style.opacity = '0';
-        setTimeout(() => { modal.style.display = 'none'; }, 250);
-    }
-};
-
-window.acquireGpsFromModal = async function () {
-    const btn = document.getElementById('btn-modal-gps-acquire');
-    const origHtml = btn ? btn.innerHTML : '';
-    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Getting your location...';
-    try {
-        const loc = await window.requestPreciseLocation(false);
-        if (loc && loc.lat && loc.lng) {
-            localStorage.removeItem('intan_elyu_manual_loc');
-            if (typeof showToast === 'function') showToast("Live GPS Locked 📍");
-            window.closeLocationPickerModal();
+            modal.appendChild(content);
+            document.body.appendChild(modal);
         }
-    } catch (err) {
-        console.warn("Modal GPS request failed:", err);
-        if (typeof showToast === 'function') {
-            if (err && err.code === 3) {
-                showToast("GPS signal timed out. Please ensure Location/GPS is ON on your device or pick a town below.");
-            } else if (err && err.code === 1) {
-                showToast("Location Permission Denied. Please enable Location in app settings or choose a town below.");
-            } else {
-                showToast("Could not acquire GPS. Please choose a town below.");
+        modal.style.display = 'flex';
+        requestAnimationFrame(() => { modal.style.opacity = '1'; });
+    };
+
+    window.closeLocationPickerModal = function () {
+        const modal = document.getElementById('location-picker-modal');
+        if (modal) {
+            modal.style.opacity = '0';
+            setTimeout(() => { modal.style.display = 'none'; }, 250);
+        }
+    };
+
+    window.acquireGpsFromModal = async function () {
+        const btn = document.getElementById('btn-modal-gps-acquire');
+        const origHtml = btn ? btn.innerHTML : '';
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Getting your location...';
+        try {
+            const loc = await window.requestPreciseLocation(false);
+            if (loc && loc.lat && loc.lng) {
+                localStorage.removeItem('intan_elyu_manual_loc');
+                if (typeof showToast === 'function') showToast("Live GPS Locked 📍");
+                window.closeLocationPickerModal();
+            }
+        } catch (err) {
+            console.warn("Modal GPS request failed:", err);
+            if (typeof showToast === 'function') {
+                if (err && err.code === 3) {
+                    showToast("GPS signal timed out. Please ensure Location/GPS is ON on your device or pick a town below.");
+                } else if (err && err.code === 1) {
+                    showToast("Location Permission Denied. Please enable Location in app settings or choose a town below.");
+                } else {
+                    showToast("Could not acquire GPS. Please choose a town below.");
+                }
+            }
+        } finally {
+            if (btn) btn.innerHTML = origHtml;
+        }
+    };
+
+    // Haversine formula
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371000; // Radius of the earth in m
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c; // Distance in m
+    }
+    window.calculateDistance = calculateDistance;
+
+    // Start watching on load automatically and resolve initial location
+    document.addEventListener('DOMContentLoaded', () => {
+        window.startLocationWatch();
+        if (!window.currentGPSLat || !window.currentGPSLng) {
+            window.resolveUserLocation();
+        }
+    });
+
+    // View Itinerary from map's "Added to Itinerary!" confirmation modal
+    window.viewItinerary = function () {
+        var modal = document.getElementById('itin-add-confirm');
+        if (modal) {
+            modal.style.opacity = '0';
+            modal.style.pointerEvents = 'none';
+        }
+        navigateTo('itinerary');
+    };
+
+    /**
+     * Global image error handler — replaces broken images with a placeholder.
+     * Usage: onerror="return window.handleImageError.call(this, event)"
+     */
+    window.handleImageError = function (e) {
+        if (!e) e = window.event;
+        var img = e ? e.target : this;
+        if (!img) return true;
+        img.onerror = null;
+        var placeholder = window.placeholderImage || '';
+        if (placeholder && img.src !== placeholder) {
+            img.src = placeholder;
+            img.style.objectFit = 'contain';
+            img.style.background = '#1e293b';
+        }
+        return true;
+    };
+
+    // Delegated listener catches image errors across all dynamically loaded views
+    document.addEventListener('error', function (e) {
+        var target = e.target;
+        if (target && target.tagName === 'IMG' && target.src) {
+            if (target.src.indexOf('placeholderImage') !== -1 || target.src.indexOf('data:image/svg') !== -1 || target.src.indexOf('ui-avatars.com') !== -1) return;
+            target.onerror = null;
+
+            // Special handling for user profile avatars
+            var isAvatar = target.classList.contains('profile-avatar') ||
+                target.classList.contains('podium-avatar') ||
+                target.classList.contains('rank-item-avatar') ||
+                target.id === 'profile-img' ||
+                target.id === 'dash-avatar' ||
+                target.id === 'avatar-img' ||
+                (target.closest && (target.closest('.profile-avatar-container') || target.closest('.avatar-preview')));
+
+            if (isAvatar) {
+                var userName = 'Tourist';
+                try {
+                    var authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    if (authUser.name) userName = authUser.name;
+                } catch (err) { }
+                target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName) + '&background=007AFF&color=fff&rounded=true&bold=true&size=128';
+                target.style.objectFit = 'cover';
+                return;
+            }
+
+            var placeholder = window.placeholderImage || '';
+            if (placeholder && target.src !== placeholder) {
+                target.src = placeholder;
+                target.style.objectFit = 'cover';
+                target.style.background = '#1e293b';
             }
         }
-    } finally {
-        if (btn) btn.innerHTML = origHtml;
-    }
-};
+    }, true);
 
-// Haversine formula
-function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371000; // Radius of the earth in m
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c; // Distance in m
-}
-window.calculateDistance = calculateDistance;
+    /**
+     * Shared image resolution for all views.
+     * @param {Object} dest - Destination object with name, municipality, image, photo_url
+     * @param {number} [width=600] - Desired image width for placeholders
+     * @returns {string} Resolved image URL
+     */
+    window.getDestImage = function (dest, width) {
+        if (!width) width = 600;
+        var backendUrl = window.getBackendUrl ? window.getBackendUrl() : (window.backendUrl || '').replace(/\/+$/, '');
+        var r2PublicBase = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev';
 
-// Start watching on load automatically and resolve initial location
-document.addEventListener('DOMContentLoaded', () => {
-    window.startLocationWatch();
-    if (!window.currentGPSLat || !window.currentGPSLng) {
-        window.resolveUserLocation();
-    }
-});
-
-// View Itinerary from map's "Added to Itinerary!" confirmation modal
-window.viewItinerary = function () {
-    var modal = document.getElementById('itin-add-confirm');
-    if (modal) {
-        modal.style.opacity = '0';
-        modal.style.pointerEvents = 'none';
-    }
-    navigateTo('itinerary');
-};
-
-/**
- * Global image error handler — replaces broken images with a placeholder.
- * Usage: onerror="return window.handleImageError.call(this, event)"
- */
-window.handleImageError = function (e) {
-    if (!e) e = window.event;
-    var img = e ? e.target : this;
-    if (!img) return true;
-    img.onerror = null;
-    var placeholder = window.placeholderImage || '';
-    if (placeholder && img.src !== placeholder) {
-        img.src = placeholder;
-        img.style.objectFit = 'contain';
-        img.style.background = '#1e293b';
-    }
-    return true;
-};
-
-// Delegated listener catches image errors across all dynamically loaded views
-document.addEventListener('error', function (e) {
-    var target = e.target;
-    if (target && target.tagName === 'IMG' && target.src) {
-        if (target.src.indexOf('placeholderImage') !== -1 || target.src.indexOf('data:image/svg') !== -1 || target.src.indexOf('ui-avatars.com') !== -1) return;
-        target.onerror = null;
-
-        // Special handling for user profile avatars
-        var isAvatar = target.classList.contains('profile-avatar') ||
-            target.classList.contains('podium-avatar') ||
-            target.classList.contains('rank-item-avatar') ||
-            target.id === 'profile-img' ||
-            target.id === 'dash-avatar' ||
-            target.id === 'avatar-img' ||
-            (target.closest && (target.closest('.profile-avatar-container') || target.closest('.avatar-preview')));
-
-        if (isAvatar) {
-            var userName = 'Tourist';
-            try {
-                var authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                if (authUser.name) userName = authUser.name;
-            } catch (err) { }
-            target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName) + '&background=007AFF&color=fff&rounded=true&bold=true&size=128';
-            target.style.objectFit = 'cover';
-            return;
+        // Phase 1: Extract URL string from dest (photo_url, image, avatar, profile_picture)
+        var rawUrl = null;
+        if (typeof dest === 'string') {
+            rawUrl = dest;
+        } else if (dest && typeof dest === 'object') {
+            rawUrl = dest.photo_url || dest.image || dest.avatar || dest.profile_picture || null;
         }
 
-        var placeholder = window.placeholderImage || '';
-        if (placeholder && target.src !== placeholder) {
-            target.src = placeholder;
-            target.style.objectFit = 'cover';
-            target.style.background = '#1e293b';
-        }
-    }
-}, true);
+        if (rawUrl && typeof rawUrl === 'string' && rawUrl.trim() !== '') {
+            var url = rawUrl.trim();
 
-/**
- * Shared image resolution for all views.
- * @param {Object} dest - Destination object with name, municipality, image, photo_url
- * @param {number} [width=600] - Desired image width for placeholders
- * @returns {string} Resolved image URL
- */
-window.getDestImage = function (dest, width) {
-    if (!width) width = 600;
-    var backendUrl = window.getBackendUrl ? window.getBackendUrl() : (window.backendUrl || '').replace(/\/+$/, '');
-    var r2PublicBase = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev';
+            // 1. Data or Blob URIs
+            if (url.indexOf('data:') === 0 || url.indexOf('blob:') === 0) return url;
 
-    // Phase 1: Extract URL string from dest (photo_url, image, avatar, profile_picture)
-    var rawUrl = null;
-    if (typeof dest === 'string') {
-        rawUrl = dest;
-    } else if (dest && typeof dest === 'object') {
-        rawUrl = dest.photo_url || dest.image || dest.avatar || dest.profile_picture || null;
-    }
-
-    if (rawUrl && typeof rawUrl === 'string' && rawUrl.trim() !== '') {
-        var url = rawUrl.trim();
-
-        // 1. Data or Blob URIs
-        if (url.indexOf('data:') === 0 || url.indexOf('blob:') === 0) return url;
-
-        // 2. Full HTTP / HTTPS URLs — preserve intact if already an API / serve link
-        if (url.indexOf('http://') === 0 || url.indexOf('https://') === 0) {
-            if (url.includes('localhost') || url.includes('127.0.0.1')) {
-                var localMatch = url.match(/(spot_|avatar_|proof_)[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif)/i);
-                if (localMatch && localMatch[0]) {
-                    url = localMatch[0];
-                } else if (backendUrl) {
-                    url = url.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i, backendUrl);
-                }
-            } else if (url.includes('/api/serve') || url.includes('/api/image/')) {
-                // If it contains a spot/avatar/proof filename, map directly to Cloudflare R2 for fast delivery
-                var directMatch = url.match(/(spot_|avatar_|proof_)[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif)/i);
-                if (directMatch && directMatch[0]) {
-                    url = directMatch[0];
-                } else {
-                    return url;
-                }
-            } else {
-                try {
-                    var parsed = new URL(url);
-                    if (parsed.host.includes('r2.dev') || parsed.host.includes('r2.cloudflarestorage.com') || parsed.host.includes('cloudinary.com') || parsed.host.includes('unsplash.com') || parsed.host.includes('googleapis.com') || parsed.host.includes('ui-avatars.com')) {
+            // 2. Full HTTP / HTTPS URLs — preserve intact if already an API / serve link
+            if (url.indexOf('http://') === 0 || url.indexOf('https://') === 0) {
+                if (url.includes('localhost') || url.includes('127.0.0.1')) {
+                    var localMatch = url.match(/(spot_|avatar_|proof_)[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif)/i);
+                    if (localMatch && localMatch[0]) {
+                        url = localMatch[0];
+                    } else if (backendUrl) {
+                        url = url.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i, backendUrl);
+                    }
+                } else if (url.includes('/api/serve') || url.includes('/api/image/')) {
+                    // If it contains a spot/avatar/proof filename, map directly to Cloudflare R2 for fast delivery
+                    var directMatch = url.match(/(spot_|avatar_|proof_)[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif)/i);
+                    if (directMatch && directMatch[0]) {
+                        url = directMatch[0];
+                    } else {
                         return url;
                     }
-                } catch (e) { }
-                return url;
-            }
-        }
-
-        // 3. Extract spot_xxx.jpg / png / webp filename if present -> fetch directly from Cloudflare R2 Bucket
-        var spotMatch = url.match(/(spot_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
-        if (spotMatch && spotMatch[1]) {
-            return r2PublicBase + '/tourist_spots/' + spotMatch[1];
-        }
-
-        var avatarMatch = url.match(/(avatar_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
-        if (avatarMatch && avatarMatch[1]) {
-            return r2PublicBase + '/avatars/' + avatarMatch[1];
-        }
-
-        var proofMatch = url.match(/(proof_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
-        if (proofMatch && proofMatch[1]) {
-            return r2PublicBase + '/proof_images/' + proofMatch[1];
-        }
-
-        // 4. Relative API endpoints (e.g. /api/serve-image.php?file=..., /api/image/..., /api/serve...)
-        if (url.indexOf('/api/') === 0 || url.indexOf('api/') === 0) {
-            var cleanApi = url.indexOf('/') === 0 ? url : '/' + url;
-            return backendUrl + cleanApi;
-        }
-
-        // 4. Local asset paths
-        if (url.indexOf('assets/') === 0 || url.indexOf('/assets/') === 0) {
-            return (url.indexOf('/') === 0 ? '' : '/') + url;
-        }
-
-        // 5. Relative storage/upload paths
-        var cleanPath = url.replace(/^\/+/, '').replace(/^storage\//i, '');
-        return backendUrl + '/api/image/' + cleanPath;
-    }
-
-    // Phase 2: Fallback to local filesystem images (AVAILABLE_MUNI_IMAGES) if photo_url is missing
-    if (window.AVAILABLE_MUNI_IMAGES && dest && dest.name) {
-        var munisToCheck = [];
-        if (dest.municipality) {
-            var mClean = dest.municipality.toUpperCase().replace(/\s*TEST$/i, '').trim();
-            munisToCheck.push(mClean);
-            munisToCheck.push(dest.municipality.toUpperCase());
-        }
-        var allKeys = Object.keys(window.AVAILABLE_MUNI_IMAGES);
-        for (var k = 0; k < allKeys.length; k++) {
-            if (munisToCheck.indexOf(allKeys[k]) === -1) {
-                munisToCheck.push(allKeys[k]);
-            }
-        }
-
-        var dNorm = dest.name.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
-        var dWords = dNorm.split(/\s+/).filter(function (w) { return w.length > 2; });
-        var bestMatch = null, bestScore = 0, bestMuni = null;
-
-        for (var mi = 0; mi < munisToCheck.length; mi++) {
-            var muni = munisToCheck[mi];
-            var images = window.AVAILABLE_MUNI_IMAGES[muni];
-            if (!images || !images.length) continue;
-            for (var ii = 0; ii < images.length; ii++) {
-                var img = images[ii];
-                var iNorm = img.replace(/\.(jpg|jpeg|png|webp|gif)$/i, '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
-                var dStr = dNorm.replace(/\s+/g, '');
-                var iStr = iNorm.replace(/\s+/g, '').replace(/[0-9]+$/, '');
-                if (dStr === iStr) {
-                    return encodeURI('assets/img/MUNICIPALITIES/' + muni + '/' + img);
+                } else {
+                    try {
+                        var parsed = new URL(url);
+                        if (parsed.host.includes('r2.dev') || parsed.host.includes('r2.cloudflarestorage.com') || parsed.host.includes('cloudinary.com') || parsed.host.includes('unsplash.com') || parsed.host.includes('googleapis.com') || parsed.host.includes('ui-avatars.com')) {
+                            return url;
+                        }
+                    } catch (e) { }
+                    return url;
                 }
-                var score = 0;
-                if (dStr.indexOf(iStr) !== -1 || iStr.indexOf(dStr) !== -1) score += 100;
-                var iWords = iNorm.split(/\s+/).filter(function (w) { return w.length > 2; });
-                var common = 0;
-                for (var wi = 0; wi < dWords.length; wi++) {
-                    var w = dWords[wi];
-                    if (iWords.indexOf(w) !== -1) {
-                        score += w === muni.toLowerCase() ? 1 : 10;
-                        common++;
+            }
+
+            // 3. Extract spot_xxx.jpg / png / webp filename if present -> fetch directly from Cloudflare R2 Bucket
+            var spotMatch = url.match(/(spot_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+            if (spotMatch && spotMatch[1]) {
+                return r2PublicBase + '/tourist_spots/' + spotMatch[1];
+            }
+
+            var avatarMatch = url.match(/(avatar_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+            if (avatarMatch && avatarMatch[1]) {
+                return r2PublicBase + '/avatars/' + avatarMatch[1];
+            }
+
+            var proofMatch = url.match(/(proof_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+            if (proofMatch && proofMatch[1]) {
+                return r2PublicBase + '/proof_images/' + proofMatch[1];
+            }
+
+            // 4. Relative API endpoints (e.g. /api/serve-image.php?file=..., /api/image/..., /api/serve...)
+            if (url.indexOf('/api/') === 0 || url.indexOf('api/') === 0) {
+                var cleanApi = url.indexOf('/') === 0 ? url : '/' + url;
+                return backendUrl + cleanApi;
+            }
+
+            // 4. Local asset paths
+            if (url.indexOf('assets/') === 0 || url.indexOf('/assets/') === 0) {
+                return (url.indexOf('/') === 0 ? '' : '/') + url;
+            }
+
+            // 5. Relative storage/upload paths
+            var cleanPath = url.replace(/^\/+/, '').replace(/^storage\//i, '');
+            return backendUrl + '/api/image/' + cleanPath;
+        }
+
+        // Phase 2: Fallback to local filesystem images (AVAILABLE_MUNI_IMAGES) if photo_url is missing
+        if (window.AVAILABLE_MUNI_IMAGES && dest && dest.name) {
+            var munisToCheck = [];
+            if (dest.municipality) {
+                var mClean = dest.municipality.toUpperCase().replace(/\s*TEST$/i, '').trim();
+                munisToCheck.push(mClean);
+                munisToCheck.push(dest.municipality.toUpperCase());
+            }
+            var allKeys = Object.keys(window.AVAILABLE_MUNI_IMAGES);
+            for (var k = 0; k < allKeys.length; k++) {
+                if (munisToCheck.indexOf(allKeys[k]) === -1) {
+                    munisToCheck.push(allKeys[k]);
+                }
+            }
+
+            var dNorm = dest.name.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
+            var dWords = dNorm.split(/\s+/).filter(function (w) { return w.length > 2; });
+            var bestMatch = null, bestScore = 0, bestMuni = null;
+
+            for (var mi = 0; mi < munisToCheck.length; mi++) {
+                var muni = munisToCheck[mi];
+                var images = window.AVAILABLE_MUNI_IMAGES[muni];
+                if (!images || !images.length) continue;
+                for (var ii = 0; ii < images.length; ii++) {
+                    var img = images[ii];
+                    var iNorm = img.replace(/\.(jpg|jpeg|png|webp|gif)$/i, '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
+                    var dStr = dNorm.replace(/\s+/g, '');
+                    var iStr = iNorm.replace(/\s+/g, '').replace(/[0-9]+$/, '');
+                    if (dStr === iStr) {
+                        return encodeURI('assets/img/MUNICIPALITIES/' + muni + '/' + img);
+                    }
+                    var score = 0;
+                    if (dStr.indexOf(iStr) !== -1 || iStr.indexOf(dStr) !== -1) score += 100;
+                    var iWords = iNorm.split(/\s+/).filter(function (w) { return w.length > 2; });
+                    var common = 0;
+                    for (var wi = 0; wi < dWords.length; wi++) {
+                        var w = dWords[wi];
+                        if (iWords.indexOf(w) !== -1) {
+                            score += w === muni.toLowerCase() ? 1 : 10;
+                            common++;
+                        }
+                    }
+                    if (common > 0) score += (common / Math.max(dWords.length, iWords.length)) * 5;
+                    if (score > bestScore && score >= 10) {
+                        bestScore = score;
+                        bestMatch = img;
+                        bestMuni = muni;
                     }
                 }
-                if (common > 0) score += (common / Math.max(dWords.length, iWords.length)) * 5;
-                if (score > bestScore && score >= 10) {
-                    bestScore = score;
-                    bestMatch = img;
-                    bestMuni = muni;
+                if (bestMatch && bestScore >= 100) {
+                    return encodeURI('assets/img/MUNICIPALITIES/' + bestMuni + '/' + bestMatch);
                 }
             }
-            if (bestMatch && bestScore >= 100) {
+            if (bestMatch) {
                 return encodeURI('assets/img/MUNICIPALITIES/' + bestMuni + '/' + bestMatch);
             }
         }
-        if (bestMatch) {
-            return encodeURI('assets/img/MUNICIPALITIES/' + bestMuni + '/' + bestMatch);
+
+        // Phase 3: Final fallback to no_image.svg if no image was uploaded or inputted
+        return 'assets/img/no_image.svg';
+    };
+
+    window.handleImgError = function (imgEl, spotName, muniName) {
+        if (!imgEl) return;
+        imgEl.onerror = null;
+        var defaultNoImage = 'assets/img/no_image.svg';
+        if (window.getDestImage && (spotName || muniName)) {
+            var fallback = window.getDestImage({ name: spotName || '', municipality: muniName || '', photo_url: null }, 600);
+            if (fallback && fallback !== imgEl.src && !fallback.includes('unsplash.com') && !fallback.endsWith('no_image.svg')) {
+                imgEl.src = fallback;
+                return;
+            }
         }
-    }
+        imgEl.src = defaultNoImage;
+    };
 
-    // Phase 3: Final fallback to no_image.svg if no image was uploaded or inputted
-    return 'assets/img/no_image.svg';
-};
+    /**
+     * Resolves an array of all images for a destination.
+     * If dest.images is provided, resolves each image; otherwise falls back to single image.
+     * @param {Object} dest
+     * @param {number} [width=600]
+     * @returns {Array<string>} Array of image URLs
+     */
+    window.getDestImages = function (dest, width) {
+        if (!width) width = 600;
+        var list = [];
 
-window.handleImgError = function (imgEl, spotName, muniName) {
-    if (!imgEl) return;
-    imgEl.onerror = null;
-    var defaultNoImage = 'assets/img/no_image.svg';
-    if (window.getDestImage && (spotName || muniName)) {
-        var fallback = window.getDestImage({ name: spotName || '', municipality: muniName || '', photo_url: null }, 600);
-        if (fallback && fallback !== imgEl.src && !fallback.includes('unsplash.com') && !fallback.endsWith('no_image.svg')) {
-            imgEl.src = fallback;
-            return;
+        if (dest && typeof dest === 'object') {
+            if (Array.isArray(dest.images) && dest.images.length > 0) {
+                dest.images.forEach(function (imgItem) {
+                    var resolved = window.getDestImage(imgItem, width);
+                    if (resolved && !list.includes(resolved) && resolved !== 'assets/img/no_image.svg' && resolved !== window.noImageFallback) {
+                        list.push(resolved);
+                    }
+                });
+            }
         }
-    }
-    imgEl.src = defaultNoImage;
-};
 
-/**
- * Resolves an array of all images for a destination.
- * If dest.images is provided, resolves each image; otherwise falls back to single image.
- * @param {Object} dest
- * @param {number} [width=600]
- * @returns {Array<string>} Array of image URLs
- */
-window.getDestImages = function (dest, width) {
-    if (!width) width = 600;
-    var list = [];
+        if (list.length === 0) {
+            var single = window.getDestImage(dest, width);
+            if (single) list.push(single);
+        }
 
-    if (dest && typeof dest === 'object') {
-        if (Array.isArray(dest.images) && dest.images.length > 0) {
-            dest.images.forEach(function (imgItem) {
-                var resolved = window.getDestImage(imgItem, width);
-                if (resolved && !list.includes(resolved) && resolved !== 'assets/img/no_image.svg' && resolved !== window.noImageFallback) {
-                    list.push(resolved);
+        return list;
+    };
+
+    window.noImageFallback = 'assets/img/no_image.svg';
+
+    /**
+     * Stale-While-Revalidate Caching fetch helper
+     * @param {string} cacheKey - The key to use in localStorage
+     * @param {Function} fetchFn - Function returning a Promise that fetches the data
+     * @param {Function} callback - Callback function(data, isCached) called with the data
+     * @param {boolean} [forceRefresh=false] - If true, ignores cache age (but still does SWR if cache exists)
+     * @param {number} [ttl=60000] - Time in ms before cache is considered stale (default 1 minute)
+     */
+    window.useCache = async function (cacheKey, fetchFn, callback, forceRefresh = false, ttl = 60000) {
+        const cached = localStorage.getItem(cacheKey);
+        let cachedData = null;
+        let isExpired = true;
+
+        if (cached) {
+            try {
+                cachedData = window.safeJsonParse(cached, null);
+                if (cachedData && cachedData.hasOwnProperty('data')) {
+                    // Call callback with cached data immediately
+                    callback(cachedData.data, true);
+                    const age = Date.now() - (cachedData.timestamp || 0);
+                    isExpired = age > ttl;
                 }
-            });
-        }
-    }
-
-    if (list.length === 0) {
-        var single = window.getDestImage(dest, width);
-        if (single) list.push(single);
-    }
-
-    return list;
-};
-
-window.noImageFallback = 'assets/img/no_image.svg';
-
-/**
- * Stale-While-Revalidate Caching fetch helper
- * @param {string} cacheKey - The key to use in localStorage
- * @param {Function} fetchFn - Function returning a Promise that fetches the data
- * @param {Function} callback - Callback function(data, isCached) called with the data
- * @param {boolean} [forceRefresh=false] - If true, ignores cache age (but still does SWR if cache exists)
- * @param {number} [ttl=60000] - Time in ms before cache is considered stale (default 1 minute)
- */
-window.useCache = async function (cacheKey, fetchFn, callback, forceRefresh = false, ttl = 60000) {
-    const cached = localStorage.getItem(cacheKey);
-    let cachedData = null;
-    let isExpired = true;
-
-    if (cached) {
-        try {
-            cachedData = window.safeJsonParse(cached, null);
-            if (cachedData && cachedData.hasOwnProperty('data')) {
-                // Call callback with cached data immediately
-                callback(cachedData.data, true);
-                const age = Date.now() - (cachedData.timestamp || 0);
-                isExpired = age > ttl;
-            }
-        } catch (e) {
-            console.warn("Error parsing cache for " + cacheKey, e);
-        }
-    }
-
-    // Fetch from network if expired, forceRefresh is true, or no cache exists
-    if (!cachedData || isExpired || forceRefresh) {
-        try {
-            const data = await fetchFn();
-            if (data !== undefined) {
-                localStorage.setItem(cacheKey, JSON.stringify({
-                    data: data,
-                    timestamp: Date.now()
-                }));
-                callback(data, false);
-            }
-        } catch (err) {
-            console.error("Fetch error for " + cacheKey, err);
-            // If no cache exists, report the error via callback (passing null)
-            if (!cachedData) {
-                callback(null, false);
+            } catch (e) {
+                console.warn("Error parsing cache for " + cacheKey, e);
             }
         }
-    }
-};
 
-// ── Global Badge Detail Modal Handler ─────────────────────────────────────────
-window.openBadgeModal = function (name, description, isUnlocked, category, icon) {
-    const existing = document.getElementById('badge-details-modal');
-    if (existing) existing.remove();
+        // Fetch from network if expired, forceRefresh is true, or no cache exists
+        if (!cachedData || isExpired || forceRefresh) {
+            try {
+                const data = await fetchFn();
+                if (data !== undefined) {
+                    localStorage.setItem(cacheKey, JSON.stringify({
+                        data: data,
+                        timestamp: Date.now()
+                    }));
+                    callback(data, false);
+                }
+            } catch (err) {
+                console.error("Fetch error for " + cacheKey, err);
+                // If no cache exists, report the error via callback (passing null)
+                if (!cachedData) {
+                    callback(null, false);
+                }
+            }
+        }
+    };
 
-    const isQuest = category === 'Quest';
-    const borderGlow = isUnlocked
-        ? 'border: 1.5px solid rgba(251, 191, 36, 0.5); box-shadow: 0 0 35px rgba(251, 191, 36, 0.25);'
-        : 'border: 1.5px solid rgba(255, 255, 255, 0.15); box-shadow: 0 0 35px rgba(0, 0, 0, 0.5);';
+    // ── Global Badge Detail Modal Handler ─────────────────────────────────────────
+    window.openBadgeModal = function (name, description, isUnlocked, category, icon) {
+        const existing = document.getElementById('badge-details-modal');
+        if (existing) existing.remove();
 
-    const statusBadge = isUnlocked
-        ? `<span style="background:rgba(52,211,153,0.15); border:1px solid rgba(52,211,153,0.3); color:#34d399; font-size:11px; font-weight:800; padding:4px 12px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-check-circle"></i> UNLOCKED BADGE</span>`
-        : `<span style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#f87171; font-size:11px; font-weight:800; padding:4px 12px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-lock"></i> LOCKED BADGE</span>`;
+        const isQuest = category === 'Quest';
+        const borderGlow = isUnlocked
+            ? 'border: 1.5px solid rgba(251, 191, 36, 0.5); box-shadow: 0 0 35px rgba(251, 191, 36, 0.25);'
+            : 'border: 1.5px solid rgba(255, 255, 255, 0.15); box-shadow: 0 0 35px rgba(0, 0, 0, 0.5);';
 
-    const iconStyle = isUnlocked
-        ? 'background:rgba(251,191,36,0.15); color:#fbbf24; border:1px solid rgba(251,191,36,0.4);'
-        : 'background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.3); border:1px dashed rgba(255,255,255,0.15); filter:grayscale(1);';
+        const statusBadge = isUnlocked
+            ? `<span style="background:rgba(52,211,153,0.15); border:1px solid rgba(52,211,153,0.3); color:#34d399; font-size:11px; font-weight:800; padding:4px 12px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-check-circle"></i> UNLOCKED BADGE</span>`
+            : `<span style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#f87171; font-size:11px; font-weight:800; padding:4px 12px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-lock"></i> LOCKED BADGE</span>`;
 
-    const actionButton = !isUnlocked
-        ? `<button onclick="window.closeBadgeModal(); if(typeof navigateTo === 'function') navigateTo('map');" style="width:100%; margin-top:16px; padding:12px; border-radius:100px; border:none; background:linear-gradient(135deg,#10b981,#059669); color:#fff; font-weight:800; font-size:13px; cursor:pointer;"><i class="fa-solid fa-map-location-dot" style="margin-right:6px;"></i>Explore Destinations</button>`
-        : `<button onclick="window.closeBadgeModal()" style="width:100%; margin-top:16px; padding:12px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#e2e8f0; font-weight:700; font-size:13px; cursor:pointer;">Close</button>`;
+        const iconStyle = isUnlocked
+            ? 'background:rgba(251,191,36,0.15); color:#fbbf24; border:1px solid rgba(251,191,36,0.4);'
+            : 'background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.3); border:1px dashed rgba(255,255,255,0.15); filter:grayscale(1);';
 
-    const safeDesc = (description || 'Complete activities in La Union to unlock this badge.').replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+        const actionButton = !isUnlocked
+            ? `<button onclick="window.closeBadgeModal(); if(typeof navigateTo === 'function') navigateTo('map');" style="width:100%; margin-top:16px; padding:12px; border-radius:100px; border:none; background:linear-gradient(135deg,#10b981,#059669); color:#fff; font-weight:800; font-size:13px; cursor:pointer;"><i class="fa-solid fa-map-location-dot" style="margin-right:6px;"></i>Explore Destinations</button>`
+            : `<button onclick="window.closeBadgeModal()" style="width:100%; margin-top:16px; padding:12px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#e2e8f0; font-weight:700; font-size:13px; cursor:pointer;">Close</button>`;
 
-    const modalHtml = `
+        const safeDesc = (description || 'Complete activities in La Union to unlock this badge.').replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+
+        const modalHtml = `
     <div id="badge-details-modal" onclick="if(event.target === this) window.closeBadgeModal();" style="position:fixed; inset:0; z-index:99999; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; transition:opacity 0.3s ease;">
         <div style="position:relative; background:linear-gradient(145deg, rgba(30, 41, 59, 0.96) 0%, rgba(15, 23, 42, 0.99) 100%); ${borderGlow} border-radius:24px; padding:26px 22px; width:100%; max-width:360px; text-align:center; transform:scale(0.92) translateY(12px); transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);">
             <button onclick="window.closeBadgeModal()" style="position:absolute; top:14px; right:14px; background:rgba(255,255,255,0.08); border:none; color:rgba(255,255,255,0.7); width:30px; height:30px; border-radius:50%; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s ease;" title="Close">✕</button>
@@ -1824,76 +1902,76 @@ window.openBadgeModal = function (name, description, isUnlocked, category, icon)
         </div>
     </div>`;
 
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
 
-    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            const modal = document.getElementById('badge-details-modal');
+            if (modal) {
+                modal.style.opacity = '1';
+                const card = modal.querySelector('div > div');
+                if (card) card.style.transform = 'scale(1) translateY(0)';
+            }
+        });
+    };
+
+    window.closeBadgeModal = function () {
         const modal = document.getElementById('badge-details-modal');
         if (modal) {
-            modal.style.opacity = '1';
-            const card = modal.querySelector('div > div');
-            if (card) card.style.transform = 'scale(1) translateY(0)';
+            modal.style.opacity = '0';
+            setTimeout(() => modal.remove(), 300);
         }
-    });
-};
+    };
 
-window.closeBadgeModal = function () {
-    const modal = document.getElementById('badge-details-modal');
-    if (modal) {
-        modal.style.opacity = '0';
-        setTimeout(() => modal.remove(), 300);
-    }
-};
+    // ── View All Badges Modal Sheet ───────────────────────────────────────────────
+    window.openAllBadgesModal = function (badgesData) {
+        const existing = document.getElementById('all-badges-modal');
+        if (existing) existing.remove();
 
-// ── View All Badges Modal Sheet ───────────────────────────────────────────────
-window.openAllBadgesModal = function (badgesData) {
-    const existing = document.getElementById('all-badges-modal');
-    if (existing) existing.remove();
+        const badges = badgesData || window._cachedMasterBadges || [];
 
-    const badges = badgesData || window._cachedMasterBadges || [];
+        const unlocked = badges.filter(b => b.is_unlocked);
+        const locked = badges.filter(b => !b.is_unlocked);
 
-    const unlocked = badges.filter(b => b.is_unlocked);
-    const locked = badges.filter(b => !b.is_unlocked);
+        const renderBadgeItem = (b) => {
+            const safeName = (b.name || '').replace(/'/g, "\\'");
+            const safeDesc = (b.description || '').replace(/'/g, "\\'");
+            const clickFn = `onclick="window.openBadgeModal('${safeName}', '${safeDesc}', ${b.is_unlocked ? 'true' : 'false'}, '${b.category || 'Badge'}', '${b.icon || '🏅'}')"`;
 
-    const renderBadgeItem = (b) => {
-        const safeName = (b.name || '').replace(/'/g, "\\'");
-        const safeDesc = (b.description || '').replace(/'/g, "\\'");
-        const clickFn = `onclick="window.openBadgeModal('${safeName}', '${safeDesc}', ${b.is_unlocked ? 'true' : 'false'}, '${b.category || 'Badge'}', '${b.icon || '🏅'}')"`;
+            const badgeIcons = {
+                'Beach Chiller': '<i class="fa-solid fa-umbrella-beach"></i>',
+                'City Express': '<i class="fa-solid fa-city"></i>',
+                'Sunset Chaser': '<i class="fa-solid fa-sun"></i>',
+                'Foodie Explorer': '<i class="fa-solid fa-utensils"></i>',
+                'Adrenaline Chaser': '<i class="fa-solid fa-person-hiking"></i>',
+                'Heritage Guardian': '<i class="fa-solid fa-landmark"></i>',
+                'Nature Seeker': '<i class="fa-solid fa-water"></i>',
+                'Wave Rider': '<i class="fa-solid fa-water-ladder"></i>',
+                'First Step': '<i class="fa-solid fa-star"></i>',
+                'Globe Trotter': '<i class="fa-solid fa-globe"></i>',
+                'Master Voyager': '<i class="fa-solid fa-crown"></i>',
+                'Pioneer Explorer': '<i class="fa-solid fa-flag"></i>',
+                'Local Voice': '<i class="fa-solid fa-comments"></i>',
+            };
+            const displayIcon = badgeIcons[b.name] || (b.is_unlocked ? '<i class="fa-solid fa-award"></i>' : '<i class="fa-solid fa-lock"></i>');
 
-        const badgeIcons = {
-            'Beach Chiller': '<i class="fa-solid fa-umbrella-beach"></i>',
-            'City Express': '<i class="fa-solid fa-city"></i>',
-            'Sunset Chaser': '<i class="fa-solid fa-sun"></i>',
-            'Foodie Explorer': '<i class="fa-solid fa-utensils"></i>',
-            'Adrenaline Chaser': '<i class="fa-solid fa-person-hiking"></i>',
-            'Heritage Guardian': '<i class="fa-solid fa-landmark"></i>',
-            'Nature Seeker': '<i class="fa-solid fa-water"></i>',
-            'Wave Rider': '<i class="fa-solid fa-water-ladder"></i>',
-            'First Step': '<i class="fa-solid fa-star"></i>',
-            'Globe Trotter': '<i class="fa-solid fa-globe"></i>',
-            'Master Voyager': '<i class="fa-solid fa-crown"></i>',
-            'Pioneer Explorer': '<i class="fa-solid fa-flag"></i>',
-            'Local Voice': '<i class="fa-solid fa-comments"></i>',
-        };
-        const displayIcon = badgeIcons[b.name] || (b.is_unlocked ? '<i class="fa-solid fa-award"></i>' : '<i class="fa-solid fa-lock"></i>');
-
-        if (b.is_unlocked) {
-            return `
+            if (b.is_unlocked) {
+                return `
             <div ${clickFn} style="background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.3); border-radius: 18px; padding: 14px 10px; text-align: center; cursor: pointer; transition: transform 0.2s;">
                 <div style="font-size: 24px; margin-bottom: 6px; color: #fbbf24;">${displayIcon}</div>
                 <div style="font-size: 11.5px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.name}</div>
                 <div style="font-size: 9px; color: #fbbf24; margin-top: 2px; font-weight: 700;">✓ Unlocked</div>
             </div>`;
-        } else {
-            return `
+            } else {
+                return `
             <div ${clickFn} style="background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.12); border-radius: 18px; padding: 14px 10px; text-align: center; opacity: 0.55; filter: grayscale(1); cursor: pointer; transition: transform 0.2s;">
                 <div style="font-size: 22px; margin-bottom: 6px; color: rgba(255,255,255,0.4);"><i class="fa-solid fa-lock"></i></div>
                 <div style="font-size: 11.5px; font-weight: 700; color: rgba(255,255,255,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.name}</div>
                 <div style="font-size: 9px; color: rgba(255,255,255,0.4); margin-top: 2px;">Locked</div>
             </div>`;
-        }
-    };
+            }
+        };
 
-    const modalHtml = `
+        const modalHtml = `
     <div id="all-badges-modal" style="position:fixed; inset:0; z-index:99998; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); display:flex; align-items:flex-end; justify-content:center; opacity:0; transition:opacity 0.3s ease;">
         <div style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%); border-top:1.5px solid rgba(251,191,36,0.4); border-radius:28px 28px 0 0; padding:24px 20px 36px; width:100%; max-width:480px; max-height:85vh; overflow-y:auto; transform:translateY(100%); transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);">
             <div style="width:40px; height:4px; background:rgba(255,255,255,0.2); border-radius:2px; margin:0 auto 16px auto;"></div>
@@ -1923,198 +2001,198 @@ window.openAllBadgesModal = function (badgesData) {
         </div>
     </div>`;
 
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
 
-    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            const modal = document.getElementById('all-badges-modal');
+            if (modal) {
+                modal.style.opacity = '1';
+                const sheet = modal.querySelector('div > div');
+                if (sheet) sheet.style.transform = 'translateY(0)';
+            }
+        });
+    };
+
+    window.closeAllBadgesModal = function () {
         const modal = document.getElementById('all-badges-modal');
         if (modal) {
-            modal.style.opacity = '1';
+            modal.style.opacity = '0';
             const sheet = modal.querySelector('div > div');
-            if (sheet) sheet.style.transform = 'translateY(0)';
+            if (sheet) sheet.style.transform = 'translateY(100%)';
+            setTimeout(() => modal.remove(), 350);
         }
-    });
-};
+    };
 
-window.closeAllBadgesModal = function () {
-    const modal = document.getElementById('all-badges-modal');
-    if (modal) {
-        modal.style.opacity = '0';
-        const sheet = modal.querySelector('div > div');
-        if (sheet) sheet.style.transform = 'translateY(100%)';
-        setTimeout(() => modal.remove(), 350);
-    }
-};
+    // ── Offline Low-Signal Check-in Auto-Sync Queue Handler ─────────────────────
+    window.processOfflineCheckinQueue = async function () {
+        const queueRaw = localStorage.getItem('offline_checkin_queue');
+        if (!queueRaw) return;
+        try {
+            const queue = JSON.parse(queueRaw);
+            if (!Array.isArray(queue) || queue.length === 0) return;
 
-// ── Offline Low-Signal Check-in Auto-Sync Queue Handler ─────────────────────
-window.processOfflineCheckinQueue = async function () {
-    const queueRaw = localStorage.getItem('offline_checkin_queue');
-    if (!queueRaw) return;
-    try {
-        const queue = JSON.parse(queueRaw);
-        if (!Array.isArray(queue) || queue.length === 0) return;
+            const token = localStorage.getItem('tourist_token');
+            const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
 
-        const token = localStorage.getItem('tourist_token');
-        const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
+            const remaining = [];
+            let syncedCount = 0;
 
-        const remaining = [];
-        let syncedCount = 0;
-
-        for (const item of queue) {
-            try {
-                const res = await fetch(`${backendUrl}/api/tourist/points/ar-checkin`, {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify(item)
-                });
-                if (res.ok) {
-                    syncedCount++;
-                } else {
+            for (const item of queue) {
+                try {
+                    const res = await fetch(`${backendUrl}/api/tourist/points/ar-checkin`, {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify(item)
+                    });
+                    if (res.ok) {
+                        syncedCount++;
+                    } else {
+                        remaining.push(item);
+                    }
+                } catch (err) {
                     remaining.push(item);
                 }
-            } catch (err) {
-                remaining.push(item);
             }
+
+            if (remaining.length > 0) {
+                localStorage.setItem('offline_checkin_queue', JSON.stringify(remaining));
+            } else {
+                localStorage.removeItem('offline_checkin_queue');
+            }
+
+            if (syncedCount > 0 && typeof showToast === 'function') {
+                showToast(`⚡ ${syncedCount} Offline Check-in(s) synced! Points awarded!`);
+            }
+        } catch (e) {
+            console.warn('Failed processing offline checkin queue', e);
+        }
+    };
+
+    window.addEventListener('online', window.processOfflineCheckinQueue);
+    document.addEventListener('DOMContentLoaded', () => {
+        if (navigator.onLine) {
+            window.processOfflineCheckinQueue();
+        }
+    });
+
+    // =========================================================================
+    // Mobile Virtual Keyboard Detection & Auto-Hide Navigation Bar
+    // =========================================================================
+    (function initVirtualKeyboardDetector() {
+        function isEditableTarget(el) {
+            if (!el) return false;
+            const tag = (el.tagName || '').toUpperCase();
+            if (tag === 'TEXTAREA' || el.isContentEditable) return true;
+            if (tag === 'INPUT') {
+                const type = (el.type || 'text').toLowerCase();
+                return !['submit', 'button', 'checkbox', 'radio', 'file', 'image', 'reset', 'range', 'color'].includes(type);
+            }
+            return false;
         }
 
-        if (remaining.length > 0) {
-            localStorage.setItem('offline_checkin_queue', JSON.stringify(remaining));
-        } else {
-            localStorage.removeItem('offline_checkin_queue');
+        function hideNavForKeyboard() {
+            document.body.classList.add('keyboard-open');
+            document.documentElement.classList.add('keyboard-open');
+            const bNav = document.getElementById('bottom-navigation');
+            const mNav = document.getElementById('magic-nav');
+            if (bNav) bNav.classList.add('keyboard-hidden');
+            if (mNav) mNav.classList.add('keyboard-hidden');
         }
 
-        if (syncedCount > 0 && typeof showToast === 'function') {
-            showToast(`⚡ ${syncedCount} Offline Check-in(s) synced! Points awarded!`);
+        function showNavAfterKeyboard() {
+            document.body.classList.remove('keyboard-open');
+            document.documentElement.classList.remove('keyboard-open');
+            const bNav = document.getElementById('bottom-navigation');
+            const mNav = document.getElementById('magic-nav');
+            if (bNav) bNav.classList.remove('keyboard-hidden');
+            if (mNav) mNav.classList.remove('keyboard-hidden');
         }
-    } catch (e) {
-        console.warn('Failed processing offline checkin queue', e);
-    }
-};
 
-window.addEventListener('online', window.processOfflineCheckinQueue);
-document.addEventListener('DOMContentLoaded', () => {
-    if (navigator.onLine) {
-        window.processOfflineCheckinQueue();
-    }
-});
+        // 1. Focusin / Focusout listeners (instant reaction when tapping any input)
+        document.addEventListener('focusin', (e) => {
+            if (isEditableTarget(e.target)) {
+                hideNavForKeyboard();
+            }
+        }, true);
 
-// =========================================================================
-// Mobile Virtual Keyboard Detection & Auto-Hide Navigation Bar
-// =========================================================================
-(function initVirtualKeyboardDetector() {
-    function isEditableTarget(el) {
-        if (!el) return false;
-        const tag = (el.tagName || '').toUpperCase();
-        if (tag === 'TEXTAREA' || el.isContentEditable) return true;
-        if (tag === 'INPUT') {
-            const type = (el.type || 'text').toLowerCase();
-            return !['submit', 'button', 'checkbox', 'radio', 'file', 'image', 'reset', 'range', 'color'].includes(type);
-        }
-        return false;
-    }
+        document.addEventListener('focusout', (e) => {
+            if (isEditableTarget(e.target)) {
+                setTimeout(() => {
+                    if (!isEditableTarget(document.activeElement)) {
+                        showNavAfterKeyboard();
+                    }
+                }, 120);
+            }
+        }, true);
 
-    function hideNavForKeyboard() {
-        document.body.classList.add('keyboard-open');
-        document.documentElement.classList.add('keyboard-open');
-        const bNav = document.getElementById('bottom-navigation');
-        const mNav = document.getElementById('magic-nav');
-        if (bNav) bNav.classList.add('keyboard-hidden');
-        if (mNav) mNav.classList.add('keyboard-hidden');
-    }
+        // 2. VisualViewport API (detects virtual keyboard slide-up on Android & iOS)
+        if (window.visualViewport) {
+            const onViewportChange = () => {
+                const currentHeight = window.visualViewport.height;
+                const screenHeight = window.screen.height || window.innerHeight;
+                const heightDiff = window.innerHeight - currentHeight;
 
-    function showNavAfterKeyboard() {
-        document.body.classList.remove('keyboard-open');
-        document.documentElement.classList.remove('keyboard-open');
-        const bNav = document.getElementById('bottom-navigation');
-        const mNav = document.getElementById('magic-nav');
-        if (bNav) bNav.classList.remove('keyboard-hidden');
-        if (mNav) mNav.classList.remove('keyboard-hidden');
-    }
-
-    // 1. Focusin / Focusout listeners (instant reaction when tapping any input)
-    document.addEventListener('focusin', (e) => {
-        if (isEditableTarget(e.target)) {
-            hideNavForKeyboard();
-        }
-    }, true);
-
-    document.addEventListener('focusout', (e) => {
-        if (isEditableTarget(e.target)) {
-            setTimeout(() => {
-                if (!isEditableTarget(document.activeElement)) {
+                if (heightDiff > 120 || (isEditableTarget(document.activeElement) && currentHeight < screenHeight * 0.8)) {
+                    hideNavForKeyboard();
+                } else if (!isEditableTarget(document.activeElement)) {
                     showNavAfterKeyboard();
                 }
-            }, 120);
+            };
+
+            window.visualViewport.addEventListener('resize', onViewportChange);
+            window.visualViewport.addEventListener('scroll', onViewportChange);
         }
-    }, true);
 
-    // 2. VisualViewport API (detects virtual keyboard slide-up on Android & iOS)
-    if (window.visualViewport) {
-        const onViewportChange = () => {
-            const currentHeight = window.visualViewport.height;
-            const screenHeight = window.screen.height || window.innerHeight;
-            const heightDiff = window.innerHeight - currentHeight;
+        // 3. Capacitor Keyboard plugin events (for native Android / iOS wrapper)
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Keyboard) {
+            try {
+                const { Keyboard } = window.Capacitor.Plugins;
+                Keyboard.addListener('keyboardWillShow', hideNavForKeyboard);
+                Keyboard.addListener('keyboardDidShow', hideNavForKeyboard);
+                Keyboard.addListener('keyboardWillHide', showNavAfterKeyboard);
+                Keyboard.addListener('keyboardDidHide', showNavAfterKeyboard);
+            } catch (e) { }
+        }
+    })();
 
-            if (heightDiff > 120 || (isEditableTarget(document.activeElement) && currentHeight < screenHeight * 0.8)) {
-                hideNavForKeyboard();
-            } else if (!isEditableTarget(document.activeElement)) {
-                showNavAfterKeyboard();
+    // =========================================================================
+    // Global Dimension Lock for Auth & Reset Password Views
+    // =========================================================================
+    window.freezeAuthLayout = function () {
+        const view = document.body ? document.body.getAttribute('data-view') : '';
+        if (view !== 'auth' && view !== 'reset-password') return;
+
+        const winH = window.innerHeight || 0;
+        const scrH = (window.screen && window.screen.height) ? window.screen.height : 0;
+        let storedH = parseInt(sessionStorage.getItem('auth_locked_screen_h') || '0', 10);
+        if (!storedH || winH > storedH) {
+            storedH = Math.max(winH, scrH > 300 ? scrH : winH);
+            try { sessionStorage.setItem('auth_locked_screen_h', storedH); } catch (e) { }
+        }
+        if (storedH > 0) {
+            const topH = Math.min(330, Math.max(250, Math.round(storedH * 0.38)));
+            document.documentElement.style.setProperty('--auth-screen-h', storedH + 'px');
+            document.documentElement.style.setProperty('--auth-top-h', topH + 'px');
+            const container = document.querySelector('.auth-container');
+            if (container) {
+                container.style.height = storedH + 'px';
+                container.style.minHeight = storedH + 'px';
+                container.style.maxHeight = storedH + 'px';
             }
-        };
-
-        window.visualViewport.addEventListener('resize', onViewportChange);
-        window.visualViewport.addEventListener('scroll', onViewportChange);
-    }
-
-    // 3. Capacitor Keyboard plugin events (for native Android / iOS wrapper)
-    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Keyboard) {
-        try {
-            const { Keyboard } = window.Capacitor.Plugins;
-            Keyboard.addListener('keyboardWillShow', hideNavForKeyboard);
-            Keyboard.addListener('keyboardDidShow', hideNavForKeyboard);
-            Keyboard.addListener('keyboardWillHide', showNavAfterKeyboard);
-            Keyboard.addListener('keyboardDidHide', showNavAfterKeyboard);
-        } catch(e) {}
-    }
-})();
-
-// =========================================================================
-// Global Dimension Lock for Auth & Reset Password Views
-// =========================================================================
-window.freezeAuthLayout = function() {
-    const view = document.body ? document.body.getAttribute('data-view') : '';
-    if (view !== 'auth' && view !== 'reset-password') return;
-
-    const winH = window.innerHeight || 0;
-    const scrH = (window.screen && window.screen.height) ? window.screen.height : 0;
-    let storedH = parseInt(sessionStorage.getItem('auth_locked_screen_h') || '0', 10);
-    if (!storedH || winH > storedH) {
-        storedH = Math.max(winH, scrH > 300 ? scrH : winH);
-        try { sessionStorage.setItem('auth_locked_screen_h', storedH); } catch(e) {}
-    }
-    if (storedH > 0) {
-        const topH = Math.min(330, Math.max(250, Math.round(storedH * 0.38)));
-        document.documentElement.style.setProperty('--auth-screen-h', storedH + 'px');
-        document.documentElement.style.setProperty('--auth-top-h', topH + 'px');
-        const container = document.querySelector('.auth-container');
-        if (container) {
-            container.style.height = storedH + 'px';
-            container.style.minHeight = storedH + 'px';
-            container.style.maxHeight = storedH + 'px';
+            const topEl = document.querySelector('.auth-top');
+            if (topEl) {
+                topEl.style.height = topH + 'px';
+                topEl.style.minHeight = topH + 'px';
+                topEl.style.maxHeight = topH + 'px';
+            }
         }
-        const topEl = document.querySelector('.auth-top');
-        if (topEl) {
-            topEl.style.height = topH + 'px';
-            topEl.style.minHeight = topH + 'px';
-            topEl.style.maxHeight = topH + 'px';
-        }
-    }
-};
+    };
 
-document.addEventListener('DOMContentLoaded', window.freezeAuthLayout);
-window.addEventListener('load', window.freezeAuthLayout);
-window.addEventListener('orientationchange', function() {
-    try { sessionStorage.removeItem('auth_locked_screen_h'); } catch(e) {}
-    setTimeout(window.freezeAuthLayout, 250);
-});
-
+    document.addEventListener('DOMContentLoaded', window.freezeAuthLayout);
+    window.addEventListener('load', window.freezeAuthLayout);
+    window.addEventListener('orientationchange', function () {
+        try { sessionStorage.removeItem('auth_locked_screen_h'); } catch (e) { }
+        setTimeout(window.freezeAuthLayout, 250);
+    });
+}

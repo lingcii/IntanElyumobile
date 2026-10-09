@@ -19,10 +19,11 @@ $email = $_GET['email'] ?? '';
     <!-- Top Blue Section -->
     <div class="auth-top">
         <div class="logo-container">
-            <img id="auth-logo-img" src="assets/img/logo.png" alt="Intan Elyu Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%; display: block;">
+            <img id="auth-logo-img" src="assets/img/logo.png" alt="Intan Elyu Logo"
+                style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%; display: block;">
         </div>
         <h1 id="reset-title" style="color: #ffffff; font-weight: 800;">Welcome to Elyu</h1>
-        
+
         <!-- Animated Seamless SVG Wave -->
         <div class="wave-bottom">
             <svg viewBox="0 0 2000 100" preserveAspectRatio="none">
@@ -42,13 +43,19 @@ $email = $_GET['email'] ?? '';
                         <stop offset="100%" stop-color="#74a3cf" stop-opacity="1" />
                     </linearGradient>
                 </defs>
-                <path class="wave-layer wave-1" fill="url(#resetWaveGrad1)" d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 C1150,100 1350,0 1500,50 C1650,100 1850,0 2000,50 L2000,160 L0,160 Z"></path>
-                <path class="wave-layer wave-2" fill="url(#resetWaveGrad2)" d="M0,60 C200,110 300,10 500,60 C700,110 800,10 1000,60 C1200,110 1300,10 1500,60 C1700,110 1800,10 2000,60 L2000,160 L0,160 Z"></path>
-                <path class="wave-layer wave-3" fill="#74a3cf" d="M0,70 C250,120 250,20 500,70 C750,120 750,20 1000,70 C1250,120 1250,20 1500,70 C1750,120 1750,20 2000,70 L2000,160 L0,160 Z"></path>
+                <path class="wave-layer wave-1" fill="url(#resetWaveGrad1)"
+                    d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 C1150,100 1350,0 1500,50 C1650,100 1850,0 2000,50 L2000,160 L0,160 Z">
+                </path>
+                <path class="wave-layer wave-2" fill="url(#resetWaveGrad2)"
+                    d="M0,60 C200,110 300,10 500,60 C700,110 800,10 1000,60 C1200,110 1300,10 1500,60 C1700,110 1800,10 2000,60 L2000,160 L0,160 Z">
+                </path>
+                <path class="wave-layer wave-3" fill="#74a3cf"
+                    d="M0,70 C250,120 250,20 500,70 C750,120 750,20 1000,70 C1250,120 1250,20 1500,70 C1750,120 1750,20 2000,70 L2000,160 L0,160 Z">
+                </path>
             </svg>
         </div>
     </div>
-    
+
     <!-- Bottom Section -->
     <div class="auth-bottom">
         <div class="forms-wrapper" style="padding: 0 20px; width: 100%; max-width: 350px; margin: 0 auto;">
@@ -58,8 +65,12 @@ $email = $_GET['email'] ?? '';
                 </a>
 
                 <div class="fp-header" style="margin-bottom: 24px; text-align: center;">
-                    <h3 style="font-size: 22px; font-weight: 800; color: #ffffff; margin-bottom: 6px;">Reset Password</h3>
-                    <p style="font-size: 13px; color: #000000; font-weight: 500;">Create a new password for your account<?php if (!empty($email)): ?><br><strong style="color: #1d4ed8; font-family: monospace;"><?= htmlspecialchars($email) ?></strong><?php endif; ?></p>
+                    <h3 style="font-size: 22px; font-weight: 800; color: #ffffff; margin-bottom: 6px;">Reset Password
+                    </h3>
+                    <p style="font-size: 13px; color: #000000; font-weight: 500;">Create a new password for your
+                        account<?php if (!empty($email)): ?><br><strong
+                                style="color: #1d4ed8; font-family: monospace;"><?= htmlspecialchars($email) ?></strong><?php endif; ?>
+                    </p>
                 </div>
 
                 <form id="form-reset-password" onsubmit="handleResetPassword(event)">
@@ -68,35 +79,49 @@ $email = $_GET['email'] ?? '';
 
                     <div class="input-group" style="margin-bottom: 12px;">
                         <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="reset-password-val" class="auth-input" placeholder="New Password (min 8 chars)" required minlength="8" oninput="validateResetPasswordMetrics()">
-                        <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('reset-password-val', this)"></i>
+                        <input type="password" id="reset-password-val" class="auth-input"
+                            placeholder="New Password (min 8 chars)" required minlength="8"
+                            oninput="validateResetPasswordMetrics()">
+                        <i class="fa-regular fa-eye password-toggle"
+                            onclick="togglePasswordVisibility('reset-password-val', this)"></i>
                     </div>
 
-                    <div id="reset-pwd-strength-container" class="pwd-strength-wrapper" style="display: none; margin-bottom: 16px;" data-score="0">
+                    <div id="reset-pwd-strength-container" class="pwd-strength-wrapper"
+                        style="display: none; margin-bottom: 16px;" data-score="0">
                         <div class="pwd-strength-segments">
                             <div class="pwd-segment seg-1"></div>
                             <div class="pwd-segment seg-2"></div>
                             <div class="pwd-segment seg-3"></div>
                             <div class="pwd-segment seg-4"></div>
                         </div>
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 5px; font-size: 11px; font-weight: 700;">
-                            <span id="reset-pwd-strength-label" style="color: #94a3b8; transition: color 0.2s ease;">Password Strength</span>
-                            <span id="reset-pwd-strength-score" style="color: rgba(148, 163, 184, 0.7); font-size: 10px;">0/4</span>
+                        <div
+                            style="display: flex; align-items: center; justify-content: space-between; margin-top: 5px; font-size: 11px; font-weight: 700;">
+                            <span id="reset-pwd-strength-label"
+                                style="color: #94a3b8; transition: color 0.2s ease;">Password Strength</span>
+                            <span id="reset-pwd-strength-score"
+                                style="color: rgba(148, 163, 184, 0.7); font-size: 10px;">0/4</span>
                         </div>
-                        <div class="pwd-checklist" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; font-size: 10.5px; font-weight: 600;">
-                            <span id="rst-len8" class="pwd-chk-item"><i class="fa-solid fa-circle" style="font-size: 6px; vertical-align: middle;"></i> 8+ chars</span>
-                            <span id="rst-num" class="pwd-chk-item"><i class="fa-solid fa-circle" style="font-size: 6px; vertical-align: middle;"></i> a number</span>
-                            <span id="rst-cap" class="pwd-chk-item"><i class="fa-solid fa-circle" style="font-size: 6px; vertical-align: middle;"></i> a capital</span>
-                            <span id="rst-sym" class="pwd-chk-item"><i class="fa-solid fa-circle" style="font-size: 6px; vertical-align: middle;"></i> a symbol</span>
+                        <div class="pwd-checklist"
+                            style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; font-size: 10.5px; font-weight: 600;">
+                            <span id="rst-len8" class="pwd-chk-item"><i class="fa-solid fa-circle"
+                                    style="font-size: 6px; vertical-align: middle;"></i> 8+ chars</span>
+                            <span id="rst-num" class="pwd-chk-item"><i class="fa-solid fa-circle"
+                                    style="font-size: 6px; vertical-align: middle;"></i> a number</span>
+                            <span id="rst-cap" class="pwd-chk-item"><i class="fa-solid fa-circle"
+                                    style="font-size: 6px; vertical-align: middle;"></i> a capital</span>
+                            <span id="rst-sym" class="pwd-chk-item"><i class="fa-solid fa-circle"
+                                    style="font-size: 6px; vertical-align: middle;"></i> a symbol</span>
                         </div>
                     </div>
 
                     <div class="input-group" style="margin-bottom: 28px;">
                         <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="reset-password-confirm" class="auth-input" placeholder="Confirm New Password" required minlength="8">
-                        <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('reset-password-confirm', this)"></i>
+                        <input type="password" id="reset-password-confirm" class="auth-input"
+                            placeholder="Confirm New Password" required minlength="8">
+                        <i class="fa-regular fa-eye password-toggle"
+                            onclick="togglePasswordVisibility('reset-password-confirm', this)"></i>
                     </div>
-                    
+
                     <button type="submit" id="btn-submit-reset" class="btn-circle-submit">
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
@@ -162,7 +187,7 @@ $email = $_GET['email'] ?? '';
             console.warn('Token or email query parameter missing from URL.');
         }
 
-        window.validateResetPasswordMetrics = function() {
+        window.validateResetPasswordMetrics = function () {
             const pwdEl = document.getElementById('reset-password-val');
             const container = document.getElementById('reset-pwd-strength-container');
             const label = document.getElementById('reset-pwd-strength-label');
@@ -302,7 +327,7 @@ $email = $_GET['email'] ?? '';
             var storedH = parseInt(sessionStorage.getItem('auth_locked_screen_h') || '0', 10);
             if (!storedH || winH > storedH) {
                 storedH = Math.max(winH, scrH > 300 ? scrH : winH);
-                try { sessionStorage.setItem('auth_locked_screen_h', storedH); } catch(e) {}
+                try { sessionStorage.setItem('auth_locked_screen_h', storedH); } catch (e) { }
             }
             if (storedH > 0) {
                 var topH = Math.min(330, Math.max(250, Math.round(storedH * 0.38)));
@@ -324,15 +349,15 @@ $email = $_GET['email'] ?? '';
         }
 
         applyLockedDimensions();
-        window.addEventListener('resize', function() {
+        window.addEventListener('resize', function () {
             var currentH = window.innerHeight || 0;
             var storedH = parseInt(sessionStorage.getItem('auth_locked_screen_h') || '0', 10);
             if (currentH > storedH) {
                 applyLockedDimensions();
             }
         });
-        window.addEventListener('orientationchange', function() {
-            try { sessionStorage.removeItem('auth_locked_screen_h'); } catch(e) {}
+        window.addEventListener('orientationchange', function () {
+            try { sessionStorage.removeItem('auth_locked_screen_h'); } catch (e) { }
             setTimeout(applyLockedDimensions, 250);
         });
     })();

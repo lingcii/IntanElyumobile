@@ -30,10 +30,12 @@ if (is_dir($imgDir)) {
     <!-- Segmented Tab Switcher: All Tourist Sites on Left, Trending Sites on Right -->
     <div class="trending-segmented-wrap" id="trending-segmented-wrap">
         <div class="trending-seg-slider" id="trending-seg-slider"></div>
-        <button type="button" class="trending-seg-tab active" id="tab-all-spots" onclick="window.switchTrendingMode('all')">
+        <button type="button" class="trending-seg-tab active" id="tab-all-spots"
+            onclick="window.switchTrendingMode('all')">
             <i class="fa-solid fa-compass"></i> All Tourist Sites
         </button>
-        <button type="button" class="trending-seg-tab" id="tab-trending" onclick="window.switchTrendingMode('trending')">
+        <button type="button" class="trending-seg-tab" id="tab-trending"
+            onclick="window.switchTrendingMode('trending')">
             <i class="fa-solid fa-fire"></i> Trending Sites
         </button>
     </div>
@@ -86,9 +88,12 @@ if (is_dir($imgDir)) {
     <!-- Sort Bar -->
     <div class="trending-sort-bar" id="trending-sort-bar">
         <span class="sort-label"><i class="fa-solid fa-arrow-down-wide-short"></i> Sort:</span>
-        <button type="button" class="sort-chip active" data-sort="popular" onclick="window.setSortTrending('popular', this)">Most Visited</button>
-        <button type="button" class="sort-chip" data-sort="rating" onclick="window.setSortTrending('rating', this)">Top Rated</button>
-        <button type="button" class="sort-chip" data-sort="alpha" onclick="window.setSortTrending('alpha', this)">Name A-Z</button>
+        <button type="button" class="sort-chip active" data-sort="popular"
+            onclick="window.setSortTrending('popular', this)">Most Visited</button>
+        <button type="button" class="sort-chip" data-sort="rating" onclick="window.setSortTrending('rating', this)">Top
+            Rated</button>
+        <button type="button" class="sort-chip" data-sort="alpha" onclick="window.setSortTrending('alpha', this)">Name
+            A-Z</button>
     </div>
 
     <!-- Meta Info Bar -->
@@ -134,63 +139,63 @@ if (is_dir($imgDir)) {
 
             // Beach, Coastal & Surfing
             if (t.includes('beach') || t.includes('surf') || t.includes('coastal') || t.includes('island')) {
-                return combined.includes('beach') || combined.includes('surf') || combined.includes('coastal') || 
-                       combined.includes('island') || combined.includes('seascape') || combined.includes('water sports');
+                return combined.includes('beach') || combined.includes('surf') || combined.includes('coastal') ||
+                    combined.includes('island') || combined.includes('seascape') || combined.includes('water sports');
             }
 
             // Nature & Parks
             if (t.includes('nature') || t.includes('park')) {
-                return c.includes('nature') || c.includes('park') || combined.includes('park') || 
-                       combined.includes('plaza') || combined.includes('agro-forestry') || combined.includes('tree') ||
-                       combined.includes('mangrove') || combined.includes('lagoon') || combined.includes('baywalk');
+                return c.includes('nature') || c.includes('park') || combined.includes('park') ||
+                    combined.includes('plaza') || combined.includes('agro-forestry') || combined.includes('tree') ||
+                    combined.includes('mangrove') || combined.includes('lagoon') || combined.includes('baywalk');
             }
 
             // Mountains & Hiking
             if (t.includes('mountain') || t.includes('hiking') || t.includes('trail') || t.includes('view')) {
-                return c.includes('mountain') || c.includes('hiking') || combined.includes('trail') || 
-                       combined.includes('peak') || combined.includes('view deck') || combined.includes('viewdeck') || 
-                       combined.includes('terrace') || combined.includes('mt.') || combined.includes('mountain');
+                return c.includes('mountain') || c.includes('hiking') || combined.includes('trail') ||
+                    combined.includes('peak') || combined.includes('view deck') || combined.includes('viewdeck') ||
+                    combined.includes('terrace') || combined.includes('mt.') || combined.includes('mountain');
             }
 
             // Lakes, Falls & Waterways
             if (t.includes('lake') || t.includes('fall') || t.includes('water') || t.includes('river')) {
-                return c.includes('waterfall') || c.includes('river') || c.includes('lake') || 
-                       combined.includes('fall') || combined.includes('river') || combined.includes('lake') || 
-                       combined.includes('dam') || combined.includes('spring');
+                return c.includes('waterfall') || c.includes('river') || c.includes('lake') ||
+                    combined.includes('fall') || combined.includes('river') || combined.includes('lake') ||
+                    combined.includes('dam') || combined.includes('spring');
             }
 
             // Heritage, Cultural, Historical & Monuments
             if (t.includes('heritage') || t.includes('cultural') || t.includes('historical') || t.includes('monument') || t.includes('museum')) {
-                return c.includes('cultural') || c.includes('heritage') || c.includes('historical') || 
-                       c.includes('monument') || c.includes('museum') || combined.includes('watchtower') || 
-                       combined.includes('tunnel') || combined.includes('marker') || combined.includes('station') || 
-                       combined.includes('memorial') || combined.includes('ancestral') || combined.includes('church') || 
-                       combined.includes('shrine') || combined.includes('parish') || combined.includes('basilica');
+                return c.includes('cultural') || c.includes('heritage') || c.includes('historical') ||
+                    c.includes('monument') || c.includes('museum') || combined.includes('watchtower') ||
+                    combined.includes('tunnel') || combined.includes('marker') || combined.includes('station') ||
+                    combined.includes('memorial') || combined.includes('ancestral') || combined.includes('church') ||
+                    combined.includes('shrine') || combined.includes('parish') || combined.includes('basilica');
             }
 
             // Food & Dining
             if (t.includes('food') || t.includes('dining') || t.includes('restaurant')) {
-                return c.includes('food') || combined.includes('restaurant') || combined.includes('seafood') || 
-                       combined.includes('dining') || combined.includes('eatery') || combined.includes('cafe') || 
-                       combined.includes('bistro') || combined.includes('grill');
+                return c.includes('food') || combined.includes('restaurant') || combined.includes('seafood') ||
+                    combined.includes('dining') || combined.includes('eatery') || combined.includes('cafe') ||
+                    combined.includes('bistro') || combined.includes('grill');
             }
 
             // Arts & Crafts
             if (t.includes('art') || t.includes('craft') || t.includes('weaving')) {
-                return c.includes('arts') || combined.includes('weaving') || combined.includes('pottery') || 
-                       combined.includes('gallery') || combined.includes('craft') || combined.includes('paper');
+                return c.includes('arts') || combined.includes('weaving') || combined.includes('pottery') ||
+                    combined.includes('gallery') || combined.includes('craft') || combined.includes('paper');
             }
 
             // Farms & Agriculture
             if (t.includes('farm') || t.includes('agro') || t.includes('plant')) {
-                return c.includes('farm') || combined.includes('plantation') || combined.includes('grapes') || 
-                       combined.includes('mushroom') || combined.includes('fishery') || combined.includes('agri');
+                return c.includes('farm') || combined.includes('plantation') || combined.includes('grapes') ||
+                    combined.includes('mushroom') || combined.includes('fishery') || combined.includes('agri');
             }
 
             // Nightlife (Strict matching for authentic nightlife spots only)
             if (t === 'nightlife' || t.includes('nightlife')) {
-                return c.includes('nightlife') || combined.includes('nightlife') || 
-                       /\b(nightclub|night club|pub|pubs|disco|discotheque|restobar|resto-bar|sports bar|comedy bar|karaoke bar|lounge bar)\b/i.test(combined);
+                return c.includes('nightlife') || combined.includes('nightlife') ||
+                    /\b(nightclub|night club|pub|pubs|disco|discotheque|restobar|resto-bar|sports bar|comedy bar|karaoke bar|lounge bar)\b/i.test(combined);
             }
 
             // Recreation & Resorts (Separated from Nightlife so resorts & recreation do not pollute nightlife)
