@@ -446,7 +446,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
     window.navigateBack = function (fallbackRoute = 'dashboard') {
         const openModals = Array.from(document.querySelectorAll(
-            '#full-history-modal, #trip-details-modal, #full-vouchers-modal, #reward-details-modal, #active-voucher-qr-modal, #voucher-modal, #testimony-modal, .modal'
+            '#full-deals-modal, #full-history-modal, #trip-details-modal, #full-vouchers-modal, #reward-details-modal, #active-voucher-qr-modal, #voucher-modal, #testimony-modal, .modal'
         )).filter(el => {
             const style = window.getComputedStyle(el);
             return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
@@ -454,7 +454,9 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         if (openModals.length > 0) {
             const modalToClose = openModals[openModals.length - 1];
-            if (typeof window.closeTripDetailsModal === 'function' && modalToClose.id === 'trip-details-modal') {
+            if (typeof window.closeFullDealsModal === 'function' && modalToClose.id === 'full-deals-modal') {
+                window.closeFullDealsModal();
+            } else if (typeof window.closeTripDetailsModal === 'function' && modalToClose.id === 'trip-details-modal') {
                 window.closeTripDetailsModal();
             } else if (typeof window.closeFullHistoryModal === 'function' && modalToClose.id === 'full-history-modal') {
                 window.closeFullHistoryModal();

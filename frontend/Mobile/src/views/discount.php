@@ -1,22 +1,32 @@
 <?php
 $pageTitle = 'Discounts & Vouchers';
-$backRoute = 'dashboard';
+$backRoute = 'profile';
 ?>
 
 <!-- Include Header Component -->
 <?php include __DIR__ . '/../components/header.php'; ?>
 
 <div class="merch-page-container has-header animate-fade-in">
-    <!-- Hero Section -->
-    <div class="merch-hero" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 24px; padding: 20px 18px; text-align: center; margin-bottom: 18px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; color: #ffffff !important;">
-        <p style="margin: 0 0 12px; font-size: 13.5px; color: rgba(255, 255, 255, 0.95); line-height: 1.45; max-width: 320px; margin-left: auto; margin-right: auto; font-weight: 600;">
-            Redeem your <strong style="color: #ffffff; font-weight: 800;">Explorer Points</strong> for exclusive discounts!
-        </p>
-        <div style="display:inline-flex; align-items:center; gap:8px; background:#ffffff !important; border:none !important; outline:none !important; padding:7px 18px; border-radius:100px; box-shadow: 0 2px 10px rgba(0,0,0,0.12);">
-            <i class="fa-solid fa-coins" style="color:#f59e0b; font-size:14px;"></i>
-            <span style="font-size:12px; color:#475569; font-weight:700;">Your Balance:</span>
-            <strong id="discount-user-pts" style="color:#203f8d; font-size:14px; font-weight:900;">-- Points</strong>
+    <!-- Hero Section with User Account Profile & Live Points -->
+    <div class="merch-hero" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #0284c7 100%) !important; border: none !important; outline: none !important; border-radius: 24px; padding: 18px 20px; margin-bottom: 18px; box-shadow: 0 8px 24px rgba(30, 58, 138, 0.25) !important; color: #ffffff !important;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px;">
+            <div style="display: flex; align-items: center; gap: 12px; min-width: 0; text-align: left;">
+                <div style="width: 44px; height: 44px; border-radius: 50%; background: #ffffff; border: 2px solid rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                    <img id="discount-user-avatar" src="https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
+                </div>
+                <div style="min-width: 0;">
+                    <div style="font-size: 10.5px; font-weight: 800; color: #7dd3fc; text-transform: uppercase; letter-spacing: 0.5px;">Explorer Account</div>
+                    <div id="discount-user-name" style="font-size: 15.5px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25;">Tourist Explorer</div>
+                </div>
+            </div>
+            <div style="display:inline-flex; align-items:center; gap:7px; background:#ffffff !important; padding:6px 14px; border-radius:100px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); flex-shrink:0;">
+                <i class="fa-solid fa-coins" style="color:#f59e0b; font-size:13px;"></i>
+                <strong id="discount-user-pts" style="color:#1e3a8a; font-size:13.5px; font-weight:900;">-- Points</strong>
+            </div>
         </div>
+        <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.92); line-height: 1.4; text-align: left; font-weight: 500;">
+            Redeem your points for exclusive discounts and partner vouchers across La Union.
+        </p>
     </div>
 
     <!-- Search & Town Filters Bar -->
@@ -41,6 +51,7 @@ $backRoute = 'dashboard';
         <button class="discount-cat-btn active" onclick="filterDiscounts('All')">All Deals</button>
         <button class="discount-cat-btn" onclick="filterDiscounts('Mabanag Hall')"><i class="fa-solid fa-landmark" style="margin-right: 4px;"></i>Mabanag Hall</button>
         <button class="discount-cat-btn" id="btn-my-claimed" onclick="filterDiscounts('Claimed')">My Vouchers (<span id="claimed-count">0</span>)</button>
+        <button class="discount-cat-btn" id="btn-my-history" onclick="filterDiscounts('History')"><i class="fa-solid fa-clock-rotate-left" style="margin-right: 4px;"></i>History (<span id="history-count">0</span>)</button>
         <button class="discount-cat-btn" onclick="filterDiscounts('Food & Dining')">Food & Dining</button>
         <button class="discount-cat-btn" onclick="filterDiscounts('Activities')">Activities & Surf</button>
         <button class="discount-cat-btn" onclick="filterDiscounts('Accommodations')">Accommodations</button>
@@ -191,6 +202,28 @@ $backRoute = 'dashboard';
 (function() {
 const VOUCHERS_CACHE_KEY = 'intan_elyu_cached_vouchers';
 const VOUCHERS_CACHE_TTL = 900000; // 15 mins
+
+// ── Instant Synchronous Profile Hydration (0ms, Zero Latency) ──
+function hydrateDiscountUser() {
+    try {
+        const cached = JSON.parse(localStorage.getItem('auth_user') || '{}');
+        if (cached.name) {
+            const nameEl = document.getElementById('discount-user-name');
+            if (nameEl) nameEl.textContent = cached.name;
+        }
+        if (cached.avatar) {
+            const imgEl = document.getElementById('discount-user-avatar');
+            if (imgEl) imgEl.src = window.getFullImageUrl ? window.getFullImageUrl(cached.avatar) : cached.avatar;
+        }
+        if (cached.points !== undefined || cached.xp !== undefined) {
+            const pts = parseInt(cached.points !== undefined ? cached.points : cached.xp) || 0;
+            userPointsBalance = pts;
+            const ptsEl = document.getElementById('discount-user-pts');
+            if (ptsEl) ptsEl.textContent = `${pts.toLocaleString()} Points`;
+        }
+    } catch (e) { }
+}
+hydrateDiscountUser();
 
 function getVoucherImageUrl(v) {
     if (!v) return 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png';
@@ -353,6 +386,7 @@ function filterDiscounts(cat) {
         const text = btn.textContent.trim();
         if ((cat === 'All' && text.includes('All Deals')) ||
             (cat === 'Claimed' && text.includes('My Vouchers')) ||
+            (cat === 'History' && text.includes('History')) ||
             (cat === 'Mabanag Hall' && text.includes('Mabanag Hall')) ||
             (cat !== 'All' && text.includes(cat))) {
             btn.classList.add('active');
@@ -396,10 +430,21 @@ function getClaimedVouchers() {
     }
 }
 
+function isVoucherRedeemed(v) {
+    if (!v) return false;
+    const status = (v.redemptionStatus || v.status || '').toLowerCase();
+    return ['redeemed', 'used', 'completed', 'expired'].includes(status);
+}
+
 function updateClaimedBadge() {
     const claimed = getClaimedVouchers();
+    const activeClaimed = vouchersData.filter(v => claimed.includes(v.id) && !isVoucherRedeemed(v));
+    const historyClaimed = vouchersData.filter(v => claimed.includes(v.id) && isVoucherRedeemed(v));
+
     const countEl = document.getElementById('claimed-count');
-    if (countEl) countEl.textContent = claimed.length;
+    const histEl = document.getElementById('history-count');
+    if (countEl) countEl.textContent = activeClaimed.length;
+    if (histEl) histEl.textContent = historyClaimed.length;
 }
 
 function syncClaimedVouchersWithData() {
@@ -414,9 +459,30 @@ function syncClaimedVouchersWithData() {
             );
             if (match) {
                 if (v.voucher_code) match.code = v.voucher_code;
-                if (v.status) match.redemptionStatus = v.status;
+                if (v.status) match.redemptionStatus = (v.status || '').toLowerCase();
+                if (v.redeemed_at) match.redeemedAt = v.redeemed_at;
                 if (!claimed.includes(match.id)) {
                     claimed.push(match.id);
+                }
+            } else if (v.voucher_code) {
+                const dynamicId = 'redeemed_' + (v.id || v.voucher_id || v.voucher_code);
+                if (!vouchersData.some(item => item.id === dynamicId || item.code === v.voucher_code)) {
+                    vouchersData.push({
+                        id: dynamicId,
+                        code: v.voucher_code,
+                        title: v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.type || 'Tourist Voucher')),
+                        partner: v.partner_establishment || 'Official Partner Merchant',
+                        location: 'La Union',
+                        category: 'Food & Dining',
+                        badge: 'PROMO',
+                        pointsCost: 100,
+                        redemptionStatus: (v.status || 'active').toLowerCase(),
+                        redeemedAt: v.redeemed_at,
+                        description: 'Official La Union tourist reward voucher.'
+                    });
+                    if (!claimed.includes(dynamicId)) {
+                        claimed.push(dynamicId);
+                    }
                 }
             }
         });
@@ -447,6 +513,12 @@ async function fetchUserPointsAndRedemptions() {
                 userPointsBalance = (data.points !== undefined) ? data.points : (data.xp ?? 0);
                 const ptsBadge = document.getElementById('discount-user-pts');
                 if (ptsBadge) ptsBadge.textContent = `${userPointsBalance.toLocaleString()} Points`;
+
+                try {
+                    const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    u.points = userPointsBalance;
+                    localStorage.setItem('auth_user', JSON.stringify(u));
+                } catch (e) { }
 
                 if (Array.isArray(data.vouchers)) {
                     window._touristRedemptions = data.vouchers;
@@ -500,12 +572,16 @@ function renderDiscounts() {
     const claimed = getClaimedVouchers();
     let filtered = [...vouchersData];
 
-    // 1. Category Filter & Claimed Exclusion
+    // 1. Category Filter & Claimed / Redeemed Separation
     if (activeCategory === 'Claimed') {
-        filtered = filtered.filter(v => claimed.includes(v.id));
+        // Show ONLY active/unredeemed claimed vouchers
+        filtered = filtered.filter(v => claimed.includes(v.id) && !isVoucherRedeemed(v));
+    } else if (activeCategory === 'History') {
+        // Show redeemed / used vouchers in history
+        filtered = filtered.filter(v => claimed.includes(v.id) && isVoucherRedeemed(v));
     } else {
-        // Claimed vouchers are excluded from All Deals and category browsing, showing in My Vouchers
-        filtered = filtered.filter(v => !claimed.includes(v.id));
+        // Claimed and redeemed vouchers are excluded from All Deals and category browsing
+        filtered = filtered.filter(v => !claimed.includes(v.id) && !isVoucherRedeemed(v));
 
         if (activeCategory === 'Upcoming') {
             filtered = filtered.filter(v => (v.is_upcoming || (v.status && v.status.toLowerCase() === 'upcoming')) && !v.is_expired);
@@ -536,8 +612,7 @@ function renderDiscounts() {
     }
 
     // 4. Sort order for browsing:
-    // Available unredeemed vouchers first, then upcoming, then out-of-stock/expired
-    if (activeCategory !== 'Claimed') {
+    if (activeCategory !== 'Claimed' && activeCategory !== 'History') {
         filtered.sort((a, b) => {
             const aExpired = (a.is_expired || a.status === 'expired') ? 2 : (a.is_out_of_stock ? 1 : 0);
             const bExpired = (b.is_expired || b.status === 'expired') ? 2 : (b.is_out_of_stock ? 1 : 0);
@@ -556,11 +631,13 @@ function renderDiscounts() {
         if (vouchersData.length === 0) {
             msg = 'No discounts or vouchers are currently available. Check back soon for exciting deals!';
         } else if (activeCategory === 'Claimed') {
-            msg = 'You have not claimed any vouchers yet. Redeem your Points to store vouchers here!';
+            msg = 'You have no active vouchers right now. Claim reward deals using your Explorer Points!';
+        } else if (activeCategory === 'History') {
+            msg = 'No redeemed voucher history yet. Used vouchers scanned at checkout will appear here.';
         } else if (activeCategory === 'All' && claimed.length > 0) {
-            msg = '🎉 You have claimed all available deals! Tap "My Vouchers" above to view your claimed discounts and QR codes.';
+            msg = '🎉 You have claimed all available deals! Tap "My Vouchers" above to view your ready-to-use discounts.';
         } else if (activeCategory === 'Mabanag Hall') {
-            msg = 'No unredeemed vouchers for Mabanag Hall right now. Check "My Vouchers" if already claimed!';
+            msg = 'No unredeemed vouchers for Mabanag Hall right now.';
         } else if (activeCategory === 'Upcoming') {
             msg = 'No upcoming promotions scheduled right now. Check back soon for new discounts!';
         } else if (searchQuery) {
@@ -573,6 +650,7 @@ function renderDiscounts() {
     let html = '';
     filtered.forEach(v => {
         const isClaimed = claimed.includes(v.id);
+        const isRedeemed = isVoucherRedeemed(v);
         const imgUrl = getVoucherImageUrl(v);
         const expiryInfo = getExpiryInfo(v.expires, v.is_expired, v.is_upcoming, v.valid_from, v.valid_from_formatted, v.is_no_expiration, v.expiration_type);
         const isCardExpired = v.is_expired || expiryInfo.isExpired;
@@ -580,10 +658,16 @@ function renderDiscounts() {
         const isOutOfStock = v.is_out_of_stock || (v.remaining_quantity !== null && v.remaining_quantity <= 0);
 
         let actionBtnHtml = '';
-        if (isClaimed) {
+        if (isRedeemed) {
+            actionBtnHtml = `
+                <button onclick="openVoucherModal('${v.id}')" style="background: #dc2626 !important; border: none !important; color: #ffffff !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: pointer; display:flex; align-items:center; gap:4px; box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3) !important;">
+                    <i class="fa-solid fa-check-double"></i> Redeemed
+                </button>
+            `;
+        } else if (isClaimed) {
             actionBtnHtml = `
                 <button onclick="openVoucherModal('${v.id}')" style="background: #10b981 !important; border: none !important; color: #ffffff !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: pointer; display:flex; align-items:center; gap:4px; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;">
-                    <i class="fa-solid fa-check"></i> Claimed
+                    <i class="fa-solid fa-check"></i> Ready to Use
                 </button>
             `;
         } else if (isCardExpired) {
@@ -628,6 +712,10 @@ function renderDiscounts() {
             stockBadgeHtml = `<span style="font-size: 9.5px; font-weight: 800; background: #f59e0b !important; color: #ffffff !important; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px;"><i class="fa-solid fa-fire"></i> Only ${v.remaining_quantity} left</span>`;
         }
 
+        const topBadgeBg = isRedeemed ? '#dc2626' : '#ffffff';
+        const topBadgeColor = isRedeemed ? '#ffffff' : '#203f8d';
+        const topBadgeText = isRedeemed ? 'REDEEMED' : v.badge;
+
         html += `
         <div class="voucher-card">
             <div>
@@ -636,7 +724,7 @@ function renderDiscounts() {
                         <img src="${imgUrl}" alt="${v.title}" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png';">
                     </div>
                     <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                        <span style="font-size: 11px; font-weight: 900; background: #ffffff !important; color: #203f8d !important; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; box-shadow: 0 2px 6px rgba(0,0,0,0.12);">${v.badge}</span>
+                        <span style="font-size: 11px; font-weight: 900; background: ${topBadgeBg} !important; color: ${topBadgeColor} !important; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; box-shadow: 0 2px 6px rgba(0,0,0,0.12);">${topBadgeText}</span>
                         ${mabanagBadgeHtml}
                         ${idBadgeHtml}
                         ${stockBadgeHtml}
@@ -655,7 +743,7 @@ function renderDiscounts() {
 
                 <div style="display: inline-flex; align-items: center; gap: 5px; background: rgba(255, 255, 255, 0.16); padding: 3px 8px; border-radius: 6px; margin-bottom: 10px;">
                     <i class="${expiryInfo.icon}" style="font-size: 9px; color: #ffffff;"></i>
-                    <span style="font-size: 10px; font-weight: 700; color: #ffffff;">${expiryInfo.label}</span>
+                    <span style="font-size: 10px; font-weight: 700; color: #ffffff;">${isRedeemed ? 'Redeemed & Recorded' : expiryInfo.label}</span>
                 </div>
 
                 <p style="margin: 0 0 14px; font-size: 12px; color: rgba(255, 255, 255, 0.88); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${v.description}</p>
@@ -668,7 +756,8 @@ function renderDiscounts() {
                 </div>
                 ${actionBtnHtml}
             </div>
-        </div>`;
+        </div>
+        `;
     });
 
     grid.innerHTML = html;

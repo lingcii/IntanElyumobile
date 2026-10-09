@@ -128,10 +128,11 @@ $activeTab = 'profile';
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                 <h5 style="margin: 0; font-size: 14.5px; font-weight: 800; color: #0f172a; text-align: left;">Redeem
                     Rewards</h5>
-                <a href="#" onclick="navigateTo('discount'); return false;"
-                    style="font-size: 11.5px; font-weight: 800; color: #1e3a8a; text-decoration: none; display: flex; align-items: center; gap: 4px;">
-                    View All Deals <i class="fa-solid fa-arrow-right" style="font-size: 9px; color: #1e3a8a;"></i>
-                </a>
+                <button type="button" onclick="window.openFullDealsModal()"
+                    style="background: #eff6ff !important; border: 1px solid #bfdbfe !important; outline: none !important; color: #1e3a8a !important; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 12px; border-radius: 100px; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease;"
+                    onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
+                    View All Deals <i class="fa-solid fa-chevron-right" style="font-size: 9px; color: #1e3a8a;"></i>
+                </button>
             </div>
             <div id="profile-rewards-catalog"
                 style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
@@ -140,16 +141,20 @@ $activeTab = 'profile';
             <div style="height: 1px; background: #e2e8f0; margin-bottom: 20px;"></div>
 
             <!-- Active Claimed Vouchers -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 6px; flex-wrap: wrap;">
                 <h5 style="margin: 0; font-size: 14.5px; font-weight: 800; color: #0f172a; text-align: left;">Active
                     Vouchers</h5>
-                <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                     <span id="active-vouchers-count"
                         style="font-size: 11px; font-weight: 800; background: #eff6ff !important; border: 1px solid #bfdbfe !important; color: #1e3a8a !important; padding: 3px 10px; border-radius: 100px;">0
                         Active</span>
-                    <button id="view-all-vouchers-header-btn" onclick="window.openFullVouchersModal()"
+                    <button id="view-all-vouchers-header-btn" onclick="window.openFullVouchersModal('active')"
                         style="display: none; background: #f1f5f9 !important; border: 1px solid #e2e8f0 !important; outline: none !important; color: #1e3a8a !important; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 12px; border-radius: 100px; align-items: center; gap: 4px; transition: all 0.2s ease;">
                         View All <i class="fa-solid fa-chevron-right" style="font-size: 9px; color: #1e3a8a;"></i>
+                    </button>
+                    <button id="voucher-history-header-btn" onclick="window.openFullVouchersModal('history')"
+                        style="display: none; background: #f8fafc !important; border: 1px solid #e2e8f0 !important; outline: none !important; color: #64748b !important; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 10px; border-radius: 100px; align-items: center; gap: 4px; transition: all 0.2s ease;">
+                        <i class="fa-solid fa-clock-rotate-left" style="font-size: 9.5px; color: #64748b;"></i> History (<span id="voucher-history-count">0</span>)
                     </button>
                 </div>
             </div>
@@ -295,6 +300,8 @@ $activeTab = 'profile';
             try {
                 const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
                 Object.assign(stored, u);
+                if (data.places_visited !== undefined) stored.places_visited = data.places_visited;
+                if (data.my_rank !== undefined) stored.my_rank = data.my_rank;
                 localStorage.setItem('auth_user', JSON.stringify(stored));
             } catch (e) { }
         }
@@ -418,6 +425,9 @@ $activeTab = 'profile';
         const elPoints = document.getElementById('stat-points') || document.getElementById('stat-xp');
         if (elPoints) elPoints.textContent = pointsBalance.toLocaleString();
 
+        const dealsPts = document.getElementById('full-deals-user-points');
+        if (dealsPts) dealsPts.textContent = pointsBalance.toLocaleString();
+
         // Sync auth_user in localStorage
         try {
             let stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
@@ -425,30 +435,61 @@ $activeTab = 'profile';
             localStorage.setItem('auth_user', JSON.stringify(stored));
         } catch (e) { }
 
-        // Render Active Vouchers
+        // Process Active vs History Vouchers
+        const rawVouchers = Array.isArray(d.vouchers) ? d.vouchers : [];
+        const activeVouchers = [];
+        const historyVouchers = [];
+
+        rawVouchers.forEach(v => {
+            const st = (v.status || '').toLowerCase();
+            if (st === 'redeemed' || st === 'used' || st === 'completed' || st === 'expired') {
+                historyVouchers.push(v);
+            } else {
+                activeVouchers.push(v);
+            }
+        });
+
+        window._cachedActiveVouchers = activeVouchers;
+        window._cachedHistoryVouchers = historyVouchers;
+
+        // Sync claimed vouchers IDs so deals catalog doesn't show them
+        try {
+            let claimedSet = new Set(JSON.parse(localStorage.getItem('intan_elyu_claimed_vouchers') || '[]'));
+            rawVouchers.forEach(v => {
+                if (v.voucher_id) {
+                    claimedSet.add(v.voucher_id);
+                    claimedSet.add('db_' + v.voucher_id);
+                }
+                if (v.id) claimedSet.add(v.id);
+                if (v.voucher_code) claimedSet.add(v.voucher_code);
+            });
+            localStorage.setItem('intan_elyu_claimed_vouchers', JSON.stringify(Array.from(claimedSet)));
+        } catch (e) { }
+
+        // Update header badges and buttons
         const list = document.getElementById('vouchers-list');
         const badge = document.getElementById('active-vouchers-count');
         const headerBtn = document.getElementById('view-all-vouchers-header-btn');
-        if (list) {
-            if (d.vouchers && d.vouchers.length > 0) {
-                window._cachedActiveVouchers = d.vouchers;
-                const activeCount = d.vouchers.filter(v => ['active', 'claimed'].includes((v.status || '').toLowerCase())).length;
-                if (badge) badge.textContent = `${activeCount} Active`;
-                if (headerBtn) {
-                    headerBtn.style.display = (d.vouchers.length > 2) ? 'inline-flex' : 'none';
-                }
+        const historyBtn = document.getElementById('voucher-history-header-btn');
+        const historyCountSpan = document.getElementById('voucher-history-count');
 
-                // Limit displayed vouchers on profile card to max 2
-                const displayVouchers = d.vouchers.slice(0, 2);
+        if (badge) badge.textContent = `${activeVouchers.length} Active`;
+        if (headerBtn) {
+            headerBtn.style.display = (activeVouchers.length > 2) ? 'inline-flex' : 'none';
+        }
+        if (historyBtn && historyCountSpan) {
+            historyCountSpan.textContent = historyVouchers.length;
+            historyBtn.style.display = (historyVouchers.length > 0) ? 'inline-flex' : 'none';
+        }
+
+        // Render Active Vouchers on profile card (ONLY active, NOT redeemed)
+        if (list) {
+            if (activeVouchers.length > 0) {
+                const displayVouchers = activeVouchers.slice(0, 2);
                 let html = '';
                 displayVouchers.forEach(v => {
                     const voucherTitle = v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.type || 'Tourist Voucher'));
                     const safeCode = (v.voucher_code || '').replace(/'/g, "\\'");
-                    const statusLower = (v.status || '').toLowerCase();
-                    const isRedeemed = statusLower === 'redeemed' || statusLower === 'used';
-                    const statusLabel = isRedeemed ? 'Redeemed' : 'Ready to Use';
-                    const statusColor = isRedeemed ? '#64748b' : '#10b981';
-
                     html += `
                     <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; padding: 14px 16px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; gap: 10px; box-shadow: 0 4px 14px rgba(10, 25, 60, 0.22); cursor: pointer; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                         <div style="text-align: left; flex: 1; min-width: 0;">
@@ -464,29 +505,81 @@ $activeTab = 'profile';
                             </div>
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
-                            <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #ffffff !important; background: ${statusColor} !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.18);">
-                                <i class="fa-solid ${isRedeemed ? 'fa-check-double' : 'fa-check'}" style="margin-right: 4px; color: #ffffff !important;"></i>${statusLabel}
+                            <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #ffffff !important; background: #10b981 !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.18);">
+                                <i class="fa-solid fa-check" style="margin-right: 4px; color: #ffffff !important;"></i>Ready to Use
                             </span>
                             <div style="font-size: 10.5px; font-weight: 700; color: #00f2fe; display: flex; align-items: center; gap: 4px;">
-                                <i class="fa-solid fa-qrcode"></i> ${isRedeemed ? 'View Pass' : 'Show QR'}
+                                <i class="fa-solid fa-qrcode"></i> Show QR
                             </div>
                         </div>
                     </div>`;
                 });
                 list.innerHTML = html;
             } else {
-                window._cachedActiveVouchers = [];
-                if (badge) badge.textContent = '0 Active';
-                if (headerBtn) headerBtn.style.display = 'none';
-                list.innerHTML = '<div style="font-size:12.5px; color:#64748b; font-weight:600; text-align:center; padding:18px; background:#f8fafc !important; border:1.5px dashed #cbd5e1 !important; border-radius:14px;">No redeemed vouchers yet.</div>';
+                let emptyHistoryMsg = '';
+                if (historyVouchers.length > 0) {
+                    emptyHistoryMsg = `<div style="margin-top: 10px;"><button type="button" onclick="window.openFullVouchersModal('history')" style="background: #eff6ff !important; border: 1px solid #bfdbfe !important; color: #1e3a8a !important; padding: 6px 14px; border-radius: 100px; font-size: 11.5px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-clock-rotate-left"></i> View ${historyVouchers.length} in Voucher History</button></div>`;
+                }
+                list.innerHTML = `<div style="font-size:12.5px; color:#64748b; font-weight:600; text-align:center; padding:18px; background:#f8fafc !important; border:1.5px dashed #cbd5e1 !important; border-radius:14px;">No active vouchers right now.${emptyHistoryMsg}</div>`;
             }
+        }
+
+        // Re-filter rewards catalog to make sure claimed/redeemed vouchers are excluded
+        if (window._rawVouchersCatalog) {
+            window.renderCatalogRewards(window._rawVouchersCatalog);
         }
     };
 
-    window.renderCatalogRewards = function (topVouchers) {
+    window.renderCatalogRewards = function (allVouchers) {
         const catalogEl = document.getElementById('profile-rewards-catalog');
-        if (!catalogEl || !Array.isArray(topVouchers) || !topVouchers.length) return;
-        window._profileVouchersList = topVouchers;
+        if (!catalogEl || !Array.isArray(allVouchers)) return;
+        window._rawVouchersCatalog = allVouchers;
+
+        // Build set of claimed/redeemed voucher keys
+        let claimedSet = new Set();
+        try {
+            const arr = JSON.parse(localStorage.getItem('intan_elyu_claimed_vouchers') || '[]');
+            arr.forEach(id => claimedSet.add(String(id).toLowerCase()));
+        } catch (e) { }
+
+        const userRedemptions = (window._cachedActiveVouchers || []).concat(window._cachedHistoryVouchers || []);
+        userRedemptions.forEach(v => {
+            if (v.voucher_id) {
+                claimedSet.add(String(v.voucher_id).toLowerCase());
+                claimedSet.add('db_' + String(v.voucher_id).toLowerCase());
+            }
+            if (v.id) claimedSet.add(String(v.id).toLowerCase());
+            if (v.voucher_code) claimedSet.add(String(v.voucher_code).toLowerCase());
+            if (v.type) claimedSet.add(String(v.type).toLowerCase());
+        });
+
+        // Exclude already claimed or redeemed vouchers from available deals
+        const availableVouchers = allVouchers.filter(v => {
+            const idStr = String(v.id || '').toLowerCase();
+            const dbIdStr = String(v.dbId || '').toLowerCase();
+            const titleStr = String(v.title || v.voucher_name || '').toLowerCase();
+            const codeStr = String(v.code || v.voucher_code || '').toLowerCase();
+
+            if (claimedSet.has(idStr) || claimedSet.has('db_' + idStr)) return false;
+            if (dbIdStr && (claimedSet.has(dbIdStr) || claimedSet.has('db_' + dbIdStr))) return false;
+            if (codeStr && claimedSet.has(codeStr)) return false;
+            if (titleStr && claimedSet.has(titleStr)) return false;
+            if (v.is_expired) return false;
+            return true;
+        });
+
+        window._profileAvailableVouchers = availableVouchers;
+        window._profileVouchersList = availableVouchers.slice(0, 3);
+
+        if (availableVouchers.length === 0) {
+            catalogEl.innerHTML = `
+            <div style="font-size:12.5px; color:#1e3a8a; font-weight:700; text-align:center; padding:16px; background:#eff6ff !important; border:1px solid #bfdbfe !important; border-radius:16px;">
+                <i class="fa-solid fa-circle-check" style="color:#10b981; margin-right:4px;"></i> All available deals claimed! Check your Active Vouchers or History.
+            </div>`;
+            return;
+        }
+
+        const topVouchers = availableVouchers.slice(0, 3);
         catalogEl.innerHTML = topVouchers.map((v, idx) => {
             const ptsCost = parseInt(v.pointsCost || v.required_points || 100);
             return `
@@ -509,6 +602,11 @@ $activeTab = 'profile';
                 </button>
             </div>`;
         }).join('');
+
+        const dealsModal = document.getElementById('full-deals-modal');
+        if (dealsModal && dealsModal.style.display === 'flex') {
+            window.renderFullDealsList(availableVouchers);
+        }
     };
 
     // ── Instant Synchronous Cache Hydration (0ms, Zero Flicker, Zero Latency) ──
@@ -532,8 +630,16 @@ $activeTab = 'profile';
                 window._userPointsBalance = pts;
                 const elPts = document.getElementById('stat-points') || document.getElementById('stat-xp');
                 const ptsVal = document.getElementById('profile-points-val');
+                const dealsPts = document.getElementById('full-deals-user-points');
                 if (elPts) elPts.textContent = pts.toLocaleString();
                 if (ptsVal) ptsVal.textContent = pts.toLocaleString();
+                if (dealsPts) dealsPts.textContent = pts.toLocaleString();
+            }
+            if (_cachedAuth.places_visited !== undefined && document.getElementById('stat-places')) {
+                document.getElementById('stat-places').textContent = _cachedAuth.places_visited;
+            }
+            if (_cachedAuth.my_rank && document.getElementById('stat-rank')) {
+                document.getElementById('stat-rank').textContent = '#' + _cachedAuth.my_rank;
             }
             window.renderProfileUserMeta(_cachedAuth);
             window.renderProfileBio(_cachedAuth.bio);
@@ -574,7 +680,7 @@ $activeTab = 'profile';
             if (cachedVouchersRaw) {
                 const list = JSON.parse(cachedVouchersRaw);
                 if (Array.isArray(list) && list.length > 0 && typeof window.renderCatalogRewards === 'function') {
-                    window.renderCatalogRewards(list.slice(0, 3));
+                    window.renderCatalogRewards(list);
                 }
             }
         } catch (e) { }
@@ -648,7 +754,7 @@ $activeTab = 'profile';
                 let cachedV = null;
                 try { cachedV = JSON.parse(localStorage.getItem('intan_elyu_cached_vouchers')); } catch (e) { }
                 if (Array.isArray(cachedV) && cachedV.length > 0) {
-                    window.renderCatalogRewards(cachedV.slice(0, 3));
+                    window.renderCatalogRewards(cachedV);
                 }
 
                 const resVouchers = await fetch(backendUrl + '/api/vouchers', {
@@ -660,7 +766,7 @@ $activeTab = 'profile';
                         try {
                             localStorage.setItem('intan_elyu_cached_vouchers', JSON.stringify(vouchersPayload.data));
                         } catch (e) { }
-                        window.renderCatalogRewards(vouchersPayload.data.slice(0, 3));
+                        window.renderCatalogRewards(vouchersPayload.data);
                     }
                 }
             } catch (e) { }
@@ -913,23 +1019,118 @@ $activeTab = 'profile';
         if (modal) modal.style.display = 'none';
     };
 
-    window.openFullVouchersModal = function () {
+    window.openFullVouchersModal = function (initialTab = 'active') {
         const modal = document.getElementById('full-vouchers-modal');
-        const container = document.getElementById('full-vouchers-list');
-        if (!modal || !container) return;
+        if (!modal) return;
+        window._currentVouchersTab = (initialTab === 'history') ? 'history' : 'active';
+        window.switchFullVouchersTab(window._currentVouchersTab);
+        modal.style.display = 'flex';
+    };
 
-        const vouchers = window._cachedActiveVouchers || [];
-        if (vouchers.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:28px 16px; color:#64748b; font-size:13px; font-weight:700; background:#f8fafc; border-radius:16px;">No active vouchers found.</div>';
-        } else {
+    window.closeFullVouchersModal = function () {
+        const modal = document.getElementById('full-vouchers-modal');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.switchFullVouchersTab = function (tab) {
+        window._currentVouchersTab = tab;
+        const activeTabBtn = document.getElementById('modal-tab-active-vouchers');
+        const historyTabBtn = document.getElementById('modal-tab-history-vouchers');
+        const container = document.getElementById('full-vouchers-list');
+        if (!container) return;
+
+        const activeVouchers = window._cachedActiveVouchers || [];
+        const historyVouchers = window._cachedHistoryVouchers || [];
+
+        if (tab === 'history') {
+            if (activeTabBtn) {
+                activeTabBtn.style.background = 'transparent';
+                activeTabBtn.style.color = '#64748b';
+                activeTabBtn.style.fontWeight = '700';
+            }
+            if (historyTabBtn) {
+                historyTabBtn.style.background = '#1e3a8a';
+                historyTabBtn.style.color = '#ffffff';
+                historyTabBtn.style.fontWeight = '800';
+            }
+
+            if (historyVouchers.length === 0) {
+                container.innerHTML = `
+                <div style="text-align:center; padding:38px 16px; background:#f8fafc; border-radius:18px;">
+                    <div style="width:52px; height:52px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; color:#64748b; font-size:20px;">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                    <strong style="display:block; color:#1e293b; font-size:15px; margin-bottom:4px;">No Voucher History</strong>
+                    <p style="margin:0; font-size:12px; color:#64748b; line-height:1.45;">Once you use your vouchers at partner merchants and staff verify them, they will appear here in your history.</p>
+                </div>`;
+                return;
+            }
+
             let html = '';
-            vouchers.forEach((v, idx) => {
+            historyVouchers.forEach((v, idx) => {
                 const voucherTitle = v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.type || 'Tourist Voucher'));
                 const safeCode = (v.voucher_code || '').replace(/'/g, "\\'");
-                const statusLower = (v.status || '').toLowerCase();
-                const isRedeemed = statusLower === 'redeemed' || statusLower === 'used';
-                const statusLabel = isRedeemed ? 'Redeemed' : 'Ready to Use';
-                const statusColor = isRedeemed ? '#64748b' : '#10b981';
+                const redeemedDate = v.redeemed_at ? new Date(v.redeemed_at).toLocaleDateString() : (v.updated_at ? new Date(v.updated_at).toLocaleDateString() : 'Redeemed');
+
+                html += `
+                <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background:#f8fafc !important; border:1px solid #e2e8f0 !important; border-radius:18px; padding:16px; margin-bottom:12px; cursor:pointer; opacity:0.92; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                        <div>
+                            <div style="font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Voucher History #${historyVouchers.length - idx}</div>
+                            <strong style="color:#1e293b; font-size:15px; font-weight:800; line-height:1.3;">${voucherTitle}</strong>
+                        </div>
+                        <span style="color:#ffffff !important; font-weight:800; font-size:11px; background:#dc2626 !important; border:none !important; padding:4px 10px; border-radius:100px; white-space:nowrap; text-transform:uppercase;">
+                            <i class="fa-solid fa-check-double" style="margin-right:4px;"></i>Redeemed
+                        </span>
+                    </div>
+                    <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px;">
+                        <div>
+                            <div style="font-size:9.5px; font-weight:800; color:#94a3b8; text-transform:uppercase;">Claim Code</div>
+                            <code style="font-size:13.5px; font-weight:900; color:#64748b; letter-spacing:0.5px; font-family:monospace;">${v.voucher_code}</code>
+                        </div>
+                        <span style="font-size:11px; color:#15803d; font-weight:700; background:#f0fdf4; padding:4px 8px; border-radius:6px; border:1px solid #bbf7d0;">
+                            <i class="fa-solid fa-circle-check"></i> Scanned
+                        </span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#64748b; font-weight:600;">
+                        <span><i class="fa-regular fa-clock" style="margin-right:4px; color:#94a3b8;"></i>Redeemed: ${redeemedDate}</span>
+                        <span style="color:#1e3a8a; font-weight:800;">View Details <i class="fa-solid fa-chevron-right" style="font-size:9px;"></i></span>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        } else {
+            // Active Vouchers Tab
+            if (activeTabBtn) {
+                activeTabBtn.style.background = '#1e3a8a';
+                activeTabBtn.style.color = '#ffffff';
+                activeTabBtn.style.fontWeight = '800';
+            }
+            if (historyTabBtn) {
+                historyTabBtn.style.background = 'transparent';
+                historyTabBtn.style.color = '#64748b';
+                historyTabBtn.style.fontWeight = '700';
+            }
+
+            if (activeVouchers.length === 0) {
+                container.innerHTML = `
+                <div style="text-align:center; padding:38px 16px; background:#f8fafc; border-radius:18px;">
+                    <div style="width:52px; height:52px; border-radius:50%; background:#eff6ff; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; color:#1e3a8a; font-size:20px;">
+                        <i class="fa-solid fa-ticket"></i>
+                    </div>
+                    <strong style="display:block; color:#1e293b; font-size:15px; margin-bottom:4px;">No Active Vouchers</strong>
+                    <p style="margin:0 0 14px 0; font-size:12px; color:#64748b; line-height:1.45;">You don't have any unredeemed vouchers right now. Claim deals using your points!</p>
+                    <button type="button" onclick="window.closeFullVouchersModal(); window.openFullDealsModal();" style="background:#1e3a8a !important; color:#ffffff !important; border:none !important; padding:9px 18px; border-radius:100px; font-size:12px; font-weight:800; cursor:pointer;">
+                        <i class="fa-solid fa-gift" style="margin-right:5px;"></i> Browse Available Deals
+                    </button>
+                </div>`;
+                return;
+            }
+
+            let html = '';
+            activeVouchers.forEach((v, idx) => {
+                const voucherTitle = v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.type || 'Tourist Voucher'));
+                const safeCode = (v.voucher_code || '').replace(/'/g, "\\'");
                 const createdDate = v.created_at ? new Date(v.created_at).toLocaleDateString() : '';
                 const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(v.voucher_code)}`;
 
@@ -937,18 +1138,17 @@ $activeTab = 'profile';
                 <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 18px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.25); cursor: pointer; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
                         <div>
-                            <div style="font-size: 10px; font-weight: 800; color: #00f2fe; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Voucher #${idx + 1}</div>
+                            <div style="font-size: 10px; font-weight: 800; color: #00f2fe; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Active Voucher #${idx + 1}</div>
                             <strong style="color: #ffffff; font-size: 15px; font-weight: 800; line-height: 1.3;">${voucherTitle}</strong>
                         </div>
-                        <span style="color: #ffffff !important; font-weight: 800; font-size: 11px; background: ${statusColor} !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; text-transform: uppercase;">
-                            <i class="fa-solid ${isRedeemed ? 'fa-check-double' : 'fa-check'}" style="margin-right: 4px; color: #ffffff !important;"></i>${statusLabel}
+                        <span style="color: #ffffff !important; font-weight: 800; font-size: 11px; background: #10b981 !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; text-transform: uppercase;">
+                            <i class="fa-solid fa-check" style="margin-right: 4px; color: #ffffff !important;"></i>Ready to Use
                         </span>
                     </div>
 
                     <!-- QR Code Display Box -->
                     <div style="background: #ffffff !important; border-radius: 14px; padding: 10px; width: 140px; height: 140px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: relative;">
-                        <img src="${qrUrl}" alt="Voucher QR Code" style="width: 100%; height: 100%; object-fit: contain; ${isRedeemed ? 'filter: grayscale(1); opacity: 0.4;' : ''}">
-                        ${isRedeemed ? '<div style="position: absolute; background: rgba(220, 38, 38, 0.9); color: #ffffff; font-size: 11px; font-weight: 900; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">REDEEMED</div>' : ''}
+                        <img src="${qrUrl}" alt="Voucher QR Code" style="width: 100%; height: 100%; object-fit: contain;">
                     </div>
 
                     <div style="background: #ffffff !important; border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px;">
@@ -963,19 +1163,110 @@ $activeTab = 'profile';
 
                     <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #e2e8f0; font-weight: 600;">
                         ${createdDate ? `<span><i class="fa-regular fa-calendar" style="color: #00f2fe; margin-right: 4px;"></i>Claimed: ${createdDate}</span>` : '<span></span>'}
-                        <span style="color: #00f2fe; font-size: 11px; font-weight: 800;"><i class="fa-solid fa-expand" style="margin-right: 3px;"></i>${isRedeemed ? 'View Details' : 'Tap for QR Pass'}</span>
+                        <span style="color: #00f2fe; font-size: 11px; font-weight: 800;"><i class="fa-solid fa-qrcode" style="margin-right: 3px;"></i>Tap for QR Pass</span>
                     </div>
                 </div>`;
             });
             container.innerHTML = html;
         }
+    };
+
+    // ── All Deals & Rewards Modal Handlers (Stays on Profile Page) ──
+    window.openFullDealsModal = function () {
+        const modal = document.getElementById('full-deals-modal');
+        if (!modal) return;
+
+        const pts = window._userPointsBalance || 0;
+        const ptsEl = document.getElementById('full-deals-user-points');
+        if (ptsEl) ptsEl.textContent = pts.toLocaleString();
+
+        const availableDeals = window._profileAvailableVouchers || [];
+        window.renderFullDealsList(availableDeals);
+
+        const searchInput = document.getElementById('deals-search-input');
+        if (searchInput) searchInput.value = '';
 
         modal.style.display = 'flex';
     };
 
-    window.closeFullVouchersModal = function () {
-        const modal = document.getElementById('full-vouchers-modal');
+    window.closeFullDealsModal = function () {
+        const modal = document.getElementById('full-deals-modal');
         if (modal) modal.style.display = 'none';
+    };
+
+    window.handleDealsModalSearch = function (query) {
+        const q = (query || '').toLowerCase().trim();
+        const availableDeals = window._profileAvailableVouchers || [];
+        if (!q) {
+            window.renderFullDealsList(availableDeals);
+            return;
+        }
+        const filtered = availableDeals.filter(v => {
+            const title = (v.title || v.voucher_name || '').toLowerCase();
+            const partner = (v.partner || v.merchant || '').toLowerCase();
+            const desc = (v.description || '').toLowerCase();
+            return title.includes(q) || partner.includes(q) || desc.includes(q);
+        });
+        window.renderFullDealsList(filtered);
+    };
+
+    window.renderFullDealsList = function (deals) {
+        const container = document.getElementById('full-deals-list');
+        if (!container) return;
+
+        if (!Array.isArray(deals) || deals.length === 0) {
+            container.innerHTML = `
+            <div style="text-align:center; padding:38px 16px; background:#f8fafc; border-radius:18px;">
+                <div style="width:52px; height:52px; border-radius:50%; background:#eff6ff; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; color:#1e3a8a; font-size:20px;">
+                    <i class="fa-solid fa-gift"></i>
+                </div>
+                <strong style="display:block; color:#1e293b; font-size:15px; margin-bottom:4px;">No Deals Available</strong>
+                <p style="margin:0; font-size:12px; color:#64748b; line-height:1.45;">You have claimed all available deals, or no rewards match your search.</p>
+            </div>`;
+            return;
+        }
+
+        let html = '';
+        deals.forEach((v, idx) => {
+            const ptsCost = parseInt(v.pointsCost || v.required_points || 100);
+            const userPts = window._userPointsBalance || 0;
+            const canAfford = userPts >= ptsCost;
+
+            html += `
+            <div onclick="window.showFullDealsRewardModal(${idx})" role="button" tabindex="0" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:18px; padding:14px; margin-bottom:12px; display:flex; align-items:center; gap:12px; box-shadow:0 2px 8px rgba(0,0,0,0.04); cursor:pointer; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                <div style="width:48px; height:48px; border-radius:14px; background:#f1f5f9; border:1px solid #e2e8f0; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">
+                    <img src="${v.image || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png'}" alt="${v.title}" style="width:100%; height:100%; object-fit:contain; padding:4px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
+                </div>
+                <div style="flex:1; min-width:0; text-align:left;">
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
+                        <strong style="font-size:14px; font-weight:800; color:#1e293b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.title}</strong>
+                        <span style="font-size:9px; font-weight:800; color:#1e3a8a; background:#eff6ff; padding:2px 6px; border-radius:4px; flex-shrink:0;">${v.badge || 'PROMO'}</span>
+                        ${v.id_needed ? `<span style="font-size:8.5px; font-weight:800; color:#ef4444; background:#fef2f2; padding:2px 5px; border-radius:4px; flex-shrink:0;"><i class="fa-solid fa-id-card"></i> ID</span>` : ''}
+                    </div>
+                    <div style="font-size:12px; color:#64748b; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.partner || v.merchant || 'La Union Merchant'}</div>
+                    <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+                        <span style="font-size:11.5px; font-weight:800; color:#1e3a8a; display:inline-flex; align-items:center; gap:4px;">
+                            <i class="fa-solid fa-coins" style="color:#f59e0b;"></i> ${ptsCost.toLocaleString()} Points
+                        </span>
+                        <span style="font-size:10.5px; font-weight:700; color:${canAfford ? '#15803d' : '#dc2626'};">
+                            ${canAfford ? '✓ Eligible' : 'Need more pts'}
+                        </span>
+                    </div>
+                </div>
+                <button type="button" onclick="event.stopPropagation(); window.showFullDealsRewardModal(${idx})" style="background:${canAfford ? '#1e3a8a' : '#94a3b8'} !important; color:#ffffff !important; border:none !important; outline:none !important; padding:8px 14px; border-radius:100px; font-size:11.5px; font-weight:800; cursor:pointer; flex-shrink:0; white-space:nowrap;">
+                    View Deal
+                </button>
+            </div>`;
+        });
+
+        container.innerHTML = html;
+    };
+
+    window.showFullDealsRewardModal = function (idx) {
+        const deals = window._profileAvailableVouchers || [];
+        const reward = deals[idx];
+        if (!reward) return;
+        window.showRewardDetailsModal(reward);
     };
 
     let activeQrSyncInterval = null;
@@ -1262,6 +1553,16 @@ $activeTab = 'profile';
         }
     });
 
+    // Real-time re-hydration when returning to Profile view
+    window.addEventListener('viewLoaded', function (e) {
+        if (e && e.detail && e.detail.view === 'profile') {
+            hydrateProfileFromCache();
+            fetchProfileData(true);
+            fetchPointsAndVouchers();
+        }
+    });
+
+    hydrateProfileFromCache();
     fetchProfileData();
     fetchPointsAndVouchers();
 </script>
@@ -1294,17 +1595,17 @@ $activeTab = 'profile';
     </div>
 </div>
 
-<!-- Full Active Vouchers Modal -->
+<!-- Full Vouchers & History Modal (Tabbed) -->
 <div id="full-vouchers-modal" onclick="if(event.target===this)window.closeFullVouchersModal()"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center; padding:20px;">
     <div
-        style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:400px; max-height:82vh; display:flex; flex-direction:column; box-shadow:none !important; overflow:hidden; text-align:left; padding:0;">
+        style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:400px; max-height:84vh; display:flex; flex-direction:column; box-shadow:none !important; overflow:hidden; text-align:left; padding:0;">
         <!-- Vouchers Header Banner -->
         <div
             style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border:none !important; outline:none !important; box-shadow:none !important; flex-shrink:0;">
             <h3
                 style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:9px; letter-spacing:-0.2px;">
-                <i class="fa-solid fa-ticket" style="color:#00f2fe; font-size:17px;"></i> Active Vouchers
+                <i class="fa-solid fa-ticket" style="color:#00f2fe; font-size:17px;"></i> My Vouchers
             </h3>
             <button onclick="window.closeFullVouchersModal()"
                 style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; box-shadow:none !important; transition:transform 0.15s ease;"
@@ -1313,11 +1614,77 @@ $activeTab = 'profile';
             </button>
         </div>
 
+        <!-- Segmented Tab Switcher (Active Vouchers vs Voucher History) -->
+        <div style="display:flex; background:#f1f5f9; padding:4px; margin:12px 16px 4px; border-radius:12px; gap:4px; flex-shrink:0;">
+            <button type="button" id="modal-tab-active-vouchers" onclick="window.switchFullVouchersTab('active')"
+                style="flex:1; padding:8px 10px; border-radius:9px; border:none; background:#1e3a8a; color:#ffffff; font-size:12px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:all 0.2s ease;">
+                <i class="fa-solid fa-ticket"></i> Active Vouchers
+            </button>
+            <button type="button" id="modal-tab-history-vouchers" onclick="window.switchFullVouchersTab('history')"
+                style="flex:1; padding:8px 10px; border-radius:9px; border:none; background:transparent; color:#64748b; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:all 0.2s ease;">
+                <i class="fa-solid fa-clock-rotate-left"></i> Voucher History
+            </button>
+        </div>
+
         <!-- Body Area Below Header (Pure White, No Shadow, No Outlines) -->
         <div id="full-vouchers-list" class="hide-scrollbar"
-            style="flex:1; overflow-y:auto; padding:18px 16px; background:#ffffff !important; border:none !important; outline:none !important; box-shadow:none !important;">
-            <div style="text-align:center; padding:20px; color:#64748b; font-size:13px; font-weight:600;">Loading
-                vouchers...</div>
+            style="flex:1; overflow-y:auto; padding:14px 16px 18px; background:#ffffff !important; border:none !important; outline:none !important; box-shadow:none !important;">
+            <div style="text-align:center; padding:20px; color:#64748b; font-size:13px; font-weight:600;">Loading vouchers...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Full Deals & Rewards Modal (Preserves Profile View and User Account) -->
+<div id="full-deals-modal" onclick="if(event.target===this)window.closeFullDealsModal()"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center; padding:20px;">
+    <div
+        style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:420px; max-height:86vh; display:flex; flex-direction:column; box-shadow:0 20px 50px rgba(0,0,0,0.3) !important; overflow:hidden; text-align:left; padding:0;">
+        <!-- Header Banner -->
+        <div
+            style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border:none !important; outline:none !important; flex-shrink:0;">
+            <div style="display:flex; align-items:center; gap:9px;">
+                <i class="fa-solid fa-gift" style="color:#00f2fe; font-size:18px;"></i>
+                <h3 style="margin:0; color:#ffffff; font-size:17.5px; font-weight:800; letter-spacing:-0.2px;">All Deals & Rewards</h3>
+            </div>
+            <button onclick="window.closeFullDealsModal()"
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:transform 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
+            </button>
+        </div>
+
+        <!-- User Points Balance Banner inside Deals Modal -->
+        <div style="background:linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); padding:12px 18px; border-bottom:1px solid #bfdbfe; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <div style="width:32px; height:32px; border-radius:10px; background:#1e3a8a; display:flex; align-items:center; justify-content:center; color:#fbbf24; font-size:14px;">
+                    <i class="fa-solid fa-coins"></i>
+                </div>
+                <div>
+                    <div style="font-size:10px; font-weight:800; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Your Available Points</div>
+                    <div style="font-size:16px; font-weight:900; color:#1e3a8a; line-height:1.2;">
+                        <span id="full-deals-user-points">0</span> <span style="font-size:12px; font-weight:700; color:#64748b;">Points</span>
+                    </div>
+                </div>
+            </div>
+            <span style="font-size:11px; font-weight:800; color:#0284c7; background:#ffffff; padding:4px 10px; border-radius:100px; border:1px solid #bfdbfe;">
+                Redeem instantly
+            </span>
+        </div>
+
+        <!-- Search Input -->
+        <div style="padding:12px 16px 8px; background:#ffffff; flex-shrink:0;">
+            <div style="position:relative; display:flex; align-items:center;">
+                <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:12px; color:#94a3b8; font-size:13px;"></i>
+                <input type="text" id="deals-search-input" oninput="window.handleDealsModalSearch(this.value)" placeholder="Search rewards, merchants..."
+                    style="width:100%; padding:9px 12px 9px 34px; border:1.5px solid #e2e8f0; border-radius:12px; font-size:12.5px; font-weight:600; color:#1e293b; background:#f8fafc; outline:none; transition:border-color 0.2s ease;"
+                    onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+        </div>
+
+        <!-- Body Area (Scrollable Deals List) -->
+        <div id="full-deals-list" class="hide-scrollbar"
+            style="flex:1; overflow-y:auto; padding:8px 16px 18px; background:#ffffff !important;">
+            <div style="text-align:center; padding:20px; color:#64748b; font-size:13px; font-weight:600;">Loading deals...</div>
         </div>
     </div>
 </div>

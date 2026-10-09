@@ -59,10 +59,12 @@ class PointsController extends Controller
                     ->where('voucher_redemptions.user_id', $user->id)
                     ->select(
                         'voucher_redemptions.id',
+                        'voucher_redemptions.voucher_id',
                         \Illuminate\Support\Facades\DB::raw('COALESCE(vouchers.voucher_name, "Voucher") as type'),
                         'voucher_redemptions.points_used as points_cost',
                         'voucher_redemptions.redemption_code as voucher_code',
                         'voucher_redemptions.status',
+                        'voucher_redemptions.redeemed_at',
                         'voucher_redemptions.created_at',
                         'vouchers.partner_establishment',
                         'vouchers.category'
