@@ -46,14 +46,30 @@ $backRoute = 'profile';
         </div>
     </div>
 
-    <!-- Categories Drop List & Quick Filter Tabs -->
-    <div style="margin-bottom: 18px;">
-        <!-- Categories Drop List Selector -->
-        <div style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 16px; padding: 4px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; position: relative; margin-bottom: 10px; transition: border-color 0.2s ease;">
-            <div style="display: flex; align-items: center; gap: 7px; color: #1e3a8a; font-weight: 800; font-size: 13px; white-space: nowrap; pointer-events: none;">
-                <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b;">Category:</span>
+    <!-- Categories Floating Drop List & Quick Filter Tabs -->
+    <div style="margin-bottom: 18px; position: relative;">
+        <!-- Floating Categories Drop List -->
+        <div id="floating-cat-wrapper" style="position: relative; margin-bottom: 10px; z-index: 95;">
+            <!-- Floating Trigger Card -->
+            <div id="floating-cat-trigger" onclick="toggleFloatingCategoryDropdown()" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 18px; padding: 11px 16px; box-shadow: 0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+                <div style="display: flex; align-items: center; min-width: 0;">
+                    <span id="floating-cat-selected-label" style="font-size: 13.5px; font-weight: 800; color: #1e3a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">All Categories & Deals</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 8px;">
+                    <span id="floating-cat-selected-badge" style="font-size: 11px; font-weight: 800; background: #f1f5f9; color: #64748b; padding: 2px 8px; border-radius: 100px;">0</span>
+                    <i id="floating-cat-chevron" class="fa-solid fa-chevron-down" style="color: #64748b; font-size: 11px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);"></i>
+                </div>
             </div>
-            <select id="category-dropdown-select" onchange="filterDiscounts(this.value)" style="flex: 1; border: none; background: transparent; padding: 10px 28px 10px 8px; font-size: 13.5px; font-weight: 800; color: #1e3a8a; outline: none; appearance: none; -webkit-appearance: none; cursor: pointer; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+
+            <!-- Floating Menu Panel (Elevated Floating Card) -->
+            <div id="floating-cat-menu" class="hide-scrollbar" style="display: none; position: absolute; top: calc(100% + 8px); left: 0; right: 0; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1.5px solid #cbd5e1; border-radius: 20px; box-shadow: 0 20px 40px -8px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(0, 0, 0, 0.06); padding: 6px; max-height: 310px; overflow-y: auto; z-index: 1000; opacity: 0; transform: translateY(-8px) scale(0.98); transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+                <div id="floating-cat-items-list" style="display: flex; flex-direction: column; gap: 4px;">
+                    <!-- Dynamically populated floating list items -->
+                </div>
+            </div>
+
+            <!-- Programmatic compatibility select element -->
+            <select id="category-dropdown-select" onchange="filterDiscounts(this.value)" style="display: none;">
                 <option value="All">All Categories & Deals</option>
                 <option value="Food & Dining">Food & Dining</option>
                 <option value="Activities">Activities & Surf</option>
@@ -64,7 +80,6 @@ $backRoute = 'profile';
                 <option id="opt-cat-claimed" value="Claimed">My Vouchers (Active)</option>
                 <option id="opt-cat-history" value="History">Voucher History (Redeemed)</option>
             </select>
-            <i class="fa-solid fa-chevron-down" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 12px; pointer-events: none;"></i>
         </div>
 
         <!-- Quick Status Filter Pills -->
@@ -425,7 +440,10 @@ function filterDiscounts(cat) {
         }
     }
 
-    // 2. Synchronize Quick Status Filter buttons (.discount-cat-btn)
+    // 2. Synchronize Floating Dropdown UI items & trigger card
+    populateCategoryDropdown();
+
+    // 3. Synchronize Quick Status Filter buttons (.discount-cat-btn)
     document.querySelectorAll('.discount-cat-btn').forEach(btn => {
         btn.classList.remove('active');
         const text = btn.textContent.trim();
@@ -1345,7 +1363,7 @@ function processVouchersData(rawList) {
 
 function populateCategoryDropdown() {
     const catSelect = document.getElementById('category-dropdown-select');
-    if (!catSelect) return;
+    const floatingList = document.getElementById('floating-cat-items-list');
 
     const claimed = getClaimedVouchers();
     const availableVouchers = vouchersData.filter(v => !claimed.includes(v.id) && !isVoucherRedeemed(v));
@@ -1362,49 +1380,131 @@ function populateCategoryDropdown() {
     const activeClaimed = vouchersData.filter(v => claimed.includes(v.id) && !isVoucherRedeemed(v));
     const historyClaimed = vouchersData.filter(v => claimed.includes(v.id) && isVoucherRedeemed(v));
 
-    const currentVal = activeCategory || catSelect.value || 'All';
+    const currentVal = activeCategory || (catSelect ? catSelect.value : 'All') || 'All';
 
-    let html = `<option value="All">All Categories & Deals (${availableVouchers.length})</option>`;
+    // Compile ordered list of clean categories (NO icons / emojis)
+    const categoriesList = [
+        { value: 'All', label: 'All Categories & Deals', count: availableVouchers.length }
+    ];
 
-    // Baseline primary categories
     ['Food & Dining', 'Activities', 'Accommodations', 'Souvenirs'].forEach(cat => {
-        const count = catCounts[cat] || 0;
-        html += `<option value="${cat}">${cat} (${count})</option>`;
+        categoriesList.push({
+            value: cat,
+            label: cat,
+            count: catCounts[cat] || 0
+        });
     });
 
-    // Any novel categories from database
     Object.keys(catCounts).forEach(cat => {
         if (!['Food & Dining', 'Activities', 'Accommodations', 'Souvenirs', 'All'].includes(cat)) {
-            html += `<option value="${cat}">${cat} (${catCounts[cat]})</option>`;
+            categoriesList.push({
+                value: cat,
+                label: cat,
+                count: catCounts[cat] || 0
+            });
         }
     });
 
-    // Special collections
     const mabanagCount = availableVouchers.filter(v => v.is_mabanag || (v.partner && v.partner.toLowerCase().includes('mabanag'))).length;
-    html += `<option value="Mabanag Hall">Mabanag Hall Partner Deals (${mabanagCount})</option>`;
+    categoriesList.push({
+        value: 'Mabanag Hall',
+        label: 'Mabanag Hall Partner Deals',
+        count: mabanagCount
+    });
 
     const upcomingCount = availableVouchers.filter(v => (v.is_upcoming || (v.status && v.status.toLowerCase() === 'upcoming')) && !v.is_expired).length;
-    html += `<option value="Upcoming">Upcoming Promotions (${upcomingCount})</option>`;
+    categoriesList.push({
+        value: 'Upcoming',
+        label: 'Upcoming Promotions',
+        count: upcomingCount
+    });
 
-    // User voucher status options
-    html += `<option id="opt-cat-claimed" value="Claimed">My Vouchers (${activeClaimed.length})</option>`;
-    html += `<option id="opt-cat-history" value="History">Voucher History (${historyClaimed.length})</option>`;
+    categoriesList.push({
+        value: 'Claimed',
+        label: 'My Vouchers',
+        count: activeClaimed.length
+    });
 
-    catSelect.innerHTML = html;
+    categoriesList.push({
+        value: 'History',
+        label: 'Voucher History',
+        count: historyClaimed.length
+    });
 
-    // Restore selected value
-    let found = false;
-    for (let i = 0; i < catSelect.options.length; i++) {
-        if (catSelect.options[i].value.toLowerCase() === currentVal.toLowerCase()) {
-            catSelect.selectedIndex = i;
-            found = true;
-            break;
-        }
+    // 1. Sync hidden select element for complete compatibility
+    if (catSelect) {
+        catSelect.innerHTML = categoriesList.map(c => `<option value="${c.value}">${c.label} (${c.count})</option>`).join('');
+        catSelect.value = currentVal;
     }
-    if (!found) {
-        catSelect.value = 'All';
+
+    // 2. Render floating droplist items (clean, elevated, interactive)
+    if (floatingList) {
+        floatingList.innerHTML = categoriesList.map(c => {
+            const isSelected = currentVal.toLowerCase() === c.value.toLowerCase();
+            return `
+                <div onclick="selectFloatingCategory('${c.value.replace(/'/g, "\\'")}')" role="button" tabindex="0" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 14px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1); ${isSelected ? 'background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; font-weight: 800; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);' : 'background: transparent; color: #1e293b; font-weight: 700;'}" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <span style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 8px;">${c.label}</span>
+                    <div style="display: flex; align-items: center; gap: 7px; flex-shrink: 0;">
+                        <span style="font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 100px; ${isSelected ? 'background: rgba(255, 255, 255, 0.22); color: #ffffff;' : 'background: #f1f5f9; color: #475569;'}">${c.count}</span>
+                        ${isSelected ? '<span style="font-size: 13px; font-weight: 900; line-height: 1;">✓</span>' : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // 3. Update Trigger Card selected display
+    const activeItem = categoriesList.find(c => c.value.toLowerCase() === currentVal.toLowerCase()) || categoriesList[0];
+    const triggerLabel = document.getElementById('floating-cat-selected-label');
+    const triggerBadge = document.getElementById('floating-cat-selected-badge');
+    if (triggerLabel && activeItem) triggerLabel.textContent = activeItem.label;
+    if (triggerBadge && activeItem) triggerBadge.textContent = activeItem.count;
+}
+
+function toggleFloatingCategoryDropdown(forceClose = false) {
+    const menu = document.getElementById('floating-cat-menu');
+    const chevron = document.getElementById('floating-cat-chevron');
+    const trigger = document.getElementById('floating-cat-trigger');
+    if (!menu) return;
+
+    const isCurrentlyOpen = (menu.style.display === 'block') && !forceClose;
+    if (isCurrentlyOpen) {
+        menu.style.opacity = '0';
+        menu.style.transform = 'translateY(-8px) scale(0.98)';
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+        if (trigger) {
+            trigger.style.borderColor = '#cbd5e1';
+            trigger.style.boxShadow = '0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05)';
+        }
+        setTimeout(() => {
+            menu.style.display = 'none';
+        }, 180);
+    } else {
+        menu.style.display = 'block';
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+        if (trigger) {
+            trigger.style.borderColor = '#2563eb';
+            trigger.style.boxShadow = '0 12px 28px -4px rgba(37, 99, 235, 0.20), 0 4px 12px -2px rgba(37, 99, 235, 0.10)';
+        }
+        requestAnimationFrame(() => {
+            menu.style.opacity = '1';
+            menu.style.transform = 'translateY(0) scale(1)';
+        });
     }
 }
+
+function selectFloatingCategory(catValue) {
+    toggleFloatingCategoryDropdown(true);
+    filterDiscounts(catValue);
+}
+
+// Click outside listener to dismiss floating dropdown
+document.addEventListener('click', function(e) {
+    const wrapper = document.getElementById('floating-cat-wrapper');
+    if (wrapper && !wrapper.contains(e.target)) {
+        toggleFloatingCategoryDropdown(true);
+    }
+});
 
 // Expose global functions
 window.filterDiscounts = filterDiscounts;
@@ -1416,6 +1516,8 @@ window.closeVoucherModal = closeVoucherModal;
 window.copyVoucherCode = copyVoucherCode;
 window.handleModalRedeem = handleModalRedeem;
 window.renderDiscounts = renderDiscounts;
+window.toggleFloatingCategoryDropdown = toggleFloatingCategoryDropdown;
+window.selectFloatingCategory = selectFloatingCategory;
 
 fetchLiveDatabaseVouchers();
 fetchUserPointsAndRedemptions();
