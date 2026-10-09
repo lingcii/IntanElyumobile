@@ -46,16 +46,39 @@ $backRoute = 'profile';
         </div>
     </div>
 
-    <!-- Category Filters -->
-    <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 18px; scrollbar-width: none;" id="discount-filters">
-        <button class="discount-cat-btn active" onclick="filterDiscounts('All')">All Deals</button>
-        <button class="discount-cat-btn" onclick="filterDiscounts('Mabanag Hall')"><i class="fa-solid fa-landmark" style="margin-right: 4px;"></i>Mabanag Hall</button>
-        <button class="discount-cat-btn" id="btn-my-claimed" onclick="filterDiscounts('Claimed')">My Vouchers (<span id="claimed-count">0</span>)</button>
-        <button class="discount-cat-btn" id="btn-my-history" onclick="filterDiscounts('History')"><i class="fa-solid fa-clock-rotate-left" style="margin-right: 4px;"></i>History (<span id="history-count">0</span>)</button>
-        <button class="discount-cat-btn" onclick="filterDiscounts('Food & Dining')">Food & Dining</button>
-        <button class="discount-cat-btn" onclick="filterDiscounts('Activities')">Activities & Surf</button>
-        <button class="discount-cat-btn" onclick="filterDiscounts('Accommodations')">Accommodations</button>
-        <button class="discount-cat-btn" onclick="filterDiscounts('Upcoming')">Upcoming</button>
+    <!-- Categories Drop List & Quick Filter Tabs -->
+    <div style="margin-bottom: 18px;">
+        <!-- Categories Drop List Selector -->
+        <div style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 16px; padding: 4px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; position: relative; margin-bottom: 10px; transition: border-color 0.2s ease;">
+            <div style="display: flex; align-items: center; gap: 7px; color: #1e3a8a; font-weight: 800; font-size: 13px; white-space: nowrap; pointer-events: none;">
+                <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b;">Category:</span>
+            </div>
+            <select id="category-dropdown-select" onchange="filterDiscounts(this.value)" style="flex: 1; border: none; background: transparent; padding: 10px 28px 10px 8px; font-size: 13.5px; font-weight: 800; color: #1e3a8a; outline: none; appearance: none; -webkit-appearance: none; cursor: pointer; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                <option value="All">All Categories & Deals</option>
+                <option value="Food & Dining">Food & Dining</option>
+                <option value="Activities">Activities & Surf</option>
+                <option value="Accommodations">Accommodations</option>
+                <option value="Souvenirs">Souvenirs & Pasalubong</option>
+                <option value="Mabanag Hall">Mabanag Hall Partner Deals</option>
+                <option value="Upcoming">Upcoming Promotions</option>
+                <option id="opt-cat-claimed" value="Claimed">My Vouchers (Active)</option>
+                <option id="opt-cat-history" value="History">Voucher History (Redeemed)</option>
+            </select>
+            <i class="fa-solid fa-chevron-down" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 12px; pointer-events: none;"></i>
+        </div>
+
+        <!-- Quick Status Filter Pills -->
+        <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;" id="discount-filters">
+            <button class="discount-cat-btn active" onclick="filterDiscounts('All')">
+                All Deals
+            </button>
+            <button class="discount-cat-btn" id="btn-my-claimed" onclick="filterDiscounts('Claimed')">
+                My Vouchers (<span id="claimed-count">0</span>)
+            </button>
+            <button class="discount-cat-btn" id="btn-my-history" onclick="filterDiscounts('History')">
+                History (<span id="history-count">0</span>)
+            </button>
+        </div>
     </div>
 
     <!-- Mabanag Hall Partner Merchant Spotlight Hero (Shown when Mabanag Hall filter or San Fernando town active) -->
@@ -380,18 +403,42 @@ function getExpiryInfo(dateStr, isExpiredExplicit, isUpcomingExplicit, validFrom
 }
 
 function filterDiscounts(cat) {
-    activeCategory = cat;
+    activeCategory = cat || 'All';
+
+    // 1. Synchronize Categories Drop List select element
+    const catSelect = document.getElementById('category-dropdown-select');
+    if (catSelect && catSelect.value !== activeCategory) {
+        let matched = false;
+        for (let i = 0; i < catSelect.options.length; i++) {
+            if (catSelect.options[i].value.toLowerCase() === activeCategory.toLowerCase()) {
+                catSelect.selectedIndex = i;
+                matched = true;
+                break;
+            }
+        }
+        if (!matched && !['All', 'Claimed', 'History'].includes(activeCategory)) {
+            const opt = document.createElement('option');
+            opt.value = activeCategory;
+            opt.textContent = activeCategory;
+            catSelect.appendChild(opt);
+            catSelect.value = activeCategory;
+        }
+    }
+
+    // 2. Synchronize Quick Status Filter buttons (.discount-cat-btn)
     document.querySelectorAll('.discount-cat-btn').forEach(btn => {
         btn.classList.remove('active');
         const text = btn.textContent.trim();
-        if ((cat === 'All' && text.includes('All Deals')) ||
-            (cat === 'Claimed' && text.includes('My Vouchers')) ||
-            (cat === 'History' && text.includes('History')) ||
-            (cat === 'Mabanag Hall' && text.includes('Mabanag Hall')) ||
-            (cat !== 'All' && text.includes(cat))) {
-            btn.classList.add('active');
+        if (activeCategory === 'Claimed') {
+            if (text.includes('My Vouchers')) btn.classList.add('active');
+        } else if (activeCategory === 'History') {
+            if (text.includes('History')) btn.classList.add('active');
+        } else {
+            // When browsing All Deals or any specific category
+            if (text.includes('All Deals')) btn.classList.add('active');
         }
     });
+
     renderDiscounts();
 }
 
@@ -445,6 +492,12 @@ function updateClaimedBadge() {
     const histEl = document.getElementById('history-count');
     if (countEl) countEl.textContent = activeClaimed.length;
     if (histEl) histEl.textContent = historyClaimed.length;
+
+    // Update labels in Categories Dropdown
+    const optClaimed = document.getElementById('opt-cat-claimed');
+    const optHistory = document.getElementById('opt-cat-history');
+    if (optClaimed) optClaimed.textContent = `My Vouchers (${activeClaimed.length})`;
+    if (optHistory) optHistory.textContent = `Voucher History (${historyClaimed.length})`;
 }
 
 function syncClaimedVouchersWithData() {
@@ -588,7 +641,12 @@ function renderDiscounts() {
         } else if (activeCategory === 'Mabanag Hall') {
             filtered = filtered.filter(v => v.is_mabanag || (v.partner && v.partner.toLowerCase().includes('mabanag')) || (v.location && v.location.toLowerCase().includes('mabanag')));
         } else if (activeCategory !== 'All') {
-            filtered = filtered.filter(v => v.category === activeCategory);
+            const targetCat = activeCategory.toLowerCase();
+            filtered = filtered.filter(v => {
+                if (!v.category) return false;
+                const c = v.category.toLowerCase();
+                return c === targetCat || c.includes(targetCat) || targetCat.includes(c);
+            });
         }
     }
 
@@ -640,6 +698,8 @@ function renderDiscounts() {
             msg = 'No unredeemed vouchers for Mabanag Hall right now.';
         } else if (activeCategory === 'Upcoming') {
             msg = 'No upcoming promotions scheduled right now. Check back soon for new discounts!';
+        } else if (activeCategory !== 'All') {
+            msg = `No vouchers found under the "${activeCategory}" category. Check back soon for new offers!`;
         } else if (searchQuery) {
             msg = `No vouchers found matching "${searchQuery}". Try a different keyword or town.`;
         }
@@ -1278,8 +1338,72 @@ function processVouchersData(rawList) {
     });
 
     syncClaimedVouchersWithData();
+    populateCategoryDropdown();
     buildMunicipalityFilterBar();
     renderDiscounts();
+}
+
+function populateCategoryDropdown() {
+    const catSelect = document.getElementById('category-dropdown-select');
+    if (!catSelect) return;
+
+    const claimed = getClaimedVouchers();
+    const availableVouchers = vouchersData.filter(v => !claimed.includes(v.id) && !isVoucherRedeemed(v));
+
+    // Dynamic counts per category
+    const catCounts = {};
+    availableVouchers.forEach(v => {
+        if (v.category) {
+            const c = v.category.trim();
+            catCounts[c] = (catCounts[c] || 0) + 1;
+        }
+    });
+
+    const activeClaimed = vouchersData.filter(v => claimed.includes(v.id) && !isVoucherRedeemed(v));
+    const historyClaimed = vouchersData.filter(v => claimed.includes(v.id) && isVoucherRedeemed(v));
+
+    const currentVal = activeCategory || catSelect.value || 'All';
+
+    let html = `<option value="All">All Categories & Deals (${availableVouchers.length})</option>`;
+
+    // Baseline primary categories
+    ['Food & Dining', 'Activities', 'Accommodations', 'Souvenirs'].forEach(cat => {
+        const count = catCounts[cat] || 0;
+        html += `<option value="${cat}">${cat} (${count})</option>`;
+    });
+
+    // Any novel categories from database
+    Object.keys(catCounts).forEach(cat => {
+        if (!['Food & Dining', 'Activities', 'Accommodations', 'Souvenirs', 'All'].includes(cat)) {
+            html += `<option value="${cat}">${cat} (${catCounts[cat]})</option>`;
+        }
+    });
+
+    // Special collections
+    const mabanagCount = availableVouchers.filter(v => v.is_mabanag || (v.partner && v.partner.toLowerCase().includes('mabanag'))).length;
+    html += `<option value="Mabanag Hall">Mabanag Hall Partner Deals (${mabanagCount})</option>`;
+
+    const upcomingCount = availableVouchers.filter(v => (v.is_upcoming || (v.status && v.status.toLowerCase() === 'upcoming')) && !v.is_expired).length;
+    html += `<option value="Upcoming">Upcoming Promotions (${upcomingCount})</option>`;
+
+    // User voucher status options
+    html += `<option id="opt-cat-claimed" value="Claimed">My Vouchers (${activeClaimed.length})</option>`;
+    html += `<option id="opt-cat-history" value="History">Voucher History (${historyClaimed.length})</option>`;
+
+    catSelect.innerHTML = html;
+
+    // Restore selected value
+    let found = false;
+    for (let i = 0; i < catSelect.options.length; i++) {
+        if (catSelect.options[i].value.toLowerCase() === currentVal.toLowerCase()) {
+            catSelect.selectedIndex = i;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        catSelect.value = 'All';
+    }
 }
 
 // Expose global functions
