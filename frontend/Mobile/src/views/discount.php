@@ -45,7 +45,7 @@ $backRoute = 'profile';
         <!-- Left: Category Deals Floating Drop List -->
         <div id="floating-cat-wrapper" style="position: relative; z-index: 1;">
             <!-- Floating Trigger Card -->
-            <div id="floating-cat-trigger" onclick="event.stopPropagation(); toggleFloatingCategoryDropdown()" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 16px; padding: 11px 12px; box-shadow: 0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div id="floating-cat-trigger" onclick="toggleFloatingCategoryDropdown(event)" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 16px; padding: 11px 12px; box-shadow: 0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
                 <div style="display: flex; align-items: center; min-width: 0; flex: 1;">
                     <span id="floating-cat-selected-label" style="font-size: 12.5px; font-weight: 800; color: #1e3a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">All Deals</span>
                 </div>
@@ -79,7 +79,7 @@ $backRoute = 'profile';
         <!-- Right: Municipalities Floating Drop List -->
         <div id="floating-muni-wrapper" style="position: relative; z-index: 1;">
             <!-- Floating Trigger Card -->
-            <div id="floating-muni-trigger" onclick="event.stopPropagation(); toggleFloatingMunicipalityDropdown()" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 16px; padding: 11px 12px; box-shadow: 0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div id="floating-muni-trigger" onclick="toggleFloatingMunicipalityDropdown(event)" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 16px; padding: 11px 12px; box-shadow: 0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
                 <div style="display: flex; align-items: center; min-width: 0; flex: 1;">
                     <span id="floating-muni-selected-label" style="font-size: 12.5px; font-weight: 800; color: #1e3a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">All Towns</span>
                 </div>
@@ -1408,7 +1408,7 @@ function populateCategoryDropdown() {
         floatingList.innerHTML = categoriesList.map(c => {
             const isSelected = currentVal.toLowerCase() === c.value.toLowerCase();
             return `
-                <div onclick="event.stopPropagation(); selectFloatingCategory('${c.value.replace(/'/g, "\\'")}')" role="button" tabindex="0" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 12px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1); ${isSelected ? 'background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; font-weight: 800; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);' : 'background: transparent; color: #1e293b; font-weight: 700;'}" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                <div onclick="selectFloatingCategory('${c.value.replace(/'/g, "\\'")}', event)" role="button" tabindex="0" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 12px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1); ${isSelected ? 'background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; font-weight: 800; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);' : 'background: transparent; color: #1e293b; font-weight: 700;'}" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                     <span style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 6px; pointer-events: none;">${c.label}</span>
                     <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; pointer-events: none;">
                         <span style="font-size: 10.5px; font-weight: 800; padding: 2px 7px; border-radius: 100px; ${isSelected ? 'background: rgba(255, 255, 255, 0.22); color: #ffffff;' : 'background: #f1f5f9; color: #475569;'}">${c.count}</span>
@@ -1488,7 +1488,7 @@ function populateMunicipalityDropdown() {
     floatingMuniList.innerHTML = muniList.map(m => {
         const isSelected = currentMuni.toLowerCase() === m.value.toLowerCase();
         return `
-            <div onclick="event.stopPropagation(); selectFloatingMunicipality('${m.value.replace(/'/g, "\\'")}')" role="button" tabindex="0" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 12px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1); ${isSelected ? 'background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; font-weight: 800; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);' : 'background: transparent; color: #1e293b; font-weight: 700;'}" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+            <div onclick="selectFloatingMunicipality('${m.value.replace(/'/g, "\\'")}', event)" role="button" tabindex="0" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 12px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1); ${isSelected ? 'background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; font-weight: 800; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);' : 'background: transparent; color: #1e293b; font-weight: 700;'}" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                 <span style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 6px; pointer-events: none;">${m.label}</span>
                 <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; pointer-events: none;">
                     <span style="font-size: 10.5px; font-weight: 800; padding: 2px 7px; border-radius: 100px; ${isSelected ? 'background: rgba(255, 255, 255, 0.22); color: #ffffff;' : 'background: #f1f5f9; color: #475569;'}">${m.count}</span>
@@ -1554,7 +1554,8 @@ function closeFloatingMunicipality() {
     }, 150);
 }
 
-function toggleFloatingCategoryDropdown(forceClose = false) {
+function toggleFloatingCategoryDropdown(e, forceClose = false) {
+    if (e && e.stopPropagation) e.stopPropagation();
     const menu = document.getElementById('floating-cat-menu');
     const chevron = document.getElementById('floating-cat-chevron');
     const trigger = document.getElementById('floating-cat-trigger');
@@ -1582,12 +1583,14 @@ function toggleFloatingCategoryDropdown(forceClose = false) {
     }
 }
 
-function selectFloatingCategory(catValue) {
+function selectFloatingCategory(catValue, e) {
+    if (e && e.stopPropagation) e.stopPropagation();
     closeFloatingCategory();
     filterDiscounts(catValue);
 }
 
-function toggleFloatingMunicipalityDropdown(forceClose = false) {
+function toggleFloatingMunicipalityDropdown(e, forceClose = false) {
+    if (e && e.stopPropagation) e.stopPropagation();
     const menu = document.getElementById('floating-muni-menu');
     const chevron = document.getElementById('floating-muni-chevron');
     const trigger = document.getElementById('floating-muni-trigger');
@@ -1615,7 +1618,8 @@ function toggleFloatingMunicipalityDropdown(forceClose = false) {
     }
 }
 
-function selectFloatingMunicipality(muniValue) {
+function selectFloatingMunicipality(muniValue, e) {
+    if (e && e.stopPropagation) e.stopPropagation();
     closeFloatingMunicipality();
     filterMunicipality(muniValue);
 }
@@ -1631,22 +1635,6 @@ document.addEventListener('click', function(e) {
         closeFloatingMunicipality();
     }
 });
-
-// Bind explicit click event listeners to trigger elements
-const catTriggerEl = document.getElementById('floating-cat-trigger');
-if (catTriggerEl) {
-    catTriggerEl.addEventListener('click', function(e) {
-        e.stopPropagation();
-        toggleFloatingCategoryDropdown();
-    });
-}
-const muniTriggerEl = document.getElementById('floating-muni-trigger');
-if (muniTriggerEl) {
-    muniTriggerEl.addEventListener('click', function(e) {
-        e.stopPropagation();
-        toggleFloatingMunicipalityDropdown();
-    });
-}
 
 // Expose global functions
 window.filterDiscounts = filterDiscounts;
