@@ -402,6 +402,28 @@ function updateClaimedBadge() {
     if (countEl) countEl.textContent = claimed.length;
 }
 
+function syncClaimedVouchersWithData() {
+    const redemptions = window._touristRedemptions || [];
+    let claimed = getClaimedVouchers();
+    if (redemptions.length > 0 && vouchersData.length > 0) {
+        redemptions.forEach(v => {
+            const match = vouchersData.find(item => 
+                item.code === v.voucher_code || 
+                (v.voucher_code && item.code && v.voucher_code.startsWith(item.code)) || 
+                (item.dbId && item.title === v.type)
+            );
+            if (match) {
+                if (v.voucher_code) match.code = v.voucher_code;
+                if (v.status) match.redemptionStatus = v.status;
+                if (!claimed.includes(match.id)) {
+                    claimed.push(match.id);
+                }
+            }
+        });
+        localStorage.setItem('intan_elyu_claimed_vouchers', JSON.stringify(claimed));
+    }
+}
+
 async function fetchUserPointsAndRedemptions() {
     const token = localStorage.getItem('intan_elyu_token');
     if (!token) {
@@ -427,22 +449,8 @@ async function fetchUserPointsAndRedemptions() {
                 if (ptsBadge) ptsBadge.textContent = `${userPointsBalance.toLocaleString()} Points`;
 
                 if (Array.isArray(data.vouchers)) {
-                    let claimed = getClaimedVouchers();
-                    data.vouchers.forEach(v => {
-                        const match = vouchersData.find(item => 
-                            item.code === v.voucher_code || 
-                            (v.voucher_code && item.code && v.voucher_code.startsWith(item.code)) || 
-                            (item.dbId && item.title === v.type)
-                        );
-                        if (match) {
-                            if (v.voucher_code) match.code = v.voucher_code;
-                            if (v.status) match.redemptionStatus = v.status;
-                            if (!claimed.includes(match.id)) {
-                                claimed.push(match.id);
-                            }
-                        }
-                    });
-                    localStorage.setItem('intan_elyu_claimed_vouchers', JSON.stringify(claimed));
+                    window._touristRedemptions = data.vouchers;
+                    syncClaimedVouchersWithData();
                     updateClaimedBadge();
                     renderDiscounts();
                 }
@@ -490,22 +498,17 @@ function renderDiscounts() {
     }
 
     const claimed = getClaimedVouchers();
-    let filtered = vouchersData;
+    let filtered = [...vouchersData];
 
-    // 1. Category Filter & Claimed Exclusion
+    // 1. Category Filter
     if (activeCategory === 'Claimed') {
         filtered = filtered.filter(v => claimed.includes(v.id));
-    } else {
-        // Exclude claimed vouchers from All Deals and browsing lists
-        filtered = filtered.filter(v => !claimed.includes(v.id));
-
-        if (activeCategory === 'Upcoming') {
-            filtered = filtered.filter(v => v.is_upcoming && !v.is_expired);
-        } else if (activeCategory === 'Mabanag Hall') {
-            filtered = filtered.filter(v => (v.partner && v.partner.toLowerCase().includes('mabanag')) || (v.location && v.location.toLowerCase().includes('mabanag')));
-        } else if (activeCategory !== 'All') {
-            filtered = filtered.filter(v => v.category === activeCategory);
-        }
+    } else if (activeCategory === 'Upcoming') {
+        filtered = filtered.filter(v => (v.is_upcoming || (v.status && v.status.toLowerCase() === 'upcoming')) && !v.is_expired);
+    } else if (activeCategory === 'Mabanag Hall') {
+        filtered = filtered.filter(v => v.is_mabanag || (v.partner && v.partner.toLowerCase().includes('mabanag')) || (v.location && v.location.toLowerCase().includes('mabanag')));
+    } else if (activeCategory !== 'All') {
+        filtered = filtered.filter(v => v.category === activeCategory);
     }
 
     // 2. Municipality Filter
@@ -527,12 +530,32 @@ function renderDiscounts() {
         });
     }
 
+    // 4. Sort order for browsing:
+    // Available unredeemed vouchers first, then upcoming, then already claimed, then out-of-stock/expired
+    if (activeCategory !== 'Claimed') {
+        filtered.sort((a, b) => {
+            const aClaimed = claimed.includes(a.id) ? 1 : 0;
+            const bClaimed = claimed.includes(b.id) ? 1 : 0;
+            const aExpired = (a.is_expired || a.status === 'expired') ? 2 : (a.is_out_of_stock ? 1 : 0);
+            const bExpired = (b.is_expired || b.status === 'expired') ? 2 : (b.is_out_of_stock ? 1 : 0);
+            const aUpcoming = (a.is_upcoming || a.status === 'upcoming') ? 1 : 0;
+            const bUpcoming = (b.is_upcoming || b.status === 'upcoming') ? 1 : 0;
+
+            const aPriority = aExpired > 0 ? (10 + aExpired) : (aClaimed ? 5 : (aUpcoming ? 2 : 0));
+            const bPriority = bExpired > 0 ? (10 + bExpired) : (bClaimed ? 5 : (bUpcoming ? 2 : 0));
+
+            return aPriority - bPriority;
+        });
+    }
+
     if (filtered.length === 0) {
         let msg = 'No vouchers match your current filters.';
-        if (activeCategory === 'Claimed') {
+        if (vouchersData.length === 0) {
+            msg = 'No discounts or vouchers are currently available. Check back soon for exciting deals!';
+        } else if (activeCategory === 'Claimed') {
             msg = 'You have not claimed any vouchers yet. Redeem your Points to store vouchers here!';
         } else if (activeCategory === 'Mabanag Hall') {
-            msg = 'No active unredeemed vouchers for Mabanag Hall right now. Check "My Vouchers" if already claimed!';
+            msg = 'No vouchers found for Mabanag Hall right now. Check "My Vouchers" if already claimed!';
         } else if (activeCategory === 'Upcoming') {
             msg = 'No upcoming promotions scheduled right now. Check back soon for new discounts!';
         } else if (searchQuery) {
@@ -1149,6 +1172,7 @@ function processVouchersData(rawList) {
         };
     });
 
+    syncClaimedVouchersWithData();
     buildMunicipalityFilterBar();
     renderDiscounts();
 }

@@ -156,6 +156,7 @@ class VoucherController extends Controller
 
                 $isUpcoming = $v->valid_from ? $v->valid_from->isFuture() : false;
                 $computedStatus = $isExpired ? 'expired' : ($isUpcoming ? 'upcoming' : 'active');
+                $isOutOfStock = ($v->remaining_quantity !== null && $v->remaining_quantity <= 0);
                 $isMabanag = str_contains(strtolower($partner ?? ''), 'mabanag') || (isset($v->partner_establishments) && str_contains(strtolower(is_array($v->partner_establishments) ? implode(' ', $v->partner_establishments) : (string) $v->partner_establishments), 'mabanag'));
 
                 return [
