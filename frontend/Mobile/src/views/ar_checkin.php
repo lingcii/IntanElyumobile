@@ -120,12 +120,35 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
 
             document.getElementById('btn-scan').innerHTML = '<i class="fa-solid fa-spinner spinning"></i>';
 
+            // Immediate offline fallback if disconnected
+            if (!navigator.onLine && window.OfflineCheckinManager) {
+                try {
+                    await window.OfflineCheckinManager.queueOfflineCheckin({
+                        type: 'ar',
+                        spotId: spotId,
+                        lat: userLat,
+                        lng: userLng,
+                        capturedAt: new Date().toISOString()
+                    });
+                } catch (err) {
+                    console.warn('Offline queuing error:', err);
+                }
+                alert('📡 Low Signal / Offline Area Detected:\n\nYour GPS check-in was saved locally! Points will sync automatically as soon as internet connection is restored.');
+                history.back();
+                return;
+            }
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+
             try {
                 const res = await fetch(`${backendUrl}/api/tourist/points/ar-checkin`, {
                     method: 'POST',
                     headers,
-                    body: JSON.stringify({ spot_id: spotId, lat: userLat, lng: userLng })
+                    body: JSON.stringify({ spot_id: spotId, lat: userLat, lng: userLng, captured_at: new Date().toISOString() }),
+                    signal: controller.signal
                 });
+                clearTimeout(timeoutId);
 
                 const data = await res.json();
                 document.getElementById('btn-scan').innerHTML = '';
@@ -143,18 +166,33 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
                     history.back();
                 }
             } catch (e) {
-                console.error(e);
+                clearTimeout(timeoutId);
+                console.warn('AR check-in failed or timed out:', e);
                 document.getElementById('btn-scan').innerHTML = '';
 
                 // Low-signal / Offline approach: queue checkin locally for background auto-sync
-                const queue = JSON.parse(localStorage.getItem('offline_checkin_queue') || '[]');
-                queue.push({
-                    spot_id: spotId,
-                    lat: userLat,
-                    lng: userLng,
-                    timestamp: new Date().toISOString()
-                });
-                localStorage.setItem('offline_checkin_queue', JSON.stringify(queue));
+                if (window.OfflineCheckinManager) {
+                    try {
+                        await window.OfflineCheckinManager.queueOfflineCheckin({
+                            type: 'ar',
+                            spotId: spotId,
+                            lat: userLat,
+                            lng: userLng,
+                            capturedAt: new Date().toISOString()
+                        });
+                    } catch (err) {
+                        console.warn('Offline queuing error:', err);
+                    }
+                } else {
+                    const queue = JSON.parse(localStorage.getItem('offline_checkin_queue') || '[]');
+                    queue.push({
+                        spot_id: spotId,
+                        lat: userLat,
+                        lng: userLng,
+                        timestamp: new Date().toISOString()
+                    });
+                    localStorage.setItem('offline_checkin_queue', JSON.stringify(queue));
+                }
 
                 alert('📡 Low Signal / Offline Area Detected:\n\nYour GPS check-in was saved locally! Points will sync automatically as soon as internet connection is restored.');
                 history.back();

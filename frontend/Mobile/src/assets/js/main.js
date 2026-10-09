@@ -70,11 +70,14 @@ window.AppStorage = {
                     resolve(null);
                     return;
                 }
-                const request = window.indexedDB.open('intan_elyu_app_storage', 1);
+                const request = window.indexedDB.open('intan_elyu_app_storage', 2);
                 request.onupgradeneeded = function (e) {
                     const db = e.target.result;
                     if (!db.objectStoreNames.contains('store')) {
                         db.createObjectStore('store');
+                    }
+                    if (!db.objectStoreNames.contains('checkin_photos')) {
+                        db.createObjectStore('checkin_photos');
                     }
                 };
                 request.onsuccess = function (e) { resolve(e.target.result); };
@@ -126,8 +129,276 @@ window.AppStorage = {
                 tx.objectStore('store').delete(key);
             }
         } catch (e) { }
+    },
+
+    setPhoto: async function (key, data) {
+        try {
+            const db = await this._getDB();
+            if (db) {
+                return new Promise((resolve) => {
+                    const tx = db.transaction('checkin_photos', 'readwrite');
+                    tx.objectStore('checkin_photos').put(data, key);
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = () => resolve(false);
+                });
+            }
+        } catch (e) { }
+        return false;
+    },
+
+    getPhoto: async function (key) {
+        try {
+            const db = await this._getDB();
+            if (db) {
+                return new Promise((resolve) => {
+                    const tx = db.transaction('checkin_photos', 'readonly');
+                    const req = tx.objectStore('checkin_photos').get(key);
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => resolve(null);
+                });
+            }
+        } catch (e) { }
+        return null;
+    },
+
+    removePhoto: async function (key) {
+        try {
+            const db = await this._getDB();
+            if (db) {
+                return new Promise((resolve) => {
+                    const tx = db.transaction('checkin_photos', 'readwrite');
+                    tx.objectStore('checkin_photos').delete(key);
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = () => resolve(false);
+                });
+            }
+        } catch (e) { }
+        return false;
     }
 };
+
+/**
+ * Robust Centralized Offline Check-in Manager & Auto-Synchronizer
+ * Stores GPS proof and photo blobs locally when in signal dead zones (e.g. Tangadan Falls, Tapuakan River)
+ * and automatically dispatches to backend upon regaining internet.
+ */
+window.OfflineCheckinManager = {
+    QUEUE_KEY: 'intan_elyu_offline_checkins',
+    isSyncing: false,
+
+    getQueue: function () {
+        try {
+            return JSON.parse(localStorage.getItem(this.QUEUE_KEY) || '[]');
+        } catch (e) {
+            return [];
+        }
+    },
+
+    saveQueue: function (queue) {
+        try {
+            localStorage.setItem(this.QUEUE_KEY, JSON.stringify(queue));
+        } catch (e) { }
+    },
+
+    isItemQueued: function (itemId) {
+        if (!itemId) return false;
+        const q = this.getQueue();
+        const target = String(itemId);
+        return q.some(entry => String(entry.itemId) === target || String(entry.spotId) === target);
+    },
+
+    queueOfflineCheckin: async function (data) {
+        const id = 'chk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        const capturedAt = data.capturedAt || new Date().toISOString();
+
+        let hasPhoto = false;
+        if (data.image && window.AppStorage && window.AppStorage.setPhoto) {
+            try {
+                await window.AppStorage.setPhoto(id, data.image);
+                hasPhoto = true;
+            } catch (e) {
+                console.warn('Could not cache check-in photo in IndexedDB:', e);
+            }
+        }
+
+        const entry = {
+            id: id,
+            type: data.type || 'itinerary',
+            itemId: data.itemId || null,
+            spotId: data.spotId || null,
+            spotName: data.spotName || 'Tourist Destination',
+            itineraryId: data.itineraryId || null,
+            lat: data.lat,
+            lng: data.lng,
+            accuracy: data.accuracy || null,
+            altitude: data.altitude || null,
+            speed: data.speed || null,
+            capturedAt: capturedAt,
+            hasPhoto: hasPhoto,
+            status: 'queued',
+            attempts: 0
+        };
+
+        const queue = this.getQueue();
+        queue.push(entry);
+        this.saveQueue(queue);
+
+        // Optimistically record locally in visited spots cache
+        try {
+            let offlineSpots = JSON.parse(localStorage.getItem('intan_elyu_offline_visited_spots') || '[]');
+            const spotKey = String(entry.itemId || entry.spotId);
+            if (!offlineSpots.includes(spotKey)) {
+                offlineSpots.push(spotKey);
+                localStorage.setItem('intan_elyu_offline_visited_spots', JSON.stringify(offlineSpots));
+            }
+        } catch (e) { }
+
+        window.dispatchEvent(new CustomEvent('offline-checkin-queued', { detail: entry }));
+        return entry;
+    },
+
+    removeQueuedCheckin: async function (id) {
+        let queue = this.getQueue();
+        queue = queue.filter(item => item.id !== id);
+        this.saveQueue(queue);
+        if (window.AppStorage && window.AppStorage.removePhoto) {
+            await window.AppStorage.removePhoto(id);
+        }
+    },
+
+    processQueue: async function () {
+        if (this.isSyncing) return;
+        if (!navigator.onLine) return;
+
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+        if (!token) return;
+
+        const queue = this.getQueue();
+        if (queue.length === 0) return;
+
+        this.isSyncing = true;
+        const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+        let syncedCount = 0;
+
+        for (const item of [...queue]) {
+            try {
+                let photoBlob = null;
+                if (item.hasPhoto && window.AppStorage && window.AppStorage.getPhoto) {
+                    photoBlob = await window.AppStorage.getPhoto(item.id);
+                }
+
+                const formData = new FormData();
+                formData.append('lat', String(item.lat));
+                formData.append('lng', String(item.lng));
+                if (item.accuracy) formData.append('accuracy', String(item.accuracy));
+                if (item.altitude) formData.append('altitude', String(item.altitude));
+                if (item.speed) formData.append('speed', String(item.speed));
+                if (item.capturedAt) formData.append('captured_at', item.capturedAt);
+
+                if (photoBlob) {
+                    if (photoBlob instanceof Blob) {
+                        formData.append('image', photoBlob, `offline_proof_${item.id}.jpg`);
+                    } else if (typeof photoBlob === 'string' && photoBlob.startsWith('data:')) {
+                        const res = await fetch(photoBlob);
+                        const b = await res.blob();
+                        formData.append('image', b, `offline_proof_${item.id}.jpg`);
+                    }
+                }
+
+                let targetUrl = '';
+                if (item.type === 'itinerary' && item.itemId) {
+                    targetUrl = `${baseUrl}/api/tourist/itineraries/items/${item.itemId}/visit`;
+                } else if (item.type === 'destination' && item.spotId) {
+                    targetUrl = `${baseUrl}/api/tourist/destinations/${item.spotId}/check-in`;
+                } else if (item.type === 'ar' && item.spotId) {
+                    targetUrl = `${baseUrl}/api/tourist/points/ar-checkin`;
+                    formData.append('spot_id', String(item.spotId));
+                    formData.append('destination_id', String(item.spotId));
+                } else if (item.itemId) {
+                    targetUrl = `${baseUrl}/api/tourist/itineraries/items/${item.itemId}/visit`;
+                }
+
+                if (!targetUrl) {
+                    await this.removeQueuedCheckin(item.id);
+                    continue;
+                }
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+                const response = await fetch(targetUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: formData,
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
+                const data = await response.json().catch(() => ({}));
+
+                // Treat 200, 201, 409 (already recorded), or explicit already_recorded flag as successfully resolved
+                if (response.ok || response.status === 409 || data.already_recorded || (data.status && ['pending', 'approved', 'success'].includes(data.status))) {
+                    syncedCount++;
+                    await this.removeQueuedCheckin(item.id);
+                } else if (response.status >= 400 && response.status < 500 && response.status !== 408) {
+                    // Client permanent errors (e.g. 404 item deleted, 422 permanent invalid)
+                    item.attempts = (item.attempts || 0) + 1;
+                    if (item.attempts >= 3) {
+                        await this.removeQueuedCheckin(item.id);
+                    } else {
+                        const curQ = this.getQueue();
+                        const idx = curQ.findIndex(q => q.id === item.id);
+                        if (idx !== -1) curQ[idx].attempts = item.attempts;
+                        this.saveQueue(curQ);
+                    }
+                }
+            } catch (err) {
+                console.warn('Offline check-in sync paused for item:', item.id, err);
+                // Connection failed during upload; keep remaining items in queue and retry next cycle
+                break;
+            }
+        }
+
+        this.isSyncing = false;
+
+        if (syncedCount > 0) {
+            if (typeof showToast === 'function') {
+                showToast(`⚡ ${syncedCount} Offline Check-in(s) synced! Proof submitted.`);
+            }
+            window.dispatchEvent(new CustomEvent('checkins-synced', { detail: { count: syncedCount } }));
+        }
+    },
+
+    init: function () {
+        window.addEventListener('online', () => {
+            setTimeout(() => this.processQueue(), 1200);
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && navigator.onLine) {
+                this.processQueue();
+            }
+        });
+
+        // Periodic background retry every 45 seconds if queue has items
+        setInterval(() => {
+            if (navigator.onLine && this.getQueue().length > 0) {
+                this.processQueue();
+            }
+        }, 45000);
+
+        // Initial check upon app boot
+        if (navigator.onLine) {
+            setTimeout(() => this.processQueue(), 3000);
+        }
+    }
+};
+
+window.OfflineCheckinManager.init();
 
 window.setTxt = function (id, val) {
     const el = (typeof id === 'string') ? document.getElementById(id) : id;

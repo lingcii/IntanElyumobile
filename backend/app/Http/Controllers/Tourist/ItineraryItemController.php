@@ -42,6 +42,7 @@ class ItineraryItemController extends Controller
                 'accuracy' => 'nullable|numeric',
                 'altitude' => 'nullable|numeric',
                 'speed' => 'nullable|numeric',
+                'captured_at' => 'nullable|string',
                 'image' => 'nullable|file|max:20480',
             ]);
 
@@ -55,8 +56,14 @@ class ItineraryItemController extends Controller
                 return response()->json(['message' => 'Itinerary item not found or unauthorized.'], 404);
             }
 
-            if ($item->is_visited) {
-                return response()->json(['message' => 'You have already checked in at this spot.'], 409);
+            // Graceful idempotency for retried offline syncs
+            if ($item->is_visited || in_array($item->proof_status, ['pending', 'approved'])) {
+                return response()->json([
+                    'success' => true,
+                    'already_recorded' => true,
+                    'status' => $item->proof_status ?? ($item->is_visited ? 'approved' : 'pending'),
+                    'message' => 'Check-in proof already recorded for this destination.',
+                ], 200);
             }
 
             $spot = $item->destination;
@@ -65,6 +72,19 @@ class ItineraryItemController extends Controller
                 return response()->json(['message' => 'This destination has no GPS coordinates set.'], 422);
             }
 
+            // Parse optional captured_at timestamp from offline cached submission
+            $capturedAt = null;
+            if ($request->filled('captured_at')) {
+                try {
+                    $parsed = \Carbon\Carbon::parse($request->captured_at);
+                    if ($parsed->lte(now()->addMinutes(10)) && $parsed->gte(now()->subHours(48))) {
+                        $capturedAt = $parsed;
+                    }
+                } catch (\Throwable $e) { }
+            }
+
+            $effectiveTime = $capturedAt ?? now();
+
             // Anti-Spoofing: Accuracy Check
             if ($request->has('accuracy') && $request->accuracy > 200) {
                 return response()->json([
@@ -72,9 +92,10 @@ class ItineraryItemController extends Controller
                 ], 403);
             }
 
-            // Anti-Spoofing: Teleportation Check (Max 200 km/h)
+            // Anti-Spoofing: Teleportation Check (Max 200 km/h) against last GPS ping
             if (isset($user->last_gps_ping_at, $user->last_gps_lat, $user->last_gps_lng)) {
-                $timeDiff = now()->diffInSeconds($user->last_gps_ping_at);
+                $lastPing = \Carbon\Carbon::parse($user->last_gps_ping_at);
+                $timeDiff = abs($effectiveTime->diffInSeconds($lastPing));
                 
                 if ($timeDiff > 0 && $timeDiff < 86400) {
                     $distFromLast = $this->haversine(
@@ -115,6 +136,10 @@ class ItineraryItemController extends Controller
                 'proof_status' => 'pending',
             ];
 
+            if ($capturedAt) {
+                $itemData['visited_at'] = $capturedAt;
+            }
+
             if ($request->hasFile('image')) {
                 try {
                     $file = $request->file('image');
@@ -140,11 +165,14 @@ class ItineraryItemController extends Controller
             $item->update($itemData);
 
             try {
-                $user->update([
-                    'last_gps_lat'     => $request->lat,
-                    'last_gps_lng'     => $request->lng,
-                    'last_gps_ping_at' => now(),
-                ]);
+                $shouldUpdatePing = !$user->last_gps_ping_at || ($effectiveTime->gte(\Carbon\Carbon::parse($user->last_gps_ping_at)));
+                if ($shouldUpdatePing) {
+                    $user->update([
+                        'last_gps_lat'     => $request->lat,
+                        'last_gps_lng'     => $request->lng,
+                        'last_gps_ping_at' => $effectiveTime,
+                    ]);
+                }
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::warning("Could not update user GPS ping: " . $e->getMessage());
             }

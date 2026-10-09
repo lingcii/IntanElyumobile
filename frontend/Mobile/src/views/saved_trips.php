@@ -448,8 +448,9 @@ $backRoute = 'itinerary';
                                 const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
                                 const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
                                 const isRejected = (item.proof_status === 'rejected');
-                                const isNextStop = (!isVisited && !isPending && index === firstUnvisitedIdx);
-                                if (!isVisited) unvisitedCount++;
+                                const isQueued = Boolean(window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(item.id));
+                                const isNextStop = (!isVisited && !isPending && !isQueued && index === firstUnvisitedIdx);
+                                if (!isVisited && !isQueued) unvisitedCount++;
 
                                 let proofImgHtml = '';
                                 if (item.proof_image) {
@@ -538,6 +539,15 @@ $backRoute = 'itinerary';
                                                         <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Re-upload Photo Proof
                                                     </button>
                                                 </div>` :
+                                            (isQueued ?
+                                                `<div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
+                                                        <div>
+                                                            <span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#fbbf24; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
+                                                                <i class="fa-solid fa-clock-rotate-left"></i> Queued for Sync (Offline)
+                                                            </span>
+                                                            <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Proof saved on device &bull; Will sync when online</span>
+                                                        </div>
+                                                    </div>` :
                                             (isPending ?
                                                 `<div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
                                                         ${proofImgHtml}
@@ -550,7 +560,7 @@ $backRoute = 'itinerary';
                                                     </div>` :
                                                 `<button class="btn-primary" style="padding: 8px 14px; font-size:12px; font-weight:800; width:max-content; border-radius:100px; background: linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; box-shadow: none; color:#fff; cursor:pointer;" onclick="window.openCheckinModal('${item.id}')">
                                                         <i class="fa-solid fa-location-arrow" style="margin-right:4px;"></i> Check In (+50 PTS)
-                                                     </button>`))
+                                                     </button>`)))
                                     }
                                     </div>
                                 </div>`;
@@ -963,10 +973,54 @@ $backRoute = 'itinerary';
                     }
                 }
 
+                const fallbackToOffline = async (reason) => {
+                    if (window.OfflineCheckinManager) {
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i> Saving offline...';
+                        const spotTitleEl = document.getElementById('checkin-spot-title') || document.querySelector('#checkin-modal h3');
+                        const spotName = spotTitleEl ? spotTitleEl.textContent.trim() : 'Destination';
+
+                        await window.OfflineCheckinManager.queueOfflineCheckin({
+                            type: 'itinerary',
+                            itemId: itemId,
+                            spotName: spotName,
+                            lat: lat,
+                            lng: lng,
+                            accuracy: window.lastGpsAccuracy || null,
+                            image: fileToUpload,
+                            capturedAt: new Date().toISOString()
+                        });
+
+                        window.closeCheckinModal();
+                        if (typeof showToast === 'function') {
+                            showToast('📍 Saved Offline! Check-in & photo proof saved on device. Auto-syncs when online.');
+                        }
+
+                        setTimeout(() => {
+                            if (typeof window.fetchSavedTrips === 'function') {
+                                window.fetchSavedTrips(false);
+                            }
+                        }, 300);
+                    } else {
+                        if (typeof showToast === 'function') showToast(reason || 'Network error. Please try again.');
+                        btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo';
+                        btn.disabled = false;
+                    }
+                };
+
+                // Instant offline queue if device is offline
+                if (!navigator.onLine) {
+                    await fallbackToOffline('Offline area detected.');
+                    return;
+                }
+
                 const formData = new FormData();
                 formData.append('lat', lat);
                 formData.append('lng', lng);
                 formData.append('image', fileToUpload);
+                formData.append('captured_at', new Date().toISOString());
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
 
                 try {
                     const response = await fetch(backendUrl + '/api/tourist/itineraries/items/' + itemId + '/visit', {
@@ -976,11 +1030,13 @@ $backRoute = 'itinerary';
                             'ngrok-skip-browser-warning': 'true',
                             'Authorization': 'Bearer ' + (localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('intan_elyu_token'))
                         },
-                        body: formData
+                        body: formData,
+                        signal: controller.signal
                     });
+                    clearTimeout(timeoutId);
 
                     const data = await response.json();
-                    if (response.ok && (data.success || data.status === 'pending' || data.status === 'approved' || data.status === 'success')) {
+                    if (response.ok && (data.success || data.status === 'pending' || data.status === 'approved' || data.status === 'success' || data.already_recorded)) {
                         window.closeCheckinModal();
                         if (typeof showToast === 'function') showToast(data.message || 'Photo proof submitted! Pending verification before completion.');
 
@@ -1006,10 +1062,9 @@ $backRoute = 'itinerary';
                         btn.disabled = false;
                     }
                 } catch (error) {
-                    console.error('Check-in error:', error);
-                    if (typeof showToast === 'function') showToast('Network error. Please try again.');
-                    btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo';
-                    btn.disabled = false;
+                    clearTimeout(timeoutId);
+                    console.warn('Network error or 8s timeout during check-in, falling back to offline queue:', error);
+                    await fallbackToOffline('Low signal / network timeout.');
                 }
             };
 
@@ -1589,6 +1644,11 @@ $backRoute = 'itinerary';
             window.addEventListener('viewLoaded', (e) => {
                 if (e && e.detail && e.detail.view === 'saved_trips') {
                     window._isStartingTrip = false;
+                    window.fetchSavedTrips(true);
+                }
+            });
+            window.addEventListener('checkins-synced', () => {
+                if (document.body.getAttribute('data-view') === 'saved_trips') {
                     window.fetchSavedTrips(true);
                 }
             });

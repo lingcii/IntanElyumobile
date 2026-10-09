@@ -378,6 +378,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
                     const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
                     const isRejected = (item.proof_status === 'rejected');
+                    const isQueued = Boolean(window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(item.id));
                     const isActive = idx === activeIndex;
                     if (isActive) {
                         card.classList.add('active');
@@ -386,21 +387,30 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     }
                     const badgeEl = card.querySelector('.conveyor-status-badge');
                     if (badgeEl) {
-                        if (isVisited) {
+                        if (isQueued) {
+                            badgeEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)';
+                            badgeEl.style.background = 'rgba(245, 158, 11, 0.25)';
+                            badgeEl.style.color = '#fde68a';
+                        } else if (isVisited) {
                             badgeEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Visited';
                             badgeEl.style.background = 'rgba(52, 199, 89, 0.25)';
+                            badgeEl.style.color = '#ffffff';
                         } else if (isPending) {
                             badgeEl.innerHTML = '<i class="fa-solid fa-clock"></i> Pending Review';
                             badgeEl.style.background = 'rgba(245, 158, 11, 0.25)';
+                            badgeEl.style.color = '#ffffff';
                         } else if (isRejected) {
                             badgeEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Rejected';
                             badgeEl.style.background = 'rgba(239, 68, 68, 0.25)';
+                            badgeEl.style.color = '#ffffff';
                         } else if (isActive) {
                             badgeEl.innerHTML = `Stop ${idx + 1} of ${items.length} • NEXT`;
                             badgeEl.style.background = 'rgba(255, 255, 255, 0.25)';
+                            badgeEl.style.color = '#ffffff';
                         } else {
                             badgeEl.innerHTML = `Stop ${idx + 1} of ${items.length}`;
                             badgeEl.style.background = 'rgba(255, 255, 255, 0.15)';
+                            badgeEl.style.color = 'rgba(255, 255, 255, 0.85)';
                         }
                     }
                 });
@@ -417,10 +427,13 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
                 const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
                 const isRejected = (item.proof_status === 'rejected');
+                const isQueued = Boolean(window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(item.id));
                 const isActive = idx === activeIndex;
 
                 let badgeHtml = '';
-                if (isVisited) {
+                if (isQueued) {
+                    badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#fde68a; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)</span>`;
+                } else if (isVisited) {
                     badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(52,199,89,0.25); border:none !important; outline:none !important; color:#ffffff; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-circle-check"></i> Visited</span>`;
                 } else if (isPending) {
                     badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#ffffff; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-clock"></i> Pending Review</span>`;
@@ -444,7 +457,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 }
 
                 let actionBtnHtml = '';
-                if (isVisited) {
+                if (isQueued) {
+                    actionBtnHtml = `<span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#fde68a; font-weight:800; font-size:10.5px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)</span>`;
+                } else if (isVisited) {
                     const sId = item.tourist_spot_id || (item.destination ? item.destination.id : '');
                     const isReviewed = sId && window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(sId));
                     const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
@@ -618,7 +633,10 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             if (window.tripMarkers) window.tripMarkers.forEach(m => m.remove());
             window.tripMarkers = [];
 
-            const activeIndex = items.findIndex(i => !(i.is_visited || i.proof_status === 'approved'));
+            const activeIndex = items.findIndex(i => {
+                const isQueued = window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(i.id);
+                return !(i.is_visited || i.proof_status === 'approved' || isQueued);
+            });
 
             items.forEach((item, idx) => {
                 const dest = item.destination;
@@ -637,8 +655,21 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
                         const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
                         const isRejected = (item.proof_status === 'rejected');
+                        const isQueued = Boolean(window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(item.id));
 
-                        if (isVisited) {
+                        if (isQueued) {
+                            // QUEUED OFFLINE - Amber Cloud / Clock
+                            iconHtml = `
+                            <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+                                <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(245,158,11,0.4); z-index: 2;">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                </div>
+                                <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(10,25,60,0.3); z-index: 1;">
+                                    <span style="color: #fde68a; font-size: 10px; font-weight: 700;">Queued (Offline)</span>
+                                </div>
+                            </div>
+                        `;
+                        } else if (isVisited) {
                             // VISITED - Green Checkmark + Royal Blue Tag without outline
                             iconHtml = `
                             <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
@@ -1085,11 +1116,45 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 }
             }
 
+            const lat = window.myLat || 16.6159;
+            const lng = window.myLng || 120.3186;
+            const capturedAt = new Date().toISOString();
+
+            // Immediate offline fallback if device is disconnected
+            if (!navigator.onLine && window.OfflineCheckinManager) {
+                try {
+                    await window.OfflineCheckinManager.queueOfflineCheckin({
+                        itemId: itemId,
+                        lat: lat,
+                        lng: lng,
+                        imageFile: imageFile,
+                        capturedAt: capturedAt
+                    });
+                    closeCheckinModal();
+                    if (typeof showToast === 'function') {
+                        showToast('📴 Offline: Check-in saved locally! Will automatically sync once connected.');
+                    }
+                    const promptCard = document.getElementById('checkin-prompt-card');
+                    if (promptCard) promptCard.style.display = 'none';
+                    loadTripData();
+                } catch (e) {
+                    console.error('Offline check-in save failed:', e);
+                    if (typeof showToast === 'function') showToast('Failed to save offline check-in.');
+                    btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo';
+                    btn.disabled = false;
+                }
+                return;
+            }
+
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
             const formData = new FormData();
-            formData.append('lat', window.myLat || 16.6159);
-            formData.append('lng', window.myLng || 120.3186);
+            formData.append('lat', lat);
+            formData.append('lng', lng);
+            formData.append('captured_at', capturedAt);
             formData.append('image', imageFile);
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
 
             try {
                 const response = await fetch(backendUrl + '/api/tourist/itineraries/items/' + itemId + '/visit', {
@@ -1099,18 +1164,18 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         'ngrok-skip-browser-warning': 'true',
                         'Authorization': 'Bearer ' + token
                     },
-                    body: formData
+                    body: formData,
+                    signal: controller.signal
                 });
+                clearTimeout(timeoutId);
 
                 const result = await response.json();
 
                 if (response.ok) {
                     closeCheckinModal();
                     if (typeof showToast === 'function') showToast(result.message || 'Photo proof submitted! Pending verification before completion.');
-                    document.getElementById('checkin-prompt-card').style.display = 'none';
-
-                    const item = window.currentTripItems?.find(i => i.id == itemId);
-                    const visitedSpotId = result.item?.tourist_spot_id || (item ? item.tourist_spot_id : null);
+                    const promptCard = document.getElementById('checkin-prompt-card');
+                    if (promptCard) promptCard.style.display = 'none';
 
                     loadTripData();
                 } else {
@@ -1119,12 +1184,45 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     btn.disabled = false;
                 }
             } catch (error) {
-                console.error('Check-in error:', error);
-                if (typeof showToast === 'function') showToast('Network error. Please try again.');
-                btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo';
-                btn.disabled = false;
+                clearTimeout(timeoutId);
+                console.warn('Check-in online failed or timed out:', error);
+
+                if (window.OfflineCheckinManager) {
+                    try {
+                        await window.OfflineCheckinManager.queueOfflineCheckin({
+                            itemId: itemId,
+                            lat: lat,
+                            lng: lng,
+                            imageFile: imageFile,
+                            capturedAt: capturedAt
+                        });
+                        closeCheckinModal();
+                        if (typeof showToast === 'function') {
+                            showToast('📴 Network weak: Check-in queued offline! Will auto-sync when online.');
+                        }
+                        const promptCard = document.getElementById('checkin-prompt-card');
+                        if (promptCard) promptCard.style.display = 'none';
+                        loadTripData();
+                    } catch (e) {
+                        console.error('Offline fallback save failed:', e);
+                        if (typeof showToast === 'function') showToast('Check-in failed. Please try again.');
+                        btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo';
+                        btn.disabled = false;
+                    }
+                } else {
+                    if (typeof showToast === 'function') showToast('Network error. Please try again.');
+                    btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo';
+                    btn.disabled = false;
+                }
             }
         };
+
+        // Automatically refresh route and pins when offline check-ins finish syncing
+        window.addEventListener('checkins-synced', () => {
+            if (typeof loadTripData === 'function') {
+                loadTripData();
+            }
+        });
 
         // Real-time GPS Listener for live navigation mode on Saved Trips
         window._tripGpsTimeout = window._tripGpsTimeout || null;

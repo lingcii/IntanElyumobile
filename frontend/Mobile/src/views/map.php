@@ -5038,6 +5038,36 @@ if (is_dir($imgDir)) {
                 btn.disabled = true;
             }
 
+            const lat = window.myLat || dest.lat || dest.latitude;
+            const lng = window.myLng || dest.lng || dest.longitude;
+            const capturedAt = new Date().toISOString();
+
+            // Immediate offline fallback if disconnected
+            if (!navigator.onLine && window.OfflineCheckinManager) {
+                try {
+                    await window.OfflineCheckinManager.queueOfflineCheckin({
+                        type: 'destination',
+                        spotId: dest.id,
+                        spotName: dest.name,
+                        lat: lat,
+                        lng: lng,
+                        capturedAt: capturedAt
+                    });
+                    if (typeof showToast === 'function') {
+                        showToast(`📴 Offline: Check-in saved for ${dest.name}! Will auto-sync when online.`);
+                    }
+                    if (btn) {
+                        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)';
+                        btn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+                    }
+                } catch (e) {
+                    console.error('Offline check-in save failed:', e);
+                    if (typeof showToast === 'function') showToast('Failed to save offline check-in.');
+                    if (btn) { btn.innerHTML = origHtml; btn.disabled = false; }
+                }
+                return;
+            }
+
             const _backendUrl = (window.backendUrl && window.backendUrl.trim() !== '')
                 ? window.backendUrl
                 : (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : 'https://api.intan-elyu.online');
@@ -5048,15 +5078,21 @@ if (is_dir($imgDir)) {
             };
             if (token) headers['Authorization'] = 'Bearer ' + token;
 
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+
             try {
                 const res = await fetch(_backendUrl + '/api/tourist/destinations/' + dest.id + '/check-in', {
                     method: 'POST',
                     headers: headers,
                     body: JSON.stringify({
-                        lat: window.myLat || dest.lat || dest.latitude,
-                        lng: window.myLng || dest.lng || dest.longitude
-                    })
+                        lat: lat,
+                        lng: lng,
+                        captured_at: capturedAt
+                    }),
+                    signal: controller.signal
                 });
+                clearTimeout(timeoutId);
 
                 const data = await res.json();
                 if (res.ok && (data.status === 'success' || data.success)) {
@@ -5080,7 +5116,32 @@ if (is_dir($imgDir)) {
                     }
                 }
             } catch (err) {
-                console.error('Check-in error:', err);
+                clearTimeout(timeoutId);
+                console.warn('Destination check-in failed or timed out:', err);
+
+                if (window.OfflineCheckinManager) {
+                    try {
+                        await window.OfflineCheckinManager.queueOfflineCheckin({
+                            type: 'destination',
+                            spotId: dest.id,
+                            spotName: dest.name,
+                            lat: lat,
+                            lng: lng,
+                            capturedAt: capturedAt
+                        });
+                        if (typeof showToast === 'function') {
+                            showToast(`📴 Network weak: Check-in queued for ${dest.name}! Will auto-sync when online.`);
+                        }
+                        if (btn) {
+                            btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)';
+                            btn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+                        }
+                        return;
+                    } catch (e) {
+                        console.error('Offline fallback save failed:', e);
+                    }
+                }
+
                 if (typeof showToast === 'function') showToast('Network error during check-in.');
                 if (btn) {
                     btn.innerHTML = origHtml;
@@ -5088,6 +5149,15 @@ if (is_dir($imgDir)) {
                 }
             }
         };
+
+        // Automatically update check-in button state if currently queued check-in syncs
+        window.addEventListener('checkins-synced', () => {
+            const btn = document.getElementById('btn-checkin-spot');
+            if (btn && btn.innerHTML && btn.innerHTML.includes('Queued')) {
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Checked In!';
+                btn.style.background = 'linear-gradient(135deg, #059669, #047857)';
+            }
+        });
 
         setTimeout(window.initMap, 50);
 
