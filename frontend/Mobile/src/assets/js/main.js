@@ -70,7 +70,7 @@ window.AppStorage = {
                     resolve(null);
                     return;
                 }
-                const request = window.indexedDB.open('intan_elyu_app_storage', 2);
+                const request = window.indexedDB.open('intan_elyu_app_storage', 3);
                 request.onupgradeneeded = function (e) {
                     const db = e.target.result;
                     if (!db.objectStoreNames.contains('store')) {
@@ -132,21 +132,35 @@ window.AppStorage = {
     },
 
     setPhoto: async function (key, data) {
+        if (!key || !data) return false;
         try {
             const db = await this._getDB();
             if (db) {
+                let payload = data;
+                if (data instanceof Blob) {
+                    payload = data;
+                } else if (typeof data === 'string' && data.startsWith('data:')) {
+                    const res = await fetch(data);
+                    payload = await res.blob();
+                }
                 return new Promise((resolve) => {
                     const tx = db.transaction('checkin_photos', 'readwrite');
-                    tx.objectStore('checkin_photos').put(data, key);
+                    tx.objectStore('checkin_photos').put(payload, key);
                     tx.oncomplete = () => resolve(true);
-                    tx.onerror = () => resolve(false);
+                    tx.onerror = (err) => {
+                        console.warn('AppStorage.setPhoto tx error:', err);
+                        resolve(false);
+                    };
                 });
             }
-        } catch (e) { }
+        } catch (e) {
+            console.warn('AppStorage.setPhoto exception:', e);
+        }
         return false;
     },
 
     getPhoto: async function (key) {
+        if (!key) return null;
         try {
             const db = await this._getDB();
             if (db) {
@@ -157,7 +171,9 @@ window.AppStorage = {
                     req.onerror = () => resolve(null);
                 });
             }
-        } catch (e) { }
+        } catch (e) {
+            console.warn('AppStorage.getPhoto exception:', e);
+        }
         return null;
     },
 
@@ -212,10 +228,13 @@ window.OfflineCheckinManager = {
         const capturedAt = data.capturedAt || new Date().toISOString();
 
         let hasPhoto = false;
-        if (data.image && window.AppStorage && window.AppStorage.setPhoto) {
+        const photoData = data.image || data.imageFile || data.photo || null;
+        if (photoData && window.AppStorage && window.AppStorage.setPhoto) {
             try {
-                await window.AppStorage.setPhoto(id, data.image);
-                hasPhoto = true;
+                const saved = await window.AppStorage.setPhoto(id, photoData);
+                if (saved) {
+                    hasPhoto = true;
+                }
             } catch (e) {
                 console.warn('Could not cache check-in photo in IndexedDB:', e);
             }
@@ -301,6 +320,9 @@ window.OfflineCheckinManager = {
                     } else if (typeof photoBlob === 'string' && photoBlob.startsWith('data:')) {
                         const res = await fetch(photoBlob);
                         const b = await res.blob();
+                        formData.append('image', b, `offline_proof_${item.id}.jpg`);
+                    } else if (photoBlob instanceof ArrayBuffer) {
+                        const b = new Blob([photoBlob], { type: 'image/jpeg' });
                         formData.append('image', b, `offline_proof_${item.id}.jpg`);
                     }
                 }

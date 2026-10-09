@@ -1127,6 +1127,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         itemId: itemId,
                         lat: lat,
                         lng: lng,
+                        image: imageFile,
                         imageFile: imageFile,
                         capturedAt: capturedAt
                     });
@@ -1193,6 +1194,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                             itemId: itemId,
                             lat: lat,
                             lng: lng,
+                            image: imageFile,
                             imageFile: imageFile,
                             capturedAt: capturedAt
                         });

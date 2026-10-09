@@ -545,7 +545,7 @@ $backRoute = 'itinerary';
                                                             <span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#fbbf24; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
                                                                 <i class="fa-solid fa-clock-rotate-left"></i> Queued for Sync (Offline)
                                                             </span>
-                                                            <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Proof saved on device &bull; Will sync when online</span>
+                                                            <span style="font-size:10px; color:#ffffff; opacity:0.85; display:block; margin-top:4px;"><i class="fa-solid fa-camera" style="color:#fbbf24; margin-right:4px;"></i>Photo proof saved &bull; Auto-syncs when online</span>
                                                         </div>
                                                     </div>` :
                                             (isPending ?
