@@ -1302,12 +1302,13 @@ $activeTab = 'profile';
         if (typeof codeOrVoucher === 'object' && codeOrVoucher !== null) {
             voucher = codeOrVoucher;
         } else {
-            voucher = vouchers.find(v => v.voucher_code === codeOrVoucher) || { voucher_code: codeOrVoucher };
+            voucher = vouchers.find(v => (v.voucher_code === codeOrVoucher || v.code === codeOrVoucher)) || { voucher_code: codeOrVoucher, code: codeOrVoucher };
         }
 
-        if (!voucher || !voucher.voucher_code) return;
+        const resolvedCode = (voucher && (voucher.voucher_code || voucher.code)) || (typeof codeOrVoucher === 'string' ? codeOrVoucher : '');
+        if (!resolvedCode) return;
 
-        currentActiveQrCode = voucher.voucher_code;
+        currentActiveQrCode = resolvedCode;
         const modal = document.getElementById('active-voucher-qr-modal');
         if (!modal) return;
 
@@ -1322,7 +1323,7 @@ $activeTab = 'profile';
         if (partnerEl) partnerEl.textContent = voucher.partner_establishment || voucher.category || 'Official Partner Merchant';
 
         if (imgEl) {
-            imgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(voucher.voucher_code)}`;
+            imgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(resolvedCode)}`;
         }
 
         const statusLower = (voucher.status || '').toLowerCase();
@@ -1357,7 +1358,7 @@ $activeTab = 'profile';
                     noticeEl.style.color = '#64748b';
                     noticeEl.style.fontWeight = '500';
                 }
-                startActiveQrSync(voucher.voucher_code);
+                startActiveQrSync(resolvedCode);
             }
         }
 

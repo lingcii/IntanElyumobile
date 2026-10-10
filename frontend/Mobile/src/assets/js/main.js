@@ -48,6 +48,22 @@
     };
 })();
 
+// Purge outdated view template and leaderboard caches to force fresh HTML and live ranking data
+try {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && (
+            k.startsWith('elyu_view_cache_v1_') || 
+            k.startsWith('elyu_view_cache_v2_') || 
+            k.startsWith('leaderboard_data_v15_') || 
+            k.startsWith('leaderboard_data_v16_') || 
+            k.startsWith('leaderboard_data_v17_')
+        )) {
+            localStorage.removeItem(k);
+        }
+    }
+} catch (e) {}
+
 window.safeJsonParse = function (str, fallback = {}) {
     if (!str || str === 'undefined' || str === 'null' || str === 'NaN') return fallback;
     try {
@@ -792,7 +808,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         if (!html && !extraParams.size) {
             try {
-                html = localStorage.getItem('elyu_view_cache_v2_' + targetView);
+                html = localStorage.getItem('elyu_view_cache_v3_' + targetView);
                 if (html) {
                     window._viewHtmlCache[targetView] = html;
                 }
@@ -825,7 +841,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                         html = freshHtml;
                         if (!extraParams.size) {
                             window._viewHtmlCache[targetView] = html;
-                            try { localStorage.setItem('elyu_view_cache_v2_' + targetView, html); } catch(e) {}
+                            try { localStorage.setItem('elyu_view_cache_v3_' + targetView, html); } catch(e) {}
                         }
                     }
                 }
@@ -834,7 +850,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 // Fall back to persistent disk cache if not already loaded
                 if (!html) {
                     try {
-                        html = window._viewHtmlCache[targetView] || localStorage.getItem('elyu_view_cache_v2_' + targetView);
+                        html = window._viewHtmlCache[targetView] || localStorage.getItem('elyu_view_cache_v3_' + targetView);
                     } catch(e) {}
                 }
             }
@@ -1615,6 +1631,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 const swUrl = document.baseURI ? new URL('sw.js', document.baseURI).href : 'sw.js';
                 navigator.serviceWorker.register(swUrl).then(function (registration) {
                     console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    try { registration.update(); } catch(e) {}
                 }).catch(function (err) {
                     console.warn('ServiceWorker registration note: ', err);
                 });

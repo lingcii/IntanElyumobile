@@ -10,11 +10,16 @@ $activeTab = 'leaderboard';
 <div class="leaderboard-container has-header has-bottom-nav animate-fade-in">
 
     <!-- Title & Season Header -->
-    <div class="leaderboard-title stagger-0">
+    <div class="leaderboard-title stagger-0" style="position: relative;">
         <h2>
             <i class="fa-solid fa-trophy" style="color: #fbbf24;"></i> La Union Top Explorers
         </h2>
         <p>Earn Points across Elyu</p>
+        <button id="leaderboard-refresh-btn" type="button" onclick="window.refreshLeaderboard(true)" aria-label="Refresh Leaderboard"
+            style="position: absolute; right: 4px; top: 2px; background: rgba(30, 58, 138, 0.08); border: none; color: #1e3a8a; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; transition: transform 0.25s ease;"
+            onpointerdown="this.style.transform='rotate(180deg) scale(0.9)'" onpointerup="this.style.transform='rotate(0deg) scale(1)'">
+            <i class="fa-solid fa-rotate-right" id="leaderboard-refresh-icon"></i>
+        </button>
     </div>
 
     <!-- Your Current Standing Banner -->
@@ -604,9 +609,31 @@ $activeTab = 'leaderboard';
         renderLeaderboardUI();
     }
 
-    window.initLeaderboardView = async function () {
+    window.refreshLeaderboard = async function (force = true) {
+        const refreshIcon = document.getElementById('leaderboard-refresh-icon');
+        if (refreshIcon) refreshIcon.classList.add('fa-spin');
+        try {
+            const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            const cacheKey = 'leaderboard_data_v18_' + (token ? token.substring(0, 10) : 'public');
+            localStorage.removeItem(cacheKey);
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith('leaderboard_data_')) localStorage.removeItem(k);
+            }
+        } catch (e) { }
+        window.leaderboardNeedsRefresh = true;
+        await window.initLeaderboardView(true);
+        if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+        if (typeof showToast === 'function') {
+            showToast('Leaderboard rankings synced!');
+        }
+    };
+
+    window.initLeaderboardView = async function (forceRefresh = false) {
         const podiumContainer = document.getElementById('podium-container');
         const rankListContainer = document.getElementById('rank-list-container');
+        const refreshIcon = document.getElementById('leaderboard-refresh-icon');
+        if (refreshIcon && forceRefresh) refreshIcon.classList.add('fa-spin');
 
         // 1. If we already have leaders in memory, render immediately!
         if (rawLeadersList && rawLeadersList.length > 0) {
@@ -615,13 +642,14 @@ $activeTab = 'leaderboard';
 
         try {
             const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-            const headers = { 'Accept': 'application/json' };
-
             var backendUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
-            let url = backendUrl + '/api/public/leaderboard?limit=50';
-            if (token) {
-                headers['Authorization'] = 'Bearer ' + token;
-                url = backendUrl + '/api/tourist/leaderboard?limit=50';
+            const cacheKey = 'leaderboard_data_v18_' + (token ? token.substring(0, 10) : 'public');
+
+            if (forceRefresh) {
+                try {
+                    localStorage.removeItem(cacheKey);
+                    window.leaderboardNeedsRefresh = true;
+                } catch (e) { }
             }
 
             // In parallel, fetch live points balance if user is authenticated
@@ -647,7 +675,6 @@ $activeTab = 'leaderboard';
                 }).catch(() => { });
             }
 
-            const cacheKey = 'leaderboard_data_v16_' + (token ? token.substring(0, 10) : 'public');
             const fetchCache = window.useCache || (async (key, fetcher, renderer) => { const d = await fetcher(); if (renderer) renderer(d); return d; });
 
             // Ambient offline check: Pre-hydrate from cache if available
@@ -683,29 +710,68 @@ $activeTab = 'leaderboard';
                 return;
             }
 
+            // Robust multi-tier fetch with cascaded fallbacks
+            async function fetchLeaderboardWithFallbacks() {
+                // Tier 1: Tourist authenticated endpoint
+                if (token) {
+                    try {
+                        const res = await fetch(backendUrl + '/api/tourist/leaderboard?limit=50', {
+                            headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
+                        });
+                        if (res.ok) {
+                            const json = await res.json();
+                            const users = json.users || json.leaders || json.data || json.tourists || [];
+                            if (Array.isArray(users) && users.length > 0) return json;
+                        }
+                    } catch (err1) {
+                        console.warn("Tier 1 tourist leaderboard fetch error:", err1);
+                    }
+                }
+
+                // Tier 2: Public leaderboard endpoint on configured backend
+                try {
+                    const headers2 = { 'Accept': 'application/json' };
+                    if (token) headers2['Authorization'] = 'Bearer ' + token;
+                    const res2 = await fetch(backendUrl + '/api/public/leaderboard?limit=50', { headers: headers2 });
+                    if (res2.ok) {
+                        const json2 = await res2.json();
+                        const users2 = json2.users || json2.leaders || json2.data || json2.tourists || [];
+                        if (Array.isArray(users2) && users2.length > 0) return json2;
+                    }
+                } catch (err2) {
+                    console.warn("Tier 2 public leaderboard fetch error:", err2);
+                }
+
+                // Tier 3: Direct canonical production domain
+                try {
+                    const res3 = await fetch('https://api.intan-elyu.online/api/public/leaderboard?limit=50', {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (res3.ok) {
+                        const json3 = await res3.json();
+                        const users3 = json3.users || json3.leaders || json3.data || json3.tourists || [];
+                        if (Array.isArray(users3) && users3.length > 0) return json3;
+                    }
+                } catch (err3) {
+                    console.warn("Tier 3 direct API fetch error:", err3);
+                }
+
+                throw new Error("Could not reach any leaderboard endpoint");
+            }
+
             await fetchCache(
                 cacheKey,
-                async () => {
-                    let res = await fetch(url, { headers: { ...headers } });
-                    if (res.status === 401 && token) {
-                        localStorage.removeItem('intan_elyu_token');
-                        localStorage.removeItem('Intan_Elyu_Token');
-                        localStorage.removeItem('api_token');
-                        res = await fetch(backendUrl + '/api/public/leaderboard?limit=50', { headers: { 'Accept': 'application/json' } });
-                    }
-                    if (!res.ok) throw new Error("Failed to fetch leaderboard");
-                    return await res.json();
-                },
+                fetchLeaderboardWithFallbacks,
                 (data) => {
                     if (!data) return;
                     applyLeaderboardData(data);
                 },
-                Boolean(window.leaderboardNeedsRefresh),
-                30000 // 30 seconds TTL
+                Boolean(forceRefresh || window.leaderboardNeedsRefresh),
+                20000 // 20 seconds TTL
             );
             window.leaderboardNeedsRefresh = false;
 
-            // 2. Re-render after fetch to ensure latest data is displayed
+            // Re-render after fetch to ensure latest data is displayed
             if (rawLeadersList && rawLeadersList.length > 0) {
                 renderLeaderboardUI();
             }
@@ -728,9 +794,17 @@ $activeTab = 'leaderboard';
                 }
             } else {
                 if (podiumContainer && (!rawLeadersList || rawLeadersList.length === 0)) {
-                    podiumContainer.innerHTML = "<div style='color:rgba(239,68,68,0.8); text-align:center; width:100%; padding:20px; font-size:14px;'>Failed to load leaderboard.</div>";
+                    podiumContainer.innerHTML = `
+                        <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 28px 16px;">
+                            <div style="font-size: 14px; font-weight: 700; color: #dc2626; margin-bottom: 6px;">Rankings Temporarily Unavailable</div>
+                            <button onclick="window.refreshLeaderboard(true)" style="background: #1e3a8a; color: white; border: none; padding: 8px 18px; border-radius: 100px; font-size: 12px; font-weight: 800; cursor: pointer;">
+                                <i class="fa-solid fa-rotate-right" style="margin-right: 5px;"></i> Try Again
+                            </button>
+                        </div>`;
                 }
             }
+        } finally {
+            if (refreshIcon) refreshIcon.classList.remove('fa-spin');
         }
     };
 
@@ -741,7 +815,7 @@ $activeTab = 'leaderboard';
     window.addEventListener('online', function () {
         if (typeof window.initLeaderboardView === 'function') {
             window.leaderboardNeedsRefresh = true;
-            window.initLeaderboardView();
+            window.initLeaderboardView(true);
         }
     });
 
