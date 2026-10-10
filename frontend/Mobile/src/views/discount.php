@@ -493,24 +493,41 @@ function setClaimedVouchers(claimedArr) {
 
 function isVoucherRedeemed(v) {
     if (!v) return false;
-    const vid = String(v.dbId || v.id || '').replace(/^db_/, '').replace(/^rdm_/, '');
-    const vcode = (v.code || v.voucher_code || '').toUpperCase().trim();
 
-    if (Array.isArray(window._touristRedemptions) && window._touristRedemptions.length > 0) {
-        const match = window._touristRedemptions.find(r => {
+    // 1. If this object is already a specific redemption item with redemptionStatus or status:
+    const rStatus = (v.redemptionStatus || v.status || '').toLowerCase().trim();
+    if (rStatus === 'claimed') return false; // Strictly active claimed, NOT redeemed!
+    if (['redeemed', 'used', 'completed'].includes(rStatus)) return true;
+
+    // 2. If it has a specific unique voucher code (from a redemption):
+    const vcode = (v.code || v.voucher_code || '').toUpperCase().trim();
+    if (vcode && Array.isArray(window._touristRedemptions) && window._touristRedemptions.length > 0) {
+        const matchCode = window._touristRedemptions.find(r => {
             const rCode = (r.voucher_code || '').toUpperCase().trim();
-            if (vcode && rCode && vcode === rCode) return true;
-            const rVid = String(r.voucher_id || '').replace(/^db_/, '');
-            if (vid && rVid && vid === rVid) return true;
-            return false;
+            return rCode && rCode === vcode;
         });
-        if (match && ['redeemed', 'used', 'completed'].includes((match.status || '').toLowerCase())) {
-            return true;
+        if (matchCode) {
+            return ['redeemed', 'used', 'completed'].includes((matchCode.status || '').toLowerCase());
         }
     }
 
-    const rStatus = (v.redemptionStatus || '').toLowerCase();
-    return ['redeemed', 'used', 'completed'].includes(rStatus);
+    // 3. For catalog templates in vouchersData (deals not yet individually claimed):
+    const vid = String(v.dbId || v.id || '').replace(/^db_/, '').replace(/^rdm_/, '');
+    if (vid && Array.isArray(window._touristRedemptions) && window._touristRedemptions.length > 0) {
+        const userRedemptionsForThisVoucher = window._touristRedemptions.filter(r => {
+            const rVid = String(r.voucher_id || '').replace(/^db_/, '');
+            return rVid === vid;
+        });
+        if (userRedemptionsForThisVoucher.length > 0) {
+            // If the user has any active unredeemed claim, it is NOT redeemed
+            const hasActiveClaim = userRedemptionsForThisVoucher.some(r => (r.status || '').toLowerCase() === 'claimed');
+            if (hasActiveClaim) return false;
+            // Only considered redeemed if all instances are redeemed
+            return userRedemptionsForThisVoucher.every(r => ['redeemed', 'used', 'completed'].includes((r.status || '').toLowerCase()));
+        }
+    }
+
+    return false;
 }
 
 function isVoucherExpired(v) {
@@ -551,25 +568,40 @@ function isVoucherFullyClaimed(v) {
 
 function isVoucherClaimed(v) {
     if (!v) return false;
-    const vid = String(v.dbId || v.id || '').replace(/^db_/, '').replace(/^rdm_/, '');
-    const vcode = (v.code || v.voucher_code || '').toUpperCase().trim();
 
-    // Check directly in in-memory tourist redemptions
-    if (Array.isArray(window._touristRedemptions) && window._touristRedemptions.length > 0) {
-        const found = window._touristRedemptions.some(r => {
-            const rVid = String(r.voucher_id || '').replace(/^db_/, '');
-            if (vid && rVid && vid === rVid) return true;
+    // 1. If this object is already a specific redemption item:
+    const rStatus = (v.redemptionStatus || v.status || '').toLowerCase().trim();
+    if (['redeemed', 'used', 'completed'].includes(rStatus)) return false; // Already redeemed, not active claimed!
+    if (rStatus === 'claimed') return true;
+
+    // 2. If it has a specific unique voucher code:
+    const vcode = (v.code || v.voucher_code || '').toUpperCase().trim();
+    if (vcode && Array.isArray(window._touristRedemptions) && window._touristRedemptions.length > 0) {
+        const matchCode = window._touristRedemptions.find(r => {
             const rCode = (r.voucher_code || '').toUpperCase().trim();
-            if (vcode && rCode && vcode === rCode) return true;
-            return false;
+            return rCode && rCode === vcode;
         });
-        if (found) return true;
+        if (matchCode) {
+            return (matchCode.status || '').toLowerCase() === 'claimed';
+        }
+    }
+
+    // 3. For catalog templates in vouchersData:
+    const vid = String(v.dbId || v.id || '').replace(/^db_/, '').replace(/^rdm_/, '');
+    if (vid && Array.isArray(window._touristRedemptions) && window._touristRedemptions.length > 0) {
+        const userRedemptionsForThisVoucher = window._touristRedemptions.filter(r => {
+            const rVid = String(r.voucher_id || '').replace(/^db_/, '');
+            return rVid === vid;
+        });
+        if (userRedemptionsForThisVoucher.length > 0) {
+            // Check if user currently has an active unredeemed claim
+            return userRedemptionsForThisVoucher.some(r => (r.status || '').toLowerCase() === 'claimed');
+        }
     }
 
     const claimed = getClaimedVouchers();
     if (claimed.includes(v.id)) return true;
     if (v.dbId && (claimed.includes('db_' + v.dbId) || claimed.includes(String(v.dbId)))) return true;
-    if (v.redemptionStatus && ['claimed', 'redeemed', 'used', 'completed'].includes(v.redemptionStatus.toLowerCase())) return true;
     return false;
 }
 
@@ -589,7 +621,7 @@ function getUserRedemptionItems() {
             return false;
         });
 
-        const status = (r.status || 'claimed').toLowerCase();
+        const status = (r.status || 'claimed').toLowerCase().trim();
         const isRedeemed = ['redeemed', 'used', 'completed'].includes(status);
         const title = r.type || (match ? match.title : 'Reward Voucher');
         const partner = r.partner_establishment || (match ? match.partner : 'LUPTO Tourism Partner');
@@ -597,7 +629,7 @@ function getUserRedemptionItems() {
         const category = r.category || (match ? match.category : 'Food & Dining');
         const pointsCost = r.points_cost || (match ? match.pointsCost : 100);
         const description = r.description || (match ? match.description : 'Present this voucher code at merchant checkout.');
-        const badge = isRedeemed ? 'REDEEMED' : (match ? match.badge : 'CLAIMED');
+        const badge = isRedeemed ? 'REDEEMED' : 'CLAIMED';
         const image = match ? match.image : (r.image || null);
         const code = r.voucher_code || (match ? match.code : 'ELYU-PROMO');
 
@@ -632,6 +664,8 @@ function getUserRedemptionItems() {
             terms_and_conditions: r.terms_and_conditions || (match ? match.terms_and_conditions : null),
             status: status,
             redemptionStatus: status,
+            isRedeemed: isRedeemed,
+            isClaimed: !isRedeemed && status === 'claimed',
             redeemedAt: r.redeemed_at,
             createdAt: r.created_at,
             description: description,
@@ -642,8 +676,8 @@ function getUserRedemptionItems() {
 
 function updateClaimedBadge() {
     const redemptions = getUserRedemptionItems();
-    const activeClaimed = redemptions.filter(r => r.redemptionStatus === 'claimed');
-    const historyClaimed = redemptions.filter(r => r.redemptionStatus === 'redeemed');
+    const activeClaimed = redemptions.filter(r => (r.redemptionStatus === 'claimed' || r.status === 'claimed') && !['redeemed', 'used', 'completed'].includes((r.redemptionStatus || r.status || '').toLowerCase()));
+    const historyClaimed = redemptions.filter(r => ['redeemed', 'used', 'completed'].includes((r.redemptionStatus || r.status || '').toLowerCase()));
 
     const countEl = document.getElementById('claimed-count');
     const histEl = document.getElementById('history-count');
@@ -663,42 +697,22 @@ function syncClaimedVouchersWithData() {
     }
 
     const redemptions = Array.isArray(window._touristRedemptions) ? window._touristRedemptions : [];
-    let claimedSet = new Set(getClaimedVouchers());
-
-    if (window._hasFetchedRedemptions && redemptions.length === 0) {
-        claimedSet.clear();
-    }
+    let claimedSet = new Set();
 
     if (redemptions.length > 0) {
         redemptions.forEach(v => {
             const vId = v.voucher_id ? String(v.voucher_id) : null;
             const vCode = v.voucher_code ? String(v.voucher_code).toUpperCase().trim() : '';
+            const status = (v.status || '').toLowerCase().trim();
 
-            if (vId) {
-                claimedSet.add(vId);
-                claimedSet.add('db_' + vId);
-            }
-            if (vCode) {
-                claimedSet.add(vCode);
-            }
-
-            if (vouchersData.length > 0) {
-                const match = vouchersData.find(item => {
-                    if (vId && (String(item.dbId) === vId || item.id === 'db_' + vId || item.id === vId)) return true;
-                    const itemCode = item.code ? String(item.code).toUpperCase().trim() : '';
-                    if (itemCode && vCode && (vCode === itemCode)) return true;
-                    return false;
-                });
-
-                if (match) {
-                    if (v.voucher_code) match.code = v.voucher_code;
-                    match.redemptionStatus = (v.status || 'claimed').toLowerCase();
-                    if (v.redeemed_at) match.redeemedAt = v.redeemed_at;
-                    claimedSet.add(match.id);
-                    if (match.dbId) {
-                        claimedSet.add('db_' + match.dbId);
-                        claimedSet.add(String(match.dbId));
-                    }
+            // ONLY track active, UNREDEEMED vouchers in claimedSet
+            if (status === 'claimed') {
+                if (vId) {
+                    claimedSet.add(vId);
+                    claimedSet.add('db_' + vId);
+                }
+                if (vCode) {
+                    claimedSet.add(vCode);
                 }
             }
         });
@@ -790,9 +804,9 @@ function renderDiscounts() {
 
     // 1. Status Filter (Dedicated Status Droplist)
     if (activeStatus === 'Claimed') {
-        filtered = getUserRedemptionItems().filter(r => r.redemptionStatus === 'claimed');
+        filtered = getUserRedemptionItems().filter(r => (r.redemptionStatus === 'claimed' || r.status === 'claimed') && !['redeemed', 'used', 'completed'].includes((r.redemptionStatus || r.status || '').toLowerCase()));
     } else if (activeStatus === 'Redeemed') {
-        filtered = getUserRedemptionItems().filter(r => r.redemptionStatus === 'redeemed');
+        filtered = getUserRedemptionItems().filter(r => ['redeemed', 'used', 'completed'].includes((r.redemptionStatus || r.status || '').toLowerCase()));
     } else if (activeStatus === 'Upcoming') {
         filtered = vouchersData.filter(v => isVoucherUpcoming(v) && !isVoucherExpired(v));
     } else if (activeStatus === 'Expired') {
@@ -1048,10 +1062,15 @@ function stopLiveRedemptionSync() {
 }
 
 function openVoucherModal(id) {
-    let item = vouchersData.find(v => v.id === id);
+    let item = null;
+    if (typeof id === 'string' && id.startsWith('rdm_') && typeof getUserRedemptionItems === 'function') {
+        item = getUserRedemptionItems().find(v => v.id === id);
+    }
+    if (!item) {
+        item = vouchersData.find(v => v.id === id);
+    }
     if (!item && typeof getUserRedemptionItems === 'function') {
-        const redemptionItems = getUserRedemptionItems();
-        item = redemptionItems.find(v => v.id === id);
+        item = getUserRedemptionItems().find(v => v.id === id);
     }
     if (!item) return;
     currentVoucherId = id;
@@ -1559,9 +1578,9 @@ function populateCategoryDropdown() {
 
     let baseList = [];
     if (activeStatus === 'Claimed') {
-        baseList = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems().filter(r => r.redemptionStatus === 'claimed') : [];
+        baseList = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems().filter(r => (r.redemptionStatus === 'claimed' || r.status === 'claimed') && !['redeemed', 'used', 'completed'].includes((r.redemptionStatus || r.status || '').toLowerCase())) : [];
     } else if (activeStatus === 'Redeemed') {
-        baseList = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems().filter(r => r.redemptionStatus === 'redeemed') : [];
+        baseList = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems().filter(r => ['redeemed', 'used', 'completed'].includes((r.redemptionStatus || r.status || '').toLowerCase())) : [];
     } else if (activeStatus === 'Upcoming') {
         baseList = vouchersData.filter(v => isVoucherUpcoming(v) && !isVoucherExpired(v));
     } else if (activeStatus === 'Expired') {
@@ -1654,9 +1673,9 @@ function populateMunicipalityDropdown() {
 
     let baseList = [];
     if (activeStatus === 'Claimed') {
-        baseList = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems().filter(r => r.redemptionStatus === 'claimed') : [];
+        baseList = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems().filter(r => (r.redemptionStatus === 'claimed' || r.status === 'claimed') && !['redeemed', 'used', 'completed'].includes((r.redemptionStatus || r.status || '').toLowerCase())) : [];
     } else if (activeStatus === 'Redeemed') {
-        baseList = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems().filter(r => r.redemptionStatus === 'redeemed') : [];
+        baseList = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems().filter(r => ['redeemed', 'used', 'completed'].includes((r.redemptionStatus || r.status || '').toLowerCase())) : [];
     } else if (activeStatus === 'Upcoming') {
         baseList = vouchersData.filter(v => isVoucherUpcoming(v) && !isVoucherExpired(v));
     } else if (activeStatus === 'Expired') {
@@ -1804,8 +1823,8 @@ function populateStatusDropdown() {
 
     const redemptions = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems() : [];
     const countAll = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v) && !isVoucherExpired(v) && !isVoucherUpcoming(v)).length;
-    const countClaimed = redemptions.filter(r => r.redemptionStatus === 'claimed').length;
-    const countRedeemed = redemptions.filter(r => r.redemptionStatus === 'redeemed').length;
+    const countClaimed = redemptions.filter(r => (r.redemptionStatus === 'claimed' || r.status === 'claimed') && !['redeemed', 'used', 'completed'].includes((r.redemptionStatus || r.status || '').toLowerCase())).length;
+    const countRedeemed = redemptions.filter(r => ['redeemed', 'used', 'completed'].includes((r.redemptionStatus || r.status || '').toLowerCase())).length;
     const countUpcoming = vouchersData.filter(v => isVoucherUpcoming(v) && !isVoucherExpired(v)).length;
     const countExpired = vouchersData.filter(v => isVoucherExpired(v)).length;
 

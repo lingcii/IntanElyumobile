@@ -345,7 +345,7 @@ class VoucherController extends Controller
                             'qr_token'        => $qrToken,
                             'points_used'     => $cost,
                             'status'          => 'claimed',
-                            'redeemed_at'     => now(),
+                            'redeemed_at'     => null,
                             'claimed_at'      => now(),
                             'created_at'      => now(),
                             'updated_at'      => now(),
