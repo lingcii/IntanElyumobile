@@ -170,23 +170,22 @@ $backRoute = 'profile';
                 <p id="modal-terms-text" style="margin: 0; font-size: 11.5px; color: #475569; line-height: 1.4; white-space: pre-line;"></p>
             </div>
 
-            <!-- QR Code & Voucher Code Box (Shown when Claimed) -->
+            <!-- QR Code Box (Shown when Claimed - Verified Digital Pass) -->
             <div id="modal-claimed-box" style="display: none; background: #eff6ff !important; border: 1.5px dashed #bfdbfe; border-radius: 18px; padding: 16px; margin-bottom: 14px; text-align: center;">
                 <div style="background: #ffffff; border-radius: 14px; padding: 10px; width: 150px; height: 150px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
                     <img id="modal-qr-img" src="" alt="Voucher QR Code" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'">
                 </div>
                 
-                <div style="margin-bottom: 8px;">
-                    <span style="display: block; font-size: 10.5px; color: #64748b; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">Your Unique Claim Code</span>
-                    <span id="modal-code" style="font-size: 20px; font-weight: 900; color: #1e3a8a; letter-spacing: 1.5px; word-break: break-all;">ELYU-PROMO</span>
+                <!-- Verified Digital Pass Information (Code hidden & protected) -->
+                <div style="background: #ffffff; border: 1px solid #bfdbfe; border-radius: 14px; padding: 10px 14px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(30,58,138,0.06); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fa-solid fa-shield-halved" style="color: #10b981; font-size: 13px;"></i>
+                    <span style="font-size: 11.5px; font-weight: 800; color: #1e3a8a; text-transform: uppercase; letter-spacing: 0.8px;">Verified Digital QR Pass</span>
                 </div>
 
-                <button id="btn-copy-voucher" onclick="copyVoucherCode()" style="background: #ffffff !important; border: 1px solid #bfdbfe !important; color: #1e3a8a !important; padding: 9px 18px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
-                    <i class="fa-solid fa-copy" id="copy-btn-icon" style="color: #1e3a8a !important;"></i> <span id="copy-btn-label">Copy Voucher Code</span>
-                </button>
-                <p style="margin: 10px 0 0 0; font-size: 11px; color: #64748b; line-height: 1.35;">
-                    Present this QR code or alphanumeric code directly to staff at checkout.
+                <p style="margin: 8px 0 0 0; font-size: 11.5px; color: #64748b; line-height: 1.45;">
+                    Present this QR code directly to merchant or staff at checkout for instant scanning.
                 </p>
+
                 <div id="modal-live-status-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 100px; font-size: 11px; font-weight: 800; background: #e0f2fe; color: #0369a1; margin-top: 10px; transition: all 0.3s ease;">
                     <i class="fa-solid fa-circle-notch fa-spin"></i> Ready for scan at checkout
                 </div>
@@ -1114,25 +1113,11 @@ function openVoucherModal(id) {
         statusBadge.style.border = 'none';
     }
 
-    // Reset copy button feedback
-    const copyBtn = document.getElementById('btn-copy-voucher');
-    const copyLabel = document.getElementById('copy-btn-label');
-    const copyIcon = document.getElementById('copy-btn-icon');
-    if (copyBtn) {
-        copyBtn.style.background = '#ffffff';
-        copyBtn.style.borderColor = '#bfdbfe';
-        copyBtn.style.color = '#1e3a8a';
-    }
-    if (copyLabel) copyLabel.textContent = 'Copy Voucher Code';
-    if (copyIcon) copyIcon.className = 'fa-solid fa-copy';
-
     if (isAlreadyClaimed) {
         const claimCode = item.code || 'ELYU-PROMO';
         const isRedeemedOnWeb = isVoucherRedeemed(item);
         if (claimedBox) {
             claimedBox.style.display = 'block';
-            const codeEl = document.getElementById('modal-code');
-            if (codeEl) codeEl.textContent = claimCode;
             const qrImg = document.getElementById('modal-qr-img');
             if (qrImg) {
                 qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(claimCode)}`;
@@ -1215,91 +1200,8 @@ function closeVoucherModal() {
 }
 
 function copyVoucherCode() {
-    const codeEl = document.getElementById('modal-code');
-    let code = codeEl ? (codeEl.innerText || codeEl.textContent || '').trim() : '';
-
-    if (!code && currentVoucherId) {
-        let currentItem = vouchersData.find(v => v.id === currentVoucherId);
-        if (!currentItem && typeof getUserRedemptionItems === 'function') {
-            currentItem = getUserRedemptionItems().find(v => v.id === currentVoucherId);
-        }
-        if (currentItem && currentItem.code) {
-            code = String(currentItem.code).trim();
-        }
-    }
-
-    if (!code) {
-        if (typeof showToast === 'function') showToast("No voucher code available to copy.");
-        return;
-    }
-
-    const btn = document.getElementById('btn-copy-voucher');
-    const label = document.getElementById('copy-btn-label');
-    const icon = document.getElementById('copy-btn-icon');
-
-    const showCopiedSuccess = () => {
-        if (label) label.textContent = 'Code Copied!';
-        if (icon) icon.className = 'fa-solid fa-check';
-        if (btn) {
-            btn.style.background = '#dcfce7';
-            btn.style.borderColor = '#86efac';
-            btn.style.color = '#15803d';
-        }
-        if (typeof showToast === 'function') showToast("Voucher code copied to clipboard!");
-
-        setTimeout(() => {
-            if (label) label.textContent = 'Copy Voucher Code';
-            if (icon) icon.className = 'fa-solid fa-copy';
-            if (btn) {
-                btn.style.background = '#ffffff';
-                btn.style.borderColor = '#bfdbfe';
-                btn.style.color = '#1e3a8a';
-            }
-        }, 2500);
-    };
-
-    const showCopiedFallback = () => {
-        if (typeof showToast === 'function') showToast("Voucher Code: " + code);
-    };
-
-    if (typeof window.copyToClipboard === 'function') {
-        window.copyToClipboard(code, showCopiedSuccess, showCopiedFallback);
-    } else if (navigator.clipboard && window.isSecureContext && typeof navigator.clipboard.writeText === 'function') {
-        navigator.clipboard.writeText(code)
-            .then(showCopiedSuccess)
-            .catch(() => localFallbackCopy(code, showCopiedSuccess, showCopiedFallback));
-    } else {
-        localFallbackCopy(code, showCopiedSuccess, showCopiedFallback);
-    }
-}
-
-function localFallbackCopy(text, onSuccess, onError) {
-    let ta = null;
-    try {
-        ta = document.createElement('textarea');
-        ta.value = text;
-        ta.setAttribute('readonly', '');
-        ta.style.position = 'fixed';
-        ta.style.top = '0';
-        ta.style.left = '-9999px';
-        ta.style.width = '2em';
-        ta.style.height = '2em';
-        ta.style.opacity = '0.01';
-        document.body.appendChild(ta);
-        ta.focus();
-        ta.select();
-        ta.setSelectionRange(0, ta.value.length);
-        const ok = document.execCommand('copy');
-        document.body.removeChild(ta);
-        ta = null;
-        if (ok) {
-            if (typeof onSuccess === 'function') onSuccess();
-        } else {
-            if (typeof onError === 'function') onError();
-        }
-    } catch(e) {
-        if (ta && ta.parentNode) ta.parentNode.removeChild(ta);
-        if (typeof onError === 'function') onError();
+    if (typeof showToast === 'function') {
+        showToast("Present your digital QR pass directly to merchant staff.");
     }
 }
 
@@ -1432,8 +1334,6 @@ async function handleModalRedeem() {
             const claimedBox = document.getElementById('modal-claimed-box');
             if (claimedBox) {
                 claimedBox.style.display = 'block';
-                const codeEl = document.getElementById('modal-code');
-                if (codeEl) codeEl.textContent = claimCode;
                 const qrImg = document.getElementById('modal-qr-img');
                 if (qrImg) {
                     qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(claimCode)}`;

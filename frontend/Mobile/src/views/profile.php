@@ -512,7 +512,7 @@ $activeTab = 'profile';
                                     <i class="fa-solid fa-lock" style="font-size: 9.5px; color: #00f2fe; letter-spacing: 0;"></i> ••••••••••••
                                 </span>
                                 <span style="font-size: 11px; font-weight: 700; color: #00f2fe; display: inline-flex; align-items: center; gap: 4px;">
-                                    <i class="fa-solid fa-eye-slash" style="font-size: 10px;"></i> Tap to view
+                                    <i class="fa-solid fa-qrcode" style="font-size: 10px;"></i> Tap for QR
                                 </span>
                             </div>
                         </div>
@@ -521,7 +521,7 @@ $activeTab = 'profile';
                                 <i class="fa-solid fa-check" style="margin-right: 4px; color: #ffffff !important;"></i>Claimed
                             </span>
                             <div style="font-size: 10.5px; font-weight: 800; color: #ffffff; background: rgba(0, 242, 254, 0.22); border: 1px solid rgba(0, 242, 254, 0.45); padding: 3px 9px; border-radius: 8px; display: flex; align-items: center; gap: 4px;">
-                                <i class="fa-solid fa-qrcode" style="color: #00f2fe;"></i> Show QR & Code
+                                <i class="fa-solid fa-qrcode" style="color: #00f2fe;"></i> Show QR Pass
                             </div>
                         </div>
                     </div>`;
@@ -1129,8 +1129,8 @@ $activeTab = 'profile';
                     </div>
                     <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px;">
                         <div>
-                            <div style="font-size:9.5px; font-weight:800; color:#94a3b8; text-transform:uppercase;">Claim Code</div>
-                            <code style="font-size:13.5px; font-weight:900; color:#64748b; letter-spacing:0.5px; font-family:monospace;">${v.voucher_code}</code>
+                            <div style="font-size:9.5px; font-weight:800; color:#94a3b8; text-transform:uppercase;">Claim Pass</div>
+                            <code style="font-size:13.5px; font-weight:900; color:#64748b; letter-spacing:2px; font-family:monospace;">••••••••••••</code>
                         </div>
                         <span style="font-size:11px; color:#15803d; font-weight:700; background:#f0fdf4; padding:4px 8px; border-radius:6px; border:1px solid #bbf7d0;">
                             <i class="fa-solid fa-circle-check"></i> Scanned
@@ -1198,13 +1198,13 @@ $activeTab = 'profile';
                             <div style="font-size: 13.5px; font-weight: 900; color: #ffffff; letter-spacing: 3px; font-family: monospace; margin-top: 2px;">••••••••••••</div>
                         </div>
                         <div style="background: #ffffff !important; color: #1e3a8a !important; border: none !important; outline: none !important; padding: 7px 13px; border-radius: 9px; font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.12);">
-                            <i class="fa-solid fa-eye" style="color: #1e3a8a;"></i> View Pass
+                            <i class="fa-solid fa-qrcode" style="color: #1e3a8a;"></i> View Pass
                         </div>
                     </div>
 
                     <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #e2e8f0; font-weight: 600;">
                         ${createdDate ? `<span><i class="fa-regular fa-calendar" style="color: #00f2fe; margin-right: 4px;"></i>Claimed: ${createdDate}</span>` : '<span></span>'}
-                        <span style="color: #00f2fe; font-size: 11px; font-weight: 800;"><i class="fa-solid fa-qrcode" style="margin-right: 3px;"></i>Tap to open QR & Code</span>
+                        <span style="color: #00f2fe; font-size: 11px; font-weight: 800;"><i class="fa-solid fa-qrcode" style="margin-right: 3px;"></i>Tap to open QR Pass</span>
                     </div>
                 </div>`;
             });
@@ -1331,8 +1331,6 @@ $activeTab = 'profile';
 
         const titleEl = document.getElementById('active-qr-modal-title');
         const partnerEl = document.getElementById('active-qr-modal-partner');
-        const promoCodeEl = document.getElementById('active-qr-modal-promo-code');
-        const codeEl = document.getElementById('active-qr-modal-code');
         const imgEl = document.getElementById('active-qr-modal-img');
         const statusBadge = document.getElementById('active-qr-status-badge');
         const noticeEl = document.getElementById('active-qr-notice');
@@ -1341,33 +1339,8 @@ $activeTab = 'profile';
         if (titleEl) titleEl.textContent = vTitle;
         if (partnerEl) partnerEl.textContent = voucher.partner_establishment || voucher.category || 'Official Partner Merchant';
 
-        // Extract master promo code (e.g. INTAN-8A22C8) and unique claim code (INTAN-8A22C8-FBHC)
-        const parts = voucher.voucher_code.split('-');
-        let masterCode = voucher.voucher_code;
-        if (parts.length >= 3 && parts[parts.length - 1].length === 4) {
-            masterCode = parts.slice(0, -1).join('-');
-        }
-        if (promoCodeEl) promoCodeEl.textContent = masterCode;
-        if (codeEl) codeEl.textContent = voucher.voucher_code;
-
         if (imgEl) {
             imgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(voucher.voucher_code)}`;
-        }
-
-        // Reset copy button
-        const btn = document.getElementById('btn-copy-active-qr');
-        const label = document.getElementById('active-qr-copy-label');
-        const icon = document.getElementById('active-qr-copy-icon');
-        if (btn) {
-            btn.style.background = '#1e3a8a';
-            btn.style.borderColor = 'transparent';
-            btn.style.color = '#ffffff';
-            btn.disabled = false;
-        }
-        if (label) label.textContent = 'Copy Voucher Code';
-        if (icon) {
-            icon.className = 'fa-solid fa-copy';
-            icon.style.color = '#ffffff';
         }
 
         const statusLower = (voucher.status || '').toLowerCase();
@@ -1398,7 +1371,7 @@ $activeTab = 'profile';
                     imgEl.style.opacity = '1';
                 }
                 if (noticeEl) {
-                    noticeEl.textContent = 'Present this QR code or alphanumeric code directly to staff at checkout.';
+                    noticeEl.textContent = 'Present this QR code directly to merchant or staff at checkout for instant scanning.';
                     noticeEl.style.color = '#64748b';
                     noticeEl.style.fontWeight = '500';
                 }
@@ -1416,68 +1389,14 @@ $activeTab = 'profile';
     };
 
     window.copyCurrentActiveQrCode = function () {
-        if (!currentActiveQrCode) return;
-        const btn = document.getElementById('btn-copy-active-qr');
-        const label = document.getElementById('active-qr-copy-label');
-        const icon = document.getElementById('active-qr-copy-icon');
-
-        const showSuccess = () => {
-            if (label) label.textContent = 'Code Copied!';
-            if (icon) {
-                icon.className = 'fa-solid fa-check';
-                icon.style.color = '#ffffff';
-            }
-            if (btn) {
-                btn.style.background = '#10b981';
-                btn.style.borderColor = 'transparent';
-                btn.style.color = '#ffffff';
-            }
-            if (typeof showToast === 'function') showToast("Voucher code copied to clipboard!");
-
-            setTimeout(() => {
-                if (label) label.textContent = 'Copy Voucher Code';
-                if (icon) {
-                    icon.className = 'fa-solid fa-copy';
-                    icon.style.color = '#ffffff';
-                }
-                if (btn) {
-                    btn.style.background = '#1e3a8a';
-                    btn.style.borderColor = 'transparent';
-                    btn.style.color = '#ffffff';
-                }
-            }, 2500);
-        };
-
-        if (typeof window.copyToClipboard === 'function') {
-            window.copyToClipboard(currentActiveQrCode, showSuccess, () => {
-                if (typeof showToast === 'function') showToast("Code: " + currentActiveQrCode);
-            });
-        } else if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(currentActiveQrCode).then(showSuccess).catch(() => {
-                if (typeof showToast === 'function') showToast("Code: " + currentActiveQrCode);
-            });
-        } else {
-            window.copyVoucherCodeToClipboard(currentActiveQrCode);
-            showSuccess();
+        if (typeof showToast === 'function') {
+            showToast("Present your digital QR pass directly to merchant staff.");
         }
     };
 
-    window.copyVoucherCodeToClipboard = function (code) {
-        if (!code) return;
-        if (typeof window.copyToClipboard === 'function') {
-            window.copyToClipboard(code, () => {
-                if (typeof showToast === 'function') showToast("Voucher code copied!");
-            }, () => {
-                if (typeof showToast === 'function') showToast("Code: " + code);
-            });
-        } else if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(code).then(() => {
-                if (typeof showToast === 'function') showToast("Voucher code copied!");
-            }).catch(() => {
-                if (typeof showToast === 'function') showToast("Code: " + code);
-            });
-        } else {
-            if (typeof showToast === 'function') showToast("Code: " + code);
+    window.copyVoucherCodeToClipboard = function () {
+        if (typeof showToast === 'function') {
+            showToast("Present your digital QR pass directly to merchant staff.");
         }
     };
 
@@ -1815,26 +1734,14 @@ $activeTab = 'profile';
                         style="width:100%; height:100%; object-fit:contain;">
                 </div>
 
-                <!-- Revealed Codes Information -->
-                <div style="background:#ffffff; border:1.5px solid #bfdbfe; border-radius:14px; padding:12px 14px; margin-bottom:12px; box-shadow:0 2px 8px rgba(30,58,138,0.06);">
-                    <div style="font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; display:flex; align-items:center; justify-content:center; gap:5px;">
-                        <i class="fa-solid fa-key" style="color:#0284c7; font-size:10.5px;"></i> Revealed Voucher Code
-                    </div>
-                    <div style="font-size:17px; font-weight:900; color:#1e3a8a; letter-spacing:1px; font-family:monospace; user-select:all; padding:2px 0;" id="active-qr-modal-code">INTAN-XXXX-XXXX</div>
-                    <div style="font-size:11px; color:#64748b; font-weight:700; margin-top:4px;">
-                        Promo Series: <strong id="active-qr-modal-promo-code" style="color:#0284c7;">INTAN-ELYU</strong>
-                    </div>
+                <!-- Verified Digital Pass Information (Code hidden & protected) -->
+                <div style="background:#ffffff; border:1px solid #bfdbfe; border-radius:14px; padding:10px 14px; margin-bottom:12px; box-shadow:0 2px 8px rgba(30,58,138,0.06); display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <i class="fa-solid fa-shield-halved" style="color:#10b981; font-size:13px;"></i>
+                    <span style="font-size:11.5px; font-weight:800; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.8px;">Verified Digital QR Pass</span>
                 </div>
 
-                <button id="btn-copy-active-qr" onclick="copyCurrentActiveQrCode()"
-                    style="background:#1e3a8a !important; border:none !important; color:#ffffff !important; padding:10px 20px; border-radius:12px; font-weight:800; font-size:12.5px; cursor:pointer; display:inline-flex; align-items:center; gap:7px; box-shadow:0 3px 10px rgba(30,58,138,0.25); transition:all 0.2s ease;"
-                    onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'">
-                    <i class="fa-solid fa-copy" id="active-qr-copy-icon" style="color:#ffffff !important;"></i>
-                    <span id="active-qr-copy-label">Copy Voucher Code</span>
-                </button>
-
-                <p id="active-qr-notice" style="margin:10px 0 0 0; font-size:11px; color:#64748b; line-height:1.4;">
-                    Present this QR code or alphanumeric code directly to staff at checkout.
+                <p id="active-qr-notice" style="margin:8px 0 0 0; font-size:11.5px; color:#64748b; line-height:1.45;">
+                    Present this QR code directly to merchant or staff at checkout for instant scanning.
                 </p>
 
                 <div id="active-qr-status-badge"
