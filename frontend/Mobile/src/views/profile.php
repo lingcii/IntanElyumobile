@@ -503,17 +503,12 @@ $activeTab = 'profile';
                     html += `
                     <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; padding: 14px 16px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; gap: 10px; box-shadow: 0 4px 14px rgba(10, 25, 60, 0.22); cursor: pointer; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                         <div style="text-align: left; flex: 1; min-width: 0;">
-                            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 5px;">
                                 <i class="fa-solid fa-ticket" style="color: #00f2fe; font-size: 13px;"></i>
                                 <span style="font-size: 13.5px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px;">${voucherTitle}</span>
                             </div>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="font-size: 12px; font-weight: 900; color: #ffffff; background: rgba(255, 255, 255, 0.16); border: 1px dashed rgba(255, 255, 255, 0.35); padding: 4px 10px; border-radius: 8px; font-family: monospace; letter-spacing: 2px; display: inline-flex; align-items: center; gap: 5px;">
-                                    <i class="fa-solid fa-lock" style="font-size: 9.5px; color: #00f2fe; letter-spacing: 0;"></i> ••••••••••••
-                                </span>
-                                <span style="font-size: 11px; font-weight: 700; color: #00f2fe; display: inline-flex; align-items: center; gap: 4px;">
-                                    <i class="fa-solid fa-qrcode" style="font-size: 10px;"></i> Tap for QR
-                                </span>
+                            <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #00f2fe;">
+                                <i class="fa-solid fa-qrcode" style="font-size: 11px;"></i> Tap to open Voucher QR Pass
                             </div>
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
@@ -521,7 +516,7 @@ $activeTab = 'profile';
                                 <i class="fa-solid fa-check" style="margin-right: 4px; color: #ffffff !important;"></i>Claimed
                             </span>
                             <div style="font-size: 10.5px; font-weight: 800; color: #ffffff; background: rgba(0, 242, 254, 0.22); border: 1px solid rgba(0, 242, 254, 0.45); padding: 3px 9px; border-radius: 8px; display: flex; align-items: center; gap: 4px;">
-                                <i class="fa-solid fa-qrcode" style="color: #00f2fe;"></i> Show QR Pass
+                                <i class="fa-solid fa-qrcode" style="color: #00f2fe;"></i> Open Pass
                             </div>
                         </div>
                     </div>`;
@@ -1178,7 +1173,7 @@ $activeTab = 'profile';
                 const createdDate = v.created_at ? new Date(v.created_at).toLocaleDateString() : '';
 
                 html += `
-                <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 18px; padding: 15px 16px; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.25); cursor: pointer; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 18px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.25); cursor: pointer; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                         <div>
                             <div style="font-size: 10px; font-weight: 800; color: #00f2fe; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Active Voucher #${idx + 1}</div>
@@ -1189,22 +1184,9 @@ $activeTab = 'profile';
                         </span>
                     </div>
 
-                    <!-- Protected Code Bar (Hidden until tapped) -->
-                    <div style="background: rgba(255, 255, 255, 0.14) !important; border: 1.5px dashed rgba(255, 255, 255, 0.35) !important; border-radius: 14px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px;">
-                        <div>
-                            <div style="font-size: 9.5px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 4px;">
-                                <i class="fa-solid fa-lock" style="color: #00f2fe; font-size: 9.5px;"></i> Voucher Code Protected
-                            </div>
-                            <div style="font-size: 13.5px; font-weight: 900; color: #ffffff; letter-spacing: 3px; font-family: monospace; margin-top: 2px;">••••••••••••</div>
-                        </div>
-                        <div style="background: #ffffff !important; color: #1e3a8a !important; border: none !important; outline: none !important; padding: 7px 13px; border-radius: 9px; font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.12);">
-                            <i class="fa-solid fa-qrcode" style="color: #1e3a8a;"></i> View Pass
-                        </div>
-                    </div>
-
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #e2e8f0; font-weight: 600;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.14); font-size: 11px; color: #e2e8f0; font-weight: 600;">
                         ${createdDate ? `<span><i class="fa-regular fa-calendar" style="color: #00f2fe; margin-right: 4px;"></i>Claimed: ${createdDate}</span>` : '<span></span>'}
-                        <span style="color: #00f2fe; font-size: 11px; font-weight: 800;"><i class="fa-solid fa-qrcode" style="margin-right: 3px;"></i>Tap to open QR Pass</span>
+                        <span style="color: #00f2fe; font-size: 11.5px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-qrcode"></i> Tap to open Voucher QR Pass <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i></span>
                     </div>
                 </div>`;
             });
@@ -1379,11 +1361,66 @@ $activeTab = 'profile';
             }
         }
 
+        // Reset mask state to hidden initially
+        window._isVoucherCodeUnmasked = false;
+        const codeEl = document.getElementById('active-qr-modal-code');
+        const iconEl = document.getElementById('active-qr-mask-icon');
+        const labelEl = document.getElementById('active-qr-mask-label');
+        const maskBtn = document.getElementById('active-qr-mask-btn');
+        if (codeEl) {
+            codeEl.textContent = '••••••••••••';
+            codeEl.style.letterSpacing = '2.5px';
+            codeEl.style.color = '#1e3a8a';
+        }
+        if (iconEl) iconEl.className = 'fa-solid fa-eye';
+        if (labelEl) labelEl.textContent = 'Voucher Code (Tap to reveal)';
+        if (maskBtn) {
+            maskBtn.style.background = '#eff6ff';
+            maskBtn.style.borderColor = '#bfdbfe';
+        }
+
         modal.style.display = 'flex';
+    };
+
+    window._isVoucherCodeUnmasked = false;
+    window.toggleActiveVoucherCodeMask = function () {
+        if (!currentActiveQrCode) return;
+        window._isVoucherCodeUnmasked = !window._isVoucherCodeUnmasked;
+        const codeEl = document.getElementById('active-qr-modal-code');
+        const iconEl = document.getElementById('active-qr-mask-icon');
+        const labelEl = document.getElementById('active-qr-mask-label');
+        const maskBtn = document.getElementById('active-qr-mask-btn');
+
+        if (window._isVoucherCodeUnmasked) {
+            if (codeEl) {
+                codeEl.textContent = currentActiveQrCode;
+                codeEl.style.letterSpacing = '1px';
+                codeEl.style.color = '#0284c7';
+            }
+            if (iconEl) iconEl.className = 'fa-solid fa-eye-slash';
+            if (labelEl) labelEl.textContent = 'Voucher Code (Tap to hide)';
+            if (maskBtn) {
+                maskBtn.style.background = '#dbeafe';
+                maskBtn.style.borderColor = '#93c5fd';
+            }
+        } else {
+            if (codeEl) {
+                codeEl.textContent = '••••••••••••';
+                codeEl.style.letterSpacing = '2.5px';
+                codeEl.style.color = '#1e3a8a';
+            }
+            if (iconEl) iconEl.className = 'fa-solid fa-eye';
+            if (labelEl) labelEl.textContent = 'Voucher Code (Tap to reveal)';
+            if (maskBtn) {
+                maskBtn.style.background = '#eff6ff';
+                maskBtn.style.borderColor = '#bfdbfe';
+            }
+        }
     };
 
     window.closeActiveVoucherQrModal = function () {
         stopActiveQrSync();
+        window._isVoucherCodeUnmasked = false;
         const modal = document.getElementById('active-voucher-qr-modal');
         if (modal) modal.style.display = 'none';
     };
@@ -1734,10 +1771,29 @@ $activeTab = 'profile';
                         style="width:100%; height:100%; object-fit:contain;">
                 </div>
 
-                <!-- Verified Digital Pass Information (Code hidden & protected) -->
-                <div style="background:#ffffff; border:1px solid #bfdbfe; border-radius:14px; padding:10px 14px; margin-bottom:12px; box-shadow:0 2px 8px rgba(30,58,138,0.06); display:flex; align-items:center; justify-content:center; gap:8px;">
-                    <i class="fa-solid fa-shield-halved" style="color:#10b981; font-size:13px;"></i>
-                    <span style="font-size:11.5px; font-weight:800; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.8px;">Verified Digital QR Pass</span>
+                <!-- Verified Digital Pass Badge -->
+                <div style="display:flex; align-items:center; justify-content:center; margin-bottom:10px;">
+                    <span style="display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:100px; font-size:10.5px; font-weight:800; background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; text-transform:uppercase; letter-spacing:0.6px;">
+                        <i class="fa-solid fa-shield-halved" style="color:#10b981; font-size:11px;"></i> Verified Digital QR Pass
+                    </span>
+                </div>
+
+                <!-- Clickable Masked Code Container (Tap to Unmask/Mask) -->
+                <div id="active-qr-mask-container" onclick="window.toggleActiveVoucherCodeMask()" role="button" tabindex="0" title="Tap to reveal or hide voucher code"
+                    style="background:#ffffff; border:1.5px solid #bfdbfe; border-radius:14px; padding:10px 14px; margin-bottom:12px; box-shadow:0 2px 8px rgba(30,58,138,0.06); display:flex; align-items:center; justify-content:space-between; gap:10px; cursor:pointer; user-select:none; transition:all 0.2s ease;"
+                    onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <div style="text-align:left; min-width:0; flex:1;">
+                        <div style="font-size:9.5px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; display:flex; align-items:center; gap:5px; margin-bottom:2px;">
+                            <i class="fa-solid fa-key" style="color:#0284c7; font-size:10px;"></i>
+                            <span id="active-qr-mask-label">Voucher Code (Tap to reveal)</span>
+                        </div>
+                        <div id="active-qr-modal-code" style="font-size:16px; font-weight:900; color:#1e3a8a; letter-spacing:2.5px; font-family:monospace; word-break:break-all;">
+                            ••••••••••••
+                        </div>
+                    </div>
+                    <div id="active-qr-mask-btn" style="background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; transition:all 0.15s ease;">
+                        <i class="fa-solid fa-eye" id="active-qr-mask-icon" style="color:#1e3a8a;"></i>
+                    </div>
                 </div>
 
                 <p id="active-qr-notice" style="margin:8px 0 0 0; font-size:11.5px; color:#64748b; line-height:1.45;">

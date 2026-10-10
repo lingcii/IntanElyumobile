@@ -176,10 +176,29 @@ $backRoute = 'profile';
                     <img id="modal-qr-img" src="" alt="Voucher QR Code" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'">
                 </div>
                 
-                <!-- Verified Digital Pass Information (Code hidden & protected) -->
-                <div style="background: #ffffff; border: 1px solid #bfdbfe; border-radius: 14px; padding: 10px 14px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(30,58,138,0.06); display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    <i class="fa-solid fa-shield-halved" style="color: #10b981; font-size: 13px;"></i>
-                    <span style="font-size: 11.5px; font-weight: 800; color: #1e3a8a; text-transform: uppercase; letter-spacing: 0.8px;">Verified Digital QR Pass</span>
+                <!-- Verified Digital Pass Badge -->
+                <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+                    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 100px; font-size: 10.5px; font-weight: 800; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; text-transform: uppercase; letter-spacing: 0.6px;">
+                        <i class="fa-solid fa-shield-halved" style="color: #10b981; font-size: 11px;"></i> Verified Digital QR Pass
+                    </span>
+                </div>
+
+                <!-- Clickable Masked Code Container (Tap to Unmask/Mask) -->
+                <div id="modal-qr-mask-container" onclick="window.toggleDiscountVoucherCodeMask()" role="button" tabindex="0" title="Tap to reveal or hide voucher code"
+                    style="background: #ffffff; border: 1.5px solid #bfdbfe; border-radius: 14px; padding: 10px 14px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(30,58,138,0.06); display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; user-select: none; transition: all 0.2s ease;"
+                    onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <div style="text-align: left; min-width: 0; flex: 1;">
+                        <div style="font-size: 9.5px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 5px; margin-bottom: 2px;">
+                            <i class="fa-solid fa-key" style="color: #0284c7; font-size: 10px;"></i>
+                            <span id="modal-qr-mask-label">Voucher Code (Tap to reveal)</span>
+                        </div>
+                        <div id="modal-qr-mask-code" style="font-size: 16px; font-weight: 900; color: #1e3a8a; letter-spacing: 2.5px; font-family: monospace; word-break: break-all;">
+                            ••••••••••••
+                        </div>
+                    </div>
+                    <div id="modal-qr-mask-btn" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; transition: all 0.15s ease;">
+                        <i class="fa-solid fa-eye" id="modal-qr-mask-icon" style="color: #1e3a8a;"></i>
+                    </div>
                 </div>
 
                 <p style="margin: 8px 0 0 0; font-size: 11.5px; color: #64748b; line-height: 1.45;">
@@ -1118,6 +1137,24 @@ function openVoucherModal(id) {
         const isRedeemedOnWeb = isVoucherRedeemed(item);
         if (claimedBox) {
             claimedBox.style.display = 'block';
+            window._currentDiscountClaimCode = claimCode;
+            window._isDiscountCodeUnmasked = false;
+            const codeEl = document.getElementById('modal-qr-mask-code');
+            const iconEl = document.getElementById('modal-qr-mask-icon');
+            const labelEl = document.getElementById('modal-qr-mask-label');
+            const maskBtn = document.getElementById('modal-qr-mask-btn');
+            if (codeEl) {
+                codeEl.textContent = '••••••••••••';
+                codeEl.style.letterSpacing = '2.5px';
+                codeEl.style.color = '#1e3a8a';
+            }
+            if (iconEl) iconEl.className = 'fa-solid fa-eye';
+            if (labelEl) labelEl.textContent = 'Voucher Code (Tap to reveal)';
+            if (maskBtn) {
+                maskBtn.style.background = '#eff6ff';
+                maskBtn.style.borderColor = '#bfdbfe';
+            }
+
             const qrImg = document.getElementById('modal-qr-img');
             if (qrImg) {
                 qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(claimCode)}`;
@@ -1182,6 +1219,7 @@ function openVoucherModal(id) {
 
 function closeVoucherModal() {
     stopLiveRedemptionSync();
+    window._isDiscountCodeUnmasked = false;
     const btn = document.getElementById('modal-redeem-btn');
     if (btn) {
         btn.disabled = false;
@@ -1198,6 +1236,43 @@ function closeVoucherModal() {
         }, 300);
     }
 }
+
+window._currentDiscountClaimCode = '';
+window._isDiscountCodeUnmasked = false;
+window.toggleDiscountVoucherCodeMask = function () {
+    if (!window._currentDiscountClaimCode) return;
+    window._isDiscountCodeUnmasked = !window._isDiscountCodeUnmasked;
+    const codeEl = document.getElementById('modal-qr-mask-code');
+    const iconEl = document.getElementById('modal-qr-mask-icon');
+    const labelEl = document.getElementById('modal-qr-mask-label');
+    const maskBtn = document.getElementById('modal-qr-mask-btn');
+
+    if (window._isDiscountCodeUnmasked) {
+        if (codeEl) {
+            codeEl.textContent = window._currentDiscountClaimCode;
+            codeEl.style.letterSpacing = '1px';
+            codeEl.style.color = '#0284c7';
+        }
+        if (iconEl) iconEl.className = 'fa-solid fa-eye-slash';
+        if (labelEl) labelEl.textContent = 'Voucher Code (Tap to hide)';
+        if (maskBtn) {
+            maskBtn.style.background = '#dbeafe';
+            maskBtn.style.borderColor = '#93c5fd';
+        }
+    } else {
+        if (codeEl) {
+            codeEl.textContent = '••••••••••••';
+            codeEl.style.letterSpacing = '2.5px';
+            codeEl.style.color = '#1e3a8a';
+        }
+        if (iconEl) iconEl.className = 'fa-solid fa-eye';
+        if (labelEl) labelEl.textContent = 'Voucher Code (Tap to reveal)';
+        if (maskBtn) {
+            maskBtn.style.background = '#eff6ff';
+            maskBtn.style.borderColor = '#bfdbfe';
+        }
+    }
+};
 
 function copyVoucherCode() {
     if (typeof showToast === 'function') {
@@ -1334,6 +1409,24 @@ async function handleModalRedeem() {
             const claimedBox = document.getElementById('modal-claimed-box');
             if (claimedBox) {
                 claimedBox.style.display = 'block';
+                window._currentDiscountClaimCode = claimCode;
+                window._isDiscountCodeUnmasked = false;
+                const codeEl = document.getElementById('modal-qr-mask-code');
+                const iconEl = document.getElementById('modal-qr-mask-icon');
+                const labelEl = document.getElementById('modal-qr-mask-label');
+                const maskBtn = document.getElementById('modal-qr-mask-btn');
+                if (codeEl) {
+                    codeEl.textContent = '••••••••••••';
+                    codeEl.style.letterSpacing = '2.5px';
+                    codeEl.style.color = '#1e3a8a';
+                }
+                if (iconEl) iconEl.className = 'fa-solid fa-eye';
+                if (labelEl) labelEl.textContent = 'Voucher Code (Tap to reveal)';
+                if (maskBtn) {
+                    maskBtn.style.background = '#eff6ff';
+                    maskBtn.style.borderColor = '#bfdbfe';
+                }
+
                 const qrImg = document.getElementById('modal-qr-img');
                 if (qrImg) {
                     qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(claimCode)}`;
