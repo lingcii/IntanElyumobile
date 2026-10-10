@@ -894,6 +894,12 @@
                 localStorage.removeItem('intan_elyu_remember_me');
             }
 
+            // Clear legacy unscoped voucher caches from previous session
+            try {
+                localStorage.removeItem('intan_elyu_claimed_vouchers');
+                localStorage.removeItem('intan_elyu_cached_vouchers');
+            } catch (e) { }
+
             localStorage.setItem('auth_user', JSON.stringify(data.user));
             localStorage.setItem('intan_elyu_token', data.token);
 
@@ -1213,6 +1219,8 @@
                 try {
                     localStorage.removeItem('intan_elyu_token');
                     localStorage.removeItem('auth_user');
+                    localStorage.removeItem('intan_elyu_claimed_vouchers');
+                    localStorage.removeItem('intan_elyu_cached_vouchers');
                 } catch (e) { }
 
                 sessionStorage.setItem('show_onboarding', '1');
@@ -1358,6 +1366,10 @@
                 }
 
                 window._pending2FALogin = null;
+                try {
+                    localStorage.removeItem('intan_elyu_claimed_vouchers');
+                    localStorage.removeItem('intan_elyu_cached_vouchers');
+                } catch (e) { }
                 localStorage.setItem('auth_user', JSON.stringify(data.user));
                 localStorage.setItem('intan_elyu_token', data.token);
 

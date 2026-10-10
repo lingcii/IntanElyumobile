@@ -437,9 +437,41 @@ $backRoute = 'dashboard';
 
         window.confirmSignOut = function () {
             if (confirm('Are you sure you want to sign out of your account?')) {
-                localStorage.removeItem('intan_elyu_token');
-                localStorage.removeItem('Intan_Elyu_Token');
-                localStorage.removeItem('auth_user');
+                try {
+                    const keysToRemove = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const k = localStorage.key(i);
+                        if (!k) continue;
+                        if (
+                            k.startsWith('intan_elyu_claimed_vouchers') ||
+                            k.startsWith('intan_elyu_cached_vouchers') ||
+                            k.startsWith('profile_data_') ||
+                            k.startsWith('dashboard_data_') ||
+                            k.startsWith('dashboard_trips_') ||
+                            k.startsWith('saved_trips_') ||
+                            k.startsWith('saved_places_') ||
+                            k.startsWith('leaderboard_data_') ||
+                            k.startsWith('intan_cache_') ||
+                            k === 'intan_elyu_token' ||
+                            k === 'Intan_Elyu_Token' ||
+                            k === 'auth_user'
+                        ) {
+                            keysToRemove.push(k);
+                        }
+                    }
+                    keysToRemove.forEach(k => localStorage.removeItem(k));
+                } catch (e) {
+                    localStorage.removeItem('intan_elyu_token');
+                    localStorage.removeItem('Intan_Elyu_Token');
+                    localStorage.removeItem('auth_user');
+                    localStorage.removeItem('intan_elyu_claimed_vouchers');
+                    localStorage.removeItem('intan_elyu_cached_vouchers');
+                }
+
+                if (window._touristRedemptions) window._touristRedemptions = [];
+                if (window._cachedActiveVouchers) window._cachedActiveVouchers = [];
+                if (window._cachedHistoryVouchers) window._cachedHistoryVouchers = [];
+
                 if (typeof navigateTo === 'function') {
                     navigateTo('auth');
                 } else {

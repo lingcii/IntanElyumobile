@@ -452,9 +452,18 @@ $activeTab = 'profile';
         window._cachedActiveVouchers = activeVouchers;
         window._cachedHistoryVouchers = historyVouchers;
 
-        // Sync claimed vouchers IDs so deals catalog doesn't show them
+        // Sync claimed vouchers IDs scoped to this authenticated user
         try {
-            let claimedSet = new Set(JSON.parse(localStorage.getItem('intan_elyu_claimed_vouchers') || '[]'));
+            const uid = (function() {
+                try {
+                    const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    if (u && (u.id || u.user_id)) return String(u.id || u.user_id);
+                } catch(e) {}
+                const tok = localStorage.getItem('intan_elyu_token');
+                return (tok && tok.length > 10) ? 'tok_' + tok.substring(0, 12) : 'guest';
+            })();
+            const storageKey = 'intan_elyu_claimed_vouchers_' + uid;
+            let claimedSet = new Set();
             rawVouchers.forEach(v => {
                 if (v.voucher_id) {
                     claimedSet.add(v.voucher_id);
@@ -463,7 +472,8 @@ $activeTab = 'profile';
                 if (v.id) claimedSet.add(v.id);
                 if (v.voucher_code) claimedSet.add(v.voucher_code);
             });
-            localStorage.setItem('intan_elyu_claimed_vouchers', JSON.stringify(Array.from(claimedSet)));
+            localStorage.setItem(storageKey, JSON.stringify(Array.from(claimedSet)));
+            localStorage.removeItem('intan_elyu_claimed_vouchers');
         } catch (e) { }
 
         // Update header badges and buttons
@@ -535,10 +545,18 @@ $activeTab = 'profile';
         if (!catalogEl || !Array.isArray(allVouchers)) return;
         window._rawVouchersCatalog = allVouchers;
 
-        // Build set of claimed/redeemed voucher keys
+        // Build set of claimed/redeemed voucher keys scoped to current user
         let claimedSet = new Set();
         try {
-            const arr = JSON.parse(localStorage.getItem('intan_elyu_claimed_vouchers') || '[]');
+            const uid = (function() {
+                try {
+                    const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    if (u && (u.id || u.user_id)) return String(u.id || u.user_id);
+                } catch(e) {}
+                const tok = localStorage.getItem('intan_elyu_token');
+                return (tok && tok.length > 10) ? 'tok_' + tok.substring(0, 12) : 'guest';
+            })();
+            const arr = JSON.parse(localStorage.getItem('intan_elyu_claimed_vouchers_' + uid) || '[]');
             arr.forEach(id => claimedSet.add(String(id).toLowerCase()));
         } catch (e) { }
 
@@ -805,11 +823,21 @@ $activeTab = 'profile';
                 }
                 window.dashboardNeedsRefresh = true;
                 try {
-                    let claimed = JSON.parse(localStorage.getItem('intan_elyu_claimed_vouchers') || '[]');
+                    const uid = (function() {
+                        try {
+                            const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                            if (u && (u.id || u.user_id)) return String(u.id || u.user_id);
+                        } catch(e) {}
+                        const tok = localStorage.getItem('intan_elyu_token');
+                        return (tok && tok.length > 10) ? 'tok_' + tok.substring(0, 12) : 'guest';
+                    })();
+                    const storageKey = 'intan_elyu_claimed_vouchers_' + uid;
+                    let claimed = JSON.parse(localStorage.getItem(storageKey) || '[]');
                     const dbKey = 'db_' + voucherId;
                     if (!claimed.includes(dbKey)) claimed.push(dbKey);
-                    localStorage.setItem('intan_elyu_claimed_vouchers', JSON.stringify(claimed));
+                    localStorage.setItem(storageKey, JSON.stringify(claimed));
                     localStorage.removeItem('intan_elyu_cached_vouchers');
+                    localStorage.removeItem('intan_elyu_claimed_vouchers');
 
                     for (let i = localStorage.length - 1; i >= 0; i--) {
                         const k = localStorage.key(i);

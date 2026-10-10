@@ -40,7 +40,34 @@ $backRoute = 'profile';
         </div>
     </div>
 
-    <!-- Sliced Floating Droplists: Left = Category Deals | Right = Municipalities -->
+    <!-- Row 1: Voucher Status Dedicated Floating Droplist (All, Claimed, Redeemed, Fully Claimed, Expired) -->
+    <div id="floating-status-wrapper" style="position: relative; margin-bottom: 10px; z-index: 98;">
+        <!-- Floating Trigger Card -->
+        <div id="floating-status-trigger" onclick="toggleFloatingStatusDropdown(event)" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 16px; padding: 10px 14px; box-shadow: 0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div style="display: flex; align-items: center; gap: 9px; min-width: 0; flex: 1;">
+                <span id="floating-status-icon-wrap" style="width: 26px; height: 26px; border-radius: 8px; background: #eff6ff; color: #1d4ed8; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0;">
+                    <i id="floating-status-selected-icon" class="fa-solid fa-tags"></i>
+                </span>
+                <div style="display: flex; flex-direction: column; min-width: 0; text-align: left;">
+                    <span style="font-size: 9.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.1;">Voucher Status</span>
+                    <span id="floating-status-selected-label" style="font-size: 13px; font-weight: 800; color: #1e3a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25;">All Vouchers</span>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 8px;">
+                <span id="floating-status-selected-badge" style="font-size: 10.5px; font-weight: 800; background: #eff6ff; color: #1d4ed8; padding: 2px 8px; border-radius: 100px; border: 1px solid #bfdbfe;">0</span>
+                <i id="floating-status-chevron" class="fa-solid fa-chevron-down" style="color: #64748b; font-size: 10.5px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);"></i>
+            </div>
+        </div>
+
+        <!-- Floating Menu Panel (Elevated Floating Card) -->
+        <div id="floating-status-menu" class="hide-scrollbar" style="display: none; position: absolute; top: calc(100% + 8px); left: 0; width: 100%; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1.5px solid #cbd5e1; border-radius: 18px; box-shadow: 0 20px 40px -8px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(0, 0, 0, 0.06); padding: 6px; max-height: 330px; overflow-y: auto; z-index: 1000; opacity: 0; transform: translateY(-8px) scale(0.98); transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); box-sizing: border-box;">
+            <div id="floating-status-items-list" style="display: flex; flex-direction: column; gap: 4px;">
+                <!-- Populated dynamically: All Vouchers, Claimed Voucher, Redeemed Voucher, Fully Claimed Voucher, Expired Voucher -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 2: Sliced Floating Droplists: Left = Category Deals | Right = Municipalities -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; position: relative; z-index: 95;">
         <!-- Left: Category Deals Floating Drop List -->
         <div id="floating-cat-wrapper" style="position: relative; z-index: 1;">
@@ -243,12 +270,14 @@ $backRoute = 'profile';
 const VOUCHERS_CACHE_KEY = 'intan_elyu_cached_vouchers';
 const VOUCHERS_CACHE_TTL = 900000; // 15 mins
 
+let activeStatus = 'All';
 let activeCategory = 'All';
 let activeMunicipality = 'All';
 let searchQuery = '';
 let vouchersData = [];
 let currentVoucherId = null;
 let userPointsBalance = 0;
+let isStatusDropdownOpen = false;
 let isCatDropdownOpen = false;
 let isMuniDropdownOpen = false;
 
@@ -474,24 +503,77 @@ function clearVoucherSearch() {
     renderDiscounts();
 }
 
-function getClaimedVouchers() {
+function getAuthUserId() {
     try {
-        return JSON.parse(localStorage.getItem('intan_elyu_claimed_vouchers') || '[]');
+        const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
+        if (u && (u.id || u.user_id)) return String(u.id || u.user_id);
+    } catch(e) {}
+    const tok = localStorage.getItem('intan_elyu_token');
+    return (tok && tok.length > 10) ? 'tok_' + tok.substring(0, 12) : null;
+}
+
+function getClaimedVouchersKey() {
+    const uid = getAuthUserId();
+    return uid ? 'intan_elyu_claimed_vouchers_' + uid : 'intan_elyu_claimed_vouchers_guest';
+}
+
+function getClaimedVouchers() {
+    const uid = getAuthUserId();
+    if (!uid) return [];
+    try {
+        return JSON.parse(localStorage.getItem(getClaimedVouchersKey()) || '[]');
     } catch(e) {
         return [];
     }
 }
 
+function setClaimedVouchers(claimedArr) {
+    const uid = getAuthUserId();
+    if (!uid) return;
+    try {
+        localStorage.setItem(getClaimedVouchersKey(), JSON.stringify(Array.from(new Set(claimedArr))));
+        localStorage.removeItem('intan_elyu_claimed_vouchers'); // clear un-scoped legacy key
+    } catch(e) {}
+}
+
 function isVoucherRedeemed(v) {
     if (!v) return false;
-    const status = (v.redemptionStatus || v.status || '').toLowerCase();
-    return ['redeemed', 'used', 'completed', 'expired'].includes(status);
+    const rStatus = (v.redemptionStatus || '').toLowerCase();
+    return ['redeemed', 'used', 'completed'].includes(rStatus);
+}
+
+function isVoucherExpired(v) {
+    if (!v) return false;
+    if (v.is_expired === true) return true;
+    if (v.status && v.status.toLowerCase() === 'expired') return true;
+    if (v.expires) {
+        try {
+            return new Date(v.expires).getTime() < Date.now();
+        } catch(e) {}
+    }
+    return false;
+}
+
+function isVoucherFullyClaimed(v) {
+    if (!v) return false;
+    if (v.is_out_of_stock === true) return true;
+    if (v.remaining_quantity !== null && v.remaining_quantity !== undefined && v.remaining_quantity <= 0) return true;
+    return false;
+}
+
+function isVoucherClaimed(v) {
+    if (!v) return false;
+    const claimed = getClaimedVouchers();
+    if (claimed.includes(v.id)) return true;
+    if (v.dbId && (claimed.includes('db_' + v.dbId) || claimed.includes(String(v.dbId)))) return true;
+    if (v.redemptionStatus && ['claimed', 'redeemed', 'used'].includes(v.redemptionStatus.toLowerCase())) return true;
+    return false;
 }
 
 function updateClaimedBadge() {
     const claimed = getClaimedVouchers();
-    const activeClaimed = vouchersData.filter(v => claimed.includes(v.id) && !isVoucherRedeemed(v));
-    const historyClaimed = vouchersData.filter(v => claimed.includes(v.id) && isVoucherRedeemed(v));
+    const activeClaimed = vouchersData.filter(v => isVoucherClaimed(v) && !isVoucherRedeemed(v));
+    const historyClaimed = vouchersData.filter(v => isVoucherClaimed(v) && isVoucherRedeemed(v));
 
     const countEl = document.getElementById('claimed-count');
     const histEl = document.getElementById('history-count');
@@ -503,49 +585,84 @@ function updateClaimedBadge() {
     const optHistory = document.getElementById('opt-cat-history');
     if (optClaimed) optClaimed.textContent = `My Vouchers (${activeClaimed.length})`;
     if (optHistory) optHistory.textContent = `Voucher History (${historyClaimed.length})`;
+
+    if (typeof populateStatusDropdown === 'function') {
+        populateStatusDropdown();
+    }
 }
 
 function syncClaimedVouchersWithData() {
+    const uid = getAuthUserId();
+    if (!uid) {
+        setClaimedVouchers([]);
+        return;
+    }
+
     const redemptions = window._touristRedemptions || [];
-    let claimed = getClaimedVouchers();
+    let claimedSet = new Set(getClaimedVouchers());
+
+    // When redemptions from server have loaded:
+    if (window._hasFetchedRedemptions) {
+        if (redemptions.length === 0) {
+            claimedSet.clear();
+        }
+    }
+
     if (redemptions.length > 0 && vouchersData.length > 0) {
         redemptions.forEach(v => {
-            const match = vouchersData.find(item => 
-                item.code === v.voucher_code || 
-                (v.voucher_code && item.code && v.voucher_code.startsWith(item.code)) || 
-                (item.dbId && item.title === v.type)
-            );
+            const vId = v.voucher_id ? String(v.voucher_id) : null;
+            const vCode = v.voucher_code ? String(v.voucher_code).toUpperCase().trim() : '';
+            const vType = v.type ? String(v.type).toLowerCase().trim() : '';
+
+            // Match by voucher_id/dbId FIRST (guaranteed match), then code, then title
+            const match = vouchersData.find(item => {
+                if (vId && (String(item.dbId) === vId || item.id === 'db_' + vId || item.id === vId)) {
+                    return true;
+                }
+                const itemCode = item.code ? String(item.code).toUpperCase().trim() : '';
+                if (itemCode && vCode && (vCode === itemCode || vCode.startsWith(itemCode) || itemCode.startsWith(vCode))) {
+                    return true;
+                }
+                const itemTitle = item.title ? String(item.title).toLowerCase().trim() : '';
+                if (itemTitle && vType && (itemTitle === vType || itemTitle.includes(vType) || vType.includes(itemTitle))) {
+                    return true;
+                }
+                return false;
+            });
+
             if (match) {
                 if (v.voucher_code) match.code = v.voucher_code;
-                if (v.status) match.redemptionStatus = (v.status || '').toLowerCase();
+                match.redemptionStatus = (v.status || 'claimed').toLowerCase();
                 if (v.redeemed_at) match.redeemedAt = v.redeemed_at;
-                if (!claimed.includes(match.id)) {
-                    claimed.push(match.id);
+                claimedSet.add(match.id);
+                if (match.dbId) {
+                    claimedSet.add('db_' + match.dbId);
+                    claimedSet.add(String(match.dbId));
                 }
             } else if (v.voucher_code) {
                 const dynamicId = 'redeemed_' + (v.id || v.voucher_id || v.voucher_code);
-                if (!vouchersData.some(item => item.id === dynamicId || item.code === v.voucher_code)) {
+                if (!vouchersData.some(item => item.id === dynamicId || (item.code && item.code === v.voucher_code))) {
                     vouchersData.push({
                         id: dynamicId,
+                        dbId: v.voucher_id || null,
                         code: v.voucher_code,
-                        title: v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.type || 'Tourist Voucher')),
+                        title: v.type || 'Tourist Voucher',
                         partner: v.partner_establishment || 'Official Partner Merchant',
                         location: 'La Union',
-                        category: 'Food & Dining',
+                        category: v.category || 'Food & Dining',
                         badge: 'PROMO',
-                        pointsCost: 100,
-                        redemptionStatus: (v.status || 'active').toLowerCase(),
+                        pointsCost: v.points_cost || 100,
+                        redemptionStatus: (v.status || 'claimed').toLowerCase(),
                         redeemedAt: v.redeemed_at,
                         description: 'Official La Union tourist reward voucher.'
                     });
-                    if (!claimed.includes(dynamicId)) {
-                        claimed.push(dynamicId);
-                    }
                 }
+                claimedSet.add(dynamicId);
             }
         });
-        localStorage.setItem('intan_elyu_claimed_vouchers', JSON.stringify(claimed));
     }
+
+    setClaimedVouchers(Array.from(claimedSet));
 }
 
 async function fetchUserPointsAndRedemptions() {
@@ -568,6 +685,8 @@ async function fetchUserPointsAndRedemptions() {
         if (res.ok) {
             const data = await res.json();
             if (data.status === 'success') {
+                window._hasFetchedRedemptions = true;
+                window._touristRedemptions = Array.isArray(data.vouchers) ? data.vouchers : [];
                 userPointsBalance = (data.points !== undefined) ? data.points : (data.xp ?? 0);
                 const ptsBadge = document.getElementById('discount-user-pts');
                 if (ptsBadge) ptsBadge.textContent = `${userPointsBalance.toLocaleString()} Points`;
@@ -578,12 +697,11 @@ async function fetchUserPointsAndRedemptions() {
                     localStorage.setItem('auth_user', JSON.stringify(u));
                 } catch (e) { }
 
-                if (Array.isArray(data.vouchers)) {
-                    window._touristRedemptions = data.vouchers;
-                    syncClaimedVouchersWithData();
-                    updateClaimedBadge();
-                    renderDiscounts();
-                }
+                syncClaimedVouchersWithData();
+                updateClaimedBadge();
+                populateStatusDropdown();
+                populateCategoryDropdown();
+                renderDiscounts();
             }
         }
     } catch(e) {
@@ -609,32 +727,39 @@ function renderDiscounts() {
     const claimed = getClaimedVouchers();
     let filtered = [...vouchersData];
 
-    // 1. Category Filter & Claimed / Redeemed Separation
-    if (activeCategory === 'Claimed') {
-        // Show ONLY active/unredeemed claimed vouchers
-        filtered = filtered.filter(v => claimed.includes(v.id) && !isVoucherRedeemed(v));
-    } else if (activeCategory === 'History') {
-        // Show redeemed / used vouchers in history
-        filtered = filtered.filter(v => claimed.includes(v.id) && isVoucherRedeemed(v));
+    // 1. Status Filter (Dedicated Status Droplist)
+    if (activeStatus === 'Claimed') {
+        filtered = filtered.filter(v => isVoucherClaimed(v) && !isVoucherRedeemed(v));
+    } else if (activeStatus === 'Redeemed') {
+        filtered = filtered.filter(v => isVoucherClaimed(v) && isVoucherRedeemed(v));
+    } else if (activeStatus === 'Fully Claimed') {
+        filtered = filtered.filter(v => isVoucherFullyClaimed(v));
+    } else if (activeStatus === 'Expired') {
+        filtered = filtered.filter(v => isVoucherExpired(v));
     } else {
-        // Claimed and redeemed vouchers are excluded from All Deals and category browsing
-        filtered = filtered.filter(v => !claimed.includes(v.id) && !isVoucherRedeemed(v));
-
-        if (activeCategory === 'Upcoming') {
-            filtered = filtered.filter(v => (v.is_upcoming || (v.status && v.status.toLowerCase() === 'upcoming')) && !v.is_expired);
-        } else if (activeCategory === 'Mabanag Hall') {
-            filtered = filtered.filter(v => v.is_mabanag || (v.partner && v.partner.toLowerCase().includes('mabanag')) || (v.location && v.location.toLowerCase().includes('mabanag')));
-        } else if (activeCategory !== 'All') {
-            const targetCat = activeCategory.toLowerCase();
-            filtered = filtered.filter(v => {
-                if (!v.category) return false;
-                const c = v.category.toLowerCase();
-                return c === targetCat || c.includes(targetCat) || targetCat.includes(c);
-            });
-        }
+        // 'All': Exclude already claimed or redeemed deals from catalog browsing so user sees available deals to claim
+        filtered = filtered.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v));
     }
 
-    // 2. Municipality Filter
+    // 2. Category Filter
+    if (activeCategory === 'Claimed') {
+        filtered = filtered.filter(v => isVoucherClaimed(v) && !isVoucherRedeemed(v));
+    } else if (activeCategory === 'History') {
+        filtered = filtered.filter(v => isVoucherClaimed(v) && isVoucherRedeemed(v));
+    } else if (activeCategory === 'Upcoming') {
+        filtered = filtered.filter(v => (v.is_upcoming || (v.status && v.status.toLowerCase() === 'upcoming')) && !isVoucherExpired(v));
+    } else if (activeCategory === 'Mabanag Hall') {
+        filtered = filtered.filter(v => v.is_mabanag || (v.partner && v.partner.toLowerCase().includes('mabanag')) || (v.location && v.location.toLowerCase().includes('mabanag')));
+    } else if (activeCategory !== 'All') {
+        const targetCat = activeCategory.toLowerCase();
+        filtered = filtered.filter(v => {
+            if (!v.category) return false;
+            const c = v.category.toLowerCase();
+            return c === targetCat || c.includes(targetCat) || targetCat.includes(c);
+        });
+    }
+
+    // 3. Municipality Filter
     if (activeMunicipality !== 'All') {
         const targetMuni = activeMunicipality.toLowerCase();
         filtered = filtered.filter(v => {
@@ -645,7 +770,7 @@ function renderDiscounts() {
         });
     }
 
-    // 3. Search Filter
+    // 4. Search Filter
     if (searchQuery) {
         filtered = filtered.filter(v => {
             const haystack = `${v.title} ${v.partner} ${v.location} ${v.description} ${v.code} ${v.category}`.toLowerCase();
@@ -653,11 +778,11 @@ function renderDiscounts() {
         });
     }
 
-    // 4. Sort order for browsing:
-    if (activeCategory !== 'Claimed' && activeCategory !== 'History') {
+    // 5. Sort order for browsing:
+    if (activeStatus !== 'Claimed' && activeStatus !== 'Redeemed' && activeCategory !== 'Claimed' && activeCategory !== 'History') {
         filtered.sort((a, b) => {
-            const aExpired = (a.is_expired || a.status === 'expired') ? 2 : (a.is_out_of_stock ? 1 : 0);
-            const bExpired = (b.is_expired || b.status === 'expired') ? 2 : (b.is_out_of_stock ? 1 : 0);
+            const aExpired = (isVoucherExpired(a) || a.status === 'expired') ? 2 : (isVoucherFullyClaimed(a) ? 1 : 0);
+            const bExpired = (isVoucherExpired(b) || b.status === 'expired') ? 2 : (isVoucherFullyClaimed(b) ? 1 : 0);
             const aUpcoming = (a.is_upcoming || a.status === 'upcoming') ? 1 : 0;
             const bUpcoming = (b.is_upcoming || b.status === 'upcoming') ? 1 : 0;
 
@@ -672,12 +797,16 @@ function renderDiscounts() {
         let msg = 'No vouchers match your current filters.';
         if (vouchersData.length === 0) {
             msg = 'No discounts or vouchers are currently available. Check back soon for exciting deals!';
-        } else if (activeCategory === 'Claimed') {
+        } else if (activeStatus === 'Claimed' || activeCategory === 'Claimed') {
             msg = 'You have no active vouchers right now. Claim reward deals using your Explorer Points!';
-        } else if (activeCategory === 'History') {
-            msg = 'No redeemed voucher history yet. Used vouchers scanned at checkout will appear here.';
+        } else if (activeStatus === 'Redeemed' || activeCategory === 'History') {
+            msg = 'No redeemed voucher history yet. Vouchers scanned at checkout by partner merchants will appear here.';
+        } else if (activeStatus === 'Fully Claimed') {
+            msg = 'No fully claimed vouchers. All current partner promotions still have available slots!';
+        } else if (activeStatus === 'Expired') {
+            msg = 'No expired vouchers found. All promotions are currently active or upcoming!';
         } else if (activeCategory === 'All' && claimed.length > 0) {
-            msg = '🎉 You have claimed all available deals! Tap "My Vouchers" above to view your ready-to-use discounts.';
+            msg = '🎉 You have claimed all available deals! Select "Claimed Voucher" in Voucher Status above to view your ready-to-use discounts.';
         } else if (activeCategory === 'Mabanag Hall') {
             msg = 'No unredeemed vouchers for Mabanag Hall right now.';
         } else if (activeCategory === 'Upcoming') {
@@ -693,13 +822,13 @@ function renderDiscounts() {
 
     let html = '';
     filtered.forEach(v => {
-        const isClaimed = claimed.includes(v.id);
+        const isClaimed = isVoucherClaimed(v);
         const isRedeemed = isVoucherRedeemed(v);
         const imgUrl = getVoucherImageUrl(v);
         const expiryInfo = getExpiryInfo(v.expires, v.is_expired, v.is_upcoming, v.valid_from, v.valid_from_formatted, v.is_no_expiration, v.expiration_type);
-        const isCardExpired = v.is_expired || expiryInfo.isExpired;
+        const isCardExpired = isVoucherExpired(v) || expiryInfo.isExpired;
         const isCardUpcoming = !isCardExpired && (v.is_upcoming || expiryInfo.isUpcoming);
-        const isOutOfStock = v.is_out_of_stock || (v.remaining_quantity !== null && v.remaining_quantity <= 0);
+        const isOutOfStock = isVoucherFullyClaimed(v);
 
         let actionBtnHtml = '';
         if (isRedeemed) {
@@ -722,8 +851,8 @@ function renderDiscounts() {
             `;
         } else if (isOutOfStock) {
             actionBtnHtml = `
-                <button disabled style="background: #dc2626 !important; border: none !important; color: #ffffff !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: not-allowed;">
-                    Fully Claimed
+                <button disabled style="background: #ea580c !important; border: none !important; color: #ffffff !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: not-allowed;">
+                    <i class="fa-solid fa-ban" style="margin-right:4px;"></i> Fully Claimed
                 </button>
             `;
         } else if (isCardUpcoming) {
@@ -854,8 +983,7 @@ function openVoucherModal(id) {
     if (!item) return;
     currentVoucherId = id;
 
-    const claimed = getClaimedVouchers();
-    const isAlreadyClaimed = claimed.includes(id);
+    const isAlreadyClaimed = isVoucherClaimed(item) || isVoucherRedeemed(item);
 
     // Basic text
     document.getElementById('modal-title').textContent = item.title;
@@ -945,7 +1073,7 @@ function openVoucherModal(id) {
 
     if (isAlreadyClaimed) {
         const claimCode = item.code || 'ELYU-PROMO';
-        const isRedeemedOnWeb = (item.redemptionStatus || '').toLowerCase() === 'redeemed';
+        const isRedeemedOnWeb = isVoucherRedeemed(item);
         if (claimedBox) {
             claimedBox.style.display = 'block';
             const codeEl = document.getElementById('modal-code');
@@ -1121,8 +1249,13 @@ async function handleModalRedeem() {
     const item = vouchersData.find(v => v.id === currentVoucherId);
     if (!item) return;
 
+    if (isVoucherClaimed(item) || isVoucherRedeemed(item)) {
+        if (typeof showToast === 'function') showToast("You have already claimed this voucher. It is ready in your Claimed Vouchers list!");
+        return;
+    }
+
     const expiryInfo = getExpiryInfo(item.expires, item.is_expired, item.is_upcoming, item.valid_from, item.valid_from_formatted, item.is_no_expiration, item.expiration_type);
-    if (item.is_expired || expiryInfo.isExpired) {
+    if (isVoucherExpired(item) || expiryInfo.isExpired) {
         if (typeof showToast === 'function') showToast("This voucher has expired.");
         return;
     }
@@ -1132,7 +1265,7 @@ async function handleModalRedeem() {
         return;
     }
 
-    if (item.is_out_of_stock || (item.remaining_quantity !== null && item.remaining_quantity <= 0)) {
+    if (isVoucherFullyClaimed(item)) {
         if (typeof showToast === 'function') showToast("This voucher is fully claimed.");
         return;
     }
@@ -1178,12 +1311,15 @@ async function handleModalRedeem() {
                 window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
             }
 
-            // Save to claimed in localStorage
+            // Save to claimed in user-scoped storage
             let claimed = getClaimedVouchers();
-            if (!claimed.includes(item.id)) {
-                claimed.push(item.id);
-                localStorage.setItem('intan_elyu_claimed_vouchers', JSON.stringify(claimed));
+            if (!claimed.includes(item.id)) claimed.push(item.id);
+            if (item.dbId) {
+                if (!claimed.includes('db_' + item.dbId)) claimed.push('db_' + item.dbId);
+                if (!claimed.includes(String(item.dbId))) claimed.push(String(item.dbId));
             }
+            setClaimedVouchers(claimed);
+            item.redemptionStatus = 'claimed';
 
             // Update user's points
             let storedUser = null;
@@ -1506,6 +1642,167 @@ function populateMunicipalityDropdown() {
     if (triggerBadge && activeItem) triggerBadge.textContent = activeItem.count;
 }
 
+function closeFloatingStatus() {
+    isStatusDropdownOpen = false;
+    const menu = document.getElementById('floating-status-menu');
+    const chevron = document.getElementById('floating-status-chevron');
+    const trigger = document.getElementById('floating-status-trigger');
+    const wrapper = document.getElementById('floating-status-wrapper');
+    if (!menu) return;
+
+    menu.style.opacity = '0';
+    menu.style.transform = 'translateY(-8px) scale(0.98)';
+    menu.style.pointerEvents = 'none';
+    if (chevron) chevron.style.transform = 'rotate(0deg)';
+    if (trigger) {
+        trigger.style.borderColor = '#cbd5e1';
+        trigger.style.boxShadow = '0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05)';
+    }
+    if (wrapper) wrapper.style.zIndex = '98';
+    setTimeout(() => {
+        if (!isStatusDropdownOpen) {
+            menu.style.display = 'none';
+        }
+    }, 150);
+}
+
+function toggleFloatingStatusDropdown(e, forceClose = false) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    const menu = document.getElementById('floating-status-menu');
+    const chevron = document.getElementById('floating-status-chevron');
+    const trigger = document.getElementById('floating-status-trigger');
+    const wrapper = document.getElementById('floating-status-wrapper');
+    if (!menu) return;
+
+    if (forceClose === true || isStatusDropdownOpen) {
+        closeFloatingStatus();
+    } else {
+        closeFloatingCategory();
+        closeFloatingMunicipality();
+
+        isStatusDropdownOpen = true;
+        if (wrapper) wrapper.style.zIndex = '1002';
+        menu.style.display = 'block';
+        menu.style.pointerEvents = 'auto';
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+        if (trigger) {
+            trigger.style.borderColor = '#2563eb';
+            trigger.style.boxShadow = '0 12px 28px -4px rgba(37, 99, 235, 0.20), 0 4px 12px -2px rgba(37, 99, 235, 0.10)';
+        }
+        requestAnimationFrame(() => {
+            menu.style.opacity = '1';
+            menu.style.transform = 'translateY(0) scale(1)';
+        });
+    }
+}
+
+function selectFloatingStatus(statusVal, e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    closeFloatingStatus();
+    filterStatus(statusVal);
+}
+
+function filterStatus(statusVal) {
+    activeStatus = statusVal || 'All';
+    populateStatusDropdown();
+    renderDiscounts();
+}
+
+function populateStatusDropdown() {
+    const floatingList = document.getElementById('floating-status-items-list');
+    const claimed = getClaimedVouchers();
+
+    const countAll = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v) && !isVoucherExpired(v) && !isVoucherFullyClaimed(v)).length;
+    const countClaimed = vouchersData.filter(v => isVoucherClaimed(v) && !isVoucherRedeemed(v)).length;
+    const countRedeemed = vouchersData.filter(v => isVoucherClaimed(v) && isVoucherRedeemed(v)).length;
+    const countFullyClaimed = vouchersData.filter(v => isVoucherFullyClaimed(v)).length;
+    const countExpired = vouchersData.filter(v => isVoucherExpired(v)).length;
+
+    const statusList = [
+        {
+            value: 'All',
+            label: 'All Vouchers',
+            desc: 'Available reward deals to claim',
+            count: countAll,
+            icon: 'fa-solid fa-tags',
+            color: '#1d4ed8',
+            bgColor: '#eff6ff'
+        },
+        {
+            value: 'Claimed',
+            label: 'Claimed Voucher',
+            desc: 'Active & ready to scan at checkout',
+            count: countClaimed,
+            icon: 'fa-solid fa-ticket',
+            color: '#059669',
+            bgColor: '#ecfdf5'
+        },
+        {
+            value: 'Redeemed',
+            label: 'Redeemed Voucher',
+            desc: 'Used & verified at merchant store',
+            count: countRedeemed,
+            icon: 'fa-solid fa-check-double',
+            color: '#dc2626',
+            bgColor: '#fef2f2'
+        },
+        {
+            value: 'Fully Claimed',
+            label: 'Fully Claimed Voucher',
+            desc: 'All available stock slots claimed',
+            count: countFullyClaimed,
+            icon: 'fa-solid fa-ban',
+            color: '#ea580c',
+            bgColor: '#fff7ed'
+        },
+        {
+            value: 'Expired',
+            label: 'Expired Voucher',
+            desc: 'Promotion validity period ended',
+            count: countExpired,
+            icon: 'fa-regular fa-clock',
+            color: '#64748b',
+            bgColor: '#f1f5f9'
+        }
+    ];
+
+    if (floatingList) {
+        floatingList.innerHTML = statusList.map(s => {
+            const isSelected = activeStatus.toLowerCase() === s.value.toLowerCase();
+            return `
+                <div onclick="selectFloatingStatus('${s.value.replace(/'/g, "\\'")}', event)" role="button" tabindex="0" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 12px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1); ${isSelected ? 'background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; font-weight: 800; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);' : 'background: transparent; color: #1e293b; font-weight: 700;'}" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <div style="display: flex; align-items: center; gap: 10px; min-width: 0; pointer-events: none;">
+                        <span style="width: 28px; height: 28px; border-radius: 8px; ${isSelected ? 'background: rgba(255,255,255,0.2); color: #ffffff;' : 'background: ' + s.bgColor + '; color: ' + s.color + ';'} display: inline-flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0;">
+                            <i class="${s.icon}"></i>
+                        </span>
+                        <div style="display: flex; flex-direction: column; text-align: left; min-width: 0;">
+                            <span style="font-size: 13px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25;">${s.label}</span>
+                            <span style="font-size: 10px; font-weight: 600; ${isSelected ? 'color: rgba(255,255,255,0.85);' : 'color: #64748b;'} line-height: 1.2;">${s.desc}</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; pointer-events: none; margin-left: 8px;">
+                        <span style="font-size: 10.5px; font-weight: 800; padding: 2px 7px; border-radius: 100px; ${isSelected ? 'background: rgba(255, 255, 255, 0.22); color: #ffffff;' : 'background: #f1f5f9; color: #475569;'}">${s.count}</span>
+                        ${isSelected ? '<span style="font-size: 13px; font-weight: 900; line-height: 1;">✓</span>' : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    const currentItem = statusList.find(s => s.value.toLowerCase() === activeStatus.toLowerCase()) || statusList[0];
+    const triggerLabel = document.getElementById('floating-status-selected-label');
+    const triggerBadge = document.getElementById('floating-status-selected-badge');
+    const triggerIcon = document.getElementById('floating-status-selected-icon');
+    const triggerWrap = document.getElementById('floating-status-icon-wrap');
+    if (triggerLabel && currentItem) triggerLabel.textContent = currentItem.label;
+    if (triggerBadge && currentItem) triggerBadge.textContent = currentItem.count;
+    if (triggerIcon && currentItem) triggerIcon.className = currentItem.icon;
+    if (triggerWrap && currentItem) {
+        triggerWrap.style.background = currentItem.bgColor;
+        triggerWrap.style.color = currentItem.color;
+    }
+}
+
 function closeFloatingCategory() {
     isCatDropdownOpen = false;
     const menu = document.getElementById('floating-cat-menu');
@@ -1565,6 +1862,7 @@ function toggleFloatingCategoryDropdown(e, forceClose = false) {
     if (forceClose === true || isCatDropdownOpen) {
         closeFloatingCategory();
     } else {
+        closeFloatingStatus();
         closeFloatingMunicipality();
 
         isCatDropdownOpen = true;
@@ -1600,6 +1898,7 @@ function toggleFloatingMunicipalityDropdown(e, forceClose = false) {
     if (forceClose === true || isMuniDropdownOpen) {
         closeFloatingMunicipality();
     } else {
+        closeFloatingStatus();
         closeFloatingCategory();
 
         isMuniDropdownOpen = true;
@@ -1626,6 +1925,10 @@ function selectFloatingMunicipality(muniValue, e) {
 
 // Click outside listener to dismiss floating dropdowns
 document.addEventListener('click', function(e) {
+    const statusWrapper = document.getElementById('floating-status-wrapper');
+    if (isStatusDropdownOpen && statusWrapper && !statusWrapper.contains(e.target)) {
+        closeFloatingStatus();
+    }
     const catWrapper = document.getElementById('floating-cat-wrapper');
     if (isCatDropdownOpen && catWrapper && !catWrapper.contains(e.target)) {
         closeFloatingCategory();
@@ -1637,6 +1940,7 @@ document.addEventListener('click', function(e) {
 });
 
 // Expose global functions
+window.filterStatus = filterStatus;
 window.filterDiscounts = filterDiscounts;
 window.filterMunicipality = filterMunicipality;
 window.handleVoucherSearch = handleVoucherSearch;
@@ -1646,6 +1950,10 @@ window.closeVoucherModal = closeVoucherModal;
 window.copyVoucherCode = copyVoucherCode;
 window.handleModalRedeem = handleModalRedeem;
 window.renderDiscounts = renderDiscounts;
+window.toggleFloatingStatusDropdown = toggleFloatingStatusDropdown;
+window.selectFloatingStatus = selectFloatingStatus;
+window.closeFloatingStatus = closeFloatingStatus;
+window.populateStatusDropdown = populateStatusDropdown;
 window.toggleFloatingCategoryDropdown = toggleFloatingCategoryDropdown;
 window.selectFloatingCategory = selectFloatingCategory;
 window.toggleFloatingMunicipalityDropdown = toggleFloatingMunicipalityDropdown;
@@ -1656,6 +1964,7 @@ window.populateCategoryDropdown = populateCategoryDropdown;
 window.populateMunicipalityDropdown = populateMunicipalityDropdown;
 
 // Synchronously populate default dropdown items right away
+populateStatusDropdown();
 populateCategoryDropdown();
 populateMunicipalityDropdown();
 
