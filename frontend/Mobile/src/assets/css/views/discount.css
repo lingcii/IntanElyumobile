@@ -33,10 +33,11 @@ body[data-view="discount"] .mobile-header,
 .merch-page-container {
     width: 100%;
     min-height: 100vh;
-    padding-top: calc(max(env(safe-area-inset-top, 0px), 40px) + 64px) !important;
-    padding-left: 16px !important;
-    padding-right: 16px !important;
-    padding-bottom: 50px !important;
+    min-height: 100dvh;
+    padding-top: var(--page-top-padding, calc(max(env(safe-area-inset-top, 0px), 36px) + 52px)) !important;
+    padding-left: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
+    padding-right: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
+    padding-bottom: var(--page-bottom-padding, calc(max(18px, env(safe-area-inset-bottom, 18px)) + 82px)) !important;
     background: #ffffff !important;
     background-color: #ffffff !important;
     color: #0f172a !important;
@@ -49,11 +50,11 @@ body[data-view="discount"] .mobile-header,
     background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
     border: none !important;
     outline: none !important;
-    border-radius: 24px;
-    padding: 24px;
+    border-radius: clamp(18px, 4.5vw, 24px);
+    padding: clamp(16px, 3vh, 24px) clamp(14px, 4vw, 20px);
     text-align: center;
     margin-top: 0 !important;
-    margin-bottom: 20px;
+    margin-bottom: clamp(12px, 2vh, 18px);
     box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
     color: #ffffff !important;
 }

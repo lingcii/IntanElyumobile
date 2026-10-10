@@ -508,18 +508,20 @@ $activeTab = 'profile';
                                 <span style="font-size: 13.5px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px;">${voucherTitle}</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <code style="font-size: 12.5px; font-weight: 900; color: #1e3a8a; letter-spacing: 0.5px; background: #ffffff !important; border: none !important; padding: 4px 10px; border-radius: 8px; font-family: monospace; box-shadow: 0 1px 4px rgba(0,0,0,0.12);">${v.voucher_code}</code>
-                                <button type="button" onclick="event.stopPropagation(); window.copyVoucherCodeToClipboard('${safeCode}')" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a; padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
-                                    <i class="fa-solid fa-copy" style="color: #1e3a8a;"></i> Copy
-                                </button>
+                                <span style="font-size: 12px; font-weight: 900; color: #ffffff; background: rgba(255, 255, 255, 0.16); border: 1px dashed rgba(255, 255, 255, 0.35); padding: 4px 10px; border-radius: 8px; font-family: monospace; letter-spacing: 2px; display: inline-flex; align-items: center; gap: 5px;">
+                                    <i class="fa-solid fa-lock" style="font-size: 9.5px; color: #00f2fe; letter-spacing: 0;"></i> ••••••••••••
+                                </span>
+                                <span style="font-size: 11px; font-weight: 700; color: #00f2fe; display: inline-flex; align-items: center; gap: 4px;">
+                                    <i class="fa-solid fa-eye-slash" style="font-size: 10px;"></i> Tap to view
+                                </span>
                             </div>
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
                             <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #ffffff !important; background: #10b981 !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.18);">
                                 <i class="fa-solid fa-check" style="margin-right: 4px; color: #ffffff !important;"></i>Claimed
                             </span>
-                            <div style="font-size: 10.5px; font-weight: 700; color: #00f2fe; display: flex; align-items: center; gap: 4px;">
-                                <i class="fa-solid fa-qrcode"></i> Show QR
+                            <div style="font-size: 10.5px; font-weight: 800; color: #ffffff; background: rgba(0, 242, 254, 0.22); border: 1px solid rgba(0, 242, 254, 0.45); padding: 3px 9px; border-radius: 8px; display: flex; align-items: center; gap: 4px;">
+                                <i class="fa-solid fa-qrcode" style="color: #00f2fe;"></i> Show QR & Code
                             </div>
                         </div>
                     </div>`;
@@ -792,6 +794,13 @@ $activeTab = 'profile';
     }
 
     window.redeemAdminVoucher = async function (voucherId, cost, title) {
+        if (!navigator.onLine) {
+            if (typeof showToast === 'function') {
+                showToast("📍 Voucher claiming requires an active internet connection to generate your live QR claim code.");
+            }
+            return;
+        }
+
         const token = localStorage.getItem('intan_elyu_token');
         if (!token) return;
 
@@ -857,6 +866,13 @@ $activeTab = 'profile';
     };
 
     window.redeemReward = async function (type, cost) {
+        if (!navigator.onLine) {
+            if (typeof showToast === 'function') {
+                showToast("📍 Voucher claiming requires an active internet connection to generate your live QR claim code.");
+            }
+            return;
+        }
+
         const token = localStorage.getItem('intan_elyu_token');
         if (!token) return;
 
@@ -1160,11 +1176,10 @@ $activeTab = 'profile';
                 const voucherTitle = v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.type || 'Tourist Voucher'));
                 const safeCode = (v.voucher_code || '').replace(/'/g, "\\'");
                 const createdDate = v.created_at ? new Date(v.created_at).toLocaleDateString() : '';
-                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(v.voucher_code)}`;
 
                 html += `
-                <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 18px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.25); cursor: pointer; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 18px; padding: 15px 16px; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.25); cursor: pointer; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                         <div>
                             <div style="font-size: 10px; font-weight: 800; color: #00f2fe; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Active Voucher #${idx + 1}</div>
                             <strong style="color: #ffffff; font-size: 15px; font-weight: 800; line-height: 1.3;">${voucherTitle}</strong>
@@ -1174,24 +1189,22 @@ $activeTab = 'profile';
                         </span>
                     </div>
 
-                    <!-- QR Code Display Box -->
-                    <div style="background: #ffffff !important; border-radius: 14px; padding: 10px; width: 140px; height: 140px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: relative;">
-                        <img src="${qrUrl}" alt="Voucher QR Code" style="width: 100%; height: 100%; object-fit: contain;">
-                    </div>
-
-                    <div style="background: #ffffff !important; border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px;">
+                    <!-- Protected Code Bar (Hidden until tapped) -->
+                    <div style="background: rgba(255, 255, 255, 0.14) !important; border: 1.5px dashed rgba(255, 255, 255, 0.35) !important; border-radius: 14px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px;">
                         <div>
-                            <div style="font-size: 9.5px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Claim Code</div>
-                            <code style="font-size: 14px; font-weight: 900; color: #1e3a8a; letter-spacing: 1px; font-family: monospace;">${v.voucher_code}</code>
+                            <div style="font-size: 9.5px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 4px;">
+                                <i class="fa-solid fa-lock" style="color: #00f2fe; font-size: 9.5px;"></i> Voucher Code Protected
+                            </div>
+                            <div style="font-size: 13.5px; font-weight: 900; color: #ffffff; letter-spacing: 3px; font-family: monospace; margin-top: 2px;">••••••••••••</div>
                         </div>
-                        <button type="button" onclick="event.stopPropagation(); window.copyVoucherCodeToClipboard('${safeCode}')" style="background: #1e3a8a !important; color: #ffffff !important; border: none !important; outline: none !important; padding: 7px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                            <i class="fa-solid fa-copy" style="color: #ffffff;"></i> Copy
-                        </button>
+                        <div style="background: #ffffff !important; color: #1e3a8a !important; border: none !important; outline: none !important; padding: 7px 13px; border-radius: 9px; font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.12);">
+                            <i class="fa-solid fa-eye" style="color: #1e3a8a;"></i> View Pass
+                        </div>
                     </div>
 
                     <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #e2e8f0; font-weight: 600;">
                         ${createdDate ? `<span><i class="fa-regular fa-calendar" style="color: #00f2fe; margin-right: 4px;"></i>Claimed: ${createdDate}</span>` : '<span></span>'}
-                        <span style="color: #00f2fe; font-size: 11px; font-weight: 800;"><i class="fa-solid fa-qrcode" style="margin-right: 3px;"></i>Tap for QR Pass</span>
+                        <span style="color: #00f2fe; font-size: 11px; font-weight: 800;"><i class="fa-solid fa-qrcode" style="margin-right: 3px;"></i>Tap to open QR & Code</span>
                     </div>
                 </div>`;
             });
@@ -1346,13 +1359,16 @@ $activeTab = 'profile';
         const label = document.getElementById('active-qr-copy-label');
         const icon = document.getElementById('active-qr-copy-icon');
         if (btn) {
-            btn.style.background = '#ffffff';
-            btn.style.borderColor = '#bfdbfe';
-            btn.style.color = '#1e3a8a';
+            btn.style.background = '#1e3a8a';
+            btn.style.borderColor = 'transparent';
+            btn.style.color = '#ffffff';
             btn.disabled = false;
         }
         if (label) label.textContent = 'Copy Voucher Code';
-        if (icon) icon.className = 'fa-solid fa-copy';
+        if (icon) {
+            icon.className = 'fa-solid fa-copy';
+            icon.style.color = '#ffffff';
+        }
 
         const statusLower = (voucher.status || '').toLowerCase();
         const isRedeemed = statusLower === 'redeemed' || statusLower === 'used';
@@ -1407,21 +1423,27 @@ $activeTab = 'profile';
 
         const showSuccess = () => {
             if (label) label.textContent = 'Code Copied!';
-            if (icon) icon.className = 'fa-solid fa-check';
+            if (icon) {
+                icon.className = 'fa-solid fa-check';
+                icon.style.color = '#ffffff';
+            }
             if (btn) {
-                btn.style.background = '#dcfce7';
-                btn.style.borderColor = '#86efac';
-                btn.style.color = '#15803d';
+                btn.style.background = '#10b981';
+                btn.style.borderColor = 'transparent';
+                btn.style.color = '#ffffff';
             }
             if (typeof showToast === 'function') showToast("Voucher code copied to clipboard!");
 
             setTimeout(() => {
                 if (label) label.textContent = 'Copy Voucher Code';
-                if (icon) icon.className = 'fa-solid fa-copy';
+                if (icon) {
+                    icon.className = 'fa-solid fa-copy';
+                    icon.style.color = '#ffffff';
+                }
                 if (btn) {
-                    btn.style.background = '#ffffff';
-                    btn.style.borderColor = '#bfdbfe';
-                    btn.style.color = '#1e3a8a';
+                    btn.style.background = '#1e3a8a';
+                    btn.style.borderColor = 'transparent';
+                    btn.style.color = '#ffffff';
                 }
             }, 2500);
         };
@@ -1430,8 +1452,32 @@ $activeTab = 'profile';
             window.copyToClipboard(currentActiveQrCode, showSuccess, () => {
                 if (typeof showToast === 'function') showToast("Code: " + currentActiveQrCode);
             });
+        } else if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(currentActiveQrCode).then(showSuccess).catch(() => {
+                if (typeof showToast === 'function') showToast("Code: " + currentActiveQrCode);
+            });
         } else {
             window.copyVoucherCodeToClipboard(currentActiveQrCode);
+            showSuccess();
+        }
+    };
+
+    window.copyVoucherCodeToClipboard = function (code) {
+        if (!code) return;
+        if (typeof window.copyToClipboard === 'function') {
+            window.copyToClipboard(code, () => {
+                if (typeof showToast === 'function') showToast("Voucher code copied!");
+            }, () => {
+                if (typeof showToast === 'function') showToast("Code: " + code);
+            });
+        } else if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(code).then(() => {
+                if (typeof showToast === 'function') showToast("Voucher code copied!");
+            }).catch(() => {
+                if (typeof showToast === 'function') showToast("Code: " + code);
+            });
+        } else {
+            if (typeof showToast === 'function') showToast("Code: " + code);
         }
     };
 
@@ -1440,6 +1486,7 @@ $activeTab = 'profile';
         if (!code) return;
 
         const check = async () => {
+            if (!navigator.onLine) return; // Ambient check: pause polling while offline
             try {
                 const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
                 const res = await fetch(`${baseUrl}/api/public/redemptions/${encodeURIComponent(code)}/status`, {
@@ -1542,7 +1589,14 @@ $activeTab = 'profile';
             return;
         }
 
-        // If not in cache, fetch directly
+        // If not in cache, check connectivity before fetching
+        if (!navigator.onLine) {
+            if (typeof showToast === 'function') {
+                showToast("Trip details are unavailable offline until connection is restored.");
+            }
+            return;
+        }
+
         const token = localStorage.getItem('intan_elyu_token');
         if (tripId && token && typeof backendUrl !== 'undefined') {
             fetch(`${backendUrl}/api/tourist/itineraries/${tripId}`, {
@@ -1579,6 +1633,12 @@ $activeTab = 'profile';
             window.renderProfileBio(u.bio);
             window.renderProfilePreferences(u.travel_preferences);
         }
+    });
+
+    // Ambient automatic reconnect listener - quietly syncs profile & vouchers when network restores
+    window.addEventListener('online', function () {
+        if (typeof fetchProfileData === 'function') fetchProfileData(true);
+        if (typeof fetchPointsAndVouchers === 'function') fetchPointsAndVouchers();
     });
 
     // Real-time re-hydration when returning to Profile view
@@ -1755,22 +1815,21 @@ $activeTab = 'profile';
                         style="width:100%; height:100%; object-fit:contain;">
                 </div>
 
-                <!-- Codes Information -->
-                <div style="display:flex; justify-content:center; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
-                    <span
-                        style="font-size:11px; background:#ffffff; padding:4px 10px; border-radius:8px; color:#64748b; font-weight:700; border:1px solid #e2e8f0;">
-                        Promo: <strong id="active-qr-modal-promo-code" style="color:#1e3a8a;">INTAN-ELYU</strong>
-                    </span>
-                    <span
-                        style="font-size:11px; background:#ffffff; padding:4px 10px; border-radius:8px; color:#64748b; font-weight:700; border:1px solid #e2e8f0;">
-                        Claim Pass: <strong id="active-qr-modal-code"
-                            style="color:#0284c7; font-family:monospace;">INTAN-XXXX-XXXX</strong>
-                    </span>
+                <!-- Revealed Codes Information -->
+                <div style="background:#ffffff; border:1.5px solid #bfdbfe; border-radius:14px; padding:12px 14px; margin-bottom:12px; box-shadow:0 2px 8px rgba(30,58,138,0.06);">
+                    <div style="font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; display:flex; align-items:center; justify-content:center; gap:5px;">
+                        <i class="fa-solid fa-key" style="color:#0284c7; font-size:10.5px;"></i> Revealed Voucher Code
+                    </div>
+                    <div style="font-size:17px; font-weight:900; color:#1e3a8a; letter-spacing:1px; font-family:monospace; user-select:all; padding:2px 0;" id="active-qr-modal-code">INTAN-XXXX-XXXX</div>
+                    <div style="font-size:11px; color:#64748b; font-weight:700; margin-top:4px;">
+                        Promo Series: <strong id="active-qr-modal-promo-code" style="color:#0284c7;">INTAN-ELYU</strong>
+                    </div>
                 </div>
 
                 <button id="btn-copy-active-qr" onclick="copyCurrentActiveQrCode()"
-                    style="background:#ffffff !important; border:1px solid #bfdbfe !important; color:#1e3a8a !important; padding:9px 18px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(0,0,0,0.05); transition:all 0.2s ease;">
-                    <i class="fa-solid fa-copy" id="active-qr-copy-icon" style="color:#1e3a8a !important;"></i>
+                    style="background:#1e3a8a !important; border:none !important; color:#ffffff !important; padding:10px 20px; border-radius:12px; font-weight:800; font-size:12.5px; cursor:pointer; display:inline-flex; align-items:center; gap:7px; box-shadow:0 3px 10px rgba(30,58,138,0.25); transition:all 0.2s ease;"
+                    onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-copy" id="active-qr-copy-icon" style="color:#ffffff !important;"></i>
                     <span id="active-qr-copy-label">Copy Voucher Code</span>
                 </button>
 

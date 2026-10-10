@@ -92,7 +92,18 @@ if (is_dir($imgDir)) {
                         renderSavedPlaces((spots || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending'));
                     } else {
                         const list = document.getElementById('saved-places-list');
-                        if (list) list.innerHTML = '<p style="text-align:center; color:#94a3b8; margin-top:20px;">Failed to load saved places.</p>';
+                        if (list) {
+                            if (!navigator.onLine) {
+                                list.innerHTML = `
+                                <div class="dash-empty-state" style="margin-top:24px;">
+                                    <div class="dash-empty-icon-wrap" style="background:#ffffff; color:#f59e0b;"><i class="fa-solid fa-cloud-slash"></i></div>
+                                    <div class="dash-empty-title">Saved Places Offline</div>
+                                    <div class="dash-empty-desc">Your bookmarked destinations will update automatically once reconnected.</div>
+                                </div>`;
+                            } else {
+                                list.innerHTML = '<p style="text-align:center; color:#94a3b8; margin-top:20px;">Failed to load saved places.</p>';
+                            }
+                        }
                         updateScrollviewState();
                     }
                 },
@@ -204,6 +215,10 @@ if (is_dir($imgDir)) {
                 console.error('Failed to view destination:', e);
             }
         };
+
+        window.addEventListener('online', function () {
+            fetchSavedPlaces(true);
+        });
 
         fetchSavedPlaces();
     })();

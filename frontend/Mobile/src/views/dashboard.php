@@ -729,6 +729,18 @@ if (is_dir($imgDir)) {
                     return await res.json();
                 },
                 (data) => {
+                    // Check fallback if data is missing or offline
+                    if (!data || !data.destinations) {
+                        try {
+                            const fallbackRaw = localStorage.getItem('intan_elyu_cached_spots_map');
+                            if (fallbackRaw) {
+                                const parsed = JSON.parse(fallbackRaw)?.data;
+                                if (parsed && (parsed.destinations || parsed.spots)) {
+                                    data = { destinations: parsed.destinations || parsed.spots };
+                                }
+                            }
+                        } catch(e) {}
+                    }
                     if (data && data.destinations) {
                         window.allTouristSpots = (data.destinations || [])
                             .filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()))
@@ -1199,6 +1211,19 @@ if (is_dir($imgDir)) {
                     return await res.json();
                 },
                 (data) => {
+                    // Check fallback if data is missing or offline
+                    if (!data || !data.destinations) {
+                        try {
+                            const fallbackRaw = localStorage.getItem('intan_elyu_cached_spots_map');
+                            if (fallbackRaw) {
+                                const parsed = JSON.parse(fallbackRaw)?.data;
+                                if (parsed && (parsed.destinations || parsed.spots)) {
+                                    data = { destinations: parsed.destinations || parsed.spots };
+                                }
+                            }
+                        } catch(e) {}
+                    }
+
                     if (!data || !data.destinations) {
                         nearContainer.classList.add('is-empty');
                         nearContainer.style.paddingLeft = '0';
@@ -1477,8 +1502,11 @@ if (is_dir($imgDir)) {
                         throw new Error("Trips fetch failed");
                     },
                     (itinData) => {
-                        if (!itinData) return;
-                        const allItineraries = itinData.itineraries || [];
+                        const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
+                            ? window.OfflineTripManager.getQueuedTrips()
+                            : [];
+                        const serverItineraries = (itinData && itinData.itineraries) ? itinData.itineraries : [];
+                        const allItineraries = [...queuedTrips, ...serverItineraries];
                         const itineraries = allItineraries.filter(t => t.status !== 'completed');
                         if (itineraries.length > 0) {
                             let tripsHtml = '';
@@ -2135,9 +2163,33 @@ if (is_dir($imgDir)) {
             const apiBase = window.backendUrl || '';
             const isCurrentParam = isCurrentLoc ? '&is_current_location=1' : '';
             const url = `${apiBase}/api/public/weather?lat=${lat}&lng=${lng}&location=${encodeURIComponent(locationName)}${isCurrentParam}`;
+            
+            // Fast offline render
+            if (!navigator.onLine) {
+                try {
+                    const rawW = localStorage.getItem('intan_elyu_cached_weather');
+                    if (rawW) {
+                        const cw = JSON.parse(rawW)?.data;
+                        if (cw) {
+                            if (tempEl) tempEl.textContent = `${cw.temperature}°C`;
+                            if (descEl) descEl.textContent = cw.condition;
+                            if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${cw.location}`;
+                            if (humidityEl) humidityEl.textContent = `${cw.humidity}%`;
+                            if (windEl) windEl.textContent = `${cw.wind_speed} km/h`;
+                            if (uvEl) uvEl.textContent = cw.uv_index;
+                            if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(cw.icon, cw.fa_icon);
+                            window.updateWeatherModal(cw);
+                            return;
+                        }
+                    }
+                } catch(e) {}
+            }
+
             const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
             if (!res.ok) throw new Error('Weather request failed with status ' + res.status);
             const data = await res.json();
+
+            try { localStorage.setItem('intan_elyu_cached_weather', JSON.stringify({ data, timestamp: Date.now() })); } catch(e) {}
 
             if (tempEl) tempEl.textContent = `${data.temperature}°C`;
             if (descEl) descEl.textContent = data.condition;
@@ -2149,12 +2201,28 @@ if (is_dir($imgDir)) {
 
             window.updateWeatherModal(data);
         } catch (e) {
-            console.warn('Weather fetch error, falling back:', e);
-            if (tempEl) tempEl.textContent = '29°C';
-            if (descEl) descEl.textContent = 'Partly Cloudy';
-            if (humidityEl) humidityEl.textContent = '72%';
-            if (windEl) windEl.textContent = '14 km/h';
-            if (uvEl) uvEl.textContent = '6';
+            console.warn('Weather fetch error, checking cache or fallback:', e);
+            let cachedW = null;
+            try {
+                const rawW = localStorage.getItem('intan_elyu_cached_weather');
+                if (rawW) cachedW = JSON.parse(rawW)?.data;
+            } catch(err) {}
+
+            if (cachedW) {
+                if (tempEl) tempEl.textContent = `${cachedW.temperature}°C`;
+                if (descEl) descEl.textContent = cachedW.condition;
+                if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${cachedW.location}`;
+                if (humidityEl) humidityEl.textContent = `${cachedW.humidity}%`;
+                if (windEl) windEl.textContent = `${cachedW.wind_speed} km/h`;
+                if (uvEl) uvEl.textContent = cachedW.uv_index;
+                if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(cachedW.icon, cachedW.fa_icon);
+            } else {
+                if (tempEl) tempEl.textContent = '29°C';
+                if (descEl) descEl.textContent = 'Partly Cloudy';
+                if (humidityEl) humidityEl.textContent = '72%';
+                if (windEl) windEl.textContent = '14 km/h';
+                if (uvEl) uvEl.textContent = '6';
+            }
         }
     };
 

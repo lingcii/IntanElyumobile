@@ -313,6 +313,15 @@ include __DIR__ . '/../components/header.php';
         // Load points balance
         async function loadGamePoints() {
             try {
+                const _cachedAuth = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                const fallbackPts = _cachedAuth.points ?? _cachedAuth.xp ?? 0;
+                const ptsEl = document.getElementById('game-points-val');
+                if (ptsEl && fallbackPts !== undefined) ptsEl.textContent = Number(fallbackPts).toLocaleString();
+            } catch (e) { }
+
+            if (!navigator.onLine) return;
+
+            try {
                 const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token');
                 const _baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
                 const r = await fetch(_baseUrl + '/api/tourist/points/balance', {
@@ -484,6 +493,22 @@ include __DIR__ . '/../components/header.php';
                 }
             } catch (e) {
                 console.warn('Could not fetch database puzzle spots:', e);
+            }
+
+            // Offline resilience fallback
+            if (!dbPuzzleSpots.length) {
+                try {
+                    const localSpots = JSON.parse(localStorage.getItem('intan_elyu_cached_spots_map') || '[]');
+                    if (Array.isArray(localSpots) && localSpots.length > 0) {
+                        dbPuzzleSpots = localSpots.filter(s => s.image || s.cover_image).map(s => ({
+                            name: s.name,
+                            location: s.municipality || s.location || 'La Union',
+                            image: s.image || s.cover_image,
+                            desc: s.description || ''
+                        }));
+                        if (dbPuzzleSpots.length > 0) initPuzzle(true);
+                    }
+                } catch (e) { }
             }
         }
         fetchDatabasePuzzleSpots();
@@ -1317,6 +1342,21 @@ include __DIR__ . '/../components/header.php';
                     return;
                 }
 
+                // Ambient offline game queueing if solving while on a walk outside
+                if (!navigator.onLine) {
+                    try {
+                        let queue = JSON.parse(localStorage.getItem('intan_elyu_offline_game_claims') || '[]');
+                        if (!queue.some(q => q.gameType === gameType)) {
+                            queue.push({ gameType: gameType, timestamp: Date.now() });
+                            localStorage.setItem('intan_elyu_offline_game_claims', JSON.stringify(queue));
+                        }
+                        localStorage.setItem('game_done_' + gameType, new Date().toDateString());
+                    } catch (e) { }
+                    updateAllGamesFinishedUI();
+                    openGameSuccess("Game completed! Your points will sync automatically when back online.");
+                    return;
+                }
+
                 const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token');
                 const _baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
 
@@ -1490,7 +1530,44 @@ include __DIR__ . '/../components/header.php';
         window.resetScrambleInputs = resetScrambleInputs;
         window.reshuffleWordLetters = reshuffleWordLetters;
         window.toggleScrambleMechanics = toggleScrambleMechanics;
-        window.closeGameAlert = closeGameAlert;
+        async function syncOfflineGameClaims() {
+            if (!navigator.onLine) return;
+            try {
+                let queue = JSON.parse(localStorage.getItem('intan_elyu_offline_game_claims') || '[]');
+                if (!queue.length) return;
+                const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token');
+                if (!token) return;
+                const _baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+
+                for (let i = 0; i < queue.length; i++) {
+                    const item = queue[i];
+                    let endpoint = '/api/tourist/points/minigame';
+                    let bodyObj = { game_type: item.gameType };
+                    if (item.gameType === 'puzzle') {
+                        endpoint = '/api/tourist/points/puzzle';
+                        bodyObj = {};
+                    } else if (item.gameType === 'trivia') {
+                        endpoint = '/api/tourist/points/trivia';
+                        bodyObj = {};
+                    }
+
+                    await fetch(_baseUrl + endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        body: JSON.stringify(bodyObj)
+                    });
+                }
+                localStorage.removeItem('intan_elyu_offline_game_claims');
+                loadGamePoints();
+            } catch (e) { }
+        }
+
+        window.addEventListener('online', function () {
+            loadGamePoints();
+            syncOfflineGameClaims();
+        });
+        syncOfflineGameClaims();
+
         window.playInPracticeMode = playInPracticeMode;
     })();
 </script>

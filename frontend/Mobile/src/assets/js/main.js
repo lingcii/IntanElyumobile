@@ -443,6 +443,7 @@ window.OfflineTripManager = {
             const newTrip = {
                 ...tripData,
                 id: tempId,
+                local_id: tempId,
                 is_offline_queued: true,
                 created_at: new Date().toISOString()
             };
@@ -2390,6 +2391,10 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         // Fetch from network if expired, forceRefresh is true, or no cache exists
         if (!cachedData || isExpired || forceRefresh) {
+            // If offline and we already have cached data, skip network fetch attempt entirely
+            if (!navigator.onLine && cachedData) {
+                return;
+            }
             try {
                 const data = await fetchFn();
                 if (data !== undefined) {
@@ -2743,4 +2748,41 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         try { sessionStorage.removeItem('auth_locked_screen_h'); } catch (e) { }
         setTimeout(window.freezeAuthLayout, 250);
     });
+
+    // =========================================================================
+    // Universal Ambient View Pre-Warming Engine (Zero-Latency Offline Support)
+    // =========================================================================
+    window.prewarmAllViews = async function () {
+        if (!navigator.onLine) return;
+        const viewsToPrewarm = [
+            'dashboard', 'itinerary', 'saved_trips', 'trip_map',
+            'leaderboard', 'profile', 'map', 'trending', 'discount',
+            'puzzles', 'saved_places', 'settings', 'about', 'help',
+            'terms', 'user_manual', 'edit_profile', 'ar_checkin'
+        ];
+        window._viewHtmlCache = window._viewHtmlCache || {};
+
+        for (const v of viewsToPrewarm) {
+            try {
+                if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v2_' + v)) {
+                    const res = await fetch(`index.php?view=${encodeURIComponent(v)}&ajax=1`, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (res.ok) {
+                        const text = await res.text();
+                        if (text && text.length > 50) {
+                            window._viewHtmlCache[v] = text;
+                            try { localStorage.setItem('elyu_view_cache_v2_' + v, text); } catch (e) { }
+                        }
+                    }
+                }
+            } catch (e) { }
+        }
+    };
+
+    if (document.readyState === 'complete') {
+        setTimeout(window.prewarmAllViews, 1000);
+    } else {
+        window.addEventListener('load', () => setTimeout(window.prewarmAllViews, 1000));
+    }
 }

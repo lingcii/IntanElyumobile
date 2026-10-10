@@ -40,8 +40,8 @@ $backRoute = 'profile';
         </div>
     </div>
 
-    <!-- Row 1: Voucher Status Dedicated Floating Droplist (All, Claimed, Redeemed, Fully Claimed, Expired) -->
-    <div id="floating-status-wrapper" style="position: relative; margin-bottom: 10px; z-index: 98;">
+    <!-- Voucher Status Dedicated Floating Droplist (All, Claimed, Redeemed, Upcoming, Expired) -->
+    <div id="floating-status-wrapper" style="position: relative; margin-bottom: 16px; z-index: 98;">
         <!-- Floating Trigger Card -->
         <div id="floating-status-trigger" onclick="toggleFloatingStatusDropdown(event)" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 16px; padding: 10px 14px; box-shadow: 0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
             <div style="display: flex; flex-direction: column; min-width: 0; text-align: left; flex: 1;">
@@ -57,63 +57,7 @@ $backRoute = 'profile';
         <!-- Floating Menu Panel (Elevated Floating Card) -->
         <div id="floating-status-menu" class="hide-scrollbar" style="display: none; position: absolute; top: calc(100% + 8px); left: 0; width: 100%; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1.5px solid #cbd5e1; border-radius: 18px; box-shadow: 0 20px 40px -8px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(0, 0, 0, 0.06); padding: 6px; max-height: 330px; overflow-y: auto; z-index: 1000; opacity: 0; transform: translateY(-8px) scale(0.98); transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); box-sizing: border-box;">
             <div id="floating-status-items-list" style="display: flex; flex-direction: column; gap: 4px;">
-                <!-- Populated dynamically: All Vouchers, Claimed Voucher, Redeemed Voucher, Fully Claimed Voucher, Expired Voucher -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Row 2: Sliced Floating Droplists: Left = Category Deals | Right = Municipalities -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; position: relative; z-index: 95;">
-        <!-- Left: Category Deals Floating Drop List -->
-        <div id="floating-cat-wrapper" style="position: relative; z-index: 1;">
-            <!-- Floating Trigger Card -->
-            <div id="floating-cat-trigger" onclick="toggleFloatingCategoryDropdown(event)" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 16px; padding: 11px 12px; box-shadow: 0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
-                <div style="display: flex; align-items: center; min-width: 0; flex: 1;">
-                    <span id="floating-cat-selected-label" style="font-size: 12.5px; font-weight: 800; color: #1e3a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">All Deals</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 6px;">
-                    <span id="floating-cat-selected-badge" style="font-size: 10.5px; font-weight: 800; background: #f1f5f9; color: #64748b; padding: 2px 7px; border-radius: 100px;">0</span>
-                    <i id="floating-cat-chevron" class="fa-solid fa-chevron-down" style="color: #64748b; font-size: 10.5px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);"></i>
-                </div>
-            </div>
-
-            <!-- Floating Menu Panel (Elevated Floating Card) -->
-            <div id="floating-cat-menu" class="hide-scrollbar" style="display: none; position: absolute; top: calc(100% + 8px); left: 0; width: 100%; min-width: 190px; max-width: calc(100vw - 32px); background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1.5px solid #cbd5e1; border-radius: 18px; box-shadow: 0 20px 40px -8px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(0, 0, 0, 0.06); padding: 6px; max-height: 310px; overflow-y: auto; z-index: 1000; opacity: 0; transform: translateY(-8px) scale(0.98); transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); box-sizing: border-box;">
-                <div id="floating-cat-items-list" style="display: flex; flex-direction: column; gap: 4px;">
-                    <!-- Dynamically populated floating category items -->
-                </div>
-            </div>
-
-            <!-- Programmatic compatibility select element -->
-            <select id="category-dropdown-select" onchange="filterDiscounts(this.value)" style="display: none;">
-                <option value="All">All Deals</option>
-                <option value="Food & Dining">Food & Dining</option>
-                <option value="Activities">Activities & Surf</option>
-                <option value="Accommodations">Accommodations</option>
-                <option value="Souvenirs">Souvenirs & Pasalubong</option>
-                <option value="Mabanag Hall">Mabanag Hall Deals</option>
-                <option value="Upcoming">Upcoming Promotions</option>
-            </select>
-        </div>
-
-        <!-- Right: Municipalities Floating Drop List -->
-        <div id="floating-muni-wrapper" style="position: relative; z-index: 1;">
-            <!-- Floating Trigger Card -->
-            <div id="floating-muni-trigger" onclick="toggleFloatingMunicipalityDropdown(event)" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 16px; padding: 11px 12px; box-shadow: 0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
-                <div style="display: flex; align-items: center; min-width: 0; flex: 1;">
-                    <span id="floating-muni-selected-label" style="font-size: 12.5px; font-weight: 800; color: #1e3a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">All Towns</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 6px;">
-                    <span id="floating-muni-selected-badge" style="font-size: 10.5px; font-weight: 800; background: #f1f5f9; color: #64748b; padding: 2px 7px; border-radius: 100px;">0</span>
-                    <i id="floating-muni-chevron" class="fa-solid fa-chevron-down" style="color: #64748b; font-size: 10.5px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);"></i>
-                </div>
-            </div>
-
-            <!-- Floating Menu Panel (Elevated Floating Card) -->
-            <div id="floating-muni-menu" class="hide-scrollbar" style="display: none; position: absolute; top: calc(100% + 8px); right: 0; width: 100%; min-width: 190px; max-width: calc(100vw - 32px); background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1.5px solid #cbd5e1; border-radius: 18px; box-shadow: 0 20px 40px -8px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(0, 0, 0, 0.06); padding: 6px; max-height: 310px; overflow-y: auto; z-index: 1000; opacity: 0; transform: translateY(-8px) scale(0.98); transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); box-sizing: border-box;">
-                <div id="floating-muni-items-list" style="display: flex; flex-direction: column; gap: 4px;">
-                    <!-- Dynamically populated floating municipality items -->
-                </div>
+                <!-- Populated dynamically: All Vouchers, Claimed Voucher, Redeemed Voucher, Upcoming Voucher, Expired Voucher -->
             </div>
         </div>
     </div>
@@ -563,6 +507,23 @@ function isVoucherExpired(v) {
     return false;
 }
 
+function isVoucherUpcoming(v) {
+    if (!v) return false;
+    if (v.is_upcoming === true) return true;
+    const st = (v.status || '').toLowerCase().trim();
+    if (st === 'upcoming' || st === 'scheduled' || st === 'soon') return true;
+    const badge = (v.badge || '').toLowerCase().trim();
+    if (badge.includes('upcoming') || badge.includes('soon')) return true;
+    if (v.valid_from) {
+        try {
+            const validFromStr = String(v.valid_from).replace(' ', 'T');
+            const validFrom = validFromStr.includes('T') ? new Date(validFromStr) : new Date(validFromStr + 'T00:00:00');
+            if (validFrom > new Date()) return true;
+        } catch(e) {}
+    }
+    return false;
+}
+
 function isVoucherFullyClaimed(v) {
     if (!v) return false;
     if (v.is_out_of_stock === true) return true;
@@ -736,6 +697,25 @@ async function fetchUserPointsAndRedemptions() {
         return;
     }
 
+    // Pre-hydrate balance immediately from auth_user
+    try {
+        const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
+        if (u.points !== undefined || u.xp !== undefined) {
+            userPointsBalance = (u.points !== undefined) ? u.points : (u.xp ?? 0);
+            const ptsBadge = document.getElementById('discount-user-pts');
+            if (ptsBadge) ptsBadge.textContent = `${userPointsBalance.toLocaleString()} Points`;
+        }
+    } catch (e) { }
+
+    if (!navigator.onLine) {
+        syncClaimedVouchersWithData();
+        updateClaimedBadge();
+        populateStatusDropdown();
+        populateCategoryDropdown();
+        renderDiscounts();
+        return;
+    }
+
     try {
         const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
         const res = await fetch(baseUrl + '/api/tourist/points/balance', {
@@ -795,13 +775,13 @@ function renderDiscounts() {
         filtered = getUserRedemptionItems().filter(r => r.redemptionStatus === 'claimed');
     } else if (activeStatus === 'Redeemed') {
         filtered = getUserRedemptionItems().filter(r => r.redemptionStatus === 'redeemed');
-    } else if (activeStatus === 'Fully Claimed') {
-        filtered = vouchersData.filter(v => isVoucherFullyClaimed(v));
+    } else if (activeStatus === 'Upcoming') {
+        filtered = vouchersData.filter(v => isVoucherUpcoming(v) && !isVoucherExpired(v));
     } else if (activeStatus === 'Expired') {
         filtered = vouchersData.filter(v => isVoucherExpired(v));
     } else {
-        // 'All': Exclude already claimed, redeemed, fully claimed, or expired deals from available catalog browsing
-        filtered = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v) && !isVoucherFullyClaimed(v) && !isVoucherExpired(v));
+        // 'All': Exclude already claimed, redeemed, expired, or upcoming deals from available catalog browsing
+        filtered = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v) && !isVoucherExpired(v) && !isVoucherUpcoming(v));
     }
 
     // 2. Category Filter
@@ -860,8 +840,8 @@ function renderDiscounts() {
             msg = 'You have no active claimed vouchers right now. Claim reward deals from "All Vouchers" using your Explorer Points!';
         } else if (activeStatus === 'Redeemed') {
             msg = 'No redeemed voucher history yet. Vouchers scanned at checkout by partner merchants will appear here.';
-        } else if (activeStatus === 'Fully Claimed') {
-            msg = 'No fully claimed vouchers. All current partner promotions still have available slots!';
+        } else if (activeStatus === 'Upcoming') {
+            msg = 'No upcoming vouchers scheduled right now. Check back soon for exciting new promotions and deals opening soon!';
         } else if (activeStatus === 'Expired') {
             msg = 'No expired vouchers found. All promotions are currently active or upcoming!';
         } else if (activeStatus === 'All' && getUserRedemptionItems().length > 0) {
@@ -1013,6 +993,7 @@ function startLiveRedemptionSync(code) {
     if (!code) return;
 
     const check = async () => {
+        if (!navigator.onLine) return; // Ambient check: pause polling while offline
         try {
             const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
             const res = await fetch(`${baseUrl}/api/public/redemptions/${encodeURIComponent(code)}/status`, {
@@ -1348,6 +1329,13 @@ async function handleModalRedeem() {
         return;
     }
 
+    if (!navigator.onLine) {
+        if (typeof showToast === 'function') {
+            showToast("📍 Voucher claiming requires an active internet connection to generate your live QR claim code.");
+        }
+        return;
+    }
+
     if (isVoucherFullyClaimed(item)) {
         if (typeof showToast === 'function') showToast("This voucher is fully claimed.");
         return;
@@ -1574,18 +1562,19 @@ function processVouchersData(rawList) {
 function populateCategoryDropdown() {
     const catSelect = document.getElementById('category-dropdown-select');
     const floatingList = document.getElementById('floating-cat-items-list');
+    if (!floatingList && !catSelect) return;
 
     let baseList = [];
     if (activeStatus === 'Claimed') {
         baseList = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems().filter(r => r.redemptionStatus === 'claimed') : [];
     } else if (activeStatus === 'Redeemed') {
         baseList = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems().filter(r => r.redemptionStatus === 'redeemed') : [];
-    } else if (activeStatus === 'Fully Claimed') {
-        baseList = vouchersData.filter(v => isVoucherFullyClaimed(v));
+    } else if (activeStatus === 'Upcoming') {
+        baseList = vouchersData.filter(v => isVoucherUpcoming(v) && !isVoucherExpired(v));
     } else if (activeStatus === 'Expired') {
         baseList = vouchersData.filter(v => isVoucherExpired(v));
     } else {
-        baseList = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v) && !isVoucherFullyClaimed(v) && !isVoucherExpired(v));
+        baseList = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v) && !isVoucherExpired(v) && !isVoucherUpcoming(v));
     }
 
     // Dynamic counts per category
@@ -1675,12 +1664,12 @@ function populateMunicipalityDropdown() {
         baseList = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems().filter(r => r.redemptionStatus === 'claimed') : [];
     } else if (activeStatus === 'Redeemed') {
         baseList = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems().filter(r => r.redemptionStatus === 'redeemed') : [];
-    } else if (activeStatus === 'Fully Claimed') {
-        baseList = vouchersData.filter(v => isVoucherFullyClaimed(v));
+    } else if (activeStatus === 'Upcoming') {
+        baseList = vouchersData.filter(v => isVoucherUpcoming(v) && !isVoucherExpired(v));
     } else if (activeStatus === 'Expired') {
         baseList = vouchersData.filter(v => isVoucherExpired(v));
     } else {
-        baseList = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v) && !isVoucherFullyClaimed(v) && !isVoucherExpired(v));
+        baseList = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v) && !isVoucherExpired(v) && !isVoucherUpcoming(v));
     }
 
     const townSet = new Set();
@@ -1821,10 +1810,10 @@ function populateStatusDropdown() {
     const claimed = getClaimedVouchers();
 
     const redemptions = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems() : [];
-    const countAll = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v) && !isVoucherExpired(v) && !isVoucherFullyClaimed(v)).length;
+    const countAll = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v) && !isVoucherExpired(v) && !isVoucherUpcoming(v)).length;
     const countClaimed = redemptions.filter(r => r.redemptionStatus === 'claimed').length;
     const countRedeemed = redemptions.filter(r => r.redemptionStatus === 'redeemed').length;
-    const countFullyClaimed = vouchersData.filter(v => isVoucherFullyClaimed(v)).length;
+    const countUpcoming = vouchersData.filter(v => isVoucherUpcoming(v) && !isVoucherExpired(v)).length;
     const countExpired = vouchersData.filter(v => isVoucherExpired(v)).length;
 
     const statusList = [
@@ -1847,10 +1836,10 @@ function populateStatusDropdown() {
             count: countRedeemed
         },
         {
-            value: 'Fully Claimed',
-            label: 'Fully Claimed Voucher',
-            desc: 'All available stock slots claimed',
-            count: countFullyClaimed
+            value: 'Upcoming',
+            label: 'Upcoming Voucher',
+            desc: 'Scheduled promotions opening soon',
+            count: countUpcoming
         },
         {
             value: 'Expired',
@@ -2052,5 +2041,10 @@ populateMunicipalityDropdown();
 
 fetchLiveDatabaseVouchers();
 fetchUserPointsAndRedemptions();
+
+window.addEventListener('online', function () {
+    fetchLiveDatabaseVouchers();
+    fetchUserPointsAndRedemptions();
+});
 })();
 </script>

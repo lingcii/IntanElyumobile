@@ -926,33 +926,53 @@ if (is_dir($imgDir)) {
                 }
             } catch (e) { }
 
+            // Offline resilience fallback: Check dashboard cached spots map if mapCacheKey is empty
+            if (!cachedMapData) {
+                try {
+                    const fallbackSpotsRaw = localStorage.getItem('intan_elyu_cached_spots_map');
+                    if (fallbackSpotsRaw) {
+                        const fallbackList = JSON.parse(fallbackSpotsRaw);
+                        if (Array.isArray(fallbackList) && fallbackList.length > 0) {
+                            cachedMapData = { destinations: fallbackList };
+                        }
+                    }
+                } catch (e) { }
+            }
+
             const mapDataPromise = (async () => {
                 if (cachedMapData && cachedMapData.destinations && cachedMapData.destinations.length > 0) {
-                    setTimeout(() => {
-                        fetch(_backendBase + '/api/public/map', { headers: { 'Accept': 'application/json' } })
-                            .then(r => r.json())
-                            .then(fresh => {
-                                if (fresh && fresh.destinations) {
-                                    fresh.destinations = (fresh.destinations || []).filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
-                                    try { localStorage.setItem(mapCacheKey, JSON.stringify({ data: fresh, timestamp: Date.now() })); } catch (e) { }
-                                    const oldIds = (cachedMapData.destinations || []).map(d => Number(d.id)).sort((a, b) => a - b).join(',');
-                                    const freshIds = (fresh.destinations || []).map(d => Number(d.id)).sort((a, b) => a - b).join(',');
-                                    if (oldIds !== freshIds || (cachedMapData.destinations || []).length !== fresh.destinations.length) {
-                                        window.allMapLocations = fresh.destinations;
-                                        if (typeof window.updateVisibleMarkers === 'function') window.updateVisibleMarkers();
+                    if (navigator.onLine) {
+                        setTimeout(() => {
+                            fetch(_backendBase + '/api/public/map', { headers: { 'Accept': 'application/json' } })
+                                .then(r => r.json())
+                                .then(fresh => {
+                                    if (fresh && fresh.destinations) {
+                                        fresh.destinations = (fresh.destinations || []).filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
+                                        try { localStorage.setItem(mapCacheKey, JSON.stringify({ data: fresh, timestamp: Date.now() })); } catch (e) { }
+                                        const oldIds = (cachedMapData.destinations || []).map(d => Number(d.id)).sort((a, b) => a - b).join(',');
+                                        const freshIds = (fresh.destinations || []).map(d => Number(d.id)).sort((a, b) => a - b).join(',');
+                                        if (oldIds !== freshIds || (cachedMapData.destinations || []).length !== fresh.destinations.length) {
+                                            window.allMapLocations = fresh.destinations;
+                                            if (typeof window.updateVisibleMarkers === 'function') window.updateVisibleMarkers();
+                                        }
                                     }
-                                }
-                            }).catch(() => { });
-                    }, 800);
+                                }).catch(() => { });
+                        }, 800);
+                    }
                     return cachedMapData;
                 }
-                const res = await fetch(_backendBase + '/api/public/map', { headers: { 'Accept': 'application/json' } });
-                const fresh = await res.json();
-                if (fresh && fresh.destinations) {
-                    fresh.destinations = (fresh.destinations || []).filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
-                    try { localStorage.setItem(mapCacheKey, JSON.stringify({ data: fresh, timestamp: Date.now() })); } catch (e) { }
+                try {
+                    const res = await fetch(_backendBase + '/api/public/map', { headers: { 'Accept': 'application/json' } });
+                    const fresh = await res.json();
+                    if (fresh && fresh.destinations) {
+                        fresh.destinations = (fresh.destinations || []).filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
+                        try { localStorage.setItem(mapCacheKey, JSON.stringify({ data: fresh, timestamp: Date.now() })); } catch (e) { }
+                    }
+                    return fresh;
+                } catch (fetchErr) {
+                    console.warn("Map fetch offline fallback:", fetchErr);
+                    return cachedMapData || { destinations: [] };
                 }
-                return fresh;
             })();
 
             const regionDataPromise = fetch('assets/la_union_municipalities.json').then(r => r.json()).catch(e => console.error("Region fetch error:", e));

@@ -176,6 +176,13 @@ $backRoute = 'itinerary';
         window.fetchSavedTrips = async function (forceRefresh = false) {
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
             if (!token) {
+                const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
+                    ? window.OfflineTripManager.getQueuedTrips()
+                    : [];
+                if (queuedTrips.length > 0) {
+                    renderSavedTrips([]);
+                    return;
+                }
                 const list = document.getElementById('saved-trips-list');
                 if (list) {
                     list.innerHTML = `
@@ -239,23 +246,30 @@ $backRoute = 'itinerary';
                     },
                     (itineraries) => {
                         if (window._isStartingTrip) return;
-                        if (itineraries) {
+                        if (itineraries && itineraries.length > 0) {
                             renderSavedTrips(itineraries);
-                        } else if (!window._cachedSavedTrips || window._cachedSavedTrips.length === 0) {
-                            const list = document.getElementById('saved-trips-list');
-                            if (list) {
-                                list.innerHTML = `
-                                <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px;">
-                                    <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; border: 1px solid rgba(239, 68, 68, 0.3);">
-                                        <i class="fa-solid fa-circle-exclamation" style="font-size: 32px; color: #ef4444;"></i>
+                        } else {
+                            const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
+                                ? window.OfflineTripManager.getQueuedTrips()
+                                : [];
+                            if (queuedTrips.length > 0 || (itineraries && itineraries.length === 0)) {
+                                renderSavedTrips(itineraries || []);
+                            } else if (!window._cachedSavedTrips || window._cachedSavedTrips.length === 0) {
+                                const list = document.getElementById('saved-trips-list');
+                                if (list) {
+                                    list.innerHTML = `
+                                    <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px;">
+                                        <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                                            <i class="fa-solid fa-circle-exclamation" style="font-size: 32px; color: #ef4444;"></i>
+                                        </div>
+                                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff;">Unable to Load Trips</h3>
+                                        <p style="margin: 0; font-size: 13px; color: rgba(148,163,184,0.9); line-height: 1.45; max-width: 260px;">Please check your connection and try refreshing.</p>
+                                        <button type="button" class="btn-cta-accent-10" onclick="if(typeof window.loadSavedTrips==='function') window.loadSavedTrips(true);" style="margin-top: 10px; padding: 12px 24px; border-radius: 100px; font-size: 14px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                            <i class="fa-solid fa-rotate"></i> Retry
+                                        </button>
                                     </div>
-                                    <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff;">Unable to Load Trips</h3>
-                                    <p style="margin: 0; font-size: 13px; color: rgba(148,163,184,0.9); line-height: 1.45; max-width: 260px;">Please check your connection and try refreshing.</p>
-                                    <button type="button" class="btn-cta-accent-10" onclick="if(typeof window.loadSavedTrips==='function') window.loadSavedTrips(true);" style="margin-top: 10px; padding: 12px 24px; border-radius: 100px; font-size: 14px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                        <i class="fa-solid fa-rotate"></i> Retry
-                                    </button>
-                                </div>
-                            `;
+                                `;
+                                }
                             }
                         }
                     },
@@ -349,7 +363,13 @@ $backRoute = 'itinerary';
 
         function renderSavedTrips(itineraries) {
             try {
-                window._cachedSavedTrips = itineraries;
+                // Prepend queued offline trips
+                const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
+                    ? window.OfflineTripManager.getQueuedTrips()
+                    : [];
+
+                const combinedTrips = [...queuedTrips, ...(Array.isArray(itineraries) ? itineraries : [])];
+                window._cachedSavedTrips = combinedTrips;
                 const list = document.getElementById('saved-trips-list');
 
                 if (!list) return;
@@ -369,12 +389,12 @@ $backRoute = 'itinerary';
                 </div>
             `;
 
-                if (!itineraries || itineraries.length === 0) {
+                if (!combinedTrips || combinedTrips.length === 0) {
                     list.innerHTML = emptyStateHtml;
                     return;
                 }
 
-                const activeItineraries = itineraries.filter(trip => trip && trip.status !== 'completed');
+                const activeItineraries = combinedTrips.filter(trip => trip && trip.status !== 'completed');
 
                 if (activeItineraries.length === 0) {
                     list.innerHTML = emptyStateHtml;
@@ -432,6 +452,7 @@ $backRoute = 'itinerary';
                             <div style="font-size: 12.5px; color: #ffffff; opacity: 0.95; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                 <span style="display:inline-flex; align-items:center; gap:5px; font-weight:700;"><i class="fa-regular fa-calendar" style="color: #ffffff;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}</span> 
                                 ${transportBadge}
+                                ${trip.is_offline_queued ? `<span style="background: rgba(245, 158, 11, 0.28); border: 1px solid rgba(245, 158, 11, 0.5); color: #fef08a; padding: 3px 10px; border-radius: 100px; font-weight: 800; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)</span>` : ''}
                                 ${trip.budget ? `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-coins" style="font-size:10px; color:#fbbf24;"></i>Budget: ₱${parseFloat(trip.budget).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${budgetIndicator}</span>` : ''}
                             </div>
                             <div class="timeline-collapsible" id="timeline-${trip.id}">
@@ -675,11 +696,14 @@ $backRoute = 'itinerary';
 
             let transportParam = '';
             if (window._cachedSavedTrips) {
-                const found = window._cachedSavedTrips.find(t => t.id == tripId);
-                if (found && found.transport_mode) {
-                    sessionStorage.setItem('active_trip_transport_' + tripId, found.transport_mode);
-                    localStorage.setItem('selected_trip_vehicle_' + tripId, found.transport_mode);
-                    transportParam = '&transport=' + encodeURIComponent(found.transport_mode);
+                const found = window._cachedSavedTrips.find(t => t.id == tripId || t.local_id == tripId);
+                if (found) {
+                    window.currentTrip = found;
+                    if (found.transport_mode) {
+                        sessionStorage.setItem('active_trip_transport_' + tripId, found.transport_mode);
+                        localStorage.setItem('selected_trip_vehicle_' + tripId, found.transport_mode);
+                        transportParam = '&transport=' + encodeURIComponent(found.transport_mode);
+                    }
                 }
             }
 
@@ -1590,8 +1614,9 @@ $backRoute = 'itinerary';
 
         window.loadSavedTrips = window.fetchSavedTrips;
 
-        // Render immediately from local cache with 0ms latency
+        // Render immediately from local cache or queued offline trips with 0ms latency
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+        let initialTrips = [];
         if (token) {
             const cacheKey = 'saved_trips_' + token.substring(0, 10);
             const rawCached = localStorage.getItem(cacheKey);
@@ -1599,11 +1624,12 @@ $backRoute = 'itinerary';
                 try {
                     const parsed = (typeof window.safeJsonParse === 'function') ? window.safeJsonParse(rawCached, null) : JSON.parse(rawCached);
                     if (parsed && Array.isArray(parsed.data)) {
-                        renderSavedTrips(parsed.data);
+                        initialTrips = parsed.data;
                     }
                 } catch (e) { }
             }
         }
+        renderSavedTrips(initialTrips);
 
         // Fetch and sync in background
         window.fetchSavedTrips();

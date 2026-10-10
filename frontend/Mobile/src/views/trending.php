@@ -287,6 +287,22 @@ if (is_dir($imgDir)) {
                 console.warn("Data loading partial failure:", e);
             }
 
+            // Ambient offline resilience: Fall back to dashboard cached spots map if destinations list is empty
+            if (!allDestinations || !allDestinations.length) {
+                try {
+                    const fallbackSpotsRaw = localStorage.getItem('intan_elyu_cached_spots_map');
+                    if (fallbackSpotsRaw) {
+                        const fallbackList = JSON.parse(fallbackSpotsRaw);
+                        if (Array.isArray(fallbackList) && fallbackList.length > 0) {
+                            allDestinations = fallbackList;
+                            if (!trendingSpots || !trendingSpots.length) {
+                                trendingSpots = fallbackList.slice(0, 10);
+                            }
+                        }
+                    }
+                } catch (e) { }
+            }
+
             // Sync active mode and category on initial load
             const savedMode = localStorage.getItem('intan_elyu_explore_mode');
             if (savedMode) {
@@ -531,6 +547,10 @@ if (is_dir($imgDir)) {
                 console.error('Failed to view destination:', e);
             }
         };
+
+        window.addEventListener('online', function () {
+            fetchAllData();
+        });
 
         fetchAllData();
     })();

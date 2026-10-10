@@ -712,6 +712,12 @@ $backRoute = 'profile';
         // ─────────────────────────────────────────────────────────────
         window.saveProfile = async function (event) {
             event.preventDefault();
+            if (!navigator.onLine) {
+                if (typeof showToast === 'function') {
+                    showToast("Saving profile updates requires an active internet connection.");
+                }
+                return;
+            }
             const btn = document.getElementById('btn-save');
             const originalContent = btn.innerHTML;
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> <span>Saving...</span>';

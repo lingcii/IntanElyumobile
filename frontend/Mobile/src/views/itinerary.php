@@ -4211,10 +4211,11 @@ try {
 
             const destinations = draft.map(place => parseInt(place.id || place.tourist_spot_id || 0)).filter(id => id > 0);
 
+            let tripPayload = null;
             try {
                 const activeRouteType = document.querySelector('.btn-route-type.active')?.innerText || ((window.currentRouteType === 'alternative' || window.currentRouteType === 'alternate') ? 'Alternative' : 'Recommended');
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-                if (!token) {
+                if (!token && navigator.onLine) {
                     btn.innerHTML = editingId ? 'Update Trip' : 'Save Trip';
                     btn.disabled = false;
                     showToast("Session expired. Please log in to save your trip.");
@@ -4237,6 +4238,42 @@ try {
                         leg_distance_km: parseFloat(legInfo.distance_km || 0)
                     };
                 });
+
+                tripPayload = {
+                    title: title,
+                    trip_date: date || null,
+                    budget: budget,
+                    destinations: destinations,
+                    route_type: activeRouteType,
+                    transport_mode: effectiveTransport,
+                    leg_transports: legTransports,
+                    items: draft.map((place, idx) => ({
+                        id: idx + 1,
+                        tourist_spot_id: parseInt(place.id || place.tourist_spot_id || 0),
+                        destination: place,
+                        transport_type: effectiveTransport,
+                        status: 'pending'
+                    }))
+                };
+
+                // Check offline state before network fetch
+                if (!navigator.onLine) {
+                    if (window.OfflineTripManager) {
+                        const queued = window.OfflineTripManager.queueOfflineTrip(tripPayload);
+                        showToast("📍 Saved Offline! Will sync when reconnected.");
+                        sessionStorage.setItem('just_saved_trip_id', queued.local_id);
+                        sessionStorage.setItem('active_trip_transport_' + queued.local_id, effectiveTransport);
+                        localStorage.setItem('selected_trip_vehicle_' + queued.local_id, effectiveTransport);
+                        localStorage.removeItem('intan_elyu_draft_itinerary');
+                        window.resetSaveModalInputs();
+                        document.getElementById('save-trip-modal').style.display = 'none';
+                        const bottomNav = document.getElementById('bottom-navigation');
+                        if (bottomNav) bottomNav.classList.remove('nav-hidden');
+                        window.renderItinerary();
+                        navigateTo('saved_trips');
+                        return;
+                    }
+                }
 
                 const response = await fetch(url, {
                     method: method,
@@ -4268,7 +4305,7 @@ try {
 
                 if (response.ok) {
                     // Invalidate caches
-                    const tokenKey = token.substring(0, 10);
+                    const tokenKey = token ? token.substring(0, 10) : 'default';
                     localStorage.removeItem('saved_trips_' + tokenKey);
                     localStorage.removeItem('dashboard_trips_' + tokenKey);
                     localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
@@ -4316,6 +4353,22 @@ try {
                 }
             } catch (error) {
                 console.error("Save Error:", error);
+                const isNetworkErr = !navigator.onLine || (error && (error.name === 'TypeError' || String(error.message).toLowerCase().includes('network') || String(error.message).toLowerCase().includes('fetch')));
+                if (isNetworkErr && tripPayload && window.OfflineTripManager) {
+                    const queued = window.OfflineTripManager.queueOfflineTrip(tripPayload);
+                    showToast("📍 Network lost. Saved offline for auto-sync!");
+                    sessionStorage.setItem('just_saved_trip_id', queued.local_id);
+                    sessionStorage.setItem('active_trip_transport_' + queued.local_id, effectiveTransport);
+                    localStorage.setItem('selected_trip_vehicle_' + queued.local_id, effectiveTransport);
+                    localStorage.removeItem('intan_elyu_draft_itinerary');
+                    window.resetSaveModalInputs();
+                    document.getElementById('save-trip-modal').style.display = 'none';
+                    const bottomNav = document.getElementById('bottom-navigation');
+                    if (bottomNav) bottomNav.classList.remove('nav-hidden');
+                    window.renderItinerary();
+                    navigateTo('saved_trips');
+                    return;
+                }
                 showToast(error.message || "Failed to save. Check connection.");
             } finally {
                 btn.innerHTML = editingId ? 'Update Trip' : 'Save Trip';

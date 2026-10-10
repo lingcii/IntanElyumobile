@@ -269,6 +269,16 @@ $backRoute = 'dashboard';
         // Fetch initial profile 2FA status from backend
         (async function fetch2FAStatus() {
             try {
+                const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                if (typeof authUser.two_factor_enabled !== 'undefined') {
+                    is2FAActive = Boolean(authUser.two_factor_enabled);
+                    update2FAState(is2FAActive);
+                }
+            } catch (e) { }
+
+            if (!navigator.onLine) return;
+
+            try {
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
                 if (token) {
                     const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
@@ -288,6 +298,10 @@ $backRoute = 'dashboard';
         })();
 
         window.openChangePasswordModal = function () {
+            if (!navigator.onLine) {
+                if (typeof showToast === 'function') showToast("Password changes require an active internet connection.");
+                return;
+            }
             document.getElementById('change-password-modal').classList.add('active');
         };
         window.closeChangePasswordModal = function () {
@@ -295,6 +309,10 @@ $backRoute = 'dashboard';
         };
 
         window.open2FAModal = function () {
+            if (!navigator.onLine) {
+                if (typeof showToast === 'function') showToast("Two-Factor Authentication setup requires an active internet connection.");
+                return;
+            }
             document.getElementById('two-factor-modal').classList.add('active');
         };
         window.close2FAModal = function () {

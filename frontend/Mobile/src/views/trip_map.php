@@ -571,12 +571,87 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 return;
             }
 
+            const applyTripToMap = (trip) => {
+                if (!document.getElementById('trip-map')) return; // Page was unmounted
+                window.currentTrip = trip;
+                const headerTitleEl = document.querySelector('.header-title');
+                if (headerTitleEl) headerTitleEl.textContent = trip.title;
+                const nameEl = document.getElementById('trip-info-name');
+                if (nameEl) nameEl.textContent = trip.title;
+
+                if (trip.items && trip.items.length > 0) {
+                    const descEl = document.getElementById('trip-info-desc');
+                    if (descEl) descEl.textContent = `Route preview for ${trip.items.length} destination(s).`;
+                    const routeTypeEl = document.getElementById('trip-info-route-type');
+                    if (routeTypeEl) routeTypeEl.textContent = trip.route_type || 'Recommended';
+
+                    // Resolve selected vehicle dynamically from trip / session / storage
+                    const vehicleInfo = resolveTripVehicle(trip, tripId);
+                    applyVehicleToUI(vehicleInfo);
+
+                    const conveyorWrapper = document.getElementById('trip-conveyor-wrapper');
+                    if (conveyorWrapper) conveyorWrapper.style.display = 'flex';
+                    window.currentTripItems = trip.items;
+                    window.currentRouteType = trip.route_type || 'Recommended';
+                    plotTrip(window.currentTripItems, window.currentRouteType);
+                } else {
+                    if (typeof showToast === 'function') showToast("This trip has no destinations yet.");
+                }
+            };
+
+            const resolveTripOffline = (targetId) => {
+                if (!targetId) return null;
+                if (window.currentTrip && (window.currentTrip.id == targetId || window.currentTrip.local_id == targetId)) {
+                    return window.currentTrip;
+                }
+                // Check localStorage cached saved_trips
+                try {
+                    const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                    const tokenKey = token ? token.substring(0, 10) : 'default';
+                    const raw = localStorage.getItem('saved_trips_' + tokenKey);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        const list = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || []);
+                        const found = list.find(t => t.id == targetId || t.local_id == targetId);
+                        if (found) return found;
+                    }
+                } catch (e) {}
+
+                // Check OfflineTripManager queued trips
+                if (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function') {
+                    const queued = window.OfflineTripManager.getQueuedTrips();
+                    const found = queued.find(t => t.id == targetId || t.local_id == targetId);
+                    if (found) return found;
+                }
+
+                return null;
+            };
+
+            // Fast-path: Check offline mode immediately
+            if (!navigator.onLine) {
+                const offlineTrip = resolveTripOffline(tripId);
+                if (offlineTrip) {
+                    applyTripToMap(offlineTrip);
+                    return;
+                }
+            }
+
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-            if (!token) return;
+            if (!token) {
+                const offlineTrip = resolveTripOffline(tripId);
+                if (offlineTrip) {
+                    applyTripToMap(offlineTrip);
+                }
+                return;
+            }
 
             if (typeof showToast === 'function') showToast("Loading trip route...");
 
+            const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+            const timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
+
             fetch(backendUrl + '/api/tourist/itineraries', {
+                signal: controller ? controller.signal : undefined,
                 headers: {
                     'Accept': 'application/json',
                     'ngrok-skip-browser-warning': 'true',
@@ -585,39 +660,28 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             })
                 .then(r => r.json())
                 .then(data => {
-                    if (!document.getElementById('trip-map')) return; // Page was unmounted
-
-                    if (data.itineraries) {
-                        const trip = data.itineraries.find(t => t.id == tripId);
+                    if (timeoutId) clearTimeout(timeoutId);
+                    if (data && data.itineraries) {
+                        const trip = data.itineraries.find(t => t.id == tripId || t.local_id == tripId);
                         if (trip) {
-                            window.currentTrip = trip;
-                            const headerTitleEl = document.querySelector('.header-title');
-                            if (headerTitleEl) headerTitleEl.textContent = trip.title;
-                            const nameEl = document.getElementById('trip-info-name');
-                            if (nameEl) nameEl.textContent = trip.title;
-
-                            if (trip.items && trip.items.length > 0) {
-                                const descEl = document.getElementById('trip-info-desc');
-                                if (descEl) descEl.textContent = `Route preview for ${trip.items.length} destination(s).`;
-                                const routeTypeEl = document.getElementById('trip-info-route-type');
-                                if (routeTypeEl) routeTypeEl.textContent = trip.route_type || 'Recommended';
-
-                                // Resolve selected vehicle dynamically from trip / session / storage
-                                const vehicleInfo = resolveTripVehicle(trip, tripId);
-                                applyVehicleToUI(vehicleInfo);
-
-                                const conveyorWrapper = document.getElementById('trip-conveyor-wrapper');
-                                if (conveyorWrapper) conveyorWrapper.style.display = 'flex';
-                                window.currentTripItems = trip.items;
-                                window.currentRouteType = trip.route_type || 'Recommended';
-                                plotTrip(window.currentTripItems, window.currentRouteType);
-                            } else {
-                                if (typeof showToast === 'function') showToast("This trip has no destinations yet.");
-                            }
+                            applyTripToMap(trip);
+                            return;
                         }
                     }
+                    // Fall back to offline cache if not found in payload
+                    const offlineTrip = resolveTripOffline(tripId);
+                    if (offlineTrip) applyTripToMap(offlineTrip);
                 })
-                .catch(e => console.error("Failed to load trip", e));
+                .catch(e => {
+                    if (timeoutId) clearTimeout(timeoutId);
+                    console.warn("Network load failed, falling back to offline cache:", e);
+                    const offlineTrip = resolveTripOffline(tripId);
+                    if (offlineTrip) {
+                        applyTripToMap(offlineTrip);
+                    } else {
+                        console.error("Failed to load trip", e);
+                    }
+                });
         }
 
         function plotTrip(items, routeType = 'Recommended') {

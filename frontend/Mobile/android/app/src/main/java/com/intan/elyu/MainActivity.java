@@ -36,6 +36,7 @@ public class MainActivity extends BridgeActivity {
                 settings.setGeolocationDatabasePath(getFilesDir().getPath());
                 settings.setDomStorageEnabled(true);
                 settings.setDatabaseEnabled(true);
+                settings.setCacheMode(WebSettings.LOAD_DEFAULT);
                 settings.setJavaScriptEnabled(true);
                 settings.setJavaScriptCanOpenWindowsAutomatically(true);
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Intan_Elyu_cache-v10';
+const CACHE_NAME = 'Intan_Elyu_cache-v11';
 const ASSETS = [
     './',
     './index.php',
@@ -6,6 +6,7 @@ const ASSETS = [
     './assets/js/main.js',
     './assets/img/logo.png',
     './assets/img/no_image.svg',
+    './assets/la_union_municipalities.json',
     // Component CSS
     './assets/css/components/header.css',
     './assets/css/components/bottom_nav.css',
@@ -17,8 +18,11 @@ const ASSETS = [
     './assets/css/views/trip_map.css',
     './assets/css/views/saved_trips.css',
     './assets/css/views/saved_places.css',
+    './assets/css/views/leaderboard.css',
     './assets/css/views/profile.css',
     './assets/css/views/discount.css',
+    './assets/css/views/trending.css',
+    './assets/css/views/puzzles.css',
     './assets/css/views/settings.css',
     './assets/css/views/help.css',
     './assets/css/views/auth.css',

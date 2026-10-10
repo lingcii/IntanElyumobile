@@ -332,20 +332,20 @@ $activeTab = 'leaderboard';
         }
 
         let medalIcon = '';
-        let stepHeight = '72px';
+        let stepHeight = 'clamp(50px, 7vh, 70px)';
         let badgeLabel = '3RD';
 
         if (rank === 1) {
             medalIcon = `<div class="podium-crown-icon"><i class="fa-solid fa-crown" style="color:#FFD700; font-size:26px;"></i></div>`;
-            stepHeight = '112px';
+            stepHeight = 'clamp(80px, 11vh, 112px)';
             badgeLabel = '1ST';
         } else if (rank === 2) {
             medalIcon = `<div class="podium-medal-icon"><i class="fa-solid fa-medal" style="color:#e2e8f0; font-size:20px;"></i></div>`;
-            stepHeight = '88px';
+            stepHeight = 'clamp(64px, 9vh, 88px)';
             badgeLabel = '2ND';
         } else if (rank === 3) {
             medalIcon = `<div class="podium-medal-icon"><i class="fa-solid fa-award" style="color:#fb923c; font-size:20px;"></i></div>`;
-            stepHeight = '70px';
+            stepHeight = 'clamp(50px, 7vh, 70px)';
             badgeLabel = '3RD';
         }
 
@@ -607,6 +607,42 @@ $activeTab = 'leaderboard';
             const cacheKey = 'leaderboard_data_v15_' + (token ? token.substring(0, 10) : 'public');
             const fetchCache = window.useCache || (async (key, fetcher, renderer) => { const d = await fetcher(); if (renderer) renderer(d); return d; });
 
+            // Ambient offline check: Pre-hydrate from cache if available
+            try {
+                const storedRaw = localStorage.getItem(cacheKey);
+                if (storedRaw) {
+                    const parsed = JSON.parse(storedRaw);
+                    const d = parsed.data || parsed;
+                    if (d && (d.users || d.leaders)) {
+                        rawLeadersList = d.users || d.leaders || [];
+                        cachedMeData = d.me || null;
+                        cachedMyRank = d.my_rank || 999;
+                        renderLeaderboardUI();
+                    }
+                }
+            } catch (e) { }
+
+            // If offline and still no leaders list, render user personal standing and ambient offline message
+            if (!navigator.onLine && (!rawLeadersList || rawLeadersList.length === 0)) {
+                renderLeaderboardUI();
+                if (podiumContainer) {
+                    podiumContainer.innerHTML = `
+                        <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 28px 16px;">
+                            <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(245, 158, 11, 0.12); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: #f59e0b; font-size: 20px;">
+                                <i class="fa-solid fa-cloud-slash"></i>
+                            </div>
+                            <div style="font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">Rankings Offline</div>
+                            <div style="font-size: 12px; color: #64748b; max-width: 260px; margin: 0 auto; line-height: 1.4;">
+                                Full provincial rankings will update automatically when reconnected.
+                            </div>
+                        </div>`;
+                }
+                if (rankListContainer) {
+                    rankListContainer.innerHTML = '<div style="text-align:center; padding: 18px 12px; color: #94a3b8; font-size: 12px; font-weight: 600;"><i class="fa-solid fa-cloud-slash" style="margin-right:6px; color:#f59e0b;"></i> Live standings will sync once your connection is restored.</div>';
+                }
+                return;
+            }
+
             await fetchCache(
                 cacheKey,
                 async () => {
@@ -638,15 +674,39 @@ $activeTab = 'leaderboard';
             }
 
         } catch (e) {
-            console.error("Leaderboard error:", e);
-            if (podiumContainer && (!rawLeadersList || rawLeadersList.length === 0)) {
-                podiumContainer.innerHTML = "<div style='color:rgba(239,68,68,0.8); text-align:center; width:100%; padding:20px; font-size:14px;'>Failed to load leaderboard.</div>";
+            console.warn("Leaderboard fetch error:", e);
+            if (!navigator.onLine) {
+                renderLeaderboardUI();
+                if (podiumContainer && (!rawLeadersList || rawLeadersList.length === 0)) {
+                    podiumContainer.innerHTML = `
+                        <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 28px 16px;">
+                            <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(245, 158, 11, 0.12); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: #f59e0b; font-size: 20px;">
+                                <i class="fa-solid fa-cloud-slash"></i>
+                            </div>
+                            <div style="font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">Rankings Offline</div>
+                            <div style="font-size: 12px; color: #64748b; max-width: 260px; margin: 0 auto; line-height: 1.4;">
+                                Full provincial rankings will update automatically when reconnected.
+                            </div>
+                        </div>`;
+                }
+            } else {
+                if (podiumContainer && (!rawLeadersList || rawLeadersList.length === 0)) {
+                    podiumContainer.innerHTML = "<div style='color:rgba(239,68,68,0.8); text-align:center; width:100%; padding:20px; font-size:14px;'>Failed to load leaderboard.</div>";
+                }
             }
         }
     };
 
     // Initialize immediately
     window.initLeaderboardView();
+
+    // Ambient automatic reconnect listener - quietly syncs rankings without user buttons or reloads
+    window.addEventListener('online', function () {
+        if (typeof window.initLeaderboardView === 'function') {
+            window.leaderboardNeedsRefresh = true;
+            window.initLeaderboardView();
+        }
+    });
 
     // Also listen for SPA viewLoaded event when navigating back to leaderboard
     document.addEventListener('viewLoaded', function (e) {
