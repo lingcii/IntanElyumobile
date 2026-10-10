@@ -220,25 +220,25 @@ if ($isAjax) {
     <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
 
+    <script src="assets/js/capacitor/capacitor.js?v=<?= time() ?>"></script>
     <script>
         if (window.location.pathname.includes('/Intan-Elyu-Tourism-Management-System/')) {
             window.backendUrl = window.location.protocol + '//' + window.location.host + '/Intan-Elyu-Tourism-Management-System/backend/public';
         } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'capacitor:' || window.location.protocol === 'file:') {
-            if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+            if (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) {
                 window.backendUrl = 'https://api.intan-elyu.online';
             } else if (window.location.port === '3000') {
                 window.backendUrl = 'http://localhost:8000';
             } else {
                 window.backendUrl = 'https://api.intan-elyu.online';
             }
-        } else if (window.location.hostname === 'app.intan-elyu.online') {
+        } else if (window.location.hostname.endsWith('intan-elyu.online')) {
             window.backendUrl = 'https://api.intan-elyu.online';
         } else {
-            window.backendUrl = window.BACKEND_URL || window.location.origin.replace('app.', 'api.');
+            window.backendUrl = window.BACKEND_URL || (window.location.origin.includes('app.') ? window.location.origin.replace('app.', 'api.') : 'https://api.intan-elyu.online');
         }
         window.GOOGLE_CLIENT_ID = '620598190857-37a0ucobfd4b3rct7ofti8rtvl3qt884.apps.googleusercontent.com';
     </script>
-    <script src="assets/js/capacitor/capacitor.js?v=<?= time() ?>"></script>
     <script src="assets/js/main.js?v=<?= time() ?>"></script>
 
     <link rel="stylesheet" href="assets/css/style.css?v=<?= time() ?>">
