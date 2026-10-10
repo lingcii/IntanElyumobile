@@ -806,7 +806,7 @@ function renderDiscounts() {
         } else if (activeStatus === 'Expired') {
             msg = 'No expired vouchers found. All promotions are currently active or upcoming!';
         } else if (activeCategory === 'All' && claimed.length > 0) {
-            msg = '🎉 You have claimed all available deals! Select "Claimed Voucher" in Voucher Status above to view your ready-to-use discounts.';
+            msg = '🎉 You have claimed all available deals! Select "Claimed Voucher" in Voucher Status above to view your claimed discounts.';
         } else if (activeCategory === 'Mabanag Hall') {
             msg = 'No unredeemed vouchers for Mabanag Hall right now.';
         } else if (activeCategory === 'Upcoming') {
@@ -840,7 +840,7 @@ function renderDiscounts() {
         } else if (isClaimed) {
             actionBtnHtml = `
                 <button onclick="openVoucherModal('${v.id}')" style="background: #10b981 !important; border: none !important; color: #ffffff !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: pointer; display:flex; align-items:center; gap:4px; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;">
-                    <i class="fa-solid fa-check"></i> Ready to Use
+                    <i class="fa-solid fa-check"></i> Claimed
                 </button>
             `;
         } else if (isCardExpired) {

@@ -516,7 +516,7 @@ $activeTab = 'profile';
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
                             <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #ffffff !important; background: #10b981 !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.18);">
-                                <i class="fa-solid fa-check" style="margin-right: 4px; color: #ffffff !important;"></i>Ready to Use
+                                <i class="fa-solid fa-check" style="margin-right: 4px; color: #ffffff !important;"></i>Claimed
                             </span>
                             <div style="font-size: 10.5px; font-weight: 700; color: #00f2fe; display: flex; align-items: center; gap: 4px;">
                                 <i class="fa-solid fa-qrcode"></i> Show QR
@@ -1170,7 +1170,7 @@ $activeTab = 'profile';
                             <strong style="color: #ffffff; font-size: 15px; font-weight: 800; line-height: 1.3;">${voucherTitle}</strong>
                         </div>
                         <span style="color: #ffffff !important; font-weight: 800; font-size: 11px; background: #10b981 !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; text-transform: uppercase;">
-                            <i class="fa-solid fa-check" style="margin-right: 4px; color: #ffffff !important;"></i>Ready to Use
+                            <i class="fa-solid fa-check" style="margin-right: 4px; color: #ffffff !important;"></i>Claimed
                         </span>
                     </div>
 
