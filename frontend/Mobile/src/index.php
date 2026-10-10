@@ -270,6 +270,12 @@ if ($isAjax) {
 </head>
 
 <body data-view="<?= htmlspecialchars($view) ?>">
+    <!-- Ambient Offline Mode Status Banner -->
+    <div id="elyu-offline-pill" class="elyu-offline-pill hidden">
+        <i class="fa-solid fa-cloud-slash" id="elyu-offline-pill-icon" style="color: #f59e0b; font-size: 11px;"></i>
+        <span id="elyu-offline-pill-text">Offline Mode &bull; Showing saved data</span>
+    </div>
+
     <!-- Global Drifting Clouds -->
     <div class="cloud-container" id="global-cloud-container">
         <!-- Shape A: Fluffy standard -->

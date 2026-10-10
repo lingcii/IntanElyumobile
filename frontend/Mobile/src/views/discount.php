@@ -1441,9 +1441,6 @@ async function handleModalRedeem() {
             try { localStorage.removeItem(VOUCHERS_CACHE_KEY); } catch(e) {}
 
             // Switch modal to Claimed Box immediately
-            const claimCode = (data.data && data.data.voucher_code) ? data.data.voucher_code : (data.claim_code || item.code);
-            item.code = claimCode;
-            
             const claimedBox = document.getElementById('modal-claimed-box');
             if (claimedBox) {
                 claimedBox.style.display = 'block';

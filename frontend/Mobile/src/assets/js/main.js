@@ -422,6 +422,187 @@ window.OfflineCheckinManager = {
 
 window.OfflineCheckinManager.init();
 
+// ══════════════════════════════════════════════════════════════════════════
+// OFFLINE PLANNING STRATEGY: OFFLINE TRIP & ITINERARY MANAGER
+// ══════════════════════════════════════════════════════════════════════════
+window.OfflineTripManager = {
+    STORAGE_KEY: 'intan_elyu_offline_saved_trips',
+
+    getQueuedTrips: function () {
+        try {
+            return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+        } catch (e) {
+            return [];
+        }
+    },
+
+    queueOfflineTrip: function (tripData) {
+        try {
+            const trips = this.getQueuedTrips();
+            const tempId = 'offline_' + Date.now();
+            const newTrip = {
+                ...tripData,
+                id: tempId,
+                is_offline_queued: true,
+                created_at: new Date().toISOString()
+            };
+            trips.unshift(newTrip);
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trips));
+            window.dispatchEvent(new CustomEvent('offlineTripQueued', { detail: newTrip }));
+            return newTrip;
+        } catch (e) {
+            console.error('Failed to queue offline trip:', e);
+            return null;
+        }
+    },
+
+    removeQueuedTrip: function (tempId) {
+        try {
+            const trips = this.getQueuedTrips().filter(t => t.id !== tempId);
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trips));
+        } catch (e) {}
+    },
+
+    syncQueuedTrips: async function () {
+        if (!navigator.onLine) return;
+        const trips = this.getQueuedTrips();
+        if (!trips || trips.length === 0) return;
+
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+        if (!token) return;
+
+        const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+        let syncedCount = 0;
+
+        for (const trip of trips) {
+            try {
+                const payload = {
+                    title: trip.title,
+                    trip_date: trip.trip_date || null,
+                    budget: trip.budget || null,
+                    destinations: trip.destinations || [],
+                    route_type: trip.route_type || 'Recommended',
+                    transport_mode: trip.transport_mode || 'No Vehicle Selected',
+                    leg_transports: trip.leg_transports || []
+                };
+
+                const res = await fetch(`${bUrl}/api/tourist/itineraries`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    this.removeQueuedTrip(trip.id);
+                    syncedCount++;
+                }
+            } catch (err) {
+                console.warn('Could not sync trip:', trip.title, err);
+            }
+        }
+
+        if (syncedCount > 0) {
+            if (typeof showToast === 'function') {
+                showToast(`🎉 ${syncedCount} offline trip${syncedCount > 1 ? 's' : ''} synced to your account!`);
+            }
+            const tokenKey = token.substring(0, 10);
+            localStorage.removeItem('saved_trips_' + tokenKey);
+            localStorage.removeItem('dashboard_trips_' + tokenKey);
+            window.dispatchEvent(new CustomEvent('tripsSynced'));
+            if (typeof window.loadSavedTrips === 'function') {
+                window.loadSavedTrips(true);
+            }
+        }
+    }
+};
+
+// ══════════════════════════════════════════════════════════════════════════
+// AMBIENT CONNECTIVITY MANAGER & OFFLINE STATUS PILL
+// ══════════════════════════════════════════════════════════════════════════
+(function initAmbientConnectivity() {
+    let wasOffline = !navigator.onLine;
+
+    function updatePill() {
+        const pill = document.getElementById('elyu-offline-pill');
+        const icon = document.getElementById('elyu-offline-pill-icon');
+        const text = document.getElementById('elyu-offline-pill-text');
+        if (!pill) return;
+
+        if (!navigator.onLine) {
+            wasOffline = true;
+            pill.classList.remove('hidden', 'online-syncing');
+            pill.style.display = 'inline-flex';
+            if (icon) {
+                icon.className = 'fa-solid fa-cloud-slash';
+                icon.style.color = '#f59e0b';
+            }
+            if (text) text.innerHTML = 'Offline Mode &bull; Showing saved data';
+        } else {
+            if (wasOffline) {
+                wasOffline = false;
+                pill.classList.remove('hidden');
+                pill.classList.add('online-syncing');
+                pill.style.display = 'inline-flex';
+                if (icon) {
+                    icon.className = 'fa-solid fa-cloud-arrow-up';
+                    icon.style.color = '#34d399';
+                }
+                if (text) text.innerHTML = 'Back online &bull; Syncing data...';
+
+                // Trigger background sync engines
+                setTimeout(() => {
+                    if (window.OfflineTripManager) window.OfflineTripManager.syncQueuedTrips();
+                    if (window.OfflineCheckinManager) window.OfflineCheckinManager.syncOfflineQueue();
+                }, 500);
+
+                setTimeout(() => {
+                    pill.classList.add('hidden');
+                    setTimeout(() => {
+                        if (pill.classList.contains('hidden')) pill.style.display = 'none';
+                    }, 400);
+                }, 2800);
+            } else {
+                pill.classList.add('hidden');
+                pill.style.display = 'none';
+            }
+        }
+    }
+
+    window.addEventListener('online', updatePill);
+    window.addEventListener('offline', updatePill);
+    setTimeout(updatePill, 300);
+
+    // Pre-warm offline data when online
+    function prewarmOfflineData() {
+        if (!navigator.onLine) return;
+        const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+        
+        fetch(`${bUrl}/api/public/map`, { headers: { 'Accept': 'application/json' } })
+            .then(r => r.ok ? r.json() : null)
+            .then(d => {
+                if (d && (d.spots || d.data)) {
+                    try { localStorage.setItem('intan_elyu_cached_spots_map', JSON.stringify({ data: d, time: Date.now() })); } catch(e) {}
+                }
+            }).catch(() => {});
+
+        fetch(`${bUrl}/api/public/fares`, { headers: { 'Accept': 'application/json' } })
+            .then(r => r.ok ? r.json() : null)
+            .then(d => {
+                if (d && d.fares) {
+                    try { localStorage.setItem('intan_elyu_cached_fares', JSON.stringify({ data: d, time: Date.now() })); } catch(e) {}
+                }
+            }).catch(() => {});
+    }
+
+    if (navigator.onLine) {
+        setTimeout(prewarmOfflineData, 2500);
+    }
+})();
+
 window.setTxt = function (id, val) {
     const el = (typeof id === 'string') ? document.getElementById(id) : id;
     if (el) el.textContent = (val !== undefined && val !== null) ? val : '';
@@ -604,28 +785,69 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     }
 
     try {
-        // In-memory view template cache to prevent re-fetching the same view HTML on back/tab switch
+        // In-memory and persistent disk view template cache for instantaneous and offline navigation
         window._viewHtmlCache = window._viewHtmlCache || {};
         let html = (!extraParams.size && window._viewHtmlCache[targetView]) ? window._viewHtmlCache[targetView] : null;
 
-        if (!html) {
-            let fetchUrl = `index.php?view=${encodeURIComponent(targetView)}&ajax=1&_t=${Date.now()}`;
-            extraParams.forEach((val, key) => {
-                fetchUrl += `&${encodeURIComponent(key)}=${encodeURIComponent(val)}`;
-            });
-
-            const response = await fetch(fetchUrl, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+        if (!html && !extraParams.size) {
+            try {
+                html = localStorage.getItem('elyu_view_cache_v2_' + targetView);
+                if (html) {
+                    window._viewHtmlCache[targetView] = html;
                 }
-            });
+            } catch (e) {}
+        }
 
-            if (!response.ok) throw new Error('Network response was not ok');
+        // If offline and we have cached html, use it immediately
+        const isOffline = !navigator.onLine;
+        if (!html || !isOffline) {
+            try {
+                let fetchUrl = `index.php?view=${encodeURIComponent(targetView)}&ajax=1&_t=${Date.now()}`;
+                extraParams.forEach((val, key) => {
+                    fetchUrl += `&${encodeURIComponent(key)}=${encodeURIComponent(val)}`;
+                });
 
-            html = await response.text();
-            if (!extraParams.size) {
-                window._viewHtmlCache[targetView] = html;
+                const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                const timeoutId = controller ? setTimeout(() => controller.abort(), isOffline ? 2000 : 8000) : null;
+
+                const response = await fetch(fetchUrl, {
+                    signal: controller ? controller.signal : undefined,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                if (timeoutId) clearTimeout(timeoutId);
+
+                if (response.ok) {
+                    const freshHtml = await response.text();
+                    if (freshHtml && freshHtml.length > 50) {
+                        html = freshHtml;
+                        if (!extraParams.size) {
+                            window._viewHtmlCache[targetView] = html;
+                            try { localStorage.setItem('elyu_view_cache_v2_' + targetView, html); } catch(e) {}
+                        }
+                    }
+                }
+            } catch (fetchErr) {
+                console.warn(`View fetch for ${targetView} failed (likely offline):`, fetchErr);
+                // Fall back to persistent disk cache if not already loaded
+                if (!html) {
+                    try {
+                        html = window._viewHtmlCache[targetView] || localStorage.getItem('elyu_view_cache_v2_' + targetView);
+                    } catch(e) {}
+                }
             }
+        }
+
+        if (!html) {
+            html = `<div style="padding: 48px 24px; text-align: center; color: #1e3a8a; font-family: -apple-system, sans-serif;">
+                <div style="width:68px; height:68px; margin:0 auto 16px; border-radius:50%; background:#e0f2fe; display:flex; align-items:center; justify-content:center;">
+                    <i class="fa-solid fa-cloud-slash" style="font-size:30px; color:#f59e0b;"></i>
+                </div>
+                <h3 style="margin:0 0 8px; font-weight:800; font-size:18px; color:#0f172a;">Screen Not Saved Offline</h3>
+                <p style="margin:0 0 20px; font-size:13px; color:#64748b; line-height:1.5;">This section needs an internet connection on first visit. Reconnect to save it for offline use.</p>
+                <button onclick="if(typeof navigateTo==='function') navigateTo('dashboard'); else window.history.back();" style="padding:10px 22px; border-radius:100px; border:none; background:#1e3a8a; color:#fff; font-weight:700; font-size:13px; cursor:pointer;">Back to Dashboard</button>
+            </div>`;
         }
 
         const updateContent = () => {
