@@ -255,7 +255,20 @@ class VoucherController extends Controller
                 return response()->json(['status' => 'error', 'message' => 'Voucher is fully claimed.'], 400);
             }
 
-            // Old data restriction removed: users are not blocked by legacy point_redemptions or old claim records
+            // Enforce one-time claim per tourist account per voucher
+            if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
+                $alreadyClaimed = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
+                    ->where('user_id', $user->id)
+                    ->where('voucher_id', $voucher->id)
+                    ->exists();
+
+                if ($alreadyClaimed) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'You have already claimed this voucher. Each voucher is valid for one-time claim only.'
+                    ], 400);
+                }
+            }
 
             $cost = (int) ($voucher->required_points ?: 100);
 
@@ -470,11 +483,16 @@ class VoucherController extends Controller
             }
 
             $isRedeemed = in_array(strtolower($record->status ?? ''), ['redeemed', 'used', 'completed']);
-            $partnerName = 'Mabanag Hall';
+            $partnerName = 'Official Partner Merchant';
             if (!empty($record->redeemed_by_partner_id)) {
                 $partner = \Illuminate\Support\Facades\DB::table('partner_establishments')->where('id', $record->redeemed_by_partner_id)->first();
                 if ($partner) {
                     $partnerName = $partner->name;
+                }
+            } elseif (!empty($record->voucher_id)) {
+                $voucherModel = Voucher::find($record->voucher_id);
+                if ($voucherModel && !empty($voucherModel->partner_establishment)) {
+                    $partnerName = $voucherModel->partner_establishment;
                 }
             }
 

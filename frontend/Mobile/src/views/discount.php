@@ -44,14 +44,9 @@ $backRoute = 'profile';
     <div id="floating-status-wrapper" style="position: relative; margin-bottom: 10px; z-index: 98;">
         <!-- Floating Trigger Card -->
         <div id="floating-status-trigger" onclick="toggleFloatingStatusDropdown(event)" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 16px; padding: 10px 14px; box-shadow: 0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
-            <div style="display: flex; align-items: center; gap: 9px; min-width: 0; flex: 1;">
-                <span id="floating-status-icon-wrap" style="width: 26px; height: 26px; border-radius: 8px; background: #eff6ff; color: #1d4ed8; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0;">
-                    <i id="floating-status-selected-icon" class="fa-solid fa-tags"></i>
-                </span>
-                <div style="display: flex; flex-direction: column; min-width: 0; text-align: left;">
-                    <span style="font-size: 9.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.1;">Voucher Status</span>
-                    <span id="floating-status-selected-label" style="font-size: 13px; font-weight: 800; color: #1e3a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25;">All Vouchers</span>
-                </div>
+            <div style="display: flex; flex-direction: column; min-width: 0; text-align: left; flex: 1;">
+                <span style="font-size: 9.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.1;">Voucher Status</span>
+                <span id="floating-status-selected-label" style="font-size: 13px; font-weight: 800; color: #1e3a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25;">All Vouchers</span>
             </div>
             <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 8px;">
                 <span id="floating-status-selected-badge" style="font-size: 10.5px; font-weight: 800; background: #eff6ff; color: #1d4ed8; padding: 2px 8px; border-radius: 100px; border: 1px solid #bfdbfe;">0</span>
@@ -536,6 +531,22 @@ function setClaimedVouchers(claimedArr) {
 
 function isVoucherRedeemed(v) {
     if (!v) return false;
+    const vid = String(v.dbId || v.id || '').replace(/^db_/, '').replace(/^rdm_/, '');
+    const vcode = (v.code || v.voucher_code || '').toUpperCase().trim();
+
+    if (Array.isArray(window._touristRedemptions) && window._touristRedemptions.length > 0) {
+        const match = window._touristRedemptions.find(r => {
+            const rCode = (r.voucher_code || '').toUpperCase().trim();
+            if (vcode && rCode && vcode === rCode) return true;
+            const rVid = String(r.voucher_id || '').replace(/^db_/, '');
+            if (vid && rVid && vid === rVid) return true;
+            return false;
+        });
+        if (match && ['redeemed', 'used', 'completed'].includes((match.status || '').toLowerCase())) {
+            return true;
+        }
+    }
+
     const rStatus = (v.redemptionStatus || '').toLowerCase();
     return ['redeemed', 'used', 'completed'].includes(rStatus);
 }
@@ -561,17 +572,99 @@ function isVoucherFullyClaimed(v) {
 
 function isVoucherClaimed(v) {
     if (!v) return false;
+    const vid = String(v.dbId || v.id || '').replace(/^db_/, '').replace(/^rdm_/, '');
+    const vcode = (v.code || v.voucher_code || '').toUpperCase().trim();
+
+    // Check directly in in-memory tourist redemptions
+    if (Array.isArray(window._touristRedemptions) && window._touristRedemptions.length > 0) {
+        const found = window._touristRedemptions.some(r => {
+            const rVid = String(r.voucher_id || '').replace(/^db_/, '');
+            if (vid && rVid && vid === rVid) return true;
+            const rCode = (r.voucher_code || '').toUpperCase().trim();
+            if (vcode && rCode && vcode === rCode) return true;
+            return false;
+        });
+        if (found) return true;
+    }
+
     const claimed = getClaimedVouchers();
     if (claimed.includes(v.id)) return true;
     if (v.dbId && (claimed.includes('db_' + v.dbId) || claimed.includes(String(v.dbId)))) return true;
-    if (v.redemptionStatus && ['claimed', 'redeemed', 'used'].includes(v.redemptionStatus.toLowerCase())) return true;
+    if (v.redemptionStatus && ['claimed', 'redeemed', 'used', 'completed'].includes(v.redemptionStatus.toLowerCase())) return true;
     return false;
 }
 
+function getUserRedemptionItems() {
+    const redemptions = Array.isArray(window._touristRedemptions) ? window._touristRedemptions : [];
+    if (redemptions.length === 0) return [];
+
+    return redemptions.map(r => {
+        const rVid = r.voucher_id ? String(r.voucher_id) : null;
+        const rCode = r.voucher_code ? String(r.voucher_code).toUpperCase().trim() : '';
+
+        // Match with catalog template for rich metadata if available
+        const match = vouchersData.find(v => {
+            if (rVid && (String(v.dbId) === rVid || v.id === 'db_' + rVid || v.id === rVid)) return true;
+            const vCode = v.code ? String(v.code).toUpperCase().trim() : '';
+            if (vCode && rCode && vCode === rCode) return true;
+            return false;
+        });
+
+        const status = (r.status || 'claimed').toLowerCase();
+        const isRedeemed = ['redeemed', 'used', 'completed'].includes(status);
+        const title = r.type || (match ? match.title : 'Reward Voucher');
+        const partner = r.partner_establishment || (match ? match.partner : 'LUPTO Tourism Partner');
+        const location = match ? match.location : 'La Union';
+        const category = r.category || (match ? match.category : 'Food & Dining');
+        const pointsCost = r.points_cost || (match ? match.pointsCost : 100);
+        const description = r.description || (match ? match.description : 'Present this voucher code at merchant checkout.');
+        const badge = isRedeemed ? 'REDEEMED' : (match ? match.badge : 'CLAIMED');
+        const image = match ? match.image : (r.image || null);
+        const code = r.voucher_code || (match ? match.code : 'ELYU-PROMO');
+
+        return {
+            id: 'rdm_' + r.id,
+            redemptionId: r.id,
+            dbId: r.voucher_id || (match ? match.dbId : null),
+            title: title,
+            category: category,
+            partner: partner,
+            partner_establishments: match ? match.partner_establishments : [partner],
+            location: location,
+            municipalities: match ? match.municipalities : [],
+            badge: badge,
+            discount_type: match ? match.discount_type : (r.discount_type || 'percentage'),
+            discount_value: match ? match.discount_value : (r.discount_value || 0),
+            pointsCost: pointsCost,
+            required_points: pointsCost,
+            points: pointsCost,
+            code: code,
+            image: image,
+            valid_from: match ? match.valid_from : null,
+            valid_from_formatted: match ? match.valid_from_formatted : null,
+            expiration_type: match ? match.expiration_type : 'no_expiry_usable',
+            is_no_expiration: match ? match.is_no_expiration : true,
+            expires: match ? match.expires : null,
+            expires_formatted: isRedeemed ? 'Redeemed & Recorded' : (match ? match.expires_formatted : 'Claimed & Usable'),
+            is_expired: match ? match.is_expired : false,
+            is_upcoming: false,
+            is_out_of_stock: false,
+            id_needed: match ? match.id_needed : false,
+            terms_and_conditions: r.terms_and_conditions || (match ? match.terms_and_conditions : null),
+            status: status,
+            redemptionStatus: status,
+            redeemedAt: r.redeemed_at,
+            createdAt: r.created_at,
+            description: description,
+            is_mabanag: match ? match.is_mabanag : (partner.toLowerCase().includes('mabanag'))
+        };
+    });
+}
+
 function updateClaimedBadge() {
-    const claimed = getClaimedVouchers();
-    const activeClaimed = vouchersData.filter(v => isVoucherClaimed(v) && !isVoucherRedeemed(v));
-    const historyClaimed = vouchersData.filter(v => isVoucherClaimed(v) && isVoucherRedeemed(v));
+    const redemptions = getUserRedemptionItems();
+    const activeClaimed = redemptions.filter(r => r.redemptionStatus === 'claimed');
+    const historyClaimed = redemptions.filter(r => r.redemptionStatus === 'redeemed');
 
     const countEl = document.getElementById('claimed-count');
     const histEl = document.getElementById('history-count');
@@ -590,41 +683,43 @@ function syncClaimedVouchersWithData() {
         return;
     }
 
-    const redemptions = window._touristRedemptions || [];
+    const redemptions = Array.isArray(window._touristRedemptions) ? window._touristRedemptions : [];
     let claimedSet = new Set(getClaimedVouchers());
 
-    // When redemptions from server have loaded:
-    if (window._hasFetchedRedemptions) {
-        if (redemptions.length === 0) {
-            claimedSet.clear();
-        }
+    if (window._hasFetchedRedemptions && redemptions.length === 0) {
+        claimedSet.clear();
     }
 
-    if (redemptions.length > 0 && vouchersData.length > 0) {
+    if (redemptions.length > 0) {
         redemptions.forEach(v => {
             const vId = v.voucher_id ? String(v.voucher_id) : null;
             const vCode = v.voucher_code ? String(v.voucher_code).toUpperCase().trim() : '';
 
-            // Match by voucher_id/dbId FIRST (guaranteed match), then exact voucher code
-            const match = vouchersData.find(item => {
-                if (vId && (String(item.dbId) === vId || item.id === 'db_' + vId || item.id === vId)) {
-                    return true;
-                }
-                const itemCode = item.code ? String(item.code).toUpperCase().trim() : '';
-                if (itemCode && vCode && (vCode === itemCode)) {
-                    return true;
-                }
-                return false;
-            });
+            if (vId) {
+                claimedSet.add(vId);
+                claimedSet.add('db_' + vId);
+            }
+            if (vCode) {
+                claimedSet.add(vCode);
+            }
 
-            if (match) {
-                if (v.voucher_code) match.code = v.voucher_code;
-                match.redemptionStatus = (v.status || 'claimed').toLowerCase();
-                if (v.redeemed_at) match.redeemedAt = v.redeemed_at;
-                claimedSet.add(match.id);
-                if (match.dbId) {
-                    claimedSet.add('db_' + match.dbId);
-                    claimedSet.add(String(match.dbId));
+            if (vouchersData.length > 0) {
+                const match = vouchersData.find(item => {
+                    if (vId && (String(item.dbId) === vId || item.id === 'db_' + vId || item.id === vId)) return true;
+                    const itemCode = item.code ? String(item.code).toUpperCase().trim() : '';
+                    if (itemCode && vCode && (vCode === itemCode)) return true;
+                    return false;
+                });
+
+                if (match) {
+                    if (v.voucher_code) match.code = v.voucher_code;
+                    match.redemptionStatus = (v.status || 'claimed').toLowerCase();
+                    if (v.redeemed_at) match.redeemedAt = v.redeemed_at;
+                    claimedSet.add(match.id);
+                    if (match.dbId) {
+                        claimedSet.add('db_' + match.dbId);
+                        claimedSet.add(String(match.dbId));
+                    }
                 }
             }
         });
@@ -693,20 +788,20 @@ function renderDiscounts() {
     }
 
     const claimed = getClaimedVouchers();
-    let filtered = [...vouchersData];
+    let filtered = [];
 
     // 1. Status Filter (Dedicated Status Droplist)
     if (activeStatus === 'Claimed') {
-        filtered = filtered.filter(v => isVoucherClaimed(v) && !isVoucherRedeemed(v));
+        filtered = getUserRedemptionItems().filter(r => r.redemptionStatus === 'claimed');
     } else if (activeStatus === 'Redeemed') {
-        filtered = filtered.filter(v => isVoucherClaimed(v) && isVoucherRedeemed(v));
+        filtered = getUserRedemptionItems().filter(r => r.redemptionStatus === 'redeemed');
     } else if (activeStatus === 'Fully Claimed') {
-        filtered = filtered.filter(v => isVoucherFullyClaimed(v));
+        filtered = vouchersData.filter(v => isVoucherFullyClaimed(v));
     } else if (activeStatus === 'Expired') {
-        filtered = filtered.filter(v => isVoucherExpired(v));
+        filtered = vouchersData.filter(v => isVoucherExpired(v));
     } else {
-        // 'All': Exclude already claimed or redeemed deals from catalog browsing so user sees available deals to claim
-        filtered = filtered.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v));
+        // 'All': Exclude already claimed, redeemed, fully claimed, or expired deals from available catalog browsing
+        filtered = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v) && !isVoucherFullyClaimed(v) && !isVoucherExpired(v));
     }
 
     // 2. Category Filter
@@ -759,20 +854,20 @@ function renderDiscounts() {
 
     if (filtered.length === 0) {
         let msg = 'No vouchers match your current filters.';
-        if (vouchersData.length === 0) {
+        if (vouchersData.length === 0 && getUserRedemptionItems().length === 0) {
             msg = 'No discounts or vouchers are currently available. Check back soon for exciting deals!';
         } else if (activeStatus === 'Claimed') {
-            msg = 'You have no active vouchers right now. Claim reward deals using your Explorer Points!';
+            msg = 'You have no active claimed vouchers right now. Claim reward deals from "All Vouchers" using your Explorer Points!';
         } else if (activeStatus === 'Redeemed') {
             msg = 'No redeemed voucher history yet. Vouchers scanned at checkout by partner merchants will appear here.';
         } else if (activeStatus === 'Fully Claimed') {
             msg = 'No fully claimed vouchers. All current partner promotions still have available slots!';
         } else if (activeStatus === 'Expired') {
             msg = 'No expired vouchers found. All promotions are currently active or upcoming!';
-        } else if (activeCategory === 'All' && claimed.length > 0) {
+        } else if (activeStatus === 'All' && getUserRedemptionItems().length > 0) {
             msg = '🎉 You have claimed all available deals! Select "Claimed Voucher" in Voucher Status above to view your claimed discounts.';
         } else if (activeCategory === 'Mabanag Hall') {
-            msg = 'No unredeemed vouchers for Mabanag Hall right now.';
+            msg = 'No vouchers for Mabanag Hall match your current filter.';
         } else if (activeCategory === 'Upcoming') {
             msg = 'No upcoming promotions scheduled right now. Check back soon for new discounts!';
         } else if (activeCategory !== 'All') {
@@ -849,9 +944,19 @@ function renderDiscounts() {
             stockBadgeHtml = `<span style="font-size: 9.5px; font-weight: 800; background: #f59e0b !important; color: #ffffff !important; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px;"><i class="fa-solid fa-fire"></i> Only ${v.remaining_quantity} left</span>`;
         }
 
-        const topBadgeBg = isRedeemed ? '#dc2626' : '#ffffff';
-        const topBadgeColor = isRedeemed ? '#ffffff' : '#203f8d';
-        const topBadgeText = isRedeemed ? 'REDEEMED' : v.badge;
+        const topBadgeBg = isRedeemed ? '#dc2626' : (isClaimed ? '#10b981' : '#ffffff');
+        const topBadgeColor = isRedeemed ? '#ffffff' : (isClaimed ? '#ffffff' : '#203f8d');
+        const topBadgeText = isRedeemed ? 'REDEEMED' : (isClaimed ? 'CLAIMED' : v.badge);
+
+        let codeSnippetHtml = '';
+        if (isClaimed || isRedeemed) {
+            codeSnippetHtml = `
+                <div style="display: inline-flex; align-items: center; gap: 5px; background: rgba(0, 0, 0, 0.22); padding: 3px 8px; border-radius: 6px; margin-bottom: 8px;">
+                    <i class="fa-solid fa-ticket" style="font-size: 9px; color: #38bdf8;"></i>
+                    <span style="font-size: 10.5px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px; font-family: monospace;">CODE: ${v.code || 'CODE'}</span>
+                </div>
+            `;
+        }
 
         html += `
         <div class="voucher-card">
@@ -880,8 +985,9 @@ function renderDiscounts() {
 
                 <div style="display: inline-flex; align-items: center; gap: 5px; background: rgba(255, 255, 255, 0.16); padding: 3px 8px; border-radius: 6px; margin-bottom: 10px;">
                     <i class="${expiryInfo.icon}" style="font-size: 9px; color: #ffffff;"></i>
-                    <span style="font-size: 10px; font-weight: 700; color: #ffffff;">${isRedeemed ? 'Redeemed & Recorded' : expiryInfo.label}</span>
+                    <span style="font-size: 10px; font-weight: 700; color: #ffffff;">${isRedeemed ? 'Redeemed & Recorded' : (isClaimed ? 'Claimed & Ready to Use' : expiryInfo.label)}</span>
                 </div>
+                ${codeSnippetHtml}
 
                 <p style="margin: 0 0 14px; font-size: 12px; color: rgba(255, 255, 255, 0.88); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${v.description}</p>
             </div>
@@ -943,11 +1049,15 @@ function stopLiveRedemptionSync() {
 }
 
 function openVoucherModal(id) {
-    const item = vouchersData.find(v => v.id === id);
+    let item = vouchersData.find(v => v.id === id);
+    if (!item && typeof getUserRedemptionItems === 'function') {
+        const redemptionItems = getUserRedemptionItems();
+        item = redemptionItems.find(v => v.id === id);
+    }
     if (!item) return;
     currentVoucherId = id;
 
-    const isAlreadyClaimed = isVoucherClaimed(item) || isVoucherRedeemed(item);
+    const isAlreadyClaimed = isVoucherClaimed(item) || isVoucherRedeemed(item) || item.redemptionStatus === 'claimed' || item.redemptionStatus === 'redeemed';
 
     // Basic text
     document.getElementById('modal-title').textContent = item.title;
@@ -1128,7 +1238,10 @@ function copyVoucherCode() {
     let code = codeEl ? (codeEl.innerText || codeEl.textContent || '').trim() : '';
 
     if (!code && currentVoucherId) {
-        const currentItem = vouchersData.find(v => v.id === currentVoucherId);
+        let currentItem = vouchersData.find(v => v.id === currentVoucherId);
+        if (!currentItem && typeof getUserRedemptionItems === 'function') {
+            currentItem = getUserRedemptionItems().find(v => v.id === currentVoucherId);
+        }
         if (currentItem && currentItem.code) {
             code = String(currentItem.code).trim();
         }
@@ -1210,8 +1323,19 @@ function localFallbackCopy(text, onSuccess, onError) {
 }
 
 async function handleModalRedeem() {
-    const item = vouchersData.find(v => v.id === currentVoucherId);
+    let item = vouchersData.find(v => v.id === currentVoucherId);
+    if (!item && typeof getUserRedemptionItems === 'function') {
+        item = getUserRedemptionItems().find(v => v.id === currentVoucherId);
+    }
     if (!item) return;
+
+    // Strict One-Time Claim: prevent duplicate claim and trigger toast
+    if (isVoucherClaimed(item) || isVoucherRedeemed(item) || item.redemptionStatus === 'claimed' || item.redemptionStatus === 'redeemed') {
+        if (typeof showToast === 'function') {
+            showToast("You have already claimed this voucher. Each voucher is valid for one-time claim only.");
+        }
+        return;
+    }
 
     const expiryInfo = getExpiryInfo(item.expires, item.is_expired, item.is_upcoming, item.valid_from, item.valid_from_formatted, item.is_no_expiration, item.expiration_type);
     if (isVoucherExpired(item) || expiryInfo.isExpired) {
@@ -1279,6 +1403,25 @@ async function handleModalRedeem() {
             }
             setClaimedVouchers(claimed);
             item.redemptionStatus = 'claimed';
+
+            const claimCode = (data.data && data.data.voucher_code) ? data.data.voucher_code : (data.claim_code || item.code);
+            item.code = claimCode;
+
+            // Immediately register into window._touristRedemptions
+            if (!Array.isArray(window._touristRedemptions)) window._touristRedemptions = [];
+            const newRedemptionId = (data.data && data.data.id) ? data.data.id : Date.now();
+            window._touristRedemptions.unshift({
+                id: newRedemptionId,
+                voucher_id: item.dbId || String(item.id).replace('db_', ''),
+                type: item.title,
+                points_cost: cost,
+                voucher_code: claimCode,
+                status: 'claimed',
+                redeemed_at: null,
+                created_at: new Date().toISOString(),
+                partner_establishment: item.partner,
+                category: item.category
+            });
 
             // Update user's points
             let storedUser = null;
@@ -1435,17 +1578,17 @@ function populateCategoryDropdown() {
     const catSelect = document.getElementById('category-dropdown-select');
     const floatingList = document.getElementById('floating-cat-items-list');
 
-    let baseList = vouchersData;
+    let baseList = [];
     if (activeStatus === 'Claimed') {
-        baseList = vouchersData.filter(v => isVoucherClaimed(v) && !isVoucherRedeemed(v));
+        baseList = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems().filter(r => r.redemptionStatus === 'claimed') : [];
     } else if (activeStatus === 'Redeemed') {
-        baseList = vouchersData.filter(v => isVoucherClaimed(v) && isVoucherRedeemed(v));
+        baseList = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems().filter(r => r.redemptionStatus === 'redeemed') : [];
     } else if (activeStatus === 'Fully Claimed') {
         baseList = vouchersData.filter(v => isVoucherFullyClaimed(v));
     } else if (activeStatus === 'Expired') {
         baseList = vouchersData.filter(v => isVoucherExpired(v));
     } else {
-        baseList = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v));
+        baseList = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v) && !isVoucherFullyClaimed(v) && !isVoucherExpired(v));
     }
 
     // Dynamic counts per category
@@ -1530,17 +1673,17 @@ function populateMunicipalityDropdown() {
     const floatingMuniList = document.getElementById('floating-muni-items-list');
     if (!floatingMuniList) return;
 
-    let baseList = vouchersData;
+    let baseList = [];
     if (activeStatus === 'Claimed') {
-        baseList = vouchersData.filter(v => isVoucherClaimed(v) && !isVoucherRedeemed(v));
+        baseList = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems().filter(r => r.redemptionStatus === 'claimed') : [];
     } else if (activeStatus === 'Redeemed') {
-        baseList = vouchersData.filter(v => isVoucherClaimed(v) && isVoucherRedeemed(v));
+        baseList = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems().filter(r => r.redemptionStatus === 'redeemed') : [];
     } else if (activeStatus === 'Fully Claimed') {
         baseList = vouchersData.filter(v => isVoucherFullyClaimed(v));
     } else if (activeStatus === 'Expired') {
         baseList = vouchersData.filter(v => isVoucherExpired(v));
     } else {
-        baseList = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v));
+        baseList = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v) && !isVoucherFullyClaimed(v) && !isVoucherExpired(v));
     }
 
     const townSet = new Set();
@@ -1680,9 +1823,10 @@ function populateStatusDropdown() {
     const floatingList = document.getElementById('floating-status-items-list');
     const claimed = getClaimedVouchers();
 
+    const redemptions = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems() : [];
     const countAll = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v) && !isVoucherExpired(v) && !isVoucherFullyClaimed(v)).length;
-    const countClaimed = vouchersData.filter(v => isVoucherClaimed(v) && !isVoucherRedeemed(v)).length;
-    const countRedeemed = vouchersData.filter(v => isVoucherClaimed(v) && isVoucherRedeemed(v)).length;
+    const countClaimed = redemptions.filter(r => r.redemptionStatus === 'claimed').length;
+    const countRedeemed = redemptions.filter(r => r.redemptionStatus === 'redeemed').length;
     const countFullyClaimed = vouchersData.filter(v => isVoucherFullyClaimed(v)).length;
     const countExpired = vouchersData.filter(v => isVoucherExpired(v)).length;
 
@@ -1691,46 +1835,31 @@ function populateStatusDropdown() {
             value: 'All',
             label: 'All Vouchers',
             desc: 'Available reward deals to claim',
-            count: countAll,
-            icon: 'fa-solid fa-tags',
-            color: '#1d4ed8',
-            bgColor: '#eff6ff'
+            count: countAll
         },
         {
             value: 'Claimed',
             label: 'Claimed Voucher',
             desc: 'Active & ready to scan at checkout',
-            count: countClaimed,
-            icon: 'fa-solid fa-ticket',
-            color: '#059669',
-            bgColor: '#ecfdf5'
+            count: countClaimed
         },
         {
             value: 'Redeemed',
             label: 'Redeemed Voucher',
             desc: 'Used & verified at merchant store',
-            count: countRedeemed,
-            icon: 'fa-solid fa-check-double',
-            color: '#dc2626',
-            bgColor: '#fef2f2'
+            count: countRedeemed
         },
         {
             value: 'Fully Claimed',
             label: 'Fully Claimed Voucher',
             desc: 'All available stock slots claimed',
-            count: countFullyClaimed,
-            icon: 'fa-solid fa-ban',
-            color: '#ea580c',
-            bgColor: '#fff7ed'
+            count: countFullyClaimed
         },
         {
             value: 'Expired',
             label: 'Expired Voucher',
             desc: 'Promotion validity period ended',
-            count: countExpired,
-            icon: 'fa-regular fa-clock',
-            color: '#64748b',
-            bgColor: '#f1f5f9'
+            count: countExpired
         }
     ];
 
@@ -1739,14 +1868,9 @@ function populateStatusDropdown() {
             const isSelected = activeStatus.toLowerCase() === s.value.toLowerCase();
             return `
                 <div onclick="selectFloatingStatus('${s.value.replace(/'/g, "\\'")}', event)" role="button" tabindex="0" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 12px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1); ${isSelected ? 'background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; font-weight: 800; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);' : 'background: transparent; color: #1e293b; font-weight: 700;'}" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
-                    <div style="display: flex; align-items: center; gap: 10px; min-width: 0; pointer-events: none;">
-                        <span style="width: 28px; height: 28px; border-radius: 8px; ${isSelected ? 'background: rgba(255,255,255,0.2); color: #ffffff;' : 'background: ' + s.bgColor + '; color: ' + s.color + ';'} display: inline-flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0;">
-                            <i class="${s.icon}"></i>
-                        </span>
-                        <div style="display: flex; flex-direction: column; text-align: left; min-width: 0;">
-                            <span style="font-size: 13px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25;">${s.label}</span>
-                            <span style="font-size: 10px; font-weight: 600; ${isSelected ? 'color: rgba(255,255,255,0.85);' : 'color: #64748b;'} line-height: 1.2;">${s.desc}</span>
-                        </div>
+                    <div style="display: flex; flex-direction: column; text-align: left; min-width: 0; flex: 1; pointer-events: none;">
+                        <span style="font-size: 13px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25;">${s.label}</span>
+                        <span style="font-size: 10.5px; font-weight: 600; ${isSelected ? 'color: rgba(255,255,255,0.85);' : 'color: #64748b;'} line-height: 1.2;">${s.desc}</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; pointer-events: none; margin-left: 8px;">
                         <span style="font-size: 10.5px; font-weight: 800; padding: 2px 7px; border-radius: 100px; ${isSelected ? 'background: rgba(255, 255, 255, 0.22); color: #ffffff;' : 'background: #f1f5f9; color: #475569;'}">${s.count}</span>
@@ -1760,15 +1884,8 @@ function populateStatusDropdown() {
     const currentItem = statusList.find(s => s.value.toLowerCase() === activeStatus.toLowerCase()) || statusList[0];
     const triggerLabel = document.getElementById('floating-status-selected-label');
     const triggerBadge = document.getElementById('floating-status-selected-badge');
-    const triggerIcon = document.getElementById('floating-status-selected-icon');
-    const triggerWrap = document.getElementById('floating-status-icon-wrap');
     if (triggerLabel && currentItem) triggerLabel.textContent = currentItem.label;
     if (triggerBadge && currentItem) triggerBadge.textContent = currentItem.count;
-    if (triggerIcon && currentItem) triggerIcon.className = currentItem.icon;
-    if (triggerWrap && currentItem) {
-        triggerWrap.style.background = currentItem.bgColor;
-        triggerWrap.style.color = currentItem.color;
-    }
 }
 
 function closeFloatingCategory() {

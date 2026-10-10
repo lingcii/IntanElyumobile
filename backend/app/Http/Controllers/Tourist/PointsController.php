@@ -54,25 +54,46 @@ class PointsController extends Controller
                 $vouchers = PointRedemption::where('user_id', $user->id)->latest()->get();
             }
             if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
-                $vouchers = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
+                $rawRedemptions = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
                     ->leftJoin('vouchers', 'voucher_redemptions.voucher_id', '=', 'vouchers.id')
                     ->where('voucher_redemptions.user_id', $user->id)
                     ->select(
                         'voucher_redemptions.id',
                         'voucher_redemptions.voucher_id',
-                        \Illuminate\Support\Facades\DB::raw('COALESCE(vouchers.voucher_name, "Voucher") as type'),
+                        \Illuminate\Support\Facades\DB::raw('COALESCE(vouchers.voucher_name, voucher_redemptions.reward_name_snapshot, "Voucher") as type'),
                         'voucher_redemptions.points_used as points_cost',
                         'voucher_redemptions.redemption_code as voucher_code',
                         'voucher_redemptions.status',
                         'voucher_redemptions.redeemed_at',
                         'voucher_redemptions.created_at',
                         'vouchers.partner_establishment',
-                        'vouchers.category'
+                        'vouchers.description',
+                        'vouchers.discount_value',
+                        'vouchers.discount_type',
+                        'vouchers.image',
+                        'vouchers.terms_and_conditions',
+                        'vouchers.expires_at',
+                        'vouchers.expiration_type'
                     )
                     ->latest('voucher_redemptions.created_at')
                     ->get();
+
+                $vouchers = $rawRedemptions->map(function ($r) {
+                    $category = 'Food & Dining';
+                    $text = strtolower(($r->type ?? '') . ' ' . ($r->partner_establishment ?? '') . ' ' . ($r->description ?? '') . ' ' . ($r->terms_and_conditions ?? ''));
+                    if (str_contains($text, 'surf') || str_contains($text, 'activity') || str_contains($text, 'tour') || str_contains($text, 'hike') || str_contains($text, 'rental') || str_contains($text, 'lesson')) {
+                        $category = 'Activities';
+                    } elseif (str_contains($text, 'hotel') || str_contains($text, 'resort') || str_contains($text, 'stay') || str_contains($text, 'room') || str_contains($text, 'inn') || str_contains($text, 'villa')) {
+                        $category = 'Accommodations';
+                    } elseif (str_contains($text, 'pasalubong') || str_contains($text, 'souvenir') || str_contains($text, 'native') || str_contains($text, 'wine') || str_contains($text, 'craft') || str_contains($text, 'pass')) {
+                        $category = 'Souvenirs';
+                    }
+                    $r->category = $category;
+                    return $r;
+                });
             }
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('PointsController getBalance vouchers error: ' . $e->getMessage());
             $vouchers = collect();
         }
 
