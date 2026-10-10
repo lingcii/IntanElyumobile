@@ -960,18 +960,8 @@ function renderDiscounts() {
         const topBadgeColor = isRedeemed ? '#ffffff' : (isClaimed ? '#ffffff' : '#203f8d');
         const topBadgeText = isRedeemed ? 'REDEEMED' : (isClaimed ? 'CLAIMED' : v.badge);
 
-        let codeSnippetHtml = '';
-        if (isClaimed || isRedeemed) {
-            codeSnippetHtml = `
-                <div style="display: inline-flex; align-items: center; gap: 5px; background: rgba(0, 0, 0, 0.22); padding: 3px 8px; border-radius: 6px; margin-bottom: 8px;">
-                    <i class="fa-solid fa-ticket" style="font-size: 9px; color: #38bdf8;"></i>
-                    <span style="font-size: 10.5px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px; font-family: monospace;">CODE: ${v.code || 'CODE'}</span>
-                </div>
-            `;
-        }
-
         html += `
-        <div class="voucher-card">
+        <div class="voucher-card" onclick="openVoucherModal('${v.id}')" style="cursor: pointer;">
             <div>
                 <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; gap: 8px;">
                     <div style="width: 44px; height: 44px; border-radius: 14px; background: #ffffff; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.14);">
@@ -999,7 +989,6 @@ function renderDiscounts() {
                     <i class="${expiryInfo.icon}" style="font-size: 9px; color: #ffffff;"></i>
                     <span style="font-size: 10px; font-weight: 700; color: #ffffff;">${isRedeemed ? 'Redeemed & Recorded' : (isClaimed ? 'Claimed & Ready to Use' : expiryInfo.label)}</span>
                 </div>
-                ${codeSnippetHtml}
 
                 <p style="margin: 0 0 14px; font-size: 12px; color: rgba(255, 255, 255, 0.88); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${v.description}</p>
             </div>
