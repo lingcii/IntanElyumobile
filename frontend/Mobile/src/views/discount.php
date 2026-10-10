@@ -98,8 +98,6 @@ $backRoute = 'profile';
                 <option value="Souvenirs">Souvenirs & Pasalubong</option>
                 <option value="Mabanag Hall">Mabanag Hall Deals</option>
                 <option value="Upcoming">Upcoming Promotions</option>
-                <option id="opt-cat-claimed" value="Claimed">My Vouchers</option>
-                <option id="opt-cat-history" value="History">Voucher History</option>
             </select>
         </div>
 
@@ -580,12 +578,6 @@ function updateClaimedBadge() {
     if (countEl) countEl.textContent = activeClaimed.length;
     if (histEl) histEl.textContent = historyClaimed.length;
 
-    // Update labels in Categories Dropdown
-    const optClaimed = document.getElementById('opt-cat-claimed');
-    const optHistory = document.getElementById('opt-cat-history');
-    if (optClaimed) optClaimed.textContent = `My Vouchers (${activeClaimed.length})`;
-    if (optHistory) optHistory.textContent = `Voucher History (${historyClaimed.length})`;
-
     if (typeof populateStatusDropdown === 'function') {
         populateStatusDropdown();
     }
@@ -612,19 +604,14 @@ function syncClaimedVouchersWithData() {
         redemptions.forEach(v => {
             const vId = v.voucher_id ? String(v.voucher_id) : null;
             const vCode = v.voucher_code ? String(v.voucher_code).toUpperCase().trim() : '';
-            const vType = v.type ? String(v.type).toLowerCase().trim() : '';
 
-            // Match by voucher_id/dbId FIRST (guaranteed match), then code, then title
+            // Match by voucher_id/dbId FIRST (guaranteed match), then exact voucher code
             const match = vouchersData.find(item => {
                 if (vId && (String(item.dbId) === vId || item.id === 'db_' + vId || item.id === vId)) {
                     return true;
                 }
                 const itemCode = item.code ? String(item.code).toUpperCase().trim() : '';
-                if (itemCode && vCode && (vCode === itemCode || vCode.startsWith(itemCode) || itemCode.startsWith(vCode))) {
-                    return true;
-                }
-                const itemTitle = item.title ? String(item.title).toLowerCase().trim() : '';
-                if (itemTitle && vType && (itemTitle === vType || itemTitle.includes(vType) || vType.includes(itemTitle))) {
+                if (itemCode && vCode && (vCode === itemCode)) {
                     return true;
                 }
                 return false;
@@ -639,25 +626,6 @@ function syncClaimedVouchersWithData() {
                     claimedSet.add('db_' + match.dbId);
                     claimedSet.add(String(match.dbId));
                 }
-            } else if (v.voucher_code) {
-                const dynamicId = 'redeemed_' + (v.id || v.voucher_id || v.voucher_code);
-                if (!vouchersData.some(item => item.id === dynamicId || (item.code && item.code === v.voucher_code))) {
-                    vouchersData.push({
-                        id: dynamicId,
-                        dbId: v.voucher_id || null,
-                        code: v.voucher_code,
-                        title: v.type || 'Tourist Voucher',
-                        partner: v.partner_establishment || 'Official Partner Merchant',
-                        location: 'La Union',
-                        category: v.category || 'Food & Dining',
-                        badge: 'PROMO',
-                        pointsCost: v.points_cost || 100,
-                        redemptionStatus: (v.status || 'claimed').toLowerCase(),
-                        redeemedAt: v.redeemed_at,
-                        description: 'Official La Union tourist reward voucher.'
-                    });
-                }
-                claimedSet.add(dynamicId);
             }
         });
     }
@@ -742,11 +710,7 @@ function renderDiscounts() {
     }
 
     // 2. Category Filter
-    if (activeCategory === 'Claimed') {
-        filtered = filtered.filter(v => isVoucherClaimed(v) && !isVoucherRedeemed(v));
-    } else if (activeCategory === 'History') {
-        filtered = filtered.filter(v => isVoucherClaimed(v) && isVoucherRedeemed(v));
-    } else if (activeCategory === 'Upcoming') {
+    if (activeCategory === 'Upcoming') {
         filtered = filtered.filter(v => (v.is_upcoming || (v.status && v.status.toLowerCase() === 'upcoming')) && !isVoucherExpired(v));
     } else if (activeCategory === 'Mabanag Hall') {
         filtered = filtered.filter(v => v.is_mabanag || (v.partner && v.partner.toLowerCase().includes('mabanag')) || (v.location && v.location.toLowerCase().includes('mabanag')));
@@ -797,9 +761,9 @@ function renderDiscounts() {
         let msg = 'No vouchers match your current filters.';
         if (vouchersData.length === 0) {
             msg = 'No discounts or vouchers are currently available. Check back soon for exciting deals!';
-        } else if (activeStatus === 'Claimed' || activeCategory === 'Claimed') {
+        } else if (activeStatus === 'Claimed') {
             msg = 'You have no active vouchers right now. Claim reward deals using your Explorer Points!';
-        } else if (activeStatus === 'Redeemed' || activeCategory === 'History') {
+        } else if (activeStatus === 'Redeemed') {
             msg = 'No redeemed voucher history yet. Vouchers scanned at checkout by partner merchants will appear here.';
         } else if (activeStatus === 'Fully Claimed') {
             msg = 'No fully claimed vouchers. All current partner promotions still have available slots!';
@@ -1249,11 +1213,6 @@ async function handleModalRedeem() {
     const item = vouchersData.find(v => v.id === currentVoucherId);
     if (!item) return;
 
-    if (isVoucherClaimed(item) || isVoucherRedeemed(item)) {
-        if (typeof showToast === 'function') showToast("You have already claimed this voucher. It is ready in your Claimed Vouchers list!");
-        return;
-    }
-
     const expiryInfo = getExpiryInfo(item.expires, item.is_expired, item.is_upcoming, item.valid_from, item.valid_from_formatted, item.is_no_expiration, item.expiration_type);
     if (isVoucherExpired(item) || expiryInfo.isExpired) {
         if (typeof showToast === 'function') showToast("This voucher has expired.");
@@ -1418,7 +1377,16 @@ async function fetchLiveDatabaseVouchers() {
 }
 
 function processVouchersData(rawList) {
-    vouchersData = rawList.map(v => {
+    // Strict deduplication by unique id or code
+    const seenKeys = new Set();
+    const uniqueRaw = (rawList || []).filter(v => {
+        const key = v.id ? String(v.id) : (v.code || v.voucher_code || v.title);
+        if (!key || seenKeys.has(key)) return false;
+        seenKeys.add(key);
+        return true;
+    });
+
+    vouchersData = uniqueRaw.map(v => {
         const icon = v.category === 'Activities' ? 'fa-person-hiking' : (v.category === 'Accommodations' ? 'fa-hotel' : (v.category === 'Souvenirs' ? 'fa-gift' : 'fa-utensils'));
         return {
             id: 'db_' + v.id,
@@ -1467,26 +1435,33 @@ function populateCategoryDropdown() {
     const catSelect = document.getElementById('category-dropdown-select');
     const floatingList = document.getElementById('floating-cat-items-list');
 
-    const claimed = getClaimedVouchers();
-    const availableVouchers = vouchersData.filter(v => !claimed.includes(v.id) && !isVoucherRedeemed(v));
+    let baseList = vouchersData;
+    if (activeStatus === 'Claimed') {
+        baseList = vouchersData.filter(v => isVoucherClaimed(v) && !isVoucherRedeemed(v));
+    } else if (activeStatus === 'Redeemed') {
+        baseList = vouchersData.filter(v => isVoucherClaimed(v) && isVoucherRedeemed(v));
+    } else if (activeStatus === 'Fully Claimed') {
+        baseList = vouchersData.filter(v => isVoucherFullyClaimed(v));
+    } else if (activeStatus === 'Expired') {
+        baseList = vouchersData.filter(v => isVoucherExpired(v));
+    } else {
+        baseList = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v));
+    }
 
     // Dynamic counts per category
     const catCounts = {};
-    availableVouchers.forEach(v => {
+    baseList.forEach(v => {
         if (v.category) {
             const c = v.category.trim();
             catCounts[c] = (catCounts[c] || 0) + 1;
         }
     });
 
-    const activeClaimed = vouchersData.filter(v => claimed.includes(v.id) && !isVoucherRedeemed(v));
-    const historyClaimed = vouchersData.filter(v => claimed.includes(v.id) && isVoucherRedeemed(v));
-
     const currentVal = activeCategory || (catSelect ? catSelect.value : 'All') || 'All';
 
-    // Compile ordered list of clean categories (NO icons / emojis)
+    // Compile ordered list of clean categories (NO status duplicates)
     const categoriesList = [
-        { value: 'All', label: 'All Deals', count: availableVouchers.length }
+        { value: 'All', label: 'All Deals', count: baseList.length }
     ];
 
     ['Food & Dining', 'Activities', 'Accommodations', 'Souvenirs'].forEach(cat => {
@@ -1507,30 +1482,18 @@ function populateCategoryDropdown() {
         }
     });
 
-    const mabanagCount = availableVouchers.filter(v => v.is_mabanag || (v.partner && v.partner.toLowerCase().includes('mabanag'))).length;
+    const mabanagCount = baseList.filter(v => v.is_mabanag || (v.partner && v.partner.toLowerCase().includes('mabanag'))).length;
     categoriesList.push({
         value: 'Mabanag Hall',
         label: 'Mabanag Hall Deals',
         count: mabanagCount
     });
 
-    const upcomingCount = availableVouchers.filter(v => (v.is_upcoming || (v.status && v.status.toLowerCase() === 'upcoming')) && !v.is_expired).length;
+    const upcomingCount = baseList.filter(v => (v.is_upcoming || (v.status && v.status.toLowerCase() === 'upcoming')) && !v.is_expired).length;
     categoriesList.push({
         value: 'Upcoming',
         label: 'Upcoming Promotions',
         count: upcomingCount
-    });
-
-    categoriesList.push({
-        value: 'Claimed',
-        label: 'My Vouchers',
-        count: activeClaimed.length
-    });
-
-    categoriesList.push({
-        value: 'History',
-        label: 'Voucher History',
-        count: historyClaimed.length
     });
 
     // 1. Sync hidden select element for complete compatibility
@@ -1567,14 +1530,17 @@ function populateMunicipalityDropdown() {
     const floatingMuniList = document.getElementById('floating-muni-items-list');
     if (!floatingMuniList) return;
 
-    const claimed = getClaimedVouchers();
     let baseList = vouchersData;
-    if (activeCategory === 'Claimed') {
-        baseList = vouchersData.filter(v => claimed.includes(v.id) && !isVoucherRedeemed(v));
-    } else if (activeCategory === 'History') {
-        baseList = vouchersData.filter(v => claimed.includes(v.id) && isVoucherRedeemed(v));
+    if (activeStatus === 'Claimed') {
+        baseList = vouchersData.filter(v => isVoucherClaimed(v) && !isVoucherRedeemed(v));
+    } else if (activeStatus === 'Redeemed') {
+        baseList = vouchersData.filter(v => isVoucherClaimed(v) && isVoucherRedeemed(v));
+    } else if (activeStatus === 'Fully Claimed') {
+        baseList = vouchersData.filter(v => isVoucherFullyClaimed(v));
+    } else if (activeStatus === 'Expired') {
+        baseList = vouchersData.filter(v => isVoucherExpired(v));
     } else {
-        baseList = vouchersData.filter(v => !claimed.includes(v.id) && !isVoucherRedeemed(v));
+        baseList = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v));
     }
 
     const townSet = new Set();
@@ -1705,6 +1671,8 @@ function selectFloatingStatus(statusVal, e) {
 function filterStatus(statusVal) {
     activeStatus = statusVal || 'All';
     populateStatusDropdown();
+    populateCategoryDropdown();
+    populateMunicipalityDropdown();
     renderDiscounts();
 }
 

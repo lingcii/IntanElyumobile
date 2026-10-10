@@ -255,34 +255,7 @@ class VoucherController extends Controller
                 return response()->json(['status' => 'error', 'message' => 'Voucher is fully claimed.'], 400);
             }
 
-            // Check if user has reached max claims for this voucher
-            $maxPerUser = (int) ($voucher->maximum_redemption_per_user ?: 1);
-            $alreadyClaimedCount = 0;
-
-            if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
-                $alreadyClaimedCount = (int) \Illuminate\Support\Facades\DB::table('voucher_redemptions')
-                    ->where('user_id', $user->id)
-                    ->where('voucher_id', $voucher->id)
-                    ->count();
-            }
-
-            if ($alreadyClaimedCount === 0 && \Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
-                $alreadyClaimedCount = PointRedemption::where('user_id', $user->id)
-                    ->where(function($q) use ($voucher) {
-                        $q->where('type', $voucher->voucher_name);
-                        if ($voucher->voucher_code) {
-                            $q->orWhere('voucher_code', 'LIKE', $voucher->voucher_code . '%');
-                        }
-                    })
-                    ->count();
-            }
-
-            if ($alreadyClaimedCount >= $maxPerUser) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'You have already redeemed this voucher.'
-                ], 400);
-            }
+            // Old data restriction removed: users are not blocked by legacy point_redemptions or old claim records
 
             $cost = (int) ($voucher->required_points ?: 100);
 
