@@ -226,18 +226,8 @@ $activeTab = 'leaderboard';
             if (!podiumContainer && !rankListContainer) return;
             if (!rawLeadersList) return;
 
-            // Filter out users based on active sort mode (resilient against zero stats)
-            let leaders = (rawLeadersList || []).filter(u => {
-                const pts = parseInt(u.points ?? u.pts ?? u.total_points ?? u.claimable_points ?? u.xp ?? 0);
-                const act = parseInt(u.completed_activities ?? u.activities ?? u.total_activities ?? u.places_visited ?? 0);
-                if (currentSortMode === 'visited') return act > 0 || pts > 0;
-                return pts > 0 || act > 0;
-            });
-
-            // If filtering resulted in empty array but we have raw leaders, display all raw leaders rather than blanking out
-            if (leaders.length === 0 && rawLeadersList && rawLeadersList.length > 0) {
-                leaders = [...rawLeadersList];
-            }
+            // Display all ranked explorers without omitting newcomers
+            let leaders = Array.isArray(rawLeadersList) ? [...rawLeadersList] : [];
 
             // Sort items based on current sort mode
             if (currentSortMode === 'visited') {
@@ -247,7 +237,10 @@ $activeTab = 'leaderboard';
                     if (actB !== actA) return actB - actA;
                     const ptsA = parseInt(a.points ?? a.pts ?? a.total_points ?? a.claimable_points ?? a.xp ?? 0);
                     const ptsB = parseInt(b.points ?? b.pts ?? b.total_points ?? b.claimable_points ?? b.xp ?? 0);
-                    return ptsB - ptsA;
+                    if (ptsB !== ptsA) return ptsB - ptsA;
+                    const rankA = parseInt(a.rank ?? a.position ?? 9999);
+                    const rankB = parseInt(b.rank ?? b.position ?? 9999);
+                    return rankA - rankB;
                 });
             } else {
                 leaders.sort((a, b) => {
@@ -256,13 +249,16 @@ $activeTab = 'leaderboard';
                     if (ptsB !== ptsA) return ptsB - ptsA;
                     const actA = parseInt(a.completed_activities ?? a.activities ?? a.total_activities ?? a.places_visited ?? 0);
                     const actB = parseInt(b.completed_activities ?? b.activities ?? b.total_activities ?? b.places_visited ?? 0);
-                    return actB - actA;
+                    if (actB !== actA) return actB - actA;
+                    const rankA = parseInt(a.rank ?? a.position ?? 9999);
+                    const rankB = parseInt(b.rank ?? b.position ?? 9999);
+                    return rankA - rankB;
                 });
             }
 
             const countBadge = document.getElementById('explorers-count-badge');
             if (countBadge) {
-                countBadge.textContent = leaders.length > 0 ? `Top ${Math.min(leaders.length, 10)} Explorers` : '0 Explorers';
+                countBadge.textContent = leaders.length > 0 ? `${leaders.length} Explorers` : '0 Explorers';
             }
 
             // Prepare current logged-in user standing information (function-scoped for ranking comparisons)
@@ -351,17 +347,23 @@ $activeTab = 'leaderboard';
                 if (podiumContainer) podiumContainer.innerHTML = podiumHTML;
             }
 
-            // Render Rank List (Ranks 4 to 10 - capped strictly at 10 total)
+            // Render Rank List (Ranks 4 onwards - all ranked explorers)
             let rankListHTML = '';
             if (leaders.length > 3) {
-                for (let i = 3; i < Math.min(leaders.length, 10); i++) {
+                for (let i = 3; i < leaders.length; i++) {
                     const user = leaders[i];
                     const isMe = Boolean(cachedMeData && ((user.id && user.id === cachedMeData.id) || (user.user_id && user.user_id === (cachedMeData.user_id || cachedMeData.id))));
                     rankListHTML += generateRankItem(user, i + 1, isMe);
                 }
             }
 
-            if (cachedMeData && cachedMyRank > 10 && cachedMyRank <= 999 && !isUnranked) {
+            // Append current user if they are outside the loaded list
+            const isMeAlreadyInList = Boolean(cachedMeData && leaders.some(u => {
+                const uId = u.id || u.user_id;
+                const mId = cachedMeData.id || cachedMeData.user_id;
+                return uId && mId && uId === mId;
+            }));
+            if (cachedMeData && !isMeAlreadyInList && cachedMyRank && cachedMyRank <= 999) {
                 rankListHTML += generateRankItem(cachedMeData, cachedMyRank, true);
             }
 
@@ -687,7 +689,7 @@ $activeTab = 'leaderboard';
         if (refreshIcon) refreshIcon.classList.add('fa-spin');
         try {
             const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-            const cacheKey = 'leaderboard_data_v25_' + (token ? token.substring(0, 10) : 'public');
+            const cacheKey = 'leaderboard_data_v26_' + (token ? token.substring(0, 10) : 'public');
             localStorage.removeItem(cacheKey);
             for (let i = localStorage.length - 1; i >= 0; i--) {
                 const k = localStorage.key(i);
@@ -731,7 +733,7 @@ $activeTab = 'leaderboard';
         try {
             const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
             var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
-            const cacheKey = 'leaderboard_data_v25_' + (token ? token.substring(0, 10) : 'public');
+            const cacheKey = 'leaderboard_data_v26_' + (token ? token.substring(0, 10) : 'public');
 
             if (forceRefresh) {
                 window.leaderboardNeedsRefresh = true;

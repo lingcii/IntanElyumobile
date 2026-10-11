@@ -42,7 +42,6 @@ class LeaderboardController extends Controller
                 FROM users u
                 LEFT JOIN municipalities m ON u.municipality_id = m.id
                 WHERE u.role = 'tourist'
-                  AND (COALESCE(u.xp, 0) > 0 OR COALESCE(u.points, 0) > 0 OR COALESCE(u.completed_activities, 0) > 0)
                 GROUP BY u.id, u.name, u.email, u.avatar, u.home_location, m.name, u.bio, u.is_leaderboard_private, u.last_activity, u.xp, u.points, u.completed_activities, u.created_at
             ),
             ranked AS (
@@ -51,6 +50,7 @@ class LeaderboardController extends Controller
                     ROW_NUMBER() OVER (
                         ORDER BY
                             us.total_xp             DESC,
+                            us.total_points         DESC,
                             us.completed_activities DESC,
                             us.points_since         ASC,
                             us.user_id              ASC
@@ -69,7 +69,7 @@ class LeaderboardController extends Controller
     {
         $search = trim($request->get('search', ''));
         $rawSort = strtolower(trim($request->get('sort', 'xp')));
-        $limit = min(max((int) $request->get('limit', 10), 1), 500);
+        $limit = min(max((int) $request->get('limit', 50), 1), 500);
         $offset = max((int) $request->get('offset', 0), 0);
 
         // Normalize sorting parameter names (Prioritize XP, Points & Activities)
