@@ -237,7 +237,7 @@ if (is_dir($imgDir)) {
             applyFilters();
         };
 
-        async function fetchAllData() {
+        async function fetchAllData(forceRefresh = false) {
             const token = localStorage.getItem('intan_elyu_token');
 
             // 1. Fetch Trending Spots
@@ -258,7 +258,7 @@ if (is_dir($imgDir)) {
                         if (!isCached) applyFilters();
                     }
                 },
-                false,
+                Boolean(forceRefresh),
                 60000
             );
 
@@ -277,7 +277,7 @@ if (is_dir($imgDir)) {
                         if (!isCached) applyFilters();
                     }
                 },
-                false,
+                Boolean(forceRefresh),
                 60000
             );
 
@@ -548,8 +548,27 @@ if (is_dir($imgDir)) {
             }
         };
 
+        window.fetchTrendingSpots = fetchAllData;
+        window.fetchAllTouristData = fetchAllData;
+        window.fetchAllData = fetchAllData;
+
+        // Ambient automatic reconnect & lifecycle listeners
         window.addEventListener('online', function () {
-            fetchAllData();
+            fetchAllData(true);
+        });
+        window.addEventListener('appOnline', function () {
+            fetchAllData(true);
+        });
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden && (!allDestinations || allDestinations.length === 0)) {
+                fetchAllData(true);
+            }
+        });
+        window.addEventListener('viewLoaded', function (e) {
+            if (e && e.detail && e.detail.view === 'trending') {
+                const mustForce = (!allDestinations || allDestinations.length === 0);
+                fetchAllData(mustForce);
+            }
         });
 
         fetchAllData();

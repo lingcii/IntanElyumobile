@@ -2056,5 +2056,9 @@ window.addEventListener('online', function () {
     fetchLiveDatabaseVouchers();
     fetchUserPointsAndRedemptions();
 });
+window.addEventListener('appOnline', function () {
+    fetchLiveDatabaseVouchers();
+    fetchUserPointsAndRedemptions();
+});
 })();
 </script>

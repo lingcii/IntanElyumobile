@@ -846,7 +846,7 @@ if (is_dir($imgDir)) {
         }
     };
 
-    (async function dashboardInit() {
+    async function dashboardInit(forceRefresh = false) {
         const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
         const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
         const setSrc = (id, src) => { const el = document.getElementById(id); if (el) el.src = src; };
@@ -1450,7 +1450,7 @@ if (is_dir($imgDir)) {
                         renderDashboard(data);
                     }
                 },
-                Boolean(window.dashboardNeedsRefresh),
+                Boolean(forceRefresh || window.dashboardNeedsRefresh),
                 30000 // 30 seconds TTL for dashboard
             );
             window.dashboardNeedsRefresh = false;
@@ -1484,7 +1484,7 @@ if (is_dir($imgDir)) {
                         if (el) el.textContent = 'Unranked';
                     }
                 },
-                false,
+                Boolean(forceRefresh || window.dashboardNeedsRefresh),
                 60000 // 1 minute TTL for rank
             );
 
@@ -1652,14 +1652,37 @@ if (is_dir($imgDir)) {
                         `;
                         }
                     },
-                    false,
+                    Boolean(forceRefresh || window.dashboardNeedsRefresh),
                     60000 // 1 minute TTL for trips
                 );
             }
         } catch (e) {
             console.error(e);
         }
-    })();
+    }
+    window.dashboardInit = dashboardInit;
+
+    // Ambient automatic reconnect & lifecycle listeners
+    window.addEventListener('online', function () {
+        if (typeof window.dashboardInit === 'function') window.dashboardInit(true);
+    });
+    window.addEventListener('appOnline', function () {
+        if (typeof window.dashboardInit === 'function') window.dashboardInit(true);
+    });
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden && window.dashboardNeedsRefresh) {
+            if (typeof window.dashboardInit === 'function') window.dashboardInit(true);
+        }
+    });
+    window.addEventListener('viewLoaded', function (e) {
+        if (e && e.detail && e.detail.view === 'dashboard') {
+            if (typeof window.dashboardInit === 'function') {
+                window.dashboardInit(Boolean(window.dashboardNeedsRefresh));
+            }
+        }
+    });
+
+    dashboardInit();
 
     window.toggleFavorite = function (destId, element) {
         const token = localStorage.getItem('intan_elyu_token');

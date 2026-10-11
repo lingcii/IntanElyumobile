@@ -743,8 +743,8 @@ $activeTab = 'leaderboard';
                 }
             } catch (e) { }
 
-            // If offline and still no leaders list, render user personal standing and ambient offline message
-            if (!navigator.onLine && (!rawLeadersList || rawLeadersList.length === 0)) {
+            // If offline and still no leaders list, render user personal standing and ambient offline message (unless forceRefresh is explicitly requested)
+            if (!navigator.onLine && !forceRefresh && (!rawLeadersList || rawLeadersList.length === 0)) {
                 renderLeaderboardUI();
                 if (podiumContainer) {
                     podiumContainer.innerHTML = `
@@ -884,11 +884,18 @@ $activeTab = 'leaderboard';
     // Initialize immediately
     window.initLeaderboardView();
 
-    // Ambient automatic reconnect listener - quietly syncs rankings without user buttons or reloads
-    window.addEventListener('online', function () {
+    // Ambient automatic reconnect listeners - quietly syncs rankings without user buttons or reloads
+    function handleLeaderboardReconnect() {
         if (typeof window.initLeaderboardView === 'function') {
             window.leaderboardNeedsRefresh = true;
             window.initLeaderboardView(true);
+        }
+    }
+    window.addEventListener('online', handleLeaderboardReconnect);
+    window.addEventListener('appOnline', handleLeaderboardReconnect);
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden && (!rawLeadersList || rawLeadersList.length === 0 || window.leaderboardNeedsRefresh)) {
+            handleLeaderboardReconnect();
         }
     });
 
@@ -896,7 +903,8 @@ $activeTab = 'leaderboard';
     function handleLeaderboardViewLoaded(e) {
         if (e && e.detail && e.detail.view === 'leaderboard') {
             if (typeof window.initLeaderboardView === 'function') {
-                window.initLeaderboardView();
+                const mustForce = (!rawLeadersList || rawLeadersList.length === 0 || window.leaderboardNeedsRefresh);
+                window.initLeaderboardView(mustForce);
             }
         }
     }

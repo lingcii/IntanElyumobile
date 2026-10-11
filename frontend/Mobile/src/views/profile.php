@@ -1747,10 +1747,18 @@ $activeTab = 'profile';
         }
     });
 
+    window.fetchProfileData = fetchProfileData;
+    window.fetchPointsAndVouchers = fetchPointsAndVouchers;
+
     // Ambient automatic reconnect listener - quietly syncs profile & vouchers when network restores
-    window.addEventListener('online', function () {
+    function handleProfileReconnect() {
         if (typeof fetchProfileData === 'function') fetchProfileData(true);
-        if (typeof fetchPointsAndVouchers === 'function') fetchPointsAndVouchers();
+        if (typeof fetchPointsAndVouchers === 'function') fetchPointsAndVouchers(true);
+    }
+    window.addEventListener('online', handleProfileReconnect);
+    window.addEventListener('appOnline', handleProfileReconnect);
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) handleProfileReconnect();
     });
 
     // Real-time re-hydration when returning to Profile view
