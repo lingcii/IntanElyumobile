@@ -560,12 +560,9 @@ $activeTab = 'profile';
                             <div style="font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, 0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px;">
                                 ${partnerName}
                             </div>
-                            <div style="display: flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 700; color: #bae6fd; margin-bottom: 4px;">
+                            <div style="display: flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 700; color: #bae6fd;">
                                 <i class="fa-regular fa-calendar-xmark" style="color: #00f2fe; font-size: 11px;"></i>
                                 <span>Expires: <strong style="color: #ffffff;">${expiryFormatted}</strong></span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #00f2fe;">
-                                <i class="fa-solid fa-qrcode" style="font-size: 11px;"></i> Tap to open Voucher QR Pass
                             </div>
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
@@ -1190,7 +1187,7 @@ $activeTab = 'profile';
 
                 <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.14); font-size: 11px; color: #e2e8f0; font-weight: 600;">
                     ${createdDate ? `<span><i class="fa-regular fa-calendar" style="color: #00f2fe; margin-right: 4px;"></i>Claimed: ${createdDate}</span>` : '<span></span>'}
-                    <span style="color: #00f2fe; font-size: 11.5px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-qrcode"></i> Tap to open Pass <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i></span>
+                    <span style="color: #00f2fe; font-size: 11.5px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-qrcode"></i> Open Pass <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i></span>
                 </div>
             </div>`;
         };
