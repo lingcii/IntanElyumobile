@@ -12,6 +12,7 @@
 	},
 	"server": {
 		"url": "https://app.intan-elyu.online?app=true",
+		"errorPath": "index.html",
 		"cleartext": true,
 		"allowNavigation": [
 			"app.intan-elyu.online",

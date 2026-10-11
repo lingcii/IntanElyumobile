@@ -1,0 +1,343 @@
+/* ============================================================
+ * Saved Trips View Styles - saved_trips.css
+ * Intan Elyu Mobile — Clean Pure White Theme with Royal Blue Cards
+ * ============================================================ */
+
+/* Full Page White Background */
+html:has(body[data-view="saved_trips"]),
+body[data-view="saved_trips"],
+html:has(.saved-trips-page-container),
+body:has(.saved-trips-page-container) {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+body[data-view="saved_trips"] #app-container,
+body[data-view="saved_trips"] #main-content,
+body:has(.saved-trips-page-container) #app-container,
+body:has(.saved-trips-page-container) #main-content {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+}
+
+body[data-view="saved_trips"] .mobile-header {
+    background: #1e3a8a !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: none !important;
+    outline: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+
+body[data-view="saved_trips"] .mobile-header .header-title {
+    color: #ffffff !important;
+    font-weight: 800 !important;
+}
+
+body[data-view="saved_trips"] .mobile-header .header-icon {
+    color: #1e3a8a !important;
+    background: #ffffff !important;
+    border: none !important;
+    outline: none !important;
+}
+
+body[data-view="saved_trips"] .mobile-header .header-icon i {
+    color: #1e3a8a !important;
+}
+
+/* Main Container: Pure White Background */
+.saved-trips-page-container {
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-top: var(--page-top-padding, calc(max(env(safe-area-inset-top, 0px), 36px) + 52px)) !important;
+    padding-left: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
+    padding-right: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
+    padding-bottom: var(--page-bottom-padding, calc(max(18px, env(safe-area-inset-bottom, 18px)) + 82px)) !important;
+    box-sizing: border-box;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+}
+
+/* Headings & Section Titles */
+.saved-trips-page-container > h2, 
+.saved-trips-page-container > h3, 
+.saved-trips-page-container > h4,
+.saved-trips-page-container > div > h2,
+.saved-trips-page-container > div > h3,
+.saved-trips-page-container > div > h4 {
+    color: #0f172a !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.4px !important;
+}
+
+.saved-trips-page-container .trip-swipe-content h2, 
+.saved-trips-page-container .trip-swipe-content h3, 
+.saved-trips-page-container .trip-swipe-content h4,
+.saved-trips-page-container .empty-state-card h2, 
+.saved-trips-page-container .empty-state-card h3, 
+.saved-trips-page-container .empty-state-card h4 {
+    color: #ffffff !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.4px !important;
+}
+
+/* Keyframe Animations */
+@keyframes tripCardFade {
+    0% {
+        opacity: 0;
+        transform: translateY(18px) scale(0.97);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Trip Swipe Container & Front Card */
+.trip-swipe-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 24px !important;
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    mask-image: radial-gradient(white, black);
+    isolation: isolate;
+    contain: paint;
+    margin-bottom: 20px !important;
+    animation: tripCardFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.trip-swipe-bg {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 95px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    border-radius: 0 24px 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+    gap: 6px;
+    z-index: 1;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(95px);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease !important;
+}
+
+.trip-swipe-content {
+    position: relative;
+    z-index: 2;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    border: none !important;
+    outline: none !important;
+    border-radius: 24px !important;
+    padding: 22px 20px;
+    box-shadow: 0 10px 28px rgba(10, 25, 60, 0.28) !important;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease !important;
+}
+
+.trip-swipe-content:hover {
+    border: none !important;
+    outline: none !important;
+}
+
+/* Collapsible Timeline Spacing */
+.timeline-collapsible {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, margin-top 0.4s ease, margin-bottom 0.4s ease;
+}
+
+.timeline-collapsible.expanded {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    margin-top: 18px;
+    margin-bottom: 12px;
+}
+
+.timeline-inner {
+    overflow: hidden;
+}
+
+.start-collapsible {
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-width 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, margin-left 0.4s ease;
+    display: flex;
+}
+
+.start-collapsible.expanded {
+    max-width: 220px;
+    opacity: 1;
+    margin-left: 12px;
+}
+
+/* Timeline Destination Card Items */
+.timeline-content {
+    padding: 16px !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: none !important;
+    outline: none !important;
+    border-radius: 18px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    box-shadow: none !important;
+    transition: background 0.2s ease !important;
+}
+
+.timeline-content:hover {
+    background: rgba(255, 255, 255, 0.16) !important;
+    border: none !important;
+    outline: none !important;
+}
+
+/* Ensure no child elements inside trip cards have outlines or borders */
+.saved-trips-page-container .trip-swipe-content,
+.saved-trips-page-container .trip-swipe-content *,
+.saved-trips-page-container .timeline-content,
+.saved-trips-page-container .timeline-content * {
+    outline: none !important;
+}
+
+.saved-trips-page-container .timeline-content button,
+.saved-trips-page-container .timeline-content span,
+.saved-trips-page-container .timeline-content img {
+    border-color: transparent !important;
+    outline: none !important;
+}
+
+/* Empty State Card (Matches Coastal Ocean Theme) */
+.saved-trips-page-container .empty-state-card {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    border: none !important;
+    outline: none !important;
+    border-radius: 24px !important;
+    padding: 36px 24px !important;
+    text-align: center !important;
+    box-shadow: 0 10px 28px rgba(10, 25, 60, 0.28) !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.saved-trips-page-container .empty-state-icon {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: #ffffff !important;
+    border: none !important;
+    outline: none !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1e3a8a !important;
+    -webkit-text-fill-color: #1e3a8a !important;
+    font-size: 28px;
+    margin: 0 auto 12px auto;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;
+}
+
+.saved-trips-page-container .empty-state-icon i {
+    color: #1e3a8a !important;
+    -webkit-text-fill-color: #1e3a8a !important;
+    font-size: 28px !important;
+}
+
+.saved-trips-page-container .btn-open-map {
+    background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 13px 30px !important;
+    border-radius: 100px !important;
+    font-weight: 800 !important;
+    font-size: 14px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    box-shadow: none !important;
+    cursor: pointer !important;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.saved-trips-page-container .btn-open-map:active {
+    transform: scale(0.95) !important;
+}
+
+/* Buttons Micro-Interactions */
+.saved-trips-page-container button {
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.saved-trips-page-container button:active {
+    transform: scale(0.96);
+}
+
+/* Check-in & Trip Modals */
+#checkin-modal,
+#complete-trip-modal,
+#delete-trip-modal {
+    z-index: 99999 !important;
+    background: rgba(6, 11, 25, 0.75) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+}
+
+#checkin-modal > div,
+#complete-trip-modal > div,
+#delete-trip-modal > div {
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45) !important;
+    color: #ffffff !important;
+    border-radius: 26px !important;
+}
+
+/* Timeline and Start Collapsible Controls */
+.timeline-collapsible {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease, margin-top 0.4s ease;
+}
+
+.timeline-collapsible.expanded {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    margin-top: 16px;
+}
+
+.timeline-inner {
+    overflow: hidden;
+}
+
+.start-collapsible {
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease;
+    display: flex;
+}
+
+.start-collapsible.expanded {
+    max-width: 200px;
+    opacity: 1;
+}
+

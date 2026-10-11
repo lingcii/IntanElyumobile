@@ -1,0 +1,344 @@
+/* ============================================================
+ * Splash View - splash.css
+ * Intan Elyu Mobile
+ * ============================================================ */
+
+.splash-container {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: transparent;
+    color: white;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    position: relative;
+    overflow-x: hidden;
+    z-index: 5;
+}
+
+.splash-container.exit {
+    opacity: 0;
+    transform: scale(1.05);
+}
+
+.splash-logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 12px;
+    animation: float 4s ease-in-out infinite;
+}
+
+.splash-title {
+    font-size: 48px;
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    background: linear-gradient(to right, #ffffff, #38bdf8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+@keyframes pulseGlow {
+    0% {
+        filter: drop-shadow(0 4px 10px rgba(56, 189, 248, 0.3));
+        transform: scale(1);
+    }
+
+    100% {
+        filter: drop-shadow(0 12px 24px rgba(56, 189, 248, 0.6));
+        transform: scale(1.03);
+    }
+}
+
+.splash-tagline {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.75);
+    margin-top: -5px;
+}
+
+.loading-dots {
+    margin-top: 50px;
+    display: flex;
+    gap: 12px;
+}
+
+.loading-dots .dot {
+    width: 12px;
+    height: 12px;
+    background-color: #38bdf8;
+    border-radius: 50%;
+    animation: bounce 1.2s infinite ease-in-out both;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+}
+
+.loading-dots .dot:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.loading-dots .dot:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+.loading-dots .dot:nth-child(3) {
+    animation-delay: 0s;
+}
+
+@keyframes bounce {
+
+    0%,
+    80%,
+    100% {
+        transform: translateY(0) scale(0.8);
+        opacity: 0.6;
+    }
+
+    40% {
+        transform: translateY(-12px) scale(1.2);
+        opacity: 1;
+        box-shadow: 0 0 15px rgba(56, 189, 248, 1);
+    }
+}
+
+/* SVG Wave Bottom */
+.splash-container .wave-wrapper {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0;
+    background: #74a3cf;
+    transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Slower start so it doesn't hit the title */
+    z-index: 10;
+}
+
+.splash-container .wave-bottom {
+    position: absolute;
+    bottom: calc(100% - 2px);
+    left: 0;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: visible;
+    line-height: 0;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.wave-bottom svg {
+    display: block;
+    width: 200vw;
+    height: 55px;
+}
+
+.wave-layer {
+    transform-origin: center bottom;
+}
+
+.wave-1 {
+    animation: moveWave 18s linear infinite;
+}
+
+.wave-2 {
+    animation: moveWave 12s linear infinite reverse;
+}
+
+.wave-3 {
+    animation: moveWave 8s linear infinite;
+}
+
+@keyframes moveWave {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+/* Transition to Auth State */
+.splash-container.transition-to-auth .wave-wrapper {
+    height: calc(100vh - clamp(250px, 38vh, 330px));
+    /* Matches auth-bottom height */
+}
+
+/* Fade out and slide up elements quickly before the wave hits them, EXCLUDING the logo icon */
+.splash-container.transition-to-auth .splash-title,
+.splash-container.transition-to-auth .stagger-2,
+.splash-container.transition-to-auth .stagger-3 {
+    opacity: 0 !important;
+    transform: translateY(-20px) !important;
+    transition: opacity 0.2s ease, transform 0.3s ease !important;
+}
+
+.splash-container.transition-to-auth .splash-title {
+    display: inline-block;
+}
+
+/* Animate the logo icon to its new position on the auth screen without shrinking */
+.splash-container.transition-to-auth .splash-logo-container {
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+
+/* Cloud Container and Drifting Clouds styling */
+.cloud-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60%;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.cloud {
+    position: absolute;
+    opacity: 0.8;
+}
+
+.cloud svg {
+    width: 100%;
+    height: auto;
+}
+
+.cloud-1 {
+    top: 5%;
+    width: 85px;
+    animation: drift 35s linear infinite;
+    animation-delay: -2s;
+}
+
+.cloud-2 {
+    top: 25%;
+    width: 110px;
+    animation: drift 24s linear infinite;
+    animation-delay: -9s;
+}
+
+.cloud-3 {
+    top: 12%;
+    width: 60px;
+    animation: drift 42s linear infinite;
+    animation-delay: -17s;
+}
+
+.cloud-4 {
+    top: 38%;
+    width: 90px;
+    animation: drift 28s linear infinite;
+    animation-delay: -5s;
+}
+
+.cloud-5 {
+    top: 18%;
+    width: 100px;
+    animation: drift 48s linear infinite;
+    animation-delay: -31s;
+}
+
+.cloud-6 {
+    top: 45%;
+    width: 55px;
+    animation: drift 20s linear infinite;
+    animation-delay: -14s;
+}
+
+.cloud-7 {
+    top: 8%;
+    width: 45px;
+    animation: drift 38s linear infinite;
+    animation-delay: -26s;
+}
+
+.cloud-8 {
+    top: 32%;
+    width: 95px;
+    animation: drift 30s linear infinite;
+    animation-delay: -11s;
+}
+
+.cloud-9 {
+    top: 52%;
+    width: 75px;
+    animation: drift 26s linear infinite;
+    animation-delay: -21s;
+}
+
+.cloud-10 {
+    top: 15%;
+    width: 70px;
+    animation: drift 45s linear infinite;
+    animation-delay: -37s;
+}
+
+@keyframes drift {
+    from {
+        transform: translateX(-100px);
+    }
+
+    to {
+        transform: translateX(100vw);
+    }
+}
+
+/* Global Cloud Container Visibility */
+#global-cloud-container {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+body[data-view="splash"] #global-cloud-container,
+body[data-view="auth"] #global-cloud-container {
+    opacity: 1;
+}
+
+#app-container {
+    z-index: 3;
+}
+
+body[data-view="splash"] {
+    background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%) !important;
+}
+
+/* Offline Mode Indicator on Splash */
+.splash-offline-pill {
+    position: relative;
+    z-index: 100;
+    margin-top: 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 14px;
+    border-radius: 100px;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    color: #fef3c7;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    animation: fadeIn 0.4s ease;
+}

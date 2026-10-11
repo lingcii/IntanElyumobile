@@ -11,6 +11,11 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkInfo;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.getcapacitor.BridgeActivity;
@@ -123,12 +128,10 @@ public class MainActivity extends BridgeActivity {
 
                     @Override
                     public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                        if (failingUrl != null && (failingUrl.contains("intan-elyu.online") || failingUrl.contains("localhost"))) {
-                            try {
-                                view.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ONLY);
-                                view.loadUrl(failingUrl);
-                                return;
-                            } catch (Exception ignored) {}
+                        if (failingUrl != null && failingUrl.contains("intan-elyu.online")) {
+                            // Suppress system error page and seamlessly load local offline app
+                            view.post(() -> view.loadUrl("file:///android_asset/public/index.html"));
+                            return;
                         }
                         super.onReceivedError(view, errorCode, description, failingUrl);
                     }
@@ -137,17 +140,23 @@ public class MainActivity extends BridgeActivity {
                     public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                         if (request != null && request.isForMainFrame() && request.getUrl() != null) {
                             String failingUrl = request.getUrl().toString();
-                            if (failingUrl.contains("intan-elyu.online") || failingUrl.contains("localhost")) {
-                                try {
-                                    view.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ONLY);
-                                    view.loadUrl(failingUrl);
-                                    return;
-                                } catch (Exception ignored) {}
+                            if (failingUrl.contains("intan-elyu.online")) {
+                                // Suppress system error page and seamlessly load local offline app
+                                view.post(() -> view.loadUrl("file:///android_asset/public/index.html"));
+                                return;
                             }
                         }
                         super.onReceivedError(view, request, error);
                     }
                 });
+
+                // Cold Boot Offline Protection: If launched without internet, load offline bundle immediately
+                if (!isNetworkAvailable()) {
+                    webView.post(() -> webView.loadUrl("file:///android_asset/public/index.html"));
+                }
+
+                // Register network monitor to smoothly transition to live cloud app when internet returns
+                registerNetworkCallback(webView);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -229,5 +238,48 @@ public class MainActivity extends BridgeActivity {
             e.printStackTrace();
         }
         super.onBackPressed();
+    }
+
+    private boolean isNetworkAvailable() {
+        try {
+            ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (cm == null) return false;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                Network net = cm.getActiveNetwork();
+                if (net == null) return false;
+                NetworkCapabilities caps = cm.getNetworkCapabilities(net);
+                return caps != null && (caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                                        caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED));
+            } else {
+                NetworkInfo info = cm.getActiveNetworkInfo();
+                return info != null && info.isConnected();
+            }
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void registerNetworkCallback(final WebView webView) {
+        try {
+            ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (cm != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                cm.registerDefaultNetworkCallback(new ConnectivityManager.NetworkCallback() {
+                    @Override
+                    public void onAvailable(Network network) {
+                        runOnUiThread(() -> {
+                            try {
+                                if (webView != null) {
+                                    String curUrl = webView.getUrl();
+                                    if (curUrl != null && curUrl.startsWith("file:///android_asset/")) {
+                                        webView.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
+                                        webView.loadUrl("https://app.intan-elyu.online?app=true");
+                                    }
+                                }
+                            } catch (Exception ignored) {}
+                        });
+                    }
+                });
+            }
+        } catch (Exception ignored) {}
     }
 }
