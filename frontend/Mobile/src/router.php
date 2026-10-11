@@ -27,12 +27,33 @@ if (strpos($path, 'user_manual_mobile.html') !== false) {
 
 // Serve APK binary files directly
 if (strpos($path, 'intan-elyu.apk') !== false || strpos($path, '.apk') !== false) {
-    $apkPath = dirname(__DIR__) . '/public/downloads/intan-elyu.apk';
-    if (!file_exists($apkPath)) {
-        $apkPath = __DIR__ . '/downloads/intan-elyu.apk';
+    $candidatePaths = [
+        dirname(__DIR__) . '/android/app/build/outputs/apk/release/app-release.apk',
+        dirname(__DIR__) . '/android/app/build/outputs/apk/debug/app-debug.apk',
+        dirname(__DIR__) . '/public/downloads/intan-elyu.apk',
+        dirname(__DIR__) . '/app-release.apk',
+        dirname(__DIR__) . '/app-debug.apk',
+        __DIR__ . '/downloads/intan-elyu.apk',
+    ];
+    $apkPath = null;
+    foreach ($candidatePaths as $candidate) {
+        if (file_exists($candidate) && filesize($candidate) > 10 * 1024 * 1024) {
+            $apkPath = $candidate;
+            break;
+        }
     }
-    if (file_exists($apkPath)) {
+    if (!$apkPath) {
+        foreach ($candidatePaths as $candidate) {
+            if (file_exists($candidate) && filesize($candidate) > 0) {
+                $apkPath = $candidate;
+                break;
+            }
+        }
+    }
+
+    if ($apkPath && file_exists($apkPath)) {
         while (ob_get_level()) { ob_end_clean(); }
+        $fileSize = filesize($apkPath);
         header('Content-Description: File Transfer');
         header('Content-Type: application/vnd.android.package-archive');
         header('Content-Disposition: attachment; filename="intan-elyu.apk"');
@@ -40,8 +61,19 @@ if (strpos($path, 'intan-elyu.apk') !== false || strpos($path, '.apk') !== false
         header('Expires: 0');
         header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
         header('Pragma: public');
-        header('Content-Length: ' . filesize($apkPath));
-        readfile($apkPath);
+        header('Content-Length: ' . $fileSize);
+        header('Accept-Ranges: bytes');
+
+        $handle = fopen($apkPath, 'rb');
+        if ($handle) {
+            while (!feof($handle) && connection_status() === 0) {
+                echo fread($handle, 1024 * 1024);
+                flush();
+            }
+            fclose($handle);
+        } else {
+            readfile($apkPath);
+        }
         exit;
     } else {
         header('Location: https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk');

@@ -65,3 +65,32 @@ try {
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }
+
+// Auto-sync Gradle build output to Web Download folder without manual intervention
+def syncApkToWeb(String buildType) {
+    def srcApk = file("${projectDir}/build/outputs/apk/${buildType}/app-${buildType}.apk")
+    if (srcApk.exists()) {
+        def targetDir = file("${projectDir}/../../public/downloads")
+        targetDir.mkdirs()
+        copy {
+            from srcApk
+            into targetDir
+            rename { 'intan-elyu.apk' }
+        }
+        copy {
+            from srcApk
+            into file("${projectDir}/../..")
+            rename { "app-${buildType}.apk" }
+        }
+        println "[Intan Elyu] Synchronized fresh ${buildType} APK (${srcApk.length()} bytes) to public/downloads/intan-elyu.apk"
+    }
+}
+
+afterEvaluate {
+    tasks.findByName('assembleRelease')?.doLast {
+        syncApkToWeb('release')
+    }
+    tasks.findByName('assembleDebug')?.doLast {
+        syncApkToWeb('debug')
+    }
+}
