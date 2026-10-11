@@ -210,18 +210,21 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
 .standing-rank-badge {
     position: absolute;
     bottom: -3px;
-    right: -3px;
+    right: -5px;
     background: linear-gradient(135deg, #00f2fe, #0284c7);
     color: #ffffff;
     font-size: 10px;
     font-weight: 900;
-    width: 20px;
+    min-width: 22px;
     height: 20px;
-    border-radius: 50%;
+    padding: 0 4px;
+    border-radius: 100px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: none !important;
+    border: 1.5px solid #203f8d !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+    z-index: 2;
 }
 
 .standing-info {

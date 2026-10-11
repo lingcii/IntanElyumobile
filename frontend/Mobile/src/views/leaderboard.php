@@ -269,14 +269,14 @@ $activeTab = 'leaderboard';
             const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
             const myPts = cachedMeData ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? cachedMeData.claimable_points ?? 0) : parseInt(authUser.points || 0);
             const myActivities = cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.total_activities ?? cachedMeData.places_visited ?? 0) : parseInt(authUser.completed_activities || authUser.places_visited || 0);
-            const isUnranked = (myPts === 0 && myActivities === 0);
-            const myRankNum = (!isUnranked && cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (isUnranked ? '—' : 1);
+            const isRanked = Boolean((cachedMyRank && cachedMyRank < 999) || myPts > 0 || myActivities > 0);
+            const myRankNum = (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (isRanked ? (rawLeadersList.length > 0 ? (rawLeadersList.length + '+') : '★') : '—');
             const myRawName = String((cachedMeData && (cachedMeData.name || cachedMeData.full_name)) || (authUser && (authUser.name || authUser.full_name)) || 'Explorer').trim() || 'Explorer';
-            const myDisplayName = isUnranked ? 'Unranked Explorer' : myRawName;
+            const myDisplayName = (!isRanked && myPts === 0) ? `${myRawName} (Unranked)` : myRawName;
             const myAvatar = cachedMeData && cachedMeData.avatar ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myRawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
 
             window.myUserData = {
-                name: myDisplayName,
+                name: myRawName,
                 avatar: myAvatar,
                 pts: myPts,
                 rank: myRankNum,
@@ -297,21 +297,29 @@ $activeTab = 'leaderboard';
                 if (avatarEl) avatarEl.src = myAvatar;
                 if (titleEl) titleEl.textContent = myDisplayName;
                 if (rankCircle) {
-                    if (isUnranked) {
-                        rankCircle.textContent = '—';
-                    } else if (cachedMyRank && cachedMyRank < 999) {
+                    if (cachedMyRank && cachedMyRank < 999) {
                         rankCircle.textContent = '#' + cachedMyRank;
-                    } else if (myRankNum && myRankNum !== '—') {
-                        rankCircle.textContent = '#' + myRankNum;
+                    } else if (isRanked && myRankNum !== '—') {
+                        rankCircle.textContent = String(myRankNum).startsWith('#') ? myRankNum : '#' + myRankNum;
                     } else {
-                        rankCircle.textContent = '★';
+                        rankCircle.textContent = '—';
                     }
                 }
                 if (subtext) {
-                    if (currentSortMode === 'visited') {
-                        subtext.textContent = `${myActivities} Spots Visited • ${myPts.toLocaleString()} Points`;
+                    if (cachedMyRank && cachedMyRank < 999) {
+                        if (currentSortMode === 'visited') {
+                            subtext.textContent = `Rank #${cachedMyRank} • ${myActivities} Spots Visited • ${myPts.toLocaleString()} Points`;
+                        } else {
+                            subtext.textContent = `Rank #${cachedMyRank} • ${myPts.toLocaleString()} Points • ${myActivities} Spots Visited`;
+                        }
+                    } else if (myPts > 0 || myActivities > 0) {
+                        if (currentSortMode === 'visited') {
+                            subtext.textContent = `${myActivities} Spots Visited • ${myPts.toLocaleString()} Points`;
+                        } else {
+                            subtext.textContent = `${myPts.toLocaleString()} Points • ${myActivities} Spots Visited`;
+                        }
                     } else {
-                        subtext.textContent = `${myPts.toLocaleString()} Points • ${myActivities} Spots Visited`;
+                        subtext.textContent = 'Check in at spots or play games to rank!';
                     }
                 }
             }
@@ -485,7 +493,8 @@ $activeTab = 'leaderboard';
 
         return `
         <div class="rank-item ${activeClass}" style="animation-delay: ${Math.max(0, delay)}s;" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${pts}, ${rank}, ${activities}, '${safeLocation}', '${safeBio}', ${Boolean(isMe)})">
-            <div style="display: flex; align-items: center; min-width: 0; flex: 1;">
+            <div style="display: flex; align-items: center; min-width: 0; flex: 1; gap: 10px;">
+                <div class="rank-number-box">#${rank}</div>
                 <img src="${avatarUrl}" alt="${displayName}" class="rank-avatar" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128';">
                 <div class="rank-info">
                     <div class="rank-user-name">
@@ -645,16 +654,28 @@ $activeTab = 'leaderboard';
             window._cachedMyRank = cachedMyRank;
         }
 
-        // Resilient self-matching if cachedMeData was not provided directly by API
-        if (!cachedMeData && authUser && (authUser.id || authUser.email) && rawLeadersList.length > 0) {
-            const found = rawLeadersList.find(u => (
-                (authUser.id && (u.id === authUser.id || u.user_id === authUser.id)) ||
-                (authUser.email && u.email && u.email.toLowerCase() === authUser.email.toLowerCase())
-            ));
-            if (found) {
-                cachedMeData = found;
-                window._cachedMeData = found;
-                cachedMyRank = found.rank || (rawLeadersList.indexOf(found) + 1);
+        // Resilient self-matching: match by ID, email, or name
+        const myId = Number(authUser.id || authUser.user_id || 0);
+        const myEmail = String(authUser.email || '').trim().toLowerCase();
+        const myName = String(authUser.name || authUser.full_name || '').trim().toLowerCase();
+
+        if (rawLeadersList && rawLeadersList.length > 0) {
+            const foundIndex = rawLeadersList.findIndex((u, idx) => {
+                const uId = Number(u.id || u.user_id || 0);
+                const uEmail = String(u.email || '').trim().toLowerCase();
+                const uName = String(u.name || u.full_name || u.real_name || '').trim().toLowerCase();
+                if (myId && uId && myId === uId) return true;
+                if (myEmail && uEmail && myEmail === uEmail) return true;
+                if (myName && uName && myName === uName) return true;
+                return false;
+            });
+            if (foundIndex !== -1) {
+                const found = rawLeadersList[foundIndex];
+                if (!cachedMeData) {
+                    cachedMeData = found;
+                    window._cachedMeData = found;
+                }
+                cachedMyRank = Number(found.rank || found.position || (foundIndex + 1));
                 window._cachedMyRank = cachedMyRank;
             }
         }
@@ -666,7 +687,7 @@ $activeTab = 'leaderboard';
         if (refreshIcon) refreshIcon.classList.add('fa-spin');
         try {
             const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-            const cacheKey = 'leaderboard_data_v22_' + (token ? token.substring(0, 10) : 'public');
+            const cacheKey = 'leaderboard_data_v25_' + (token ? token.substring(0, 10) : 'public');
             localStorage.removeItem(cacheKey);
             for (let i = localStorage.length - 1; i >= 0; i--) {
                 const k = localStorage.key(i);
@@ -710,7 +731,7 @@ $activeTab = 'leaderboard';
         try {
             const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
             var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
-            const cacheKey = 'leaderboard_data_v22_' + (token ? token.substring(0, 10) : 'public');
+            const cacheKey = 'leaderboard_data_v25_' + (token ? token.substring(0, 10) : 'public');
 
             if (forceRefresh) {
                 window.leaderboardNeedsRefresh = true;
