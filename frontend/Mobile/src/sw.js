@@ -1,7 +1,30 @@
-const CACHE_NAME = 'Intan_Elyu_cache-v12';
+const CACHE_NAME = 'Intan_Elyu_cache-v14';
 const ASSETS = [
     './',
     './index.php',
+    './index.php?app=true',
+    './?app=true',
+    './index.php?view=splash',
+    './index.php?view=auth',
+    './index.php?view=dashboard',
+    './index.php?view=splash&ajax=1',
+    './index.php?view=auth&ajax=1',
+    './index.php?view=dashboard&ajax=1',
+    './index.php?view=map&ajax=1',
+    './index.php?view=itinerary&ajax=1',
+    './index.php?view=saved_trips&ajax=1',
+    './index.php?view=saved_places&ajax=1',
+    './index.php?view=leaderboard&ajax=1',
+    './index.php?view=profile&ajax=1',
+    './index.php?view=discount&ajax=1',
+    './index.php?view=trending&ajax=1',
+    './index.php?view=puzzles&ajax=1',
+    './index.php?view=settings&ajax=1',
+    './index.php?view=help&ajax=1',
+    './index.php?view=about&ajax=1',
+    './index.php?view=terms&ajax=1',
+    './index.php?view=user_manual&ajax=1',
+    './index.php?view=edit_profile&ajax=1',
     './assets/css/style.css',
     './assets/js/main.js',
     './assets/img/logo.png',
@@ -25,9 +48,12 @@ const ASSETS = [
     './assets/css/views/puzzles.css',
     './assets/css/views/settings.css',
     './assets/css/views/help.css',
+    './assets/css/views/about.css',
+    './assets/css/views/terms.css',
     './assets/css/views/auth.css',
     './assets/css/views/splash.css',
     './assets/css/views/user_manual.css',
+    './assets/css/views/edit_profile.css',
     // External CDN Libraries
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
     'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
@@ -92,7 +118,7 @@ self.addEventListener('fetch', (event) => {
                       url.pathname === '/index.php' ||
                       isViewRequest;
 
-    // SWR / Network-First with Normalized Cache for Views and Public APIs
+    // SWR / Network-First with Normalized Cache for Views, App Shell and APIs
     if (isDynamic) {
         event.respondWith(
             fetch(event.request)
@@ -112,35 +138,77 @@ self.addEventListener('fetch', (event) => {
                 })
                 .catch(async () => {
                     const cache = await caches.open(CACHE_NAME);
-                    // Try exact match first
+                    // 1. Try exact match first
                     let cached = await cache.match(event.request);
-                    if (!cached) {
-                        // Try normalized match (without _t)
-                        const normUrl = normalizeUrl(event.request.url);
-                        cached = await cache.match(normUrl);
-                    }
-                    if (!cached && isViewRequest) {
-                        // Try matching view without query params other than view
-                        const viewName = url.searchParams.get('view');
-                        cached = await cache.match(`index.php?view=${viewName}&ajax=1`) ||
-                                 await cache.match(`index.php?view=${viewName}`) ||
-                                 await cache.match(`./?view=${viewName}`);
-                    }
                     if (cached) return cached;
 
-                    // If offline and request is an HTML page/view, return a clean offline fallback
-                    if (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html')) {
+                    // 2. Try normalized match (without volatile query parameters)
+                    const normUrl = normalizeUrl(event.request.url);
+                    cached = await cache.match(normUrl);
+                    if (cached) return cached;
+
+                    // 3. If requesting an AJAX view or sub-view
+                    if (isViewRequest) {
+                        const viewName = url.searchParams.get('view');
+                        const isAjax = url.searchParams.get('ajax') === '1';
+                        if (isAjax) {
+                            cached = await cache.match(`index.php?view=${viewName}&ajax=1`) ||
+                                     await cache.match(`./index.php?view=${viewName}&ajax=1`);
+                            if (cached) return cached;
+                        }
+                        cached = await cache.match(`index.php?view=${viewName}`) ||
+                                 await cache.match(`./index.php?view=${viewName}`) ||
+                                 await cache.match(`./?view=${viewName}`);
+                        if (cached) return cached;
+
+                        // Fallback for primary views if not found under exact key
+                        if (viewName === 'splash') {
+                            cached = await cache.match('./index.php?view=splash&ajax=1') ||
+                                     await cache.match('./index.php?view=splash');
+                            if (cached) return cached;
+                        } else if (viewName === 'auth') {
+                            cached = await cache.match('./index.php?view=auth&ajax=1') ||
+                                     await cache.match('./index.php?view=auth');
+                            if (cached) return cached;
+                        } else if (viewName === 'dashboard') {
+                            cached = await cache.match('./index.php?view=dashboard&ajax=1') ||
+                                     await cache.match('./index.php?view=dashboard');
+                            if (cached) return cached;
+                        }
+                    }
+
+                    // 4. If this is a page navigation / full app launch:
+                    // Return the cached application shell so the app boots seamlessly offline!
+                    const isNav = event.request.mode === 'navigate' ||
+                                  (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html') && !url.searchParams.has('ajax'));
+                    if (isNav) {
+                        cached = await cache.match('./index.php?app=true') ||
+                                 await cache.match('./index.php') ||
+                                 await cache.match('./?app=true') ||
+                                 await cache.match('./') ||
+                                 await cache.match('index.php');
+                        if (cached) return cached;
+                    }
+
+                    // 5. If this is an AJAX view request that truly hasn't been cached:
+                    if (isViewRequest) {
                         return new Response(
-                            `<div class="offline-fallback-container" style="padding: 40px 20px; text-align: center; color: #1e3a8a; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
-                                <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: #e0f2fe; display: flex; align-items: center; justify-content: center; font-size: 28px;">📡</div>
-                                <h3 style="margin: 0 0 8px; font-weight: 800; font-size: 18px;">You're Offline</h3>
-                                <p style="margin: 0 0 20px; font-size: 13px; color: #64748b; line-height: 1.5;">This view hasn't been saved yet. Connect to the internet to load and save it for offline use.</p>
-                                <button onclick="if(typeof navigateTo==='function') navigateTo('dashboard'); else window.history.back();" style="padding: 10px 22px; border-radius: 100px; border: none; background: #1e3a8a; color: #ffffff; font-weight: 700; font-size: 13px; cursor: pointer;">Return to Dashboard</button>
+                            `<div class="offline-view-fallback" style="padding: 48px 24px; text-align: center; color: #1e3a8a; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+                                <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: #e0f2fe; display: flex; align-items: center; justify-content: center; font-size: 26px;">
+                                    <i class="fa-solid fa-cloud-slash" style="color: #f59e0b;"></i>
+                                </div>
+                                <h3 style="margin: 0 0 8px; font-weight: 800; font-size: 18px; color: #0f172a;">Offline Mode</h3>
+                                <p style="margin: 0 0 20px; font-size: 13px; color: #64748b; line-height: 1.5;">This view was not pre-cached on this device. You can explore saved attractions, itineraries, and maps in Offline Mode.</p>
+                                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                                    <button onclick="if(typeof navigateTo==='function') navigateTo('dashboard');" style="padding: 10px 20px; border-radius: 100px; border: none; background: #1e3a8a; color: #ffffff; font-weight: 700; font-size: 13px; cursor: pointer;">Explore Dashboard</button>
+                                    <button onclick="if(typeof navigateTo==='function') navigateTo('auth');" style="padding: 10px 20px; border-radius: 100px; border: 1.5px solid #cbd5e1; background: #ffffff; color: #334155; font-weight: 700; font-size: 13px; cursor: pointer;">Switch Account</button>
+                                </div>
                             </div>`,
                             { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
                         );
                     }
 
+                    // 6. JSON fallback for offline API calls
                     return new Response(JSON.stringify({ status: 'offline', message: 'You are currently offline.' }), {
                         status: 503,
                         headers: { 'Content-Type': 'application/json' }

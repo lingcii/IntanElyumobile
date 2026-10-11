@@ -26,6 +26,12 @@
         <div class="dot"></div>
     </div>
 
+    <!-- Offline Mode Indicator -->
+    <div id="splash-offline-pill" class="splash-offline-pill" style="display: none;">
+        <i class="fa-solid fa-cloud-slash" style="color: #f59e0b; font-size: 11px;"></i>
+        <span>Offline Mode &bull; Loading saved guides</span>
+    </div>
+
     <!-- Animated Seamless SVG Wave -->
     <div class="wave-wrapper" id="splash-wave-wrapper">
         <div class="wave-bottom">
@@ -61,6 +67,17 @@
 </div>
 
 <script>
+    // Immediate Offline Status Check
+    (function () {
+        const isOffline = !navigator.onLine || window.isAppOnline === false;
+        const pill = document.getElementById('splash-offline-pill');
+        if (isOffline && pill) {
+            pill.style.display = 'inline-flex';
+        }
+        window.addEventListener('offline', () => { if (pill) pill.style.display = 'inline-flex'; });
+        window.addEventListener('online', () => { if (pill) pill.style.display = 'none'; });
+    })();
+
     // Simulate loading and check authentication
     setTimeout(() => {
         const rawHash = window.location.hash || '';
@@ -72,8 +89,14 @@
 
         const splashMain = document.getElementById('splash-main');
         const token = localStorage.getItem('intan_elyu_token');
+        const cachedUser = localStorage.getItem('auth_user');
+        const isOffline = !navigator.onLine || window.isAppOnline === false;
 
-        if (token) {
+        // In Offline Mode: if a token exists OR a saved user profile exists, launch dashboard directly
+        if (token || (cachedUser && isOffline)) {
+            if (!token) {
+                localStorage.setItem('intan_elyu_token', 'offline_session_token');
+            }
             // Going to dashboard: normal fade out
             if (splashMain) splashMain.classList.add('exit');
             setTimeout(() => {
