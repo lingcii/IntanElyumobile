@@ -554,13 +554,13 @@
         <div class="auth-offline-icon-circle">
             <i class="fa-solid fa-cloud-slash"></i>
         </div>
-        <h3 class="auth-offline-title">You're Currently Offline</h3>
+        <h3 class="auth-offline-title">Internet Required to Log In</h3>
         <p class="auth-offline-desc" id="offline-auth-desc">
-            Cloud account verification requires an active internet connection. You can enter Offline Mode to explore all saved attractions, itineraries, and maps right now.
+            An active internet connection is required to log in and verify your cloud account. You can enter Offline Mode to explore all saved attractions, itineraries, and maps right now.
         </p>
         <div class="auth-offline-actions">
             <button type="button" class="btn-offline-confirm" onclick="window.enterOfflineMode()">
-                <i class="fa-solid fa-compass"></i> Continue in Offline Mode
+                <i class="fa-solid fa-compass"></i> Explore in Offline Mode
             </button>
             <button type="button" class="btn-offline-dismiss" onclick="window.closeOfflineAuthModal()">
                 Dismiss
@@ -595,7 +595,7 @@
         if (!modal) return;
         const desc = document.getElementById('offline-auth-desc');
         if (desc && email) {
-            desc.innerHTML = `Cloud verification for <strong>${email}</strong> requires an active internet connection. You can enter Offline Mode to explore all saved attractions and maps right now.`;
+            desc.innerHTML = `An active internet connection is required to log in with <strong>${email}</strong>. Please connect to Wi-Fi or mobile data, or explore saved guides in Offline Mode.`;
         }
         modal.style.display = 'flex';
     };
@@ -1010,11 +1010,12 @@
                 return;
             }
 
-            // Not matched or new account while offline: offer offline mode entry
+            // Not matched or new account while offline: show modal and clear explanation
             if (typeof window.showOfflineAuthModal === 'function') {
                 window.showOfflineAuthModal(email);
-            } else if (typeof showToast === 'function') {
-                showToast('You are currently offline. Cloud password verification requires an internet connection.', 'warning');
+            }
+            if (typeof showToast === 'function') {
+                showToast('Internet connection is required to log in. Please connect to the internet, or explore in Offline Mode.', 'warning', 5000);
             }
             return;
         }
@@ -1027,7 +1028,15 @@
                 body: JSON.stringify({ email: email, password: password, remember: remember })
             });
 
-            const data = await response.json();
+            let data;
+            try {
+                data = await response.json();
+            } catch (jsonErr) {
+                if (!response.ok) {
+                    throw new Error('Internet connection is required to log in. Please connect to the internet, or explore in Offline Mode.');
+                }
+                throw jsonErr;
+            }
 
             if (!response.ok) {
                 throw new Error(data.error || data.message || 'Invalid login credentials.');
@@ -1053,8 +1062,13 @@
             showLoginSuccessModal(data.user);
         } catch (error) {
             console.error('Login Error:', error);
-            const isNetworkIssue = !navigator.onLine ||
-                (error.message && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('network')));
+            const errStr = (error && (error.message || String(error))) || '';
+            const isNetworkIssue = !navigator.onLine || window.isAppOnline === false ||
+                errStr.toLowerCase().includes('failed to fetch') ||
+                errStr.toLowerCase().includes('networkerror') ||
+                errStr.toLowerCase().includes('network') ||
+                errStr.toLowerCase().includes('load failed') ||
+                errStr.toLowerCase().includes('typeerror');
 
             if (isNetworkIssue) {
                 let cachedUser = null;
@@ -1069,11 +1083,16 @@
                 }
                 if (typeof window.showOfflineAuthModal === 'function') {
                     window.showOfflineAuthModal(email);
-                } else if (typeof showToast === 'function') {
-                    showToast('Connection failed. Tap "Explore in Offline Mode" to browse saved data.', 'warning');
+                }
+                if (typeof showToast === 'function') {
+                    showToast('Internet connection is required to log in. Please connect to the internet, or explore in Offline Mode.', 'warning', 5000);
                 }
             } else {
-                if (typeof showToast === 'function') showToast(error.message);
+                let cleanMsg = error.message || 'Invalid login credentials.';
+                if (cleanMsg.toLowerCase().includes('failed to fetch') || cleanMsg.toLowerCase().includes('networkerror') || cleanMsg.toLowerCase().includes('load failed') || cleanMsg.toLowerCase().includes('network') || cleanMsg.toLowerCase().includes('typeerror')) {
+                    cleanMsg = 'Internet connection is required to log in. Please connect to the internet, or explore in Offline Mode.';
+                }
+                if (typeof showToast === 'function') showToast(cleanMsg, 'error', 4500);
             }
             btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
             btn.disabled = false;
@@ -1312,6 +1331,13 @@
         const name = `${firstName} ${lastName}`.trim();
         const email = (document.getElementById('reg-email')?.value || '').trim();
 
+        if (!navigator.onLine || window.isAppOnline === false) {
+            if (typeof showToast === 'function') {
+                showToast('Internet connection is required to register. Please connect to the internet and try again.', 'warning', 5000);
+            }
+            return;
+        }
+
         const modal = document.getElementById('login-success-modal');
         const titleEl = document.getElementById('login-modal-title');
         const subEl = document.getElementById('login-success-user-name');
@@ -1438,8 +1464,17 @@
                 modal.classList.remove('active');
                 modal.style.display = 'none';
             }
+            let errText = error.message || 'Registration failed';
+            if (!navigator.onLine || window.isAppOnline === false ||
+                errText.toLowerCase().includes('failed to fetch') ||
+                errText.toLowerCase().includes('networkerror') ||
+                errText.toLowerCase().includes('load failed') ||
+                errText.toLowerCase().includes('network') ||
+                errText.toLowerCase().includes('typeerror')) {
+                errText = 'Internet connection is required to register. Please connect to the internet and try again.';
+            }
             if (typeof showToast === 'function') {
-                showToast(error.message, 'error', 4500);
+                showToast(errText, 'error', 4500);
             }
             if (btn) {
                 btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
@@ -1544,7 +1579,15 @@
                 showLoginSuccessModal(data.user);
             } catch (error) {
                 console.error('2FA Login Verification Error:', error);
-                if (typeof showToast === 'function') showToast(error.message);
+                let errText = error.message || 'Invalid 2FA security code';
+                if (!navigator.onLine || window.isAppOnline === false ||
+                    errText.toLowerCase().includes('failed to fetch') ||
+                    errText.toLowerCase().includes('networkerror') ||
+                    errText.toLowerCase().includes('load failed') ||
+                    errText.toLowerCase().includes('typeerror')) {
+                    errText = 'Internet connection is required to complete login. Please connect to the internet and try again.';
+                }
+                if (typeof showToast === 'function') showToast(errText, 'warning', 5000);
                 btn.innerHTML = oldHtml;
                 btn.disabled = false;
             }
@@ -1569,7 +1612,15 @@
             showLoginSuccessModal(data.user);
         } catch (error) {
             console.error('OTP Verification Error:', error);
-            if (typeof showToast === 'function') showToast(error.message);
+            let errText = error.message || 'Invalid verification code';
+            if (!navigator.onLine || window.isAppOnline === false ||
+                errText.toLowerCase().includes('failed to fetch') ||
+                errText.toLowerCase().includes('networkerror') ||
+                errText.toLowerCase().includes('load failed') ||
+                errText.toLowerCase().includes('typeerror')) {
+                errText = 'Internet connection is required to verify your account. Please connect to the internet and try again.';
+            }
+            if (typeof showToast === 'function') showToast(errText, 'warning', 5000);
             btn.innerHTML = oldHtml;
             btn.disabled = false;
         }
@@ -1608,6 +1659,13 @@
 
         if (!email) {
             if (typeof showToast === 'function') showToast('Please enter your email address.');
+            return;
+        }
+
+        if (!navigator.onLine || window.isAppOnline === false) {
+            if (typeof showToast === 'function') {
+                showToast('Internet connection is required to reset your password. Please connect to the internet and try again.', 'warning', 5000);
+            }
             return;
         }
 
@@ -1696,7 +1754,15 @@
                 modal.classList.remove('active');
                 setTimeout(() => { modal.style.display = 'none'; }, 300);
             }
-            if (typeof showToast === 'function') showToast(error.message);
+            let errText = error.message || 'Failed to send reset code.';
+            if (!navigator.onLine || window.isAppOnline === false ||
+                errText.toLowerCase().includes('failed to fetch') ||
+                errText.toLowerCase().includes('networkerror') ||
+                errText.toLowerCase().includes('load failed') ||
+                errText.toLowerCase().includes('typeerror')) {
+                errText = 'Internet connection is required to reset your password. Please connect to the internet and try again.';
+            }
+            if (typeof showToast === 'function') showToast(errText, 'warning', 5000);
         } finally {
             if (btn) {
                 btn.innerHTML = oldHtml;
@@ -1802,7 +1868,15 @@
 
         } catch (error) {
             console.error('Code validation error:', error);
-            if (typeof showToast === 'function') showToast(error.message);
+            let errText = error.message || 'Invalid or expired code.';
+            if (!navigator.onLine || window.isAppOnline === false ||
+                errText.toLowerCase().includes('failed to fetch') ||
+                errText.toLowerCase().includes('networkerror') ||
+                errText.toLowerCase().includes('load failed') ||
+                errText.toLowerCase().includes('typeerror')) {
+                errText = 'Internet connection is required to verify code. Please connect to the internet and try again.';
+            }
+            if (typeof showToast === 'function') showToast(errText, 'warning', 5000);
         } finally {
             if (btn) {
                 btn.innerHTML = oldHtml;
@@ -1941,7 +2015,15 @@
                 modal.classList.remove('active');
                 setTimeout(() => { modal.style.display = 'none'; }, 300);
             }
-            if (typeof showToast === 'function') showToast(error.message);
+            let errText = error.message || 'Failed to reset password.';
+            if (!navigator.onLine || window.isAppOnline === false ||
+                errText.toLowerCase().includes('failed to fetch') ||
+                errText.toLowerCase().includes('networkerror') ||
+                errText.toLowerCase().includes('load failed') ||
+                errText.toLowerCase().includes('typeerror')) {
+                errText = 'Internet connection is required to reset your password. Please connect to the internet and try again.';
+            }
+            if (typeof showToast === 'function') showToast(errText, 'warning', 5000);
             if (btn) {
                 btn.innerHTML = oldHtml;
                 btn.disabled = false;
@@ -2046,9 +2128,17 @@
                     btn.disabled = false;
                 });
             }
-            if (typeof showToast === 'function') showToast(error.message);
+            let errText = error.message || 'Google sign-in could not be completed.';
+            if (!navigator.onLine || window.isAppOnline === false ||
+                errText.toLowerCase().includes('failed to fetch') ||
+                errText.toLowerCase().includes('networkerror') ||
+                errText.toLowerCase().includes('load failed') ||
+                errText.toLowerCase().includes('typeerror')) {
+                errText = 'Internet connection is required to log in with Google. Please connect to the internet and try again.';
+            }
+            if (typeof showToast === 'function') showToast(errText, 'warning', 5000);
             if (typeof window.openAuthCancelModal === 'function') {
-                window.openAuthCancelModal(error.message || 'Google sign-in could not be completed.');
+                window.openAuthCancelModal(errText);
             }
         }
     };
