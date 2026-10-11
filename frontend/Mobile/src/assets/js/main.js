@@ -1015,10 +1015,6 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                                 </button>
                             </form>
                             <div class="auth-social-section" style="margin-top:16px;">
-                                <button type="button" id="btn-offline-mode" class="btn-offline-guest" onclick="window.enterOfflineMode(event)">
-                                    <i class="fa-solid fa-compass" style="color:#38bdf8; font-size:13.5px;"></i>
-                                    <span>Explore in Offline Mode</span>
-                                </button>
                                 <p class="auth-switch-prompt" style="margin-top:10px;">
                                     Don't have an account? <a href="#" onclick="toggleAuthMode(true); return false;" class="auth-switch-link">Register now</a>
                                 </p>
@@ -1499,7 +1495,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         if (lowerMsg.includes('failed to fetch') || lowerMsg.includes('networkerror') || lowerMsg.includes('load failed') || lowerMsg.includes('network request failed')) {
             const isAuth = !!document.getElementById('login-form') || !!document.getElementById('btn-login') || (typeof window !== 'undefined' && window.location && window.location.pathname.includes('auth'));
             if (isAuth) {
-                msgStr = 'Internet connection is required to log in. Please connect to the internet, or explore in Offline Mode.';
+                msgStr = 'Internet connection is required to log in. Please connect to the internet.';
             } else {
                 msgStr = 'Internet connection is required. Please check your network connection and try again.';
             }
