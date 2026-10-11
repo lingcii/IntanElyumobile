@@ -181,157 +181,199 @@ $activeTab = 'leaderboard';
     }
     window.setLeaderboardSort = setLeaderboardSort;
 
-    function renderLeaderboardUI() {
+    function renderLeaderboardLoading() {
         const podiumContainer = document.getElementById('podium-container');
         const rankListContainer = document.getElementById('rank-list-container');
-        if (!podiumContainer && !rankListContainer) return;
-        if (!rawLeadersList) return;
-
-        // Filter out users based on active sort mode (resilient against zero stats)
-        let leaders = (rawLeadersList || []).filter(u => {
-            const pts = parseInt(u.points ?? u.pts ?? u.total_points ?? u.claimable_points ?? u.xp ?? 0);
-            const act = parseInt(u.completed_activities ?? u.activities ?? u.total_activities ?? u.places_visited ?? 0);
-            if (currentSortMode === 'visited') return act > 0 || pts > 0;
-            return pts > 0 || act > 0;
-        });
-
-        // If filtering resulted in empty array but we have raw leaders, display all raw leaders rather than blanking out
-        if (leaders.length === 0 && rawLeadersList && rawLeadersList.length > 0) {
-            leaders = [...rawLeadersList];
-        }
-
-        // Sort items based on current sort mode
-        if (currentSortMode === 'visited') {
-            leaders.sort((a, b) => {
-                const actA = parseInt(a.completed_activities ?? a.activities ?? a.total_activities ?? a.places_visited ?? 0);
-                const actB = parseInt(b.completed_activities ?? b.activities ?? b.total_activities ?? b.places_visited ?? 0);
-                if (actB !== actA) return actB - actA;
-                const ptsA = parseInt(a.points ?? a.pts ?? a.total_points ?? a.claimable_points ?? a.xp ?? 0);
-                const ptsB = parseInt(b.points ?? b.pts ?? b.total_points ?? b.claimable_points ?? b.xp ?? 0);
-                return ptsB - ptsA;
-            });
-        } else {
-            leaders.sort((a, b) => {
-                const ptsA = parseInt(a.points ?? a.pts ?? a.total_points ?? a.claimable_points ?? a.xp ?? 0);
-                const ptsB = parseInt(b.points ?? b.pts ?? b.total_points ?? b.claimable_points ?? b.xp ?? 0);
-                if (ptsB !== ptsA) return ptsB - ptsA;
-                const actA = parseInt(a.completed_activities ?? a.activities ?? a.total_activities ?? a.places_visited ?? 0);
-                const actB = parseInt(b.completed_activities ?? b.activities ?? b.total_activities ?? b.places_visited ?? 0);
-                return actB - actA;
-            });
-        }
-
-        const countBadge = document.getElementById('explorers-count-badge');
-        if (countBadge) {
-            countBadge.textContent = leaders.length > 0 ? `Top ${Math.min(leaders.length, 10)} Explorers` : '0 Explorers';
-        }
-
-        // Prepare current logged-in user standing information (function-scoped for ranking comparisons)
-        const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-        const myPts = cachedMeData ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? cachedMeData.claimable_points ?? 0) : parseInt(authUser.points || 0);
-        const myActivities = cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.total_activities ?? cachedMeData.places_visited ?? 0) : parseInt(authUser.completed_activities || authUser.places_visited || 0);
-        const isUnranked = (myPts === 0 && myActivities === 0);
-        const myRankNum = (!isUnranked && cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (isUnranked ? '—' : 1);
-        const myRawName = (cachedMeData ? (cachedMeData.name || cachedMeData.full_name) : (authUser.name || authUser.full_name || '')).trim() || 'Explorer';
-        const myDisplayName = isUnranked ? 'Unranked Explorer' : myRawName;
-        const myAvatar = cachedMeData && cachedMeData.avatar ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myRawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
-
-        window.myUserData = {
-            name: myDisplayName,
-            avatar: myAvatar,
-            pts: myPts,
-            rank: myRankNum,
-            activities: myActivities,
-            location: cachedMeData ? (cachedMeData.home_location || cachedMeData.municipality || '') : '',
-            bio: cachedMeData ? (cachedMeData.bio || '') : ''
-        };
-
-        // Render Standing Banner
         const banner = document.getElementById('my-standing-banner');
-        const rankCircle = document.getElementById('my-rank-circle');
-        const subtext = document.getElementById('my-standing-subtext');
-        const titleEl = document.getElementById('my-explorer-title');
-        const avatarEl = document.getElementById('my-standing-avatar');
 
         if (banner) {
             banner.style.display = 'flex';
-            if (avatarEl) avatarEl.src = myAvatar;
-            if (titleEl) titleEl.textContent = myDisplayName;
-            if (rankCircle) {
-                if (isUnranked) {
-                    rankCircle.textContent = '—';
-                } else if (cachedMyRank && cachedMyRank < 999) {
-                    rankCircle.textContent = '#' + cachedMyRank;
-                } else if (myRankNum && myRankNum !== '—') {
-                    rankCircle.textContent = '#' + myRankNum;
-                } else {
-                    rankCircle.textContent = '★';
-                }
-            }
-            if (subtext) {
-                if (currentSortMode === 'visited') {
-                    subtext.textContent = `${myActivities} Spots Visited • ${myPts.toLocaleString()} Points`;
-                } else {
-                    subtext.textContent = `${myPts.toLocaleString()} Points • ${myActivities} Spots Visited`;
-                }
-            }
+            const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+            const myRawName = String((cachedMeData && (cachedMeData.name || cachedMeData.full_name)) || (authUser && (authUser.name || authUser.full_name)) || 'Explorer').trim() || 'Explorer';
+            const titleEl = document.getElementById('my-explorer-title');
+            const avatarEl = document.getElementById('my-standing-avatar');
+            const subtext = document.getElementById('my-standing-subtext');
+            const rankCircle = document.getElementById('my-rank-circle');
+            if (titleEl) titleEl.textContent = myRawName;
+            if (avatarEl) avatarEl.src = (cachedMeData && cachedMeData.avatar) ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myRawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+            if (rankCircle) rankCircle.textContent = (cachedMyRank && cachedMyRank < 999) ? '#' + cachedMyRank : '★';
+            if (subtext) subtext.textContent = 'Syncing rankings...';
         }
 
-        // Render Podium (1st, 2nd, 3rd)
-        let podiumHTML = '';
-        if (leaders.length === 0) {
-            let emptySubtext = 'Visit attractions and play games to earn Points and claim the #1 spot on the leaderboard!';
+        if (podiumContainer && (!rawLeadersList || rawLeadersList.length === 0)) {
+            podiumContainer.innerHTML = `
+                <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 28px 16px; background: transparent; border: none !important;">
+                    <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(30, 58, 138, 0.08); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #1e3a8a; font-size: 20px;">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                    </div>
+                    <div style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 4px;">Loading Provincial Rankings...</div>
+                    <div style="font-size: 12px; color: #64748b; max-width: 270px; margin: 0 auto; line-height: 1.4;">Syncing explorer standings across La Union</div>
+                </div>`;
+        }
+
+        if (rankListContainer && (!rawLeadersList || rawLeadersList.length === 0)) {
+            rankListContainer.innerHTML = `
+                <div style="text-align: center; padding: 20px 12px; color: #94a3b8; font-size: 12.5px; font-weight: 600;">
+                    <i class="fa-solid fa-circle-notch fa-spin" style="margin-right: 6px; color: #1e3a8a;"></i> Retrieving ranked explorers...
+                </div>`;
+        }
+    }
+
+    function renderLeaderboardUI() {
+        try {
+            const podiumContainer = document.getElementById('podium-container');
+            const rankListContainer = document.getElementById('rank-list-container');
+            if (!podiumContainer && !rankListContainer) return;
+            if (!rawLeadersList) return;
+
+            // Filter out users based on active sort mode (resilient against zero stats)
+            let leaders = (rawLeadersList || []).filter(u => {
+                const pts = parseInt(u.points ?? u.pts ?? u.total_points ?? u.claimable_points ?? u.xp ?? 0);
+                const act = parseInt(u.completed_activities ?? u.activities ?? u.total_activities ?? u.places_visited ?? 0);
+                if (currentSortMode === 'visited') return act > 0 || pts > 0;
+                return pts > 0 || act > 0;
+            });
+
+            // If filtering resulted in empty array but we have raw leaders, display all raw leaders rather than blanking out
+            if (leaders.length === 0 && rawLeadersList && rawLeadersList.length > 0) {
+                leaders = [...rawLeadersList];
+            }
+
+            // Sort items based on current sort mode
             if (currentSortMode === 'visited') {
-                emptySubtext = 'Visit attractions across La Union and check in to claim the #1 spot on the leaderboard!';
+                leaders.sort((a, b) => {
+                    const actA = parseInt(a.completed_activities ?? a.activities ?? a.total_activities ?? a.places_visited ?? 0);
+                    const actB = parseInt(b.completed_activities ?? b.activities ?? b.total_activities ?? b.places_visited ?? 0);
+                    if (actB !== actA) return actB - actA;
+                    const ptsA = parseInt(a.points ?? a.pts ?? a.total_points ?? a.claimable_points ?? a.xp ?? 0);
+                    const ptsB = parseInt(b.points ?? b.pts ?? b.total_points ?? b.claimable_points ?? b.xp ?? 0);
+                    return ptsB - ptsA;
+                });
+            } else {
+                leaders.sort((a, b) => {
+                    const ptsA = parseInt(a.points ?? a.pts ?? a.total_points ?? a.claimable_points ?? a.xp ?? 0);
+                    const ptsB = parseInt(b.points ?? b.pts ?? b.total_points ?? b.claimable_points ?? b.xp ?? 0);
+                    if (ptsB !== ptsA) return ptsB - ptsA;
+                    const actA = parseInt(a.completed_activities ?? a.activities ?? a.total_activities ?? a.places_visited ?? 0);
+                    const actB = parseInt(b.completed_activities ?? b.activities ?? b.total_activities ?? b.places_visited ?? 0);
+                    return actB - actA;
+                });
             }
-            if (podiumContainer) {
-                podiumContainer.innerHTML = `
-                        <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 24px 16px; background: transparent; border:none !important; outline:none !important;">
-                            <div style="width: 52px; height: 52px; border-radius: 50%; background: #fef3c7; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #d97706; font-size: 22px; border:none !important;">
-                                <i class="fa-solid fa-trophy"></i>
+
+            const countBadge = document.getElementById('explorers-count-badge');
+            if (countBadge) {
+                countBadge.textContent = leaders.length > 0 ? `Top ${Math.min(leaders.length, 10)} Explorers` : '0 Explorers';
+            }
+
+            // Prepare current logged-in user standing information (function-scoped for ranking comparisons)
+            const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+            const myPts = cachedMeData ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? cachedMeData.claimable_points ?? 0) : parseInt(authUser.points || 0);
+            const myActivities = cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.total_activities ?? cachedMeData.places_visited ?? 0) : parseInt(authUser.completed_activities || authUser.places_visited || 0);
+            const isUnranked = (myPts === 0 && myActivities === 0);
+            const myRankNum = (!isUnranked && cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (isUnranked ? '—' : 1);
+            const myRawName = String((cachedMeData && (cachedMeData.name || cachedMeData.full_name)) || (authUser && (authUser.name || authUser.full_name)) || 'Explorer').trim() || 'Explorer';
+            const myDisplayName = isUnranked ? 'Unranked Explorer' : myRawName;
+            const myAvatar = cachedMeData && cachedMeData.avatar ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myRawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+
+            window.myUserData = {
+                name: myDisplayName,
+                avatar: myAvatar,
+                pts: myPts,
+                rank: myRankNum,
+                activities: myActivities,
+                location: cachedMeData ? (cachedMeData.home_location || cachedMeData.municipality || '') : '',
+                bio: cachedMeData ? (cachedMeData.bio || '') : ''
+            };
+
+            // Render Standing Banner
+            const banner = document.getElementById('my-standing-banner');
+            const rankCircle = document.getElementById('my-rank-circle');
+            const subtext = document.getElementById('my-standing-subtext');
+            const titleEl = document.getElementById('my-explorer-title');
+            const avatarEl = document.getElementById('my-standing-avatar');
+
+            if (banner) {
+                banner.style.display = 'flex';
+                if (avatarEl) avatarEl.src = myAvatar;
+                if (titleEl) titleEl.textContent = myDisplayName;
+                if (rankCircle) {
+                    if (isUnranked) {
+                        rankCircle.textContent = '—';
+                    } else if (cachedMyRank && cachedMyRank < 999) {
+                        rankCircle.textContent = '#' + cachedMyRank;
+                    } else if (myRankNum && myRankNum !== '—') {
+                        rankCircle.textContent = '#' + myRankNum;
+                    } else {
+                        rankCircle.textContent = '★';
+                    }
+                }
+                if (subtext) {
+                    if (currentSortMode === 'visited') {
+                        subtext.textContent = `${myActivities} Spots Visited • ${myPts.toLocaleString()} Points`;
+                    } else {
+                        subtext.textContent = `${myPts.toLocaleString()} Points • ${myActivities} Spots Visited`;
+                    }
+                }
+            }
+
+            // Render Podium (1st, 2nd, 3rd)
+            let podiumHTML = '';
+            if (leaders.length === 0) {
+                let emptySubtext = 'Visit attractions and play games to earn Points and claim the #1 spot on the leaderboard!';
+                if (currentSortMode === 'visited') {
+                    emptySubtext = 'Visit attractions across La Union and check in to claim the #1 spot on the leaderboard!';
+                }
+                if (podiumContainer) {
+                    podiumContainer.innerHTML = `
+                            <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 24px 16px; background: transparent; border:none !important; outline:none !important;">
+                                <div style="width: 52px; height: 52px; border-radius: 50%; background: #fef3c7; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #d97706; font-size: 22px; border:none !important;">
+                                    <i class="fa-solid fa-trophy"></i>
+                                </div>
+                                <div style="font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 5px;">No Ranked Explorers Yet</div>
+                                <div style="font-size: 12px; color: #64748b; max-width: 270px; margin: 0 auto; line-height: 1.4;">
+                                    ${emptySubtext}
+                                </div>
                             </div>
-                            <div style="font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 5px;">No Ranked Explorers Yet</div>
-                            <div style="font-size: 12px; color: #64748b; max-width: 270px; margin: 0 auto; line-height: 1.4;">
-                                ${emptySubtext}
-                            </div>
-                        </div>
-                    `;
+                        `;
+                }
+            } else {
+                if (leaders[1]) podiumHTML += generatePodiumPlace(leaders[1], 2);
+                if (leaders[0]) podiumHTML += generatePodiumPlace(leaders[0], 1);
+                if (leaders[2]) podiumHTML += generatePodiumPlace(leaders[2], 3);
+                if (podiumContainer) podiumContainer.innerHTML = podiumHTML;
             }
-        } else {
-            if (leaders[1]) podiumHTML += generatePodiumPlace(leaders[1], 2);
-            if (leaders[0]) podiumHTML += generatePodiumPlace(leaders[0], 1);
-            if (leaders[2]) podiumHTML += generatePodiumPlace(leaders[2], 3);
-            if (podiumContainer) podiumContainer.innerHTML = podiumHTML;
-        }
 
-        // Render Rank List (Ranks 4 to 10 - capped strictly at 10 total)
-        let rankListHTML = '';
-        if (leaders.length > 3) {
-            for (let i = 3; i < Math.min(leaders.length, 10); i++) {
-                const user = leaders[i];
-                const isMe = cachedMeData && (user.id === cachedMeData.id || user.user_id === cachedMeData.id);
-                rankListHTML += generateRankItem(user, i + 1, isMe);
+            // Render Rank List (Ranks 4 to 10 - capped strictly at 10 total)
+            let rankListHTML = '';
+            if (leaders.length > 3) {
+                for (let i = 3; i < Math.min(leaders.length, 10); i++) {
+                    const user = leaders[i];
+                    const isMe = Boolean(cachedMeData && ((user.id && user.id === cachedMeData.id) || (user.user_id && user.user_id === (cachedMeData.user_id || cachedMeData.id))));
+                    rankListHTML += generateRankItem(user, i + 1, isMe);
+                }
             }
-        }
 
-        if (cachedMeData && cachedMyRank > 10 && cachedMyRank <= 999 && !isUnranked) {
-            rankListHTML += generateRankItem(cachedMeData, cachedMyRank, true);
-        }
-
-        const rankListSec = document.getElementById('rank-list-section');
-        if (rankListHTML && rankListHTML.trim() !== '') {
-            if (rankListContainer) rankListContainer.innerHTML = rankListHTML;
-        } else {
-            if (rankListContainer) {
-                rankListContainer.innerHTML = '<div style="text-align:center; padding: 18px 12px; color: rgba(148,163,184,0.7); font-size: 13px; font-weight: 600;"><i class="fa-solid fa-users-slash" style="margin-right:6px;"></i> No additional ranked explorers yet.</div>';
+            if (cachedMeData && cachedMyRank > 10 && cachedMyRank <= 999 && !isUnranked) {
+                rankListHTML += generateRankItem(cachedMeData, cachedMyRank, true);
             }
+
+            const rankListSec = document.getElementById('rank-list-section');
+            if (rankListHTML && rankListHTML.trim() !== '') {
+                if (rankListContainer) rankListContainer.innerHTML = rankListHTML;
+            } else {
+                if (rankListContainer) {
+                    rankListContainer.innerHTML = '<div style="text-align:center; padding: 18px 12px; color: rgba(148,163,184,0.7); font-size: 13px; font-weight: 600;"><i class="fa-solid fa-users-slash" style="margin-right:6px;"></i> No additional ranked explorers yet.</div>';
+                }
+            }
+            if (rankListSec) rankListSec.style.display = 'block';
+        } catch (err) {
+            console.error("renderLeaderboardUI error:", err);
         }
-        if (rankListSec) rankListSec.style.display = 'block';
     }
 
     function getUserDisplayName(user, rank) {
         if (!user) return rank ? `${rank}# Explorer` : 'Explorer';
-        const name = (user.name || user.full_name || user.real_name || '').trim();
+        const name = String(user.name || user.full_name || user.real_name || '').trim();
         if (name && !name.match(/^Explorer\s*#?\d*$/i) && name.toLowerCase() !== 'explorer') {
             return name;
         }
@@ -344,7 +386,7 @@ $activeTab = 'leaderboard';
 
     function generatePodiumPlace(user, rank) {
         const displayName = getUserDisplayName(user, rank);
-        const rawName = (user.name || user.full_name || user.real_name || 'Explorer').replace(/[^a-zA-Z\s]/g, '').trim() || 'Explorer';
+        const rawName = String(user.name || user.full_name || user.real_name || 'Explorer').replace(/[^a-zA-Z\s]/g, '').trim() || 'Explorer';
         const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || '')).replace(/\/+$/, '');
         let avatarUrl = user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
         if (avatarUrl && !avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:')) {
@@ -586,7 +628,7 @@ $activeTab = 'leaderboard';
     function applyLeaderboardData(data) {
         if (!data) return;
         const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-        const list = data.users || data.leaders || data.tourists || data.data || data.leaderboard || [];
+        const list = data.users || data.leaders || data.tourists || data.data || data.leaderboard || (Array.isArray(data) ? data : []);
         if (Array.isArray(list) && list.length > 0) {
             rawLeadersList = list;
             window._cachedRawLeadersList = list;
@@ -624,7 +666,7 @@ $activeTab = 'leaderboard';
         if (refreshIcon) refreshIcon.classList.add('fa-spin');
         try {
             const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-            const cacheKey = 'leaderboard_data_v18_' + (token ? token.substring(0, 10) : 'public');
+            const cacheKey = 'leaderboard_data_v22_' + (token ? token.substring(0, 10) : 'public');
             localStorage.removeItem(cacheKey);
             for (let i = localStorage.length - 1; i >= 0; i--) {
                 const k = localStorage.key(i);
@@ -645,15 +687,17 @@ $activeTab = 'leaderboard';
         const refreshIcon = document.getElementById('leaderboard-refresh-icon');
         if (refreshIcon && forceRefresh) refreshIcon.classList.add('fa-spin');
 
-        // 1. If we already have leaders in memory or window cache, render immediately!
+        // 1. If we already have leaders in memory or window cache, render immediately! Otherwise show loading state
         if (rawLeadersList && rawLeadersList.length > 0) {
             renderLeaderboardUI();
+        } else {
+            renderLeaderboardLoading();
         }
 
         try {
             const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
             var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
-            const cacheKey = 'leaderboard_data_v18_' + (token ? token.substring(0, 10) : 'public');
+            const cacheKey = 'leaderboard_data_v22_' + (token ? token.substring(0, 10) : 'public');
 
             if (forceRefresh) {
                 try {
@@ -730,7 +774,7 @@ $activeTab = 'leaderboard';
                         });
                         if (res.ok) {
                             const json = await res.json();
-                            const users = json.users || json.leaders || json.data || json.tourists || [];
+                            const users = json.users || json.leaders || json.data || json.tourists || (Array.isArray(json) ? json : []);
                             if (Array.isArray(users)) return json;
                         }
                     } catch (err1) {
@@ -745,7 +789,7 @@ $activeTab = 'leaderboard';
                     const res2 = await fetch(backendUrl + '/api/public/leaderboard?limit=50', { headers: headers2 });
                     if (res2.ok) {
                         const json2 = await res2.json();
-                        const users2 = json2.users || json2.leaders || json2.data || json2.tourists || [];
+                        const users2 = json2.users || json2.leaders || json2.data || json2.tourists || (Array.isArray(json2) ? json2 : []);
                         if (Array.isArray(users2)) return json2;
                     }
                 } catch (err2) {
@@ -759,7 +803,7 @@ $activeTab = 'leaderboard';
                     const res3 = await fetch(backendUrl + '/api/leaderboard?limit=50', { headers: headers3 });
                     if (res3.ok) {
                         const json3 = await res3.json();
-                        const users3 = json3.users || json3.leaders || json3.data || json3.tourists || [];
+                        const users3 = json3.users || json3.leaders || json3.data || json3.tourists || (Array.isArray(json3) ? json3 : []);
                         if (Array.isArray(users3)) return json3;
                     }
                 } catch (err3) {
@@ -773,7 +817,7 @@ $activeTab = 'leaderboard';
                     });
                     if (res4.ok) {
                         const json4 = await res4.json();
-                        const users4 = json4.users || json4.leaders || json4.data || json4.tourists || [];
+                        const users4 = json4.users || json4.leaders || json4.data || json4.tourists || (Array.isArray(json4) ? json4 : []);
                         if (Array.isArray(users4)) return json4;
                     }
                 } catch (err4) {
@@ -787,11 +831,16 @@ $activeTab = 'leaderboard';
                 cacheKey,
                 fetchLeaderboardWithFallbacks,
                 (data) => {
-                    if (!data) return;
+                    if (!data) {
+                        if (!rawLeadersList || rawLeadersList.length === 0) {
+                            renderLeaderboardUI();
+                        }
+                        return;
+                    }
                     applyLeaderboardData(data);
                 },
                 Boolean(forceRefresh || window.leaderboardNeedsRefresh),
-                20000 // 20 seconds TTL
+                15000 // 15 seconds TTL
             );
             window.leaderboardNeedsRefresh = false;
 
@@ -802,8 +851,8 @@ $activeTab = 'leaderboard';
 
         } catch (e) {
             console.warn("Leaderboard fetch error:", e);
+            renderLeaderboardUI();
             if (!navigator.onLine) {
-                renderLeaderboardUI();
                 if (podiumContainer && (!rawLeadersList || rawLeadersList.length === 0)) {
                     podiumContainer.innerHTML = `
                         <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 28px 16px;">

@@ -190,7 +190,8 @@ $activeTab = 'profile';
 
 </div>
 
-    var backendUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+<script>
+    var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
 
     // ── Dedicated Helper Rendering Functions ──
     window.renderProfileUserMeta = function (u) {
