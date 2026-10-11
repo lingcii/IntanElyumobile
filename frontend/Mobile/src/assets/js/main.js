@@ -538,15 +538,14 @@ window.OfflineTripManager = {
 };
 
 // ══════════════════════════════════════════════════════════════════════════
-// AMBIENT CONNECTIVITY MANAGER & REAL-TIME RECONNECT ENGINE
+// AMBIENT CONNECTIVITY MANAGER (CALM, EVENT-DRIVEN, NO-FLAP)
 // ══════════════════════════════════════════════════════════════════════════
 (function initAmbientConnectivity() {
-    let wasOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : false;
-    let pollInterval = null;
-    let isProbing = false;
+    let wasOffline = false;
     let hidePillTimeout = null;
+    let lastOnlineSyncTime = 0;
 
-    window.isAppOnline = !wasOffline;
+    window.isAppOnline = true;
 
     function showOfflinePill() {
         const pill = document.getElementById('elyu-offline-pill');
@@ -586,7 +585,7 @@ window.OfflineTripManager = {
         }, 2800);
     }
 
-    // Comprehensive sync orchestrator whenever device reconnects
+    // Gentle sync orchestrator when connection returns (throttled to max once per 15 seconds)
     window.syncAllDataWhenOnline = async function () {
         if (window._isSyncingOnlineData) return;
         window._isSyncingOnlineData = true;
@@ -600,71 +599,34 @@ window.OfflineTripManager = {
                 if (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.syncOfflineQueue === 'function') {
                     window.OfflineCheckinManager.syncOfflineQueue();
                 }
-            }, 200);
+            }, 300);
 
-            // 2. Refresh Tourist User Profile & Points & Vouchers
-            const token = localStorage.getItem('intan_elyu_token');
-            if (token) {
-                const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
-                // Background profile re-fetch to update localStorage auth_user with fresh points/stats
-                fetch(`${bUrl}/api/tourist/profile`, {
-                    headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
-                }).then(r => r.ok ? r.json() : null).then(uData => {
-                    if (uData && uData.user) {
-                        try {
-                            const currentAuth = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                            const merged = Object.assign({}, currentAuth, uData.user);
-                            localStorage.setItem('auth_user', JSON.stringify(merged));
-                            window.dispatchEvent(new CustomEvent('userProfileUpdated', { detail: merged }));
-                        } catch(e) {}
-                    }
-                }).catch(() => {});
-
-                if (typeof window.fetchProfileData === 'function') {
-                    window.fetchProfileData(true);
-                }
-                if (typeof window.fetchPointsAndVouchers === 'function') {
-                    window.fetchPointsAndVouchers(true);
-                }
-            }
-
-            // 3. Refresh Leaderboards & Tourist Users Standings
+            // 2. Mark views as needing refresh so they fetch cleanly when viewed
             window.leaderboardNeedsRefresh = true;
+            window.dashboardNeedsRefresh = true;
+
+            // 3. If currently on leaderboard, trigger a clean refresh
             if (typeof window.initLeaderboardView === 'function') {
                 window.initLeaderboardView(true);
             }
 
-            // 4. Refresh Tourist Sites & Destinations
-            if (typeof window.fetchTrendingSpots === 'function') {
-                window.fetchTrendingSpots(true);
-            } else if (typeof window.fetchAllTouristData === 'function') {
-                window.fetchAllTouristData(true);
-            } else if (typeof window.fetchAllData === 'function') {
-                window.fetchAllData(true);
-            }
-
-            // 5. Refresh Dashboard if active or needs refresh
-            window.dashboardNeedsRefresh = true;
-            if (typeof window.dashboardInit === 'function') {
-                window.dashboardInit(true);
-            }
-
-            // 6. Pre-warm offline caches
+            // 4. Pre-warm offline caches gently in the background
             prewarmOfflineData();
 
         } catch (e) {
             console.warn('Ambient reconnect sync error:', e);
         } finally {
-            setTimeout(() => { window._isSyncingOnlineData = false; }, 1000);
+            setTimeout(() => { window._isSyncingOnlineData = false; }, 2000);
         }
     };
 
     window.notifyAppOnline = function () {
+        const now = Date.now();
+        // Prevent rapid flapping: at least 10 seconds between online transitions
+        if (now - lastOnlineSyncTime < 10000 && window.isAppOnline) return;
+        lastOnlineSyncTime = now;
+
         window.isAppOnline = true;
-        if (pollInterval) {
-            clearInterval(pollInterval);
-            pollInterval = null;
-        }
 
         if (wasOffline) {
             wasOffline = false;
@@ -677,10 +639,8 @@ window.OfflineTripManager = {
             }
         }
 
-        // Dispatch appOnline and standard online events for all listening views
         try {
-            window.dispatchEvent(new CustomEvent('appOnline', { detail: { timestamp: Date.now() } }));
-            window.dispatchEvent(new Event('online'));
+            window.dispatchEvent(new CustomEvent('appOnline', { detail: { timestamp: now } }));
         } catch(e) {}
 
         window.syncAllDataWhenOnline();
@@ -693,93 +653,25 @@ window.OfflineTripManager = {
 
         try {
             window.dispatchEvent(new CustomEvent('appOffline', { detail: { timestamp: Date.now() } }));
-            window.dispatchEvent(new Event('offline'));
         } catch(e) {}
-
-        startReconnectPolling();
     };
 
-    window.reportNetworkFailure = function () {
-        if (window.isAppOnline) {
-            window.notifyAppOffline();
-        }
-    };
-
-    // Active probe to verify internet connectivity on native Android APK WebViews
-    window.checkOnlineStatus = async function (forceProbe = false) {
-        if (isProbing) return;
-        isProbing = true;
-
-        try {
-            const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), 3500);
-
-            const res = await fetch(`${bUrl}/api/public/leaderboard?limit=1`, {
-                method: 'GET',
-                cache: 'no-store',
-                signal: controller.signal,
-                headers: { 'Accept': 'application/json' }
-            });
-            clearTimeout(timer);
-
-            if (res.ok || res.status === 401 || res.status === 304 || res.status === 200) {
-                if (!window.isAppOnline || wasOffline) {
-                    window.notifyAppOnline();
-                }
-                isProbing = false;
-                return true;
-            }
-        } catch (err) {
-            // Fetch failed -> offline or unreachable
-            if (window.isAppOnline) {
-                window.notifyAppOffline();
-            }
-        } finally {
-            isProbing = false;
-        }
-        return false;
-    };
-
-    function startReconnectPolling() {
-        if (pollInterval) return;
-        pollInterval = setInterval(async () => {
-            if (navigator.onLine || window.Capacitor) {
-                const online = await window.checkOnlineStatus(true);
-                if (online && pollInterval) {
-                    clearInterval(pollInterval);
-                    pollInterval = null;
-                }
-            }
-        }, 3500);
-    }
-
-    // 1. Standard browser online/offline events
+    // 1. Standard browser network events (fired by OS / WebView)
     window.addEventListener('online', () => {
-        window.checkOnlineStatus(true);
+        window.notifyAppOnline();
     });
     window.addEventListener('offline', () => {
         window.notifyAppOffline();
     });
 
-    // 2. Foreground / Visibility / Focus events (crucial for mobile APK resume)
-    document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) {
-            window.checkOnlineStatus(true);
-        }
-    });
-    window.addEventListener('focus', () => {
-        window.checkOnlineStatus(true);
-    });
-
-    // 3. Capacitor Native Plugins integration (Network & App)
+    // 2. Capacitor Native Plugins integration (Network & App)
     if (window.Capacitor && window.Capacitor.Plugins) {
         if (window.Capacitor.Plugins.Network && typeof window.Capacitor.Plugins.Network.addListener === 'function') {
             try {
                 window.Capacitor.Plugins.Network.addListener('networkStatusChange', (status) => {
                     if (status && status.connected) {
                         window.notifyAppOnline();
-                    } else {
+                    } else if (status && status.connected === false) {
                         window.notifyAppOffline();
                     }
                 });
@@ -788,22 +680,13 @@ window.OfflineTripManager = {
         if (window.Capacitor.Plugins.App && typeof window.Capacitor.Plugins.App.addListener === 'function') {
             try {
                 window.Capacitor.Plugins.App.addListener('appStateChange', (state) => {
-                    if (state && state.isActive) {
-                        window.checkOnlineStatus(true);
+                    if (state && state.isActive && wasOffline && navigator.onLine) {
+                        window.notifyAppOnline();
                     }
                 });
             } catch(e) {}
         }
     }
-
-    // Initial check
-    setTimeout(() => {
-        if (!navigator.onLine) {
-            window.notifyAppOffline();
-        } else {
-            prewarmOfflineData();
-        }
-    }, 500);
 
     // Pre-warm offline data when online
     function prewarmOfflineData() {
@@ -815,14 +698,6 @@ window.OfflineTripManager = {
             .then(d => {
                 if (d && (d.spots || d.data || d.destinations)) {
                     try { localStorage.setItem('intan_elyu_cached_spots_map', JSON.stringify({ data: d, time: Date.now() })); } catch(e) {}
-                }
-            }).catch(() => {});
-
-        fetch(`${bUrl}/api/public/fares`, { headers: { 'Accept': 'application/json' } })
-            .then(r => r.ok ? r.json() : null)
-            .then(d => {
-                if (d && d.fares) {
-                    try { localStorage.setItem('intan_elyu_cached_fares', JSON.stringify({ data: d, time: Date.now() })); } catch(e) {}
                 }
             }).catch(() => {});
     }
@@ -2634,9 +2509,6 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 }
             } catch (err) {
                 console.error("Fetch error for " + cacheKey, err);
-                if (typeof window.reportNetworkFailure === 'function') {
-                    window.reportNetworkFailure();
-                }
                 // If no cache exists, report the error via callback (passing null)
                 if (!cachedData) {
                     callback(null, false);

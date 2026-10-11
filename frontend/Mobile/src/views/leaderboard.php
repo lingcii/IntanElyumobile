@@ -681,10 +681,23 @@ $activeTab = 'leaderboard';
         }
     };
 
+    let _isFetchingLeaderboard = false;
+    let _lastLeaderboardFetchTime = 0;
+
     window.initLeaderboardView = async function (forceRefresh = false) {
         const podiumContainer = document.getElementById('podium-container');
         const rankListContainer = document.getElementById('rank-list-container');
         const refreshIcon = document.getElementById('leaderboard-refresh-icon');
+
+        // Prevent overlapping fetches and rapid re-fetch flapping
+        if (_isFetchingLeaderboard) return;
+        const now = Date.now();
+        if (forceRefresh && (now - _lastLeaderboardFetchTime < 6000) && rawLeadersList && rawLeadersList.length > 0) {
+            return;
+        }
+        _isFetchingLeaderboard = true;
+        _lastLeaderboardFetchTime = now;
+
         if (refreshIcon && forceRefresh) refreshIcon.classList.add('fa-spin');
 
         // 1. If we already have leaders in memory or window cache, render immediately! Otherwise show loading state
@@ -700,10 +713,7 @@ $activeTab = 'leaderboard';
             const cacheKey = 'leaderboard_data_v22_' + (token ? token.substring(0, 10) : 'public');
 
             if (forceRefresh) {
-                try {
-                    localStorage.removeItem(cacheKey);
-                    window.leaderboardNeedsRefresh = true;
-                } catch (e) { }
+                window.leaderboardNeedsRefresh = true;
             }
 
             // In parallel, fetch live points balance if user is authenticated
@@ -852,31 +862,35 @@ $activeTab = 'leaderboard';
         } catch (e) {
             console.warn("Leaderboard fetch error:", e);
             renderLeaderboardUI();
-            if (!navigator.onLine) {
-                if (podiumContainer && (!rawLeadersList || rawLeadersList.length === 0)) {
-                    podiumContainer.innerHTML = `
-                        <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 28px 16px;">
-                            <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(245, 158, 11, 0.12); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: #f59e0b; font-size: 20px;">
-                                <i class="fa-solid fa-cloud-slash"></i>
-                            </div>
-                            <div style="font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">Rankings Offline</div>
-                            <div style="font-size: 12px; color: #64748b; max-width: 260px; margin: 0 auto; line-height: 1.4;">
-                                Full provincial rankings will update automatically when reconnected.
-                            </div>
-                        </div>`;
-                }
-            } else {
-                if (podiumContainer && (!rawLeadersList || rawLeadersList.length === 0)) {
-                    podiumContainer.innerHTML = `
-                        <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 28px 16px;">
-                            <div style="font-size: 14px; font-weight: 700; color: #dc2626; margin-bottom: 6px;">Rankings Temporarily Unavailable</div>
-                            <button onclick="window.refreshLeaderboard(true)" style="background: #1e3a8a; color: white; border: none; padding: 8px 18px; border-radius: 100px; font-size: 12px; font-weight: 800; cursor: pointer;">
-                                <i class="fa-solid fa-rotate-right" style="margin-right: 5px;"></i> Try Again
-                            </button>
-                        </div>`;
+            // Only show offline empty state if we genuinely have NO cached data at all
+            if (!rawLeadersList || rawLeadersList.length === 0) {
+                if (!navigator.onLine) {
+                    if (podiumContainer) {
+                        podiumContainer.innerHTML = `
+                            <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 28px 16px;">
+                                <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(245, 158, 11, 0.12); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: #f59e0b; font-size: 20px;">
+                                    <i class="fa-solid fa-cloud-slash"></i>
+                                </div>
+                                <div style="font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">Rankings Offline</div>
+                                <div style="font-size: 12px; color: #64748b; max-width: 260px; margin: 0 auto; line-height: 1.4;">
+                                    Full provincial rankings will update automatically when reconnected.
+                                </div>
+                            </div>`;
+                    }
+                } else {
+                    if (podiumContainer) {
+                        podiumContainer.innerHTML = `
+                            <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 28px 16px;">
+                                <div style="font-size: 14px; font-weight: 700; color: #dc2626; margin-bottom: 6px;">Rankings Temporarily Unavailable</div>
+                                <button onclick="window.refreshLeaderboard(true)" style="background: #1e3a8a; color: white; border: none; padding: 8px 18px; border-radius: 100px; font-size: 12px; font-weight: 800; cursor: pointer;">
+                                    <i class="fa-solid fa-rotate-right" style="margin-right: 5px;"></i> Try Again
+                                </button>
+                            </div>`;
+                    }
                 }
             }
         } finally {
+            _isFetchingLeaderboard = false;
             if (refreshIcon) refreshIcon.classList.remove('fa-spin');
         }
     };
@@ -884,12 +898,16 @@ $activeTab = 'leaderboard';
     // Initialize immediately
     window.initLeaderboardView();
 
-    // Ambient automatic reconnect listeners - quietly syncs rankings without user buttons or reloads
+    // Ambient automatic reconnect listeners (debounced to avoid multiple rapid-fire fetches)
+    let _leaderboardReconnectTimer = null;
     function handleLeaderboardReconnect() {
-        if (typeof window.initLeaderboardView === 'function') {
-            window.leaderboardNeedsRefresh = true;
-            window.initLeaderboardView(true);
-        }
+        if (_leaderboardReconnectTimer) clearTimeout(_leaderboardReconnectTimer);
+        _leaderboardReconnectTimer = setTimeout(() => {
+            if (typeof window.initLeaderboardView === 'function') {
+                window.leaderboardNeedsRefresh = true;
+                window.initLeaderboardView(true);
+            }
+        }, 400);
     }
     window.addEventListener('online', handleLeaderboardReconnect);
     window.addEventListener('appOnline', handleLeaderboardReconnect);
