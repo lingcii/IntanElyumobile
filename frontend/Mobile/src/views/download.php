@@ -1,10 +1,38 @@
 <?php
 // Standalone Official Tourism Portal of La Union
-$localApk = dirname(__DIR__, 2) . '/public/downloads/intan-elyu.apk';
-if (!file_exists($localApk)) {
-  $localApk = __DIR__ . '/../downloads/intan-elyu.apk';
+$candidatePaths = [
+  dirname(__DIR__, 2) . '/android/app/build/outputs/apk/release/app-release.apk',
+  dirname(__DIR__, 2) . '/android/app/build/outputs/apk/debug/app-debug.apk',
+  dirname(__DIR__, 2) . '/public/downloads/intan-elyu.apk',
+  dirname(__DIR__, 2) . '/app-release.apk',
+  dirname(__DIR__, 2) . '/app-debug.apk',
+  __DIR__ . '/../downloads/intan-elyu.apk',
+];
+$localApk = null;
+foreach ($candidatePaths as $candidate) {
+  if (file_exists($candidate) && filesize($candidate) > 10 * 1024 * 1024) {
+    $localApk = $candidate;
+    break;
+  }
 }
-$apkSizeStr = file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 * 1024), 1) . ' MB' : '~111.6 MB';
+if (!$localApk) {
+  foreach ($candidatePaths as $candidate) {
+    if (file_exists($candidate) && filesize($candidate) > 0) {
+      $localApk = $candidate;
+      break;
+    }
+  }
+}
+$apkSizeStr = $localApk && file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 * 1024), 1) . ' MB' : '~226 MB';
+
+$buildGradle = dirname(__DIR__, 2) . '/android/app/build.gradle';
+$appVersion = 'v1.4.0';
+if (file_exists($buildGradle)) {
+  $gradleContent = file_get_contents($buildGradle);
+  if (preg_match('/versionName\s+["\']([^"\']+)["\']/', $gradleContent, $matches)) {
+    $appVersion = 'v' . $matches[1];
+  }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -200,7 +228,7 @@ $apkSizeStr = file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 *
               rel="noopener" class="hero-mirror-link">
               <i class="fa-solid fa-cloud-arrow-down"></i> Cloud Mirror (R2)
             </a>
-            <span class="hero-ver-tag">v0.0.0 &bull; Android 8.0+</span>
+            <span class="hero-ver-tag"><?= htmlspecialchars($appVersion) ?> &bull; <?= htmlspecialchars($apkSizeStr) ?> &bull; Android 8.0+</span>
           </div>
         </div>
       </div>
