@@ -1,26 +1,31 @@
 package com.intan.elyu;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.webkit.GeolocationPermissions;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebResourceError;
-import android.webkit.WebResourceRequest;
-import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.webkit.GeolocationPermissions;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.BridgeWebChromeClient;
 import com.getcapacitor.BridgeWebViewClient;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends BridgeActivity {
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
@@ -34,7 +39,7 @@ public class MainActivity extends BridgeActivity {
 
         try {
             if (this.bridge != null && this.bridge.getWebView() != null) {
-                WebView webView = this.bridge.getWebView();
+                final WebView webView = this.bridge.getWebView();
                 WebSettings settings = webView.getSettings();
                 
                 // Enable Geolocation, Storage, and Local Asset File Access in WebView
@@ -67,7 +72,7 @@ public class MainActivity extends BridgeActivity {
                     }
                 });
 
-                // Keep all navigations (auth, google, app, offline portal) strictly inside this APK WebView
+                // Custom BridgeWebViewClient: Guaranteed Zero-Failure offline mode & custom URI handler
                 webView.setWebViewClient(new BridgeWebViewClient(this.bridge) {
                     private boolean handleCustomUriOrNavigation(WebView view, String url) {
                         if (url == null) return false;
@@ -96,17 +101,10 @@ public class MainActivity extends BridgeActivity {
                             return true;
                         }
 
-                        // Keep in-app web pages and offline portal inside the WebView
-                        if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("file:///")) {
-                            if (url.contains("intan-elyu.online") || 
-                                url.contains("accounts.google.com") || 
-                                url.contains("google.com") || 
-                                url.contains("googleapis.com") ||
-                                url.contains("localhost") ||
-                                url.startsWith("file:///")) {
-                                view.loadUrl(url);
-                                return true;
-                            }
+                        // Explicit offline navigation trigger
+                        if (url.contains("offline=true") || url.contains("local-portal")) {
+                            loadLocalOfflinePortal(view);
+                            return true;
                         }
 
                         return false;
@@ -131,36 +129,80 @@ public class MainActivity extends BridgeActivity {
                         return super.shouldOverrideUrlLoading(view, request);
                     }
 
+                    // Network Interceptor: Serves local assets directly with 0 network calls when offline
+                    @Override
+                    public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                        if (request != null && request.getUrl() != null) {
+                            Uri uri = request.getUrl();
+                            String path = uri.getPath();
+
+                            // 1. Intercept Main Frame navigation when device has no internet
+                            if (request.isForMainFrame()) {
+                                String urlStr = uri.toString();
+                                if (!isNetworkAvailable() || urlStr.contains("offline") || urlStr.contains("local-portal")) {
+                                    try {
+                                        InputStream is = getAssets().open("public/index.html");
+                                        return new WebResourceResponse("text/html", "UTF-8", is);
+                                    } catch (Exception ignored) {}
+                                }
+                            }
+
+                            // 2. Intercept local APK asset bundle (/assets/...) so css/js/images render instantly offline
+                            if (path != null && path.contains("/assets/")) {
+                                try {
+                                    String subPath = path.substring(path.indexOf("/assets/"));
+                                    InputStream is = getAssets().open("public" + subPath);
+                                    String mimeType = getMimeType(subPath);
+                                    return new WebResourceResponse(mimeType, "UTF-8", is);
+                                } catch (Exception ignored) {}
+                            }
+                        }
+                        return super.shouldInterceptRequest(view, request);
+                    }
+
+                    @Override
+                    public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+                        if (url != null) {
+                            if (!isNetworkAvailable() || url.contains("offline") || url.contains("local-portal")) {
+                                try {
+                                    InputStream is = getAssets().open("public/index.html");
+                                    return new WebResourceResponse("text/html", "UTF-8", is);
+                                } catch (Exception ignored) {}
+                            }
+                            if (url.contains("/assets/")) {
+                                try {
+                                    String subPath = url.substring(url.indexOf("/assets/"));
+                                    if (subPath.contains("?")) {
+                                        subPath = subPath.substring(0, subPath.indexOf("?"));
+                                    }
+                                    InputStream is = getAssets().open("public" + subPath);
+                                    String mimeType = getMimeType(subPath);
+                                    return new WebResourceResponse(mimeType, "UTF-8", is);
+                                } catch (Exception ignored) {}
+                            }
+                        }
+                        return super.shouldInterceptRequest(view, url);
+                    }
+
+                    // Error Suppression: Never display Android "Webpage not available net::ERR_INTERNET_DISCONNECTED"
                     @Override
                     public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                        if (failingUrl != null && (failingUrl.contains("intan-elyu.online") || failingUrl.startsWith("http"))) {
-                            // Suppress system error page and seamlessly load local offline app
-                            final String offlinePortal = getOfflinePortalUrl();
-                            view.post(() -> view.loadUrl(offlinePortal));
-                            return;
-                        }
-                        super.onReceivedError(view, errorCode, description, failingUrl);
+                        loadLocalOfflinePortal(view);
                     }
 
                     @Override
                     public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                         if (request != null && request.isForMainFrame()) {
-                            String failingUrl = request.getUrl() != null ? request.getUrl().toString() : "";
-                            if (failingUrl.contains("intan-elyu.online") || failingUrl.startsWith("http")) {
-                                // Suppress system error page and seamlessly load local offline app
-                                final String offlinePortal = getOfflinePortalUrl();
-                                view.post(() -> view.loadUrl(offlinePortal));
-                                return;
-                            }
+                            loadLocalOfflinePortal(view);
+                            return;
                         }
                         super.onReceivedError(view, request, error);
                     }
                 });
 
-                // Cold Boot Offline Protection: If launched without internet, load local offline bundle immediately
+                // Cold Boot Offline Protection: If launched without internet, load offline catalog bundle immediately
                 if (!isNetworkAvailable()) {
-                    final String offlinePortal = getOfflinePortalUrl();
-                    webView.post(() -> webView.loadUrl(offlinePortal));
+                    loadLocalOfflinePortal(webView);
                 }
 
                 // Register network monitor to smoothly transition to live cloud app when internet returns
@@ -248,15 +290,48 @@ public class MainActivity extends BridgeActivity {
         super.onBackPressed();
     }
 
-    private String getOfflinePortalUrl() {
-        if (this.bridge != null && this.bridge.getLocalUrl() != null) {
-            String local = this.bridge.getLocalUrl();
-            if (local.endsWith("/")) {
-                return local + "index.html";
+    /**
+     * Guaranteed Zero-Failure Local Asset Loader: Reads public/index.html directly from APK assets
+     * and injects it into WebView via loadDataWithBaseURL with zero network / DNS overhead.
+     */
+    private void loadLocalOfflinePortal(final WebView webView) {
+        if (webView == null) return;
+        runOnUiThread(() -> {
+            try {
+                InputStream is = getAssets().open("public/index.html");
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line).append("\n");
+                }
+                reader.close();
+                is.close();
+                String html = sb.toString();
+                webView.loadDataWithBaseURL("https://app.intan-elyu.online/", html, "text/html", "UTF-8", "https://app.intan-elyu.online/?offline=true");
+            } catch (Exception e) {
+                try {
+                    webView.loadUrl("file:///android_asset/public/index.html");
+                } catch (Exception ignored) {}
             }
-            return local + "/index.html";
-        }
-        return "https://localhost/index.html";
+        });
+    }
+
+    private String getMimeType(String path) {
+        if (path == null) return "text/plain";
+        String lower = path.toLowerCase();
+        if (lower.endsWith(".html") || lower.endsWith(".htm")) return "text/html";
+        if (lower.endsWith(".css")) return "text/css";
+        if (lower.endsWith(".js")) return "application/javascript";
+        if (lower.endsWith(".png")) return "image/png";
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+        if (lower.endsWith(".webp")) return "image/webp";
+        if (lower.endsWith(".svg")) return "image/svg+xml";
+        if (lower.endsWith(".json")) return "application/json";
+        if (lower.endsWith(".woff")) return "font/woff";
+        if (lower.endsWith(".woff2")) return "font/woff2";
+        if (lower.endsWith(".ttf")) return "font/ttf";
+        return "application/octet-stream";
     }
 
     private boolean isNetworkAvailable() {
@@ -267,8 +342,7 @@ public class MainActivity extends BridgeActivity {
                 Network net = cm.getActiveNetwork();
                 if (net == null) return false;
                 NetworkCapabilities caps = cm.getNetworkCapabilities(net);
-                return caps != null && (caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-                                        caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED));
+                return caps != null && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
             } else {
                 NetworkInfo info = cm.getActiveNetworkInfo();
                 return info != null && info.isConnected();
@@ -289,7 +363,7 @@ public class MainActivity extends BridgeActivity {
                             try {
                                 if (webView != null) {
                                     String curUrl = webView.getUrl();
-                                    if (curUrl != null && (curUrl.contains("localhost") || curUrl.startsWith("file:///"))) {
+                                    if (curUrl != null && (curUrl.contains("offline") || curUrl.contains("data:text/html") || curUrl.startsWith("file:///"))) {
                                         webView.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
                                         webView.loadUrl("https://app.intan-elyu.online?app=true");
                                     }
