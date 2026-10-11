@@ -37,7 +37,7 @@ public class MainActivity extends BridgeActivity {
                 WebView webView = this.bridge.getWebView();
                 WebSettings settings = webView.getSettings();
                 
-                // Enable Geolocation & Storage in WebView
+                // Enable Geolocation, Storage, and Local Asset File Access in WebView
                 settings.setGeolocationEnabled(true);
                 settings.setGeolocationDatabasePath(getFilesDir().getPath());
                 settings.setDomStorageEnabled(true);
@@ -45,6 +45,10 @@ public class MainActivity extends BridgeActivity {
                 settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
                 settings.setJavaScriptEnabled(true);
                 settings.setJavaScriptCanOpenWindowsAutomatically(true);
+                settings.setAllowFileAccess(true);
+                settings.setAllowContentAccess(true);
+                settings.setAllowFileAccessFromFileURLs(true);
+                settings.setAllowUniversalAccessFromFileURLs(true);
 
                 String ua = settings.getUserAgentString();
                 if (ua != null) {
@@ -63,7 +67,7 @@ public class MainActivity extends BridgeActivity {
                     }
                 });
 
-                // Keep all navigations (auth, google, app) strictly inside this APK WebView
+                // Keep all navigations (auth, google, app, offline portal) strictly inside this APK WebView
                 webView.setWebViewClient(new BridgeWebViewClient(this.bridge) {
                     private boolean handleCustomUriOrNavigation(WebView view, String url) {
                         if (url == null) return false;
@@ -92,13 +96,14 @@ public class MainActivity extends BridgeActivity {
                             return true;
                         }
 
-                        // Keep in-app web pages inside the WebView
-                        if (url.startsWith("http://") || url.startsWith("https://")) {
+                        // Keep in-app web pages and offline portal inside the WebView
+                        if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("file:///")) {
                             if (url.contains("intan-elyu.online") || 
                                 url.contains("accounts.google.com") || 
                                 url.contains("google.com") || 
                                 url.contains("googleapis.com") ||
-                                url.contains("localhost")) {
+                                url.contains("localhost") ||
+                                url.startsWith("file:///")) {
                                 view.loadUrl(url);
                                 return true;
                             }
@@ -128,9 +133,10 @@ public class MainActivity extends BridgeActivity {
 
                     @Override
                     public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                        if (failingUrl != null && failingUrl.contains("intan-elyu.online")) {
+                        if (failingUrl != null && (failingUrl.contains("intan-elyu.online") || failingUrl.startsWith("http"))) {
                             // Suppress system error page and seamlessly load local offline app
-                            view.post(() -> view.loadUrl("file:///android_asset/public/index.html"));
+                            final String offlinePortal = getOfflinePortalUrl();
+                            view.post(() -> view.loadUrl(offlinePortal));
                             return;
                         }
                         super.onReceivedError(view, errorCode, description, failingUrl);
@@ -138,11 +144,12 @@ public class MainActivity extends BridgeActivity {
 
                     @Override
                     public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                        if (request != null && request.isForMainFrame() && request.getUrl() != null) {
-                            String failingUrl = request.getUrl().toString();
-                            if (failingUrl.contains("intan-elyu.online")) {
+                        if (request != null && request.isForMainFrame()) {
+                            String failingUrl = request.getUrl() != null ? request.getUrl().toString() : "";
+                            if (failingUrl.contains("intan-elyu.online") || failingUrl.startsWith("http")) {
                                 // Suppress system error page and seamlessly load local offline app
-                                view.post(() -> view.loadUrl("file:///android_asset/public/index.html"));
+                                final String offlinePortal = getOfflinePortalUrl();
+                                view.post(() -> view.loadUrl(offlinePortal));
                                 return;
                             }
                         }
@@ -150,9 +157,10 @@ public class MainActivity extends BridgeActivity {
                     }
                 });
 
-                // Cold Boot Offline Protection: If launched without internet, load offline bundle immediately
+                // Cold Boot Offline Protection: If launched without internet, load local offline bundle immediately
                 if (!isNetworkAvailable()) {
-                    webView.post(() -> webView.loadUrl("file:///android_asset/public/index.html"));
+                    final String offlinePortal = getOfflinePortalUrl();
+                    webView.post(() -> webView.loadUrl(offlinePortal));
                 }
 
                 // Register network monitor to smoothly transition to live cloud app when internet returns
@@ -240,6 +248,17 @@ public class MainActivity extends BridgeActivity {
         super.onBackPressed();
     }
 
+    private String getOfflinePortalUrl() {
+        if (this.bridge != null && this.bridge.getLocalUrl() != null) {
+            String local = this.bridge.getLocalUrl();
+            if (local.endsWith("/")) {
+                return local + "index.html";
+            }
+            return local + "/index.html";
+        }
+        return "https://localhost/index.html";
+    }
+
     private boolean isNetworkAvailable() {
         try {
             ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -270,7 +289,7 @@ public class MainActivity extends BridgeActivity {
                             try {
                                 if (webView != null) {
                                     String curUrl = webView.getUrl();
-                                    if (curUrl != null && curUrl.startsWith("file:///android_asset/")) {
+                                    if (curUrl != null && (curUrl.contains("localhost") || curUrl.startsWith("file:///"))) {
                                         webView.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
                                         webView.loadUrl("https://app.intan-elyu.online?app=true");
                                     }
