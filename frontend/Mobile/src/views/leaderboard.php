@@ -71,8 +71,7 @@ $activeTab = 'leaderboard';
                 style="font-size: 15px; font-weight: 800; color: #0f172a !important; margin: 0; display: flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-list-ol" style="color: #1e3a8a;"></i> Explorer Leaderboard
             </h3>
-            <span style="font-size: 11px; font-weight: 700; color: #64748b !important;" id="explorers-count-badge">Top
-                Ranks</span>
+            <span style="font-size: 11px; font-weight: 700; color: #64748b !important;" id="explorers-count-badge">Top 10</span>
         </div>
 
         <!-- Rank List -->
@@ -256,9 +255,12 @@ $activeTab = 'leaderboard';
                 });
             }
 
+            // Maximum of Tourist users in the leaderboard is strictly 10
+            leaders = leaders.slice(0, 10);
+
             const countBadge = document.getElementById('explorers-count-badge');
             if (countBadge) {
-                countBadge.textContent = leaders.length > 0 ? `${leaders.length} Explorers` : '0 Explorers';
+                countBadge.textContent = leaders.length > 0 ? `Top ${leaders.length}` : 'Top 10';
             }
 
             // Prepare current logged-in user standing information (function-scoped for ranking comparisons)
@@ -641,8 +643,8 @@ $activeTab = 'leaderboard';
         const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
         const list = data.users || data.leaders || data.tourists || data.data || data.leaderboard || (Array.isArray(data) ? data : []);
         if (Array.isArray(list) && list.length > 0) {
-            rawLeadersList = list;
-            window._cachedRawLeadersList = list;
+            rawLeadersList = list.slice(0, 10);
+            window._cachedRawLeadersList = rawLeadersList;
         }
         if (data.me) {
             cachedMeData = data.me;
@@ -782,7 +784,7 @@ $activeTab = 'leaderboard';
                 // Tier 1: Tourist authenticated endpoint
                 if (token) {
                     try {
-                        const res = await fetch(backendUrl + '/api/tourist/leaderboard?limit=50', {
+                        const res = await fetch(backendUrl + '/api/tourist/leaderboard?limit=10', {
                             headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
                         });
                         if (res.ok) {
@@ -799,7 +801,7 @@ $activeTab = 'leaderboard';
                 try {
                     const headers2 = { 'Accept': 'application/json' };
                     if (token) headers2['Authorization'] = 'Bearer ' + token;
-                    const res2 = await fetch(backendUrl + '/api/public/leaderboard?limit=50', { headers: headers2 });
+                    const res2 = await fetch(backendUrl + '/api/public/leaderboard?limit=10', { headers: headers2 });
                     if (res2.ok) {
                         const json2 = await res2.json();
                         const users2 = json2.users || json2.leaders || json2.data || json2.tourists || (Array.isArray(json2) ? json2 : []);
@@ -813,7 +815,7 @@ $activeTab = 'leaderboard';
                 try {
                     const headers3 = { 'Accept': 'application/json' };
                     if (token) headers3['Authorization'] = 'Bearer ' + token;
-                    const res3 = await fetch(backendUrl + '/api/leaderboard?limit=50', { headers: headers3 });
+                    const res3 = await fetch(backendUrl + '/api/leaderboard?limit=10', { headers: headers3 });
                     if (res3.ok) {
                         const json3 = await res3.json();
                         const users3 = json3.users || json3.leaders || json3.data || json3.tourists || (Array.isArray(json3) ? json3 : []);
@@ -825,7 +827,7 @@ $activeTab = 'leaderboard';
 
                 // Tier 4: Direct canonical production domain
                 try {
-                    const res4 = await fetch('https://api.intan-elyu.online/api/public/leaderboard?limit=50', {
+                    const res4 = await fetch('https://api.intan-elyu.online/api/public/leaderboard?limit=10', {
                         headers: { 'Accept': 'application/json' }
                     });
                     if (res4.ok) {

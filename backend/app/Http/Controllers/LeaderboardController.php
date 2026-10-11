@@ -69,7 +69,21 @@ class LeaderboardController extends Controller
     {
         $search = trim($request->get('search', ''));
         $rawSort = strtolower(trim($request->get('sort', 'xp')));
-        $limit = min(max((int) $request->get('limit', 50), 1), 500);
+
+        $myRank = null;
+        $me = null;
+        $user = $request->user();
+        if (!$user) {
+            $bearerToken = $request->bearerToken();
+            if ($bearerToken) {
+                $user = \App\Models\User::where('api_token', $bearerToken)->first();
+            }
+        }
+
+        // Leaderboard limit: strictly maximum 10 tourists for tourists and public
+        $isStaff = $user && in_array(strtolower($user->role ?? ''), ['admin', 'lupto', 'picto', 'super_admin']);
+        $maxLimit = $isStaff ? 100 : 10;
+        $limit = min(max((int) $request->get('limit', 10), 1), $maxLimit);
         $offset = max((int) $request->get('offset', 0), 0);
 
         // Normalize sorting parameter names (Prioritize XP, Points & Activities)
@@ -86,15 +100,6 @@ class LeaderboardController extends Controller
             default => '`rank` ASC, total_xp DESC, completed_activities DESC',
         };
 
-        $myRank = null;
-        $me = null;
-        $user = $request->user();
-        if (!$user) {
-            $bearerToken = $request->bearerToken();
-            if ($bearerToken) {
-                $user = \App\Models\User::where('api_token', $bearerToken)->first();
-            }
-        }
         if ($user) {
             try {
                 $myRankRow = DB::selectOne(
