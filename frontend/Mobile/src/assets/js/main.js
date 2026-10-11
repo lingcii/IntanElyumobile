@@ -541,12 +541,12 @@ window.OfflineTripManager = {
 // AMBIENT CONNECTIVITY MANAGER (CALM, EVENT-DRIVEN, NO-FLAP)
 // ══════════════════════════════════════════════════════════════════════════
 (function initAmbientConnectivity() {
-    let wasOffline = false;
+    let wasOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : false;
     let hidePillTimeout = null;
     let offlineDebounceTimeout = null;
     let lastOnlineSyncTime = 0;
 
-    window.isAppOnline = true;
+    window.isAppOnline = (typeof navigator.onLine === 'boolean') ? navigator.onLine : true;
 
     function showOfflinePill() {
         const pill = document.getElementById('elyu-offline-pill');
@@ -968,14 +968,94 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             }
         }
 
+        if (!html && targetView === 'auth') {
+            html = `<div class="auth-container">
+                <div class="auth-top">
+                    <div class="logo-container">
+                        <img id="auth-logo-img" src="assets/img/logo.png" alt="Intan Elyu Logo" style="width:100%; height:100%; object-fit:contain; border-radius:50%; display:block;">
+                    </div>
+                    <h1 id="auth-title" style="color:#ffffff; font-weight:800;">Welcome to Elyu</h1>
+                    <div class="wave-bottom">
+                        <svg viewBox="0 0 2000 100" preserveAspectRatio="none">
+                            <path class="wave-layer wave-3" fill="#74a3cf" d="M0,70 C250,120 250,20 500,70 C750,120 750,20 1000,70 C1250,120 1250,20 1500,70 C1750,120 1750,20 2000,70 L2000,160 L0,160 Z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="auth-bottom">
+                    <div id="auth-offline-badge" class="auth-offline-badge" style="display:inline-flex;">
+                        <i class="fa-solid fa-cloud-slash" style="color:#f59e0b; font-size:11px;"></i>
+                        <span>Offline Mode Active &bull; Saved Guides Available</span>
+                    </div>
+                    <div class="auth-tabs" id="auth-tabs">
+                        <div class="auth-tab active" id="tab-login" onclick="toggleAuthMode(false)">Login</div>
+                        <div class="auth-tab" id="tab-register" onclick="toggleAuthMode(true)">Register</div>
+                        <div class="tab-gooey-glider" id="tab-gooey-glider"></div>
+                    </div>
+                    <div class="forms-wrapper" id="forms-wrapper">
+                        <div class="form-panel login-form">
+                            <form id="form-login" onsubmit="handleLogin(event)">
+                                <div class="input-group">
+                                    <i class="fa-solid fa-mobile-screen"></i>
+                                    <input type="email" id="login-email" class="auth-input" placeholder="Email Address" required>
+                                </div>
+                                <div class="input-group">
+                                    <i class="fa-solid fa-lock"></i>
+                                    <input type="password" id="login-password" class="auth-input" placeholder="Password" required>
+                                    <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('login-password', this)"></i>
+                                </div>
+                                <div class="auth-options-row">
+                                    <label class="remember-me-label" for="login-remember">
+                                        <input type="checkbox" id="login-remember" class="custom-terms-checkbox">
+                                        <span>Remember me</span>
+                                    </label>
+                                    <a href="#" class="forgot-pwd" onclick="showForgotPassword(event)">Forgot Password?</a>
+                                </div>
+                                <button type="submit" id="btn-login" class="btn-circle-submit">
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            </form>
+                            <div class="auth-social-section" style="margin-top:16px;">
+                                <button type="button" id="btn-offline-mode" class="btn-offline-guest" onclick="window.enterOfflineMode(event)">
+                                    <i class="fa-solid fa-compass" style="color:#38bdf8; font-size:13.5px;"></i>
+                                    <span>Explore in Offline Mode</span>
+                                </button>
+                                <p class="auth-switch-prompt" style="margin-top:10px;">
+                                    Don't have an account? <a href="#" onclick="toggleAuthMode(true); return false;" class="auth-switch-link">Register now</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        } else if (!html && targetView === 'splash') {
+            html = `<div class="splash-container" id="splash-main">
+                <div class="splash-logo-container stagger-1">
+                    <div class="splash-logo">
+                        <img src="assets/img/logo.png" alt="Intan Elyu Logo">
+                    </div>
+                </div>
+                <div class="splash-title-wrapper stagger-2">
+                    <h1 class="splash-title">Intan Elyu</h1>
+                    <p class="splash-subtitle">Explore the Province of La Union</p>
+                    <div class="splash-offline-pill">
+                        <i class="fa-solid fa-cloud-slash" style="color:#f59e0b; font-size:11px;"></i>
+                        <span>Offline Mode &bull; Loading saved guides</span>
+                    </div>
+                </div>
+            </div>`;
+        }
+
         if (!html) {
             html = `<div style="padding: 48px 24px; text-align: center; color: #1e3a8a; font-family: -apple-system, sans-serif;">
                 <div style="width:68px; height:68px; margin:0 auto 16px; border-radius:50%; background:#e0f2fe; display:flex; align-items:center; justify-content:center;">
                     <i class="fa-solid fa-cloud-slash" style="font-size:30px; color:#f59e0b;"></i>
                 </div>
-                <h3 style="margin:0 0 8px; font-weight:800; font-size:18px; color:#0f172a;">Screen Not Saved Offline</h3>
-                <p style="margin:0 0 20px; font-size:13px; color:#64748b; line-height:1.5;">This section needs an internet connection on first visit. Reconnect to save it for offline use.</p>
-                <button onclick="if(typeof navigateTo==='function') navigateTo('dashboard'); else window.history.back();" style="padding:10px 22px; border-radius:100px; border:none; background:#1e3a8a; color:#fff; font-weight:700; font-size:13px; cursor:pointer;">Back to Dashboard</button>
+                <h3 style="margin:0 0 8px; font-weight:800; font-size:18px; color:#0f172a;">Offline Mode Active</h3>
+                <p style="margin:0 0 20px; font-size:13px; color:#64748b; line-height:1.5;">This section is being synchronized for offline access. You can explore all saved attractions, itineraries, and maps in Offline Mode.</p>
+                <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                    <button onclick="if(typeof navigateTo==='function') navigateTo('dashboard'); else window.history.back();" style="padding:10px 22px; border-radius:100px; border:none; background:#1e3a8a; color:#fff; font-weight:700; font-size:13px; cursor:pointer;">Explore Dashboard</button>
+                    <button onclick="if(typeof navigateTo==='function') navigateTo('auth');" style="padding:10px 22px; border-radius:100px; border:1.5px solid #cbd5e1; background:#fff; color:#334155; font-weight:700; font-size:13px; cursor:pointer;">Switch Account</button>
+                </div>
             </div>`;
         }
 
@@ -2883,7 +2963,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     window.prewarmAllViews = async function () {
         if (!navigator.onLine) return;
         const viewsToPrewarm = [
-            'dashboard', 'itinerary', 'saved_trips', 'trip_map',
+            'splash', 'auth', 'dashboard', 'itinerary', 'saved_trips', 'trip_map',
             'leaderboard', 'profile', 'map', 'trending', 'discount',
             'puzzles', 'saved_places', 'settings', 'about', 'help',
             'terms', 'user_manual', 'edit_profile', 'ar_checkin'
@@ -2892,7 +2972,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         for (const v of viewsToPrewarm) {
             try {
-                if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v2_' + v)) {
+                if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v3_' + v)) {
                     const res = await fetch(`index.php?view=${encodeURIComponent(v)}&ajax=1`, {
                         headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     });
@@ -2900,7 +2980,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                         const text = await res.text();
                         if (text && text.length > 50) {
                             window._viewHtmlCache[v] = text;
-                            try { localStorage.setItem('elyu_view_cache_v2_' + v, text); } catch (e) { }
+                            try { localStorage.setItem('elyu_view_cache_v3_' + v, text); } catch (e) { }
                         }
                     }
                 }

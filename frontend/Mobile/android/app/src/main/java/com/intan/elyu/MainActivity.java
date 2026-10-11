@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.webkit.GeolocationPermissions;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -36,7 +37,7 @@ public class MainActivity extends BridgeActivity {
                 settings.setGeolocationDatabasePath(getFilesDir().getPath());
                 settings.setDomStorageEnabled(true);
                 settings.setDatabaseEnabled(true);
-                settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+                settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
                 settings.setJavaScriptEnabled(true);
                 settings.setJavaScriptCanOpenWindowsAutomatically(true);
 
@@ -118,6 +119,33 @@ public class MainActivity extends BridgeActivity {
                             }
                         }
                         return super.shouldOverrideUrlLoading(view, request);
+                    }
+
+                    @Override
+                    public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                        if (failingUrl != null && (failingUrl.contains("intan-elyu.online") || failingUrl.contains("localhost"))) {
+                            try {
+                                view.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ONLY);
+                                view.loadUrl(failingUrl);
+                                return;
+                            } catch (Exception ignored) {}
+                        }
+                        super.onReceivedError(view, errorCode, description, failingUrl);
+                    }
+
+                    @Override
+                    public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                        if (request != null && request.isForMainFrame() && request.getUrl() != null) {
+                            String failingUrl = request.getUrl().toString();
+                            if (failingUrl.contains("intan-elyu.online") || failingUrl.contains("localhost")) {
+                                try {
+                                    view.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ONLY);
+                                    view.loadUrl(failingUrl);
+                                    return;
+                                } catch (Exception ignored) {}
+                            }
+                        }
+                        super.onReceivedError(view, request, error);
                     }
                 });
             }

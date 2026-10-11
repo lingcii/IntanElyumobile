@@ -320,3 +320,25 @@ body[data-view="auth"] #global-cloud-container {
 body[data-view="splash"] {
     background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%) !important;
 }
+
+/* Offline Mode Indicator on Splash */
+.splash-offline-pill {
+    position: relative;
+    z-index: 100;
+    margin-top: 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 14px;
+    border-radius: 100px;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    color: #fef3c7;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    animation: fadeIn 0.4s ease;
+}

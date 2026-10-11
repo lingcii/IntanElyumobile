@@ -55,6 +55,12 @@
 
     <!-- Bottom White Section -->
     <div class="auth-bottom">
+        <!-- Offline Mode Status Indicator -->
+        <div id="auth-offline-badge" class="auth-offline-badge" style="display: none;">
+            <i class="fa-solid fa-cloud-slash" style="color: #f59e0b; font-size: 11px;"></i>
+            <span>Offline Mode Active &bull; Saved Guides Available</span>
+        </div>
+
         <div class="auth-tabs" id="auth-tabs">
             <div class="auth-tab active" id="tab-login" onclick="toggleAuthMode(false)">Login</div>
             <div class="auth-tab" id="tab-register" onclick="toggleAuthMode(true)">Register</div>
@@ -110,6 +116,10 @@
                                 d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.18 2.12 1.21 5.46l4.11 3.22c.94-2.85 3.57-4.93 6.68-4.93z" />
                         </svg>
                         <span>Sign in with Google</span>
+                    </button>
+                    <button type="button" id="btn-offline-mode" class="btn-offline-guest" onclick="window.enterOfflineMode(event)">
+                        <i class="fa-solid fa-compass" style="color: #38bdf8; font-size: 13.5px;"></i>
+                        <span>Explore in Offline Mode</span>
                     </button>
                     <p class="auth-switch-prompt">
                         Don't have an account? <a href="#" onclick="toggleAuthMode(true); return false;"
@@ -212,6 +222,10 @@
                                 d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.18 2.12 1.21 5.46l4.11 3.22c.94-2.85 3.57-4.93 6.68-4.93z" />
                         </svg>
                         <span>Sign up with Google</span>
+                    </button>
+                    <button type="button" class="btn-offline-guest" onclick="window.enterOfflineMode(event)">
+                        <i class="fa-solid fa-compass" style="color: #38bdf8; font-size: 13.5px;"></i>
+                        <span>Explore in Offline Mode</span>
                     </button>
                     <p class="auth-switch-prompt">
                         Already have an account? <a href="#" onclick="toggleAuthMode(false); return false;"
@@ -533,8 +547,105 @@
     </div>
 </div>
 
+<!-- Offline Mode Dialog Modal -->
+<div id="offline-auth-modal" class="auth-offline-modal" style="display: none;">
+    <div class="auth-offline-backdrop" onclick="window.closeOfflineAuthModal()"></div>
+    <div class="auth-offline-card">
+        <div class="auth-offline-icon-circle">
+            <i class="fa-solid fa-cloud-slash"></i>
+        </div>
+        <h3 class="auth-offline-title">You're Currently Offline</h3>
+        <p class="auth-offline-desc" id="offline-auth-desc">
+            Cloud account verification requires an active internet connection. You can enter Offline Mode to explore all saved attractions, itineraries, and maps right now.
+        </p>
+        <div class="auth-offline-actions">
+            <button type="button" class="btn-offline-confirm" onclick="window.enterOfflineMode()">
+                <i class="fa-solid fa-compass"></i> Continue in Offline Mode
+            </button>
+            <button type="button" class="btn-offline-dismiss" onclick="window.closeOfflineAuthModal()">
+                Dismiss
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+
+    // =========================================================================
+    // Universal Offline Mode Engine for Auth View
+    // =========================================================================
+    (function initAuthOfflineStatus() {
+        function updateOfflineStatus() {
+            const isOffline = !navigator.onLine || window.isAppOnline === false;
+            const badge = document.getElementById('auth-offline-badge');
+            if (badge) {
+                badge.style.display = isOffline ? 'inline-flex' : 'none';
+            }
+        }
+        updateOfflineStatus();
+        window.addEventListener('online', updateOfflineStatus);
+        window.addEventListener('offline', updateOfflineStatus);
+        window.addEventListener('appOnline', updateOfflineStatus);
+        window.addEventListener('appOffline', updateOfflineStatus);
+    })();
+
+    window.showOfflineAuthModal = function (email) {
+        const modal = document.getElementById('offline-auth-modal');
+        if (!modal) return;
+        const desc = document.getElementById('offline-auth-desc');
+        if (desc && email) {
+            desc.innerHTML = `Cloud verification for <strong>${email}</strong> requires an active internet connection. You can enter Offline Mode to explore all saved attractions and maps right now.`;
+        }
+        modal.style.display = 'flex';
+    };
+
+    window.closeOfflineAuthModal = function () {
+        const modal = document.getElementById('offline-auth-modal');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.enterOfflineMode = function (e) {
+        if (e && e.preventDefault) e.preventDefault();
+        window.closeOfflineAuthModal();
+
+        let cached = null;
+        try {
+            cached = JSON.parse(localStorage.getItem('auth_user') || 'null');
+        } catch (err) {}
+
+        if (!cached || !cached.name) {
+            cached = {
+                id: 'offline_guest',
+                user_id: 'offline_guest',
+                name: 'Offline Explorer',
+                full_name: 'Offline Explorer',
+                role: 'tourist',
+                points: 0,
+                xp: 0,
+                completed_activities: 0,
+                home_location: 'La Union',
+                is_offline_guest: true
+            };
+            localStorage.setItem('auth_user', JSON.stringify(cached));
+        }
+
+        localStorage.setItem('intan_elyu_token', 'offline_guest_token');
+        localStorage.setItem('intan_elyu_offline_guest', 'true');
+
+        if (typeof window.notifyAppOffline === 'function') {
+            window.notifyAppOffline();
+        }
+        if (typeof showToast === 'function') {
+            showToast('Entered Offline Mode! Showing saved guides & maps.');
+        }
+
+        if (typeof navigateTo === 'function') {
+            navigateTo('dashboard');
+        } else {
+            window.location.href = 'index.php?view=dashboard';
+        }
+    };
 
     window.openAuthCancelModal = function (msg) {
         const modal = document.getElementById('auth-cancel-modal');
@@ -868,9 +979,45 @@
         btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
         btn.disabled = true;
 
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
+        const email = (document.getElementById('login-email')?.value || '').trim();
+        const password = document.getElementById('login-password')?.value || '';
         const remember = document.getElementById('login-remember')?.checked || false;
+
+        // Offline mode interceptor
+        if (!navigator.onLine || window.isAppOnline === false) {
+            btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
+            btn.disabled = false;
+
+            let cachedUser = null;
+            try { cachedUser = JSON.parse(localStorage.getItem('auth_user') || 'null'); } catch (err) {}
+            const rememberedEmail = localStorage.getItem('intan_elyu_remembered_email');
+
+            // If the user previously logged into this account on this device
+            if (cachedUser && (
+                (cachedUser.email && cachedUser.email.toLowerCase() === email.toLowerCase()) ||
+                (rememberedEmail && rememberedEmail.toLowerCase() === email.toLowerCase())
+            )) {
+                localStorage.setItem('intan_elyu_token', 'offline_session_token');
+                localStorage.setItem('intan_elyu_offline_mode', 'true');
+                if (remember) {
+                    localStorage.setItem('intan_elyu_remembered_email', email);
+                    localStorage.setItem('intan_elyu_remember_me', '1');
+                }
+                if (typeof showToast === 'function') {
+                    showToast('Logged in offline with saved profile! Cloud sync will resume when online.', 'success');
+                }
+                showLoginSuccessModal(cachedUser);
+                return;
+            }
+
+            // Not matched or new account while offline: offer offline mode entry
+            if (typeof window.showOfflineAuthModal === 'function') {
+                window.showOfflineAuthModal(email);
+            } else if (typeof showToast === 'function') {
+                showToast('You are currently offline. Cloud password verification requires an internet connection.', 'warning');
+            }
+            return;
+        }
 
         try {
             const response = await fetch(backendUrl + '/api/auth/login', {
@@ -906,7 +1053,28 @@
             showLoginSuccessModal(data.user);
         } catch (error) {
             console.error('Login Error:', error);
-            if (typeof showToast === 'function') showToast(error.message);
+            const isNetworkIssue = !navigator.onLine ||
+                (error.message && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('network')));
+
+            if (isNetworkIssue) {
+                let cachedUser = null;
+                try { cachedUser = JSON.parse(localStorage.getItem('auth_user') || 'null'); } catch (err) {}
+                if (cachedUser && cachedUser.email && cachedUser.email.toLowerCase() === email.toLowerCase()) {
+                    localStorage.setItem('intan_elyu_token', 'offline_session_token');
+                    if (typeof showToast === 'function') {
+                        showToast('Offline Mode: Logged in using saved profile.', 'success');
+                    }
+                    showLoginSuccessModal(cachedUser);
+                    return;
+                }
+                if (typeof window.showOfflineAuthModal === 'function') {
+                    window.showOfflineAuthModal(email);
+                } else if (typeof showToast === 'function') {
+                    showToast('Connection failed. Tap "Explore in Offline Mode" to browse saved data.', 'warning');
+                }
+            } else {
+                if (typeof showToast === 'function') showToast(error.message);
+            }
             btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
             btn.disabled = false;
         }
