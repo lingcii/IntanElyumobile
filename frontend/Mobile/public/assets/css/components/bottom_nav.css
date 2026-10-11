@@ -1,0 +1,227 @@
+/* ============================================================
+ * Bottom Navigation Component — bottom_nav.css
+ * Intan Elyu - Magic SVG Layout
+ * ============================================================ */
+
+/* ==========================================================================
+   6. MAGIC NAVIGATION STYLES (SVG Cutout layout)
+   ========================================================================== */
+#bottom-navigation {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: 0 !important;
+    overflow: visible !important;
+    z-index: 99999 !important;
+    pointer-events: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s ease !important;
+}
+
+.magic-nav {
+    position: fixed !important;
+    bottom: max(18px, env(safe-area-inset-bottom, 18px)) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(100% - clamp(16px, 4vw, 32px)) !important;
+    max-width: 448px !important;
+    height: 66px !important;
+    z-index: 99999 !important;
+    pointer-events: auto !important;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s ease !important;
+}
+
+@media (max-height: 680px) {
+    .magic-nav {
+        bottom: max(12px, env(safe-area-inset-bottom, 12px)) !important;
+    }
+}
+
+/* ── Hide Navigation Bar when Virtual Keyboard, Search, or Bottom Sheet is open on mobile ── */
+body.keyboard-open .magic-nav,
+html.keyboard-open .magic-nav,
+body.map-search-active .magic-nav,
+body.sheet-open .magic-nav,
+html.sheet-open .magic-nav,
+.magic-nav.keyboard-hidden,
+#bottom-navigation.nav-hidden .magic-nav {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translate(-50%, 140px) !important;
+    visibility: hidden !important;
+}
+
+body.keyboard-open #bottom-navigation,
+html.keyboard-open #bottom-navigation,
+body.map-search-active #bottom-navigation,
+body.sheet-open #bottom-navigation,
+html.sheet-open #bottom-navigation,
+#bottom-navigation.keyboard-hidden,
+#bottom-navigation.nav-hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(140px) !important;
+    visibility: hidden !important;
+}
+
+
+.magic-nav-bg {
+    position: absolute;
+    inset: 0;
+    border-radius: 99px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+.magic-nav-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.magic-nav-svg path {
+    transition: d 0.42s cubic-bezier(0.68, -0.55, 0.27, 1.55), fill 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.magic-nav-items {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+}
+
+.magic-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    color: rgba(255, 255, 255, 0.4);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.25s ease;
+}
+
+.magic-nav-item:not(.active):hover {
+    transform: translateY(-3px);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.magic-nav-item:not(.active):active {
+    transform: scale(0.88);
+    transition: transform 0.08s ease;
+}
+
+.magic-nav-item.active {
+    color: white;
+    transform: translateY(-13px);
+    z-index: 11;
+}
+
+.magic-nav-item .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+    font-size: 22px;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+}
+
+@keyframes iconBounce {
+  0% { transform: translateY(0) scale(1); }
+  40% { transform: translateY(-6px) scale(1.2); }
+  70% { transform: translateY(1px) scale(0.95); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+.magic-nav-item.active .icon {
+    animation: iconBounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.7));
+}
+
+.magic-nav-item .text {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: color 0.25s ease, opacity 0.3s ease;
+    color: inherit;
+    opacity: 0;
+    position: absolute;
+    bottom: -15px; /* hidden initially */
+}
+
+@keyframes labelSlideUp {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.magic-nav-item.active .text {
+    animation: labelSlideUp 0.3s ease 0.05s both;
+    font-weight: 700;
+    position: static;
+    margin-top: 4px;
+}
+
+.magic-circle {
+    position: absolute;
+    top: -6px;
+    transform: translateX(-50%);
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: none;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+    z-index: 10;
+    transition: left 0.42s cubic-bezier(0.68, -0.55, 0.27, 1.55), background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.magic-circle-shine {
+    position: absolute;
+    top: 7px;
+    left: 11px;
+    width: 14px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.42);
+    filter: blur(2px);
+}
+
+.has-bottom-nav {
+    padding-bottom: var(--page-bottom-padding, calc(max(18px, env(safe-area-inset-bottom, 18px)) + 82px)) !important;
+}
+
+@media (max-height: 680px) {
+    .has-bottom-nav {
+        padding-bottom: calc(max(12px, env(safe-area-inset-bottom, 12px)) + 76px) !important;
+    }
+}
+
+/* Download View Fullscreen Resets */
+body[data-view="download"] #app-container,
+body[data-view="download"] #main-content {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+body[data-view="download"] #global-cloud-container {
+    display: none !important;
+}

@@ -1,0 +1,147 @@
+/* ============================================================
+ * Merch / Discounts View Styles
+ * Intan Elyu Mobile — Pure White Background Redesign
+ * ============================================================ */
+
+html:has(body[data-view="discount"]),
+body[data-view="discount"] {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+body[data-view="discount"] #app-container,
+body[data-view="discount"] #main-content {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+}
+
+body[data-view="discount"] .mobile-header,
+.mobile-header {
+    background: #1e3a8a !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: none !important;
+    outline: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+
+.merch-view,
+.merch-page-container {
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-top: var(--page-top-padding, calc(max(env(safe-area-inset-top, 0px), 36px) + 52px)) !important;
+    padding-left: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
+    padding-right: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
+    padding-bottom: var(--page-bottom-padding, calc(max(18px, env(safe-area-inset-bottom, 18px)) + 82px)) !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    position: relative;
+    box-sizing: border-box;
+}
+
+/* Merch Hero Card */
+.merch-hero {
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    border: none !important;
+    outline: none !important;
+    border-radius: clamp(18px, 4.5vw, 24px);
+    padding: clamp(16px, 3vh, 24px) clamp(14px, 4vw, 20px);
+    text-align: center;
+    margin-top: 0 !important;
+    margin-bottom: clamp(12px, 2vh, 18px);
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
+    color: #ffffff !important;
+}
+
+/* Category Filter Pills */
+.discount-cat-btn {
+    background: #f1f5f9 !important;
+    border: none !important;
+    outline: none !important;
+    color: #1e293b !important;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.discount-cat-btn:active {
+    transform: scale(0.94);
+}
+
+.discount-cat-btn.active {
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28) !important;
+}
+
+/* Voucher Cards */
+.voucher-card {
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    border: none !important;
+    outline: none !important;
+    border-radius: 20px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
+    color: #ffffff !important;
+    transition: transform 0.2s ease;
+}
+
+.voucher-card:active {
+    transform: scale(0.98);
+}
+
+.voucher-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -30%;
+    width: 140px;
+    height: 140px;
+    background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+/* Town Filter Pills */
+.muni-pill {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 5px 12px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.muni-pill.active {
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    border-color: transparent !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(32, 63, 141, 0.25) !important;
+}
+
+/* Voucher Detail Modal */
+#voucher-modal.active { opacity: 1 !important; }
+#voucher-modal.active .voucher-card-anim { transform: scale(1) translateY(0) !important; opacity: 1 !important; }
+
