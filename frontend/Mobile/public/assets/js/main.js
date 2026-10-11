@@ -1492,11 +1492,25 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             document.body.appendChild(container);
         }
 
+        let msgStr = String(message || '').trim();
+        const lowerMsg = msgStr.toLowerCase();
+
+        // Universal Network / Fetch Interceptor: Replace raw browser errors with user-friendly notices
+        if (lowerMsg.includes('failed to fetch') || lowerMsg.includes('networkerror') || lowerMsg.includes('load failed') || lowerMsg.includes('network request failed')) {
+            const isAuth = !!document.getElementById('login-form') || !!document.getElementById('btn-login') || (typeof window !== 'undefined' && window.location && window.location.pathname.includes('auth'));
+            if (isAuth) {
+                msgStr = 'Internet connection is required to log in. Please connect to the internet, or explore in Offline Mode.';
+            } else {
+                msgStr = 'Internet connection is required. Please check your network connection and try again.';
+            }
+            type = 'warning';
+            duration = Math.max(duration, 4500);
+        }
+
         // Determine icon and color variant
         let iconHTML = '<i class="fa-solid fa-circle-info" style="color:#38bdf8; font-size:16px;"></i>';
         let borderColor = 'rgba(56, 189, 248, 0.35)';
 
-        const lowerMsg = String(message).toLowerCase();
         if (type === 'success' || lowerMsg.includes('success') || lowerMsg.includes('deleted') || lowerMsg.includes('checked in') || lowerMsg.includes('completed') || lowerMsg.includes('added') || lowerMsg.includes('saved')) {
             iconHTML = '<i class="fa-solid fa-circle-check" style="color:#34c759; font-size:16px;"></i>';
             borderColor = 'rgba(52, 199, 89, 0.4)';
@@ -1511,7 +1525,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         const toast = document.createElement('div');
         toast.className = 'toast-card';
         toast.style.borderColor = borderColor;
-        toast.innerHTML = `<div style="display:flex; align-items:center; gap:10px;">${iconHTML}<span style="font-size:13px; font-weight:700; color:#ffffff; line-height:1.3;">${message}</span></div>`;
+        toast.innerHTML = `<div style="display:flex; align-items:center; gap:10px;">${iconHTML}<span style="font-size:13px; font-weight:700; color:#ffffff; line-height:1.3;">${msgStr}</span></div>`;
 
         container.appendChild(toast);
 
