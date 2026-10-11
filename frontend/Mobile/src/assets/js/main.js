@@ -543,6 +543,7 @@ window.OfflineTripManager = {
 (function initAmbientConnectivity() {
     let wasOffline = false;
     let hidePillTimeout = null;
+    let offlineDebounceTimeout = null;
     let lastOnlineSyncTime = 0;
 
     window.isAppOnline = true;
@@ -560,6 +561,14 @@ window.OfflineTripManager = {
             icon.style.color = '#f59e0b';
         }
         if (text) text.innerHTML = 'Offline Mode &bull; Showing saved data';
+
+        // Auto-dismiss after 3.2s so it never stays stuck or blocks the UI
+        hidePillTimeout = setTimeout(() => {
+            pill.classList.add('hidden');
+            setTimeout(() => {
+                if (pill.classList.contains('hidden')) pill.style.display = 'none';
+            }, 400);
+        }, 3200);
     }
 
     function showOnlineSyncPill() {
@@ -582,10 +591,10 @@ window.OfflineTripManager = {
             setTimeout(() => {
                 if (pill.classList.contains('hidden')) pill.style.display = 'none';
             }, 400);
-        }, 2800);
+        }, 2500);
     }
 
-    // Gentle sync orchestrator when connection returns (throttled to max once per 15 seconds)
+    // Gentle sync orchestrator when connection returns
     window.syncAllDataWhenOnline = async function () {
         if (window._isSyncingOnlineData) return;
         window._isSyncingOnlineData = true;
@@ -601,13 +610,27 @@ window.OfflineTripManager = {
                 }
             }, 300);
 
-            // 2. Mark views as needing refresh so they fetch cleanly when viewed
+            // 2. Mark views as needing refresh so they fetch cleanly when user navigates
             window.leaderboardNeedsRefresh = true;
             window.dashboardNeedsRefresh = true;
+            window.profileNeedsRefresh = true;
+            window.discountNeedsRefresh = true;
+            window.trendingNeedsRefresh = true;
 
-            // 3. If currently on leaderboard, trigger a clean refresh
-            if (typeof window.initLeaderboardView === 'function') {
+            // 3. ONLY refresh the CURRENTLY active view to prevent cross-view DOM mutation collisions
+            const activeView = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+            if (activeView === 'leaderboard' && typeof window.initLeaderboardView === 'function') {
                 window.initLeaderboardView(true);
+            } else if (activeView === 'dashboard' && typeof window.dashboardInit === 'function') {
+                window.dashboardInit(true);
+            } else if (activeView === 'profile' && typeof window.fetchProfileData === 'function') {
+                window.fetchProfileData(true);
+                if (typeof window.fetchPointsAndVouchers === 'function') window.fetchPointsAndVouchers(true);
+            } else if (activeView === 'discount' && typeof window.fetchLiveDatabaseVouchers === 'function') {
+                window.fetchLiveDatabaseVouchers();
+                if (typeof window.fetchUserPointsAndRedemptions === 'function') window.fetchUserPointsAndRedemptions();
+            } else if (activeView === 'trending' && typeof window.fetchAllData === 'function') {
+                window.fetchAllData(true);
             }
 
             // 4. Pre-warm offline caches gently in the background
@@ -621,9 +644,13 @@ window.OfflineTripManager = {
     };
 
     window.notifyAppOnline = function () {
+        if (offlineDebounceTimeout) {
+            clearTimeout(offlineDebounceTimeout);
+            offlineDebounceTimeout = null;
+        }
+
         const now = Date.now();
-        // Prevent rapid flapping: at least 10 seconds between online transitions
-        if (now - lastOnlineSyncTime < 10000 && window.isAppOnline) return;
+        if (now - lastOnlineSyncTime < 8000 && window.isAppOnline) return;
         lastOnlineSyncTime = now;
 
         window.isAppOnline = true;
@@ -647,13 +674,18 @@ window.OfflineTripManager = {
     };
 
     window.notifyAppOffline = function () {
-        window.isAppOnline = false;
-        wasOffline = true;
-        showOfflinePill();
+        // Debounce offline notification to avoid false alarms from mobile network handoffs
+        if (offlineDebounceTimeout) clearTimeout(offlineDebounceTimeout);
+        offlineDebounceTimeout = setTimeout(() => {
+            offlineDebounceTimeout = null;
+            window.isAppOnline = false;
+            wasOffline = true;
+            showOfflinePill();
 
-        try {
-            window.dispatchEvent(new CustomEvent('appOffline', { detail: { timestamp: Date.now() } }));
-        } catch(e) {}
+            try {
+                window.dispatchEvent(new CustomEvent('appOffline', { detail: { timestamp: Date.now() } }));
+            } catch(e) {}
+        }, 2200);
     };
 
     // 1. Standard browser network events (fired by OS / WebView)
@@ -680,7 +712,7 @@ window.OfflineTripManager = {
         if (window.Capacitor.Plugins.App && typeof window.Capacitor.Plugins.App.addListener === 'function') {
             try {
                 window.Capacitor.Plugins.App.addListener('appStateChange', (state) => {
-                    if (state && state.isActive && wasOffline && navigator.onLine) {
+                    if (state && state.isActive && wasOffline) {
                         window.notifyAppOnline();
                     }
                 });
@@ -898,44 +930,41 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             } catch (e) {}
         }
 
-        // If offline and we have cached html, use it immediately
-        const isOffline = !navigator.onLine;
-        if (!html || !isOffline) {
-            try {
-                let fetchUrl = `index.php?view=${encodeURIComponent(targetView)}&ajax=1&_t=${Date.now()}`;
-                extraParams.forEach((val, key) => {
-                    fetchUrl += `&${encodeURIComponent(key)}=${encodeURIComponent(val)}`;
-                });
+        // Always attempt network fetch for fresh view HTML, with resilient timeout
+        try {
+            let fetchUrl = `index.php?view=${encodeURIComponent(targetView)}&ajax=1&_t=${Date.now()}`;
+            extraParams.forEach((val, key) => {
+                fetchUrl += `&${encodeURIComponent(key)}=${encodeURIComponent(val)}`;
+            });
 
-                const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-                const timeoutId = controller ? setTimeout(() => controller.abort(), isOffline ? 2000 : 8000) : null;
+            const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+            const timeoutId = controller ? setTimeout(() => controller.abort(), 7000) : null;
 
-                const response = await fetch(fetchUrl, {
-                    signal: controller ? controller.signal : undefined,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-                if (timeoutId) clearTimeout(timeoutId);
+            const response = await fetch(fetchUrl, {
+                signal: controller ? controller.signal : undefined,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            if (timeoutId) clearTimeout(timeoutId);
 
-                if (response.ok) {
-                    const freshHtml = await response.text();
-                    if (freshHtml && freshHtml.length > 50) {
-                        html = freshHtml;
-                        if (!extraParams.size) {
-                            window._viewHtmlCache[targetView] = html;
-                            try { localStorage.setItem('elyu_view_cache_v3_' + targetView, html); } catch(e) {}
-                        }
+            if (response.ok) {
+                const freshHtml = await response.text();
+                if (freshHtml && freshHtml.length > 50) {
+                    html = freshHtml;
+                    if (!extraParams.size) {
+                        window._viewHtmlCache[targetView] = html;
+                        try { localStorage.setItem('elyu_view_cache_v3_' + targetView, html); } catch(e) {}
                     }
                 }
-            } catch (fetchErr) {
-                console.warn(`View fetch for ${targetView} failed (likely offline):`, fetchErr);
-                // Fall back to persistent disk cache if not already loaded
-                if (!html) {
-                    try {
-                        html = window._viewHtmlCache[targetView] || localStorage.getItem('elyu_view_cache_v3_' + targetView);
-                    } catch(e) {}
-                }
+            }
+        } catch (fetchErr) {
+            console.warn(`View fetch for ${targetView} failed (using cache if available):`, fetchErr);
+            // Fall back to memory or disk cache if network fetch failed
+            if (!html) {
+                try {
+                    html = window._viewHtmlCache[targetView] || localStorage.getItem('elyu_view_cache_v3_' + targetView) || localStorage.getItem('elyu_view_cache_v2_' + targetView);
+                } catch(e) {}
             }
         }
 
@@ -2491,10 +2520,6 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         // Fetch from network if expired, forceRefresh is true, or no cache exists
         if (!cachedData || isExpired || forceRefresh) {
-            // If offline and we already have cached data, skip network fetch attempt entirely (unless caller explicitly requested forceRefresh)
-            if (!navigator.onLine && cachedData && !forceRefresh) {
-                return;
-            }
             try {
                 const data = await fetchFn();
                 if (data !== undefined) {

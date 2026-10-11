@@ -4256,24 +4256,6 @@ try {
                     }))
                 };
 
-                // Check offline state before network fetch
-                if (!navigator.onLine) {
-                    if (window.OfflineTripManager) {
-                        const queued = window.OfflineTripManager.queueOfflineTrip(tripPayload);
-                        showToast("📍 Saved Offline! Will sync when reconnected.");
-                        sessionStorage.setItem('just_saved_trip_id', queued.local_id);
-                        sessionStorage.setItem('active_trip_transport_' + queued.local_id, effectiveTransport);
-                        localStorage.setItem('selected_trip_vehicle_' + queued.local_id, effectiveTransport);
-                        localStorage.removeItem('intan_elyu_draft_itinerary');
-                        window.resetSaveModalInputs();
-                        document.getElementById('save-trip-modal').style.display = 'none';
-                        const bottomNav = document.getElementById('bottom-navigation');
-                        if (bottomNav) bottomNav.classList.remove('nav-hidden');
-                        window.renderItinerary();
-                        navigateTo('saved_trips');
-                        return;
-                    }
-                }
 
                 const response = await fetch(url, {
                     method: method,

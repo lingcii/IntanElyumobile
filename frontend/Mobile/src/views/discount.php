@@ -739,14 +739,11 @@ async function fetchUserPointsAndRedemptions() {
         }
     } catch (e) { }
 
-    if (!navigator.onLine) {
-        syncClaimedVouchersWithData();
-        updateClaimedBadge();
-        populateStatusDropdown();
-        populateCategoryDropdown();
-        renderDiscounts();
-        return;
-    }
+    syncClaimedVouchersWithData();
+    updateClaimedBadge();
+    populateStatusDropdown();
+    populateCategoryDropdown();
+    renderDiscounts();
 
     try {
         const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
@@ -1314,12 +1311,6 @@ async function handleModalRedeem() {
         return;
     }
 
-    if (!navigator.onLine) {
-        if (typeof showToast === 'function') {
-            showToast("📍 Voucher claiming requires an active internet connection to generate your live QR claim code.");
-        }
-        return;
-    }
 
     if (isVoucherFullyClaimed(item)) {
         if (typeof showToast === 'function') showToast("This voucher is fully claimed.");
@@ -2053,10 +2044,20 @@ fetchLiveDatabaseVouchers();
 fetchUserPointsAndRedemptions();
 
 window.addEventListener('online', function () {
+    const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+    if (current !== 'discount') {
+        window.discountNeedsRefresh = true;
+        return;
+    }
     fetchLiveDatabaseVouchers();
     fetchUserPointsAndRedemptions();
 });
 window.addEventListener('appOnline', function () {
+    const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+    if (current !== 'discount') {
+        window.discountNeedsRefresh = true;
+        return;
+    }
     fetchLiveDatabaseVouchers();
     fetchUserPointsAndRedemptions();
 });

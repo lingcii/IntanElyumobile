@@ -1664,12 +1664,24 @@ if (is_dir($imgDir)) {
 
     // Ambient automatic reconnect & lifecycle listeners
     window.addEventListener('online', function () {
+        const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+        if (current !== 'dashboard') {
+            window.dashboardNeedsRefresh = true;
+            return;
+        }
         if (typeof window.dashboardInit === 'function') window.dashboardInit(true);
     });
     window.addEventListener('appOnline', function () {
+        const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+        if (current !== 'dashboard') {
+            window.dashboardNeedsRefresh = true;
+            return;
+        }
         if (typeof window.dashboardInit === 'function') window.dashboardInit(true);
     });
     document.addEventListener('visibilitychange', function () {
+        const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+        if (current !== 'dashboard') return;
         if (!document.hidden && window.dashboardNeedsRefresh) {
             if (typeof window.dashboardInit === 'function') window.dashboardInit(true);
         }

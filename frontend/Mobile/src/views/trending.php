@@ -554,12 +554,24 @@ if (is_dir($imgDir)) {
 
         // Ambient automatic reconnect & lifecycle listeners
         window.addEventListener('online', function () {
+            const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+            if (current !== 'trending') {
+                window.trendingNeedsRefresh = true;
+                return;
+            }
             fetchAllData(true);
         });
         window.addEventListener('appOnline', function () {
+            const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+            if (current !== 'trending') {
+                window.trendingNeedsRefresh = true;
+                return;
+            }
             fetchAllData(true);
         });
         document.addEventListener('visibilitychange', function () {
+            const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+            if (current !== 'trending') return;
             if (!document.hidden && (!allDestinations || allDestinations.length === 0)) {
                 fetchAllData(true);
             }

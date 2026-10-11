@@ -848,13 +848,6 @@ $activeTab = 'profile';
     }
 
     window.redeemAdminVoucher = async function (voucherId, cost, title) {
-        if (!navigator.onLine) {
-            if (typeof showToast === 'function') {
-                showToast("📍 Voucher claiming requires an active internet connection to generate your live QR claim code.");
-            }
-            return;
-        }
-
         const token = localStorage.getItem('intan_elyu_token');
         if (!token) return;
 
@@ -920,13 +913,6 @@ $activeTab = 'profile';
     };
 
     window.redeemReward = async function (type, cost) {
-        if (!navigator.onLine) {
-            if (typeof showToast === 'function') {
-                showToast("📍 Voucher claiming requires an active internet connection to generate your live QR claim code.");
-            }
-            return;
-        }
-
         const token = localStorage.getItem('intan_elyu_token');
         if (!token) return;
 
@@ -1698,14 +1684,6 @@ $activeTab = 'profile';
             return;
         }
 
-        // If not in cache, check connectivity before fetching
-        if (!navigator.onLine) {
-            if (typeof showToast === 'function') {
-                showToast("Trip details are unavailable offline until connection is restored.");
-            }
-            return;
-        }
-
         const token = localStorage.getItem('intan_elyu_token');
         if (tripId && token && typeof backendUrl !== 'undefined') {
             fetch(`${backendUrl}/api/tourist/itineraries/${tripId}`, {
@@ -1719,7 +1697,12 @@ $activeTab = 'profile';
                         if (modal) modal.style.display = 'flex';
                     }
                 })
-                .catch(err => console.error("Trip details fetch error:", err));
+                .catch(err => {
+                    console.error("Trip details fetch error:", err);
+                    if (typeof showToast === 'function') {
+                        showToast("Trip details are unavailable offline until connection is restored.");
+                    }
+                });
         }
     };
 
@@ -1749,12 +1732,19 @@ $activeTab = 'profile';
 
     // Ambient automatic reconnect listener - quietly syncs profile & vouchers when network restores
     function handleProfileReconnect() {
+        const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+        if (current !== 'profile') {
+            window.profileNeedsRefresh = true;
+            return;
+        }
         if (typeof fetchProfileData === 'function') fetchProfileData(true);
         if (typeof fetchPointsAndVouchers === 'function') fetchPointsAndVouchers(true);
     }
     window.addEventListener('online', handleProfileReconnect);
     window.addEventListener('appOnline', handleProfileReconnect);
     document.addEventListener('visibilitychange', function () {
+        const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+        if (current !== 'profile') return;
         if (!document.hidden) handleProfileReconnect();
     });
 

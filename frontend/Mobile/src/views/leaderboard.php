@@ -753,26 +753,6 @@ $activeTab = 'leaderboard';
                 }
             } catch (e) { }
 
-            // If offline and still no leaders list, render user personal standing and ambient offline message (unless forceRefresh is explicitly requested)
-            if (!navigator.onLine && !forceRefresh && (!rawLeadersList || rawLeadersList.length === 0)) {
-                renderLeaderboardUI();
-                if (podiumContainer) {
-                    podiumContainer.innerHTML = `
-                        <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 28px 16px;">
-                            <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(245, 158, 11, 0.12); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: #f59e0b; font-size: 20px;">
-                                <i class="fa-solid fa-cloud-slash"></i>
-                            </div>
-                            <div style="font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">Rankings Offline</div>
-                            <div style="font-size: 12px; color: #64748b; max-width: 260px; margin: 0 auto; line-height: 1.4;">
-                                Full provincial rankings will update automatically when reconnected.
-                            </div>
-                        </div>`;
-                }
-                if (rankListContainer) {
-                    rankListContainer.innerHTML = '<div style="text-align:center; padding: 18px 12px; color: #94a3b8; font-size: 12px; font-weight: 600;"><i class="fa-solid fa-cloud-slash" style="margin-right:6px; color:#f59e0b;"></i> Live standings will sync once your connection is restored.</div>';
-                }
-                return;
-            }
 
             // Robust multi-tier fetch with cascaded fallbacks
             async function fetchLeaderboardWithFallbacks() {
@@ -903,6 +883,11 @@ $activeTab = 'leaderboard';
     function handleLeaderboardReconnect() {
         if (_leaderboardReconnectTimer) clearTimeout(_leaderboardReconnectTimer);
         _leaderboardReconnectTimer = setTimeout(() => {
+            const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+            if (current !== 'leaderboard') {
+                window.leaderboardNeedsRefresh = true;
+                return;
+            }
             if (typeof window.initLeaderboardView === 'function') {
                 window.leaderboardNeedsRefresh = true;
                 window.initLeaderboardView(true);

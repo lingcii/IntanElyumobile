@@ -276,7 +276,6 @@ $backRoute = 'dashboard';
                 }
             } catch (e) { }
 
-            if (!navigator.onLine) return;
 
             try {
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
@@ -298,10 +297,6 @@ $backRoute = 'dashboard';
         })();
 
         window.openChangePasswordModal = function () {
-            if (!navigator.onLine) {
-                if (typeof showToast === 'function') showToast("Password changes require an active internet connection.");
-                return;
-            }
             document.getElementById('change-password-modal').classList.add('active');
         };
         window.closeChangePasswordModal = function () {
@@ -309,10 +304,6 @@ $backRoute = 'dashboard';
         };
 
         window.open2FAModal = function () {
-            if (!navigator.onLine) {
-                if (typeof showToast === 'function') showToast("Two-Factor Authentication setup requires an active internet connection.");
-                return;
-            }
             document.getElementById('two-factor-modal').classList.add('active');
         };
         window.close2FAModal = function () {

@@ -319,7 +319,6 @@ include __DIR__ . '/../components/header.php';
                 if (ptsEl && fallbackPts !== undefined) ptsEl.textContent = Number(fallbackPts).toLocaleString();
             } catch (e) { }
 
-            if (!navigator.onLine) return;
 
             try {
                 const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token');

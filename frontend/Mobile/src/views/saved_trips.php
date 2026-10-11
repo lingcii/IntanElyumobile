@@ -1031,11 +1031,6 @@ $backRoute = 'itinerary';
                     }
                 };
 
-                // Instant offline queue if device is offline
-                if (!navigator.onLine) {
-                    await fallbackToOffline('Offline area detected.');
-                    return;
-                }
 
                 const formData = new FormData();
                 formData.append('lat', lat);

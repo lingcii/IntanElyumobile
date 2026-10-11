@@ -627,8 +627,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 return null;
             };
 
-            // Fast-path: Check offline mode immediately
-            if (!navigator.onLine) {
+            // If it is a locally stored offline trip ID, resolve offline immediately
+            if (String(tripId).startsWith('offline_')) {
                 const offlineTrip = resolveTripOffline(tripId);
                 if (offlineTrip) {
                     applyTripToMap(offlineTrip);
@@ -1184,32 +1184,6 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             const lng = window.myLng || 120.3186;
             const capturedAt = new Date().toISOString();
 
-            // Immediate offline fallback if device is disconnected
-            if (!navigator.onLine && window.OfflineCheckinManager) {
-                try {
-                    await window.OfflineCheckinManager.queueOfflineCheckin({
-                        itemId: itemId,
-                        lat: lat,
-                        lng: lng,
-                        image: imageFile,
-                        imageFile: imageFile,
-                        capturedAt: capturedAt
-                    });
-                    closeCheckinModal();
-                    if (typeof showToast === 'function') {
-                        showToast('📴 Offline: Check-in saved locally! Will automatically sync once connected.');
-                    }
-                    const promptCard = document.getElementById('checkin-prompt-card');
-                    if (promptCard) promptCard.style.display = 'none';
-                    loadTripData();
-                } catch (e) {
-                    console.error('Offline check-in save failed:', e);
-                    if (typeof showToast === 'function') showToast('Failed to save offline check-in.');
-                    btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo';
-                    btn.disabled = false;
-                }
-                return;
-            }
 
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
             const formData = new FormData();
