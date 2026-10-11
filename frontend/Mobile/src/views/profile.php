@@ -145,16 +145,12 @@ $activeTab = 'profile';
                 <h5 style="margin: 0; font-size: 14.5px; font-weight: 800; color: #0f172a; text-align: left;">Active
                     Vouchers</h5>
                 <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                    <span id="active-vouchers-count"
-                        style="font-size: 11px; font-weight: 800; background: #eff6ff !important; border: 1px solid #bfdbfe !important; color: #1e3a8a !important; padding: 3px 10px; border-radius: 100px;">0
+                    <span id="active-vouchers-count" onclick="window.openFullVouchersModal('all')"
+                        style="font-size: 11px; font-weight: 800; background: #eff6ff !important; border: 1px solid #bfdbfe !important; color: #1e3a8a !important; padding: 3px 10px; border-radius: 100px; cursor: pointer; user-select: none;">0
                         Active</span>
-                    <button id="view-all-vouchers-header-btn" onclick="window.openFullVouchersModal('active')"
+                    <button id="view-all-vouchers-header-btn" onclick="window.openFullVouchersModal('all')"
                         style="display: none; background: #f1f5f9 !important; border: 1px solid #e2e8f0 !important; outline: none !important; color: #1e3a8a !important; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 12px; border-radius: 100px; align-items: center; gap: 4px; transition: all 0.2s ease;">
                         View All <i class="fa-solid fa-chevron-right" style="font-size: 9px; color: #1e3a8a;"></i>
-                    </button>
-                    <button id="voucher-history-header-btn" onclick="window.openFullVouchersModal('history')"
-                        style="display: none; background: #f8fafc !important; border: 1px solid #e2e8f0 !important; outline: none !important; color: #64748b !important; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 10px; border-radius: 100px; align-items: center; gap: 4px; transition: all 0.2s ease;">
-                        <i class="fa-solid fa-clock-rotate-left" style="font-size: 9.5px; color: #64748b;"></i> History (<span id="voucher-history-count">0</span>)
                     </button>
                 </div>
             </div>
@@ -194,8 +190,7 @@ $activeTab = 'profile';
 
 </div>
 
-<script>
-    var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+    var backendUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
 
     // ── Dedicated Helper Rendering Functions ──
     window.renderProfileUserMeta = function (u) {
@@ -436,13 +431,36 @@ $activeTab = 'profile';
         } catch (e) { }
 
         // Process Active vs History Vouchers
-        const rawVouchers = Array.isArray(d.vouchers) ? d.vouchers : [];
+        let rawVouchers = Array.isArray(d.vouchers)
+            ? d.vouchers
+            : (d.vouchers && typeof d.vouchers === 'object' ? Object.values(d.vouchers) : []);
+
+        // Also merge any freshly claimed vouchers from window._touristRedemptions (e.g. from Discounts view)
+        if (Array.isArray(window._touristRedemptions) && window._touristRedemptions.length > 0) {
+            const existingCodes = new Set(rawVouchers.map(v => (v.voucher_code || v.code || v.redemption_code || '').toUpperCase().trim()).filter(Boolean));
+            window._touristRedemptions.forEach(r => {
+                const rCode = (r.voucher_code || r.code || r.redemption_code || '').toUpperCase().trim();
+                if (rCode && !existingCodes.has(rCode)) {
+                    rawVouchers.unshift(r);
+                    existingCodes.add(rCode);
+                }
+            });
+        }
+
         const activeVouchers = [];
         const historyVouchers = [];
 
         rawVouchers.forEach(v => {
-            const st = (v.status || '').toLowerCase();
-            if (st === 'redeemed' || st === 'used' || st === 'completed' || st === 'expired') {
+            const st = (v.status || '').toLowerCase().trim();
+            const isRedeemed = ['redeemed', 'used', 'completed'].includes(st);
+            let isExpired = st === 'expired';
+            if (!isExpired && v.expires_at && (v.expiration_type === 'date' || v.expiration_type === 'fixed_date')) {
+                const expDate = new Date(v.expires_at);
+                if (!isNaN(expDate.getTime()) && expDate < new Date()) {
+                    isExpired = true;
+                }
+            }
+            if (isRedeemed || isExpired) {
                 historyVouchers.push(v);
             } else {
                 activeVouchers.push(v);
@@ -459,7 +477,7 @@ $activeTab = 'profile';
                     const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
                     if (u && (u.id || u.user_id)) return String(u.id || u.user_id);
                 } catch(e) {}
-                const tok = localStorage.getItem('intan_elyu_token');
+                const tok = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
                 return (tok && tok.length > 10) ? 'tok_' + tok.substring(0, 12) : 'guest';
             })();
             const storageKey = 'intan_elyu_claimed_vouchers_' + uid;
@@ -470,26 +488,54 @@ $activeTab = 'profile';
                     claimedSet.add('db_' + v.voucher_id);
                 }
                 if (v.id) claimedSet.add(v.id);
-                if (v.voucher_code) claimedSet.add(v.voucher_code);
+                const c = v.voucher_code || v.code || v.redemption_code;
+                if (c) claimedSet.add(c);
             });
             localStorage.setItem(storageKey, JSON.stringify(Array.from(claimedSet)));
             localStorage.removeItem('intan_elyu_claimed_vouchers');
         } catch (e) { }
 
+        // Helper: format voucher expiration date cleanly
+        window.formatVoucherExpiry = function (v) {
+            if (!v) return 'No Expiration';
+            if (v.expires_formatted) return v.expires_formatted;
+            if (v.expiration_type === 'never') return 'No Expiration (Lifetime)';
+            const raw = v.expires_at || v.valid_until || v.expiry_date;
+            if (!raw) return 'No Expiration';
+            try {
+                const d = new Date(raw);
+                if (isNaN(d.getTime())) return String(raw);
+                return d.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+            } catch (e) {
+                return String(raw);
+            }
+        };
+
         // Update header badges and buttons
         const list = document.getElementById('vouchers-list');
         const badge = document.getElementById('active-vouchers-count');
         const headerBtn = document.getElementById('view-all-vouchers-header-btn');
-        const historyBtn = document.getElementById('voucher-history-header-btn');
-        const historyCountSpan = document.getElementById('voucher-history-count');
 
-        if (badge) badge.textContent = `${activeVouchers.length} Active`;
-        if (headerBtn) {
-            headerBtn.style.display = (activeVouchers.length > 2) ? 'inline-flex' : 'none';
+        if (badge) {
+            badge.textContent = `${activeVouchers.length} Active`;
+            badge.style.display = 'inline-flex';
+            if (activeVouchers.length > 0) {
+                badge.style.background = '#ecfdf5';
+                badge.style.borderColor = '#a7f3d0';
+                badge.style.color = '#047857';
+            } else {
+                badge.style.background = '#eff6ff';
+                badge.style.borderColor = '#bfdbfe';
+                badge.style.color = '#1e3a8a';
+            }
         }
-        if (historyBtn && historyCountSpan) {
-            historyCountSpan.textContent = historyVouchers.length;
-            historyBtn.style.display = (historyVouchers.length > 0) ? 'inline-flex' : 'none';
+        if (headerBtn) {
+            const totalCount = activeVouchers.length + historyVouchers.length;
+            headerBtn.style.display = (totalCount > 0) ? 'inline-flex' : 'none';
         }
 
         // Render Active Vouchers on profile card (ONLY active, NOT redeemed)
@@ -498,14 +544,24 @@ $activeTab = 'profile';
                 const displayVouchers = activeVouchers.slice(0, 2);
                 let html = '';
                 displayVouchers.forEach(v => {
-                    const voucherTitle = v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.type || 'Tourist Voucher'));
-                    const safeCode = (v.voucher_code || '').replace(/'/g, "\\'");
+                    const voucherTitle = v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.title || v.voucher_name || v.name || v.type || 'Tourist Voucher'));
+                    const code = v.voucher_code || v.code || v.redemption_code || '';
+                    const safeCode = code.replace(/'/g, "\\'");
+                    const partnerName = v.partner_establishment || v.partner || v.merchant || 'Official Partner Merchant';
+                    const expiryFormatted = window.formatVoucherExpiry(v);
                     html += `
                     <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; padding: 14px 16px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; gap: 10px; box-shadow: 0 4px 14px rgba(10, 25, 60, 0.22); cursor: pointer; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                         <div style="text-align: left; flex: 1; min-width: 0;">
-                            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 5px;">
+                            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">
                                 <i class="fa-solid fa-ticket" style="color: #00f2fe; font-size: 13px;"></i>
                                 <span style="font-size: 13.5px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px;">${voucherTitle}</span>
+                            </div>
+                            <div style="font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, 0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px;">
+                                ${partnerName}
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 700; color: #bae6fd; margin-bottom: 4px;">
+                                <i class="fa-regular fa-calendar-xmark" style="color: #00f2fe; font-size: 11px;"></i>
+                                <span>Expires: <strong style="color: #ffffff;">${expiryFormatted}</strong></span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #00f2fe;">
                                 <i class="fa-solid fa-qrcode" style="font-size: 11px;"></i> Tap to open Voucher QR Pass
@@ -525,7 +581,7 @@ $activeTab = 'profile';
             } else {
                 let emptyHistoryMsg = '';
                 if (historyVouchers.length > 0) {
-                    emptyHistoryMsg = `<div style="margin-top: 10px;"><button type="button" onclick="window.openFullVouchersModal('history')" style="background: #eff6ff !important; border: 1px solid #bfdbfe !important; color: #1e3a8a !important; padding: 6px 14px; border-radius: 100px; font-size: 11.5px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-clock-rotate-left"></i> View ${historyVouchers.length} in Voucher History</button></div>`;
+                    emptyHistoryMsg = `<div style="margin-top: 10px;"><button type="button" onclick="window.openFullVouchersModal('all')" style="background: #eff6ff !important; border: 1px solid #bfdbfe !important; color: #1e3a8a !important; padding: 6px 14px; border-radius: 100px; font-size: 11.5px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-ticket"></i> View All Vouchers (${historyVouchers.length} History)</button></div>`;
                 }
                 list.innerHTML = `<div style="font-size:12.5px; color:#64748b; font-weight:600; text-align:center; padding:18px; background:#f8fafc !important; border:1.5px dashed #cbd5e1 !important; border-radius:14px;">No active vouchers right now.${emptyHistoryMsg}</div>`;
             }
@@ -626,7 +682,7 @@ $activeTab = 'profile';
 
     // ── Instant Synchronous Cache Hydration (0ms, Zero Flicker, Zero Latency) ──
     function hydrateProfileFromCache() {
-        const token = localStorage.getItem('intan_elyu_token');
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
 
         // 1. Hydrate user basic info & points from auth_user
         try {
@@ -705,13 +761,12 @@ $activeTab = 'profile';
     hydrateProfileFromCache();
 
     async function fetchProfileData(force = false) {
-        const token = localStorage.getItem('intan_elyu_token');
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
         if (!token) return;
 
         const cacheKey = 'profile_data_' + token.substring(0, 10);
         const shouldForce = force || Boolean(window.profileNeedsRefresh);
         if (window.profileNeedsRefresh) {
-            window.profileNeedsRefresh = false;
             localStorage.removeItem(cacheKey);
         }
 
@@ -735,11 +790,17 @@ $activeTab = 'profile';
         );
     }
 
-    async function fetchPointsAndVouchers() {
-        const token = localStorage.getItem('intan_elyu_token');
+    async function fetchPointsAndVouchers(force = false) {
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
         if (!token) return;
 
         const ptsCacheKey = 'points_balance_' + token.substring(0, 10);
+        const shouldForce = force || Boolean(window.profileNeedsRefresh);
+        if (shouldForce) {
+            window.profileNeedsRefresh = false;
+            try { localStorage.removeItem(ptsCacheKey); } catch (e) { }
+        }
+
         await window.useCache(
             ptsCacheKey,
             async () => {
@@ -754,11 +815,11 @@ $activeTab = 'profile';
                 return await r.json();
             },
             (d) => {
-                if (d && d.status === 'success') {
+                if (d && (d.status === 'success' || Array.isArray(d.vouchers) || d.points !== undefined)) {
                     window.renderPointsAndVouchersData(d);
                 }
             },
-            false,
+            shouldForce,
             30000
         );
 
@@ -845,12 +906,12 @@ $activeTab = 'profile';
 
                     for (let i = localStorage.length - 1; i >= 0; i--) {
                         const k = localStorage.key(i);
-                        if (k && (k.startsWith('dashboard_data_') || k.startsWith('profile_data_'))) {
+                        if (k && (k.startsWith('dashboard_data_') || k.startsWith('profile_data_') || k.startsWith('points_balance_'))) {
                             localStorage.removeItem(k);
                         }
                     }
                 } catch (e) { }
-                fetchPointsAndVouchers();
+                fetchPointsAndVouchers(true);
             } else {
                 if (typeof showToast === 'function') showToast(data.message || "Failed to redeem voucher.");
             }
@@ -901,12 +962,12 @@ $activeTab = 'profile';
                 try {
                     for (let i = localStorage.length - 1; i >= 0; i--) {
                         const k = localStorage.key(i);
-                        if (k && (k.startsWith('dashboard_data_') || k.startsWith('profile_data_'))) {
+                        if (k && (k.startsWith('dashboard_data_') || k.startsWith('profile_data_') || k.startsWith('points_balance_'))) {
                             localStorage.removeItem(k);
                         }
                     }
                 } catch (e) { }
-                fetchPointsAndVouchers();
+                fetchPointsAndVouchers(true);
             } else {
                 if (typeof showToast === 'function') showToast(data.message || "Failed to redeem reward.");
             }
@@ -1058,10 +1119,10 @@ $activeTab = 'profile';
         if (modal) modal.style.display = 'none';
     };
 
-    window.openFullVouchersModal = function (initialTab = 'active') {
+    window.openFullVouchersModal = function (initialTab = 'all') {
         const modal = document.getElementById('full-vouchers-modal');
         if (!modal) return;
-        window._currentVouchersTab = (initialTab === 'history') ? 'history' : 'active';
+        window._currentVouchersTab = initialTab || 'all';
         window.switchFullVouchersTab(window._currentVouchersTab);
         modal.style.display = 'flex';
     };
@@ -1072,21 +1133,101 @@ $activeTab = 'profile';
     };
 
     window.switchFullVouchersTab = function (tab) {
-        window._currentVouchersTab = tab;
+        window._currentVouchersTab = tab || 'all';
+        const allTabBtn = document.getElementById('modal-tab-all-vouchers');
         const activeTabBtn = document.getElementById('modal-tab-active-vouchers');
         const historyTabBtn = document.getElementById('modal-tab-history-vouchers');
+        const allCountEl = document.getElementById('modal-tab-all-count');
+        const activeCountEl = document.getElementById('modal-tab-active-count');
+        const historyCountEl = document.getElementById('modal-tab-history-count');
         const container = document.getElementById('full-vouchers-list');
         if (!container) return;
 
         const activeVouchers = window._cachedActiveVouchers || [];
         const historyVouchers = window._cachedHistoryVouchers || [];
+        const totalVouchers = activeVouchers.length + historyVouchers.length;
+
+        if (allCountEl) allCountEl.textContent = totalVouchers;
+        if (activeCountEl) activeCountEl.textContent = activeVouchers.length;
+        if (historyCountEl) historyCountEl.textContent = historyVouchers.length;
+
+        // Reset all tab button styles
+        [allTabBtn, activeTabBtn, historyTabBtn].forEach(btn => {
+            if (btn) {
+                btn.style.background = 'transparent';
+                btn.style.color = '#64748b';
+                btn.style.fontWeight = '700';
+            }
+        });
+
+        // Helper: Render single active voucher card
+        const renderActiveCard = (v, idx) => {
+            const voucherTitle = v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.title || v.voucher_name || v.name || v.type || 'Tourist Voucher'));
+            const code = v.voucher_code || v.code || v.redemption_code || '';
+            const safeCode = code.replace(/'/g, "\\'");
+            const partnerName = v.partner_establishment || v.partner || v.merchant || 'Official Partner Merchant';
+            const createdDate = v.created_at ? new Date(v.created_at).toLocaleDateString() : '';
+            const expiryText = window.formatVoucherExpiry ? window.formatVoucherExpiry(v) : (v.expires_at || 'No Expiration');
+
+            return `
+            <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 18px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.25); cursor: pointer; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                    <div style="flex: 1; min-width: 0; padding-right: 8px;">
+                        <div style="font-size: 10px; font-weight: 800; color: #00f2fe; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Active Voucher #${idx + 1}</div>
+                        <strong style="color: #ffffff; font-size: 15px; font-weight: 800; line-height: 1.3; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${voucherTitle}</strong>
+                        <div style="font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, 0.85); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${partnerName}</div>
+                    </div>
+                    <span style="color: #ffffff !important; font-weight: 800; font-size: 10.5px; background: #10b981 !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; text-transform: uppercase; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.18);">
+                        <i class="fa-solid fa-check" style="margin-right: 4px; color: #ffffff !important;"></i>Active
+                    </span>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #bae6fd; margin-bottom: 10px;">
+                    <i class="fa-regular fa-calendar-xmark" style="color: #00f2fe; font-size: 12px;"></i>
+                    <span>Expires: <strong style="color: #ffffff;">${expiryText}</strong></span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.14); font-size: 11px; color: #e2e8f0; font-weight: 600;">
+                    ${createdDate ? `<span><i class="fa-regular fa-calendar" style="color: #00f2fe; margin-right: 4px;"></i>Claimed: ${createdDate}</span>` : '<span></span>'}
+                    <span style="color: #00f2fe; font-size: 11.5px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-qrcode"></i> Tap to open Pass <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i></span>
+                </div>
+            </div>`;
+        };
+
+        // Helper: Render single history voucher card
+        const renderHistoryCard = (v, idx) => {
+            const voucherTitle = v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.title || v.voucher_name || v.name || v.type || 'Tourist Voucher'));
+            const safeCode = ((v.voucher_code || v.code || v.redemption_code) || '').replace(/'/g, "\\'");
+            const partnerName = v.partner_establishment || v.partner || v.merchant || 'Official Partner Merchant';
+            const redeemedDate = v.redeemed_at ? new Date(v.redeemed_at).toLocaleDateString() : (v.updated_at ? new Date(v.updated_at).toLocaleDateString() : 'Redeemed');
+            const expiryText = window.formatVoucherExpiry ? window.formatVoucherExpiry(v) : (v.expires_at || 'No Expiration');
+
+            return `
+            <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background:#f8fafc !important; border:1px solid #e2e8f0 !important; border-radius:18px; padding:16px; margin-bottom:12px; cursor:pointer; opacity:0.94; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                    <div style="flex: 1; min-width: 0; padding-right: 8px;">
+                        <div style="font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Voucher History #${historyVouchers.length - idx}</div>
+                        <strong style="color:#1e293b; font-size:15px; font-weight:800; line-height:1.3; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${voucherTitle}</strong>
+                        <div style="font-size: 11px; font-weight: 600; color: #64748b; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${partnerName}</div>
+                    </div>
+                    <span style="color:#ffffff !important; font-weight:800; font-size:10.5px; background:#dc2626 !important; border:none !important; padding:4px 10px; border-radius:100px; white-space:nowrap; text-transform:uppercase; flex-shrink: 0;">
+                        <i class="fa-solid fa-check-double" style="margin-right:4px;"></i>Redeemed
+                    </span>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; color:#64748b; margin-bottom:8px;">
+                    <i class="fa-regular fa-calendar-xmark" style="color:#94a3b8; font-size:12px;"></i>
+                    <span>Expired/Valid until: <strong style="color:#475569;">${expiryText}</strong></span>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#64748b; font-weight:600; padding-top:8px; border-top:1px solid #e2e8f0;">
+                    <span><i class="fa-regular fa-clock" style="margin-right:4px; color:#94a3b8;"></i>Redeemed: ${redeemedDate}</span>
+                    <span style="color:#1e3a8a; font-weight:800; display:inline-flex; align-items:center; gap:3px;">View Details <i class="fa-solid fa-chevron-right" style="font-size:9px;"></i></span>
+                </div>
+            </div>`;
+        };
 
         if (tab === 'history') {
-            if (activeTabBtn) {
-                activeTabBtn.style.background = 'transparent';
-                activeTabBtn.style.color = '#64748b';
-                activeTabBtn.style.fontWeight = '700';
-            }
             if (historyTabBtn) {
                 historyTabBtn.style.background = '#1e3a8a';
                 historyTabBtn.style.color = '#ffffff';
@@ -1105,50 +1246,12 @@ $activeTab = 'profile';
                 return;
             }
 
-            let html = '';
-            historyVouchers.forEach((v, idx) => {
-                const voucherTitle = v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.type || 'Tourist Voucher'));
-                const safeCode = (v.voucher_code || '').replace(/'/g, "\\'");
-                const redeemedDate = v.redeemed_at ? new Date(v.redeemed_at).toLocaleDateString() : (v.updated_at ? new Date(v.updated_at).toLocaleDateString() : 'Redeemed');
-
-                html += `
-                <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background:#f8fafc !important; border:1px solid #e2e8f0 !important; border-radius:18px; padding:16px; margin-bottom:12px; cursor:pointer; opacity:0.92; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
-                        <div>
-                            <div style="font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Voucher History #${historyVouchers.length - idx}</div>
-                            <strong style="color:#1e293b; font-size:15px; font-weight:800; line-height:1.3;">${voucherTitle}</strong>
-                        </div>
-                        <span style="color:#ffffff !important; font-weight:800; font-size:11px; background:#dc2626 !important; border:none !important; padding:4px 10px; border-radius:100px; white-space:nowrap; text-transform:uppercase;">
-                            <i class="fa-solid fa-check-double" style="margin-right:4px;"></i>Redeemed
-                        </span>
-                    </div>
-                    <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px;">
-                        <div>
-                            <div style="font-size:9.5px; font-weight:800; color:#94a3b8; text-transform:uppercase;">Claim Pass</div>
-                            <code style="font-size:13.5px; font-weight:900; color:#64748b; letter-spacing:2px; font-family:monospace;">••••••••••••</code>
-                        </div>
-                        <span style="font-size:11px; color:#15803d; font-weight:700; background:#f0fdf4; padding:4px 8px; border-radius:6px; border:1px solid #bbf7d0;">
-                            <i class="fa-solid fa-circle-check"></i> Scanned
-                        </span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#64748b; font-weight:600;">
-                        <span><i class="fa-regular fa-clock" style="margin-right:4px; color:#94a3b8;"></i>Redeemed: ${redeemedDate}</span>
-                        <span style="color:#1e3a8a; font-weight:800;">View Details <i class="fa-solid fa-chevron-right" style="font-size:9px;"></i></span>
-                    </div>
-                </div>`;
-            });
-            container.innerHTML = html;
-        } else {
-            // Active Vouchers Tab
+            container.innerHTML = historyVouchers.map(renderHistoryCard).join('');
+        } else if (tab === 'active') {
             if (activeTabBtn) {
                 activeTabBtn.style.background = '#1e3a8a';
                 activeTabBtn.style.color = '#ffffff';
                 activeTabBtn.style.fontWeight = '800';
-            }
-            if (historyTabBtn) {
-                historyTabBtn.style.background = 'transparent';
-                historyTabBtn.style.color = '#64748b';
-                historyTabBtn.style.fontWeight = '700';
             }
 
             if (activeVouchers.length === 0) {
@@ -1166,30 +1269,56 @@ $activeTab = 'profile';
                 return;
             }
 
-            let html = '';
-            activeVouchers.forEach((v, idx) => {
-                const voucherTitle = v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.type || 'Tourist Voucher'));
-                const safeCode = (v.voucher_code || '').replace(/'/g, "\\'");
-                const createdDate = v.created_at ? new Date(v.created_at).toLocaleDateString() : '';
+            container.innerHTML = activeVouchers.map(renderActiveCard).join('');
+        } else {
+            // Default: 'all' -> shows BOTH active vouchers and history vouchers
+            if (allTabBtn) {
+                allTabBtn.style.background = '#1e3a8a';
+                allTabBtn.style.color = '#ffffff';
+                allTabBtn.style.fontWeight = '800';
+            }
 
-                html += `
-                <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 18px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.25); cursor: pointer; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                        <div>
-                            <div style="font-size: 10px; font-weight: 800; color: #00f2fe; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Active Voucher #${idx + 1}</div>
-                            <strong style="color: #ffffff; font-size: 15px; font-weight: 800; line-height: 1.3;">${voucherTitle}</strong>
-                        </div>
-                        <span style="color: #ffffff !important; font-weight: 800; font-size: 11px; background: #10b981 !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; text-transform: uppercase;">
-                            <i class="fa-solid fa-check" style="margin-right: 4px; color: #ffffff !important;"></i>Claimed
-                        </span>
+            if (totalVouchers === 0) {
+                container.innerHTML = `
+                <div style="text-align:center; padding:38px 16px; background:#f8fafc; border-radius:18px;">
+                    <div style="width:52px; height:52px; border-radius:50%; background:#eff6ff; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; color:#1e3a8a; font-size:20px;">
+                        <i class="fa-solid fa-ticket"></i>
                     </div>
-
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.14); font-size: 11px; color: #e2e8f0; font-weight: 600;">
-                        ${createdDate ? `<span><i class="fa-regular fa-calendar" style="color: #00f2fe; margin-right: 4px;"></i>Claimed: ${createdDate}</span>` : '<span></span>'}
-                        <span style="color: #00f2fe; font-size: 11.5px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-qrcode"></i> Tap to open Voucher QR Pass <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i></span>
-                    </div>
+                    <strong style="display:block; color:#1e293b; font-size:15px; margin-bottom:4px;">No Vouchers Found</strong>
+                    <p style="margin:0 0 14px 0; font-size:12px; color:#64748b; line-height:1.45;">You haven't claimed any vouchers yet. Redeem deals with your travel points!</p>
+                    <button type="button" onclick="window.closeFullVouchersModal(); window.openFullDealsModal();" style="background:#1e3a8a !important; color:#ffffff !important; border:none !important; padding:9px 18px; border-radius:100px; font-size:12px; font-weight:800; cursor:pointer;">
+                        <i class="fa-solid fa-gift" style="margin-right:5px;"></i> Browse Available Deals
+                    </button>
                 </div>`;
-            });
+                return;
+            }
+
+            let html = '';
+
+            // 1. Active Vouchers Section
+            if (activeVouchers.length > 0) {
+                html += `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin:2px 0 10px;">
+                    <span style="font-size:12px; font-weight:800; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px; display:flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-ticket" style="color:#0284c7;"></i> Active Vouchers (${activeVouchers.length})
+                    </span>
+                    <span style="font-size:10px; font-weight:800; color:#047857; background:#ecfdf5; border:1px solid #a7f3d0; padding:2px 8px; border-radius:100px;">Ready To Use</span>
+                </div>`;
+                html += activeVouchers.map(renderActiveCard).join('');
+            }
+
+            // 2. History Vouchers Section
+            if (historyVouchers.length > 0) {
+                html += `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin:${activeVouchers.length > 0 ? '16px' : '2px'} 0 10px;">
+                    <span style="font-size:12px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; display:flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Voucher History (${historyVouchers.length})
+                    </span>
+                    <span style="font-size:10px; font-weight:800; color:#64748b; background:#f1f5f9; border:1px solid #e2e8f0; padding:2px 8px; border-radius:100px;">Redeemed</span>
+                </div>`;
+                html += historyVouchers.map(renderHistoryCard).join('');
+            }
+
             container.innerHTML = html;
         }
     };
@@ -1297,15 +1426,19 @@ $activeTab = 'profile';
 
     window.openActiveVoucherQrModal = function (codeOrVoucher) {
         let voucher = null;
-        const vouchers = window._cachedActiveVouchers || [];
+        const vouchers = (window._cachedActiveVouchers || []).concat(window._cachedHistoryVouchers || []);
 
         if (typeof codeOrVoucher === 'object' && codeOrVoucher !== null) {
             voucher = codeOrVoucher;
         } else {
-            voucher = vouchers.find(v => (v.voucher_code === codeOrVoucher || v.code === codeOrVoucher)) || { voucher_code: codeOrVoucher, code: codeOrVoucher };
+            voucher = vouchers.find(v => {
+                const vc = (v.voucher_code || v.code || v.redemption_code || '').toUpperCase().trim();
+                const q = String(codeOrVoucher || '').toUpperCase().trim();
+                return vc && vc === q;
+            }) || { voucher_code: codeOrVoucher, code: codeOrVoucher };
         }
 
-        const resolvedCode = (voucher && (voucher.voucher_code || voucher.code)) || (typeof codeOrVoucher === 'string' ? codeOrVoucher : '');
+        const resolvedCode = (voucher && (voucher.voucher_code || voucher.code || voucher.redemption_code)) || (typeof codeOrVoucher === 'string' ? codeOrVoucher : '');
         if (!resolvedCode) return;
 
         currentActiveQrCode = resolvedCode;
@@ -1318,9 +1451,30 @@ $activeTab = 'profile';
         const statusBadge = document.getElementById('active-qr-status-badge');
         const noticeEl = document.getElementById('active-qr-notice');
 
-        const vTitle = voucher.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (voucher.type === 'environmental_fee' ? 'Waived Environmental Fee' : (voucher.type || 'Tourist Voucher'));
+        const vTitle = voucher.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (voucher.type === 'environmental_fee' ? 'Waived Environmental Fee' : (voucher.title || voucher.voucher_name || voucher.name || voucher.type || 'Tourist Voucher'));
         if (titleEl) titleEl.textContent = vTitle;
-        if (partnerEl) partnerEl.textContent = voucher.partner_establishment || voucher.category || 'Official Partner Merchant';
+        if (partnerEl) partnerEl.textContent = voucher.partner_establishment || voucher.partner || voucher.merchant || voucher.category || 'Official Partner Merchant';
+
+        const expiryEl = document.getElementById('active-qr-modal-expiry');
+        const expiryContainer = document.getElementById('active-qr-modal-expiry-container');
+        if (expiryEl) {
+            const formattedExp = window.formatVoucherExpiry ? window.formatVoucherExpiry(voucher) : (voucher.expires_at || 'No Expiration');
+            const rawExp = voucher.expires_at || voucher.valid_until || voucher.expiry_date;
+            const isPast = rawExp && new Date(rawExp).getTime() < Date.now();
+            if (isPast) {
+                expiryEl.innerHTML = `<span style="color:#dc2626;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:4px;"></i>Expired (${formattedExp})</span>`;
+                if (expiryContainer) {
+                    expiryContainer.style.background = '#fef2f2';
+                    expiryContainer.style.borderColor = '#fecaca';
+                }
+            } else {
+                expiryEl.innerHTML = `<span style="color:#1e3a8a;">${formattedExp}</span>`;
+                if (expiryContainer) {
+                    expiryContainer.style.background = '#f8fafc';
+                    expiryContainer.style.borderColor = '#e2e8f0';
+                }
+            }
+        }
 
         if (imgEl) {
             imgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(resolvedCode)}`;
@@ -1603,13 +1757,13 @@ $activeTab = 'profile';
         if (e && e.detail && e.detail.view === 'profile') {
             hydrateProfileFromCache();
             fetchProfileData(true);
-            fetchPointsAndVouchers();
+            fetchPointsAndVouchers(true);
         }
     });
 
     hydrateProfileFromCache();
     fetchProfileData();
-    fetchPointsAndVouchers();
+    fetchPointsAndVouchers(true);
 </script>
 
 <!-- Full Trip History Modal -->
@@ -1659,15 +1813,19 @@ $activeTab = 'profile';
             </button>
         </div>
 
-        <!-- Segmented Tab Switcher (Active Vouchers vs Voucher History) -->
+        <!-- Segmented Tab Switcher (All vs Active vs History) -->
         <div style="display:flex; background:#f1f5f9; padding:4px; margin:12px 16px 4px; border-radius:12px; gap:4px; flex-shrink:0;">
+            <button type="button" id="modal-tab-all-vouchers" onclick="window.switchFullVouchersTab('all')"
+                style="flex:1; padding:8px 6px; border-radius:9px; border:none; background:#1e3a8a; color:#ffffff; font-size:11.5px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; transition:all 0.2s ease;">
+                <i class="fa-solid fa-layer-group"></i> All (<span id="modal-tab-all-count">0</span>)
+            </button>
             <button type="button" id="modal-tab-active-vouchers" onclick="window.switchFullVouchersTab('active')"
-                style="flex:1; padding:8px 10px; border-radius:9px; border:none; background:#1e3a8a; color:#ffffff; font-size:12px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:all 0.2s ease;">
-                <i class="fa-solid fa-ticket"></i> Active Vouchers
+                style="flex:1; padding:8px 6px; border-radius:9px; border:none; background:transparent; color:#64748b; font-size:11.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; transition:all 0.2s ease;">
+                <i class="fa-solid fa-ticket"></i> Active (<span id="modal-tab-active-count">0</span>)
             </button>
             <button type="button" id="modal-tab-history-vouchers" onclick="window.switchFullVouchersTab('history')"
-                style="flex:1; padding:8px 10px; border-radius:9px; border:none; background:transparent; color:#64748b; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:all 0.2s ease;">
-                <i class="fa-solid fa-clock-rotate-left"></i> Voucher History
+                style="flex:1; padding:8px 6px; border-radius:9px; border:none; background:transparent; color:#64748b; font-size:11.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; transition:all 0.2s ease;">
+                <i class="fa-solid fa-clock-rotate-left"></i> History (<span id="modal-tab-history-count">0</span>)
             </button>
         </div>
 
@@ -1760,7 +1918,15 @@ $activeTab = 'profile';
                 style="font-size:17px; font-weight:900; color:#1e3a8a; margin-bottom:4px; line-height:1.3;">Tourist
                 Voucher</div>
             <div id="active-qr-modal-partner"
-                style="font-size:12px; font-weight:700; color:#64748b; margin-bottom:14px;">Official Partner Merchant
+                style="font-size:12px; font-weight:700; color:#64748b; margin-bottom:10px;">Official Partner Merchant
+            </div>
+
+            <!-- Expiration Date Indicator -->
+            <div id="active-qr-modal-expiry-container"
+                style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:14px; padding:7px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px;">
+                <i class="fa-regular fa-calendar-xmark" style="color:#0284c7; font-size:13px;"></i>
+                <span style="font-size:11.5px; font-weight:700; color:#64748b;">Expires:</span>
+                <span id="active-qr-modal-expiry" style="font-size:12px; font-weight:800; color:#1e293b;">--</span>
             </div>
 
             <!-- QR Code Container -->

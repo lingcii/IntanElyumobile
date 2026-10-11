@@ -50,9 +50,12 @@ class PointsController extends Controller
 
         $vouchers = collect();
         try {
+            $pointRedemptions = collect();
             if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
-                $vouchers = PointRedemption::where('user_id', $user->id)->latest()->get();
+                $pointRedemptions = PointRedemption::where('user_id', $user->id)->latest()->get();
             }
+
+            $voucherRedemptions = collect();
             if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
                 $rawRedemptions = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
                     ->leftJoin('vouchers', 'voucher_redemptions.voucher_id', '=', 'vouchers.id')
@@ -78,7 +81,7 @@ class PointsController extends Controller
                     ->latest('voucher_redemptions.created_at')
                     ->get();
 
-                $vouchers = $rawRedemptions->map(function ($r) {
+                $voucherRedemptions = $rawRedemptions->map(function ($r) {
                     $category = 'Food & Dining';
                     $text = strtolower(($r->type ?? '') . ' ' . ($r->partner_establishment ?? '') . ' ' . ($r->description ?? '') . ' ' . ($r->terms_and_conditions ?? ''));
                     if (str_contains($text, 'surf') || str_contains($text, 'activity') || str_contains($text, 'tour') || str_contains($text, 'hike') || str_contains($text, 'rental') || str_contains($text, 'lesson')) {
@@ -92,6 +95,43 @@ class PointsController extends Controller
                     return $r;
                 });
             }
+
+            // Merge both collections so no user vouchers are dropped
+            $merged = collect($voucherRedemptions);
+            $seenCodes = $voucherRedemptions->pluck('voucher_code')->filter()->map(fn($c) => strtoupper(trim($c)))->all();
+
+            foreach ($pointRedemptions as $pr) {
+                $code = strtoupper(trim($pr->voucher_code ?? ''));
+                if ($code && in_array($code, $seenCodes)) {
+                    continue;
+                }
+                $type = $pr->type ?? 'Voucher';
+                $category = 'Souvenirs';
+                if ($type === 'environmental_fee') {
+                    $category = 'Activities';
+                }
+                $merged->push((object) [
+                    'id' => $pr->id,
+                    'voucher_id' => null,
+                    'type' => $type,
+                    'points_cost' => (int) ($pr->points_cost ?? 0),
+                    'voucher_code' => $pr->voucher_code,
+                    'status' => $pr->status ?? 'active',
+                    'redeemed_at' => null,
+                    'created_at' => $pr->created_at ? $pr->created_at->toIso8601String() : now()->toIso8601String(),
+                    'partner_establishment' => 'LUPTO Eco Tourism',
+                    'description' => $type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : ($type === 'environmental_fee' ? 'Waived Environmental Fee' : 'Tourist Voucher'),
+                    'discount_value' => '50.00',
+                    'discount_type' => 'fixed',
+                    'image' => null,
+                    'terms_and_conditions' => null,
+                    'expires_at' => null,
+                    'expiration_type' => 'until_unusable',
+                    'category' => $category
+                ]);
+            }
+
+            $vouchers = $merged->sortByDesc('created_at')->values();
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('PointsController getBalance vouchers error: ' . $e->getMessage());
             $vouchers = collect();
@@ -350,13 +390,34 @@ class PointsController extends Controller
                     } catch (\Throwable $ignored) {}
                 }
 
-                return PointRedemption::create([
+                $pr = PointRedemption::create([
                     'user_id' => $user->id,
                     'type' => $type,
                     'points_cost' => $cost,
                     'voucher_code' => $code,
                     'status' => 'active'
                 ]);
+
+                // Also sync to voucher_redemptions if table exists so staff QR scanning works seamlessly
+                if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
+                    try {
+                        \Illuminate\Support\Facades\DB::table('voucher_redemptions')->insert([
+                            'voucher_id'      => null,
+                            'user_id'         => $user->id,
+                            'redemption_code' => $code,
+                            'qr_token'        => 'elyu_rdm_' . bin2hex(random_bytes(16)),
+                            'points_used'     => $cost,
+                            'reward_name_snapshot' => $type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : ($type === 'environmental_fee' ? 'Waived Environmental Fee' : ucwords(str_replace('_', ' ', $type))),
+                            'status'          => 'claimed',
+                            'redeemed_at'     => null,
+                            'claimed_at'      => now(),
+                            'created_at'      => now(),
+                            'updated_at'      => now(),
+                        ]);
+                    } catch (\Throwable $ignored) {}
+                }
+
+                return $pr;
             });
 
             \App\Models\Notification::createSafely(

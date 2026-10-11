@@ -1409,9 +1409,18 @@ async function handleModalRedeem() {
             }
 
             window.dashboardNeedsRefresh = true;
+            window.profileNeedsRefresh = true;
 
-            // Invalidate cached vouchers so stock is re-synced
-            try { localStorage.removeItem(VOUCHERS_CACHE_KEY); } catch(e) {}
+            // Invalidate cached vouchers & profile points balance so fresh claimed vouchers immediately appear in Profile
+            try { 
+                localStorage.removeItem(VOUCHERS_CACHE_KEY); 
+                for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const k = localStorage.key(i);
+                    if (k && (k.startsWith('points_balance_') || k.startsWith('profile_data_') || k.startsWith('dashboard_data_'))) {
+                        localStorage.removeItem(k);
+                    }
+                }
+            } catch(e) {}
 
             // Switch modal to Claimed Box immediately
             const claimedBox = document.getElementById('modal-claimed-box');

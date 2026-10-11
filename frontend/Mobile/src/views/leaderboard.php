@@ -155,14 +155,15 @@ $activeTab = 'leaderboard';
 </div>
 
 <script>
-    var currentSortMode = 'points';
-    var rawLeadersList = [];
-    var cachedMeData = null;
-    var cachedMyRank = 999;
+    var currentSortMode = window._cachedLeaderboardSortMode || 'points';
+    var rawLeadersList = window._cachedRawLeadersList || [];
+    var cachedMeData = window._cachedMeData || null;
+    var cachedMyRank = (window._cachedMyRank !== undefined && window._cachedMyRank !== null) ? window._cachedMyRank : 999;
 
     function setLeaderboardSort(mode) {
         if (currentSortMode === mode && arguments[1] !== true) return;
         currentSortMode = mode;
+        window._cachedLeaderboardSortMode = mode;
 
         const tabsWrapper = document.querySelector('.leaderboard-tabs-wrapper');
         if (tabsWrapper) {
@@ -225,6 +226,26 @@ $activeTab = 'leaderboard';
             countBadge.textContent = leaders.length > 0 ? `Top ${Math.min(leaders.length, 10)} Explorers` : '0 Explorers';
         }
 
+        // Prepare current logged-in user standing information (function-scoped for ranking comparisons)
+        const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+        const myPts = cachedMeData ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? cachedMeData.claimable_points ?? 0) : parseInt(authUser.points || 0);
+        const myActivities = cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.total_activities ?? cachedMeData.places_visited ?? 0) : parseInt(authUser.completed_activities || authUser.places_visited || 0);
+        const isUnranked = (myPts === 0 && myActivities === 0);
+        const myRankNum = (!isUnranked && cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (isUnranked ? '—' : 1);
+        const myRawName = (cachedMeData ? (cachedMeData.name || cachedMeData.full_name) : (authUser.name || authUser.full_name || '')).trim() || 'Explorer';
+        const myDisplayName = isUnranked ? 'Unranked Explorer' : myRawName;
+        const myAvatar = cachedMeData && cachedMeData.avatar ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myRawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+
+        window.myUserData = {
+            name: myDisplayName,
+            avatar: myAvatar,
+            pts: myPts,
+            rank: myRankNum,
+            activities: myActivities,
+            location: cachedMeData ? (cachedMeData.home_location || cachedMeData.municipality || '') : '',
+            bio: cachedMeData ? (cachedMeData.bio || '') : ''
+        };
+
         // Render Standing Banner
         const banner = document.getElementById('my-standing-banner');
         const rankCircle = document.getElementById('my-rank-circle');
@@ -234,25 +255,6 @@ $activeTab = 'leaderboard';
 
         if (banner) {
             banner.style.display = 'flex';
-            const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-            const myPts = cachedMeData ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? cachedMeData.claimable_points ?? 0) : parseInt(authUser.points || 0);
-            const myActivities = cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.total_activities ?? cachedMeData.places_visited ?? 0) : parseInt(authUser.completed_activities || authUser.places_visited || 0);
-            const isUnranked = (myPts === 0 && myActivities === 0);
-            const myRankNum = (!isUnranked && cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (isUnranked ? '—' : 1);
-            const myRawName = (cachedMeData ? (cachedMeData.name || cachedMeData.full_name) : (authUser.name || authUser.full_name || '')).trim() || 'Explorer';
-            const myDisplayName = isUnranked ? 'Unranked Explorer' : myRawName;
-            const myAvatar = cachedMeData && cachedMeData.avatar ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myRawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
-
-            window.myUserData = {
-                name: myDisplayName,
-                avatar: myAvatar,
-                pts: myPts,
-                rank: myRankNum,
-                activities: myActivities,
-                location: cachedMeData ? (cachedMeData.home_location || cachedMeData.municipality || '') : '',
-                bio: cachedMeData ? (cachedMeData.bio || '') : ''
-            };
-
             if (avatarEl) avatarEl.src = myAvatar;
             if (titleEl) titleEl.textContent = myDisplayName;
             if (rankCircle) {
@@ -343,9 +345,10 @@ $activeTab = 'leaderboard';
     function generatePodiumPlace(user, rank) {
         const displayName = getUserDisplayName(user, rank);
         const rawName = (user.name || user.full_name || user.real_name || 'Explorer').replace(/[^a-zA-Z\s]/g, '').trim() || 'Explorer';
+        const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || '')).replace(/\/+$/, '');
         let avatarUrl = user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
         if (avatarUrl && !avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:')) {
-            avatarUrl = (window.backendUrl || '') + '/' + avatarUrl.replace(/^\//, '');
+            avatarUrl = bUrl ? (bUrl + '/' + avatarUrl.replace(/^\//, '')) : avatarUrl;
         }
 
         let medalIcon = '';
@@ -407,9 +410,10 @@ $activeTab = 'leaderboard';
     function generateRankItem(user, rank, isMe) {
         const displayName = getUserDisplayName(user, rank);
         const rawName = (user.name || user.full_name || user.real_name || 'Explorer').replace(/[^a-zA-Z\s]/g, '').trim() || 'Explorer';
+        const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || '')).replace(/\/+$/, '');
         let avatarUrl = user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
         if (avatarUrl && !avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:')) {
-            avatarUrl = (window.backendUrl || '') + '/' + avatarUrl.replace(/^\//, '');
+            avatarUrl = bUrl ? (bUrl + '/' + avatarUrl.replace(/^\//, '')) : avatarUrl;
         }
 
         const activeClass = isMe ? 'is-me' : '';
@@ -494,7 +498,7 @@ $activeTab = 'leaderboard';
         if (isSelf) {
             const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
             if (token) {
-                const backendUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+                const backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
                 fetch(backendUrl + '/api/tourist/points/balance', {
                     headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
                 }).then(r => r.json()).then(d => {
@@ -585,14 +589,18 @@ $activeTab = 'leaderboard';
         const list = data.users || data.leaders || data.tourists || data.data || data.leaderboard || [];
         if (Array.isArray(list) && list.length > 0) {
             rawLeadersList = list;
+            window._cachedRawLeadersList = list;
         }
         if (data.me) {
             cachedMeData = data.me;
+            window._cachedMeData = data.me;
         }
         if (data.my_rank !== undefined && data.my_rank !== null) {
             cachedMyRank = parseInt(data.my_rank);
+            window._cachedMyRank = cachedMyRank;
         } else if (data.myRank !== undefined && data.myRank !== null) {
             cachedMyRank = parseInt(data.myRank);
+            window._cachedMyRank = cachedMyRank;
         }
 
         // Resilient self-matching if cachedMeData was not provided directly by API
@@ -603,7 +611,9 @@ $activeTab = 'leaderboard';
             ));
             if (found) {
                 cachedMeData = found;
+                window._cachedMeData = found;
                 cachedMyRank = found.rank || (rawLeadersList.indexOf(found) + 1);
+                window._cachedMyRank = cachedMyRank;
             }
         }
         renderLeaderboardUI();
@@ -635,14 +645,14 @@ $activeTab = 'leaderboard';
         const refreshIcon = document.getElementById('leaderboard-refresh-icon');
         if (refreshIcon && forceRefresh) refreshIcon.classList.add('fa-spin');
 
-        // 1. If we already have leaders in memory, render immediately!
+        // 1. If we already have leaders in memory or window cache, render immediately!
         if (rawLeadersList && rawLeadersList.length > 0) {
             renderLeaderboardUI();
         }
 
         try {
             const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-            var backendUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+            var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
             const cacheKey = 'leaderboard_data_v18_' + (token ? token.substring(0, 10) : 'public');
 
             if (forceRefresh) {
@@ -721,7 +731,7 @@ $activeTab = 'leaderboard';
                         if (res.ok) {
                             const json = await res.json();
                             const users = json.users || json.leaders || json.data || json.tourists || [];
-                            if (Array.isArray(users) && users.length > 0) return json;
+                            if (Array.isArray(users)) return json;
                         }
                     } catch (err1) {
                         console.warn("Tier 1 tourist leaderboard fetch error:", err1);
@@ -736,24 +746,38 @@ $activeTab = 'leaderboard';
                     if (res2.ok) {
                         const json2 = await res2.json();
                         const users2 = json2.users || json2.leaders || json2.data || json2.tourists || [];
-                        if (Array.isArray(users2) && users2.length > 0) return json2;
+                        if (Array.isArray(users2)) return json2;
                     }
                 } catch (err2) {
                     console.warn("Tier 2 public leaderboard fetch error:", err2);
                 }
 
-                // Tier 3: Direct canonical production domain
+                // Tier 3: Standard public endpoint /api/leaderboard on configured backend
                 try {
-                    const res3 = await fetch('https://api.intan-elyu.online/api/public/leaderboard?limit=50', {
-                        headers: { 'Accept': 'application/json' }
-                    });
+                    const headers3 = { 'Accept': 'application/json' };
+                    if (token) headers3['Authorization'] = 'Bearer ' + token;
+                    const res3 = await fetch(backendUrl + '/api/leaderboard?limit=50', { headers: headers3 });
                     if (res3.ok) {
                         const json3 = await res3.json();
                         const users3 = json3.users || json3.leaders || json3.data || json3.tourists || [];
-                        if (Array.isArray(users3) && users3.length > 0) return json3;
+                        if (Array.isArray(users3)) return json3;
                     }
                 } catch (err3) {
-                    console.warn("Tier 3 direct API fetch error:", err3);
+                    console.warn("Tier 3 public leaderboard fetch error:", err3);
+                }
+
+                // Tier 4: Direct canonical production domain
+                try {
+                    const res4 = await fetch('https://api.intan-elyu.online/api/public/leaderboard?limit=50', {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (res4.ok) {
+                        const json4 = await res4.json();
+                        const users4 = json4.users || json4.leaders || json4.data || json4.tourists || [];
+                        if (Array.isArray(users4)) return json4;
+                    }
+                } catch (err4) {
+                    console.warn("Tier 4 direct API fetch error:", err4);
                 }
 
                 throw new Error("Could not reach any leaderboard endpoint");
@@ -820,11 +844,13 @@ $activeTab = 'leaderboard';
     });
 
     // Also listen for SPA viewLoaded event when navigating back to leaderboard
-    document.addEventListener('viewLoaded', function (e) {
-        if (e.detail && e.detail.view === 'leaderboard') {
+    function handleLeaderboardViewLoaded(e) {
+        if (e && e.detail && e.detail.view === 'leaderboard') {
             if (typeof window.initLeaderboardView === 'function') {
                 window.initLeaderboardView();
             }
         }
-    });
+    }
+    window.addEventListener('viewLoaded', handleLeaderboardViewLoaded);
+    document.addEventListener('viewLoaded', handleLeaderboardViewLoaded);
 </script>
